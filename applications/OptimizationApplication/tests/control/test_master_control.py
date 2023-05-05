@@ -15,28 +15,24 @@ class TestMassterControl(kratos_unittest.TestCase):
         cls.model_part_3 = cls.model.CreateModelPart("test3")
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test1"],
             "control_variable_name" : "DENSITY"
         }""")
         cls.properties_control_1 = MaterialPropertiesControl("control1", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test2"],
             "control_variable_name" : "DENSITY"
         }""")
         cls.properties_control_2 = MaterialPropertiesControl("control2", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test3"],
             "control_variable_name" : "THICKNESS"
         }""")
         cls.properties_control_3 = MaterialPropertiesControl("control3", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test3"],
             "control_variable_name" : "DENSITY"
         }""")
@@ -60,7 +56,10 @@ class TestMassterControl(kratos_unittest.TestCase):
         cls.master_control.AddControl(cls.properties_control_3)
         cls.master_control.AddControl(cls.properties_control_4)
 
-        cls.master_control.Initialize()
+        cls.properties_control_1.Initialize()
+        cls.properties_control_2.Initialize()
+        cls.properties_control_3.Initialize()
+        cls.properties_control_4.Initialize()
 
     def test_GetListOfControls(self):
         self.assertEqual([self.properties_control_1, self.properties_control_2, self.properties_control_3, self.properties_control_4], self.master_control.GetListOfControls())
@@ -76,7 +75,7 @@ class TestMassterControl(kratos_unittest.TestCase):
             density_container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
-            ["test1.control1", "test2.control2", "test3.control4"],
+            ["test1.Merge_test1_EN", "test2.Merge_test2_EN", "test3.Merge_test3_EN"],
             density_container_expression_model_part_names)
 
         thickness_collective_expression = result[Kratos.THICKNESS]
@@ -86,7 +85,7 @@ class TestMassterControl(kratos_unittest.TestCase):
             thickness_container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
-            ["test3.control3"],
+            ["test3.Merge_test3_EN"],
             thickness_container_expression_model_part_names)
 
     def test_GetEmptyField(self):
@@ -98,7 +97,7 @@ class TestMassterControl(kratos_unittest.TestCase):
             container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
-            ["test1.control1", "test2.control2", "test3.control3", "test3.control4"],
+            ["test1.Merge_test1_EN", "test2.Merge_test2_EN", "test3.Merge_test3_EN", "test3.Merge_test3_EN"],
             container_expression_model_part_names)
 
     def test_MapGradient(self):

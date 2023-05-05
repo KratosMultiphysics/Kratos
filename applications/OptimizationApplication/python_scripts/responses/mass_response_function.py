@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import ConvertCollectiveExpressionValueMapToModelPartValueMap
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -18,14 +19,12 @@ class MassResponseFunction(ResponseFunction):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<RESPONSE_NAME>_combined_no_neighbours_response",
             "evaluated_model_part_names"     : [
                 "PLEASE_PROVIDE_A_MODEL_PART_NAME"
             ]
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.output_model_part_name = parameters["combined_output_model_part_name"].GetString()
         self.model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
         self.model = model
         self.model_part: Kratos.ModelPart = None
@@ -37,18 +36,9 @@ class MassResponseFunction(ResponseFunction):
         return [KratosOA.SHAPE, Kratos.DENSITY, Kratos.THICKNESS, KratosOA.CROSS_AREA]
 
     def Initialize(self) -> None:
-        # get the model part name
-        output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", self.GetName())
-
-        # get root model part
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
         root_model_part = model_parts_list[0].GetRootModelPart()
-
-        # create the combined model part
-        if not root_model_part.HasSubModelPart(output_model_part_name):
-            self.model_part = Kratos.ModelPartOperationUtilities.Merge(output_model_part_name, root_model_part, model_parts_list, False)
-        else:
-            self.model_part = root_model_part.GetSubModelPart(output_model_part_name)
+        _, self.model_part = ModelPartUtilities.MergeModelParts(root_model_part, model_parts_list, False)
 
     def Check(self) -> None:
         KratosOA.ResponseUtils.MassResponseUtils.Check(self.model_part)
@@ -69,7 +59,9 @@ class MassResponseFunction(ResponseFunction):
 
     def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
         # first calculate the gradients
-        KratosOA.ResponseUtils.MassResponseUtils.CalculateGradient(self.model_part, ConvertCollectiveExpressionValueMapToModelPartValueMap(physical_variable_collective_expressions))
+        merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, False)
+        KratosOA.ResponseUtils.MassResponseUtils.CalculateGradient(list(merged_model_part_map.keys()), list(merged_model_part_map.values()), list(intersected_model_part_map.values()))
 
         # now fill the collective expressions
         for variable, collective_expression in physical_variable_collective_expressions.items():

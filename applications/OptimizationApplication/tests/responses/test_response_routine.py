@@ -17,28 +17,24 @@ class TestResponseRoutine(kratos_unittest.TestCase):
         cls.model_part_3 = cls.model.CreateModelPart("test3")
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test1"],
             "control_variable_name" : "DENSITY"
         }""")
         cls.properties_control_1 = MaterialPropertiesControl("control1", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test2"],
             "control_variable_name" : "YOUNG_MODULUS"
         }""")
         cls.properties_control_2 = MaterialPropertiesControl("control2", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test1"],
             "control_variable_name" : "THICKNESS"
         }""")
         cls.properties_control_3 = MaterialPropertiesControl("control3", cls.model, parameters)
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test3"],
             "control_variable_name" : "DENSITY"
         }""")
@@ -63,16 +59,19 @@ class TestResponseRoutine(kratos_unittest.TestCase):
         cls.master_control.AddControl(cls.properties_control_3)
         cls.master_control.AddControl(cls.properties_control_4)
 
-        cls.master_control.Initialize()
+        cls.properties_control_1.Initialize()
+        cls.properties_control_2.Initialize()
+        cls.properties_control_3.Initialize()
+        cls.properties_control_4.Initialize()
 
         # now create the response
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<RESPONSE_NAME>",
             "evaluated_model_part_names"     : [
                 "test1", "test2"
             ]
         }""")
         cls.response = MassResponseFunction("test", cls.model, parameters)
+        cls.response.Initialize()
 
         cls.response_routine = ResponseRoutine(cls.master_control, cls.response)
         cls.response.Initialize()
