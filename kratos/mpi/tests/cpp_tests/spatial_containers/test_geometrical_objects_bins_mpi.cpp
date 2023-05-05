@@ -180,28 +180,32 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
     std::vector<std::vector<GeometricalObjectsBinsMPI::ResultType>> results;
 
     bins.IterativeSearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
-    KRATOS_CHECK_EQUAL(results.size(), 1);
-    KRATOS_CHECK_EQUAL(results[0].size(), 0);
 
-    // bins.SearchInRadius(center_point, .3, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 4);
+    // As node is only in first partition will be check only in first one
+    if (r_data_comm.Rank() == 0) {
+        KRATOS_CHECK_EQUAL(results.size(), 1);
+        KRATOS_CHECK_EQUAL(results[0].size(), 0);
 
-    // bins.SearchInRadius(center_point, .4, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 4);
+        // bins.SearchInRadius(center_point, .3, results);
+        // KRATOS_CHECK_EQUAL(results.size(), 1);
+        // KRATOS_CHECK_EQUAL(results[0].size(), 4);
 
-    // bins.SearchInRadius(center_point, .6, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 8);
+        // bins.SearchInRadius(center_point, .4, results);
+        // KRATOS_CHECK_EQUAL(results.size(), 1);
+        // KRATOS_CHECK_EQUAL(results[0].size(), 4);
 
-    // bins.SearchInRadius(center_point, .7, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 8);
+        // bins.SearchInRadius(center_point, .6, results);
+        // KRATOS_CHECK_EQUAL(results.size(), 1);
+        // KRATOS_CHECK_EQUAL(results[0].size(), 8);
 
-    // bins.SearchInRadius(center_point, .9, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 12);
+        // bins.SearchInRadius(center_point, .7, results);
+        // KRATOS_CHECK_EQUAL(results.size(), 1);
+        // KRATOS_CHECK_EQUAL(results[0].size(), 8);
+
+        // bins.SearchInRadius(center_point, .9, results);
+        // KRATOS_CHECK_EQUAL(results.size(), 1);
+        // KRATOS_CHECK_EQUAL(results[0].size(), 12);
+    }
 }
 
 // /** Checks bins search nearest
