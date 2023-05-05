@@ -58,6 +58,9 @@ void GeometricalObjectsBinsMPI::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
+    // Doing MPI check
+    CheckAllMPIPartitionsAreConnected();
+
     // Find the partitions were point is inside
     const int current_rank = GetRank();
     std::vector<int> ranks = RansksPointIsInsideBoundingBoxWithTolerance(rPoint.Coordinates(), Radius);
@@ -92,6 +95,9 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearestIn
     const double Radius
     )
 {
+    // Doing MPI check
+    CheckAllMPIPartitionsAreConnected();
+
     // Result to return
     ResultType current_result;
 
@@ -140,6 +146,9 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearest(c
 
 GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchIsInside(const Point& rPoint)
 {
+    // Doing MPI check
+    CheckAllMPIPartitionsAreConnected();
+
     // Result to return
     ResultType current_result;
 
@@ -417,6 +426,17 @@ std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBoxWithTo
     }
 
     return ranks;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GeometricalObjectsBinsMPI::CheckAllMPIPartitionsAreConnected()
+{
+    const int world_size = GetWorldSize();
+    int counter = 1;
+    counter = mrDataCommunicator.SumAll(counter);
+    KRATOS_ERROR_IF_NOT(counter == world_size) << "Not all MPI partitions are connected" << std::endl;
 }
 
 }  // namespace Kratos.

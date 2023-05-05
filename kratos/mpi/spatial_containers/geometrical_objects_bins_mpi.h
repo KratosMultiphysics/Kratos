@@ -375,6 +375,11 @@ private:
         const double Tolerance
         );
 
+    /**
+     * @brief This method checks if all MPI partitions are connected
+     */
+    void CheckAllMPIPartitionsAreConnected();
+
     // /**
     //  * @brief This method synchronizes the search in radius
     //  * @param rResults The results of the search (local version)
