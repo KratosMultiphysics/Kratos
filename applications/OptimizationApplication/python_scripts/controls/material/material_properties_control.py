@@ -1,13 +1,17 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 
-def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationProblem):
-    return MaterialPropertiesControl(name, model, parameters)
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _):
+    if not parameters.Has("name"):
+        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+    if not parameters.Has("Parameters"):
+        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"Parameters\" in parameters [ parameters = {parameters}].")
+
+    return MaterialPropertiesControl(parameters["name"].GetString(), model, parameters["Parameters"])
 
 class MaterialPropertiesControl(Control):
     """Material properties control
