@@ -5,7 +5,6 @@ from KratosMultiphysics.OptimizationApplication.execution_policies.execution_pol
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import ConvertCollectiveExpressionValueMapToModelPartValueMap
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
