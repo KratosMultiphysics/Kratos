@@ -19,14 +19,12 @@ class MassResponseFunction(ResponseFunction):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<RESPONSE_NAME>_combined_no_neighbours_response",
             "evaluated_model_part_names"     : [
                 "PLEASE_PROVIDE_A_MODEL_PART_NAME"
             ]
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.output_model_part_name = parameters["combined_output_model_part_name"].GetString()
         self.model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
         self.model = model
         self.model_part: Kratos.ModelPart = None
@@ -40,19 +38,7 @@ class MassResponseFunction(ResponseFunction):
     def Initialize(self) -> None:
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
         root_model_part = model_parts_list[0].GetRootModelPart()
-        is_new_model_part, self.model_part = ModelPartUtilities.MergeModelParts(root_model_part, model_parts_list, False)
-
-        output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", self.GetName())
-
-        # get root model part
-        model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
-        root_model_part = model_parts_list[0].GetRootModelPart()
-
-        # create the combined model part
-        if not root_model_part.HasSubModelPart(output_model_part_name):
-            self.model_part = Kratos.ModelPartOperationUtilities.Merge(output_model_part_name, root_model_part, model_parts_list, False)
-        else:
-            self.model_part = root_model_part.GetSubModelPart(output_model_part_name)
+        _, self.model_part = ModelPartUtilities.MergeModelParts(root_model_part, model_parts_list, False)
 
     def Check(self) -> None:
         KratosOA.ResponseUtils.MassResponseUtils.Check(self.model_part)
