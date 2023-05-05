@@ -167,25 +167,15 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
           NodesContainerType pNodes,
           double const Radius,
           ModelPart& rComputingModelPart,
-          const Variable<array_1d<double, 3>>& rVariable,
-          const double MinNumOfNeighNodes
-          );
-          //TODO: Do it in parallel and allow rVariable to be a double variable i.e. TEMPERATURE (Make a template)
-
-      void AssignMPCsToNodes(
-          NodesContainerType pNodes,
-          double const Radius,
-          ModelPart& rComputingModelPart,
           const Variable<double>& rVariable,
           double const MinNumOfNeighNodes
           );
-          //TODO: Do it in parallel and allow rVariable to be a double variable i.e. TEMPERATURE (Make a template)
       
       void AssignMPCsToNodesParallel(
           NodesContainerType pNodes,
           double const Radius,
           ModelPart& rComputingModelPart,
-          const Variable<array_1d<double, 3>>& rVariable,
+          const Variable<double>& rVariable,
           const double MinNumOfNeighNodes
           );
 
