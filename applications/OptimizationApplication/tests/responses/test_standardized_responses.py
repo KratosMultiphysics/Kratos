@@ -43,7 +43,6 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
         cls.response_function.Check()
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["test"],
             "control_variable_name" : "DENSITY"
         }""")
@@ -51,7 +50,7 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
 
         cls.master_control = MasterControl()
         cls.master_control.AddControl(cls.properties_control)
-        cls.master_control.Initialize()
+        cls.properties_control.Initialize()
 
         cls.initial_configuration = cls.master_control.GetEmptyField()
         cls.initial_configuration.Read(Kratos.DENSITY)
