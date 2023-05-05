@@ -68,10 +68,11 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         cond_id_ref = [125,78,117,18,68,1,41,119]
 
         # One node search
-        results = self.search.SearchInRadius(self.node, radius)
-        self.assertEqual(len(results), 8)
-        for result in results:
-            self.assertTrue(result.Get().Id in cond_id_ref)
+        if not KM.IsDistributedRun():
+            results = self.search.SearchInRadius(self.node, radius)
+            self.assertEqual(len(results), 8)
+            for result in results:
+                self.assertTrue(result.Get().Id in cond_id_ref)
 
         # Nodes array search
         results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
@@ -82,22 +83,35 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
     def test_GeometricalObjectsBins_SearchNearestInRadius(self):
         radius = 0.35
-        result = self.search.SearchNearestInRadius(self.node, radius)
-        self.assertEqual(result.Get().Id, 1)
+
+        # One node search
+        if not KM.IsDistributedRun():
+            result = self.search.SearchNearestInRadius(self.node, radius)
+            self.assertEqual(result.Get().Id, 1)
+
+        # Nodes array search
         results = self.search.SearchNearestInRadius(self.sub_model_part.Nodes, radius)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].Get().Id, 1)
 
     def test_GeometricalObjectsBins_SearchNearest(self):
-        result = self.search.SearchNearest(self.node)
-        self.assertEqual(result.Get().Id, 1)
+        # One node search
+        if not KM.IsDistributedRun():
+            result = self.search.SearchNearest(self.node)
+            self.assertEqual(result.Get().Id, 1)
+
+        # Nodes array search
         results = self.search.SearchNearest(self.sub_model_part.Nodes)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].Get().Id, 1)
 
     def test_GeometricalObjectsBins_SearchIsInside(self):
-        result = self.search.SearchIsInside(self.node)
-        self.assertEqual(result.Get(), None)
+        # One node search
+        if not KM.IsDistributedRun():
+            result = self.search.SearchIsInside(self.node)
+            self.assertEqual(result.Get(), None)
+
+        # Nodes array search
         results = self.search.SearchIsInside(self.sub_model_part.Nodes)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].Get(), None)
