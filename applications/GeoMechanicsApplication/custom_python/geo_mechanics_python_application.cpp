@@ -42,7 +42,8 @@ PYBIND11_MODULE(KratosGeoMechanicsApplication,m)
     py::class_<KratosGeoMechanicsApplication,
             KratosGeoMechanicsApplication::Pointer,
             KratosApplication>(m, "KratosGeoMechanicsApplication")
-            .def(py::init<>());
+            .def(py::init<>())
+            .def("SetExperimental",&KratosGeoMechanicsApplication::SetExperimental);
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);

@@ -29,6 +29,11 @@ using NodeType = Node<3>;
 KratosGeoMechanicsApplication::KratosGeoMechanicsApplication() :
     KratosApplication("GeoMechanicsApplication") {}
 
+void KratosGeoMechanicsApplication::SetExperimental()
+{
+    mExperimental = true;
+}
+
 void KratosGeoMechanicsApplication::Register() {
     KRATOS_INFO("") << " KRATOS___                             \n"
                     << "     //   ) )                          \n"
@@ -37,8 +42,10 @@ void KratosGeoMechanicsApplication::Register() {
                     << "  //    / / //       //   / /          \n"
                     << " ((____/ / ((____   ((___/ /  MECHANICS\n"
                     << " Initializing KratosGeoMechanicsApplication..." << std::endl;
-
-
+    if(mExperimental)
+    {
+      KRATOS_INFO("") << " Use experimental components\n" << std::endl;
+    }
 
     //Register Elements
     // transient one-phase flow elements:
@@ -477,13 +484,17 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_41 )
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_42 )
     KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_43 )
-    KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_44 )
-    KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_45 )
-    KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_46 )
-    KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_47 )
-    KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_48 )
-    KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_49 )
-    KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_50 )
+
+    if (mExperimental)
+    {
+      KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_44 )
+      KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_45 )
+      KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_46 )
+      KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_47 )
+      KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_48 )
+      KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_49 )  
+      KRATOS_REGISTER_VARIABLE( STATE_VARIABLE_50 )
+    }
 
    }
 }  // namespace Kratos.

@@ -188,6 +188,9 @@ public:
     ///@name Operations
     ///@{
 
+        
+    void SetExperimental();
+
     virtual void Register() override;
 
 
@@ -316,6 +319,8 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
+
+    bool mExperimental = false;
 
     // elements
     // transient one-phase flow elements:
