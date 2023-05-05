@@ -34,21 +34,6 @@ class MasterControl:
         """
         return self.__list_of_controls
 
-    def Initialize(self) -> None:
-        """Initializes all the controls.
-        """
-        CallOnAll(self.__list_of_controls, Control.Initialize)
-
-    def Check(self) -> None:
-        """Checks all the controls.
-        """
-        CallOnAll(self.__list_of_controls, Control.Check)
-
-    def Finalize(self) -> None:
-        """Finalizes all the controls.
-        """
-        CallOnAll(self.__list_of_controls, Control.Finalize)
-
     def GetPhysicalKratosVariableCollectiveExpressionsMap(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]':
         """Returns map of physical variables and collective expressions from each control.
 

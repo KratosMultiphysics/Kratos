@@ -22,7 +22,6 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
             Kratos.ReadMaterialsUtility(material_settings, cls.model)
 
         parameters = Kratos.Parameters("""{
-            "combined_output_model_part_name": "<CONTROL_NAME>",
             "model_part_names"      : ["Structure.structure"],
             "control_variable_name" : "DENSITY"
         }""")
@@ -66,7 +65,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     def test_PropertiesControlUpdate(self):
         self.properties_control.Initialize()
 
-        control_model_part = self.model_part.GetSubModelPart("test")
+        control_model_part = self.model_part.GetSubModelPart("Merge_Structure#structure_EN")
 
         with self.assertRaises(RuntimeError):
             self.properties_control.Update(Kratos.ContainerExpression.ConditionNonHistoricalExpression(control_model_part))
@@ -85,7 +84,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     def test_PropertiesControlMapGradient(self):
         self.properties_control.Initialize()
 
-        control_model_part = self.model_part.GetSubModelPart("test")
+        control_model_part = self.model_part.GetSubModelPart("Merge_Structure#structure_EN")
 
         with self.assertRaises(RuntimeError):
             self.properties_control.MapGradient({Kratos.DENSITY: Kratos.ContainerExpression.NodalNonHistoricalExpression(control_model_part)})
