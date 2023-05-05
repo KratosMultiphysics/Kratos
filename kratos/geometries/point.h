@@ -55,7 +55,8 @@ namespace Kratos
  * @see IntegrationPoint
  * @author Riccardo Rossi
 */
-class Point : public array_1d<double, 3>
+class KRATOS_API(KRATOS_CORE) Point
+    : public array_1d<double, 3>
 {
     /// Dimension definition
     static constexpr std::size_t mDimension = 3;
