@@ -4,13 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
 //                   Felix Nagel
-//  contributors:    Hoang Giang Bui
+//  Contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
 //
 
@@ -21,13 +21,11 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "containers/array_1d.h"
 #include "includes/serializer.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -47,16 +45,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Point class.
-/** Point class. Stores coordinates of a point and have some basic
-    operations defined.
-
-@see Geometry
-@see Node
-@see IntegrationPoint
+/**
+ * @class Point
+ * @ingroup KratosCore
+ * @brief Point class.
+ * @details Point class. Stores coordinates of a point and have some basic operations defined.
+ * @see Geometry
+ * @see Node
+ * @see IntegrationPoint
+ * @author Riccardo Rossi
 */
 class Point : public array_1d<double, 3>
 {
+    /// Dimension definition
     static constexpr std::size_t mDimension = 3;
 
 public:
@@ -70,57 +71,64 @@ public:
     /// Pointer definition of Point
     KRATOS_CLASS_POINTER_DEFINITION(Point);
 
-    typedef array_1d<double, mDimension> BaseType;
+    /// The base type definition
+    using BaseType = array_1d<double, mDimension>;
 
-    typedef BaseType CoordinatesArrayType;
+    /// The coordinates array type definition
+    using CoordinatesArrayType = BaseType;
 
-    typedef std::size_t SizeType;
+    /// The size type definition
+    using SizeType = std::size_t;
 
-    typedef std::size_t IndexType;
+    /// The index type definition
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    Point() : BaseType()
-    {
-        SetAllCoordinates();
-    }
+    Point();
 
-    /// 3d constructor.
-    Point(double NewX, double NewY = 0, double NewZ = 0) : BaseType()
-    {
-        this->operator()(0) = NewX;
-        this->operator()(1) = NewY;
-        this->operator()(2) = NewZ;
-    }
+    /**
+     * @brief 3d constructor.
+     * @param NewX New X coordinate
+     * @param NewY New Y coordinate
+     * @param NewZ New Z coordinate
+     */
+    Point(
+        const double NewX,
+        const double NewY = 0,
+        const double NewZ = 0
+        );
 
-    /** Copy constructor. Initialize this point with the coordinates
-    of given point.*/
-    Point(Point const &rOtherPoint)
-        : BaseType(rOtherPoint) {}
+    /**
+     * @brief Copy constructor. Initialize this point with the coordinates
+    of given point.
+     * @param rOtherPoint The other point to copy
+    */
+    Point(const Point& rOtherPoint);
 
-    /** Constructor using coordinates stored in given array. Initialize
-    this point with the coordinates in the array. */
-    explicit Point(CoordinatesArrayType const &rOtherCoordinates)
-        : BaseType(rOtherCoordinates) {}
+    /**
+     * @brief Constructor using coordinates stored in given array. Initialize
+    this point with the coordinates in the array.
+     * @param rOtherCoordinates The coordinates to be used
+     */
+    explicit Point(const CoordinatesArrayType& rOtherCoordinates);
 
-    /** Constructor using coordinates stored in given array. Initialize
+    /**
+     * @brief Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
     template <class TVectorType>
-    explicit Point(vector_expression<TVectorType> const &rOtherCoordinates)
+    explicit Point(const vector_expression<TVectorType>& rOtherCoordinates)
         : BaseType(rOtherCoordinates) {}
 
-    /** Constructor using coordinates stored in given std::vector. Initialize
-    this point with the coordinates in the array. */
-    explicit Point(std::vector<double> const &rOtherCoordinates) : BaseType()
-    {
-        SizeType size = rOtherCoordinates.size();
-        size = (mDimension < size) ? mDimension : size;
-        for (IndexType i = 0; i < size; i++)
-            this->operator[](i) = rOtherCoordinates[i];
-    }
+    /**
+     * @brief Constructor using coordinates stored in given std::vector. Initialize
+    this point with the coordinates in the array.
+     * @param rOtherCoordinates The coordinates to be used
+     */
+    explicit Point(const std::vector<double>& rOtherCoordinates);
 
     /// Destructor.
     virtual ~Point() {}
@@ -130,16 +138,10 @@ public:
     ///@{
 
     /// Assignment operator.
-    Point &operator=(const Point &rOther)
-    {
-        CoordinatesArrayType::operator=(rOther);
-        return *this;
-    }
+    Point &operator=(const Point &rOther);
 
-    bool operator==(const Point &rOther) const
-    {
-        return std::equal(this->begin(), this->end(), rOther.begin());
-    }
+    /// == operator.
+    bool operator==(const Point &rOther) const;
 
     ///@}
     ///@name Operations
@@ -149,134 +151,132 @@ public:
      * @brief This method computes the distance between this point and another one (squared)
      * @details In order to avoid square root operation if faster computation is needed
      * @param rOtherPoint The other point to compute the distance
-     * @return The squared distance between this and another point     
+     * @return The squared distance between this and another point
      */
-    double SquaredDistance(const Point& rOtherPoint) const
-    {
-        const array_1d<double, 3> diff_vector = this->Coordinates() - rOtherPoint.Coordinates();
-        return (std::pow(diff_vector[0], 2) + std::pow(diff_vector[1], 2) + std::pow(diff_vector[2], 2));
-    }
+    double SquaredDistance(const Point& rOtherPoint) const;
 
     /**
      * @brief This method computes the distance between this point and another one
      * @details Using norm_2 to take benefic of the SIMD optimization of the library
      * @param rOtherPoint The other point to compute the distance
-     * @return The distance between this and another point     
+     * @return The distance between this and another point
      */
-    double Distance(const Point& rOtherPoint) const
-    {
-        return norm_2(this->Coordinates() - rOtherPoint.Coordinates());
-    }
+    double Distance(const Point& rOtherPoint) const;
 
     ///@}
     ///@name Access
     ///@{
 
+    /**
+     * @brief Returns the dimension of the point
+     * @details It is always 3
+     * @return The dimension of the point
+     */
     static constexpr IndexType Dimension()
     {
         return mDimension;
     }
 
-    /** Returns X coordinate */
-    double X() const
-    {
-        return this->operator[](0);
-    }
+    /**
+     * @brief Returns X coordinate
+     * @details const version
+     * @return X coordinate
+     */
+    double X() const;
 
-    /** Returns Y coordinate */
-    double Y() const
-    {
-        return this->operator[](1);
-    }
+    /**
+     * @brief Returns Y coordinate
+     * @details const version
+     * @return Z coordinate
+     */
+    double Y() const;
 
-    /** Returns Z coordinate */
-    double Z() const
-    {
-        return this->operator[](2);
-    }
+    /**
+     * @brief Returns Z coordinate
+     * @details const version
+     * @return Z coordinate
+     */
+    double Z() const;
 
-    double &X()
-    {
-        return this->operator[](0);
-    }
+    /**
+     * @brief Returns X coordinate
+     * @details reference version
+     * @return X coordinate
+     */
+    double& X();
 
-    /** Returns Y coordinate */
-    double &Y()
-    {
-        return this->operator[](1);
-    }
+    /**
+     * @brief Returns Y coordinate
+     * @details reference version
+     * @return Y coordinate
+     */
+    double& Y();
 
-    /** Returns Z coordinate */
-    double &Z()
-    {
-        return this->operator[](2);
-    }
+    /**
+     * @brief Returns Z coordinate
+     * @details reference version
+     * @return Z coordinate
+     */
+    double& Z();
 
-    CoordinatesArrayType const &Coordinates() const
-    {
-        return *this;
-    }
+    /**
+     * @brief Returns the coordinates
+     * @details const version
+     * @return The coordinates
+     */
+    const CoordinatesArrayType& Coordinates() const;
 
-    CoordinatesArrayType &Coordinates()
-    {
-        return *this;
-    }
+    /**
+     * @brief Returns the coordinates
+     * @details reference version
+     * @return The coordinates
+     */
+    CoordinatesArrayType& Coordinates();
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "Point";
-    }
+    virtual std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const
-    {
-        rOStream << this->Info();
-    }
+    virtual void PrintInfo(std::ostream &rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream &rOStream) const
-    {
-        rOStream << " ("  << this->operator[](0)
-                 << ", " << this->operator[](1)
-                 << ", " << this->operator[](2)
-                 << ")";
-    }
+    virtual void PrintData(std::ostream &rOStream) const;
 
     ///@}
-
   private:
     ///@name Private Operations
     ///@{
 
-    void SetAllCoordinates(double const &Value = double())
-    {
-        for (IndexType i = 0; i < mDimension; i++)
-            this->operator()(i) = Value;
-    }
+    /**
+     * @brief Set all coordinates
+     * @param Value The new value
+     */
+    void SetAllCoordinates(const double Value = double());
 
     ///@}
     ///@name Serialization
     ///@{
 
+    /// Friend class for serialization
     friend class Serializer;
 
-    virtual void save(Serializer &rSerializer) const
-    {
-        rSerializer.save_base("BaseClass", *static_cast<const array_1d<double, mDimension> *>(this));
-    }
+    /**
+     * @brief Serialization save function
+     * @param rSerializer The serializer
+     */
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load(Serializer &rSerializer)
-    {
-        rSerializer.load_base("BaseClass", *static_cast<array_1d<double, mDimension> *>(this));
-    }
+    /**
+     * @brief Serialization load function
+     * @param rSerializer The serializer
+     */
+    virtual void load(Serializer& rSerializer);
 
     ///@}
-
 }; // Class Point
 
 ///@}
