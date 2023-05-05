@@ -21,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "containers/array_1d.h"
 #include "includes/serializer.h"
 

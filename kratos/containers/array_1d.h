@@ -12,9 +12,7 @@
 //
 //
 
-#if	!defined(KRATOS_ARRAY_1D_H_INCLUDED	)
-#define	 KRATOS_ARRAY_1D_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
@@ -766,7 +764,4 @@ private:
 
 ///@}
 
-
 }  // namespace	Kratos.
-
-#endif // KRATOS_ARRAY_1D_H_INCLUDED  defined
