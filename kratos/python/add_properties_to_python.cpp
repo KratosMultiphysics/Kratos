@@ -115,16 +115,6 @@ typename TVariableType::Type GetValueHelperFunction1( TContainerType& rContainer
 }
 
 template< class TContainerType, class TVariableType >
-typename TVariableType::Type GetValueHelperFunctionAccessor( TContainerType& rContainer,
-        const TVariableType& rVar,
-        const GeometryType& rGeometry,
-        const Vector& rShapeFunctionVector,
-        const ProcessInfo& rProcessInfo )
-{
-    return rContainer.GetValue(rVar, rGeometry, rShapeFunctionVector, rProcessInfo);
-}
-
-template< class TContainerType, class TVariableType >
 void EraseHelperFunction1( TContainerType& rContainer,
         const TVariableType& rVar )
 {
@@ -244,19 +234,78 @@ void  AddPropertiesToPython(pybind11::module& m)
         .def("SetSubProperties", &Properties::SetSubProperties)
         .def("__str__", PrintObject<Properties>)
 
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<bool>>)
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<int>>)
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<double>>)
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<Vector>>)
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<Matrix>>)
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<array_1d<double, 3>>>)
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<array_1d<double, 6>>>)
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<array_1d<double, 9>>>)
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<array_1d<double, 4>>>)
-        .def("GetValue", GetValueHelperFunctionAccessor<Properties, Variable<std::string>>)
+        .def("GetValue", [](Properties &rProperties, const Variable<bool> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        .def("GetValue", [](Properties &rProperties, const Variable<int> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        .def("GetValue", [](Properties &rProperties, const Variable<double> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        .def("GetValue", [](Properties &rProperties, const Variable<Vector> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        .def("GetValue", [](Properties &rProperties, const Variable<Matrix> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        .def("GetValue", [](Properties &rProperties, const Variable<array_1d<double, 3>> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        .def("GetValue", [](Properties &rProperties, const Variable<array_1d<double, 6>> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        .def("GetValue", [](Properties &rProperties, const Variable<array_1d<double, 9>> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        .def("GetValue", [](Properties &rProperties, const Variable<array_1d<double, 4>> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        .def("GetValue", [](Properties &rProperties, const Variable<std::string> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
+             { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
 
-        .def("HasAccessor", py::overload_cast<Variable<double>&>(&Properties::HasAccessor), "Checks if there is an accessor for a variable of type 'double'.")
-        ;
+        .def("GetAccessor", [](Properties &rProperties, const Variable<bool> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+        .def("GetAccessor", [](Properties &rProperties, const Variable<int> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+        .def("GetAccessor", [](Properties &rProperties, const Variable<double> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+        .def("GetAccessor", [](Properties &rProperties, const Variable<Vector> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+        .def("GetAccessor", [](Properties &rProperties, const Variable<Matrix> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+        .def("GetAccessor", [](Properties &rProperties, const Variable<array_1d<double,3>> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+        .def("GetAccessor", [](Properties &rProperties, const Variable<array_1d<double,6>> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+        .def("GetAccessor", [](Properties &rProperties, const Variable<array_1d<double,9>> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+        .def("GetAccessor", [](Properties &rProperties, const Variable<array_1d<double,4>> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+        .def("GetAccessor", [](Properties &rProperties, const Variable<std::string> &rVariable)
+            { return rProperties.GetAccessor(rVariable); },
+            py::return_value_policy::reference_internal)
+
+        .def("HasAccessor", [](Properties &rProperties, const Variable<bool> &rVariable)
+             { return rProperties.HasAccessor(rVariable); })
+        .def("HasAccessor", [](Properties &rProperties, const Variable<int> &rVariable)
+             { return rProperties.HasAccessor(rVariable); })
+        .def("HasAccessor", [](Properties &rProperties, const Variable<double> &rVariable)
+             { return rProperties.HasAccessor(rVariable); })
+        .def("HasAccessor", [](Properties &rProperties, const Variable<Vector> &rVariable)
+             { return rProperties.HasAccessor(rVariable); })
+        .def("HasAccessor", [](Properties &rProperties, const Variable<Matrix> &rVariable)
+             { return rProperties.HasAccessor(rVariable); })
+        .def("HasAccessor", [](Properties &rProperties, const Variable<array_1d<double, 3>> &rVariable)
+             { return rProperties.HasAccessor(rVariable); })
+        .def("HasAccessor", [](Properties &rProperties, const Variable<array_1d<double, 6>> &rVariable)
+             { return rProperties.HasAccessor(rVariable); })
+        .def("HasAccessor", [](Properties &rProperties, const Variable<array_1d<double, 9>> &rVariable)
+             { return rProperties.HasAccessor(rVariable); })
+        .def("HasAccessor", [](Properties &rProperties, const Variable<array_1d<double, 4>> &rVariable)
+             { return rProperties.HasAccessor(rVariable); })
+        .def("HasAccessor", [](Properties &rProperties, const Variable<std::string> &rVariable)
+             { return rProperties.HasAccessor(rVariable); });
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
 }

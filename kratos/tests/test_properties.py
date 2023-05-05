@@ -66,5 +66,14 @@ class TestProperties(KratosUnittest.TestCase):
         self.assertTrue(properties.HasTable(KM.TEMPERATURE, KM.YOUNG_MODULUS))
         self.assertFalse(properties.HasTable(KM.TEMPERATURE, KM.PRESSURE))
 
+    def test_accessor(self):
+        current_model = KM.Model()
+        model_part= current_model.CreateModelPart("Main")
+        properties = model_part.CreateNewProperties(1)
+        self.assertFalse(properties.HasAccessor(KM.TEMPERATURE))
+        _ = KM.Accessor.Create(properties, KM.TEMPERATURE)
+        self.assertTrue(properties.HasAccessor(KM.TEMPERATURE))
+        _ = properties.GetAccessor(KM.TEMPERATURE)
+
 if __name__ == '__main__':
     KratosUnittest.main()

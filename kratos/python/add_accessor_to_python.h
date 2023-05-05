@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo
+//  Main authors:    Ruben Zorrilla
+//                   Alejandro Cornejo
 //
 //
 

@@ -63,7 +63,9 @@ public:
     virtual ~Accessor() = default;
 
     /// Copy constructor
-    Accessor(const Accessor& rOther) {}
+    Accessor(const Accessor& rOther) {
+        KRATOS_WATCH("shit you're in the copy ctor!!!")
+    }
 
     ///@}
     ///@name Operations

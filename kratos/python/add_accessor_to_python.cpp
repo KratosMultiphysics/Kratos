@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo
+//  Main authors:    Ruben Zorrilla
+//                   Alejandro Cornejo
 //
 //
 
@@ -16,19 +17,16 @@
 // External includes
 
 // Project includes
+#include "add_accessor_to_python.h"
 #include "includes/define_python.h"
-#include "python/add_accessor_to_python.h"
-#include "includes/properties.h"
 #include "includes/accessor.h"
+#include "includes/properties.h"
 
 namespace Kratos::Python
 {
 
-namespace
-{
-
 template<class TDataType, class TAccessorType, class... TAccessorArgs>
-Accessor::UniquePointer InternalCreateAndSetAccessorToProperties(
+auto& InternalCreateAndSetAccessorToProperties(
     Properties& rProperties,
     const Variable<TDataType>& rVariable,
     TAccessorArgs... rAccessorArgs)
@@ -38,68 +36,14 @@ Accessor::UniquePointer InternalCreateAndSetAccessorToProperties(
     return rProperties.GetAccessor(rVariable);
 }
 
-}
-
-template<class TAccessorType, class... TAccessorArgs>
-Accessor::UniquePointer CreateAndSetAccessorToProperties(
-    Properties& rProperties,
-    const Variable<double>& rVariable,
-    TAccessorArgs... rAccessorArgs)
-{
-    return InternalCreateAndSetAccessorToProperties<double, TAccessorType, TAccessorArgs>(
-        rProperties,
-        rVariable,
-        rAccessorArgs);
-}
-
 void AddAccessorsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
     py::class_<Accessor, Accessor::UniquePointer>(m, "Accessor")
-        .def("Create", [](Properties& rProp, Variable<double>& rVariable){
-            return CreateAndSetAccessorToProperties<Accessor>(rProp,rVariable);})
-
-        // .def("GetValue", [&](Accessor &self, Variable<double> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
-        // .def("GetValue", [&](Accessor &self, Variable<int> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
-        // .def("GetValue", [&](Accessor &self, Variable<bool> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
-        // .def("GetValue", [&](Accessor &self, Variable<Vector> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
-        // .def("GetValue", [&](Accessor &self, Variable<Matrix> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
-        // .def("GetValue", [&](Accessor &self, Variable<std::string> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
-        // .def("GetValue", [&](Accessor &self, Variable<array_1d<double, 3>> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
-        // .def("GetValue", [&](Accessor &self, Variable<array_1d<double, 4>> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
-        // .def("GetValue", [&](Accessor &self, Variable<array_1d<double, 6>> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
-        // .def("GetValue", [&](Accessor &self, Variable<array_1d<double, 9>> &rVariable, Properties &rProperties, Accessor::GeometryType &rGeometry, Vector &rShapeFunctionVector, ProcessInfo &rProcessInfo)
-        //     {
-        //         return self.GetValue(rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
-        //     })
+        .def("Create", [](Properties& rProp, Variable<double>& rVariable) -> auto& 
+        { return InternalCreateAndSetAccessorToProperties<double, Accessor>(rProp,rVariable); },
+        py::return_value_policy::reference_internal)
         ;
 }
 

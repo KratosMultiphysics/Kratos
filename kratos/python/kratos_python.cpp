@@ -98,6 +98,7 @@ PYBIND11_MODULE(Kratos, m)
     AddDofsToPython(m);
     AddNodeToPython(m);
     AddPropertiesToPython(m);
+    AddAccessorsToPython(m);
     AddMeshToPython(m);
     AddQuaternionToPython(m);
 
@@ -150,7 +151,6 @@ PYBIND11_MODULE(Kratos, m)
     AddSparseMatricesToPython(m);
     AddRegistryToPython(m);
     AddContainerExpressionToPython(m);
-    AddAccessorToPython(m);
 
     m.def("Hello", Hello);
 }
