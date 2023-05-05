@@ -1,13 +1,17 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import ConvertCollectiveExpressionValueMapToModelPartValueMap
 
-def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationProblem) -> ResponseFunction:
-    return MassResponseFunction(name, model, parameters)
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFunction:
+    if not parameters.Has("name"):
+        raise RuntimeError(f"MassResponseFunction instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+    if not parameters.Has("Parameters"):
+        raise RuntimeError(f"MassResponseFunction instantiation requires a \"Parameters\" in parameters [ parameters = {parameters}].")
+
+    return MassResponseFunction(parameters["name"].GetString(), model, parameters["Parameters"])
 
 class MassResponseFunction(ResponseFunction):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):

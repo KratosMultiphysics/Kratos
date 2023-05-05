@@ -6,8 +6,13 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import ConvertCollectiveExpressionValueMapToModelPartValueMap
 
-def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
-    return LinearStrainEnergyResponseFunction(name, model, parameters, optimization_problem)
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
+    if not parameters.Has("name"):
+        raise RuntimeError(f"LinearStrainEnergyResponseFunction instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+    if not parameters.Has("Parameters"):
+        raise RuntimeError(f"LinearStrainEnergyResponseFunction instantiation requires a \"Parameters\" in parameters [ parameters = {parameters}].")
+
+    return LinearStrainEnergyResponseFunction(parameters["name"].GetString(), model, parameters["Parameters"], optimization_problem)
 
 class LinearStrainEnergyResponseFunction(ResponseFunction):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
