@@ -1,13 +1,17 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 
-def Factory(name: str, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationProblem):
-    return MaterialPropertiesControl(name, model, parameters)
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _):
+    if not parameters.Has("name"):
+        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+    if not parameters.Has("Parameters"):
+        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"Parameters\" in parameters [ parameters = {parameters}].")
+
+    return MaterialPropertiesControl(parameters["name"].GetString(), model, parameters["Parameters"])
 
 class MaterialPropertiesControl(Control):
     """Material properties control
@@ -67,6 +71,11 @@ class MaterialPropertiesControl(Control):
     def GetEmptyField(self) -> ContainerExpressionTypes:
         field = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
         field.SetData(0.0)
+        return field
+
+    def GetControlField(self) -> ContainerExpressionTypes:
+        field = self.GetEmptyField()
+        field.Read(self.controlled_physical_variable)
         return field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
