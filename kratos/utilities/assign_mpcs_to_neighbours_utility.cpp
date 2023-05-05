@@ -22,7 +22,8 @@
 // Project includes
 #include "utilities/assign_mpcs_to_neighbours_utility.h"
 
-namespace Kratos {
+namespace Kratos 
+{
 ///@addtogroup Kratos Core
 ///@{
 
@@ -95,56 +96,55 @@ void AssignMPCsToNeighboursUtility::SearchNodesInRadiusForNode(
 }
 
 void AssignMPCsToNeighboursUtility::GetDofsAndCoordinatesForNode(
-NodeType::Pointer pNode,
-const Variable<double>& rVariable,
-DofPointerVectorType& rCloud_of_dofs,
-array_1d<double,3>& rSlave_coordinates
-){
-KRATOS_TRY;
-rCloud_of_dofs.push_back(pNode->pGetDof(rVariable));
-rSlave_coordinates = pNode->Coordinates();
-KRATOS_CATCH("");
+    NodeType::Pointer pNode,
+    const Variable<double>& rVariable,
+    DofPointerVectorType& rCloud_of_dofs,
+    array_1d<double,3>& rSlave_coordinates
+    )
+{
+    KRATOS_TRY;
+    rCloud_of_dofs.push_back(pNode->pGetDof(rVariable));
+    rSlave_coordinates = pNode->Coordinates();
+    KRATOS_CATCH("");
 }
 
 // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
 void AssignMPCsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
-ResultNodesContainerType nodes_array,
-const Variable<double>& rVariable,
-DofPointerVectorType& rCloud_of_dofs,
-Matrix& rCloud_of_nodes_coordinates
-)
+    ResultNodesContainerType nodes_array,
+    const Variable<double>& rVariable,
+    DofPointerVectorType& rCloud_of_dofs,
+    Matrix& rCloud_of_nodes_coordinates
+    )
 {
-KRATOS_TRY;
-rCloud_of_dofs.resize(nodes_array.size());
-rCloud_of_nodes_coordinates.resize(nodes_array.size(),3);
-for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-{
-    rCloud_of_dofs[i] = nodes_array[i]->pGetDof(rVariable);
-    noalias(row(rCloud_of_nodes_coordinates,i)) = nodes_array[i]->Coordinates();
-}
-KRATOS_CATCH("");
+    KRATOS_TRY;
+    rCloud_of_dofs.resize(nodes_array.size());
+    rCloud_of_nodes_coordinates.resize(nodes_array.size(),3);
+    for(unsigned int i = 0; i < nodes_array.size(); i++){
+        rCloud_of_dofs[i] = nodes_array[i]->pGetDof(rVariable);
+        noalias(row(rCloud_of_nodes_coordinates,i)) = nodes_array[i]->Coordinates();
+    }
+    KRATOS_CATCH("");
 }
 
 void AssignMPCsToNeighboursUtility::AssignRotationToNodes(
-NodesContainerType pNodes,
-Matrix RotationMatrix
-)
+    NodesContainerType pNodes,
+    Matrix RotationMatrix
+    )
 {
-//TODO: Do it in parallel
-KRATOS_TRY;
-NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
+    //TODO: Do it in parallel
+    KRATOS_TRY;
+    NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
 
-// Assign rotation to given nodes
-for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-{
-    auto coordinate_vector = nodes_array[i]->GetInitialPosition().Coordinates();
-    Vector rotated_position(coordinate_vector.size());
-    noalias(rotated_position) = prod(RotationMatrix,coordinate_vector);
-    nodes_array[i]->X() = rotated_position[0];
-    nodes_array[i]->Y() = rotated_position[1];
-    nodes_array[i]->Z() = rotated_position[2];
-}
-KRATOS_CATCH("");
+    // Assign rotation to given nodes
+    for(unsigned int i = 0; i < nodes_array.size(); i++){
+        auto coordinate_vector = nodes_array[i]->GetInitialPosition().Coordinates();
+        Vector rotated_position(coordinate_vector.size());
+        noalias(rotated_position) = prod(RotationMatrix,coordinate_vector);
+        nodes_array[i]->X() = rotated_position[0];
+        nodes_array[i]->Y() = rotated_position[1];
+        nodes_array[i]->Z() = rotated_position[2];
+    }
+    KRATOS_CATCH("");
 }
 
 void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
