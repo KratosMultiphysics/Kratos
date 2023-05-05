@@ -56,16 +56,12 @@ def HasContainerExpression(container_expression: ContainerExpressionTypes, list_
     return any([IsSameContainerExpression(container_expression, list_container_expression) for list_container_expression in list_of_container_expressions])
 
 def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-    if not parameters.Has("Parameters"):
-        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"Parameters\" [ provided paramters = {parameters}].")
-
     if not parameters.Has("python_module"):
         raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"python_module\" [ provided paramters = {parameters}].")
 
     python_module = parameters["python_module"].GetString()
-    component_parameters = parameters["Parameters"]
 
-    if not parameters.Has("kratos_module"):
+    if not parameters.Has("kratos_module") or parameters["kratos_module"].GetString() == "":
         # in the case module comes from outside of kratos
         full_module_name = python_module
     else:
@@ -77,8 +73,4 @@ def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Paramet
     if not hasattr(module, "Factory"):
         raise RuntimeError(f"Python module {full_module_name} does not have a Factory method.")
 
-    if not parameters.Has("name"):
-        return getattr(module, "Factory")(model, component_parameters, optimization_problem)
-    else:
-        component_name = parameters["name"].GetString()
-        return getattr(module, "Factory")(component_name, model, component_parameters, optimization_problem)
+    return getattr(module, "Factory")(model, parameters, optimization_problem)
