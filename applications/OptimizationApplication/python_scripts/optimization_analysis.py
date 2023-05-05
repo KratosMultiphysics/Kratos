@@ -121,12 +121,11 @@ class OptimizationAnalysis:
 
         factory = KratosProcessFactory(self.model)
 
-        process_lists_order = self.__algorithm.GetProcessesOrder()
         optimization_data_process_default_settings = Kratos.Parameters("""{
             "module" : "KratosMultiphysics.OptimizationApplication.optimization_data_processes",
         }""")
 
-        for process_type in process_lists_order:
+        for process_type in self.__algorithm.GetProcessesOrder():
             if kratos_processes.Has(process_type):
                 for process in factory.ConstructListOfProcesses(kratos_processes[process_type]):
                     self.optimization_problem.AddProcess(process_type, process)
