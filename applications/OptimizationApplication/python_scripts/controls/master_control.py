@@ -89,6 +89,19 @@ class MasterControl:
 
         return empty_control_fields
 
+    def GetControlField(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
+        """Returns CollectiveExpressions containing control field ContainerExpressions for each control.
+
+        Returns:
+            KratosOA.ContainerExpression.CollectiveExpressions: Control field CollectiveExpressions
+        """
+        control_fields = KratosOA.ContainerExpression.CollectiveExpressions()
+
+        for control in self.__list_of_controls:
+            control_fields.Add(control.GetControlField())
+
+        return control_fields
+
     def MapGradient(self, physical_space_gradient_variable_and_collective_expressions_map: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]') -> KratosOA.ContainerExpression.CollectiveExpressions:
         """Maps physical space gradients to a collective expression.
 
