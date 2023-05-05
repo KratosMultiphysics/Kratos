@@ -8,10 +8,10 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities impor
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> Control:
     if not parameters.Has("name"):
         raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
-    if not parameters.Has("Parameters"):
-        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"Parameters\" in parameters [ parameters = {parameters}].")
+    if not parameters.Has("settings"):
+        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return MaterialPropertiesControl(parameters["name"].GetString(), model, parameters["Parameters"])
+    return MaterialPropertiesControl(parameters["name"].GetString(), model, parameters["settings"])
 
 class MaterialPropertiesControl(Control):
     """Material properties control
