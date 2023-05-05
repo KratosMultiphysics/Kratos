@@ -52,7 +52,7 @@ BoundingBox<Point> GeometricalObjectsBinsMPI::GetBoundingBox() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometricalObjectsBinsMPI::SearchInRadius(
+void GeometricalObjectsBinsMPI::ImplSearchInRadius(
     const Point& rPoint,
     const double Radius,
     std::vector<ResultType>& rResults
@@ -90,7 +90,7 @@ void GeometricalObjectsBinsMPI::SearchInRadius(
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearestInRadius(
+GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNearestInRadius(
     const Point& rPoint,
     const double Radius
     )
@@ -132,19 +132,19 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearestIn
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchNearest(const Point& rPoint)
+GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNearest(const Point& rPoint)
 {
     ResultType current_result;
     const auto bb = GetBoundingBox();
     const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
     const double max_radius= *std::max_element(box_size.begin(), box_size.end());
-    return SearchNearestInRadius(rPoint, max_radius);
+    return ImplSearchNearestInRadius(rPoint, max_radius);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SearchIsInside(const Point& rPoint)
+GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsInside(const Point& rPoint)
 {
     // Doing MPI check
     CheckAllMPIPartitionsAreConnected();

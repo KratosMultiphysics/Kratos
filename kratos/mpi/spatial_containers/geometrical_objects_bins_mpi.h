@@ -132,19 +132,6 @@ public:
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it.
      * @details The result contains the object and also its distance to the point.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     */
-    void SearchInRadius(
-        const Point& rPoint,
-        const double Radius,
-        std::vector<ResultType>& rResults
-        );
-
-    /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it.
-     * @details The result contains the object and also its distance to the point.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param Radius The radius to be checked
@@ -152,33 +139,33 @@ public:
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    void IterativeSearchInRadius(
+    void SearchInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius,
         std::vector<std::vector<ResultType>>& rResults
         )
     {
-        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        std::array<int, 2> limits;
+        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
         rResults.resize(number_of_points);
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            SearchInRadius(*it_point, Radius, rResults[it_point - itPointBegin]);
+
+        // Performa the corresponding searchs
+        const int lower_limit = limits[0];
+        const int upper_limit = limits[1];
+        const int total_number_of_points = all_points_coordinates.size()/3;
+        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            std::vector<ResultType> result;
+            ImplSearchInRadius(point, Radius, result);
+            // Added only in the corresponding partition
+            if (i_node > lower_limit && i_node < upper_limit) {
+                rResults[i_node - lower_limit] = result;
+            }
         }
     }
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * If there are no objects in that radius the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @return ResultType The result of the search
-     */
-    ResultType SearchNearestInRadius(
-        const Point& rPoint,
-        const double Radius
-        );
 
     /**
      * @brief This method takes a point and finds the nearest object to it in a given radius.
@@ -192,30 +179,32 @@ public:
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    std::vector<ResultType> IterativeSearchNearestInRadius(
+    std::vector<ResultType> SearchNearestInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius
         )
     {
-        // Doing a vector of results
-        std::vector<ResultType> results;
-        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
-        results.resize(number_of_points);
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            results[it_point - itPointBegin] = SearchNearestInRadius(*it_point, Radius);
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        std::array<int, 2> limits;
+        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
+        std::vector<ResultType> results(number_of_points);
+
+        // Performa the corresponding searchs
+        const int lower_limit = limits[0];
+        const int upper_limit = limits[1];
+        const int total_number_of_points = all_points_coordinates.size()/3;
+        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            const auto result = ImplSearchNearestInRadius(point, Radius);
+            // Added only in the corresponding partition
+            if (i_node > lower_limit && i_node < upper_limit) {
+                results[i_node - lower_limit] = result;
+            }
         }
         return results;
     }
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @return ResultType The result of the search
-    */
-    ResultType SearchNearest(const Point& rPoint);
 
     /**
      * @brief This method takes a point and finds the nearest object to it.
@@ -226,31 +215,31 @@ public:
      * @return ResultType The result of the search
      */
     template<typename TPointIteratorType>
-    std::vector<ResultType> IterativeSearchNearest(
+    std::vector<ResultType> SearchNearest(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd
         )
     {
-        // Doing a vector of results
-        std::vector<ResultType> results;
-        const std::size_t number_of_points = std::distance(itPointBegin, itPointEnd);
-        results.resize(number_of_points);
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            results[it_point - itPointBegin] = SearchNearest(*it_point);
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        std::array<int, 2> limits;
+        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
+        std::vector<ResultType> results(number_of_points);
+
+        // Performa the corresponding searchs
+        const int lower_limit = limits[0];
+        const int upper_limit = limits[1];
+        const int total_number_of_points = all_points_coordinates.size()/3;
+        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            const auto result = ImplSearchNearest(point);
+            // Added only in the corresponding partition
+            if (i_node > lower_limit && i_node < upper_limit) {
+                results[i_node - lower_limit] = result;
+            }
         }
         return results;
     }
-
-    /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
-     * @details If it is inside an object, it returns it, and search distance is set to zero.
-     * If there is no object, the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * This method is a simplified and faster method of SearchNearest.
-     * @param rPoint The point to be checked
-     * @return ResultType The result of the search
-     */
-    ResultType SearchIsInside(const Point& rPoint);
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
@@ -264,39 +253,24 @@ public:
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    std::vector<ResultType> IterativeSearchIsInside(
+    std::vector<ResultType> SearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd
         )
     {
-        // Doing a vector of results
-        std::vector<ResultType> results;
-        const int number_of_points = std::distance(itPointBegin, itPointEnd);
-        results.resize(number_of_points);
-        const int rank = GetRank();
-        const int world_size = GetWorldSize();
-        std::vector<int> points_per_partition(world_size);
-        std::vector<int> send_points_per_partition(1, number_of_points);
-        mrDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
-        const int total_number_of_points = mrDataCommunicator.SumAll(number_of_points);
-        std::vector<double> all_points_coordinates(total_number_of_points * 3);
-        std::vector<double> send_points_coordinates(number_of_points * 3);
-        std::size_t counter = 0;
-        array_1d<double, 3> coordinates;
-        unsigned int i_coord;
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            noalias(coordinates) = it_point->Coordinates();
-            for (i_coord = 0; i_coord < 3; ++i_coord) {
-                all_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
-            }
-            ++counter;
-        }
-        const int lower_limit = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 1);
-        const int upper_limit = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 2);
-        mrDataCommunicator.AllGather(send_points_coordinates, all_points_coordinates);
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        std::array<int, 2> limits;
+        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
+        std::vector<ResultType> results(number_of_points);
+
+        // Performa the corresponding searchs
+        const int lower_limit = limits[0];
+        const int upper_limit = limits[1];
+        const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            const auto result = SearchIsInside(point);
+            const auto result = ImplSearchIsInside(point);
             // Added only in the corresponding partition
             if (i_node > lower_limit && i_node < upper_limit) {
                 results[i_node - lower_limit] = result;
@@ -368,6 +342,104 @@ private:
     ///@{
 
     /**
+     * @brief PreparePointsForMPISearch prepares the points for MPI search.
+     * @param itPointBegin iterator to the beginning of the points range
+     * @param itPointEnd iterator to the end of the points range
+     * @param rAllPointsCoordinates vector where the computed coordinates will be stored
+     * @param rLimits array with the lower and upper limits of the current partition
+     * @return The number of points in the range
+     */
+    template<typename TPointIteratorType>
+    int PreparePointsForMPISearch(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        std::vector<double>& rAllPointsCoordinates,
+        std::array<int, 2>& rLimits
+        )
+    {
+        // Getting local number of points
+        const int number_of_points = std::distance(itPointBegin, itPointEnd);
+
+        // MPI information
+        const int rank = GetRank();
+        const int world_size = GetWorldSize();
+
+        // Getting global number of points
+        std::vector<int> points_per_partition(world_size);
+        std::vector<int> send_points_per_partition(1, number_of_points);
+        mrDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
+        const int total_number_of_points = mrDataCommunicator.SumAll(number_of_points);
+
+        // Getting global coordinates
+        rAllPointsCoordinates.resize(total_number_of_points * 3);
+        std::vector<double> send_points_coordinates(number_of_points * 3);
+        std::size_t counter = 0;
+        array_1d<double, 3> coordinates;
+        unsigned int i_coord;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            noalias(coordinates) = it_point->Coordinates();
+            for (i_coord = 0; i_coord < 3; ++i_coord) {
+                send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
+            }
+            ++counter;
+        }
+        mrDataCommunicator.AllGather(send_points_coordinates, rAllPointsCoordinates);
+
+        // Define limits
+        rLimits[0] = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 1);
+        rLimits[1] = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 2);
+
+        return number_of_points;
+    }
+
+    /**
+     * @brief This method takes a point and finds all of the objects in the given radius to it.
+     * @details The result contains the object and also its distance to the point.
+     * @param rPoint The point to be checked
+     * @param Radius The radius to be checked
+     * @param rResults The results of the search
+     */
+    void ImplSearchInRadius(
+        const Point& rPoint,
+        const double Radius,
+        std::vector<ResultType>& rResults
+        );
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it in a given radius.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * If there are no objects in that radius the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * @param rPoint The point to be checked
+     * @param Radius The radius to be checked
+     * @return ResultType The result of the search
+     */
+    ResultType ImplSearchNearestInRadius(
+        const Point& rPoint,
+        const double Radius
+        );
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * Result contains a flag is the object has been found or not.
+     * @param rPoint The point to be checked
+     * @return ResultType The result of the search
+    */
+    ResultType ImplSearchNearest(const Point& rPoint);
+
+    /**
+     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
+     * @details If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * This method is a simplified and faster method of SearchNearest.
+     * @param rPoint The point to be checked
+     * @return ResultType The result of the search
+     */
+    ResultType ImplSearchIsInside(const Point& rPoint);
+
+    /**
      * @brief Returns the current rank
      * @return The current rank
      */
@@ -406,33 +478,6 @@ private:
      * @brief This method checks if all MPI partitions are connected
      */
     void CheckAllMPIPartitionsAreConnected();
-
-    // /**
-    //  * @brief This method synchronizes the search in radius
-    //  * @param rResults The results of the search (local version)
-    //  */
-    // void SynchronizeSearchInRadius(std::vector<ResultType>& rLocalResults);
-
-    // /**
-    //  * @brief This method synchronizes the search nearest in radius
-    //  * @param rLocalResult The results of the search (local version)
-    //  * @return The results of the search (global version)
-    //  */
-    // ResultType SynchronizeSearchNearestInRadius(ResultType& rLocalResult);
-
-    // /**
-    //  * @brief This method synchronizes the search nearest
-    //  * @param rLocalResult The results of the search (local version)
-    //  * @return The results of the search (global version)
-    //  */
-    // ResultType SynchronizeSearchNearest(ResultType& rLocalResult);
-
-    // /**
-    //  * @brief This method synchronizes the search is inside
-    //  * @param rLocalResult The results of the search (local version)
-    //  * @return The results of the search (global version)
-    //  */
-    // ResultType SynchronizeSearchIsInside(ResultType& rLocalResult);
 
     ///@}
     ///@name Private  Access
