@@ -8,10 +8,10 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities impor
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFunction:
     if not parameters.Has("name"):
         raise RuntimeError(f"MassResponseFunction instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
-    if not parameters.Has("Parameters"):
-        raise RuntimeError(f"MassResponseFunction instantiation requires a \"Parameters\" in parameters [ parameters = {parameters}].")
+    if not parameters.Has("settings"):
+        raise RuntimeError(f"MassResponseFunction instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return MassResponseFunction(parameters["name"].GetString(), model, parameters["Parameters"])
+    return MassResponseFunction(parameters["name"].GetString(), model, parameters["settings"])
 
 class MassResponseFunction(ResponseFunction):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
