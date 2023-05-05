@@ -166,8 +166,7 @@ class AssignMPCsToNeighboursProcess(KM.Process):
         
     def RemoveConstraints(self):
         #Remove master-slave constraints
-        for constraint in self.computing_model_part.MasterSlaveConstraints:
-            constraint.Set(KM.TO_ERASE)
+        KM.VariableUtils().SetFlag(KM.TO_ERASE, True, self.computing_model_part.MasterSlaveConstraints)
         self.computing_model_part.RemoveMasterSlaveConstraintsFromAllLevels(KM.TO_ERASE)
 
     def ExecuteFinalize(self):
