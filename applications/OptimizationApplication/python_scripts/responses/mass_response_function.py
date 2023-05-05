@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import ConvertCollectiveExpressionValueMapToModelPartValueMap
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -37,7 +38,10 @@ class MassResponseFunction(ResponseFunction):
         return [KratosOA.SHAPE, Kratos.DENSITY, Kratos.THICKNESS, KratosOA.CROSS_AREA]
 
     def Initialize(self) -> None:
-        # get the model part name
+        model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
+        root_model_part = model_parts_list[0].GetRootModelPart()
+        is_new_model_part, self.model_part = ModelPartUtilities.MergeModelParts(root_model_part, model_parts_list, False)
+
         output_model_part_name = self.output_model_part_name.replace("<RESPONSE_NAME>", self.GetName())
 
         # get root model part
@@ -69,7 +73,9 @@ class MassResponseFunction(ResponseFunction):
 
     def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
         # first calculate the gradients
-        KratosOA.ResponseUtils.MassResponseUtils.CalculateGradient(self.model_part, ConvertCollectiveExpressionValueMapToModelPartValueMap(physical_variable_collective_expressions))
+        merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, False)
+        KratosOA.ResponseUtils.MassResponseUtils.CalculateGradient(merged_model_part_map.keys(), merged_model_part_map.values(), intersected_model_part_map.values())
 
         # now fill the collective expressions
         for variable, collective_expression in physical_variable_collective_expressions.items():

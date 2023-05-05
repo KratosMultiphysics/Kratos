@@ -21,8 +21,6 @@
 #include "utilities/reduction_utilities.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/variable_utils.h"
-#include "utilities/string_utilities.h"
-#include "utilities/model_part_operation_utilities.h"
 
 // Application includes
 #include "custom_utilities/optimization_utils.h"
@@ -109,64 +107,43 @@ double MassResponseUtils::CalculateValue(const ModelPart& rModelPart)
 }
 
 void MassResponseUtils::CalculateGradient(
-    ModelPart& rEvaluatedModelPart,
-    const GradientVariableModelPartsListMap& rGradientVariableModelPartInfo)
+    const std::vector<GradientFieldVariableTypes>& rListOfGradientVariables,
+    const std::vector<ModelPart*>& rListOfGradientRequiredModelParts,
+    const std::vector<ModelPart*>& rListOfGradientComputedModelParts)
 {
     KRATOS_TRY
 
-    // calculate sensitivities for each and every model part w.r.t. their sensitivity variables list
-    for (const auto& it : rGradientVariableModelPartInfo) {
-        std::visit([&](auto&& r_variable) {
-            // generate a unique model part name for intersected model part
-            std::stringstream unique_intersected_model_part_name_generator;
-            for (auto p_sensitivity_model_part : it.second) {
-                unique_intersected_model_part_name_generator << p_sensitivity_model_part->FullName() << "_";
-            }
-            const auto& unique_intersected_model_part_name = StringUtilities::ReplaceAllSubstrings(unique_intersected_model_part_name_generator.str(), ".", "_");
-            unique_intersected_model_part_name_generator << "merged";
-            const auto& unique_merged_model_part_name = StringUtilities::ReplaceAllSubstrings(unique_intersected_model_part_name_generator.str(), ".", "_");
+    KRATOS_ERROR_IF(rListOfGradientVariables.size() !=
+                    rListOfGradientRequiredModelParts.size())
+        << "Number of gradient variables and required model parts mismatch.";
+    KRATOS_ERROR_IF(rListOfGradientVariables.size() !=
+                    rListOfGradientComputedModelParts.size())
+        << "Number of gradient variables and computed model parts mismatch.";
 
-            ModelPart* p_intersected_model_part;
-            ModelPart* p_merged_model_part;
-            if (rEvaluatedModelPart.HasSubModelPart(unique_intersected_model_part_name)) {
-                p_merged_model_part = &rEvaluatedModelPart.GetSubModelPart(unique_merged_model_part_name);
-                p_intersected_model_part = &rEvaluatedModelPart.GetSubModelPart(unique_intersected_model_part_name);
-            } else {
-                unique_intersected_model_part_name_generator << "merged";
-                // get the merged sensitivity model part.
-                p_merged_model_part = &ModelPartOperationUtilities::Merge(
-                    unique_merged_model_part_name, rEvaluatedModelPart, it.second, false);
-
-                // get the intersected sensitivity model part with the evaluated model part.
-                p_intersected_model_part = &ModelPartOperationUtilities::Intersect(
-                    unique_intersected_model_part_name, rEvaluatedModelPart,
-                    {&rEvaluatedModelPart, p_merged_model_part}, false);
-            }
-
-            // clear the variables in model parts in the case where difference of evaluated and sensitivity model parts
-            // has a remainder, those values needs to be set to zero. Thereafter now compute sensitivities on the variables
-            if (*r_variable == DENSITY) {
-                block_for_each(p_merged_model_part->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(DENSITY_SENSITIVITY, 0.0); });
-                CalculateMassDensityGradient(*p_intersected_model_part, DENSITY_SENSITIVITY);
-            } else if (*r_variable == THICKNESS) {
-                block_for_each(p_merged_model_part->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
-                CalculateMassThicknessGradient(*p_intersected_model_part, THICKNESS_SENSITIVITY);
-            } else if (*r_variable == CROSS_AREA) {
-                block_for_each(p_merged_model_part->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(CROSS_AREA_SENSITIVITY, 0.0); });
-                CalculateMassCrossAreaGradient(*p_intersected_model_part, CROSS_AREA_SENSITIVITY);
-            } else if (*r_variable == SHAPE) {
-                VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, p_merged_model_part->Nodes());
-                CalculateMassShapeGradient(*p_intersected_model_part, SHAPE_SENSITIVITY);
+    for (IndexType i = 0; i < rListOfGradientVariables.size(); ++i) {
+        std::visit([&](auto p_variable) {
+            if (*p_variable == DENSITY) {
+                block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(DENSITY_SENSITIVITY, 0.0); });
+                CalculateMassDensityGradient(*rListOfGradientComputedModelParts[i], DENSITY_SENSITIVITY);
+            } else if (*p_variable == THICKNESS) {
+                block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
+                CalculateMassThicknessGradient(*rListOfGradientComputedModelParts[i], THICKNESS_SENSITIVITY);
+            } else if (*p_variable == CROSS_AREA) {
+                block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(CROSS_AREA_SENSITIVITY, 0.0); });
+                CalculateMassCrossAreaGradient(*rListOfGradientComputedModelParts[i], CROSS_AREA_SENSITIVITY);
+            } else if (*p_variable == SHAPE) {
+                VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rListOfGradientRequiredModelParts[i]->Nodes());
+                CalculateMassShapeGradient(*rListOfGradientComputedModelParts[i], SHAPE_SENSITIVITY);
             } else {
                 KRATOS_ERROR
-                    << "Unsupported sensitivity w.r.t. " << r_variable->Name()
+                    << "Unsupported sensitivity w.r.t. " << p_variable->Name()
                     << " requested. Followings are supported sensitivity variables:"
                     << "\n\t" << DENSITY.Name()
                     << "\n\t" << THICKNESS.Name()
                     << "\n\t" << CROSS_AREA.Name()
                     << "\n\t" << SHAPE.Name();
             }
-        }, it.first);
+        }, rListOfGradientVariables[i]);
     }
 
     KRATOS_CATCH("");
