@@ -76,6 +76,41 @@ void AssignMPCsToNeighboursUtility::SearchNodesInRadiusForNodes(
     KRATOS_CATCH("");
 }
 
+// Search for the neighbouring nodes (in rStructureNodes) of each rNode on a given array of rNodes
+void AssignMPCsToNeighboursUtility::SearchNodesInRadiusForNodesParallelUtilities(
+    NodesContainerType const& rNodes,
+    const double Radius,
+    VectorResultNodesContainerType& rResults,
+    const double MinNumOfNeighNodes)
+{
+    KRATOS_TRY;
+    NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
+
+    rResults.resize(nodes_array.size());
+
+    // Declare a counter variable outside the loop
+    int i = 0;
+
+    // Declare a mutex object to synchronize access to the counter
+    std::mutex mtx;
+
+    block_for_each(nodes_array, [&](Node<3>::Pointer& pNode)
+    {
+        double localRadius = Radius;
+
+        // Create a lock_guard object to lock the mutex and prevent other threads from accessing the critical section
+        std::lock_guard<std::mutex> lock(mtx);
+
+        while (rResults[i].size()<MinNumOfNeighNodes){
+            rResults[i].clear();
+            SearchNodesInRadiusForNode(pNode, localRadius, rResults[i]);
+            localRadius += Radius;
+        }
+        i++;
+    });
+    KRATOS_CATCH("");
+}
+
 
 //Search for the neighbouring nodes (in rStructureNodes) of the given rNode
 void AssignMPCsToNeighboursUtility::SearchNodesInRadiusForNode(
@@ -168,11 +203,6 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
 
     BuiltinTimer build_and_assign_mpcs;
 
-    // Initialize the 
-    VectorResultNodesContainerType results;
-
-    SearchNodesInRadiusForNodes(pNodes, Radius, results, MinNumOfNeighNodes);
-
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
     NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
@@ -187,13 +217,23 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
         #pragma omp for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
         {
+        
+        double local_radius = Radius;
+
+        ResultNodesContainerType r_result(0);
+
+        while (r_result.size()<MinNumOfNeighNodes){
+            r_result.clear();
+            SearchNodesInRadiusForNode(nodes_array[i], local_radius, r_result);
+            local_radius += Radius;//Expand the radius to fulfill the minimum number of neighbouring nodes
+        }
 
         // Get Dofs and Coordinates
         DofPointerVectorType r_cloud_of_dofs, r_slave_dof;
         Matrix r_cloud_of_nodes_coordinates;
         array_1d<double,3> r_slave_coordinates;
         GetDofsAndCoordinatesForNode(nodes_array[i], rVariable, r_slave_dof, r_slave_coordinates);
-        GetDofsAndCoordinatesForNodes(results[i], rVariable, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
+        GetDofsAndCoordinatesForNodes(r_result, rVariable, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
 
         // Calculate shape functions
         Vector r_n_container;
@@ -217,7 +257,7 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
     KRATOS_CATCH("");
 }
 
-void AssignMPCsToNeighboursUtility::AssignMPCsToNodesParallel(
+void AssignMPCsToNeighboursUtility::AssignMPCsToNodesParallelUtilities(
     NodesContainerType pNodes,
     double const Radius,
     ModelPart& rComputingModelPart,
@@ -229,37 +269,43 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodesParallel(
 
     BuiltinTimer build_and_assign_mpcs;
 
-    // Initialize the 
-    VectorResultNodesContainerType results;
-
-    SearchNodesInRadiusForNodes(pNodes, Radius, results, MinNumOfNeighNodes);
-
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
     NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
 
     ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
-    
+
     // Declare a counter variable outside the loop
-    int i = 0;
+    int i = 0;  
 
     // Declare a mutex object to synchronize access to the counter
     std::mutex mtx;
 
+    // A buffer to store auxiliary constraints
+    ConstraintContainerType constraints_buffer;
+
     block_for_each(nodes_array, [&](Node<3>::Pointer& pNode)
     {
-        // A buffer to store auxiliary constraints
-        ConstraintContainerType constraints_buffer;
 
         // Create a lock_guard object to lock the mutex and prevent other threads from accessing the critical section
         std::lock_guard<std::mutex> lock(mtx);
+
+        double local_radius = Radius;
+
+        ResultNodesContainerType r_result(0);
+
+        while (r_result.size()<MinNumOfNeighNodes){
+            r_result.clear();
+            SearchNodesInRadiusForNode(pNode, local_radius, r_result);
+            local_radius += Radius;
+        }
 
         // Get Dofs and Coordinates
         DofPointerVectorType r_cloud_of_dofs, r_slave_dof;
         Matrix r_cloud_of_nodes_coordinates;
         array_1d<double,3> r_slave_coordinates;
         GetDofsAndCoordinatesForNode(pNode, rVariable, r_slave_dof, r_slave_coordinates);
-        GetDofsAndCoordinatesForNodes(results[i], rVariable, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
+        GetDofsAndCoordinatesForNodes(r_result, rVariable, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
 
         // Calculate shape functions
         Vector r_n_container;
@@ -271,18 +317,14 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodesParallel(
         const Vector constant_vector = ZeroVector(r_n_container.size());
         IndexType it = i;
         constraints_buffer.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 1,r_cloud_of_dofs,r_slave_dof,shape_matrix,constant_vector));
-        // }
 
-        {
-            KRATOS_CRITICAL_SECTION
-            rComputingModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
-        }
-
-        // ThreadSafeAddMasterSlaveConstraints(rComputingModelPart, constraints_buffer);
+        // // ThreadSafeAddMasterSlaveConstraints(rComputingModelPart, constraints_buffer);
 
         // Increment the counter variable
         i++;
     });
+
+    rComputingModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
     
     KRATOS_INFO("AssignMPCsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("");
