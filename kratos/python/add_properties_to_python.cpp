@@ -255,34 +255,44 @@ void  AddPropertiesToPython(pybind11::module& m)
         .def("GetValue", [](Properties &rProperties, const Variable<std::string> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
              { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
 
-        .def("GetAccessor", [](Properties &rProperties, const Variable<bool> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<bool> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
-        .def("GetAccessor", [](Properties &rProperties, const Variable<int> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<int> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
-        .def("GetAccessor", [](Properties &rProperties, const Variable<double> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<double> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
-        .def("GetAccessor", [](Properties &rProperties, const Variable<Vector> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<Vector> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
-        .def("GetAccessor", [](Properties &rProperties, const Variable<Matrix> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<Matrix> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
-        .def("GetAccessor", [](Properties &rProperties, const Variable<array_1d<double,3>> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<array_1d<double, 3>> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
-        .def("GetAccessor", [](Properties &rProperties, const Variable<array_1d<double,6>> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<array_1d<double, 6>> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
-        .def("GetAccessor", [](Properties &rProperties, const Variable<array_1d<double,9>> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<array_1d<double, 9>> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
-        .def("GetAccessor", [](Properties &rProperties, const Variable<array_1d<double,4>> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<array_1d<double, 4>> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
-        .def("GetAccessor", [](Properties &rProperties, const Variable<std::string> &rVariable)
+        .def(
+            "GetAccessor", [](Properties &rProperties, const Variable<std::string> &rVariable) -> auto&
             { return rProperties.GetAccessor(rVariable); },
             py::return_value_policy::reference_internal)
 

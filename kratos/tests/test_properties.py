@@ -33,7 +33,7 @@ class TestProperties(KratosUnittest.TestCase):
         self.assertEqual(properties.Has(KM.YOUNG_MODULUS), True)
         properties.Erase(KM.YOUNG_MODULUS)
         self.assertEqual(properties.Has(KM.YOUNG_MODULUS), False)
-        
+
     def test_properties_utilities(self):
         current_model = KM.Model()
 
@@ -71,9 +71,10 @@ class TestProperties(KratosUnittest.TestCase):
         model_part= current_model.CreateModelPart("Main")
         properties = model_part.CreateNewProperties(1)
         self.assertFalse(properties.HasAccessor(KM.TEMPERATURE))
-        _ = KM.Accessor.Create(properties, KM.TEMPERATURE)
+        accessor_from_create = KM.Accessor.Create(properties, KM.TEMPERATURE)
         self.assertTrue(properties.HasAccessor(KM.TEMPERATURE))
-        _ = properties.GetAccessor(KM.TEMPERATURE)
+        accessor_from_get = properties.GetAccessor(KM.TEMPERATURE)
+        self.assertEqual(id(accessor_from_create), id(accessor_from_get))
 
 if __name__ == '__main__':
     KratosUnittest.main()
