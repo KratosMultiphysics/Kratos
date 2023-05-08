@@ -441,8 +441,6 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         // .def("AssignMPCsToNodes", &AssignMPCsToNeighboursUtility::AssignMPCsToNodes)
         .def("AssignMPCsToNodes", [](AssignMPCsToNeighboursUtility& rAssignMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<double>& rVariable, double const MinNumOfNeighNodes){
             return rAssignMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
-        .def("AssignMPCsToNodesParallelUtilities", [](AssignMPCsToNeighboursUtility& rAssignMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<double>& rVariable, double const MinNumOfNeighNodes){
-            return rAssignMPCsToNeighboursUtility.AssignMPCsToNodesParallelUtilities(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
         ;
 }
 
