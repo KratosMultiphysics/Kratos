@@ -437,7 +437,6 @@ protected:
                         AtomicAdd(r_bi, rhs_elem[i]); // Building RHS.
                     }
                 }
-
             });
         }
 
@@ -455,7 +454,6 @@ protected:
                         AtomicAdd(r_bi, rhs_cond[i]); // Building RHS.
                     }
                 }
-
             });
         }   
 
