@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.responses.standardization_utilities import StandardizationUtilities
 
@@ -13,7 +13,7 @@ class StandardizedObjective:
         "maximization"
 
     """
-    def __init__(self, parameters: Kratos.Parameters, optimization_info: OptimizationInfo):
+    def __init__(self, parameters: Kratos.Parameters, optimization_info: OptimizationProblem):
         default_parameters = Kratos.Parameters("""{
             "response_name": "",
             "type"         : "",
