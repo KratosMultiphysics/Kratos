@@ -181,14 +181,6 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
           const Variable<double>& rVariable,
           double const MinNumOfNeighNodes
           );
-      
-      void AssignMPCsToNodesParallelUtilities(
-          NodesContainerType pNodes,
-          double const Radius,
-          ModelPart& rComputingModelPart,
-          const Variable<double>& rVariable,
-          const double MinNumOfNeighNodes
-          );
 
       ///@}
       ///@name Input and output

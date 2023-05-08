@@ -107,7 +107,7 @@ class AssignMPCsToNeighboursProcess(KM.Process):
         # The user may only need to set up the mpcs only once
         if not self.assign_mpcs_every_time_step:
             for variable in self.variables_list:
-                self.assign_mpcs_utility.AssignMPCsToNodesParallelUtilities(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
+                self.assign_mpcs_utility.AssignMPCsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
 
     def Check(self):
         """ This method verifies that the input is correct
@@ -134,7 +134,7 @@ class AssignMPCsToNeighboursProcess(KM.Process):
         # If the user want the mpcs to be updated at each time step, this is usefull for moving meshes.
         if self.assign_mpcs_every_time_step:
             for variable in self.variables_list:
-                self.assign_mpcs_utility.AssignMPCsToNodesParallelUtilities(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
+                self.assign_mpcs_utility.AssignMPCsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed before writing the output (if output
