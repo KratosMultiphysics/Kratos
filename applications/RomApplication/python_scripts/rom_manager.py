@@ -84,6 +84,21 @@ class RomManager(object):
         ##########################
 
 
+        #######################
+        ######  Local ######
+        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "local":
+            training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+            if any(item == "ROM" for item in training_stages):
+                fom_snapshots = self.LaunchTrainROM(mu_train)
+                self._ChangeRomFlags(simulation_to_run = "LocalROM")
+                rom_snapshots = self.LaunchROM(mu_train)
+                self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
+
+            if any(item == "HROM" for item in training_stages):
+                raise Exception('Sorry, working on that')
+        #######################
+
+
 
     def Test(self, mu_test=None):
         if mu_test is None:
@@ -359,6 +374,10 @@ class RomManager(object):
             f=json.load(parameter_file)
             if simulation_to_run=='GalerkinROM':
                 f['projection_strategy']="galerkin"
+                f['train_hrom']=False
+                f['run_hrom']=False
+            if simulation_to_run=='LocalROM':
+                f['projection_strategy']="local"
                 f['train_hrom']=False
                 f['run_hrom']=False
             elif simulation_to_run=='trainHROMGalerkin':
