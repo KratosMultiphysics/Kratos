@@ -9,9 +9,6 @@
 //
 //  Main author:     Sebastian Ares de Parga Regalado
 //
-// This file is partly copied from
-// "DEMApplication/custom_utilities/omp_dem_search.h"
-// and modified to create only once the binary tree
 
 // System includes
 #include <string>
@@ -153,36 +150,6 @@ void AssignMPCsToNeighboursUtility::GetDofsAndCoordinatesForNode(
     KRATOS_CATCH("");
 }
 
-
-
-// void AssignMPCsToNeighboursUtility::GetDofsAndCoordinatesForNode(
-//     NodeType::Pointer pNode,
-//     const Variable<array_1d<double, 3>>& rVariable,
-//     DofPointerVectorType& rCloud_of_dofs_x,
-//     DofPointerVectorType& rCloud_of_dofs_y,
-//     DofPointerVectorType& rCloud_of_dofs_z,
-//     array_1d<double,3>& rSlave_coordinates
-//     )
-// {
-//     KRATOS_TRY;
-//     if (rVariable==VELOCITY){
-//         rCloud_of_dofs_x.push_back(pNode->pGetDof(VELOCITY_X));
-//         rCloud_of_dofs_y.push_back(pNode->pGetDof(VELOCITY_Y));
-//         rCloud_of_dofs_z.push_back(pNode->pGetDof(VELOCITY_Z));
-//     }
-//     else if (rVariable==DISPLACEMENT){
-//         // NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
-//         rCloud_of_dofs_x.push_back(pNode->pGetDof(DISPLACEMENT_X));
-//         rCloud_of_dofs_y.push_back(pNode->pGetDof(DISPLACEMENT_Y));
-//         rCloud_of_dofs_z.push_back(pNode->pGetDof(DISPLACEMENT_Z));
-//     }
-//     else{
-//         KRATOS_ERROR << "This function is not yet implemented for variable " << rVariable << std::endl;
-//     }
-//     rSlave_coordinates = pNode->Coordinates();
-//     KRATOS_CATCH("");
-// }
-
 // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
 void AssignMPCsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
     ResultNodesContainerType nodes_array,
@@ -201,6 +168,7 @@ void AssignMPCsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
     KRATOS_CATCH("");
 }
 
+
 void AssignMPCsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
     ResultNodesContainerType nodes_array,
     const Variable<array_1d<double, 3>>& rVariable,
@@ -208,33 +176,31 @@ void AssignMPCsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
     DofPointerVectorType& rCloud_of_dofs_y,
     DofPointerVectorType& rCloud_of_dofs_z,
     Matrix& rCloud_of_nodes_coordinates
-    )
+)
 {
     KRATOS_TRY;
     rCloud_of_dofs_x.resize(nodes_array.size());
     rCloud_of_dofs_y.resize(nodes_array.size());
     rCloud_of_dofs_z.resize(nodes_array.size());
-    rCloud_of_nodes_coordinates.resize(nodes_array.size(),3);
-    if (rVariable==VELOCITY){
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-        {
-        rCloud_of_dofs_x[i] = nodes_array[i]->pGetDof(VELOCITY_X);
-        rCloud_of_dofs_y[i] = nodes_array[i]->pGetDof(VELOCITY_Y);
-        rCloud_of_dofs_z[i] = nodes_array[i]->pGetDof(VELOCITY_Z);
-        noalias(row(rCloud_of_nodes_coordinates,i)) = nodes_array[i]->Coordinates();
+    rCloud_of_nodes_coordinates.resize(nodes_array.size(), 3);
+
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
+    {
+        NodeType::Pointer pNode = nodes_array[i];
+
+        // Check if the node has the required DOFs
+        if (pNode->HasDofFor(GetComponentVariable(rVariable, 0)) &&
+            pNode->HasDofFor(GetComponentVariable(rVariable, 1)) &&
+            pNode->HasDofFor(GetComponentVariable(rVariable, 2))) {
+
+            rCloud_of_dofs_x[i] = pNode->pGetDof(GetComponentVariable(rVariable, 0));
+            rCloud_of_dofs_y[i] = pNode->pGetDof(GetComponentVariable(rVariable, 1));
+            rCloud_of_dofs_z[i] = pNode->pGetDof(GetComponentVariable(rVariable, 2));
+
+        } else {
+            KRATOS_ERROR << "The node with ID " << pNode->Id() << " does not have the required DOFs for the variable " << rVariable << std::endl;
         }
-    }
-    else if (rVariable==DISPLACEMENT){
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-        {
-        rCloud_of_dofs_x[i] = nodes_array[i]->pGetDof(DISPLACEMENT_X);
-        rCloud_of_dofs_y[i] = nodes_array[i]->pGetDof(DISPLACEMENT_Y);
-        rCloud_of_dofs_z[i] = nodes_array[i]->pGetDof(DISPLACEMENT_Z);
-        noalias(row(rCloud_of_nodes_coordinates,i)) = nodes_array[i]->Coordinates();
-        }
-    }
-    else{
-        KRATOS_ERROR << "This function is not yet implemented for variable " << rVariable << std::endl;
+        noalias(row(rCloud_of_nodes_coordinates, i)) = pNode->Coordinates();
     }
     KRATOS_CATCH("");
 }
