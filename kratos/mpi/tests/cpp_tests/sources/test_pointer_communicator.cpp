@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -26,10 +26,7 @@
 #include "utilities/get_value_functor.h"
 #include "testing/testing.h"
 
-namespace Kratos
-{
-
-namespace Testing
+namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
@@ -260,5 +257,4 @@ KRATOS_TEST_CASE_IN_SUITE(PointerMapCommunicatorAssembly, KratosMPICoreFastSuite
     KRATOS_CHECK_VECTOR_EQUAL(pnode->GetValue(VELOCITY), check_vector);
 }
 
-}
 }
