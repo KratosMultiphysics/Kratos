@@ -32,6 +32,10 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
             solver_module_name = "coupled_solid_thermal_solverwithmeshgeneration"
 
+        elif (solver_type == "FemtolaserDrilling"):
+
+            solver_module_name = "femtolaser_solver"
+
         # Coupled mechanical-thermal solver
         # Wrong solver check
         else:
