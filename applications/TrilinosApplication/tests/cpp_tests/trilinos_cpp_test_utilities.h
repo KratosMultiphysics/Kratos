@@ -216,7 +216,7 @@ public:
         const std::vector<double>& rValues,
         const Epetra_Map* pMap =  nullptr
         );
-        
+
     ///@}
 
 }; /// class TrilinosCPPTestUtilities
