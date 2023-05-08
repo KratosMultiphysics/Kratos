@@ -128,6 +128,18 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
           ResultNodesContainerType& rResults);
 
       /**
+       * @brief Get the component variable for a given vector variable and index
+       * @details Returns the component variable (e.g., DISPLACEMENT_X) corresponding to the input vector variable (e.g., DISPLACEMENT) and component index (0, 1, or 2).
+       * @param rVectorVariable Input vector variable of type array_1d<double, 3>.
+       * @param ComponentIndex Index of the component in the vector variable (0, 1, or 2).
+       * @return The component variable corresponding to the given vector variable and index.
+       **/
+      const Variable<double>& GetComponentVariable(
+          const Variable<array_1d<double, 3>>& rVectorVariable, 
+          const std::size_t ComponentIndex);
+
+
+      /**
        * @brief Collect Dofs and Coordinates
        * @details Collects Dofs and Coordinates for a given node or set of nodes.
        * @param rStructureNodes Nodes Container.
@@ -142,7 +154,16 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
         const Variable<double>& rVariable,
         DofPointerVectorType& rCloud_of_dofs,
         array_1d<double,3>& rSlave_coordinates
-      );
+        );
+
+      void GetDofsAndCoordinatesForNode(
+        NodeType::Pointer pNode,
+        const Variable<array_1d<double, 3>>& rVariable,
+        DofPointerVectorType& rCloud_of_dofs_x,
+        DofPointerVectorType& rCloud_of_dofs_y,
+        DofPointerVectorType& rCloud_of_dofs_z,
+        array_1d<double,3>& rSlave_coordinates
+        );
 
       // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
       void GetDofsAndCoordinatesForNodes(
@@ -152,15 +173,25 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
         Matrix& rCloud_of_nodes_coordinates
         );
 
-      void AssignRotationToNodes(
-        NodesContainerType pNodes,
-        Matrix RotationMatrix
+      void GetDofsAndCoordinatesForNodes(
+        ResultNodesContainerType nodes_array,
+        const Variable<array_1d<double, 3>>& rVariable,
+        DofPointerVectorType& rCloud_of_dofs_x,
+        DofPointerVectorType& rCloud_of_dofs_y,
+        DofPointerVectorType& rCloud_of_dofs_z,
+        Matrix& rCloud_of_nodes_coordinates
         );
 
-      void ThreadSafeAddMasterSlaveConstraints(
-        ModelPart& rComputingModelPart, 
-        ConstraintContainerType constraints_buffer
-        );
+      /**
+       * @brief Assign rotation to nodes
+       * @details Assigns the given rotation matrix to the nodes' positions and updates their coordinates.
+       * @param pNodes Nodes container with the nodes to apply the rotation.
+       * @param RotationMatrix 3x3 rotation matrix to be applied to the nodes' positions.
+       **/
+      void AssignRotationToNodes(
+          NodesContainerType pNodes,
+          Matrix RotationMatrix
+      );
 
 
       /**
@@ -179,6 +210,14 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
           double const Radius,
           ModelPart& rComputingModelPart,
           const Variable<double>& rVariable,
+          double const MinNumOfNeighNodes
+          );
+
+      void AssignMPCsToNodes(
+          NodesContainerType pNodes,
+          double const Radius,
+          ModelPart& rComputingModelPart,
+          const Variable<array_1d<double, 3>>& rVariable,
           double const MinNumOfNeighNodes
           );
 
