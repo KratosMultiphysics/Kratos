@@ -110,10 +110,33 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # Set ROM basis
             nodal_modes = self.rom_parameters["nodal_modes"]
             nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
-            rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
+
+            try:
+                rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
+            except:
+                rom_dofs_list = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetArray()
+
+
+            #Local POD
+            if self.solving_strategy=="local":
+                number_of_bases = len(nodal_modes['1'])
+                POD_BASES = []
+                rom_dofs=[]
+                for i in range(number_of_bases):
+                    POD_BASES.append(KratosROM.RomBasis())
+                for i in range(number_of_bases):
+                    rom_dofs.append(self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"][i].GetInt())
+                for node in computing_model_part.Nodes:
+                    for k in range(number_of_bases):
+                        aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs[k])
+                        for j in range(nodal_dofs):
+                            Counter=str(node.Id)
+                            for i in range(rom_dofs[k]):
+                                aux[j,i] = nodal_modes[Counter][str(k)][j][i]
+                        POD_BASES[k].SetNodalBasis(node.Id, aux)
 
             # Set the right nodal ROM basis
-            if self.rom_parameters["rom_format"].GetString() == "json":
+            elif self.rom_parameters["rom_format"].GetString() == "json":
                 aux = KratosMultiphysics.Matrix(nodal_dofs, rom_dofs)
                 for node in computing_model_part.Nodes:
                     node_id = str(node.Id)

@@ -89,7 +89,9 @@ class RomManager(object):
         if self.general_rom_manager_parameters["projection_strategy"].GetString() == "local":
             training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.LaunchTrainROM(mu_train)
+                fom_snapshots = self.LaunchTrainROMLocal(mu_train)
+                self.ComputeClusters(fom_snapshots)
+
                 self._ChangeRomFlags(simulation_to_run = "LocalROM")
                 rom_snapshots = self.LaunchROM(mu_train)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
@@ -164,6 +166,33 @@ class RomManager(object):
             print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
         if any(item == "HROM" for item in testing_stages) and not(self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg"):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
+
+
+
+    def LaunchTrainROMLocal(self, mu_train):
+        """
+        This method should be parallel capable
+        """
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        SnapshotsMatrix = []
+        for Id, mu in enumerate(mu_train):
+            parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+            parameters = self._StoreResultsByName(parameters,'FOM',mu,Id)
+            model = KratosMultiphysics.Model()
+            analysis_stage_class = self._GetAnalysisStageClass(parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation.Run()
+            for process in simulation._GetListOfOutputProcesses():
+                if isinstance(process, CalculateRomBasisOutputProcess):
+                    BasisOutputProcess = process
+            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+        SnapshotsMatrix = np.block(SnapshotsMatrix)
+        #BasisOutputProcess._PrintRomBasis(SnapshotsMatrix) #Calling the RomOutput Process for creating the RomParameter.json
+
+        return SnapshotsMatrix
+
 
 
     def LaunchTrainROM(self, mu_train):

@@ -33,9 +33,10 @@ def CreateSolver(cls, model, custom_settings):
             linear_solver = self._GetLinearSolver()
             rom_parameters, solving_strategy = self._ValidateAndReturnRomParameters()
             available_solving_strategies = {
-                "galerkin": KratosROM.ROMBuilderAndSolver, 
+                "galerkin": KratosROM.ROMBuilderAndSolver,
                 "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
-                "petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver
+                "petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver,
+                "local": KratosROM.LocalROMBuilderAndSolver,
             }
             if solving_strategy in available_solving_strategies:
                 return available_solving_strategies[solving_strategy](linear_solver, rom_parameters)
@@ -45,10 +46,19 @@ def CreateSolver(cls, model, custom_settings):
 
         def _ValidateAndReturnRomParameters(self):
             # Check that the number of ROM DOFs has been provided
-            n_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
-            if not n_rom_dofs > 0:
-                err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
-                raise Exception(err_msg)
+            try:
+                n_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
+                if not n_rom_dofs > 0:
+                    err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
+                    raise Exception(err_msg)
+            except:
+                """ This should account for local rom """
+                n_rom_dofs_list = self.settings["rom_settings"]["number_of_rom_dofs"].GetArray()
+                for n_rom_dofs in n_rom_dofs_list:
+                    if not n_rom_dofs > 0:
+                        err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
+                        raise Exception(err_msg)
+
 
             # Check if the nodal unknowns have been provided by the user
             # If not, take the DOFs list from the base solver
