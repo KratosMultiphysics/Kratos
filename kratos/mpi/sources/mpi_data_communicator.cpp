@@ -200,7 +200,15 @@ void MPIDataCommunicator::AllGather(                                            
     const std::vector<type>& rSendValues, std::vector<type>& rRecvValues) const {   \
     AllGatherDetail(rSendValues,rRecvValues);                                       \
 }                                                                                   \
-
+std::vector<std::vector<type>> MPIDataCommunicator::AllGatherv(                     \
+    const std::vector<type>& rSendValues) const {                                   \
+    return AllGathervDetail(rSendValues);                                           \
+}                                                                                   \
+void MPIDataCommunicator::AllGatherv(const std::vector<type>& rSendValues,          \
+    std::vector<type>& rRecvValues, const std::vector<int>& rRecvCounts,            \
+    const std::vector<int>& rRecvOffsets) const {                                   \
+    AllGathervDetail(rSendValues,rRecvValues,rRecvCounts,rRecvOffsets);             \
+}
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE
@@ -892,6 +900,39 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::AllGatherD
     std::vector<TDataType> output(rSendValues.size()*Size());
     AllGatherDetail(rSendValues, output);
     return output;
+}
+
+template<class TDataType>
+void MPIDataCommunicator::AllGathervDetail(
+    const TDataType& rSendValues, TDataType& rRecvValues,
+    const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const
+{
+    #ifdef KRATOS_DEBUG
+    ValidateGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets, Rank());
+    #endif // KRATOS_DEBUG
+
+    const int send_count = Rank() + 1;
+    int ierr = MPI_Allgatherv(
+        MPIBuffer(rSendValues), send_count, MPIDatatype(rSendValues), MPIBuffer(rRecvValues), 
+        rRecvCounts.data(), rRecvOffsets.data(), MPIDatatype(rRecvValues),
+        mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allgatherv");
+}
+
+template<class TDataType>
+std::vector<std::vector<TDataType>> MPIDataCommunicator::AllGathervDetail(
+    const std::vector<TDataType>& rSendValues) const
+{
+    std::vector<TDataType> message;
+    std::vector<int> message_lengths;
+    std::vector<int> message_offsets;
+    PrepareGathervBuffers(rSendValues, message, message_lengths, message_offsets, Rank());
+
+    AllGatherv(rSendValues, message, message_lengths, message_offsets);
+
+    std::vector<std::vector<TDataType>> output_message;
+    PrepareGathervReturn(message, message_lengths, message_offsets, output_message, Rank());
+    return output_message;
 }
 
 bool MPIDataCommunicator::BroadcastErrorIfTrue(bool Condition, const int SourceRank) const
