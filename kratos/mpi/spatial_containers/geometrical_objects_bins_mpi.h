@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/data_communicator.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 
 namespace Kratos
@@ -29,7 +30,6 @@ namespace Kratos
 ///@{
 
 class GeometricalObject; // forward declaration, to be included in the cpp. This is needed to reduce the compilation time. Can be done as we consider the GeometricalObject as a pointer
-class DataCommunicator;  // forward declaration, to be included in the cpp. This is needed to reduce the compilation time. Can be done as we consider the GeometricalObject as a pointer
 
 /**
  * @class GeometricalObjectsBinsMPI
@@ -58,6 +58,9 @@ public:
     /// The type of geometrical object to be stored in the bins
     using BaseType::CellType;
     using BaseType::ResultType;
+
+    /// Define zero tolerance as Epsilon
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -343,11 +346,12 @@ private:
 
     /**
      * @brief PreparePointsForMPISearch prepares the points for MPI search.
-     * @param itPointBegin iterator to the beginning of the points range
-     * @param itPointEnd iterator to the end of the points range
+     * @param itPointBegin Iterator to the beginning of the points range
+     * @param itPointEnd Iterator to the end of the points range
      * @param rAllPointsCoordinates vector where the computed coordinates will be stored
      * @param rLimits array with the lower and upper limits of the current partition
      * @return The number of points in the range
+     * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
     int PreparePointsForMPISearch(
@@ -357,37 +361,54 @@ private:
         std::array<int, 2>& rLimits
         )
     {
-        // Getting local number of points
-        const int number_of_points = std::distance(itPointBegin, itPointEnd);
+        int number_of_points, total_number_of_points;
+        const bool all_points_are_the_same = CheckAllPointsAreTheSame(itPointBegin, itPointEnd, number_of_points, total_number_of_points);
 
-        // MPI information
-        const int rank = GetRank();
-        const int world_size = GetWorldSize();
-
-        // Getting global number of points
-        std::vector<int> points_per_partition(world_size);
-        std::vector<int> send_points_per_partition(1, number_of_points);
-        mrDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
-        const int total_number_of_points = mrDataCommunicator.SumAll(number_of_points);
-
-        // Getting global coordinates
-        rAllPointsCoordinates.resize(total_number_of_points * 3);
-        std::vector<double> send_points_coordinates(number_of_points * 3);
-        std::size_t counter = 0;
-        array_1d<double, 3> coordinates;
-        unsigned int i_coord;
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            noalias(coordinates) = it_point->Coordinates();
-            for (i_coord = 0; i_coord < 3; ++i_coord) {
-                send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
+        // If all points are the same
+        if (all_points_are_the_same) {
+            rAllPointsCoordinates.resize(number_of_points * 3);
+            std::size_t counter = 0;
+            array_1d<double, 3> coordinates;
+            for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+                noalias(coordinates) = it_point->Coordinates();
+                rAllPointsCoordinates[3 * counter + 0] = coordinates[0];
+                rAllPointsCoordinates[3 * counter + 1] = coordinates[1];
+                rAllPointsCoordinates[3 * counter + 2] = coordinates[2];
+                ++counter;
             }
-            ++counter;
-        }
-        mrDataCommunicator.AllGather(send_points_coordinates, rAllPointsCoordinates);
 
-        // Define limits
-        rLimits[0] = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 1);
-        rLimits[1] = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 2);
+            // Define limits
+            rLimits[0] = 0;
+            rLimits[1] = number_of_points;
+        } else { // If not
+            // MPI information
+            const int rank = GetRank();
+            const int world_size = GetWorldSize();
+
+            // Getting global number of points
+            std::vector<int> points_per_partition(world_size);
+            std::vector<int> send_points_per_partition(1, number_of_points);
+            mrDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
+
+            // Getting global coordinates
+            rAllPointsCoordinates.resize(total_number_of_points * 3);
+            std::vector<double> send_points_coordinates(number_of_points * 3);
+            std::size_t counter = 0;
+            array_1d<double, 3> coordinates;
+            unsigned int i_coord;
+            for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+                noalias(coordinates) = it_point->Coordinates();
+                for (i_coord = 0; i_coord < 3; ++i_coord) {
+                    send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
+                }
+                ++counter;
+            }
+            mrDataCommunicator.AllGather(send_points_coordinates, rAllPointsCoordinates);
+
+            // Define limits
+            rLimits[0] = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 1);
+            rLimits[1] = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 2);
+        }
 
         return number_of_points;
     }
@@ -475,9 +496,50 @@ private:
         );
 
     /**
-     * @brief This method checks if all MPI partitions are connected
+     * @brief This method checks if all nodes are the same across all partitions
+     * @param itPointBegin Iterator to the beginning of the points range
+     * @param itPointEnd Iterator to the end of the points range
+     * @param rNumberOfPoints Number of points in the range
+     * @param rTotalNumberOfPoints Total number of points in all partitions
+     * @return true if all points are the same in all partitions
+     * @tparam TPointIteratorType The type of the point iterator
      */
-    void CheckAllMPIPartitionsAreConnected();
+    template<typename TPointIteratorType>
+    bool CheckAllPointsAreTheSame(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        int& rNumberOfPoints,
+        int& rTotalNumberOfPoints
+        )
+    {
+        // Get the World Size in MPI
+        const int world_size = GetWorldSize();
+
+        // Getting local number of points
+        rNumberOfPoints = std::distance(itPointBegin, itPointEnd);
+
+        // First we check if all the partitions have the same number of points
+        rTotalNumberOfPoints = mrDataCommunicator.SumAll(rNumberOfPoints);
+        const int average_number_of_points = rTotalNumberOfPoints / world_size;
+        if (rNumberOfPoints != average_number_of_points) {
+            return false;
+        }
+
+        // Now we check if all the points are the same (we are going to do a gross assumtion that the sum of coordinates in al partitions does not compensate between them)
+        double x_sum, y_sum, z_sum;
+        array_1d<double, 3> coordinates;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+            noalias(coordinates) = it_point->Coordinates();
+            x_sum = mrDataCommunicator.SumAll(coordinates[0]);
+            if ((coordinates[0] - (x_sum/world_size)) > ZeroTolerance) return false;
+            y_sum = mrDataCommunicator.SumAll(coordinates[1]);
+            if ((coordinates[1] - (y_sum/world_size)) > ZeroTolerance) return false;
+            z_sum = mrDataCommunicator.SumAll(coordinates[2]);
+            if ((coordinates[2] - (z_sum/world_size)) > ZeroTolerance) return false;
+        }
+
+        return true;
+    }
 
     ///@}
     ///@name Private  Access
