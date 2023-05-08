@@ -307,13 +307,13 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         }
 
         const double tolerance = std::numeric_limits<double>::epsilon();
-        Vector DelaminationDamageModeOne(r_p_constitutive_law_vector.size()+1);
-        Vector DelaminationDamageModeTwo(r_p_constitutive_law_vector.size()+1);
+        Vector RegularizedDelaminationDamageModeOne(r_p_constitutive_law_vector.size()+1);
+        Vector RegularizedDelaminationDamageModeTwo(r_p_constitutive_law_vector.size()+1);
         Vector ThresholdModeOne(r_p_constitutive_law_vector.size()-1);
         Vector ThresholdModeTwo(r_p_constitutive_law_vector.size()-1);
 
-        noalias(DelaminationDamageModeOne) = mDelaminationDamageModeOne;
-        noalias(DelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
+        noalias(RegularizedDelaminationDamageModeOne) = mDelaminationDamageModeOne;
+        noalias(RegularizedDelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
         noalias(ThresholdModeOne) = mThresholdModeOne;
         noalias(ThresholdModeTwo) = mThresholdModeTwo;
 
@@ -338,17 +338,32 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
             const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
+            const double delta_time = rValues.GetProcessInfo()[DELTA_TIME]; // NL_ITERATION_NUMBER
+            const double iter = rValues.GetProcessInfo()[NL_ITERATION_NUMBER];
+            const double etha = 0.01;
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
 
-                DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
+                double NonRegularizedDelaminationDamageModeOne = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
+
+                if (NonRegularizedDelaminationDamageModeOne - RegularizedDelaminationDamageModeOne[i+1] >= 0.5) {
+                    RegularizedDelaminationDamageModeOne[i+1] = (etha / (etha + delta_time)) * RegularizedDelaminationDamageModeOne[i+1] + (delta_time / (etha + delta_time)) * NonRegularizedDelaminationDamageModeOne;
+                } else {
+                    RegularizedDelaminationDamageModeOne[i+1] = NonRegularizedDelaminationDamageModeOne;
+                }
             }
 
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
 
-                DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
+                double NonRegularizedDelaminationDamageModeTwo = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
+
+                if (NonRegularizedDelaminationDamageModeTwo - RegularizedDelaminationDamageModeTwo[i+1] >= 0.5) {
+                    RegularizedDelaminationDamageModeTwo[i+1] = (etha / (etha + delta_time)) * RegularizedDelaminationDamageModeTwo[i+1] + (delta_time / (etha + delta_time)) * NonRegularizedDelaminationDamageModeTwo;
+                } else {
+                    RegularizedDelaminationDamageModeTwo[i+1] = NonRegularizedDelaminationDamageModeTwo;
+                }
             }
 
             // End damage calculation
@@ -358,16 +373,16 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             double layer_damage_variable_mode_one = 0.0;
             double layer_damage_variable_mode_two = 0.0;
 
-            if (DelaminationDamageModeOne[i+1] > DelaminationDamageModeOne[i]) {
-                layer_damage_variable_mode_one = DelaminationDamageModeOne[i+1];
+            if (RegularizedDelaminationDamageModeOne[i+1] > RegularizedDelaminationDamageModeOne[i]) {
+                layer_damage_variable_mode_one = RegularizedDelaminationDamageModeOne[i+1];
             } else {
-                layer_damage_variable_mode_one = DelaminationDamageModeOne[i];
+                layer_damage_variable_mode_one = RegularizedDelaminationDamageModeOne[i];
             }
 
-            if (DelaminationDamageModeTwo[i+1] > DelaminationDamageModeTwo[i]) {
-                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i+1];
+            if (RegularizedDelaminationDamageModeTwo[i+1] > RegularizedDelaminationDamageModeTwo[i]) {
+                layer_damage_variable_mode_two = RegularizedDelaminationDamageModeTwo[i+1];
             } else {
-                layer_damage_variable_mode_two = DelaminationDamageModeTwo[i];
+                layer_damage_variable_mode_two = RegularizedDelaminationDamageModeTwo[i];
             }
 
             layer_stress[i][2] *= ((1.0-layer_damage_variable_mode_one));
@@ -509,13 +524,13 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         }
 
         const double tolerance = std::numeric_limits<double>::epsilon();
-        Vector DelaminationDamageModeOne(r_p_constitutive_law_vector.size()+1);
-        Vector DelaminationDamageModeTwo(r_p_constitutive_law_vector.size()+1);
+        Vector RegularizedDelaminationDamageModeOne(r_p_constitutive_law_vector.size()+1);
+        Vector RegularizedDelaminationDamageModeTwo(r_p_constitutive_law_vector.size()+1);
         Vector ThresholdModeOne(r_p_constitutive_law_vector.size()-1);
         Vector ThresholdModeTwo(r_p_constitutive_law_vector.size()-1);
 
-        noalias(DelaminationDamageModeOne) = mDelaminationDamageModeOne;
-        noalias(DelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
+        noalias(RegularizedDelaminationDamageModeOne) = mDelaminationDamageModeOne;
+        noalias(RegularizedDelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
         noalias(ThresholdModeOne) = mThresholdModeOne;
         noalias(ThresholdModeTwo) = mThresholdModeTwo;
 
@@ -538,22 +553,37 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
             const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
+            const double delta_time = rValues.GetProcessInfo()[DELTA_TIME];
+            const double iter = rValues.GetProcessInfo()[NL_ITERATION_NUMBER];
+            const double etha = 0.01;
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
 
-                DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
+                double NonRegularizedDelaminationDamageModeOne = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
 
-                mDelaminationDamageModeOne[i+1] = DelaminationDamageModeOne[i+1];
+                if (NonRegularizedDelaminationDamageModeOne - RegularizedDelaminationDamageModeOne[i+1] >= 0.5) {
+                    RegularizedDelaminationDamageModeOne[i+1] = (etha / (etha + delta_time)) * RegularizedDelaminationDamageModeOne[i+1] + (delta_time / (etha + delta_time)) * NonRegularizedDelaminationDamageModeOne;
+                } else {
+                    RegularizedDelaminationDamageModeOne[i+1] = NonRegularizedDelaminationDamageModeOne;
+                }
+
+                mDelaminationDamageModeOne[i+1] = RegularizedDelaminationDamageModeOne[i+1];
                 mThresholdModeOne[i] = equivalent_stress_mode_one;
             }
 
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
 
-                DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
+                double NonRegularizedDelaminationDamageModeTwo = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
 
-                mDelaminationDamageModeTwo[i+1] = DelaminationDamageModeTwo[i+1];
+                if (NonRegularizedDelaminationDamageModeTwo - RegularizedDelaminationDamageModeTwo[i+1] >= 0.5) {
+                    RegularizedDelaminationDamageModeTwo[i+1] = (etha / (etha + delta_time)) * RegularizedDelaminationDamageModeTwo[i+1] + (delta_time / (etha + delta_time)) * NonRegularizedDelaminationDamageModeTwo;
+                } else {
+                    RegularizedDelaminationDamageModeTwo[i+1] = NonRegularizedDelaminationDamageModeTwo;
+                }
+
+                mDelaminationDamageModeTwo[i+1] = RegularizedDelaminationDamageModeTwo[i+1];
                 mThresholdModeTwo[i] = equivalent_stress_mode_two;
             }
 
