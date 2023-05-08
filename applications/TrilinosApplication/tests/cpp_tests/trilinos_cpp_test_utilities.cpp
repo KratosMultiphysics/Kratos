@@ -416,7 +416,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     int nnz = 0;
     int initial_index, end_index;
     std::unordered_map<int, std::pair<int, int>> initial_and_end_index;
-    for ( int i=0; i<NumMyElements; i++) {
+    for (int i=0; i<NumMyElements; i++) {
         if (MyGlobalElements[i] == rRowIndexes[current_row_index]) {
             initial_index = current_row_index;
             const int start_index = current_row_index;
