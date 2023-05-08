@@ -9,13 +9,13 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     if (parallelism == "OpenMP"):
 
         if (filter_type == "general_vector"):
-            solver_module_name = "general_vector_filter_solver"
+            solver_module_name = "helmholtz_vector_solver"
 
         elif (filter_type == "general_scalar" ):
-            solver_module_name = "general_scalar_filter_solver"
+            solver_module_name = "helmholtz_scalar_solver"
 
         elif (filter_type == "shape"):
-            solver_module_name = "shape_filter_solver"
+            solver_module_name = "helmholtz_shape_solver"
 
         else:
             err_msg =  'The requested solver type "' + filter_type + '" is not in the python solvers wrapper\n'
@@ -44,7 +44,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         err_msg += 'Available options are: "OpenMP", "MPI"'
         raise Exception(err_msg)
 
-    module_full = 'KratosMultiphysics.OptimizationApplication.' + solver_module_name
+    module_full = 'KratosMultiphysics.OptimizationApplication.filtering.' + solver_module_name
     solver = import_module(module_full).CreateSolver(model, solver_settings)
 
     return solver

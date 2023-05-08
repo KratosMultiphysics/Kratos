@@ -37,6 +37,11 @@ namespace Kratos
         mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
         mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
+        // Helmholtz elements
+        mHelmholtzShellElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+        mHelmholtzShellElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzSolidElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzSolidElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
         /* CONDITIONS */
         mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))
     {}
@@ -162,6 +167,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(COMPUTE_CONTROL_DENSITIES);
 
         // For helholtz solvers
+        KRATOS_REGISTER_VARIABLE(COMPUTE_HELMHOLTZ_INVERSE);
+        KRATOS_REGISTER_VARIABLE(HELMHOLTZ_RADIUS);
         KRATOS_REGISTER_VARIABLE(HELMHOLTZ_SCALAR);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( HELMHOLTZ_VECTOR);
 
@@ -188,6 +195,13 @@ namespace Kratos
 
         // Topology optimization elements
         KRATOS_REGISTER_ELEMENT("HelmholtzBulkTopology3D4N", mHelmholtzBulkTopology3D4N);
+
+        // Register the helmholtz elements
+		KRATOS_REGISTER_ELEMENT("HelmholtzShellElement3D3N", mHelmholtzShellElement3D3N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzShellElement3D4N", mHelmholtzShellElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D4N", mHelmholtzSolidElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D8N", mHelmholtzSolidElement3D8N);
+
 
         // Adjoint elements
         KRATOS_REGISTER_ELEMENT("AdjointSmallDisplacementElement3D4N", mAdjointSmallDisplacementElement3D4N);

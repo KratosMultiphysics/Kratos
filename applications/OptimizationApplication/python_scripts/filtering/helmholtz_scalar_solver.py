@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication as KOA
 
 # Import baseclass
-from KratosMultiphysics.OptimizationApplication.helmholtz_solver_base import HelmholtzSolverBase
+from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_solver_base import HelmholtzSolverBase
 
 
 def CreateSolver(model, custom_settings):
@@ -20,8 +20,13 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
     def AddVariables(self):
         # Add variables required for the helmholtz filtering
         self.helmholtz_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
+        self.original_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
         KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: Variables ADDED.")
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KOA.HELMHOLTZ_SCALAR, self.helmholtz_model_part)
         KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: DOFs ADDED.")
+
+    def PrepareModelPart(self):
+        KM.ConnectivityPreserveModeler().GenerateModelPart(
+                self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidElement3D8N")

@@ -23,15 +23,19 @@ class HelmholtzSolverBase(PythonSolver):
             raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
 
         if self.model.HasModelPart(model_part_name):
-            self.helmholtz_model_part = self.model.GetModelPart(model_part_name)
+            self.original_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.helmholtz_model_part = model.CreateModelPart(model_part_name)
+            self.original_model_part = model.CreateModelPart(model_part_name)
+
+        # Create Helmholtz model part
+        self.helmholtz_model_part = model.CreateModelPart(model_part_name+"_helmholtz_filter_mdp")
 
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
 
         self.helmholtz_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        self.original_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
 
@@ -41,6 +45,7 @@ class HelmholtzSolverBase(PythonSolver):
             "solver_type"           : "helmholtz_solver_base",
             "buffer_size"           : 1,
             "domain_size"           : -1,
+            "filter_type"     : "",
             "model_part_name"       : "",
             "time_stepping" : {
                 "time_step"       : 1.0
@@ -64,7 +69,7 @@ class HelmholtzSolverBase(PythonSolver):
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
             },
-            "reform_dofs_each_step"     : false,
+            "reform_dofs_at_each_step"     : false,
             "compute_reactions"         : false
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())

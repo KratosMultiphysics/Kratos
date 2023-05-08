@@ -34,6 +34,8 @@
 #include "custom_elements/helmholtz_surf_thickness_element.h"
 #include "custom_elements/helmholtz_bulk_shape_element.h"
 #include "custom_elements/helmholtz_bulk_element.h"
+#include "custom_elements/helmholtz_solid_element.h"
+#include "custom_elements/helmholtz_shell_element.h"
 
 /* ADJOINT ELEMENTS */
 #include "custom_elements/adjoint_small_displacement_element.h"
@@ -206,6 +208,12 @@ namespace Kratos
 		const HelmholtzSurfThicknessElement mHelmholtzSurfThickness3D3N;
 		const HelmholtzBulkShapeElement mHelmholtzBulkShape3D4N;
 		const HelmholtzBulkElement mHelmholtzBulkTopology3D4N;
+
+		// Helmholtz elements
+		const HelmholtzShellElement mHelmholtzShellElement3D3N;
+		const HelmholtzShellElement mHelmholtzShellElement3D4N;
+		const HelmholtzSolidElement mHelmholtzSolidElement3D4N;
+		const HelmholtzSolidElement mHelmholtzSolidElement3D8N;
 
 		/* ADJ ELEMENTS */
 		const AdjointSmallDisplacementElement mAdjointSmallDisplacementElement3D4N;

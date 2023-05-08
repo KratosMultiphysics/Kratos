@@ -39,22 +39,22 @@ class ImplicitFiltering(AnalysisStage):
         """
         list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
-        # if parameter_name == "processes":
-        #     processes_block_names = ["boundary_conditions_process_list", "list_other_processes", "json_output_process",
-        #         "json_check_process", "check_analytic_results_process"]
-        #     if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
-        #         for process_name in processes_block_names:
-        #             if self.project_parameters.Has(process_name):
-        #                 raise Exception("Using the old way to create the processes, this was removed!")
-        #     else: # Processes are given in the new format
-        #         for process_name in processes_block_names:
-        #             if self.project_parameters.Has(process_name):
-        #                 raise Exception("Mixing of process initialization is not alowed!")
-        # elif parameter_name == "output_processes":
-        #     if self.project_parameters.Has("output_configuration"):
-        #         raise Exception("Using the old way to create the gid-output, this was removed!")
-        # else:
-        #     raise NameError("wrong parameter name")
+        if parameter_name == "processes":
+            processes_block_names = ["boundary_conditions_process_list", "list_other_processes", "json_output_process",
+                "json_check_process", "check_analytic_results_process"]
+            if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
+                for process_name in processes_block_names:
+                    if self.project_parameters.Has(process_name):
+                        raise Exception("Using the old way to create the processes, this was removed!")
+            else: # Processes are given in the new format
+                for process_name in processes_block_names:
+                    if self.project_parameters.Has(process_name):
+                        raise Exception("Mixing of process initialization is not alowed!")
+        elif parameter_name == "output_processes":
+            if self.project_parameters.Has("output_configuration"):
+                raise Exception("Using the old way to create the gid-output, this was removed!")
+        else:
+            raise NameError("wrong parameter name")
 
         return list_of_processes
 
