@@ -2530,7 +2530,6 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_assign_mpcs_to_neighbours_process"))
         model_part_io.ReadModelPart(model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
 
         # Set up process parameters
         settings = KratosMultiphysics.Parameters(
