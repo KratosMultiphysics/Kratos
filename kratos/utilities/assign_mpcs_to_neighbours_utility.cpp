@@ -18,9 +18,11 @@
 #include <iostream>
 
 // External includes
+#include "concurrentqueue/concurrentqueue.h"
 
 // Project includes
 #include "utilities/assign_mpcs_to_neighbours_utility.h"
+// #include "utilities/openmp_utils.h"
 
 namespace Kratos 
 {
@@ -257,6 +259,79 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
     KRATOS_CATCH("");
 }
 
+// void AssignMPCsToNeighboursUtility::AssignMPCsToNodesParallelUtilities(
+//     NodesContainerType pNodes,
+//     double const Radius,
+//     ModelPart& rComputingModelPart,
+//     const Variable<double>& rVariable,
+//     double const MinNumOfNeighNodes
+//     )
+// {
+//     KRATOS_TRY;
+
+//     BuiltinTimer build_and_assign_mpcs;
+
+//     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
+
+//     NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
+
+//     ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+
+//     // Declare a counter variable outside the loop
+//     int i = 0;  
+
+//     // Declare a mutex object to synchronize access to the counter
+//     std::mutex mtx;
+
+//     // A buffer to store auxiliary constraints
+//     ConstraintContainerType constraints_buffer;
+
+//     block_for_each(nodes_array, [&](Node<3>::Pointer& pNode)
+//     {
+
+//         // Create a lock_guard object to lock the mutex and prevent other threads from accessing the critical section
+//         std::lock_guard<std::mutex> lock(mtx);
+
+//         double local_radius = Radius;
+
+//         ResultNodesContainerType r_result(0);
+
+//         while (r_result.size()<MinNumOfNeighNodes){
+//             r_result.clear();
+//             SearchNodesInRadiusForNode(pNode, local_radius, r_result);
+//             local_radius += Radius;
+//         }
+
+//         // Get Dofs and Coordinates
+//         DofPointerVectorType r_cloud_of_dofs, r_slave_dof;
+//         Matrix r_cloud_of_nodes_coordinates;
+//         array_1d<double,3> r_slave_coordinates;
+//         GetDofsAndCoordinatesForNode(pNode, rVariable, r_slave_dof, r_slave_coordinates);
+//         GetDofsAndCoordinatesForNodes(r_result, rVariable, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
+
+//         // Calculate shape functions
+//         Vector r_n_container;
+//         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates,r_slave_coordinates,r_n_container);
+
+//         //Create MPCs
+//         Matrix shape_matrix(1,r_n_container.size());
+//         noalias(row(shape_matrix,0)) = r_n_container;// Shape functions matrix
+//         const Vector constant_vector = ZeroVector(r_n_container.size());
+//         IndexType it = i;
+//         constraints_buffer.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 1,r_cloud_of_dofs,r_slave_dof,shape_matrix,constant_vector));
+
+//         // // ThreadSafeAddMasterSlaveConstraints(rComputingModelPart, constraints_buffer);
+
+//         // Increment the counter variable
+//         i++;
+//     });
+
+//     rComputingModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
+    
+//     KRATOS_INFO("AssignMPCsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
+//     KRATOS_CATCH("");
+// }
+
 void AssignMPCsToNeighboursUtility::AssignMPCsToNodesParallelUtilities(
     NodesContainerType pNodes,
     double const Radius,
@@ -271,30 +346,28 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodesParallelUtilities(
 
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
-    NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
+    NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
 
     ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
-    // Declare a counter variable outside the loop
-    int i = 0;  
+    // Create a concurrent queue for constraints
+    using MasterSlaveConstarintQueue = moodycamel::ConcurrentQueue<ModelPart::MasterSlaveConstraintType::Pointer>;
 
-    // Declare a mutex object to synchronize access to the counter
-    std::mutex mtx;
+    MasterSlaveConstarintQueue concurrent_constraints;
 
-    // A buffer to store auxiliary constraints
-    ConstraintContainerType constraints_buffer;
+    // Declare a counter variable outside the loop as std::atomic<int>
+    std::atomic<int> i(0);
 
-    block_for_each(nodes_array, [&](Node<3>::Pointer& pNode)
-    {
+    block_for_each(nodes_array, [&](Node<3>::Pointer& pNode) {
 
-        // Create a lock_guard object to lock the mutex and prevent other threads from accessing the critical section
-        std::lock_guard<std::mutex> lock(mtx);
+        // Get the thread id
+        // int thread_id = OpenMPUtils::ThisThread();
 
         double local_radius = Radius;
 
         ResultNodesContainerType r_result(0);
 
-        while (r_result.size()<MinNumOfNeighNodes){
+        while (r_result.size() < MinNumOfNeighNodes) {
             r_result.clear();
             SearchNodesInRadiusForNode(pNode, local_radius, r_result);
             local_radius += Radius;
@@ -303,32 +376,38 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodesParallelUtilities(
         // Get Dofs and Coordinates
         DofPointerVectorType r_cloud_of_dofs, r_slave_dof;
         Matrix r_cloud_of_nodes_coordinates;
-        array_1d<double,3> r_slave_coordinates;
+        array_1d<double, 3> r_slave_coordinates;
         GetDofsAndCoordinatesForNode(pNode, rVariable, r_slave_dof, r_slave_coordinates);
         GetDofsAndCoordinatesForNodes(r_result, rVariable, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
 
         // Calculate shape functions
         Vector r_n_container;
-        RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates,r_slave_coordinates,r_n_container);
+        RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
 
-        //Create MPCs
-        Matrix shape_matrix(1,r_n_container.size());
-        noalias(row(shape_matrix,0)) = r_n_container;// Shape functions matrix
+        // Create MPCs
+        Matrix shape_matrix(1, r_n_container.size());
+        noalias(row(shape_matrix, 0)) = r_n_container; // Shape functions matrix
         const Vector constant_vector = ZeroVector(r_n_container.size());
-        IndexType it = i;
-        constraints_buffer.push_back(r_clone_constraint.Create(prev_num_mpcs + it + 1,r_cloud_of_dofs,r_slave_dof,shape_matrix,constant_vector));
-
-        // // ThreadSafeAddMasterSlaveConstraints(rComputingModelPart, constraints_buffer);
-
-        // Increment the counter variable
-        i++;
+        IndexType it = i.fetch_add(1); // Atomically increment the counter and get the previous value
+        concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mpcs + it + 1, r_cloud_of_dofs, r_slave_dof, shape_matrix, constant_vector));
     });
 
-    rComputingModelPart.AddMasterSlaveConstraints(constraints_buffer.begin(),constraints_buffer.end());
-    
+    // Create a temporary container to store the master-slave constraints
+    ConstraintContainerType temp_constraints;
+    ModelPart::MasterSlaveConstraintType::Pointer p_constraint;
+
+    // Dequeue the constraints from the concurrent queue and add them to the temporary container
+    while (concurrent_constraints.try_dequeue(p_constraint)) {
+        temp_constraints.push_back(p_constraint);
+    }
+
+    // Add the constraints to the rComputingModelPart in a single call
+    rComputingModelPart.AddMasterSlaveConstraints(temp_constraints.begin(), temp_constraints.end());
+
     KRATOS_INFO("AssignMPCsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("");
 }
+
 
 
 }  // namespace Kratos.
