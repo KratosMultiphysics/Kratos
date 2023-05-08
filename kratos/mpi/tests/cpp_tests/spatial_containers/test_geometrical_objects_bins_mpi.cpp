@@ -179,7 +179,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
 
     std::vector<std::vector<GeometricalObjectsBinsMPI::ResultType>> results;
 
-    bins.IterativeSearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
+    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
 
     // As node is only in first partition will be check only in first one
     if (r_data_comm.Rank() == 0) {

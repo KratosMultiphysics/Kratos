@@ -361,6 +361,7 @@ private:
         std::array<int, 2>& rLimits
         )
     {
+        // First check that the points are the same in all processes
         int number_of_points, total_number_of_points;
         const bool all_points_are_the_same = CheckAllPointsAreTheSame(itPointBegin, itPointEnd, number_of_points, total_number_of_points);
 
@@ -390,6 +391,8 @@ private:
             std::vector<int> send_points_per_partition(1, number_of_points);
             mrDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
 
+            KRATOS_WATCH_MPI(points_per_partition, mrDataCommunicator);
+
             // Getting global coordinates
             rAllPointsCoordinates.resize(total_number_of_points * 3);
             std::vector<double> send_points_coordinates(number_of_points * 3);
@@ -403,6 +406,7 @@ private:
                 }
                 ++counter;
             }
+            // TODO: Replace with vector version when available
             mrDataCommunicator.AllGather(send_points_coordinates, rAllPointsCoordinates);
 
             // Define limits
@@ -520,8 +524,7 @@ private:
 
         // First we check if all the partitions have the same number of points
         rTotalNumberOfPoints = mrDataCommunicator.SumAll(rNumberOfPoints);
-        const int average_number_of_points = rTotalNumberOfPoints / world_size;
-        if (rNumberOfPoints != average_number_of_points) {
+        if (rNumberOfPoints * world_size != rTotalNumberOfPoints) {
             return false;
         }
 
@@ -531,11 +534,11 @@ private:
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
             noalias(coordinates) = it_point->Coordinates();
             x_sum = mrDataCommunicator.SumAll(coordinates[0]);
-            if ((coordinates[0] - (x_sum/world_size)) > ZeroTolerance) return false;
+            if (std::abs(coordinates[0] - (x_sum/world_size)) > ZeroTolerance) return false;
             y_sum = mrDataCommunicator.SumAll(coordinates[1]);
-            if ((coordinates[1] - (y_sum/world_size)) > ZeroTolerance) return false;
+            if (std::abs(coordinates[1] - (y_sum/world_size)) > ZeroTolerance) return false;
             z_sum = mrDataCommunicator.SumAll(coordinates[2]);
-            if ((coordinates[2] - (z_sum/world_size)) > ZeroTolerance) return false;
+            if (std::abs(coordinates[2] - (z_sum/world_size)) > ZeroTolerance) return false;
         }
 
         return true;

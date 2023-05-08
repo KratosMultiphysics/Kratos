@@ -58,8 +58,6 @@ void GeometricalObjectsBinsMPI::ImplSearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
-    KRATOS_WATCH_MPI("Hola", mrDataCommunicator);
-
     // Find the partitions were point is inside
     const int current_rank = GetRank();
     std::vector<int> ranks = RansksPointIsInsideBoundingBoxWithTolerance(rPoint.Coordinates(), Radius);
