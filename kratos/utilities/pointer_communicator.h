@@ -4,16 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-
-#if !defined(KRATOS_POINTER_COMMUNICATOR_H_INCLUDED )
-#define  KRATOS_POINTER_COMMUNICATOR_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
@@ -21,7 +18,6 @@
 #include <type_traits>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -443,7 +439,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_POINTER_COMMUNICATOR_H_INCLUDED  defined
 
 

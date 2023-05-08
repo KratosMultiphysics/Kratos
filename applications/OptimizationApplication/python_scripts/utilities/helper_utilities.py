@@ -2,7 +2,7 @@ from pathlib import Path
 from importlib import import_module
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 from KratosMultiphysics.kratos_utilities import GetKratosMultiphysicsPath
 
@@ -36,7 +36,7 @@ def OptimizationProcessFactory(
     class_name: str,
     model: Kratos.Model,
     parameters: Kratos.Parameters,
-    optimization_info: OptimizationInfo,
+    optimization_info: OptimizationProblem,
     required_object_type = Kratos.Process):
 
     python_file_name = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(class_name)

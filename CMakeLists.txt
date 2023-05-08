@@ -186,6 +186,11 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   message(STATUS "Additional default options were set for GCC")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
 
+# Check for correct clang version
+if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12.0)
+    message( FATAL_ERROR "Please use Version 12.0 or greater")
+endif()
+
 message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message(STATUS "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
