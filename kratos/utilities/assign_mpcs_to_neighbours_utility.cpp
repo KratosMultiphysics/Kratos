@@ -62,34 +62,6 @@ void AssignMPCsToNeighboursUtility::SearchNodesInRadiusForNodes(
 
     rResults.resize(nodes_array.size());
 
-    #pragma omp parallel
-    {
-        #pragma omp for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
-        {
-            double localRadius = Radius;
-            while (rResults[i].size()<MinNumOfNeighNodes){
-                rResults[i].clear();
-                SearchNodesInRadiusForNode(nodes_array[i], localRadius, rResults[i]);
-                localRadius += Radius;
-            }
-        }
-    }
-    KRATOS_CATCH("");
-}
-
-// Search for the neighbouring nodes (in rStructureNodes) of each rNode on a given array of rNodes
-void AssignMPCsToNeighboursUtility::SearchNodesInRadiusForNodesParallelUtilities(
-    NodesContainerType const& rNodes,
-    const double Radius,
-    VectorResultNodesContainerType& rResults,
-    const double MinNumOfNeighNodes)
-{
-    KRATOS_TRY;
-    NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
-
-    rResults.resize(nodes_array.size());
-
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
