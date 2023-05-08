@@ -90,25 +90,20 @@ void AssignMPCsToNeighboursUtility::SearchNodesInRadiusForNodesParallelUtilities
 
     rResults.resize(nodes_array.size());
 
-    // Declare a counter variable outside the loop
-    int i = 0;
-
-    // Declare a mutex object to synchronize access to the counter
-    std::mutex mtx;
+    // Declare a counter variable outside the loop as std::atomic<int>
+    std::atomic<int> i(0);
 
     block_for_each(nodes_array, [&](Node<3>::Pointer& pNode)
     {
         double localRadius = Radius;
 
-        // Create a lock_guard object to lock the mutex and prevent other threads from accessing the critical section
-        std::lock_guard<std::mutex> lock(mtx);
+        IndexType it = i.fetch_add(1); // Atomically increment the counter and get the previous value
 
         while (rResults[i].size()<MinNumOfNeighNodes){
             rResults[i].clear();
-            SearchNodesInRadiusForNode(pNode, localRadius, rResults[i]);
+            SearchNodesInRadiusForNode(pNode, localRadius, rResults[it]);
             localRadius += Radius;
         }
-        i++;
     });
     KRATOS_CATCH("");
 }
@@ -211,9 +206,6 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
     std::atomic<int> i(0);
 
     block_for_each(nodes_array, [&](Node<3>::Pointer& pNode) {
-
-        // Get the thread id
-        // int thread_id = OpenMPUtils::ThisThread();
 
         double local_radius = Radius;
 
