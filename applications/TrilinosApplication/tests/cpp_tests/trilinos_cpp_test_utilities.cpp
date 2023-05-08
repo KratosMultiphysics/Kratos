@@ -178,7 +178,7 @@ TrilinosCPPTestUtilities::TrilinosVectorType TrilinosCPPTestUtilities::GenerateD
 void TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(
     const TrilinosVectorType& rA,
     const TrilinosLocalVectorType& rB,
-    const double Tolerance
+    const double NeglibibleValueThreshold
     )
 {
     const std::size_t total_size = rB.size();
@@ -200,7 +200,7 @@ void TrilinosCPPTestUtilities::CheckSparseVector(
     const TrilinosVectorType& rb,
     const std::vector<int>& rIndexes,
     const std::vector<double>& rValues,
-    const double Tolerance
+    const double NeglibibleValueThreshold
     )
 {
     int index;
@@ -211,7 +211,7 @@ void TrilinosCPPTestUtilities::CheckSparseVector(
         value = rValues[counter];
         if (r_map.MyGID(index)) {
             const double ref_value = rb[0][r_map.LID(index)];
-            KRATOS_CHECK_RELATIVE_NEAR(value, ref_value, Tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(value, ref_value, NeglibibleValueThreshold);
         }
     }
 }
@@ -222,7 +222,7 @@ void TrilinosCPPTestUtilities::CheckSparseVector(
 void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
     const TrilinosSparseMatrixType& rA,
     const TrilinosLocalMatrixType& rB,
-    const double Tolerance
+    const double NeglibibleValueThreshold
     )
 {
     const std::size_t total_size = rB.size1() * rB.size2();
@@ -253,7 +253,7 @@ void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
     const std::vector<int>& rRowIndexes,
     const std::vector<int>& rColumnIndexes,
     const TrilinosLocalMatrixType& rB,
-    const double Tolerance
+    const double NeglibibleValueThreshold
     )
 {
 
@@ -264,7 +264,7 @@ void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
         column = rColumnIndexes[counter];
         values[counter] = rB(row, column);
     }
-    CheckSparseMatrix(rA, rRowIndexes, rColumnIndexes, values, Tolerance);
+    CheckSparseMatrix(rA, rRowIndexes, rColumnIndexes, values, NeglibibleValueThreshold);
 }
 
 
@@ -276,7 +276,7 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
     const std::vector<int>& rRowIndexes,
     const std::vector<int>& rColumnIndexes,
     const std::vector<double>& rValues,
-    const double Tolerance
+    const double NeglibibleValueThreshold
     )
 {
     int local_validated_values = 0;
@@ -297,7 +297,7 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
                 for (j = 0; j < numEntries; j++) {
                     const int col_gid = rA.ColMap().GID(cols[j]);
                     if (col_gid == column) {
-                        KRATOS_CHECK_RELATIVE_NEAR(value, vals[j], Tolerance)
+                        KRATOS_CHECK_RELATIVE_NEAR(value, vals[j], NeglibibleValueThreshold)
                         ++local_validated_values;
                         break;
                     }
