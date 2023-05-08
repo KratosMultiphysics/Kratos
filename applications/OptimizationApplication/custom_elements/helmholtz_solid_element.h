@@ -302,7 +302,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    void CalculateMassMatrix(MatrixType& rMassMatrix,const ProcessInfo& rCurrentProcessInfo) const;
     void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}

@@ -27,6 +27,7 @@
 #include "custom_utilities/container_properties_data_io.h"
 #include "custom_utilities/collective_expressions.h"
 #include "custom_utilities/container_expression_utils.h"
+#include "custom_utilities/implicit_filter_utils.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -248,6 +249,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         ;
+
+    m.def_submodule("ImplicitFilterUtils")
+        .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount)
+        ;
+
 }
 
 }  // namespace Python.

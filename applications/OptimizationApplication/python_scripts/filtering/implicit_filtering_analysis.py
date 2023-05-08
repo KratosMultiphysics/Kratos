@@ -1,6 +1,7 @@
 # Importing Kratos
-import KratosMultiphysics
+import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication.filtering.python_solvers_wrapper_implicit_filters as implicit_filter_solvers
+import KratosMultiphysics.OptimizationApplication as KOA
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -40,16 +41,10 @@ class ImplicitFiltering(AnalysisStage):
         list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["boundary_conditions_process_list", "list_other_processes", "json_output_process",
-                "json_check_process", "check_analytic_results_process"]
-            if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
-                for process_name in processes_block_names:
-                    if self.project_parameters.Has(process_name):
-                        raise Exception("Using the old way to create the processes, this was removed!")
-            else: # Processes are given in the new format
-                for process_name in processes_block_names:
-                    if self.project_parameters.Has(process_name):
-                        raise Exception("Mixing of process initialization is not alowed!")
+            processes_block_names = ["boundary_conditions_process_list"]
+            for process_name in processes_block_names:
+                if self.project_parameters.Has(process_name):
+                    raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
                 raise Exception("Using the old way to create the gid-output, this was removed!")
@@ -60,3 +55,8 @@ class ImplicitFiltering(AnalysisStage):
 
     def _GetSimulationName(self):
         return "::[Implicit Helmholtz/Sobolev Filtering]:: "
+    
+    def FilterField(self, unfiltered_field: KM.ContainerExpression.NodalNonHistoricalExpression) -> KM.ContainerExpression.NodalNonHistoricalExpression:
+        unfiltered_field.Read(KOA.HELMHOLTZ_SCALAR_SOURCE)
+        unfiltered_field.Evaluate()
+        self.Run()

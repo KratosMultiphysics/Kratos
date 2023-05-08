@@ -15,12 +15,15 @@ def CreateSolver(model, custom_settings):
 class HelmholtzScalarSolver(HelmholtzSolverBase):
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
+        self.filter_radius = self.settings["filter_radius"].GetDouble()
         KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: Construction finished")
 
     def AddVariables(self):
         # Add variables required for the helmholtz filtering
-        self.helmholtz_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
         self.original_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
+        self.helmholtz_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
+        self.original_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR_SOURCE)
+        self.helmholtz_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR_SOURCE)
         KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: Variables ADDED.")
 
     def AddDofs(self):
@@ -30,3 +33,4 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
     def PrepareModelPart(self):
         KM.ConnectivityPreserveModeler().GenerateModelPart(
                 self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidElement3D8N")
+        self.helmholtz_model_part.GetProperties()[0].SetValue(KOA.HELMHOLTZ_RADIUS,self.settings["filter_radius"].GetDouble())

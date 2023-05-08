@@ -114,6 +114,7 @@ void HelmholtzSolidElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix
 
     MatrixType M;
     CalculateMassMatrix(M,rCurrentProcessInfo);
+
     MatrixType A;
     CalculateStiffnessMatrix(A,rCurrentProcessInfo);
 
@@ -123,8 +124,17 @@ void HelmholtzSolidElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix
     else
         K = M + A;
 
+    const unsigned int number_of_points = r_geometry.size();
+    Vector nodal_vals(number_of_points);
+    for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
+    {
+        const auto &source = r_geometry[node_element].FastGetSolutionStepValue(HELMHOLTZ_SCALAR_SOURCE);
+        auto node_weight = r_geometry[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+        nodal_vals[node_element] = source/node_weight;
+    }
 
     noalias(rLeftHandSideMatrix) += K;
+    noalias(rRightHandSideVector) += nodal_vals;
 
     //apply drichlet BC
     Vector temp;
@@ -148,14 +158,6 @@ void HelmholtzSolidElement::GetValuesVector(VectorType &rValues,
   SizeType index = 0;
   for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
     rValues[index++] = rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_SCALAR, Step);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void HelmholtzSolidElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
 }
 
 //************************************************************************************
@@ -238,7 +240,7 @@ int HelmholtzSolidElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 void HelmholtzSolidElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo
-    ) const
+    )
 {
 
     KRATOS_TRY;

@@ -28,13 +28,14 @@ class HelmholtzSolverBase(PythonSolver):
             self.original_model_part = model.CreateModelPart(model_part_name)
 
         # Create Helmholtz model part
-        self.helmholtz_model_part = model.CreateModelPart(model_part_name+"_helmholtz_filter_mdp")
+        self.helmholtz_model_part = self.model.CreateModelPart(self.original_model_part.Name+"_helmholtz_filter_mdp")
+        self.helmholtz_model_part.GetProperties()[0].SetValue(KOA.HELMHOLTZ_RADIUS,self.settings["filter_radius"].GetDouble())
 
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
 
-        self.helmholtz_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        self.original_model_part.ProcessInfo.SetValue(KOA.COMPUTE_HELMHOLTZ_INVERSE, False)
         self.original_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
@@ -46,6 +47,7 @@ class HelmholtzSolverBase(PythonSolver):
             "buffer_size"           : 1,
             "domain_size"           : -1,
             "filter_type"     : "",
+            "filter_radius"     : 0.0,
             "model_part_name"       : "",
             "time_stepping" : {
                 "time_step"       : 1.0
@@ -87,7 +89,7 @@ class HelmholtzSolverBase(PythonSolver):
 
     def Initialize(self):
         self._GetSolutionStrategy().Initialize()
-        #self.neighbour_search.Execute()
+        KOA.ImplicitFilterUtils.CalculateNodeNeighbourCount(self.helmholtz_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self):
@@ -118,7 +120,7 @@ class HelmholtzSolverBase(PythonSolver):
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
-        self._ImportModelPart(self.helmholtz_model_part,self.settings["model_import_settings"])
+        self._ImportModelPart(self.original_model_part,self.settings["model_import_settings"])
 
     def GetComputingModelPart(self):
         return self.helmholtz_model_part
