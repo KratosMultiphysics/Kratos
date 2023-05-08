@@ -107,12 +107,6 @@ class KRATOS_API(KRATOS_CORE) AssignMPCsToNeighboursUtility
           VectorResultNodesContainerType& rResults,
           const double MinNumOfNeighNodes);
 
-      void SearchNodesInRadiusForNodesParallelUtilities(
-          NodesContainerType const& rNodes,
-          const double Radius,
-          VectorResultNodesContainerType& rResults,
-          const double MinNumOfNeighNodes);
-
       /**
        * @brief Perform Node Search
        * @details Searches for nodes within a given 'Radius' of the current node
