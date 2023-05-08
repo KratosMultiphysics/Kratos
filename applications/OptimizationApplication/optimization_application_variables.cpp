@@ -7,16 +7,21 @@
 //  License:		 BSD License
 //					 license: OptimizationApplication/license.txt
 //
-//  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
+//  Main author:     Reza Najian Asl,
+//                   Suneth Warnakulasuriya
 //
 
+// System includes
+
+// External includes
+
+// Project includes
+
+// Application includes
 #include "optimization_application_variables.h"
 
 namespace Kratos
 {
-
-    // KRATOS_CREATE_VARIABLE(double,TEST_MAP);
-
     //Auxilary field
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AUXILIARY_FIELD);
 
@@ -72,6 +77,10 @@ namespace Kratos
 	KRATOS_CREATE_VARIABLE(double, D_MASS_D_PD);
     KRATOS_CREATE_VARIABLE(double, D_MASS_D_FD);
     KRATOS_CREATE_VARIABLE(double, D_MASS_D_CD);
+
+    //max overhang angle
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(D_MAX_OVERHANG_ANGLE_D_X);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(D_MAX_OVERHANG_ANGLE_D_CX);
 
     //stress
 	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(D_STRESS_D_X);
@@ -136,4 +145,14 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, CROSS_AREA_SENSITIVITY);
     KRATOS_CREATE_VARIABLE(double, YOUNG_MODULUS_SENSITIVITY);
     KRATOS_CREATE_VARIABLE(double, POISSON_RATIO_SENSITIVITY);
+
+    // do not expose the following variables to python. They are used
+    // as temporary data holders. They can be changed
+    // at any point of time in an analysis.
+    // Hence, not recommended to be used for calculations
+    // unless existing values on those variables are not of interest
+    KRATOS_CREATE_VARIABLE(double, TEMPORARY_SCALAR_VARIABLE_1);
+    KRATOS_CREATE_VARIABLE(double, TEMPORARY_SCALAR_VARIABLE_2);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_1);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_2);
 }

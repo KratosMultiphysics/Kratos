@@ -4,17 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //
 
-
-#if !defined(KRATOS_BINS_STATIC_OBJECTS_CONTAINER_H_INCLUDED)
-#define  KRATOS_BINS_STATIC_OBJECTS_CONTAINER_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
@@ -949,7 +945,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
 
 
