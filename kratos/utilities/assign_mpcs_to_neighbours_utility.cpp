@@ -67,8 +67,8 @@ void AssignMPCsToNeighboursUtility::SearchNodesInRadiusForNodes(
 
         IndexType it = i.fetch_add(1); // Atomically increment the counter and get the previous value
 
-        while (rResults[i].size()<MinNumOfNeighNodes){
-            rResults[i].clear();
+        while (rResults[it].size()<MinNumOfNeighNodes){
+            rResults[it].clear();
             SearchNodesInRadiusForNode(pNode, localRadius, rResults[it]);
             localRadius += Radius;
         }
