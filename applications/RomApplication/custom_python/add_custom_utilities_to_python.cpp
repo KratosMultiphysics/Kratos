@@ -26,6 +26,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rom_residuals_utility.h"
 #include "custom_utilities/rom_auxiliary_utilities.h"
+#include "custom_utilities/rom_bases.h"
 
 namespace Kratos {
 namespace Python {
@@ -53,6 +54,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("GetHRomMinimumConditionsIds", &RomAuxiliaryUtilities::GetHRomMinimumConditionsIds)
         .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
         ;
+
+    class_<RomBases, typename RomBases::Pointer>(m, "RomBases")
+    .def(init<>()) //
+    .def("AddBasis",&RomBases::AddBasis) //
+    .def("GetBasis",&RomBases::GetBasis) //
+    ;
+
 }
 
 } // namespace Python.
