@@ -1004,7 +1004,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
     // All ranks expect a message of the correct size
     int expected_size = 0;
     const int available_recv_size = MPIMessageSize(rRecvValues);
-    const int ierr = MPI_Scatter(rSendCounts.data(), 1, MPI_INT, &expected_size, 1, MPI_INT, SourceRank, mComm);
+    int ierr = MPI_Scatter(rSendCounts.data(), 1, MPI_INT, &expected_size, 1, MPI_INT, SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(expected_size != available_recv_size))
     << "Input error in call to MPI_Scatterv for rank " << Rank() << ": "
@@ -1051,7 +1051,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
     // All ranks send a message of the correct size
     int expected_recv_size = 0;
     const int send_size = MPIMessageSize(rSendValues);
-    const int ierr = MPI_Scatter(rRecvCounts.data(), 1, MPI_INT, &expected_recv_size, 1, MPI_INT, RecvRank, mComm);
+    int ierr = MPI_Scatter(rRecvCounts.data(), 1, MPI_INT, &expected_recv_size, 1, MPI_INT, RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(send_size != expected_recv_size))
     << "Input error in call to MPI_Gatherv for rank " << Rank() << ": "
