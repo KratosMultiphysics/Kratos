@@ -19,6 +19,7 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_controls/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_responsess/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_input_output/*.cpp
 )
 
 ## Optimization python interface sources

@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 license: OptimizationApplication/license.txt
 //
-//  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
+//  Main authors:    Fabian Meister
 //
 
 // ------------------------------------------------------------------------------
@@ -18,6 +18,7 @@
 // // External includes
 // // ------------------------------------------------------------------------------
 #include <pybind11/stl.h>
+#include <pybind11/pybind11.h>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -43,11 +44,17 @@ namespace Kratos
             // ================================================================
             //
             // ================================================================
+            // py::class_<ContainerVariableDataVtkOutput>(m, "ContainerVariableDataVtkOutput")
+            // .def(py::init<ModelPart&,Parameters>())
+            // ;
             py::class_<ContainerVariableDataVtkOutput>(m, "ContainerVariableDataVtkOutput")
                 .def(py::init<ModelPart &, Parameters>())
-                .def("WriteContainerDataToFile", &ContainerVariableDataVtkOutput::WriteContainerDataToFile<ModelPart::NodesContainerType>)
-                .def("WriteContainerDataToFile", &ContainerVariableDataVtkOutput::WriteContainerDataToFile<ModelPart::ConditionsContainerType>)
-                .def("WriteContainerDataToFile", &ContainerVariableDataVtkOutput::WriteContainerDataToFile<ModelPart::ElementsContainerType>);
+                .def("TestFunction", &ContainerVariableDataVtkOutput::TestFunction)
+                .def("printNumberType", &ContainerVariableDataVtkOutput::printNumberType<int>)
+                .def("printNumberType", &ContainerVariableDataVtkOutput::printNumberType<double>);
+            // .def("WriteContainerDataToFile", &ContainerVariableDataVtkOutput::WriteContainerDataToFile<ModelPart::NodesContainerType>)
+            // .def("WriteContainerDataToFile", &ContainerVariableDataVtkOutput::WriteContainerDataToFile<ModelPart::ConditionsContainerType>)
+            // .def("WriteContainerDataToFile", &ContainerVariableDataVtkOutput::WriteContainerDataToFile<ModelPart::ElementsContainerType>);
         }
 
     } // namespace Python.

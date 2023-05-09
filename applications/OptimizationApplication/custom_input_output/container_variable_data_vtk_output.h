@@ -11,6 +11,9 @@
 //
 
 // System includes
+#include <iostream>
+#include <fstream>
+#include <ios>
 
 // External includes
 
@@ -34,9 +37,17 @@ namespace Kratos
         class ContainerVariableDataVtkOutput : public VtkOutput
         {
         public:
-                explicit ContainerVariableDataVtkOutput(ModelPart &rModelPart, Parameters Parameters = Parameters(R"({})"));
+                explicit ContainerVariableDataVtkOutput(ModelPart &rModelPart, Parameters parameters);
+
+                /// Destructor.
+                virtual ~ContainerVariableDataVtkOutput() = default;
+
+                void TestFunction();
 
                 template <class TContainerType>
-                void WriteContainerDataToFile(const ContainerVariableData<TContainerType> &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream);
+                void WriteContainerDataToFile(const ContainerVariableData<TContainerType> &rContainerVariableData, const std::string &rDataName);
+
+                template <class number>
+                void printNumberType(const number num);
         };
 }

@@ -3,9 +3,6 @@ import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
 
-test_container = []
-
-
 def create_test_model() -> KM.Model:
     model = KM.Model()
     model_part = model.CreateModelPart("test")
@@ -23,7 +20,8 @@ def create_test_model() -> KM.Model:
         node.SetValue(KM.PRESSURE, id+3)
         node.SetValue(KM.VELOCITY, KM.Array3([id+3, id+4, id+5]))
 
-    KOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Conditions)
+    KOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(
+        model_part, model_part.Conditions)
     for condition in model_part.Conditions:
         id = condition.Id
         condition.Properties[KM.PRESSURE] = id+400
@@ -31,7 +29,8 @@ def create_test_model() -> KM.Model:
         condition.SetValue(KM.PRESSURE, id+4)
         condition.SetValue(KM.VELOCITY, KM.Array3([id+5, id+6, id+7]))
 
-    KOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements)
+    KOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(
+        model_part, model_part.Elements)
     for element in model_part.Elements:
         id = element.Id
         element.Properties[KM.PRESSURE] = id+500
@@ -47,9 +46,22 @@ model = create_test_model()
 print(model)
 print(model.GetModelPart("test"))
 
-
-container_non_hist = KOA.NodalNonHistoricalVariableData(model.GetModelPart("test"))
-container_hist = KOA.HistoricalVariableData(model.GetModelPart("test"))
+test_model_part = model.GetModelPart("test")
+container_non_hist = KOA.NodalNonHistoricalVariableData(test_model_part)
+container_hist = KOA.HistoricalVariableData(test_model_part)
 
 print(container_non_hist)
 print(container_hist)
+
+# proper_container = KOA.ContainerVariableDataUtils.MapNodalVariableToContainerVariable(
+#     container_hist, test_model_part.Nodes)
+
+vtk_output = KOA.ContainerVariableDataVtkOutput(
+    test_model_part, KM.Parameters())
+vtk_output.TestFunction()
+# vtk_output.WriteContainerDataToFile()
+
+# KOA.ContainerVariableDataVtkOutput.WriteContainerDataToFile()
+
+vtk_output.printNumberType(int(20))
+vtk_output.printNumberType(float(10.5))

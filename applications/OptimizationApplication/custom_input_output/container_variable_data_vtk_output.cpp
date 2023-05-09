@@ -18,16 +18,32 @@
 namespace Kratos
 {
 
-        explicit ContainerVariableDataVtkOutput(ModelPart &rModelPart, Parameters Parameters = Parameters(R"({})")) : VtkOutput(rModelPart, Parameters)
-        {
-        }
+        ContainerVariableDataVtkOutput::ContainerVariableDataVtkOutput(ModelPart &rModelPart, Parameters parameters = Parameters(R"({})")) : VtkOutput(rModelPart, parameters){
 
-        void ContainerVariableDataVtkOutput::WriteContainerDataToFile(const ContainerVariableData<TContainerType> &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream) const
-        {
-                rFileStream << "Test";
-        }
+                                                                                                                                             };
 
-        template void ContainerVariableDataVtkOutput::WriteContainerDataToFile(const ModelPart::NodesContainerType &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream);
-        template void ContainerVariableDataVtkOutput::WriteContainerDataToFile(const ModelPart::ConditionsContainerType &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream);
-        template void ContainerVariableDataVtkOutput::WriteContainerDataToFile(const ModelPart::ElementsContainerType &rContainerVariableData, const std::string &rDataName, std::ofstream &rFileStream);
+        void ContainerVariableDataVtkOutput::TestFunction()
+        {
+                std::fstream my_file;
+                my_file.open("test.txt");
+                my_file << "Test";
+                my_file.close();
+        };
+
+        template <class TContainerType>
+        void ContainerVariableDataVtkOutput::WriteContainerDataToFile(const ContainerVariableData<TContainerType> &rContainerVariableData, const std::string &rDataName){
+
+        };
+
+        template <class number>
+        void ContainerVariableDataVtkOutput::printNumberType(const number num){
+                std::cout<<"some number: "<<num<<std::endl;
+        };
+
+        template <>
+        void ContainerVariableDataVtkOutput::printNumberType(const int num){
+                std::cout<<"an int: "<<num<<std::endl;
+        };
+
+        template void ContainerVariableDataVtkOutput::printNumberType(double);
 }
