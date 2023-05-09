@@ -926,12 +926,10 @@ std::vector<std::vector<TDataType>> MPIDataCommunicator::AllGathervDetail(
     std::vector<TDataType> message;
     std::vector<int> message_lengths;
     std::vector<int> message_offsets;
-    PrepareGathervBuffers(rSendValues, message, message_lengths, message_offsets, Rank());
-
+    PrepareAllGathervBuffers(rSendValues, message, message_lengths, message_offsets);
     AllGatherv(rSendValues, message, message_lengths, message_offsets);
-
     std::vector<std::vector<TDataType>> output_message;
-    PrepareGathervReturn(message, message_lengths, message_offsets, output_message, Rank());
+    PrepareAllGathervReturn(message, message_lengths, message_offsets, output_message);
     return output_message;
 }
 
@@ -1138,7 +1136,7 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervBuffers(
     std::vector<int>& rMessageDistances,
     const int DestinationRank) const
 {
-    int message_size_send = rGathervInput.size();
+    const int message_size_send = rGathervInput.size();
     const int rank = Rank();
     const int size = Size();
     if (rank == DestinationRank)
@@ -1158,6 +1156,28 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervBuffers(
         }
         rGathervMessage.resize(message_size);
     }
+}
+
+template<class TDataType>
+void MPIDataCommunicator::PrepareAllGathervBuffers(
+    const std::vector<TDataType>& rGathervInput,
+    std::vector<TDataType>& rGathervMessage,
+    std::vector<int>& rMessageLengths,
+    std::vector<int>& rMessageDistances) const
+{
+    const int rank = Rank();
+    const int size = Size();
+    std::vector<int> message_size_send(size);
+    message_size_send[rank] = rGathervInput.size();
+    rMessageLengths.resize(size);
+    AllGatherDetail(message_size_send, rMessageLengths);
+    rMessageDistances.resize(size);
+    int message_size = 0;
+    for (int i = 0; i < size; i++) {
+        rMessageDistances[i] = message_size;
+        message_size += rMessageLengths[i];
+    }
+    rGathervMessage.resize(message_size);
 }
 
 template<class TDataType> void MPIDataCommunicator::PrepareGathervReturn(
@@ -1181,6 +1201,24 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervReturn(
         }
     }
 }
+
+template<class TDataType>
+void MPIDataCommunicator::PrepareAllGathervReturn(
+    const std::vector<TDataType>& rGathervMessage,
+    const std::vector<int>& rMessageLengths,
+    const std::vector<int>& rMessageDistances,
+    std::vector<std::vector<TDataType>>& rOutputMessage) const
+{
+    const int size = Size();
+    rOutputMessage.resize(size);
+    for (int i = 0, counter = 0; i < size; i++) {
+        rOutputMessage[i].resize(rMessageLengths[i]);
+        for (int j = 0; j < rMessageLengths[i]; j++, counter++) {
+            rOutputMessage[i][j] = rGathervMessage[counter];
+        }
+    }
+}
+
 
 // MPI_Datatype wrapper
 template<class TValue> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const TValue&) const

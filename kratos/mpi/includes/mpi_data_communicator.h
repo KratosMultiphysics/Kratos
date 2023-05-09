@@ -463,12 +463,26 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         std::vector<int>& rMessageDistances,
         const int DestinationRank) const;
 
+    template<class TDataType>
+    void PrepareAllGathervBuffers(
+        const std::vector<TDataType>& rGathervInput,
+        std::vector<TDataType>& rGathervMessage,
+        std::vector<int>& rMessageLengths,
+        std::vector<int>& rMessageDistances) const;
+
     template<class TDataType> void PrepareGathervReturn(
         const std::vector<TDataType>& rGathervMessage,
         const std::vector<int>& rMessageLengths,
         const std::vector<int>& rMessageDistances,
         std::vector<std::vector<TDataType>>& rOutputMessage,
         const int DestinationRank) const;
+
+    template<class TDataType>
+    void PrepareAllGathervReturn(
+        const std::vector<TDataType>& rGathervMessage,
+        const std::vector<int>& rMessageLengths,
+        const std::vector<int>& rMessageDistances,
+        std::vector<std::vector<TDataType>>& rOutputMessage) const;
 
     template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&) const;
 
