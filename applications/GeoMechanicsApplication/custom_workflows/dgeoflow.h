@@ -88,9 +88,6 @@ namespace Kratos
         static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
         static LinearSolverType::Pointer setup_solver_dgeoflow();
         static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
-        static void parseMaterial(Model &model, const std::string& rMaterialFilePath);
-
-        static Parameters openProjectParamsFile(const std::string& rProjectParamsFilePath);
         static std::vector<std::shared_ptr<Process>> parseProcess(ModelPart &model_part, Parameters projFile);
 
     private:

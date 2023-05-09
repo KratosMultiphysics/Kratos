@@ -16,12 +16,12 @@
 #include <iomanip>
 #include "dgeoflow.h"
 #include "processes/apply_constant_scalarvalue_process.h"
-#include "utilities/read_materials_utility.h"
 #include "input_output/logger.h"
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
 #include "includes/model_part_io.h"
 #include "write_output.h"
+#include "custom_utilities/input_utilities.h"
 
 
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
@@ -176,22 +176,6 @@ namespace Kratos
         return p_solving_strategy;
     }
 
-    void KratosExecute::parseMaterial(Model &model, const std::string& rMaterialFilePath)
-    {
-        std::string parameters = R"({ "Parameters" : { "materials_filename" :")" + rMaterialFilePath + R"("}})";
-        Parameters material_file{parameters};
-        ReadMaterialsUtility(material_file, model);
-    }
-
-    Parameters KratosExecute::openProjectParamsFile(const std::string& rProjectParamsFilePath)
-    {
-        std::ifstream t(rProjectParamsFilePath);
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        Parameters projFile{buffer.str()};
-        return projFile;
-    }
-
     std::vector<std::shared_ptr<Process>> KratosExecute::parseProcess(ModelPart &model_part, Parameters projFile)
     {
         // Currently: In DGeoflow only fixed hydrostatic head has been , also need load of gravity.
@@ -317,7 +301,7 @@ namespace Kratos
             rReportProgress(0.0);
 
             std::string projectpath = rWorkingDirectory + "/" + rProjectParamsFileName;
-            auto projectfile = openProjectParamsFile(projectpath);
+            auto projectfile = InputUtilities::ProjectParametersFrom(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             std::string materialpath = rWorkingDirectory + "/" + materialname;
@@ -375,7 +359,7 @@ namespace Kratos
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Mesh" << std::endl;
 
-            parseMaterial(current_model, materialpath);
+            InputUtilities::AddMaterialsFrom(materialpath, current_model);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Material" << std::endl;
 
