@@ -373,7 +373,4 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
     KRATOS_INFO("AssignMPCsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("");
 }
-
-
-
 }  // namespace Kratos.
