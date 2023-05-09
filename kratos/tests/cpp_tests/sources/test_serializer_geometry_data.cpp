@@ -189,7 +189,6 @@ namespace Kratos {
                                      quadrature_loaded->GetGeometryData().ShapeFunctionsLocalGradients()[0], 1e-6);
 
             // Check Dimensions of geometry data
-            KRATOS_CHECK_EQUAL(quadrature_saved->GetGeometryData().Dimension(), quadrature_loaded->GetGeometryData().Dimension());
             KRATOS_CHECK_EQUAL(quadrature_saved->GetGeometryData().WorkingSpaceDimension(), quadrature_loaded->GetGeometryData().WorkingSpaceDimension());
             KRATOS_CHECK_EQUAL(quadrature_saved->GetGeometryData().LocalSpaceDimension(), quadrature_loaded->GetGeometryData().LocalSpaceDimension());
         }

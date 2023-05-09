@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -23,8 +23,7 @@
 #include "containers/distributed_system_vector.h"
 #include "containers/distributed_vector_exporter.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosCoreFastSuite)
 {
@@ -61,5 +60,4 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosCoreFastS
         KRATOS_CHECK_NEAR(x[x.GetNumbering().LocalId(total_size-1)], 15.0, 1e-14);
 }
 
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

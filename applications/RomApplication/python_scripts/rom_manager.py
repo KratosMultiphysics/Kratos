@@ -242,6 +242,7 @@ class RomManager(object):
         simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
         simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
+        simulation.GetHROM_utility().CreateHRomModelParts()
 
 
     def LaunchHROM(self, mu_train):
@@ -357,6 +358,7 @@ class RomManager(object):
         parameters_file_name = './RomParameters.json'
         with open(parameters_file_name, 'r+') as parameter_file:
             f=json.load(parameter_file)
+            f['assembling_strategy'] = self.general_rom_manager_parameters['assembling_strategy'].GetString() if self.general_rom_manager_parameters.Has('assembling_strategy') else 'global'
             if simulation_to_run=='GalerkinROM':
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
@@ -512,13 +514,6 @@ class RomManager(object):
                 "create_hrom_visualization_model_part" : true
             }""")
         return hrom_training_parameters
-
-
-
-
-
-
-
 
 
 

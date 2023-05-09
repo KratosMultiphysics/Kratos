@@ -4,16 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Aditya Ghantasala, Philipp Bucher
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
 
-#if !defined( KRATOS_VTK_OUTPUT_H_INCLUDED )
-#define KRATOS_VTK_OUTPUT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <unordered_map>
@@ -36,10 +35,16 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
 public:
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
+
+    /// Definition of the node type
+    using NodeType = Node<3>;
+
+    /// Definition of the geometry type with given NodeType
+    using GeometryType = Geometry<NodeType>;
 
     /// Pointer definition of VtkOutput
     KRATOS_CLASS_POINTER_DEFINITION(VtkOutput);
@@ -116,7 +121,6 @@ protected:
     // pointer to object of the extrapolation from gauss point to nodes process
     IntegrationValuesExtrapolationToNodesProcess::UniquePointer mpGaussToNodesProcess;
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -125,8 +129,6 @@ protected:
      * @brief Interpolates the gauss point results on to the node using IntegrationValuesExtrapolationToNodesProcess
      */
     void PrepareGaussPointResults();
-
-
 
     /**
      * @brief Print the given rModelPart as VTK file together with the requested results
@@ -458,6 +460,13 @@ private:
     ///@{
 
     /**
+     * @brief Reorders the connectivity of the geometry to match the VTK format if required
+     * @param pGeometry Pointer to the geometry to be reordered
+     * @return Pointer to the reordered geometry
+     */
+    GeometryType::Pointer ReorderConnectivity(GeometryType::Pointer& pGeometry) const;
+
+    /**
      * @brief Prints the Properties Id as an integer variable in each element/condition
      * @tparam TContainerType The type of container of the entity on which the results are to be written
      * @param rContainer the container which is being output
@@ -492,5 +501,3 @@ private:
 };
 
 } // namespace Kratos
-
-#endif // KRATOS_VTK_OUTPUT_H_INCLUDED

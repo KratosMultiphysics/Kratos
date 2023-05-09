@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "utilities/spatial_containers_configure.h"
 
 namespace Kratos
 {

@@ -55,6 +55,7 @@
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/apply_ray_casting_process.h"
+#include "processes/apply_ray_casting_interface_recognition_process.h"
 #include "processes/simple_mortar_mapper_process.h"
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
@@ -463,11 +464,25 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ApplyRayCastingProcess<2>, ApplyRayCastingProcess<2>::Pointer, Process>(m,"ApplyRayCastingProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
     ;
 
     py::class_<ApplyRayCastingProcess<3>, ApplyRayCastingProcess<3>::Pointer, Process>(m,"ApplyRayCastingProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+    ;
+
+    py::class_<ApplyRayCastingInterfaceRecognitionProcess<2>, 
+      ApplyRayCastingInterfaceRecognitionProcess<2>::Pointer, Process>
+      (m,"ApplyRayCastingInterfaceRecognitionProcess2D")
+        .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<ApplyRayCastingInterfaceRecognitionProcess<3>,
+       ApplyRayCastingInterfaceRecognitionProcess<3>::Pointer, Process>
+       (m,"ApplyRayCastingInterfaceRecognitionProcess3D")
+        .def(py::init<Model&, Parameters>())
     ;
 
 //     // Calculate embedded variable from skin processes
