@@ -391,8 +391,6 @@ private:
             std::vector<int> send_points_per_partition(1, number_of_points);
             mrDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
 
-            KRATOS_WATCH_MPI(points_per_partition, mrDataCommunicator);
-
             // Getting global coordinates
             rAllPointsCoordinates.resize(total_number_of_points * 3);
             std::vector<double> send_points_coordinates(number_of_points * 3);
@@ -406,12 +404,26 @@ private:
                 }
                 ++counter;
             }
-            // TODO: Replace with vector version when available
-            mrDataCommunicator.AllGather(send_points_coordinates, rAllPointsCoordinates);
+
+            // Generate vectors with sizes for AllGatherv
+            std::vector<int> recv_sizes(world_size);
+            for (int i_rank = 1; i_rank < world_size; i_rank++) {
+                recv_sizes[i_rank] = 3 * points_per_partition[i_rank];
+            }
+            int message_size = 0;
+            std::vector<int> recv_offsets(world_size, 0);
+            for (int i_rank = 1; i_rank < world_size; i_rank++) {
+                recv_offsets[i_rank] = message_size;
+                message_size += recv_sizes[i_rank];
+            }
+
+            // Invoque AllGatherv
+            mrDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
 
             // Define limits
-            rLimits[0] = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 1);
-            rLimits[1] = std::reduce(points_per_partition.begin(), points_per_partition.begin() + rank + 2);
+            const auto it_point_begin = points_per_partition.begin();
+            rLimits[0] = std::reduce(it_point_begin, it_point_begin + rank + 1);
+            rLimits[1] = std::reduce(it_point_begin, it_point_begin + rank + 2);
         }
 
         return number_of_points;
