@@ -537,16 +537,6 @@ if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   set( ZLIB_LIBRARIES zlib )
 endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 
-# including the AMatrix
-if( AMATRIX_DIR )
-    message(STATUS "AMATRIX_DIR : ${AMATRIX_DIR}")
-    include_directories("${AMATRIX_DIR}/include")
-    add_definitions(-DAMATRIX_NO_IO_OPERATOR)
-    add_definitions(-DKRATOS_USE_AMATRIX)
-else()
-    message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
-endif()
-
 ## Echo user options
 message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
