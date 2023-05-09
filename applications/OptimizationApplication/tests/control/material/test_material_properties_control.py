@@ -16,7 +16,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
         cls.model_part = cls.model.CreateModelPart("Structure")
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
 
-        with kratos_unittest.WorkFolderScope("../../linear_strain_energy_test", __file__):
+        with kratos_unittest.WorkFolderScope("../../responses_tests/linear_strain_energy_test", __file__):
             Kratos.ModelPartIO("Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
             material_settings = Kratos.Parameters("""{"Parameters": {"materials_filename": "StructuralMaterials.json"}} """)
             Kratos.ReadMaterialsUtility(material_settings, cls.model)
@@ -30,7 +30,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        with kratos_unittest.WorkFolderScope("../../linear_strain_energy_test", __file__):
+        with kratos_unittest.WorkFolderScope("../../responses_tests/linear_strain_energy_test", __file__):
             DeleteFileIfExisting("Structure.time")
 
     def test_PropertiesControlInitialize(self):
@@ -65,7 +65,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     def test_PropertiesControlUpdate(self):
         self.properties_control.Initialize()
 
-        control_model_part = self.model_part.GetSubModelPart("Merge_Structure#structure_EN")
+        control_model_part = self.model_part.GetSubModelPart("Union_Structure#structure_EN")
 
         with self.assertRaises(RuntimeError):
             self.properties_control.Update(Kratos.ContainerExpression.ConditionNonHistoricalExpression(control_model_part))
@@ -84,7 +84,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     def test_PropertiesControlMapGradient(self):
         self.properties_control.Initialize()
 
-        control_model_part = self.model_part.GetSubModelPart("Merge_Structure#structure_EN")
+        control_model_part = self.model_part.GetSubModelPart("Union_Structure#structure_EN")
 
         with self.assertRaises(RuntimeError):
             self.properties_control.MapGradient({Kratos.DENSITY: Kratos.ContainerExpression.NodalNonHistoricalExpression(control_model_part)})
