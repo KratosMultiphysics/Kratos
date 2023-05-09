@@ -74,7 +74,7 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
     def test_Union(self):
-        merged_model_part = Kratos.ModelPartOperationUtilities.Union("union_1", self.model_part, self.model_parts_list, False)
+        merged_model_part = Kratos.ModelPartOperationUtilities.Union("merge_1", self.model_part, self.model_parts_list, False)
 
         # check
         node_ids = []
@@ -97,7 +97,7 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         self.assertEqual(sorted(condition_ids), sorted(merged_condition_ids))
         self.assertEqual(sorted(element_ids), sorted(merged_element_ids))
 
-        merged_with_neighbours_model_part = Kratos.ModelPartOperationUtilities.Union("union_2", self.model_part, self.model_parts_list, True)
+        merged_with_neighbours_model_part = Kratos.ModelPartOperationUtilities.Union("merge_2", self.model_part, self.model_parts_list, True)
         self.__CheckNeighbours(node_ids, element_ids, merged_model_part, merged_with_neighbours_model_part)
 
     @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
@@ -185,7 +185,7 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         for element in self.model_part.Elements:
             element.SetValue(Kratos.PRESSURE, element.Id)
 
-        merged_model_part = Kratos.ModelPartOperationUtilities.Union("union_3", self.model_part, self.model_parts_list, False)
+        merged_model_part = Kratos.ModelPartOperationUtilities.Union("merge_3", self.model_part, self.model_parts_list, False)
         substract_model_part = Kratos.ModelPartOperationUtilities.Substract("substract_3", self.model_part, self.model_parts_list, False)
         intersect_model_part = Kratos.ModelPartOperationUtilities.Intersect("intersect_3", self.model_part, self.model_parts_list, False)
 

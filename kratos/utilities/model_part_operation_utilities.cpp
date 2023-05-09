@@ -27,11 +27,7 @@
 
 namespace Kratos {
 
-namespace ModelPartOperationHelperUtilities {
-
-using IndexType = std::size_t;
-
-void FillNodesPointerSet(
+void ModelPartOperationUtilities::FillNodesPointerSet(
     std::set<ModelPart::NodeType const*>& rOutput,
     const ModelPart::NodesContainerType& rNodes)
 {
@@ -41,7 +37,7 @@ void FillNodesPointerSet(
 }
 
 template <class TContainerType>
-void FillNodePointersForEntities(
+void ModelPartOperationUtilities::FillNodePointersForEntities(
     std::set<ModelPartOperationUtilities::CNodePointersType>& rOutput,
     const TContainerType& rEntityContainer)
 {
@@ -63,7 +59,7 @@ void FillNodePointersForEntities(
 }
 
 template<class TOutputContainerType>
-IndexType FillCommonNodes(
+IndexType ModelPartOperationUtilities::FillCommonNodes(
     TOutputContainerType& rOutput,
     ModelPart::NodesContainerType& rMainNodes,
     const std::set<ModelPart::NodeType const*>& rNodesSet)
@@ -91,7 +87,7 @@ IndexType FillCommonNodes(
 }
 
 template<class TEntityType>
-void FillNodesFromEntities(
+void ModelPartOperationUtilities::FillNodesFromEntities(
     std::vector<ModelPart::NodeType*>& rOutput,
     typename std::vector<TEntityType*>::iterator pEntityBegin,
     typename std::vector<TEntityType*>::iterator pEntityEnd)
@@ -105,7 +101,7 @@ void FillNodesFromEntities(
 }
 
 template<class TContainerType>
-void FindNeighbourEntities(
+void ModelPartOperationUtilities::FindNeighbourEntities(
     std::vector<typename TContainerType::value_type*>& rOutputEntities,
     const Flags& rNodeSelectionFlag,
     TContainerType& rMainEntities)
@@ -128,7 +124,7 @@ void FindNeighbourEntities(
     });
 }
 
-void AddNeighbours(
+void ModelPartOperationUtilities::AddNeighbours(
     std::vector<ModelPart::NodeType*>& rOutputNodes,
     std::vector<ModelPart::ConditionType*>& rOutputConditions,
     std::vector<ModelPart::ElementType*>& rOutputElements,
@@ -147,7 +143,7 @@ void AddNeighbours(
     FindNeighbourEntities(rOutputElements, VISITED, rMainModelPart.Elements());
 }
 
-void FillWithMainNodesFromSearchNodes(
+void ModelPartOperationUtilities::FillWithMainNodesFromSearchNodes(
     ModelPart::NodesContainerType& rOutput,
     ModelPart::NodesContainerType& rMainNodes,
     ModelPart::NodesContainerType& rSearchedNodes)
@@ -157,7 +153,7 @@ void FillWithMainNodesFromSearchNodes(
     FillCommonNodes(rOutput, rMainNodes, search_local_node_set);
 }
 
-void SetCommunicator(
+void ModelPartOperationUtilities::SetCommunicator(
     ModelPart& rOutputModelPart,
     ModelPart& rMainModelPart)
 {
@@ -178,15 +174,15 @@ void SetCommunicator(
     });
 
     // now set the local, interface and ghost meshes
-    ModelPartOperationHelperUtilities::FillWithMainNodesFromSearchNodes(p_output_communicator->LocalMesh().Nodes(), r_reference_communicator.LocalMesh().Nodes(), rOutputModelPart.Nodes());
-    ModelPartOperationHelperUtilities::FillWithMainNodesFromSearchNodes(p_output_communicator->InterfaceMesh().Nodes(), r_reference_communicator.InterfaceMesh().Nodes(), rOutputModelPart.Nodes());
-    ModelPartOperationHelperUtilities::FillWithMainNodesFromSearchNodes(p_output_communicator->GhostMesh().Nodes(), r_reference_communicator.GhostMesh().Nodes(), rOutputModelPart.Nodes());
+    FillWithMainNodesFromSearchNodes(p_output_communicator->LocalMesh().Nodes(), r_reference_communicator.LocalMesh().Nodes(), rOutputModelPart.Nodes());
+    FillWithMainNodesFromSearchNodes(p_output_communicator->InterfaceMesh().Nodes(), r_reference_communicator.InterfaceMesh().Nodes(), rOutputModelPart.Nodes());
+    FillWithMainNodesFromSearchNodes(p_output_communicator->GhostMesh().Nodes(), r_reference_communicator.GhostMesh().Nodes(), rOutputModelPart.Nodes());
 
     // now set the communicator
     rOutputModelPart.SetCommunicator(p_output_communicator);
 }
 
-ModelPart& CreateOutputModelPart(
+ModelPart& ModelPartOperationUtilities::CreateOutputModelPart(
     const std::string& rOutputSubModelPartName,
     ModelPart& rMainModelPart,
     std::vector<ModelPart::NodeType*>& rOutputNodes,
@@ -229,7 +225,7 @@ ModelPart& CreateOutputModelPart(
     return r_output_model_part;
 }
 
-void CheckNodes(
+void ModelPartOperationUtilities::CheckNodes(
     std::vector<IndexType>& rNodeIdsWithIssues,
     const ModelPart::NodesContainerType& rCheckNodes,
     const std::set<ModelPart::NodeType const*>& rMainNodes)
@@ -250,7 +246,7 @@ void CheckNodes(
 }
 
 template<class TContainerType>
-void CheckEntities(
+void ModelPartOperationUtilities::CheckEntities(
     std::vector<IndexType>& rEntityIdsWithIssues,
     const TContainerType& rCheckEntities,
     const std::set<ModelPartOperationUtilities::CNodePointersType>& rMainEntities)
@@ -283,204 +279,11 @@ void CheckEntities(
     });
 }
 
-template<class TUnaryFunc>
-void AddNodes(
-    std::vector<ModelPart::NodeType*>& rNodesOutput,
-    ModelPart::NodesContainerType& rNodesContainer,
-    TUnaryFunc&& rIsValidEntity)
-{
-    using p_entity_type = ModelPart::NodeType*;
-
-    const auto& result = block_for_each<AccumReduction<p_entity_type>>(rNodesContainer, [&rIsValidEntity](auto& rMainEntity) -> p_entity_type {
-        ModelPart::NodeType const* p_entity = &rMainEntity;
-        if (rIsValidEntity(p_entity)) {
-            return &rMainEntity;
-        } else {
-            return nullptr;
-        }
-    });
-
-    std::for_each(result.begin(), result.end(), [&rNodesOutput](auto pEntity) {
-        if (pEntity != nullptr) {
-            rNodesOutput.push_back(pEntity);
-        }
-    });
-}
-
-template<class TContainerType, class TUnaryFunc>
-void AddEntities(
-    std::vector<typename TContainerType::value_type*>& rEntitiesOutput,
-    TContainerType& rMainEntityContainer,
-    TUnaryFunc&& rIsValidEntity)
-{
-    using p_entity_type = typename TContainerType::value_type*;
-    const auto& result = block_for_each<AccumReduction<p_entity_type>>(rMainEntityContainer, ModelPartOperationUtilities::CNodePointersType(), [&rIsValidEntity](auto& rMainEntity, ModelPartOperationUtilities::CNodePointersType& rTLS) -> p_entity_type {
-        const auto& r_geometry = rMainEntity.GetGeometry();
-        const IndexType number_of_nodes = r_geometry.size();
-
-        if (rTLS.size() != number_of_nodes) {
-            rTLS.resize(number_of_nodes);
-        }
-
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            rTLS[i] = &r_geometry[i];
-        }
-
-        std::sort(rTLS.begin(), rTLS.end());
-
-        if (rIsValidEntity(rTLS)) {
-            return &rMainEntity;
-        } else {
-            return nullptr;
-        }
-    });
-
-    std::for_each(result.begin(), result.end(), [&rEntitiesOutput](auto pEntity) {
-        if (pEntity != nullptr) {
-            rEntitiesOutput.push_back(pEntity);
-        }
-    });
-}
-
-template<class TModelPartOperation>
-void ModelPartOperation(
-    std::vector<ModelPart::NodeType*>& rOutputNodes,
-    std::vector<ModelPart::ConditionType*>& rOutputConditions,
-    std::vector<ModelPart::ElementType*>& rOutputElements,
-    ModelPart& rMainModelPart,
-    const std::vector<ModelPart const*>& rModelPartOperationModelParts,
-    const bool AddNeighbourEntities)
-{
-    const IndexType number_of_operation_model_parts = rModelPartOperationModelParts.size();
-
-    std::vector<std::set<ModelPart::NodeType const*>> set_operation_node_sets(number_of_operation_model_parts);
-    std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_condition_sets(number_of_operation_model_parts);
-    std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_element_sets(number_of_operation_model_parts);
-
-    // now iterate through model parts' conditions/elements containers and get available main model part entities.
-    for (IndexType i = 0; i < number_of_operation_model_parts; ++i) {
-        auto p_model_part = rModelPartOperationModelParts[i];
-
-        // fill the set_operation nodes
-        FillNodesPointerSet(set_operation_node_sets[i], p_model_part->Nodes());
-
-        // fill the set_operation conditions
-        FillNodePointersForEntities(set_operation_condition_sets[i], p_model_part->Conditions());
-
-        // fill the set_operation elements
-        FillNodePointersForEntities(set_operation_element_sets[i], p_model_part->Elements());
-    }
-
-    AddNodes(rOutputNodes, rMainModelPart.Nodes(), [&set_operation_node_sets](auto& rEntity) {
-        return TModelPartOperation::IsValid(rEntity, set_operation_node_sets);
-    });
-
-    AddEntities(rOutputConditions, rMainModelPart.Conditions(), [&set_operation_condition_sets](auto& rEntity) {
-        return TModelPartOperation::IsValid(rEntity, set_operation_condition_sets);
-    });
-
-    AddEntities(rOutputElements, rMainModelPart.Elements(), [&set_operation_element_sets](auto& rEntity) {
-        return TModelPartOperation::IsValid(rEntity, set_operation_element_sets);
-    });
-
-    // now we have all the nodes to find and add neighbour entities.
-    if (AddNeighbourEntities) {
-        // we need to fill the boundary nodes for elements and conditions
-        FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), rOutputConditions.end());
-        FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), rOutputElements.end());
-
-        // now add all the neighbours
-        AddNeighbours(rOutputNodes, rOutputConditions, rOutputElements, rMainModelPart);
-    }
-}
-
-template<class TModelPartOperation>
-ModelPart& CreateModelPartWithOperation(
-    const std::string& rOutputSubModelPartName,
-    ModelPart& rMainModelPart,
-    const std::vector<ModelPart const*>& rModelPartOperationModelParts,
-    const bool AddNeighbourEntities)
-{
-    std::vector<ModelPart::NodeType*> output_nodes;
-    std::vector<ModelPart::ConditionType*> output_conditions;
-    std::vector<ModelPart::ElementType*> output_elements;
-
-    // fill vectors
-    ModelPartOperation<TModelPartOperation>(output_nodes, output_conditions, output_elements, rMainModelPart, rModelPartOperationModelParts, AddNeighbourEntities);
-
-    // now create the sub model part
-    return CreateOutputModelPart(rOutputSubModelPartName, rMainModelPart, output_nodes, output_conditions, output_elements);
-}
-
-struct Union
-{
-    template<class TCheckType>
-    static bool IsValid(
-        const TCheckType& rEntity,
-        const std::vector<std::set<TCheckType>>& mUnionSets)
-    {
-        bool is_valid = false;
-
-        for (const auto& r_set : mUnionSets) {
-            if (r_set.find(rEntity) != r_set.end()) {
-                is_valid = true;
-                break;
-            }
-        }
-
-        return is_valid;
-    }
-};
-
-struct Substraction
-{
-    template<class TCheckType>
-    static bool IsValid(
-        const TCheckType& rEntity,
-        const std::vector<std::set<TCheckType>>& mSubstractionSets)
-    {
-        bool is_valid = true;
-
-        for (const auto& r_set : mSubstractionSets) {
-            if (r_set.find(rEntity) != r_set.end()) {
-                is_valid = false;
-                break;
-            }
-        }
-
-        return is_valid;
-    }
-};
-
-struct Intersection
-{
-    template<class TCheckType>
-    static bool IsValid(
-        const TCheckType& rEntity,
-        const std::vector<std::set<TCheckType>>& mIntersectionSets)
-    {
-        bool is_valid = true;
-
-        for (const auto& r_set : mIntersectionSets) {
-            if (r_set.find(rEntity) == r_set.end()) {
-                is_valid = false;
-                break;
-            }
-        }
-
-        return is_valid;
-    }
-};
-
-} // namespace ModelPartOperationHelperUtilities
-
 bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
     const ModelPart& rMainModelPart,
     const std::vector<ModelPart const*>& rCheckModelParts,
     const bool ThrowError)
 {
-    using namespace ModelPartOperationHelperUtilities;
-
     std::set<ModelPart::NodeType const*> main_node_sets;
     std::set<ModelPartOperationUtilities::CNodePointersType> main_condition_sets;
     std::set<ModelPartOperationUtilities::CNodePointersType> main_element_sets;
@@ -549,39 +352,6 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
     return true;
 }
 
-ModelPart& ModelPartOperationUtilities::Union(
-    const std::string& rOutputSubModelPartName,
-    ModelPart& rMainModelPart,
-    const std::vector<ModelPart const*>& rUnionModelParts,
-    const bool AddNeighbourEntities)
-{
-    return ModelPartOperationHelperUtilities::CreateModelPartWithOperation<ModelPartOperationHelperUtilities::Union>(
-        rOutputSubModelPartName, rMainModelPart, rUnionModelParts,
-        AddNeighbourEntities);
-}
-
-ModelPart& ModelPartOperationUtilities::Substract(
-    const std::string& rOutputSubModelPartName,
-    ModelPart& rMainModelPart,
-    const std::vector<ModelPart const*>& rSubstractionModelParts,
-    const bool AddNeighbourEntities)
-{
-    return ModelPartOperationHelperUtilities::CreateModelPartWithOperation<ModelPartOperationHelperUtilities::Substraction>(
-        rOutputSubModelPartName, rMainModelPart, rSubstractionModelParts,
-        AddNeighbourEntities);
-}
-
-ModelPart& ModelPartOperationUtilities::Intersect(
-    const std::string& rOutputSubModelPartName,
-    ModelPart& rMainModelPart,
-    const std::vector<ModelPart const*>& rIntersectionModelParts,
-    const bool AddNeighbourEntities)
-{
-    return ModelPartOperationHelperUtilities::CreateModelPartWithOperation<ModelPartOperationHelperUtilities::Intersection>(
-        rOutputSubModelPartName, rMainModelPart, rIntersectionModelParts,
-        AddNeighbourEntities);
-}
-
 bool ModelPartOperationUtilities::HasIntersection(const std::vector<ModelPart*>& rIntersectionModelParts)
 {
     KRATOS_ERROR_IF(rIntersectionModelParts.size() < 2) << "HasIntersection check requires atleast 2 model parts.\n";
@@ -595,7 +365,7 @@ bool ModelPartOperationUtilities::HasIntersection(const std::vector<ModelPart*>&
     // fill vectors
     std::vector<ModelPart const*> intersection_model_parts(rIntersectionModelParts.size());
     std::transform(rIntersectionModelParts.begin(), rIntersectionModelParts.end(), intersection_model_parts.begin(), [](ModelPart* p_model_part) -> ModelPart const* {return &*(p_model_part); });
-    ModelPartOperationHelperUtilities::ModelPartOperation<ModelPartOperationHelperUtilities::Intersection>(output_nodes, output_conditions, output_elements, r_main_model_part, intersection_model_parts, false);
+    ModelPartOperation<ModelPartIntersectionOperator>(output_nodes, output_conditions, output_elements, r_main_model_part, intersection_model_parts, false);
 
     bool is_intersected = false;
 
