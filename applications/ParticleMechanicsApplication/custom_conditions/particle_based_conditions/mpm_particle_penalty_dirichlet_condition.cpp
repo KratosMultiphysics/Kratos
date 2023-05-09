@@ -94,6 +94,22 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
     }
 }
 
+void MPMParticlePenaltyDirichletCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+    // At the beginning of NonLinearIteration, REACTION has to be reset to zero
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(REACTION).clear();
+        r_geometry[i].UnSetLock();
+    }
+
+}
+
 //************************************************************************************
 //************************************************************************************
 
@@ -213,6 +229,52 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 //************************************************************************************
 //************************************************************************************
 
+void MPMParticlePenaltyDirichletCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // Calculate nodal contact force
+
+    // Recalculate resiudal vector for converged solution
+    const bool CalculateStiffnessMatrixFlag = false;
+    const bool CalculateResidualVectorFlag = true;
+    MatrixType temp = Matrix();
+
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int block_size = this->GetBlockSize();
+
+    const unsigned int matrix_size = number_of_nodes * block_size;
+    VectorType rRightHandSideVector = ZeroVector( matrix_size );
+
+    CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+
+
+
+    // Calculate nodal forces
+    Vector nodal_force = ZeroVector(3);
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        for (unsigned int j = 0; j < dimension; j++)
+        {
+            nodal_force[j] = rRightHandSideVector[block_size * i + j];
+        }
+
+        // Check whether there nodes are active and associated to material point elements
+        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        if (nodal_mass > std::numeric_limits<double>::epsilon())
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+            r_geometry[i].UnSetLock();
+        }
+
+    }
+
+    KRATOS_CATCH( "" )
+}
+
 void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -237,6 +299,49 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
     }
 
     KRATOS_CATCH( "" )
+}
+
+void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(array_1d<double, 3 >& rVariable, const ProcessInfo& rCurrentProcessInfo )
+{
+    GeometryType& r_geometry = GetGeometry();  
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+    // Prepare variables
+    GeneralVariables Variables;
+    const double & r_mpc_area = this->GetIntegrationWeight();
+    MPMShapeFunctionPointValues(Variables.N);
+
+    // Interpolate the force to mpc_force assuming linear shape function
+    rVariable = ZeroVector(3);
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        // Check whether there is material point inside the node
+        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+        const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
+
+        if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
+        {
+            rVariable += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
+        }
+    }
+
+    // Apply in the normal contact direction and allow releasing motion
+    if (Is(CONTACT))
+    {
+        // Apply only in the normal direction
+        const double normal_force = MathUtils<double>::Dot(rVariable, m_unit_normal);
+
+        // This check is done to avoid sticking forces
+        if (normal_force > 0.0)
+            rVariable = -1.0 * normal_force * m_unit_normal;
+        else
+            rVariable = ZeroVector(3);
+    }
+    // Apply a sticking contact
+    else{
+        rVariable *= -1.0;
+    }
 }
 
 void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -267,6 +372,9 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
     }
     else if (rVariable == MPC_NORMAL) {
         rValues[0] = m_unit_normal;
+    }
+    else if (rVariable == MPC_CONTACT_FORCE) {
+        this->CalculateInterfaceContactForce(rValues[0], rCurrentProcessInfo);
     }
     else {
         MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
@@ -318,8 +426,10 @@ int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProc
     MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
 
     // Verify that the dofs exist
-    for (const auto& r_node : this->GetGeometry().Points())
+    for (const auto& r_node : this->GetGeometry().Points()){
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,r_node)
+    }
 
     return 0;
 }

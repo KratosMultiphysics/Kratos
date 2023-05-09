@@ -359,13 +359,8 @@ namespace MPMParticleGeneratorUtility
                         std::string condition_type_name;
 
                         // If dirichlet boundary or coupling interface
-                        if (!is_neumann_condition){
-                            if(!is_interface){
-                                condition_type_name = "MPMParticlePenaltyDirichletCondition";
-                            }
-                            else{
-                                    condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition";
-                                }
+                        if (!is_neumann_condition){  
+                            condition_type_name = "MPMParticlePenaltyDirichletCondition"; 
                         }
                         else{
                             if( i->Has( POINT_LOAD ) ){
