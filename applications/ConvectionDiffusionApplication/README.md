@@ -2,12 +2,17 @@
 ## Convection Diffusion Application  
   
 The Convection DIffusion Application contains a series of elements and conditions and the corresponding strategies and solvers within Kratos Multiphysics necesaries in order to simulate a convection-diffusion problem.  
- 
+
 <p align="center"> 
   <img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Readme_files/ConvectionDiffusionApplication.png" alt="Solution" style="width: 600px;"/> 
 </p> 
   
 The application includes tests to check the proper functioning of the application 
+
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Kratos/assets/61457043/86027cf5-5bd8-4eab-a22d-e4e4dd0217fc" alt="Conv-Diff_logo" width="200"/>
+</p>
+
   
 ### Features:  
   
