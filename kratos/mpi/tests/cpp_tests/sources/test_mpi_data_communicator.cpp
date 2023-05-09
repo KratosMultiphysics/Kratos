@@ -2517,36 +2517,31 @@ template<typename T> void MPIDataCommunicatorAllGathervIntegralTypeVectorTest()
      * there are some uninitialized padding values on the recv message.
      * This is essentially the inverse of the test DataCommunicatorScatterv
      */
-    for (int rank = 0; rank < world_size; rank++)
-    {
+    for (int rank = 0; rank < world_size; rank++) {
         int recv_size = make_message_size(rank);
         int recv_offset = make_message_distance(rank, message_padding);
         // the message from this rank...
-        for (int i = recv_offset; i < recv_offset + recv_size; i++)
-        {
+        for (int i = recv_offset; i < recv_offset + recv_size; i++) {
             KRATOS_CHECK_EQUAL(recv_buffer[i], (T)rank);
         }
         // ...followed by the expected padding.
-        for (int i = recv_offset + recv_size; i < recv_offset + recv_size + message_padding; i++)
-        {
+        for (int i = recv_offset + recv_size; i < recv_offset + recv_size + message_padding; i++) {
             KRATOS_CHECK_EQUAL(recv_buffer[i], 999);
         }
     }
 
-    // // return buffer version
-    // std::vector<std::vector<T>> return_buffer = mpi_world_communicator.AllGatherv(send_buffer);
+    // return buffer version
+    std::vector<std::vector<T>> return_buffer = mpi_world_communicator.AllGatherv(send_buffer);
 
-    // KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(world_size));
-    // for (int rank = 0; rank < world_size; rank++)
-    // {
-    //     unsigned int expected_size = make_message_size(rank);
-    //     KRATOS_CHECK_EQUAL(return_buffer[rank].size(), expected_size);
-    //     for (unsigned int i = 0; i < expected_size; i++)
-    //     {
-    //         KRATOS_CHECK_EQUAL(return_buffer[rank][i], (T)rank);
-    //     }
-    //     // no padding in return version
-    // }
+    KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(world_size));
+    for (int rank = 0; rank < world_size; rank++) {
+        unsigned int expected_size = make_message_size(rank);
+        KRATOS_CHECK_EQUAL(return_buffer[rank].size(), expected_size);
+        for (unsigned int i = 0; i < expected_size; i++) {
+            KRATOS_CHECK_EQUAL(return_buffer[rank][i], (T)rank);
+        }
+        // no padding in return version
+    }
 
     #ifdef KRATOS_DEBUG
     // recv sizes do not match
