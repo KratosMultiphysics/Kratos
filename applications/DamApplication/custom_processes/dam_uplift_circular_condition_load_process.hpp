@@ -39,7 +39,8 @@ class DamUpliftCircularConditionLoadProcess : public Process
 
     /// Constructor
     DamUpliftCircularConditionLoadProcess(ModelPart &rModelPart,
-                                          Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
+                                          ModelPart &rJointModelPart,
+                                          Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart), mrJointModelPart(rJointModelPart)
     {
         KRATOS_TRY
 
@@ -48,19 +49,20 @@ class DamUpliftCircularConditionLoadProcess : public Process
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "Modify"                                                : true,
-                "Gravity_Direction"                                     : "Y",
-                "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
-                "Upstream_Coordinate_first_bracket"                     : [0.0,0.0,0.0],
-                "Downstream_Coordinate_first_bracket"                   : [0.0,0.0,0.0],
-                "Focus"                                                 : [0.0,0.0,0.0],
-                "Spe_weight"                                            : 10000,
-                "Water_level"                                           : 0.0,
-                "Drains"                                                : false,
-                "Height_drain"                                          : 0.0,
-                "Distance"                                              : 0.0,
-                "Effectiveness"                                         : 0.0,
-                "table"                                                 : 0,
+                "Modify"                                           : true,
+                "joint_group_name"                                 : "PLEASE_CHOOSE_JOINT_GROUP_NAME",
+                "Gravity_Direction"                                : "Y",
+                "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
+                "Upstream_Coordinate_first_bracket"                : [0.0,0.0,0.0],
+                "Downstream_Coordinate_first_bracket"              : [0.0,0.0,0.0],
+                "Focus"                                            : [0.0,0.0,0.0],
+                "Spe_weight"                                       : 10000,
+                "Water_level"                                      : 0.0,
+                "Drains"                                           : false,
+                "Height_drain"                                     : 0.0,
+                "Distance"                                         : 0.0,
+                "Effectiveness"                                    : 0.0,
+                "table"                                            : 0,
                 "interval":[
                 0.0,
                 0.0
@@ -170,12 +172,10 @@ class DamUpliftCircularConditionLoadProcess : public Process
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-            double ref_coord = mReferenceCoordinate + mWaterLevel;
-
             if (mDrain == true)
             {
                 double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-                double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((width_dam - mDistanceDrain) / width_dam) + mHeightDrain;
+                double aux_drain = coefficient_effectiveness * ((mWaterLevel - mReferenceCoordinate) - mHeightDrain) * ((width_dam - mDistanceDrain) / width_dam) + mHeightDrain;
 
 #pragma omp parallel for
                 for (int i = 0; i < nnodes; i++)
@@ -190,7 +190,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
 
                     //// We compute the first part of the uplift law
-                    mUpliftPressure = mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
+                    mUpliftPressure = mSpecific * ((mWaterLevel - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
 
                     //// If uplift pressure is greater than the limit we compute the second part and we update the value
                     if (mUpliftPressure <= mSpecific * aux_drain)
@@ -222,7 +222,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
                     // Computing the current distance to the focus.
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
 
-                    mUpliftPressure = mSpecific * (ref_coord - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
+                    mUpliftPressure = mSpecific * (mWaterLevel - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
 
                     if (mUpliftPressure < 0.0)
                     {
@@ -295,12 +295,10 @@ class DamUpliftCircularConditionLoadProcess : public Process
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
-            double ref_coord = mReferenceCoordinate + mWaterLevel;
-
             if (mDrain == true)
             {
                 double coefficient_effectiveness = 1.0 - mEffectivenessDrain;
-                double aux_drain = coefficient_effectiveness * (mWaterLevel - mHeightDrain) * ((width_dam - mDistanceDrain) / width_dam) + mHeightDrain;
+                double aux_drain = coefficient_effectiveness * ((mWaterLevel - mReferenceCoordinate) - mHeightDrain) * ((width_dam - mDistanceDrain) / width_dam) + mHeightDrain;
 
 #pragma omp parallel for
                 for (int i = 0; i < nnodes; i++)
@@ -315,7 +313,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
 
                     //// We compute the first part of the uplift law
-                    mUpliftPressure = mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
+                    mUpliftPressure = mSpecific * ((mWaterLevel - aux_drain) - (r_coordinates[direction])) * (1.0 - ((1.0 / mDistanceDrain) * (fabs(current_radius - up_radius)))) + (mSpecific * aux_drain);
 
                     //// If uplift pressure is greater than the limit we compute the second part and we update the value
                     if (mUpliftPressure <= mSpecific * aux_drain)
@@ -347,7 +345,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
                     // Computing the current distance to the focus.
                     double current_radius = sqrt(auxiliar_vector[radius_comp_1] * auxiliar_vector[radius_comp_1] + auxiliar_vector[radius_comp_2] * auxiliar_vector[radius_comp_2]);
 
-                    mUpliftPressure = mSpecific * (ref_coord - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
+                    mUpliftPressure = mSpecific * (mWaterLevel - (r_coordinates[direction])) * (1.0 - (1.0 / width_dam) * (fabs(current_radius - up_radius)));
 
                     if (mUpliftPressure < 0.0)
                     {
@@ -387,6 +385,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
+    ModelPart &mrJointModelPart;
     std::string mVariableName;
     std::string mGravityDirection;
     double mReferenceCoordinate;

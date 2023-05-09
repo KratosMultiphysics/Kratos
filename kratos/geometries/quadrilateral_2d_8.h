@@ -14,9 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_QUADRILATERAL_2D_8_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_2D_8_H_INCLUDED
-
+#pragma once
 
 // System includes
 
@@ -24,8 +22,8 @@
 
 // Project includes
 #include "geometries/line_2d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
-
 
 namespace Kratos
 {
@@ -423,16 +421,7 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
+        return IntegrationUtilities::ComputeArea2DGeometry(*this);
     }
 
     // TODO: Code activated in June 2023
@@ -445,7 +434,7 @@ public:
     //  */
     // double Volume() const override
     // {
-    //     KRATOS_ERROR << "Quadrilateral2D8:: Method not well defined. Replace with DomainSize() instead." << std::endl; 
+    //     KRATOS_ERROR << "Quadrilateral2D8:: Method not well defined. Replace with DomainSize() instead." << std::endl;
     //     return 0.0;
     // }
 
@@ -702,9 +691,6 @@ public:
     }
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Determinant of jacobians for given integration method.
      * This method calculate determinant of jacobian in all
      * integrations points of given integration method.
@@ -721,21 +707,14 @@ public:
         IntegrationMethod ThisMethod
         ) const override
     {
-        // Workaround by riccardo
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            Vector temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
+        if( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
+            rResult.resize( this->IntegrationPointsNumber( ThisMethod ), false );
 
-        //for all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
-            rResult[pnt] = DeterminantOfJacobian( pnt, ThisMethod );
+        Matrix J( this->WorkingSpaceDimension(), this->LocalSpaceDimension());
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) {
+            this->Jacobian( J, pnt, ThisMethod);
+            rResult[pnt] = (( J( 0, 0 )*J( 1, 1 ) ) - ( J( 0, 1 )*J( 1, 0 ) ) );
         }
-
         return rResult;
     }
 
@@ -763,7 +742,7 @@ public:
      */
     double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        Matrix jacobian = ZeroMatrix( 2, 2 );
+        Matrix jacobian( 2, 2 );
         jacobian = Jacobian( jacobian, IntegrationPointIndex, ThisMethod );
         return(( jacobian( 0, 0 )*jacobian( 1, 1 ) ) - ( jacobian( 0, 1 )*jacobian( 1, 0 ) ) );
     }
@@ -787,7 +766,7 @@ public:
      */
     double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
-        Matrix jacobian = ZeroMatrix( 2, 2 );
+        Matrix jacobian( 2, 2 );
         jacobian = Jacobian( jacobian, rPoint );
         return(( jacobian( 0, 0 )*jacobian( 1, 1 ) ) - ( jacobian( 0, 1 )*jacobian( 1, 0 ) ) );
     }
@@ -963,10 +942,10 @@ public:
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 4 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 5 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 6 ), this->pGetPoint( 3 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 7 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 5 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ), this->pGetPoint( 6 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ), this->pGetPoint( 7 ) ) );
         return edges;
     }
 
@@ -1773,9 +1752,6 @@ const GeometryData Quadrilateral2D8<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Quadrilateral2D8<TPointType>::msGeometryDimension(
-    2, 2, 2);
+const GeometryDimension Quadrilateral2D8<TPointType>::msGeometryDimension(2, 2);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_2D_8_H_INCLUDED  defined

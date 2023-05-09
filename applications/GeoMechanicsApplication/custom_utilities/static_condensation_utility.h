@@ -55,7 +55,7 @@ static void CondenseLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const std::vector<int> & rDofList)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const SizeType num_dofs_condensed = rDofList.size();
     const SizeType num_dofs_remaining = GetNumDofsElement(rTheElement) - num_dofs_condensed;
     const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -103,7 +103,7 @@ static std::vector<MatrixType> CalculateSchurComplements(
     const MatrixType& rLeftHandSideMatrix,
     const std::vector<int> & rDofList)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // K11(0) K12(1)
     // K21(2) K22(3)        K22->dofs to be cond.
     // rDofList -> List of dofs to be condensed
@@ -145,7 +145,7 @@ static std::vector<int> CreateRemainingDofList(
     ElementType& rTheElement,
     const std::vector<int> & rDofList)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const SizeType num_dofs_condensed = rDofList.size();
 
     //fill remaining dofs
@@ -163,7 +163,7 @@ static std::vector<int> CreateRemainingDofList(
     }
     return remaining_dofs_vec;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
     /**
@@ -184,7 +184,7 @@ static void FillSchurComplements(
     const SizeType& rSizeA,
     const SizeType& rSizeB) //maybe inline
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     SizeType current_dof_a = 0;
     SizeType current_dof_b = 0;
 
@@ -216,7 +216,7 @@ static void ConvertingCondensation(
     const std::vector<int>& rDofList,
     const MatrixType& rLeftHandSideMatrix)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const std::vector<int> remaining_dof_list = CreateRemainingDofList(rTheElement, rDofList);
     const SizeType num_dofs_condensed = rDofList.size();

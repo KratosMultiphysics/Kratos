@@ -1,12 +1,14 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: OptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
-// ==============================================================================
 
 #ifndef HELMHOLTZ_THICKNESS_H
 #define HELMHOLTZ_THICKNESS_H
@@ -95,7 +97,7 @@ public:
     /// Default constructor.
     HelmholtzThickness( std::string ControlName, Model& rModel, std::vector<LinearSolverType::Pointer>& rLinearSolvers, Parameters ControlSettings )
         :  ThicknessControl(ControlName,rModel,ControlSettings){
-            for(int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
+            for(long unsigned int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
                 rLinearSystemSolvers.push_back(rLinearSolvers[lin_i]);
             mTechniqueSettings = ControlSettings["technique_settings"];
         }
@@ -124,7 +126,7 @@ public:
 
         CalculateNodeNeighbourCount();
         
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             StrategyType* mpStrategy = new StrategyType (*mpVMModelParts[model_i],rLinearSystemSolvers[model_i]);            
             mpStrategy->Initialize();
             mpStrategies.push_back(mpStrategy);
@@ -132,6 +134,7 @@ public:
 
         physical_thicknesses =  mTechniqueSettings["physical_thicknesses"].GetVector();
         initial_thickness = mTechniqueSettings["initial_thickness"].GetDouble();
+        SIMP_pow_fac = mTechniqueSettings["SIMP_power_fac"].GetInt();
         beta = mTechniqueSettings["beta_settings"]["initial_value"].GetDouble();
         adaptive_beta = mTechniqueSettings["beta_settings"]["adaptive"].GetBool();
         beta_fac = mTechniqueSettings["beta_settings"]["increase_fac"].GetDouble();
@@ -139,13 +142,12 @@ public:
         beta_update_period = mTechniqueSettings["beta_settings"]["update_period"].GetInt();
 
         filtered_thicknesses.resize(physical_thicknesses.size());        
-        for(int i=0;i<physical_thicknesses.size();i++)
+        for(long unsigned int i=0;i<physical_thicknesses.size();i++)
             filtered_thicknesses[i] = i;
 
         double initial_filtered_thickness = ProjectBackward(initial_thickness,filtered_thicknesses,physical_thicknesses,beta);
-        double initial_control_thickness = initial_filtered_thickness;
 
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             SetVariable(mpVMModelParts[model_i],CT,initial_filtered_thickness); 
             SetVariable(mpVMModelParts[model_i],FT,initial_filtered_thickness); 
             SetVariable(mpVMModelParts[model_i],PT,initial_thickness);
@@ -154,7 +156,7 @@ public:
         const auto& fixed_model_parts =  mTechniqueSettings["fixed_model_parts"];
         const auto& fixed_model_parts_thicknesses = mTechniqueSettings["fixed_model_parts_thicknesses"].GetVector();
 
-        for(int i=0; i<fixed_model_parts.size();i++)
+        for(long unsigned int i=0; i<fixed_model_parts.size();i++)
         {
             const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
             auto model_part_phyisical_thick = fixed_model_parts_thicknesses[i];
@@ -199,7 +201,7 @@ public:
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("HelmholtzThickness:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
 
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             SetVariable1ToVarible2(mpVMModePart,rDerivativeVariable,HELMHOLTZ_SOURCE_THICKNESS);
@@ -269,6 +271,7 @@ protected:
     std::vector<Properties::Pointer> mpVMModelPartsProperties;    
     Parameters mTechniqueSettings;
     double beta;
+    int SIMP_pow_fac;
     bool adaptive_beta;
     double beta_fac;
     double max_beta;
@@ -333,7 +336,7 @@ private:
 
     void CalculateNodeNeighbourCount()
     {
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             auto& r_nodes = mpVMModePart->Nodes();
@@ -387,7 +390,7 @@ private:
 
             if (root_model_part.HasSubModelPart(vm_model_part_name)){
                 p_vm_model_part = &(root_model_part.GetSubModelPart(vm_model_part_name));
-                for(int i =0; i<mpVMModelParts.size(); i++)
+                for(long unsigned int i =0; i<mpVMModelParts.size(); i++)
                     if(mpVMModelParts[i]->Name()==p_vm_model_part->Name())
                         p_vm_model_part_property = mpVMModelPartsProperties[i];
             }
@@ -407,7 +410,7 @@ private:
             ModelPart::ElementsContainerType &rmesh_elements = p_vm_model_part->Elements();   
 
             //check if the controlling model part has elements which have thickness value
-            if(!r_controlling_object.Elements().size()>0)
+            if(!(r_controlling_object.Elements().size()>0))
                 KRATOS_ERROR << "HelmholtzThickness:CreateModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
 
 
@@ -423,7 +426,7 @@ private:
         }
 
         // now add dofs
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             for(auto& node_i : mpVMModePart->Nodes())
@@ -435,7 +438,7 @@ private:
         // now apply dirichlet BC
         const auto& fixed_model_parts =  mTechniqueSettings["fixed_model_parts"];
 
-        for(int i=0; i<fixed_model_parts.size();i++)
+        for(long unsigned int i=0; i<fixed_model_parts.size();i++)
         {
             const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
             for(auto& node_i : model_part.Nodes())
@@ -447,7 +450,7 @@ private:
 
     void ComputeFilteredThickness(){   
 
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
 
             //first update control thickness
             AddVariable1ToVarible2(mpVMModelParts[model_i],D_CT,CT);
@@ -482,15 +485,19 @@ private:
     }     
 
     void ComputePhyiscalThickness(){
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             //now do the projection and then set the PT
             #pragma omp parallel for
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_thick = node_i.FastGetSolutionStepValue(FT);
                 auto& thickness = node_i.FastGetSolutionStepValue(PT);
+                auto& p_thickness = node_i.FastGetSolutionStepValue(PPT);
                 auto& thickness_der = node_i.FastGetSolutionStepValue(D_PT_D_FT);
-                thickness = ProjectForward(filtered_thick,filtered_thicknesses,physical_thicknesses,beta);
-                thickness_der = FirstFilterDerivative(filtered_thick,filtered_thicknesses,physical_thicknesses,beta);
+                auto& p_thickness_der = node_i.FastGetSolutionStepValue(D_PPT_D_FT);
+                thickness = ProjectForward(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,1);
+                p_thickness = ProjectForward(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,SIMP_pow_fac);
+                thickness_der = ProjectionDerivative(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,1);
+                p_thickness_der = ProjectionDerivative(filtered_thick,filtered_thicknesses,physical_thicknesses,beta,SIMP_pow_fac);
             }
         }
 
@@ -501,56 +508,44 @@ private:
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
                 double elem_i_thicknes = 0.0;
-                for(unsigned int node_element = 0; node_element<it->GetGeometry().size(); node_element++)
+                double elem_i_p_thicknes = 0.0;
+                for(unsigned int node_element = 0; node_element<it->GetGeometry().size(); node_element++){
                     elem_i_thicknes += it->GetGeometry()[node_element].FastGetSolutionStepValue(PT);
+                    elem_i_p_thicknes += it->GetGeometry()[node_element].FastGetSolutionStepValue(PPT);
+                }
+                    
                 elem_i_thicknes /= it->GetGeometry().size();
+                elem_i_p_thicknes /= it->GetGeometry().size();
 
-                double T_min,T_max;
-
-                for(int i=0;i<physical_thicknesses.size()-1;i++){
-                    if(elem_i_thicknes>=physical_thicknesses[i] && elem_i_thicknes<=physical_thicknesses[i+1]){
-                        T_min = physical_thicknesses[i];
-                        T_max = physical_thicknesses[i+1];
-                        break;
-                    }
-                }           
-                double penal_elem_i_thickness = T_min + std::pow((elem_i_thicknes-T_min)/(T_max-T_min),3.0) * (T_max-T_min); 
-                it->GetProperties().SetValue(THICKNESS,penal_elem_i_thickness);
-                it->GetProperties().SetValue(T_MIN,T_min);
-                it->GetProperties().SetValue(T_MAX,T_max);
-                it->GetProperties().SetValue(T_PR,elem_i_thicknes);
-                it->GetProperties().SetValue(T_PE,penal_elem_i_thickness);
+                it->GetProperties().SetValue(THICKNESS,elem_i_p_thicknes);
+                it->GetProperties().SetValue(PT,elem_i_thicknes);
             }
         }
     }
 
 
-    double ProjectForward(double x,Vector x_limits,Vector y_limits,double beta){
+    double ProjectForward(double x,Vector x_limits,Vector y_limits,double beta, int penal_fac = 1){
 
-        double x1,x2,y1,y2;
-        int index_x1 = 0;
+        double x1=0,x2=0,y1=0,y2=0;
         if(x>=x_limits[x_limits.size()-1]){
             x1=x_limits[x_limits.size()-2];
-            index_x1 = x_limits.size()-2;
             x2=x_limits[x_limits.size()-1];
             y1=y_limits[y_limits.size()-2];
             y2=y_limits[y_limits.size()-1];
         }
         else if(x<=x_limits[0]){
             x1=x_limits[0];
-            index_x1 = 0;
             x2=x_limits[1];
             y1=y_limits[0];
             y2=y_limits[1];
         }
         else{
-            for(int i=0;i<x_limits.size()-1;i++)
+            for(long unsigned int i=0;i<x_limits.size()-1;i++)
                 if((x>=x_limits[i]) && (x<=x_limits[i+1]))
                 {
                     y1 = y_limits[i];
                     y2 = y_limits[i+1];
                     x1 = x_limits[i];
-                    index_x1 = i;
                     x2 = x_limits[i+1];
                     break;
                 }            
@@ -558,17 +553,12 @@ private:
         
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
 
-        if(index_x1>0){
-            double prev_x1,prev_x2,prev_y1,prev_y2;
-            prev_x1 = x_limits[index_x1-1];
-            prev_x2 = x_limits[index_x1];
-            prev_y1 = y_limits[index_x1-1];
-            prev_y2 = y_limits[index_x1];
-            double prev_pow_val = -2.0*beta*(x1-(prev_x1+prev_x2)/2);
-            y1 = (prev_y2-prev_y1)/(1+std::exp(prev_pow_val)) + prev_y1;     
-        }
+        if(pow_val>700)
+            pow_val = 700;
+        if(pow_val<-700) 
+            pow_val = -700;        
 
-        return (y2-y1)/(1+std::exp(pow_val)) + y1;
+        return (y2-y1)/(std::pow(1+std::exp(pow_val),penal_fac)) + y1;
     }
 
 
@@ -580,7 +570,7 @@ private:
         else if(y<=y_limits[0])
             x = x_limits[0];
         else{
-            for(int i=0;i<y_limits.size()-1;i++)
+            for(long unsigned int i=0;i<y_limits.size()-1;i++)
                 if((y>y_limits[i]) && (y<y_limits[i+1]))
                 {
                     double y1 = y_limits[i];
@@ -602,10 +592,9 @@ private:
         return x;
     }
 
-    double FirstFilterDerivative(double x,Vector x_limits,Vector y_limits,double beta){
+    double ProjectionDerivative(double x,Vector x_limits,Vector y_limits,double beta,int penal_fac = 1){
 
-        double dfdx = 0;
-        double x1,x2,y1,y2;
+        double x1=0.0,x2=0.0,y1=0.0,y2=0.0;
         if(x>=x_limits[x_limits.size()-1]){
             x1=x_limits[x_limits.size()-2];
             x2=x_limits[x_limits.size()-1];
@@ -619,7 +608,7 @@ private:
             y2=y_limits[1];
         }
         else{
-            for(int i=0;i<x_limits.size()-1;i++)
+            for(long unsigned int i=0;i<x_limits.size()-1;i++)
                 if((x>=x_limits[i]) && (x<=x_limits[i+1]))
                 {
                     y1 = y_limits[i];
@@ -631,10 +620,16 @@ private:
         }
 
         double pow_val = -2.0*beta*(x-(x1+x2)/2);
-        double dydx = (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
 
-        if (y2<y1)
-            dydx *=-1;
+        if(pow_val>700)
+            pow_val = 700;
+        if(pow_val<-700) 
+            pow_val = -700;
+
+        double dydx = (y2-y1) * (1.0/std::pow(1+std::exp(pow_val),penal_fac+1)) * penal_fac * 2.0 * beta * std::exp(pow_val);
+
+        // if (y2<y1)
+        //     dydx *=-1;
 
         return dydx;
 

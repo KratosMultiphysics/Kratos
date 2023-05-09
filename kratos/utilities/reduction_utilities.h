@@ -9,6 +9,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
 #pragma once
@@ -145,7 +146,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL_SECTION
         LocalReduce(rOther.mValue);
     }
 };
@@ -176,7 +177,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AbsMaxReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL_SECTION
         LocalReduce(rOther.mValue);
     }
 };
@@ -207,7 +208,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL_SECTION
         LocalReduce(rOther.mValue);
     }
 };
@@ -240,7 +241,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AbsMinReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+        KRATOS_CRITICAL_SECTION
         LocalReduce(rOther.mValue);
     }
 };
@@ -266,14 +267,42 @@ public:
 
     /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     void LocalReduce(const TDataType value){
-        mValue.push_back(value);
+        mValue.insert(mValue.end(), value);
     }
 
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
-        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-        mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
+        KRATOS_CRITICAL_SECTION
+        std::copy(rOther.mValue.begin(), rOther.mValue.end(), std::inserter(mValue, mValue.end()));
+    }
+};
+
+template<class MapType>
+class MapReduction
+{
+public:
+    using value_type = typename MapType::value_type;
+    using return_type = MapType;
+
+    return_type mValue;
+
+    /// access to reduced value
+    return_type GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const value_type rValue){
+        mValue.emplace(rValue);
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(MapReduction<MapType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        mValue.merge(rOther.mValue);
     }
 };
 

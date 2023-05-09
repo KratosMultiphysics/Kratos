@@ -456,7 +456,8 @@ Vector& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
         return rValue;
     }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
-        rValue = mPlasticStrain;
+        rValue.resize(VoigtSize, false);
+        noalias(rValue) = mPlasticStrain;
         return rValue;
     }
     return BaseType::GetValue(rThisVariable, rValue);
@@ -471,10 +472,11 @@ Matrix& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
     Matrix& rValue
     )
 {
+    rValue.resize(Dimension, Dimension, false);
     if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
-        rValue = MathUtils<double>::StrainVectorToTensor(mPlasticStrain);
+        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(mPlasticStrain);
     } else if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-        rValue = MathUtils<double>::StressVectorToTensor(mPreviousStressVector);
+        noalias(rValue) = MathUtils<double>::StressVectorToTensor(mPreviousStressVector);
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }

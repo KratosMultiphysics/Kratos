@@ -392,9 +392,6 @@ class MPCContactProcess(search_base_process.SearchBaseProcess):
         # We call to the base process
         super()._initialize_problem_parameters()
 
-        # We call the process info
-        process_info = self.main_model_part.ProcessInfo
-
     def _initialize_search_conditions(self):
         """ This method initializes some conditions values
 

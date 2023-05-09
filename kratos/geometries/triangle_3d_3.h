@@ -15,8 +15,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_TRIANGLE_3D_3_H_INCLUDED )
-#define  KRATOS_TRIANGLE_3D_3_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iomanip>
@@ -28,6 +27,7 @@
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "utilities/geometry_utilities.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/intersection_utilities.h"
 
@@ -470,8 +470,8 @@ public:
         return std::sqrt(2.0 * Area());
     }
 
-    /** 
-     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      * @return double value contains area or surface area
@@ -504,8 +504,8 @@ public:
     //     return 0.0;
     // }
 
-    /** 
-     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
@@ -971,6 +971,31 @@ public:
     }
 
     ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), point);
+    }
+
+    ///@}
     ///@name Jacobian
     ///@{
     /**
@@ -1190,88 +1215,6 @@ public:
         return 2.0*(this->Area());
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobians for given integration method.
-     * This method calculates inverse of jacobians matrices
-     * in all integrations points of
-     * given integration method.
-     *
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian
-     * matrices \f$ J^{-1}_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    JacobiansType& InverseOfJacobian( JacobiansType& rResult,
-            IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Triangle3D::InverseOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in specific integration point of given integration
-     * method. This method calculate Inverse of jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point
-     * which inverse of jacobians has to
-     * be calculated in it.
-     * @param ThisMethod integration method which inverse of jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Inverse of jacobian matrix \f$ J^{-1}_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see Jacobian
-     * @see DeterminantOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult,
-                                       IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Triangle3D::InverseOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Inverse of jacobian in given point.
-     * This method calculates inverse of jacobian
-     * matrix in given point.
-     * @param rPoint point which inverse of jacobians has to
-     * be calculated in it.
-     * @return Inverse of jacobian matrix \f$ J^{-1} \f$ in given point.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     *
-     * KLUDGE: works only with explicitly generated Matrix object
-     */
-    Matrix& InverseOfJacobian( Matrix& rResult,
-                                       const CoordinatesArrayType& rPoint ) const override
-    {
-        KRATOS_ERROR << "Triangle3D::InverseOfJacobian" << "Jacobian is not square" << std::endl;
-        return rResult;
-    }
-
     ///@}
     ///@name Edge
     ///@{
@@ -1444,25 +1387,6 @@ public:
         rResult[2] =  rCoordinates[1] ;
 
         return rResult;
-    }
-
-    ///@}
-    ///@name Shape Function Integration Points Gradient
-    ///@{
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     ///@}
@@ -2584,9 +2508,6 @@ GeometryData Triangle3D3<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Triangle3D3<TPointType>::msGeometryDimension(
-    2, 3, 2);
+const GeometryDimension Triangle3D3<TPointType>::msGeometryDimension(3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_3D_4_H_INCLUDED  defined

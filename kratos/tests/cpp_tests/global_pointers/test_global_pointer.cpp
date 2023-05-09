@@ -4,16 +4,21 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
+//
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "testing/testing.h"
 #include "includes/global_pointer.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 class TestClass {
   private:
@@ -204,6 +209,4 @@ KRATOS_TEST_CASE_IN_SUITE(GlobalPointerCompare, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(compare(global_ptr_2, global_ptr_2));
 }
 
-
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

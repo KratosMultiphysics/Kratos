@@ -68,7 +68,7 @@ namespace Kratos
             std::string original = (std::string) workingDirectory + "/test_head_extrapolate_1.orig.res";
             std::string result = (std::string) workingDirectory + "/test_head_extrapolate_1.post.res";
 
-            KRATOS_CHECK(compareFiles(original, result));
+            KRATOS_CHECK(compareFiles(original, result))
         }
 
          KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_2, KratosGeoMechanicsFastSuite)
@@ -88,7 +88,7 @@ namespace Kratos
             std::string original = (std::string) workingDirectory + "/test_head_extrapolate_2.orig.res";
             std::string result = (std::string) workingDirectory + "/test_head_extrapolate_2.post.res";
 
-            KRATOS_CHECK(compareFiles(original, result));
+            KRATOS_CHECK(compareFiles(original, result))
         }
 
         KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_3, KratosGeoMechanicsFastSuite)
@@ -108,7 +108,7 @@ namespace Kratos
             std::string original = (std::string) workingDirectory + "/test_head_extrapolate_3.orig.res";
             std::string result = (std::string) workingDirectory + "/test_head_extrapolate_3.post.res";
 
-            KRATOS_CHECK(compareFiles(original, result));
+            KRATOS_CHECK(compareFiles(original, result))
         }
 
         KRATOS_TEST_CASE_IN_SUITE(CalculateExtrapolatedHeadFlow_4, KratosGeoMechanicsFastSuite)
@@ -128,7 +128,7 @@ namespace Kratos
             std::string original = (std::string) workingDirectory + "/test_head_extrapolate_4.orig.res";
             std::string result = (std::string) workingDirectory + "/test_head_extrapolate_4.post.res";
 
-            KRATOS_CHECK(compareFiles(original, result));
+            KRATOS_CHECK(compareFiles(original, result))
         }
     }
 }

@@ -299,7 +299,7 @@ namespace Kratos
         // Check all points are in MPM grid geom bounding box
         Node<3> low, high;
         rReferenceGeom.BoundingBox(low, high);
-        const SizeType geom_dim = rReferenceGeom.Dimension();
+        const SizeType geom_dim = rReferenceGeom.WorkingSpaceDimension();
         for (size_t i = 0; i < rPoints.size(); ++i) {
             for (size_t dim = 0; dim < geom_dim; ++dim)
             {

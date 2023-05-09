@@ -30,7 +30,7 @@ class RestartUtility:
         self.model_part = model_part
         self.model_part_name = model_part.Name
 
-        # the path is splitted in case it already contains a path (neeeded if files are moved to a folder)
+        # the path is splitted in case it already contains a path (needed if files are moved to a folder)
         self.raw_path, self.raw_file_name = os.path.split(settings["input_filename"].GetString())
         self.raw_path = os.path.join(os.getcwd(), self.raw_path)
 

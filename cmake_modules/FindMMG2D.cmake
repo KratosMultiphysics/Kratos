@@ -90,7 +90,7 @@ if(MMG_INCDIR)
   find_path(MMG2D_libmmgtypes.h_DIRS
     NAMES libmmgtypes.h
     HINTS ${MMG_INCDIR}
-    PATH_SUFFIXES "mmg/mmg2d" "mmg2d")
+    PATH_SUFFIXES "mmg" "mmg/mmg2d" "mmg2d" "mmg/common")
 else()
   if(MMG_DIR)
     set(MMG2D_libmmgtypes.h_DIRS "MMG2D_libmmgtypes.h_DIRS-NOTFOUND")

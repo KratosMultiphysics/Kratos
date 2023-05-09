@@ -13,8 +13,7 @@
 //                   Alejandro Cornejo Velazquez
 //
 
-#if !defined (KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED)
-#define  KRATOS_PARALLEL_RULE_OF_MIXTURES_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -477,6 +476,21 @@ public:
         const Vector& rShapeFunctionsValues
         ) override;
 
+    std::vector<ConstitutiveLaw::Pointer>& GetConstitutiveLaws()
+    {
+        return mConstitutiveLaws;
+    }
+
+    std::vector<double>& GetCombinationFactors()
+    {
+        return mCombinationFactors;
+    }
+
+    void SetCombinationFactors(const std::vector<double>& rVector )
+    {
+        mCombinationFactors = rVector;
+    }
+
     /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
@@ -681,4 +695,3 @@ private:
 
 }; // Class ParallelRuleOfMixturesLaw
 }  // namespace Kratos.
-#endif // KRATOS_RULE_OF_MIXTURES_LAW_H_INCLUDED  defined

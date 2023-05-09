@@ -25,8 +25,7 @@
 namespace Kratos
 {
 
-FilterFunction::FilterFunction(const std::string FilterFunctionType, const double Radius)
-    : mRadius(Radius)
+FilterFunction::FilterFunction(const std::string FilterFunctionType)
 {
     // Set type of weighting function
 
@@ -50,12 +49,16 @@ FilterFunction::FilterFunction(const std::string FilterFunctionType, const doubl
     else if (FilterFunctionType == "quartic")
         mFilterFunctional = [](double radius, double distance) {return std::max(0.0, (pow(distance-radius,4.0)/pow(radius,4.0)));};
 
+    // Type 6: Green's function
+    else if (FilterFunctionType == "green")
+        mFilterFunctional = [](double radius, double distance) {return (1.0/((4*Kratos::Globals::Pi*distance)/(radius*radius)+1)) * exp(-distance/radius);};  
+
     // Throw error message in case of wrong specification
     else
-        KRATOS_ERROR << "Specified kernel function of type : "<< FilterFunctionType << " is not recognized. \n \t Options are: constant, linear , gaussian, cosine, quartic." << std::endl;
+        KRATOS_ERROR << "Specified kernel function of type : "<< FilterFunctionType << " is not recognized. \n \t Options are: constant, linear , gaussian, cosine, quartic and green." << std::endl;
 }
 
-double FilterFunction::ComputeWeight(const Array3DType& ICoord, const Array3DType& JCoord) const
+double FilterFunction::ComputeWeight(const Array3DType& ICoord, const Array3DType& JCoord, const double Radius) const
 {
     KRATOS_TRY;
 
@@ -63,7 +66,7 @@ double FilterFunction::ComputeWeight(const Array3DType& ICoord, const Array3DTyp
     const double distance = GetDistance(ICoord, JCoord);
 
     // Depending on which weighting function is chosen, compute weight
-    return mFilterFunctional(mRadius, distance);
+    return mFilterFunctional(Radius, distance);
 
     KRATOS_CATCH("");
 }

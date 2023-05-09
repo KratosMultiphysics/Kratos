@@ -60,7 +60,7 @@ ElasticIsotropicK03DLaw::~ElasticIsotropicK03DLaw()
 
 void  ElasticIsotropicK03DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // b.- Get Values to compute the constitutive law:
     Flags & r_options=rValues.GetOptions();
 
@@ -81,7 +81,7 @@ void  ElasticIsotropicK03DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Par
         CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
     }
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -291,11 +291,11 @@ void ElasticIsotropicK03DLaw::CalculateElasticMatrix(Matrix& rConstitutiveMatrix
 
     double K0 = 0.0;
     const int &K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
-    if (K0MainDirection == VOIGT_INDEX_XX) {
+    if (K0MainDirection == INDEX_3D_XX) {
         K0 = 0.5*(K0ValueYY + K0ValueZZ);
-    } else if (K0MainDirection == VOIGT_INDEX_YY) {
+    } else if (K0MainDirection == INDEX_3D_YY) {
         K0 = 0.5*(K0ValueXX + K0ValueZZ);
-    } else if (K0MainDirection == VOIGT_INDEX_ZZ) {
+    } else if (K0MainDirection == INDEX_3D_ZZ) {
         K0 = 0.5*(K0ValueXX + K0ValueYY);
     } else {
          KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in LinearElasticK03DLaw: " << K0MainDirection << std::endl;
@@ -345,15 +345,15 @@ void ElasticIsotropicK03DLaw::CalculatePK2Stress(const Vector& rStrainVector,
     const double& K0ValueZZ = r_material_properties[K0_VALUE_ZZ];
 
     const int& K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
-    if (K0MainDirection == VOIGT_INDEX_XX) {
-        rStressVector[VOIGT_INDEX_YY] = K0ValueYY * rStressVector[VOIGT_INDEX_XX];
-        rStressVector[VOIGT_INDEX_ZZ] = K0ValueZZ * rStressVector[VOIGT_INDEX_XX];
-    } else if (K0MainDirection == VOIGT_INDEX_YY) {
-        rStressVector[VOIGT_INDEX_XX] = K0ValueXX * rStressVector[VOIGT_INDEX_YY];
-        rStressVector[VOIGT_INDEX_ZZ] = K0ValueZZ * rStressVector[VOIGT_INDEX_YY];
-    } else if (K0MainDirection == VOIGT_INDEX_ZZ) {
-        rStressVector[VOIGT_INDEX_XX] = K0ValueXX * rStressVector[VOIGT_INDEX_ZZ];
-        rStressVector[VOIGT_INDEX_YY] = K0ValueYY * rStressVector[VOIGT_INDEX_ZZ];
+    if (K0MainDirection == INDEX_3D_XX) {
+        rStressVector[INDEX_3D_YY] = K0ValueYY * rStressVector[INDEX_3D_XX];
+        rStressVector[INDEX_3D_ZZ] = K0ValueZZ * rStressVector[INDEX_3D_XX];
+    } else if (K0MainDirection == INDEX_3D_YY) {
+        rStressVector[INDEX_3D_XX] = K0ValueXX * rStressVector[INDEX_3D_YY];
+        rStressVector[INDEX_3D_ZZ] = K0ValueZZ * rStressVector[INDEX_3D_YY];
+    } else if (K0MainDirection == INDEX_3D_ZZ) {
+        rStressVector[INDEX_3D_XX] = K0ValueXX * rStressVector[INDEX_3D_ZZ];
+        rStressVector[INDEX_3D_YY] = K0ValueYY * rStressVector[INDEX_3D_ZZ];
     } else {
          KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in LinearElasticK03DLaw: " << K0MainDirection << std::endl;
     }
