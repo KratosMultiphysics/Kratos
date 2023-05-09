@@ -112,8 +112,7 @@ public:
     using EigenSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
     /// DoF types definition
-    using NodeType = Node<3>;
-    using DofType = typename NodeType::DofType;
+    using DofType = typename Node::DofType;
     using DofPointerType = typename DofType::Pointer;
     using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
 
