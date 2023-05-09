@@ -1165,10 +1165,8 @@ void MPIDataCommunicator::PrepareAllGathervBuffers(
     std::vector<int>& rMessageLengths,
     std::vector<int>& rMessageDistances) const
 {
-    const int rank = Rank();
     const int size = Size();
-    std::vector<int> message_size_send(size);
-    message_size_send[rank] = rGathervInput.size();
+    std::vector<int> message_size_send(1, rGathervInput.size());
     rMessageLengths.resize(size);
     AllGatherDetail(message_size_send, rMessageLengths);
     rMessageDistances.resize(size);
