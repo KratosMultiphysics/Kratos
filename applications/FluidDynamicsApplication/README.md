@@ -2,8 +2,10 @@
 
 The Fluid Dynamics Application contains the core developments in Computational Fluid Dynamics (CFD) within Kratos Multiphysics.
 
-<img src="https://github.com/KratosMultiphysics/Kratos/assets/61457043/2dfad86e-9654-4ca2-a3e3-cb1a7baf7c63" alt="CFD_logo" width="200"/>
-
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Kratos/assets/61457043/2dfad86e-9654-4ca2-a3e3-cb1a7baf7c63" alt="CFD_logo" width="200"/>
+</p>
+  
 ### Features:
 
 - Stabilized FEM solvers for incompressible and compressible flow problems.
