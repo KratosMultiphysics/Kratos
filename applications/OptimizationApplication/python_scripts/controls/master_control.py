@@ -2,12 +2,14 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import HasContainerExpression
 
 class MasterControl:
     """Master control class.
 
     This class is used to simplify working with many controls at once. Following responsibilities are assumed:
-        1. Maps physical gradients from different domains to one CollectiveExpression (using MapGradients).
+        1. Maps physical gradients from different domains to one CollectiveExpression (using MapGradient).
         2. Updates each respective domain from updates given by one CollectiveExpression (using Update).
 
     There should be only one master control class per optimization problem.
@@ -32,21 +34,6 @@ class MasterControl:
         """
         return self.__list_of_controls
 
-    def Initialize(self) -> None:
-        """Initializes all the controls.
-        """
-        CallOnAll(self.__list_of_controls, Control.Initialize)
-
-    def Check(self) -> None:
-        """Checks all the controls.
-        """
-        CallOnAll(self.__list_of_controls, Control.Check)
-
-    def Finalize(self) -> None:
-        """Finalizes all the controls.
-        """
-        CallOnAll(self.__list_of_controls, Control.Finalize)
-
     def GetPhysicalKratosVariableCollectiveExpressionsMap(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]':
         """Returns map of physical variables and collective expressions from each control.
 
@@ -60,19 +47,21 @@ class MasterControl:
         physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]' = {}
 
         for control in self.__list_of_controls:
-            for physical_variable in control.GetPhysicalVariables():
+            for physical_variable in control.GetPhysicalKratosVariables():
                 # check whether the physical variable is already there.
                 if not physical_variable in physical_variable_collective_expressions.keys():
                     physical_variable_collective_expressions[physical_variable] = KratosOA.ContainerExpression.CollectiveExpressions()
 
+                current_variable_collective_expression = physical_variable_collective_expressions[physical_variable]
+
                 # check whether the container for that physical variable is already there.
-                control_container_expression = control.GetEmptyControlField()
-                if not control_container_expression.GetContainer() not in physical_variable_collective_expressions[physical_variable].GetContainerExpressions():
-                    physical_variable_collective_expressions[physical_variable].Add(control_container_expression)
+                control_container_expression = control.GetEmptyField()
+                if not HasContainerExpression(control_container_expression, current_variable_collective_expression.GetContainerExpressions()):
+                    current_variable_collective_expression.Add(control_container_expression)
 
         return physical_variable_collective_expressions
 
-    def GetEmptyControlFields(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def GetEmptyField(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
         """Returns empty CollectiveExpressions containing empty ContainerExpressions for each control.
 
         Returns:
@@ -81,11 +70,24 @@ class MasterControl:
         empty_control_fields = KratosOA.ContainerExpression.CollectiveExpressions()
 
         for control in self.__list_of_controls:
-            empty_control_fields.Add(control.GetEmptyControlField())
+            empty_control_fields.Add(control.GetEmptyField())
 
         return empty_control_fields
 
-    def MapGradients(self, physical_space_sensitivity_variable_and_collective_expressions_map: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]') -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def GetControlField(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
+        """Returns CollectiveExpressions containing control field ContainerExpressions for each control.
+
+        Returns:
+            KratosOA.ContainerExpression.CollectiveExpressions: Control field CollectiveExpressions
+        """
+        control_fields = KratosOA.ContainerExpression.CollectiveExpressions()
+
+        for control in self.__list_of_controls:
+            control_fields.Add(control.GetControlField())
+
+        return control_fields
+
+    def MapGradient(self, physical_space_gradient_variable_and_collective_expressions_map: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]') -> KratosOA.ContainerExpression.CollectiveExpressions:
         """Maps physical space gradients to a collective expression.
 
         This method maps sensitivities w.r.t. physical space variables to control space by using each control. It is done by converting input
@@ -93,9 +95,9 @@ class MasterControl:
 
         input:
 
-        physical_space_sensitivity_variable_and_collective_expressions_map = {
+        physical_space_gradient_variable_and_collective_expressions_map = {
             "YOUND_MODULUS": [ControlDomain1, ControlDomain2],
-            "DENSITY"      : [ControlDomain1, ControlDomain2],
+            "DENSITY"      : [ControlDomain1],
             "VISCOSITY"    : [ControlDomain2],
         }
 
@@ -110,15 +112,17 @@ class MasterControl:
         from above information, following two maps are created and passed to each control to obtain one ContainerExpression from each control.
         control_specific_maps:
         for control1: {YOUND_MODULUS: ControlDomain1, DENSITY: ControlDomain1}
-        for control2: {VISCOSITY: ControlDomain2}
+        for control2: {VISCOSITY: ControlDomain2, DENSITY: A zero valued ControlDomain}
 
         then returned mapped gradients are added to one CollectiveExpression.
+
+        In here, the missing gradients for required physical variables will be assumed to be zero.
 
         This converts given map of sensitivities w.r.t. different physical space variables to one sensitivities in control space and aggregated
         to one CollectiveExpression.
 
         Args:
-            physical_space_sensitivity_variable_and_collective_expressions_map (dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]): Map of physical space sensitivities.
+            physical_space_gradient_variable_and_collective_expressions_map (dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]): Map of physical space sensitivities.
 
         Returns:
             KratosOA.ContainerExpression.CollectiveExpressions: Control space sensitivities.
@@ -128,19 +132,26 @@ class MasterControl:
         for control in self.__list_of_controls:
             # iterate through each control to create its own container expression map from the collective expressions map given as input
             control_physical_sensitivities_container_expression_map = {}
-            for physical_control_variable in control.GetPhysicalVariables():
+            for physical_control_variable in control.GetPhysicalKratosVariables():
+                # first assume the gradients for this physical_control_variable is zero, hence get the zero valued expression.
+                control_expression = control.GetEmptyField()
+
                 # get the required physical variables from control.
-                if physical_control_variable in physical_space_sensitivity_variable_and_collective_expressions_map.keys():
+                if physical_control_variable in physical_space_gradient_variable_and_collective_expressions_map.keys():
                     # if the sensitivities for the given physical control variable exists, then try to find whether
                     # for this specific control the physical control variable sensitivities exists.
-                    control_expression = control.GetEmptyControlField()
-                    sensitivity_collective_expression = physical_space_sensitivity_variable_and_collective_expressions_map[physical_control_variable]
+
+                    sensitivity_collective_expression = physical_space_gradient_variable_and_collective_expressions_map[physical_control_variable]
                     for container_expression in sensitivity_collective_expression.GetContainerExpressions():
-                        if control_expression.GetContainer() == container_expression.GetContainer():
-                            # there exists for this control's physical variables sensitivities. then add it to control map.
+                        if IsSameContainerExpression(control_expression, container_expression):
+                            # there exists for this control's physical variables sensitivities. then copy it to the expression
+                            # this copy moves the underlying vectors, hence cheap.
                             control_expression.CopyFrom(container_expression)
-                            control_physical_sensitivities_container_expression_map[physical_control_variable] = control_expression
                             break
+
+                # now add it to the map. If it is found from input gradients, the control_expression will have those values,
+                # otherwise it will have representative zero control_expression.
+                control_physical_sensitivities_container_expression_map[physical_control_variable] = control_expression
 
             # map the physical control variable sensitivities to one control space
             mapped_gradients.Add(control.MapGradient(control_physical_sensitivities_container_expression_map))

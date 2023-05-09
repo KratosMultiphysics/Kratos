@@ -41,6 +41,9 @@ def IsSameContainerExpression(container_expression_1: ContainerExpressionTypes, 
 
     return True
 
+def HasContainerExpression(container_expression: ContainerExpressionTypes, list_of_container_expressions: 'list[ContainerExpressionTypes]') -> bool:
+    return any([IsSameContainerExpression(container_expression, list_container_expression) for list_container_expression in list_of_container_expressions])
+
 def OptimizationProcessFactory(
     module_name: str,
     class_name: str,
