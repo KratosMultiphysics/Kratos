@@ -25,15 +25,11 @@ class TestTransferConditions(KratosUnittest.TestCase):
                 mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
             if condition_type == "neumann":
                 mp.CreateNewCondition("MPMParticlePointLoadCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
-            if condition_type == "coupling":
-                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition2D3N", condition_id, [1, 2, 3], mp.GetProperties()[1])
         if dimension == 3:
             if condition_type == "dirichlet":
                 mp.CreateNewCondition("MPMParticlePenaltyDirichletCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
             if condition_type == "neumann":
                 mp.CreateNewCondition("MPMParticlePointLoadCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
-            if condition_type == "coupling":
-                mp.CreateNewCondition("MPMParticlePenaltyCouplingInterfaceCondition3D4N", condition_id, [1, 2, 3, 4], mp.GetProperties()[1])
 
     def _assign_pseudo_variables(self, cond, condition_type):
         process_info = KratosMultiphysics.ProcessInfo()
@@ -181,14 +177,8 @@ class TestTransferConditions(KratosUnittest.TestCase):
     def test_transfer_conditions2D_dirichlet_neumann(self):
         self._transfer_conditions(dimension=2, condition_type_2="neumann")
 
-    def test_transfer_conditions2D_dirichlet_coupling(self):
-        self._transfer_conditions(dimension=2, condition_type_2="coupling")
-
     def test_transfer_conditions3D_dirichlet_neumann(self):
         self._transfer_conditions(dimension=3, condition_type_2="neumann")
-
-    def test_transfer_conditions3D_dirichlet_coupling(self):
-        self._transfer_conditions(dimension=3, condition_type_2="coupling")
 
 if __name__ == '__main__':
     KratosUnittest.main()
