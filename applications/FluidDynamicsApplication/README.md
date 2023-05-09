@@ -3,7 +3,7 @@
 The Fluid Dynamics Application contains the core developments in Computational Fluid Dynamics (CFD) within Kratos Multiphysics.
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Kratos/assets/61457043/2dfad86e-9654-4ca2-a3e3-cb1a7baf7c63" alt="CFD_logo" width="200"/>
+  <img src="https://github.com/KratosMultiphysics/Kratos/assets/61457043/3eb72774-3054-4bc5-a6e7-cb9b4742b5b9" alt="CFD_logo" width="200"/>
 </p>
   
 ### Features:
