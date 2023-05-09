@@ -215,6 +215,8 @@ public:
             if (softening_type == curve_by_points) {
                 rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
             }
+        } else {
+            rN_f = 1.0E20;
         }
     }
 

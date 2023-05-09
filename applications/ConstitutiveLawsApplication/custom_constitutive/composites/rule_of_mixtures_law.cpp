@@ -344,17 +344,102 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 {
     // We combine the values of the layers
     rValue = 0.0;
-    double aux_value;
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        const double factor = mCombinationFactors[i_layer];
 
-        // we average over the layers
-        if (p_law->Has(rThisVariable)) {
-            aux_value=0;
-            p_law->GetValue(rThisVariable, aux_value);
-            rValue += aux_value * factor;
-        }
+    //Check if there is fatigue and check if S>Sth and return the value of the first layer that accomplishes
+    if (rThisVariable == MAX_STRESS){
+        //double max_stress_relative_error;
+        for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
+				double max_stress;
+				double s_th;
+				p_law->GetValue(MAX_STRESS, max_stress);
+				p_law->GetValue(THRESHOLD_STRESS, s_th);
+				if(max_stress > s_th){
+					p_law->GetValue(rThisVariable, rValue);
+					break;
+				}
+            } 
+		}
+	} else if (rThisVariable == THRESHOLD_STRESS){
+		//double max_stress_relative_error;
+        double stress;
+		for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
+             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+			if (p_law-> Has (HIGH_CYCLE_FATIGUE_DAMAGE)){
+				double max_stress;
+				double s_th;
+				p_law->GetValue(MAX_STRESS, max_stress);
+				p_law->GetValue(THRESHOLD_STRESS, s_th);
+		
+				if(max_stress > s_th){
+				stress = p_law->GetValue(rThisVariable, rValue);
+                break;
+				}
+            }
+		}   
+	} else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR){
+        double rev_factor_rel_error;
+        double stress;
+
+        for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
+				rev_factor_rel_error=0;
+                double fatigue_feduction_factor;
+                double fred;
+			    p_law->GetValue(REVERSION_FACTOR_RELATIVE_ERROR, rev_factor_rel_error);
+				rValue += rev_factor_rel_error;
+                            				
+            }
+		}
+        // KRATOS_WATCH(rValue)
+	} else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR){
+        //double max_stress_relative_error;
+        for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
+				double max_stress_rel_error;
+                
+				p_law->GetValue(MAX_STRESS_RELATIVE_ERROR, max_stress_rel_error);
+				rValue += max_stress_rel_error;	                
+			}
+		}
+	} else if (rThisVariable == CYCLES_TO_FAILURE){
+        double max_stress_relative_error;
+        double min_value=1.0e20;
+        for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
+				double max_stress;
+				double s_th;
+                double aux_values;
+                
+				p_law->GetValue(MAX_STRESS, max_stress);
+				p_law->GetValue(THRESHOLD_STRESS, s_th);
+                p_law->GetValue(CYCLES_TO_FAILURE, aux_values);          
+                
+                if(max_stress > s_th){
+                min_value = std::min(min_value, aux_values);
+                KRATOS_WATCH(min_value)
+			    }    
+			}
+		}
+        rValue = min_value;
+    } else {
+        double aux_value;
+
+        for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+            const double factor = mCombinationFactors[i_layer];
+
+            // we average over the layers
+            if (p_law->Has(rThisVariable)) {
+                aux_value=0;
+                p_law->GetValue(rThisVariable, aux_value);
+                rValue += aux_value * factor;
+            }
+        }   
     }
     return rValue;
 }
@@ -579,25 +664,27 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     )
 {
     const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
-
+    const Vector strain_vector = rParameterValues.GetStrainVector();
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
     // We combine the value of each layer
     rValue = 0.0;
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
-        const double factor = mCombinationFactors[i_layer];
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        Properties& r_prop = *(it_prop_begin + i_layer);
 
-        rParameterValues.SetMaterialProperties(r_prop);
-        double aux_value = 0;
-        p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+    const IndexType capa_a_imprimir = 1;
+    this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, capa_a_imprimir);
 
-        rValue += factor * aux_value;
-    }
+    // We rotate to local axes the strain
+    noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
 
+    ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[capa_a_imprimir];
+
+    Properties& r_prop = *(it_prop_begin + capa_a_imprimir);
+    rParameterValues.SetMaterialProperties(r_prop);
+
+    p_law->CalculateValue(rParameterValues,rThisVariable, rValue);
     // Reset properties
     rParameterValues.SetMaterialProperties(r_material_properties);
-
+    noalias(rParameterValues.GetStrainVector()) = strain_vector;
     return rValue;
 }
 
@@ -678,7 +765,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         // We combine the value of each layer
         rValue.resize(VoigtSize, false);
         rValue.clear();
-        rValue.resize(VoigtSize, 6);
+        rValue.resize(VoigtSize, false);
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();

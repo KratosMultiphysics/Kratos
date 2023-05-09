@@ -156,6 +156,9 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
 
+       // KRATOS_WATCH(s_th)
+       // KRATOS_WATCH(rev_factor_rel_error)
+
         for (unsigned int i = 0; i < number_of_ip; i++) {
             if (max_stress[i] > s_th[i]) {
                 fatigue_in_course = true;
@@ -214,6 +217,9 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
         r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
+        
+        KRATOS_WATCH(cycles_to_failure_element)
+        
         for (unsigned int i = 0; i < number_of_ip; i++) {
             if (max_stress[i] > s_th[i]) {  //This is used to guarantee that only IP in fatigue conditions are taken into account
                 double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
@@ -228,7 +234,8 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
             }
         }
     }
-	rIncrement = min_time_increment * 2.0;
+	//rIncrement = min_time_increment * 2.0;
+    rIncrement = min_time_increment;
     
 }
 
