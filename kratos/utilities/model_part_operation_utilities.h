@@ -151,7 +151,7 @@ private:
         TUnaryFunc&& rIsValidEntity)
     {
         using p_entity_type = typename TContainerType::value_type*;
-        const auto& result = block_for_each<AccumReduction<p_entity_type>>(rMainEntityContainer, ModelPartOperationUtilities::CNodePointersType(), [&rIsValidEntity](auto& rMainEntity, ModelPartOperationUtilities::CNodePointersType& rTLS) -> p_entity_type {
+        const auto& result = block_for_each<AccumReduction<p_entity_type>>(rMainEntityContainer, CNodePointersType(), [&rIsValidEntity](auto& rMainEntity, CNodePointersType& rTLS) -> p_entity_type {
             const auto& r_geometry = rMainEntity.GetGeometry();
             const IndexType number_of_nodes = r_geometry.size();
 
@@ -191,8 +191,8 @@ private:
         const IndexType number_of_operation_model_parts = rModelPartOperationModelParts.size();
 
         std::vector<std::set<ModelPart::NodeType const*>> set_operation_node_sets(number_of_operation_model_parts);
-        std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_condition_sets(number_of_operation_model_parts);
-        std::vector<std::set<ModelPartOperationUtilities::CNodePointersType>> set_operation_element_sets(number_of_operation_model_parts);
+        std::vector<std::set<CNodePointersType>> set_operation_condition_sets(number_of_operation_model_parts);
+        std::vector<std::set<CNodePointersType>> set_operation_element_sets(number_of_operation_model_parts);
 
         // now iterate through model parts' conditions/elements containers and get available main model part entities.
         for (IndexType i = 0; i < number_of_operation_model_parts; ++i) {
@@ -237,7 +237,7 @@ private:
 
     template <class TContainerType>
     static void FillNodePointersForEntities(
-        std::set<ModelPartOperationUtilities::CNodePointersType>& rOutput,
+        std::set<CNodePointersType>& rOutput,
         const TContainerType& rEntityContainer);
 
     template<class TOutputContainerType>
@@ -289,7 +289,7 @@ private:
     static void CheckEntities(
         std::vector<IndexType>& rEntityIdsWithIssues,
         const TContainerType& rCheckEntities,
-        const std::set<ModelPartOperationUtilities::CNodePointersType>& rMainEntities);
+        const std::set<CNodePointersType>& rMainEntities);
 
     ///@}
 };

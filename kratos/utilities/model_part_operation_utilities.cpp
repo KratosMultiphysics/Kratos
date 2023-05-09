@@ -38,14 +38,14 @@ void ModelPartOperationUtilities::FillNodesPointerSet(
 
 template <class TContainerType>
 void ModelPartOperationUtilities::FillNodePointersForEntities(
-    std::set<ModelPartOperationUtilities::CNodePointersType>& rOutput,
+    std::set<CNodePointersType>& rOutput,
     const TContainerType& rEntityContainer)
 {
-    auto result = block_for_each<AccumReduction<ModelPartOperationUtilities::CNodePointersType, std::set<ModelPartOperationUtilities::CNodePointersType>>>(rEntityContainer, [](const auto& rEntity) {
+    auto result = block_for_each<AccumReduction<CNodePointersType, std::set<CNodePointersType>>>(rEntityContainer, [](const auto& rEntity) {
         const auto& r_geometry = rEntity.GetGeometry();
         const IndexType number_of_nodes = r_geometry.size();
 
-        ModelPartOperationUtilities::CNodePointersType nodes(number_of_nodes);
+        CNodePointersType nodes(number_of_nodes);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             nodes[i] = &r_geometry[i];
@@ -249,9 +249,9 @@ template<class TContainerType>
 void ModelPartOperationUtilities::CheckEntities(
     std::vector<IndexType>& rEntityIdsWithIssues,
     const TContainerType& rCheckEntities,
-    const std::set<ModelPartOperationUtilities::CNodePointersType>& rMainEntities)
+    const std::set<CNodePointersType>& rMainEntities)
 {
-    const auto& result = block_for_each<AccumReduction<IndexType>>(rCheckEntities, ModelPartOperationUtilities::CNodePointersType(), [&rMainEntities](const auto& rCheckEntity, ModelPartOperationUtilities::CNodePointersType& rTLS) -> IndexType {
+    const auto& result = block_for_each<AccumReduction<IndexType>>(rCheckEntities, CNodePointersType(), [&rMainEntities](const auto& rCheckEntity, CNodePointersType& rTLS) -> IndexType {
         const auto& r_geometry = rCheckEntity.GetGeometry();
         const IndexType number_of_nodes = r_geometry.size();
 
@@ -285,8 +285,8 @@ bool ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations(
     const bool ThrowError)
 {
     std::set<ModelPart::NodeType const*> main_node_sets;
-    std::set<ModelPartOperationUtilities::CNodePointersType> main_condition_sets;
-    std::set<ModelPartOperationUtilities::CNodePointersType> main_element_sets;
+    std::set<CNodePointersType> main_condition_sets;
+    std::set<CNodePointersType> main_element_sets;
 
     // fill the check nodes
     FillNodesPointerSet(main_node_sets, rMainModelPart.Nodes());
