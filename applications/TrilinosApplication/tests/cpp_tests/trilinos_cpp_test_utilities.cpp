@@ -178,7 +178,7 @@ TrilinosCPPTestUtilities::TrilinosVectorType TrilinosCPPTestUtilities::GenerateD
 void TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(
     const TrilinosVectorType& rA,
     const TrilinosLocalVectorType& rB,
-    const double Tolerance
+    const double NegligibleValueThreshold
     )
 {
     const std::size_t total_size = rB.size();
@@ -200,7 +200,7 @@ void TrilinosCPPTestUtilities::CheckSparseVector(
     const TrilinosVectorType& rb,
     const std::vector<int>& rIndexes,
     const std::vector<double>& rValues,
-    const double Tolerance
+    const double NegligibleValueThreshold
     )
 {
     int index;
@@ -211,7 +211,7 @@ void TrilinosCPPTestUtilities::CheckSparseVector(
         value = rValues[counter];
         if (r_map.MyGID(index)) {
             const double ref_value = rb[0][r_map.LID(index)];
-            KRATOS_CHECK_RELATIVE_NEAR(value, ref_value, Tolerance);
+            KRATOS_CHECK_RELATIVE_NEAR(value, ref_value, NegligibleValueThreshold);
         }
     }
 }
@@ -222,7 +222,7 @@ void TrilinosCPPTestUtilities::CheckSparseVector(
 void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
     const TrilinosSparseMatrixType& rA,
     const TrilinosLocalMatrixType& rB,
-    const double Tolerance
+    const double NegligibleValueThreshold
     )
 {
     const std::size_t total_size = rB.size1() * rB.size2();
@@ -234,13 +234,39 @@ void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
     values.reserve(total_size);
     for (std::size_t i = 0; i < rB.size1(); ++i) {
         for (std::size_t j = 0; j < rB.size2(); ++j) {
-            row_indexes.push_back(i);
-            column_indexes.push_back(j);
-            values.push_back(rB(i, j));
+            const double value = rB(i, j);
+            if (std::abs(value) > std::numeric_limits<double>::epsilon()) {
+                row_indexes.push_back(i);
+                column_indexes.push_back(j);
+                values.push_back(value);
+            }
         }
     }
     CheckSparseMatrix(rA, row_indexes, column_indexes, values);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(
+    const TrilinosSparseMatrixType& rA,
+    const std::vector<int>& rRowIndexes,
+    const std::vector<int>& rColumnIndexes,
+    const TrilinosLocalMatrixType& rB,
+    const double NegligibleValueThreshold
+    )
+{
+
+    int row, column;
+    std::vector<double> values(rRowIndexes.size());
+    for (std::size_t counter = 0; counter < rRowIndexes.size(); ++counter) {
+        row = rRowIndexes[counter];
+        column = rColumnIndexes[counter];
+        values[counter] = rB(row, column);
+    }
+    CheckSparseMatrix(rA, rRowIndexes, rColumnIndexes, values, NegligibleValueThreshold);
+}
+
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -250,9 +276,10 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
     const std::vector<int>& rRowIndexes,
     const std::vector<int>& rColumnIndexes,
     const std::vector<double>& rValues,
-    const double Tolerance
+    const double NegligibleValueThreshold
     )
 {
+    int local_validated_values = 0;
     int row, column;
     double value;
     for (std::size_t counter = 0; counter < rRowIndexes.size(); ++counter) {
@@ -270,7 +297,8 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
                 for (j = 0; j < numEntries; j++) {
                     const int col_gid = rA.ColMap().GID(cols[j]);
                     if (col_gid == column) {
-                        KRATOS_CHECK_RELATIVE_NEAR(value, vals[j], Tolerance)
+                        KRATOS_CHECK_RELATIVE_NEAR(value, vals[j], NegligibleValueThreshold)
+                        ++local_validated_values;
                         break;
                     }
                 }
@@ -278,6 +306,12 @@ void TrilinosCPPTestUtilities::CheckSparseMatrix(
             }
         }
     }
+
+    // Checking that all the values has been validated
+    const auto& r_comm = rA.Comm();
+    int global_validated_values;
+    r_comm.SumAll(&local_validated_values, &global_validated_values, 1);
+    KRATOS_CHECK_EQUAL(global_validated_values, static_cast<int>(rValues.size()));
 }
 
 /***********************************************************************************/
@@ -382,7 +416,7 @@ TrilinosCPPTestUtilities::TrilinosSparseMatrixType TrilinosCPPTestUtilities::Gen
     int nnz = 0;
     int initial_index, end_index;
     std::unordered_map<int, std::pair<int, int>> initial_and_end_index;
-    for ( int i=0; i<NumMyElements; i++) {
+    for (int i=0; i<NumMyElements; i++) {
         if (MyGlobalElements[i] == rRowIndexes[current_row_index]) {
             initial_index = current_row_index;
             const int start_index = current_row_index;
