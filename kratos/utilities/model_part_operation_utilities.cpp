@@ -58,32 +58,26 @@ void ModelPartOperationUtilities::FillNodePointersForEntities(
     rOutput.merge(result);
 }
 
-template<class TOutputContainerType>
-IndexType ModelPartOperationUtilities::FillCommonNodes(
-    TOutputContainerType& rOutput,
+void ModelPartOperationUtilities::FillCommonNodes(
+    ModelPart::NodesContainerType& rOutput,
     ModelPart::NodesContainerType& rMainNodes,
     const std::set<ModelPart::NodeType const*>& rNodesSet)
 {
-    const auto& result = block_for_each<AccumReduction<std::pair<IndexType, ModelPart::NodeType*>>>(rMainNodes, [&rNodesSet](auto& rNode) -> std::pair<IndexType, ModelPart::NodeType*> {
+    const auto& result = block_for_each<AccumReduction<ModelPart::NodeType*>>(rMainNodes, [&rNodesSet](auto& rNode) -> ModelPart::NodeType* {
         auto p_itr = rNodesSet.find(&rNode);
 
         if (p_itr != rNodesSet.end()) {
-            return std::make_pair(rNode.Id(), &rNode);
+            return &rNode;
         } else {
-            return std::make_pair(rNode.Id(), nullptr);
+            return nullptr;
         }
     });
 
-    IndexType found_nullptr = std::numeric_limits<IndexType>::max();
-    std::for_each(result.begin(), result.end(), [&found_nullptr, &rOutput](auto& rPair) {
-        if (rPair.second != nullptr) {
-            rOutput.push_back(rPair.second);
-        } else {
-            found_nullptr = rPair.first;
+    std::for_each(result.begin(), result.end(), [&rOutput](auto& p_node) {
+        if (p_node != nullptr) {
+            rOutput.push_back(p_node);
         }
     });
-
-    return found_nullptr;
 }
 
 template<class TEntityType>
@@ -375,5 +369,18 @@ bool ModelPartOperationUtilities::HasIntersection(const std::vector<ModelPart*>&
 
     return is_intersected;
 }
+
+// template instantiations
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FillNodePointersForEntities<ModelPart::ConditionsContainerType>(std::set<CNodePointersType>&, const ModelPart::ConditionsContainerType&);
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FillNodePointersForEntities<ModelPart::ElementsContainerType>(std::set<CNodePointersType>&, const ModelPart::ElementsContainerType&);
+
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FillNodesFromEntities<ModelPart::ConditionType>(std::vector<ModelPart::NodeType*>&, typename std::vector<ModelPart::ConditionType*>::iterator, typename std::vector<ModelPart::ConditionType*>::iterator);
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FillNodesFromEntities<ModelPart::ElementType>(std::vector<ModelPart::NodeType*>&, typename std::vector<ModelPart::ElementType*>::iterator, typename std::vector<ModelPart::ElementType*>::iterator);
+
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FindNeighbourEntities<ModelPart::ConditionsContainerType>(std::vector<ModelPart::ConditionType*>&, const Flags&, ModelPart::ConditionsContainerType&);
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::FindNeighbourEntities<ModelPart::ElementsContainerType>(std::vector<ModelPart::ElementType*>&, const Flags&, ModelPart::ElementsContainerType&);
+
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::CheckEntities<ModelPart::ConditionsContainerType>(std::vector<IndexType>&, const ModelPart::ConditionsContainerType&, const std::set<CNodePointersType>&);
+template KRATOS_API(KRATOS_CORE) void ModelPartOperationUtilities::CheckEntities<ModelPart::ElementsContainerType>(std::vector<IndexType>&, const ModelPart::ElementsContainerType&, const std::set<CNodePointersType>&);
 
 } // namespace Kratos

@@ -240,9 +240,8 @@ private:
         std::set<CNodePointersType>& rOutput,
         const TContainerType& rEntityContainer);
 
-    template<class TOutputContainerType>
-    static IndexType FillCommonNodes(
-        TOutputContainerType& rOutput,
+    static void FillCommonNodes(
+        ModelPart::NodesContainerType& rOutput,
         ModelPart::NodesContainerType& rMainNodes,
         const std::set<ModelPart::NodeType const*>& rNodesSet);
 
