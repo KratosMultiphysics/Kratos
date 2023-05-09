@@ -327,6 +327,7 @@ private:
 
     const DataCommunicator& mrDataCommunicator; /// The data communicator
 
+    // TODO: Check what is necessary after final implementation on MPI is done
     std::vector<int> mSendSizes; /// The sizes of the send buffers
     std::vector<int> mRecvSizes; /// The sizes of the recv buffers
 
@@ -555,6 +556,31 @@ private:
 
         return true;
     }
+
+    /**
+     * @brief This method prepares the buffer for the result
+     * @details Values are set in member variables
+     * @param rLocalResult The local result
+     */
+    void PrepareBufferResultType(const ResultType& rLocalResult);
+
+    /**
+     * @brief This method deserializes the buffer for the result
+     * @details Values are get from member variables
+     * @param rGlobalResult The global result
+     */
+    void DeserializeResultType(const ResultType& rGlobalResult);
+
+    /**
+     * @brief This method does the serialization/desiralization of the results and rerieves the result from a given partition
+     * @param rLocalResult The local result
+     * @param Rank The rank in MPI
+     * @return The result from the given partition
+     */
+    ResultType GetResultFromGivenPartition(
+        const ResultType& rLocalResult,
+        const int Rank
+        );
 
     ///@}
     ///@name Private  Access
