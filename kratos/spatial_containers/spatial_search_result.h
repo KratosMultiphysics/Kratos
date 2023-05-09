@@ -56,7 +56,7 @@ public:
     /// Default constructor.
    	SpatialSearchResult() : mpObject(nullptr), mDistance(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {}
 
-    /// Constructor with the resulted object   
+    /// Constructor with the resulted object
 	SpatialSearchResult(TObjectType* pObject) : mpObject(pObject), mDistance(0.00), mIsObjectFound(false), mIsDistanceCalculated(false) {
 		if (mpObject.get() != nullptr)
 			mIsObjectFound = true;
