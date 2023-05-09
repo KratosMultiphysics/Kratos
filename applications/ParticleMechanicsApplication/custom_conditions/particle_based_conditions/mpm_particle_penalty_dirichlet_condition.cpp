@@ -96,7 +96,6 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
 
 void MPMParticlePenaltyDirichletCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
@@ -107,7 +106,6 @@ void MPMParticlePenaltyDirichletCondition::InitializeNonLinearIteration(const Pr
         r_geometry[i].FastGetSolutionStepValue(REACTION).clear();
         r_geometry[i].UnSetLock();
     }
-
 }
 
 //************************************************************************************
@@ -136,7 +134,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {
             rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
         }
-
         noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size,matrix_size); //resetting LHS
     }
 
@@ -147,7 +144,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {
             rRightHandSideVector.resize( matrix_size, false );
         }
-
         noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
     }
 
@@ -168,16 +164,14 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {  
             for ( unsigned int j = 0; j < dimension; j++)
                 field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
-
         }
 
         const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
 
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)
-        {
             apply_constraints = false;
-        }
+        
     }
 
     if (apply_constraints)
@@ -200,9 +194,8 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
             for ( unsigned int j = 0; j < dimension; j++)
-            {
                 gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
-            }
+            
         }
 
         // Calculate LHS Matrix and RHS Vector
@@ -229,8 +222,6 @@ void MPMParticlePenaltyDirichletCondition::FinalizeNonLinearIteration(const Proc
 {
     KRATOS_TRY
 
-    // Calculate nodal contact force
-
     // Recalculate resiudal vector for converged solution
     const bool CalculateStiffnessMatrixFlag = false;
     const bool CalculateResidualVectorFlag = true;
@@ -244,18 +235,14 @@ void MPMParticlePenaltyDirichletCondition::FinalizeNonLinearIteration(const Proc
     const unsigned int matrix_size = number_of_nodes * block_size;
     VectorType rRightHandSideVector = ZeroVector( matrix_size );
 
-    CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-
-
+    MPMParticlePenaltyDirichletCondition::CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
 
     // Calculate nodal forces
     Vector nodal_force = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         for (unsigned int j = 0; j < dimension; j++)
-        {
             nodal_force[j] = rRightHandSideVector[block_size * i + j];
-        }
 
         // Check whether there nodes are active and associated to material point elements
         const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
