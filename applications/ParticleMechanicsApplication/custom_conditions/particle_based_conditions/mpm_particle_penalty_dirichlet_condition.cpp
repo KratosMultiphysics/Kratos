@@ -79,8 +79,8 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
         GeneralVariables Variables;
 
-        // Calculating shape function: for normal direction small cut modification should not be considered!
-        MPMParticleBaseCondition::MPMShapeFunctionPointValues(Variables.N);
+        // Calculating shape function
+        MPMShapeFunctionPointValues(Variables.N);
 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -165,14 +165,10 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
-            {
-                for ( unsigned int j = 0; j < dimension; j++)
-                {
-                    field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
-                }
-            }
+        {  
+            for ( unsigned int j = 0; j < dimension; j++)
+                field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+
         }
 
         const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
@@ -317,7 +313,10 @@ void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(array_
     {
         // Check whether there is material point inside the node
         const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-        const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+        double nodal_area  = 0.0;        
+        if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
+            nodal_area= r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+
         const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
 
         if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
