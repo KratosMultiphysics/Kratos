@@ -1,7 +1,6 @@
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import HasContainerExpression
 
@@ -33,6 +32,10 @@ class MasterControl:
             list[Control]: List of controls.
         """
         return self.__list_of_controls
+    
+    def Initialize(self):
+        for control in self.__list_of_controls:
+            control.Initialize()
 
     def GetPhysicalKratosVariableCollectiveExpressionsMap(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]':
         """Returns map of physical variables and collective expressions from each control.

@@ -37,10 +37,11 @@ class KratosSteepestDescent(PythonSolver):
         self.optimization_problem = optimization_problem
 
         self.master_control = MasterControl() # Need to fill it with controls
-        control_list = parameters["controls"]
+        control_param_list = parameters["controls"]
 
-        for control in control_list:
-            control = Control() # Use Control Factory 
+        for control_param in control_param_list:
+            control_name = control_param["name"].GetString()
+            control = Control(control_name) # Use Control Factory 
             self.master_control.AddControl(control)
 
         algorithm_parameters = parameters["settings"]
@@ -59,7 +60,7 @@ class KratosSteepestDescent(PythonSolver):
         return 2
 
     def Check(self):
-        if len(self.GetObjectives()) > 1:
+        if len(self.parameters["objectives"]) > 1:
             raise RuntimeError(f"{self.__class__.__name__} only supports single objective optimizations.")
         
     def Initialize(self):
@@ -67,8 +68,6 @@ class KratosSteepestDescent(PythonSolver):
         self.master_control.Initialize()
 
         self.converged = False
-        self.control_field = None
-        
         self.control_field = self.master_control.GetEmptyControlFields() # GetInitialControlFields() later
 
     def Finalize(self):
@@ -86,7 +85,7 @@ class KratosSteepestDescent(PythonSolver):
 
         while not self.converged:
 
-            obj_val = self.__objective.CalculateStandardizedValue(self.control_field) # obj_val is typically not used. It is needed if we use Line Search Technique
+            obj_val = self.__objective.CalculateStandardizedValue(self.control_field) # obj_val is typically not used. It is needed if we use Line Search Technique and for output
             obj_grad = self.__objective.CalculateStandardizedGradient()
             search_direction = self.ComputeSearchDirection(obj_grad)
             alpha = self.LineSearch(search_direction)

@@ -41,10 +41,11 @@ class GradientProjection(PythonSolver):
         self.optimization_problem = optimization_problem
 
         self.master_control = MasterControl() # Need to fill it with controls
-        control_list = parameters["controls"]
+        control_param_list = parameters["controls"]
 
-        for control in control_list:
-            control = Control() # Use Control Factory 
+        for control_param in control_param_list:
+            control_name = control_param["name"].GetString()
+            control = Control(control_name) # Use Control Factory 
             self.master_control.AddControl(control)
 
         algorithm_parameters = parameters["settings"]
