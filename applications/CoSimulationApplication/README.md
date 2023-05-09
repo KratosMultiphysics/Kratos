@@ -1,6 +1,7 @@
 # CoSimulation Application
 
 The CoSimulation Application contains the core developments in coupling black-box solvers and other software-tools within Kratos Multiphysics.
+<img src="https://github.com/KratosMultiphysics/Kratos/assets/61457043/91ae6df4-0e08-4f05-a0ce-b679deb71f65" alt="Co-Sim_logo" width="200"/>
 
 
 <a name="overview"></a>
