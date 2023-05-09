@@ -18,7 +18,8 @@
 // Project includes
 #include "includes/geometrical_object.h"
 #include "input_output/vtk_output.h"
-#include "utilities/pointer_communicator.h"
+//#include "utilities/pointer_communicator.h"
+#include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/mpi_search_utilities.h"
 #include "mpi/spatial_containers/geometrical_objects_bins_mpi.h"
 
@@ -66,22 +67,16 @@ void GeometricalObjectsBinsMPI::ImplSearchInRadius(
     std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
 
     // Check if the point is inside the set
-    bool local_computed = false;
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
         mLocalGeometricalObjectsBins.SearchInRadius(rPoint, Radius, rResults);
 
         // Remove current rank from the set
         ranks_set.erase(current_rank);
-
-        // Set local computed to true
-        local_computed = true;
     }
 
     // Now sync results between partitions
-    for (auto rank : ranks_set) {
-        // TODO: Implement MPI search
-    }
+    // TODO
 }
 
 /***********************************************************************************/
@@ -103,22 +98,30 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNeare
     std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
 
     // Check if the point is inside the set
-    bool local_computed = false;
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
         current_result = mLocalGeometricalObjectsBins.SearchNearestInRadius(rPoint, Radius);
 
         // Remove current rank from the set
         ranks_set.erase(current_rank);
-
-        // Set local computed to true
-        local_computed = true;
     }
 
-    // Now sync results between partitions
-    for (auto rank : ranks_set) {
-        // TODO: Implement MPI search
-    }
+    /* Now sync results between partitions */
+
+    // Get the distance
+    const double local_distance = (current_result.IsObjectFound() && current_result.IsDistanceCalculated()) ? current_result.GetDistance() : std::numeric_limits<double>::max();
+
+    // Find the minimum value and the rank that holds it
+    struct {
+        double value;
+        int rank;
+    } local_min, global_min;
+
+    local_min.value = local_distance;
+    local_min.rank = GetRank();
+    MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPIDataCommunicator::GetMPICommunicator(mrDataCommunicator));
+
+    // TODO: Get the solution from the global min
 
     return current_result;
 }
@@ -151,7 +154,7 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsIns
     std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
 
     // Check if the point is inside the set
-    bool local_computed = false;
+    int computed_rank = std::numeric_limits<int>::max();
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
         current_result = mLocalGeometricalObjectsBins.SearchIsInside(rPoint);
@@ -159,14 +162,17 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsIns
         // Remove current rank from the set
         ranks_set.erase(current_rank);
 
-        // Set local computed to true
-        local_computed = true;
+        // Set current rank
+        computed_rank = current_rank;
     }
 
     // Now sync results between partitions
-    for (auto rank : ranks_set) {
-        // TODO: Implement MPI search
-    }
+    //KRATOS_WARNING("GeometricalObjectsBinsMPI.ImplSearchIsInside") << "This assumes that first one of the viable results is the closest one. The algorithm  sets distance to 0, so it is ambiguous which is the closest one." << std::endl;
+
+    // Min rank of all ranks
+    computed_rank = mrDataCommunicator.MinAll(computed_rank);
+
+    // TODO: Get the solution from the computed_rank
 
     return current_result;
 }
@@ -249,34 +255,6 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsIns
 
 //     KRATOS_CATCH("");
 // }
-
-// void GeometricalObjectsBinsMPI::SynchronizeSearchInRadius(std::vector<ResultType>& rLocalResults)
-// {
-//     KRATOS_TRY;
-
-//     // A priori some results can be duplicated, therefore we need to  first creeate the list of results to actually syncronize
-
-//     MPI_Barrier(MPI_COMM_WORLD);
-
-//     KRATOS_CATCH("");
-// }
-
-// /***********************************************************************************/
-// /***********************************************************************************/
-
-// GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SynchronizeSearchNearestInRadius(ResultType& rLocalResult)
-// {
-//     KRATOS_TRY;
-
-//     // The same algorithm as SynchronizeSearchNearest, because we consider the closest one of all the local results
-//     return SynchronizeSearchNearest(rLocalResult);
-
-//     KRATOS_CATCH("");
-// }
-
-// /***********************************************************************************/
-// /***********************************************************************************/
-
 // GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SynchronizeSearchNearest(ResultType& rLocalResult)
 // {
 //     KRATOS_TRY;
@@ -309,19 +287,6 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsIns
 //     });
 
 //     return rLocalResult;
-
-//     KRATOS_CATCH("");
-// }
-
-// /***********************************************************************************/
-// /***********************************************************************************/
-
-// GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::SynchronizeSearchIsInside(ResultType& rLocalResult)
-// {
-//     KRATOS_TRY;
-
-//     KRATOS_WARNING("GeometricalObjectsBinsMPI.SynchronizeSearchIsInside") << "This assumes that first one of the viable results is the closest one. The algorithm  sets distance to 0, so it is ambiguous which is the closest one." << std::endl;
-//     return SynchronizeSearchNearest(rLocalResult);
 
 //     KRATOS_CATCH("");
 // }
