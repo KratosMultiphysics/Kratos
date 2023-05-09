@@ -14,7 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#pragma once 
+#pragma once
 
 // System includes
 
@@ -437,7 +437,7 @@ public:
         KRATOS_WARNING("Quadrilateral2D9") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning zero instead)" << std::endl;
         return Area();
         // TODO: Replace in June 2023
-        // KRATOS_ERROR << "Quadrilateral2D9:: Method not well defined. Replace with DomainSize() instead." << std::endl; 
+        // KRATOS_ERROR << "Quadrilateral2D9:: Method not well defined. Replace with DomainSize() instead." << std::endl;
         // return 0.0;
     }
 
@@ -456,7 +456,7 @@ public:
     {
         return Area();
     }
-    
+
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
@@ -1311,7 +1311,6 @@ const GeometryData Quadrilateral2D9<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Quadrilateral2D9<TPointType>::msGeometryDimension(
-    2, 2, 2);
+const GeometryDimension Quadrilateral2D9<TPointType>::msGeometryDimension(2, 2);
 
 }  // namespace Kratos.

@@ -4,10 +4,10 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
 class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationInfo):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationProblem):
         super().__init__()
 
         default_settings = Kratos.Parameters("""{
