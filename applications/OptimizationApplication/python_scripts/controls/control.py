@@ -1,6 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Any
-import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
@@ -9,15 +7,21 @@ class Control(ABC):
 
     The base abstract control class has the following responsibilities.
         1. Initalizes and finalizes the control.
-        2. Mapping physical space gradients to control space gradients.
-        2. Updating the controlled parts of the model part with new design given in control space.
-        3. Retrieve control variable.
-        4. Retrieve physical space variables (If more than one physical space variables are controlled by the given control variable.)
+        2. Maps physical space gradients to control space gradients, if needed. Otherwise, it passes.
+        2. Updating the controlled parts of the model part with new given design.
+        3. Retrieve control field.
+        4. Retrieve physical space kratos variables (If more than one physical space kratos variables are controlled by the given control field.)
 
-    This control should only work on one model part and one control variable. Hence, if required multiple model parts can be used
-    by using the union operator in Kratos.ModelPartBinaryOperators to create one model part within the control.
+    This control should only work on one model part and one kratos control variable. Hence, if multiple model parts required then,
+    a single model part should be created using Kratos.ModelPartOperationUtilities.
 
     """
+    def __init__(self, control_name: str) -> None:
+        self.__name = control_name
+
+    def GetName(self) -> str:
+        return self.__name
+
     @abstractmethod
     def Initialize(self) -> None:
         """Initializes the control.
@@ -35,7 +39,6 @@ class Control(ABC):
 
         """
         pass
-    
     @abstractmethod
     def Finalize(self) -> None:
         """Finalizes the control.
@@ -45,6 +48,7 @@ class Control(ABC):
         """
         pass
 
+    @abstractmethod
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         """Returns list of physical control variables controlled by this control.
 
@@ -53,36 +57,26 @@ class Control(ABC):
         the control space should only have one variable per control in the control space, but they can have multiple physical variables
         in their design space.
 
-        If the case is that this control has one physical variable, then it should be same as the control variable which is the
-        default behaviour.
-
         Returns:
             list[SupportedSensitivityFieldVariableTypes]: List of physical control variables.
-        """
-        return [self.GetControlVariable()]
-
-    @staticmethod
-    @abstractmethod
-    def Create(model: Kratos.Model, parameters: Kratos.Parameters, optimization_info) -> Any:
-        """Returns a new control constructed with standard input parameters.
-
-        Args:
-            model (Kratos.Model): Kratos model the control belongs to.
-            parameters (Kratos.Parameters): Parameters to define behaviour of the control.
-            optimization_info (OptimizationProblem): Optimization problem data.
-
-        Returns:
-            Any: The constructed control.
         """
         pass
 
     @abstractmethod
-    def GetEmptyControlField(self) -> ContainerExpressionTypes:
-        """Returns a new empty control field data holder.
+    def GetEmptyField(self) -> ContainerExpressionTypes:
+        """Returns a new empty data field holder with correct dimensionality information.
 
-        This returns a new empty control field data holder to give information about on which model part's container
+        This returns a new empty data field holder to give information about on which model part's container
         this model part is acting on. This has O(1) complexity, hence has the least cost because it does not read
         any data from respective model part's container.
+
+        Dimensionality information is provided by calling a ContainerExpression::SetData(value). This creates a single
+        memory allocation for whole container with the dimensions of the variable. This operation is cheap in memory and
+        consumes least time.
+
+        Eg:
+            1. If the control field is a scalar, then container_expression.SetData(0.0)
+            2. If the control field is a array3, then container_expression.SetData(Kratos.Array3(0.0))
 
         Returns:
             ContainerExpressionTypes: Returns a new empty ContainerExpression corresponding to control's model part's respective container.
@@ -90,18 +84,34 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def MapGradient(self, physical_sensitivity_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
-        """Maps physical space sensitivity gradients to the control space
+    def GetControlField(self) -> ContainerExpressionTypes:
+        """Returns the current control field of the control.
+
+        This method returns the control field of the current design.
+
+        Returns:
+            ContainerExpressionTypes: Current designs control field.
+        """
+        pass
+
+    @abstractmethod
+    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
+        """Maps physical space gradients to the control space.
 
         This method is used to map the given physical space gradients to the control space. The input should be as in the following example:
-            sensitivity_variable_collective_expression_info = {
+            physical_gradient_variable_container_expression_map = {
                 Kratos.YOUNG_MODULUS: Kratos.ContainerExpressions.NodalNonHistoricalContainer,
                 Kratos.DENSITY      : Kratos.ContainerExpressions.ElementNonHistoricalContainer,
                 Kratos.SHAPE        : Kratos.ContainerExpressions.ElementNonHistoricalContainer
             }
 
+        All the gradients w.r.t. @see GetPhysicalKratosVariables() variables will be given in @ref physical_gradient_variable_container_expression_map.
+        If the response does not depend on some of them or all, then container expressions with ContainerExpression::SetDataToZero() performed will be passed.
+        [ContainerExpression::SetDataToZero() will make the container expression to zero, but will only allocate one double value for the
+        whole container, hence it is cheap in memory and execution.]
+
         Args:
-            physical_sensitivity_variable_container_expression_map (dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]): Map of physical space variable and ContainerExpression with sensitivities
+            physical_gradient_variable_container_expression_map (dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]): Map of physical space variable and ContainerExpression with sensitivities.
 
         Returns:
             ContainerExpressionTypes: Gradients mapped in to control space.
@@ -109,17 +119,14 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def Update(self, update_container_expression: ContainerExpressionTypes) -> bool:
-        """Updates the current control.
-
-        This method updates the control with the given update from @ref update_container_expression. This
-        update should be in the control space, and it should be the final design, not a change of design.
+    def Update(self, control_field: ContainerExpressionTypes) -> bool:
+        """Modifies the current control with the given control field.
 
         Args:
-            update_container_expression (ContainerExpressionTypes): Final design in control space as an update.
+            control_field (ContainerExpressionTypes): The control field in control space.
 
         Returns:
-            bool: True if the update was carried out, otherwise False
+            bool: True if the control field was applied to obtain a new design, otherwise False
         """
         pass
 

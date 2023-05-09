@@ -1,7 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 
@@ -19,7 +18,7 @@ class StandardizedConstraint(ResponseRoutine):
     The reference value for the constraint either can be the "initial_value" or a specified value.
 
     """
-    def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_info: OptimizationProblem, required_buffer_size: int = 2):
+    def __init__(self, parameters: Kratos.Parameters, optimization_info: OptimizationProblem):
         default_parameters = Kratos.Parameters("""{
             "response_name"   : "",
             "type"            : "",

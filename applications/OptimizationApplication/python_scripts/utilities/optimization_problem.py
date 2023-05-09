@@ -34,6 +34,26 @@ class OptimizationProblem:
         # initialize the step
         self.__problem_data["step"] = 0
 
+    def GetComponentType(self, component: Any) -> Any:
+        for k in self.__components.keys():
+            if isinstance(component, k):
+                return k
+
+        return None
+
+    def GetComponentName(self, component: Any) -> str:
+        component_type = self.GetComponentType(component)
+        if not component_type is None:
+            components = self.__components[component_type]
+        else:
+            raise RuntimeError(f"Unsupported component type {component} provided.")
+
+        for comp_name, current_component in components.items():
+            if component == current_component:
+                return comp_name
+
+        raise RuntimeError(f"The given {component} not found in components of type {component_type}.")
+
     def AddResponse(self, name: str, response_function: ResponseFunction) -> None:
         self.__AddComponent(name, response_function, ResponseFunction)
 
@@ -65,9 +85,6 @@ class OptimizationProblem:
 
     def GetControl(self, name: str) -> Control:
         return self.__GetComponent(name, Control)
-
-    def GetControlData(self, name: str) -> BufferedDict:
-        return self.__GetComponentDataContainer(name, Control)
 
     def RemoveControl(self, name: str) -> None:
         self.__RemoveComponent(name, Control)
