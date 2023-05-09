@@ -291,7 +291,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 "mesh_movement": "implicit",
                 "embedded_velocity_calculation": "from_fluid_mesh_velocity",
                 "rbf_interpolation_search_radius": 0.0,
-                "rbf_interpolation_bounding_box_factor": 1.0e-2,
+                "rbf_interpolation_edge_factor": 2.0,
                 "fm_ale_solver_settings": {
                 }
             }
@@ -683,10 +683,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             if search_radius > 0.0:
                 self.__embedded_velocity_map_search_radius = search_radius
             else:
-                # If not calculate it from the bounding box
-                max_diag_factor = fm_ale_settings["rbf_interpolation_bounding_box_factor"].GetDouble()
-                bounding_box = KratosMultiphysics.BoundingBox(self.GetComputingModelPart().Nodes)
-                max_diag_norm = numpy.linalg.norm(bounding_box.GetMaxPoint() - bounding_box.GetMinPoint())
-                self.__embedded_velocity_map_search_radius = max_diag_factor * max_diag_norm
+                # If not calculate it from the largest edge distance
+                max_edge_factor = fm_ale_settings["rbf_interpolation_edge_factor"].GetDouble()
+                max_edge_length = KratosCFD.FluidAuxiliaryUtilities.FindMaximumEdgeLength(self.GetComputingModelPart())
+                self.__embedded_velocity_map_search_radius = max_edge_factor * max_edge_length
 
         return self.__embedded_velocity_map_search_radius
