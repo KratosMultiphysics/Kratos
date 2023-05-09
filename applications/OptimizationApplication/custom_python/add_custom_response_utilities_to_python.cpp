@@ -20,6 +20,7 @@
 // Application includes
 #include "custom_utilities/response/mass_response_utils.h"
 #include "custom_utilities/response/linear_strain_energy_response_utils.h"
+#include "custom_utilities/response/max_overhang_response_utils.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -40,6 +41,11 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
     py::class_<LinearStrainEnergyResponseUtils >(m, "LinearStrainEnergyResponseUtils")
         .def_static("CalculateValue", &LinearStrainEnergyResponseUtils::CalculateValue)
         .def_static("CalculateSensitivity", &LinearStrainEnergyResponseUtils::CalculateSensitivity)
+        ;
+
+    m.def_submodule("MaxOverhangAngleResponseUtils")
+        .def("CalculateValue", &MaxOverhangAngleResponseUtils::CalculateValue)
+        .def("CalculateSensitivity", &MaxOverhangAngleResponseUtils::CalculateSensitivity)
         ;
 
 }
