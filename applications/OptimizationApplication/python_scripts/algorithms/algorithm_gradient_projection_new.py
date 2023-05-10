@@ -45,7 +45,7 @@ class GradientProjection(PythonSolver):
 
         for control_param in control_param_list:
             control_name = control_param["name"].GetString()
-            control = Control(control_name) # Use Control Factory 
+            control = Control(control_name) 
             self.master_control.AddControl(control)
 
         algorithm_parameters = parameters["settings"]
@@ -102,7 +102,7 @@ class GradientProjection(PythonSolver):
         NTN = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
         for i in range(number_of_active_constraints):
             for j in range(i, number_of_active_constraints):
-                NTN[i, j] = KratosOA.ContainerExpressionUtils.InnerProduct(N[i] * N[j])
+                NTN[i, j] = KratosOA.ContainerExpressionUtils.InnerProduct(N[i] ,N[j])
                 NTN[j, i] = NTN[i, j]
         # 2. inverse NTN
         NTN_inverse = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
@@ -110,21 +110,20 @@ class GradientProjection(PythonSolver):
         for i in range(number_of_active_constraints):
             I[i, i] = 1.0
         self.linear_solver.Solve(NTN, NTN_inverse, I)
-
+        # 3. compute lambdas
         NT_grad_obj = Kratos.Vector(number_of_active_constraints)
         for i in range(number_of_active_constraints):
             NT_grad_obj[i] = KratosOA.ContainerExpressionUtils.InnerProduct(N[i], obj_grad)
 
         Lambda = Kratos.Vector(number_of_active_constraints)
-        Lambda = NTN_inverse * NT_grad_obj
+        Lambda = NTN_inverse * self.__CollectiveListCollectiveProduct(N, obj_grad)
         
-        NLambda = KratosOA.ContainerExpression.CollectiveExpressions()
-        NLambda.SetToZero()
         for i in range(number_of_active_constraints):
-            NLambda += Lambda[i] * N[i]
+            if Lambda[i] < 0.0:
+                Lambda = 0.0
 
 
-        projection_direction = - (obj_grad + self.__CollectiveListVectorProduct(N, NTN_inverse * self.__CollectiveListCollectiveProduct(N, obj_grad)))
+        projection_direction = - (obj_grad + self.__CollectiveListVectorProduct(N, Lambda ))
         correction_move = - self.__CollectiveListVectorProduct(N, NTN_inverse * g_a)
 
         return projection_direction, correction_move
@@ -145,7 +144,7 @@ class GradientProjection(PythonSolver):
             for constraint in self.__constraints_list:
                 constr_value = constraint.CalculateStandardizedValue(self.control_field)
                 if constr_value >= 0.0:
-                    constr_grad = self.__objective.CalculateStandardizedGradient()
+                    constr_grad = self.constraint.CalculateStandardizedGradient()
                     if KratosOA.ContainerExpressionUtils.NormInf(constr_grad) > 1e-6:
                         N.append(constr_grad)
                         g_a.append(constr_value)

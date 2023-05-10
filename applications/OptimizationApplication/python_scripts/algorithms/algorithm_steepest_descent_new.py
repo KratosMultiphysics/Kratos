@@ -1,13 +1,12 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 
 
-class KratosSteepestDescent(PythonSolver):
+class KratosSteepestDescent():
     """
         A classical steepest descent algorithm to solve unconstrainted optimization problems.
     """
@@ -30,8 +29,6 @@ class KratosSteepestDescent(PythonSolver):
         }""")
     
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-        super().__init__(model, parameters)
-
         self.model = model
         self.parameters = parameters
         self.optimization_problem = optimization_problem
@@ -39,9 +36,8 @@ class KratosSteepestDescent(PythonSolver):
         self.master_control = MasterControl() # Need to fill it with controls
         control_param_list = parameters["controls"]
 
-        for control_param in control_param_list:
-            control_name = control_param["name"].GetString()
-            control = Control(control_name) # Use Control Factory 
+        for control_name in control_param_list:
+            control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
 
         algorithm_parameters = parameters["settings"]
@@ -64,15 +60,11 @@ class KratosSteepestDescent(PythonSolver):
             raise RuntimeError(f"{self.__class__.__name__} only supports single objective optimizations.")
         
     def Initialize(self):
-        super().Initialize()
-        self.master_control.Initialize()
-
         self.converged = False
         self.control_field = self.master_control.GetEmptyControlFields() # GetInitialControlFields() later
 
     def Finalize(self):
-        self.opt_iter = 1
-        return super().Finalize()
+        pass
     
     def ComputeSearchDirection(obj_grad) -> KratosOA.ContainerExpression.CollectiveExpressions:
         return obj_grad * -1.0
