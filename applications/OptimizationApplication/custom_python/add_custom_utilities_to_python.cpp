@@ -15,83 +15,25 @@
 
 // External includes
 #include <pybind11/stl.h>
-#include <pybind11/operators.h>
 
 // Project includes
+#include "python/add_container_expression_to_python_utils.h"
+#include "containers/container_expression/specialized_container_expression.h"
 
 // Application includes
 #include "custom_utilities/geometrical/symmetry_utility.h"
 #include "custom_utilities/geometrical/model_part_utils.h"
 #include "custom_utilities/optimization_utils.h"
-#include "custom_utilities/container_variable_data/container_data_io.h"
-#include "custom_utilities/container_variable_data/container_variable_data.h"
-#include "custom_utilities/container_variable_data/specialized_container_variable_data.h"
-#include "custom_utilities/container_variable_data_utils.h"
+#include "custom_utilities/container_properties_data_io.h"
+#include "custom_utilities/collective_expressions.h"
+#include "custom_utilities/container_expression_utils.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
 
+
 namespace Kratos {
 namespace Python {
-
-template<class TContainerType>
-void AddContainerVariableDataToPython(pybind11::module& m, const std::string& rName)
-{
-    namespace py = pybind11;
-
-    using container_variable_data_holder_base = ContainerVariableData<TContainerType>;
-    py::class_<container_variable_data_holder_base, typename container_variable_data_holder_base::Pointer>(m, rName.c_str())
-        .def("CopyDataFrom", &container_variable_data_holder_base::CopyDataFrom, py::arg("origin_container_data"))
-        // .def("GetDataDimension", &container_variable_data_holder_base::GetDataDimension)
-        .def("GetModelPart", py::overload_cast<>(&container_variable_data_holder_base::GetModelPart), py::return_value_policy::reference)
-        .def("GetContainer", py::overload_cast<>(&container_variable_data_holder_base::GetContainer), py::return_value_policy::reference)
-        .def("PrintData", &container_variable_data_holder_base::PrintData)
-        .def("__str__", &container_variable_data_holder_base::Info)
-        ;
-}
-
-template<class TContainerType, class TContainerDataIOTag>
-void AddSpecializedContainerVariableDataToPython(pybind11::module& m, const std::string& rName)
-{
-    namespace py = pybind11;
-
-    using container_type = SpecializedContainerVariableData<TContainerType, ContainerDataIO<TContainerDataIOTag>>;
-    py::class_<container_type, typename container_type::Pointer, ContainerVariableData<TContainerType>>(m, rName.c_str())
-        .def(py::init<ModelPart&>(), py::arg("model_part"), py::doc("Creates a new container data object with model_part."))
-        .def(py::init<const container_type&>(), py::arg("other_container_data_to_copy_from"), py::doc("Creates a new same type container data object by copying data from other_container_data_to_copy_from."))
-        .def(py::init<const typename container_type::BaseType&>(), py::arg("other_container_data_to_copy_from"), py::doc("Creates a new destination type container data object by copying data from compatible other_container_data_to_copy_from."))
-        .def("AssignData", &container_type::template AssignData<double>, py::arg("scalar_variable"))
-        .def("AssignData", &container_type::template AssignData<array_1d<double, 3>>, py::arg("Array3_variable"))
-        .def("ReadData", &container_type::template ReadData<double>, py::arg("scalar_variable"))
-        .def("ReadData", &container_type::template ReadData<array_1d<double, 3>>, py::arg("Array3_variable"))
-        .def("SetData", &container_type::template SetData<double>, py::arg("scalar_value"))
-        .def("SetData", &container_type::template SetData<array_1d<double, 3>>, py::arg("Array3_value"))
-        .def("SetZero", &container_type::template SetZero<double>, py::arg("scalar_variable"))
-        .def("SetZero", &container_type::template SetZero<array_1d<double, 3>>, py::arg("Array3_variable"))
-        .def("Clone", &container_type::Clone)
-        .def(py::self +  py::self)
-        .def(py::self += py::self)
-        .def(py::self +  float())
-        .def(py::self += float())
-        .def(py::self -  py::self)
-        .def(py::self -= py::self)
-        .def(py::self -  float())
-        .def(py::self -= float())
-        .def(py::self *  py::self)
-        .def(py::self *= py::self)
-        .def(py::self *  float())
-        .def(py::self *= float())
-        .def(py::self /  py::self)
-        .def(py::self /= py::self)
-        .def(py::self /  float())
-        .def(py::self /= float())
-        .def("__pow__", [](container_type& rSelf, const container_type& rInput) { container_type result(rSelf.GetModelPart()); ContainerVariableDataUtils::Pow(result, rSelf, rInput); return result; })
-        .def("__ipow__", [](container_type& rSelf, const container_type& rInput) { ContainerVariableDataUtils::Pow(rSelf, rSelf, rInput); return rSelf; })
-        .def("__pow__", [](container_type& rSelf, const double Value) { container_type result(rSelf.GetModelPart()); ContainerVariableDataUtils::Pow(result, rSelf, Value); return result; })
-        .def("__ipow__", [](container_type& rSelf, const double Value) { ContainerVariableDataUtils::Pow(rSelf, rSelf, Value); return rSelf; })
-        .def("__neg__", [](container_type& rSelf) { return rSelf.operator*(-1.0); })
-        ;
-}
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -169,55 +111,142 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
         ;
 
-    AddContainerVariableDataToPython<ModelPart::NodesContainerType>(m, "NodalVariableData");
-    AddContainerVariableDataToPython<ModelPart::ConditionsContainerType>(m, "ConditionVariableData");
-    AddContainerVariableDataToPython<ModelPart::ElementsContainerType>(m, "ElementVariableData");
+    auto sub_module = m.def_submodule("ContainerExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties>(sub_module, "ConditionPropertiesExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::Properties>(sub_module, "ElementPropertiesExpression");
 
-    AddSpecializedContainerVariableDataToPython<ModelPart::NodesContainerType, ContainerDataIOTags::Historical>(m, "HistoricalVariableData");
-    AddSpecializedContainerVariableDataToPython<ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical>(m, "NodalNonHistoricalVariableData");
-    AddSpecializedContainerVariableDataToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(m, "ConditionNonHistoricalVariableData");
-    AddSpecializedContainerVariableDataToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(m, "ElementNonHistoricalVariableData");
-    AddSpecializedContainerVariableDataToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties>(m, "ConditionPropertiesVariableData");
-    AddSpecializedContainerVariableDataToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::Properties>(m, "ElementPropertiesVariableData");
+    py::class_<CollectiveExpressions, CollectiveExpressions::Pointer>(sub_module, "CollectiveExpressions")
+        .def(py::init<>())
+        .def(py::init<const CollectiveExpressions&>())
+        .def(py::init<const std::vector<CollectiveExpressions::CollectiveExpressionType>&>())
+        .def("Add", py::overload_cast<const CollectiveExpressions::CollectiveExpressionType&>(&CollectiveExpressions::Add))
+        .def("Add", py::overload_cast<const CollectiveExpressions&>(&CollectiveExpressions::Add))
+        .def("Clear", &CollectiveExpressions::Clear)
+        .def("Read", [](CollectiveExpressions& rSelf, const py::array_t<double>& rData, const std::vector<int>& rListOfNumberOfEntitiesInContainers, const std::vector<std::vector<int>>& rListOfShapes){
+            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
 
-    m.def_submodule("ContainerVariableDataUtils")
-        .def("Pow", py::overload_cast<ContainerVariableData<ModelPart::NodesContainerType>&,const ContainerVariableData<ModelPart::NodesContainerType>&,const ContainerVariableData<ModelPart::NodesContainerType>&>(&ContainerVariableDataUtils::Pow<ModelPart::NodesContainerType>), py::arg("output_nodal_container"), py::arg("input_nodal_container"), py::arg("nodal_container_with_power"))
-        .def("Pow", py::overload_cast<ContainerVariableData<ModelPart::ConditionsContainerType>&,const ContainerVariableData<ModelPart::ConditionsContainerType>&,const ContainerVariableData<ModelPart::ConditionsContainerType>&>(&ContainerVariableDataUtils::Pow<ModelPart::ConditionsContainerType>), py::arg("output_condition_container"), py::arg("input_condition_container"), py::arg("condition_container_with_power"))
-        .def("Pow", py::overload_cast<ContainerVariableData<ModelPart::ElementsContainerType>&,const ContainerVariableData<ModelPart::ElementsContainerType>&,const ContainerVariableData<ModelPart::ElementsContainerType>&>(&ContainerVariableDataUtils::Pow<ModelPart::ElementsContainerType>), py::arg("output_element_container"), py::arg("input_element_container"), py::arg("element_container_with_power"))
-        .def("Pow", py::overload_cast<ContainerVariableData<ModelPart::NodesContainerType>&,const ContainerVariableData<ModelPart::NodesContainerType>&,const double>(&ContainerVariableDataUtils::Pow<ModelPart::NodesContainerType>), py::arg("output_nodal_container"), py::arg("input_nodal_container"), py::arg("float_value"))
-        .def("Pow", py::overload_cast<ContainerVariableData<ModelPart::ConditionsContainerType>&,const ContainerVariableData<ModelPart::ConditionsContainerType>&,const double>(&ContainerVariableDataUtils::Pow<ModelPart::ConditionsContainerType>), py::arg("output_condition_container"), py::arg("input_condition_container"), py::arg("float_value"))
-        .def("Pow", py::overload_cast<ContainerVariableData<ModelPart::ElementsContainerType>&,const ContainerVariableData<ModelPart::ElementsContainerType>&,const double>(&ContainerVariableDataUtils::Pow<ModelPart::ElementsContainerType>), py::arg("output_element_container"), py::arg("input_element_container"), py::arg("float_value"))
-        .def("WeightedProduct", py::overload_cast<ContainerVariableData<ModelPart::NodesContainerType>&,const ContainerVariableData<ModelPart::NodesContainerType>&,const ContainerVariableData<ModelPart::NodesContainerType>&>(&ContainerVariableDataUtils::WeightedProduct<ModelPart::NodesContainerType>), py::arg("output_nodal_container"), py::arg("input_nodal_container"), py::arg("nodal_container_with_weights"))
-        .def("WeightedProduct", py::overload_cast<ContainerVariableData<ModelPart::ConditionsContainerType>&,const ContainerVariableData<ModelPart::ConditionsContainerType>&,const ContainerVariableData<ModelPart::ConditionsContainerType>&>(&ContainerVariableDataUtils::WeightedProduct<ModelPart::ConditionsContainerType>), py::arg("output_condition_container"), py::arg("input_condition_container"), py::arg("condition_container_with_weights"))
-        .def("WeightedProduct", py::overload_cast<ContainerVariableData<ModelPart::ElementsContainerType>&,const ContainerVariableData<ModelPart::ElementsContainerType>&,const ContainerVariableData<ModelPart::ElementsContainerType>&>(&ContainerVariableDataUtils::WeightedProduct<ModelPart::ElementsContainerType>), py::arg("output_element_container"), py::arg("input_element_container"), py::arg("element_container_with_weights"))
-        .def("NormInf", &ContainerVariableDataUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_data"))
-        .def("NormInf", &ContainerVariableDataUtils::NormInf<ModelPart::ConditionsContainerType>, py::arg("container_data"))
-        .def("NormInf", &ContainerVariableDataUtils::NormInf<ModelPart::ElementsContainerType>, py::arg("container_data"))
-        .def("NormL2", &ContainerVariableDataUtils::NormL2<ModelPart::NodesContainerType>, py::arg("container_data"))
-        .def("NormL2", &ContainerVariableDataUtils::NormL2<ModelPart::ConditionsContainerType>, py::arg("container_data"))
-        .def("NormL2", &ContainerVariableDataUtils::NormL2<ModelPart::ElementsContainerType>, py::arg("container_data"))
-        .def("EntityMaxNormL2", &ContainerVariableDataUtils::EntityMaxNormL2<ModelPart::NodesContainerType>, py::arg("container_data"))
-        .def("EntityMaxNormL2", &ContainerVariableDataUtils::EntityMaxNormL2<ModelPart::ConditionsContainerType>, py::arg("container_data"))
-        .def("EntityMaxNormL2", &ContainerVariableDataUtils::EntityMaxNormL2<ModelPart::ElementsContainerType>, py::arg("container_data"))
-        .def("InnerProduct", &ContainerVariableDataUtils::InnerProduct<ModelPart::NodesContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
-        .def("InnerProduct", &ContainerVariableDataUtils::InnerProduct<ModelPart::ConditionsContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
-        .def("InnerProduct", &ContainerVariableDataUtils::InnerProduct<ModelPart::ElementsContainerType>, py::arg("container_data_1"), py::arg("container_data_2"))
-        .def("ProductWithEntityMatrix", py::overload_cast<ContainerVariableData<ModelPart::NodesContainerType>&, const Matrix&, const ContainerVariableData<ModelPart::NodesContainerType>&>(&ContainerVariableDataUtils::ProductWithEntityMatrix<ModelPart::NodesContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
-        .def("ProductWithEntityMatrix", py::overload_cast<ContainerVariableData<ModelPart::ConditionsContainerType>&, const Matrix&, const ContainerVariableData<ModelPart::ConditionsContainerType>&>(&ContainerVariableDataUtils::ProductWithEntityMatrix<ModelPart::ConditionsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
-        .def("ProductWithEntityMatrix", py::overload_cast<ContainerVariableData<ModelPart::ElementsContainerType>&, const Matrix&, const ContainerVariableData<ModelPart::ElementsContainerType>&>(&ContainerVariableDataUtils::ProductWithEntityMatrix<ModelPart::ElementsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
-        .def("ProductWithEntityMatrix", py::overload_cast<ContainerVariableData<ModelPart::NodesContainerType>&, const SparseMatrixType&, const ContainerVariableData<ModelPart::NodesContainerType>&>(&ContainerVariableDataUtils::ProductWithEntityMatrix<ModelPart::NodesContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
-        .def("ProductWithEntityMatrix", py::overload_cast<ContainerVariableData<ModelPart::ConditionsContainerType>&, const SparseMatrixType&, const ContainerVariableData<ModelPart::ConditionsContainerType>&>(&ContainerVariableDataUtils::ProductWithEntityMatrix<ModelPart::ConditionsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
-        .def("ProductWithEntityMatrix", py::overload_cast<ContainerVariableData<ModelPart::ElementsContainerType>&, const SparseMatrixType&, const ContainerVariableData<ModelPart::ElementsContainerType>&>(&ContainerVariableDataUtils::ProductWithEntityMatrix<ModelPart::ElementsContainerType>), py::arg("output_container_data"), py::arg("matrix_with_entity_size"), py::arg("input_container_data_for_multiplication"))
-        .def("Transpose", py::overload_cast<SparseMatrixType&,const SparseMatrixType&>(&ContainerVariableDataUtils::Transpose), py::arg("output_matrix"), py::arg("input_matrix"))
-        .def("Transpose", py::overload_cast<Matrix&,const Matrix&>(&ContainerVariableDataUtils::Transpose), py::arg("output_matrix"), py::arg("input_matrix"))
-        .def("ComputeNumberOfNeighbourConditions", &ContainerVariableDataUtils::ComputeNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_data"))
-        .def("ComputeNumberOfNeighbourElements", &ContainerVariableDataUtils::ComputeNumberOfNeighbourEntities<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_data"))
-        .def("MapContainerVariableToNodalVariable", &ContainerVariableDataUtils::MapContainerVariableToNodalVariable<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_data"), py::arg("input_container_data_to_map"), py::arg("neighbour_container_for_nodes"))
-        .def("MapContainerVariableToNodalVariable", &ContainerVariableDataUtils::MapContainerVariableToNodalVariable<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_data"), py::arg("input_container_data_to_map"), py::arg("neighbour_container_for_nodes"))
-        .def("MapNodalVariableToContainerVariable", &ContainerVariableDataUtils::MapNodalVariableToContainerVariable<ModelPart::ConditionsContainerType>, py::arg("output_container_data"), py::arg("input_nodal_container_data_to_map"))
-        .def("MapNodalVariableToContainerVariable", &ContainerVariableDataUtils::MapNodalVariableToContainerVariable<ModelPart::ElementsContainerType>, py::arg("output_container_data"), py::arg("input_nodal_container_data_to_map"))
-        .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerVariableDataUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_data"), py::arg("input_nodal_values_container_data"), py::arg("matrix_variable"), py::arg("entities"))
-        .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerVariableDataUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_data"), py::arg("input_nodal_values_container_data"), py::arg("matrix_variable"), py::arg("entities"))
+            KRATOS_ERROR_IF(rListOfNumberOfEntitiesInContainers.size() != rListOfShapes.size())
+                << "List of number of entities and list of shapes size mismatch. "
+                << "[ List of number of entities size = "
+                << rListOfNumberOfEntitiesInContainers.size()
+                << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
+
+            // create c style double pointer from std::vector list for shapes.
+            int const** p_list_of_shapes = new int const*[rListOfNumberOfEntitiesInContainers.size()];
+            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes, [](const auto& rShape) { return rShape.data(); });
+
+            // create c style double pointer for sizes of std::vector list.
+            int* p_list_of_shape_dimensions = new int[rListOfNumberOfEntitiesInContainers.size()];
+            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shape_dimensions, [](const auto& rShape) { return rShape.size(); });
+
+            rSelf.Read(rData.data(),
+                       rListOfNumberOfEntitiesInContainers.data(),
+                       p_list_of_shapes,
+                       p_list_of_shape_dimensions,
+                       rListOfNumberOfEntitiesInContainers.size());
+
+            // delete allocated memories
+            delete[] p_list_of_shapes;
+            delete[] p_list_of_shape_dimensions;
+        }, py::arg("numpy_data_array").noconvert(), py::arg("list_of_number_of_entities_in_contaienrs"), py::arg("list_of_shapes"))
+        .def("Read", py::overload_cast<const CollectiveExpressions::VariableTypes&>(&CollectiveExpressions::Read), py::arg("variable"))
+        .def("Read", py::overload_cast<const std::vector<CollectiveExpressions::VariableTypes>&>(&CollectiveExpressions::Read), py::arg("variables_list"))
+        .def("MoveFrom", [](CollectiveExpressions& rSelf, py::array_t<double>& rData, const std::vector<int>& rListOfNumberOfEntitiesInContainers, const std::vector<std::vector<int>>& rListOfShapes){
+            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
+
+            KRATOS_ERROR_IF(rListOfNumberOfEntitiesInContainers.size() != rListOfShapes.size())
+                << "List of number of entities and list of shapes size mismatch. "
+                << "[ List of number of entities size = "
+                << rListOfNumberOfEntitiesInContainers.size()
+                << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
+
+            // create c style double pointer from std::vector list for shapes.
+            int const** p_list_of_shapes = new int const*[rListOfNumberOfEntitiesInContainers.size()];
+            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes, [](const auto& rShape) { return rShape.data(); });
+
+            // create c style double pointer for sizes of std::vector list.
+            int* p_list_of_shape_dimensions = new int[rListOfNumberOfEntitiesInContainers.size()];
+            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shape_dimensions, [](const auto& rShape) { return rShape.size(); });
+
+            rSelf.MoveFrom(rData.mutable_data(),
+                           rListOfNumberOfEntitiesInContainers.data(),
+                           p_list_of_shapes,
+                           p_list_of_shape_dimensions,
+                           rListOfNumberOfEntitiesInContainers.size());
+
+            // delete allocated memories
+            delete[] p_list_of_shapes;
+            delete[] p_list_of_shape_dimensions;
+
+        }, py::arg("numpy_data_array").noconvert(), py::arg("list_of_number_of_entities_in_contaienrs"), py::arg("list_of_shapes"))
+        .def("Evaluate", [](const CollectiveExpressions& rSelf){
+            const IndexType size = rSelf.GetCollectiveFlattenedDataSize();
+            auto array = AllocateNumpyArray<double>(size, {});
+            rSelf.Evaluate(array.mutable_data(), size);
+            return array;
+        })
+        .def("Evaluate", py::overload_cast<const CollectiveExpressions::VariableTypes&>(&CollectiveExpressions::Evaluate), py::arg("variable"))
+        .def("Evaluate", py::overload_cast<const std::vector<CollectiveExpressions::VariableTypes>&>(&CollectiveExpressions::Evaluate), py::arg("variables_list"))
+        .def("GetCollectiveFlattenedDataSize", &CollectiveExpressions::GetCollectiveFlattenedDataSize)
+        .def("GetContainerExpressions", py::overload_cast<>(&CollectiveExpressions::GetContainerExpressions))
+        .def("IsCompatibleWith", &CollectiveExpressions::IsCompatibleWith)
+        .def("Clone", &CollectiveExpressions::Clone)
+        .def("SetToZero", &CollectiveExpressions::SetToZero)
+        .def("__add__", [](const CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { return rSelf + rOther; })
+        .def("__iadd__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { rSelf = rSelf + rOther; return rSelf; })
+        .def("__add__", [](const CollectiveExpressions& rSelf, const double Value) { return rSelf + Value; })
+        .def("__iadd__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf + Value; return rSelf; })
+        .def("__sub__", [](const CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { return rSelf - rOther; })
+        .def("__isub__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { rSelf = rSelf - rOther; return rSelf; })
+        .def("__sub__", [](const CollectiveExpressions& rSelf, const double Value) { return rSelf - Value; })
+        .def("__isub__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf - Value; return rSelf; })
+        .def("__mul__", [](const CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { return rSelf * rOther; })
+        .def("__imul__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { rSelf = rSelf * rOther; return rSelf; })
+        .def("__mul__", [](const CollectiveExpressions& rSelf, const double Value) { return rSelf * Value; })
+        .def("__imul__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf * Value; return rSelf; })
+        .def("__truediv__", [](const CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { return rSelf / rOther; })
+        .def("__itruediv__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { rSelf = rSelf / rOther; return rSelf; })
+        .def("__truediv__", [](const CollectiveExpressions& rSelf, const double Value) { return rSelf / Value; })
+        .def("__itruediv__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf / Value; return rSelf; })
+        .def("__pow__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rInput) { CollectiveExpressions result(rSelf); result = rSelf.Pow(rInput); return result; })
+        .def("__ipow__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rInput) { rSelf = rSelf.Pow(rInput); return rSelf; })
+        .def("__pow__", [](CollectiveExpressions& rSelf, const double Value) { CollectiveExpressions result(rSelf); result = rSelf.Pow(Value); return result; })
+        .def("__ipow__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf.Pow(Value); return rSelf; })
+        .def("__neg__", [](CollectiveExpressions& rSelf) { return rSelf.operator*(-1.0); })
+        ;
+
+    m.def_submodule("ContainerExpressionUtils")
+        .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_expression"))
+        .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
+        .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ElementsContainerType>, py::arg("container_expression"))
+        .def("NormInf", [](const CollectiveExpressions& rData){ return ContainerExpressionUtils::NormInf(rData); }, py::arg("collective_expressions"))
+        .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::NodesContainerType>, py::arg("container_expression"))
+        .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
+        .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::ElementsContainerType>, py::arg("container_expression"))
+        .def("NormL2", [](const CollectiveExpressions& rData){ return ContainerExpressionUtils::NormL2(rData); }, py::arg("collective_expressions"))
+        .def("EntityMaxNormL2", &ContainerExpressionUtils::EntityMaxNormL2<ModelPart::NodesContainerType>, py::arg("container_expression"))
+        .def("EntityMaxNormL2", &ContainerExpressionUtils::EntityMaxNormL2<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
+        .def("EntityMaxNormL2", &ContainerExpressionUtils::EntityMaxNormL2<ModelPart::ElementsContainerType>, py::arg("container_expression"))
+        .def("InnerProduct", &ContainerExpressionUtils::InnerProduct<ModelPart::NodesContainerType>, py::arg("container_expression_1"), py::arg("container_expression_2"))
+        .def("InnerProduct", &ContainerExpressionUtils::InnerProduct<ModelPart::ConditionsContainerType>, py::arg("container_expression_1"), py::arg("container_expression_2"))
+        .def("InnerProduct", &ContainerExpressionUtils::InnerProduct<ModelPart::ElementsContainerType>, py::arg("container_expression_1"), py::arg("container_expression_2"))
+        .def("InnerProduct", [](const CollectiveExpressions& rData1, const CollectiveExpressions& rData2){ return ContainerExpressionUtils::InnerProduct(rData1, rData2); }, py::arg("collective_expressions_1"), py::arg("collective_expressions_2"))
+        .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::NodesContainerType>&, const Matrix&, const ContainerExpression<ModelPart::NodesContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::NodesContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
+        .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::ConditionsContainerType>&, const Matrix&, const ContainerExpression<ModelPart::ConditionsContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::ConditionsContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
+        .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::ElementsContainerType>&, const Matrix&, const ContainerExpression<ModelPart::ElementsContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::ElementsContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
+        .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::NodesContainerType>&, const SparseMatrixType&, const ContainerExpression<ModelPart::NodesContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::NodesContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
+        .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::ConditionsContainerType>&, const SparseMatrixType&, const ContainerExpression<ModelPart::ConditionsContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::ConditionsContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
+        .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::ElementsContainerType>&, const SparseMatrixType&, const ContainerExpression<ModelPart::ElementsContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::ElementsContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
+        .def("Transpose", py::overload_cast<SparseMatrixType&,const SparseMatrixType&>(&ContainerExpressionUtils::Transpose), py::arg("output_matrix"), py::arg("input_matrix"))
+        .def("Transpose", py::overload_cast<Matrix&,const Matrix&>(&ContainerExpressionUtils::Transpose), py::arg("output_matrix"), py::arg("input_matrix"))
+        .def("ComputeNumberOfNeighbourConditions", &ContainerExpressionUtils::ComputeNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_expression"))
+        .def("ComputeNumberOfNeighbourElements", &ContainerExpressionUtils::ComputeNumberOfNeighbourEntities<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"))
+        .def("MapContainerVariableToNodalVariable", &ContainerExpressionUtils::MapContainerVariableToNodalVariable<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_container_expression_to_map"), py::arg("neighbour_container_for_nodes"))
+        .def("MapContainerVariableToNodalVariable", &ContainerExpressionUtils::MapContainerVariableToNodalVariable<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_container_expression_to_map"), py::arg("neighbour_container_for_nodes"))
+        .def("MapNodalVariableToContainerVariable", &ContainerExpressionUtils::MapNodalVariableToContainerVariable<ModelPart::ConditionsContainerType>, py::arg("output_container_expression"), py::arg("input_nodal_container_expression_to_map"))
+        .def("MapNodalVariableToContainerVariable", &ContainerExpressionUtils::MapNodalVariableToContainerVariable<ModelPart::ElementsContainerType>, py::arg("output_container_expression"), py::arg("input_nodal_container_expression_to_map"))
+        .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
+        .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         ;
 }
 

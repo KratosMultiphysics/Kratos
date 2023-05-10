@@ -12,8 +12,12 @@
 
 #pragma once
 
-// Project includes
+// System includes
+
+// External includes
 #include <pybind11/pybind11.h>
+
+// Project includes
 
 namespace Kratos::Python
 {

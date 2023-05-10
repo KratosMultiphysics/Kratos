@@ -75,10 +75,6 @@ typedef Tvector<IndexType,Dimension>      IndexArray;
 typedef Tvector<SizeType,Dimension>       SizeArray;
 typedef Tvector<CoordinateType,Dimension> CoordinateArray;
 
-///Contact Pair
-typedef typename TConfigure::ContainerContactType  ContainerContactType;
-typedef typename TConfigure::IteratorContactType IteratorContactType;
-
 ///typedef TreeNodeType LeafType;
 typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
 //typedef typename TreeNodeType::SearchStructureType  SearchStructureType;
