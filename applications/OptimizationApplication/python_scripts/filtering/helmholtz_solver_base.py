@@ -88,7 +88,6 @@ class HelmholtzSolverBase(PythonSolver):
     def Initialize(self):
         self._GetSolutionStrategy().Initialize()
         KOA.ImplicitFilterUtils.CalculateNodeNeighbourCount(self.helmholtz_model_part)
-        self.helmholtz_model_part.GetProperties()[0].SetValue(KOA.HELMHOLTZ_RADIUS,self.settings["filter_radius"].GetDouble())
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self):

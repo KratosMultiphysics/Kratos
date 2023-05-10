@@ -31,3 +31,4 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
     def PrepareModelPart(self):
         KM.ConnectivityPreserveModeler().GenerateModelPart(
                 self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidElement3D8N")
+

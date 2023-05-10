@@ -97,6 +97,9 @@ void HelmholtzSolidElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(HELMHOLTZ_INTEGRATED_FIELD))
     << "HELMHOLTZ_INTEGRATED_FIELD not defined in the ProcessInfo!" << std::endl;
 
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(HELMHOLTZ_RADIUS))
+    << "HELMHOLTZ_RADIUS not defined in the ProcessInfo!" << std::endl;
+
     auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
 
@@ -290,11 +293,6 @@ void HelmholtzSolidElement::CalculateStiffnessMatrix(
 {
     KRATOS_TRY;
 
-    const auto& r_prop = GetProperties();
-
-    // Checking radius
-    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS)) << "HELMHOLTZ_RADIUS has to be provided for the calculations of the HelmholtzSolidElement!" << std::endl;
-
     const auto& r_geom = GetGeometry();
     SizeType dimension = r_geom.WorkingSpaceDimension();
     SizeType number_of_nodes = r_geom.size();
@@ -310,7 +308,7 @@ void HelmholtzSolidElement::CalculateStiffnessMatrix(
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(this_integration_method);
     GeometryType::ShapeFunctionsGradientsType DN_De = r_geom.ShapeFunctionsLocalGradients(this_integration_method);
     Matrix DN_DX(number_of_nodes,dimension);
-    const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS];
+    const double r_helmholtz = rCurrentProcessInfo[HELMHOLTZ_RADIUS];
     for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
     {
         Matrix J0,InvJ0;
