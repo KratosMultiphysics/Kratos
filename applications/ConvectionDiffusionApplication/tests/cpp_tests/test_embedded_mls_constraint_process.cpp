@@ -23,7 +23,6 @@
 #include "includes/variables.h"
 #include "includes/dof.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "processes/find_elements_neighbours_process.h"
 
 // Application includes
 #include "convection_diffusion_application.h"
@@ -80,7 +79,7 @@ namespace Testing
         SetEmbeddedConstraintProcessTestModelPart(r_test_model_part);
 
         // Read mdpa and set domain size
-        ModelPartIO(FilesystemExtensions::JoinPaths({filesystem::parent_path(__FILE__), "test_embedded_mls_constraint_process", "embedded_mls_constraints_test"}), IO::READ).ReadModelPart(r_test_model_part);
+        ModelPartIO(filesystem::parent_path(__FILE__)+"/test_embedded_mls_constraint_process/embedded_mls_constraints_test", IO::READ).ReadModelPart(r_test_model_part);
         auto& r_process_info = r_test_model_part.GetProcessInfo();
         r_process_info[DOMAIN_SIZE] = 2;
 
@@ -93,17 +92,14 @@ namespace Testing
         }
 
         // Run find neighbors processes
-        FindNodalNeighboursProcess find_nodal_neighbours_process(r_test_model_part);
-        find_nodal_neighbours_process.Execute();
-        FindElementalNeighboursProcess find_elemental_neighbours_process(r_test_model_part, 2, 10);
-        find_elemental_neighbours_process.Execute();
+        FindGlobalNodalNeighboursProcess find_nodal_neighbors_process(r_test_model_part);
+        find_nodal_neighbors_process.Execute();
 
         // Run embedded MLS constraint process
         Parameters mls_constraint_params( R"(
         {
             "model_part_name"                        : "TestModelPart",
             "mls_extension_operator_order"           : 1,
-            "avoid_zero_distances"                   : true,
             "deactivate_negative_elements"           : true,
             "deactivate_intersected_elements"        : false
         }  )" );

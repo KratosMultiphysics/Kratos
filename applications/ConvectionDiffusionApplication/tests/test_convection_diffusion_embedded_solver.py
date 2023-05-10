@@ -12,7 +12,7 @@ class EmbeddedSolverDirichletCircleAnalysis(ConvectionDiffusionAnalysis):
         super().__init__(model, parameters)
 
     def ModifyInitialGeometry(self):
-        # Set the levelset function (circle of radius 1.0)
+        # Set the level set function (circle of radius 1.0)
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             dist = 1.0 - math.sqrt((node.X)**2 + (node.Y)**2 + (node.Z)**2)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, dist)
@@ -169,7 +169,7 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
         self.file_name = "ProjectParameters.json"
 
         self._readAndCustomizeTestSettings()
-        
+
         # test solver without distance modification and without MLS constraints
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             self.model = KratosMultiphysics.Model()
@@ -180,7 +180,7 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
         self.file_name = "ProjectParameters.json"
 
         self._readAndCustomizeTestSettingsDistanceModification()
-        
+
         # test solver without distance modification and without MLS constraints
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             self.model = KratosMultiphysics.Model()
@@ -191,7 +191,7 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
         self.file_name = "ProjectParameters.json"
 
         self._readAndCustomizeTestSettingsMLSConstraints()
-        
+
         # test solver without distance modification and without MLS constraints
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             self.model = KratosMultiphysics.Model()
@@ -201,4 +201,3 @@ class TestEmbeddedSolver(KratosUnittest.TestCase):
 
 if __name__ == "__main__":
     KratosUnittest.main()
-    

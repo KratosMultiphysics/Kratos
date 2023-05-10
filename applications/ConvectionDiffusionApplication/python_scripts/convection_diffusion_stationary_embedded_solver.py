@@ -57,13 +57,13 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
             self.__modify_nodal_distances(distance_threshold=1.0e-12)
 
             # Calculate the required neighbors
-            nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
-            nodal_neighbours_process.Execute()
+            nodal_neighbors_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
+            nodal_neighbors_process.Execute()
 
             # Create the MLS basis and add multi-point constraints for all negative nodes of intersected elements
             settings = KratosMultiphysics.Parameters("""{}""")
             settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
-            settings.AddEmptyValue("unknown_variable").SetString(self.settings.GetUnknownVariable())
+            settings.AddEmptyValue("unknown_variable").SetString(self.settings["convection_diffusion_variables"]["unknown_variable"].GetString())
             settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["mls_extension_operator_order"].GetInt())
             settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
             settings.AddEmptyValue("deactivate_intersected_elements").SetBool(False)
