@@ -406,6 +406,54 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
+    def LaunchRunFOM(self, mu_run):
+        """
+        This method should be parallel capable
+        """
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        for Id, mu in enumerate(mu_run):
+            parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._StoreResultsByName(parameters,'FOM_Run',mu,Id)
+            model = KratosMultiphysics.Model()
+            analysis_stage_class = self._GetAnalysisStageClass(parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation.Run()
+
+
+    def LaunchRunROM(self, mu_run):
+        """
+        This method should be parallel capable
+        """
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        for Id, mu in enumerate(mu_run):
+            parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._StoreResultsByName(parameters,'ROM_Run',mu,Id)
+            model = KratosMultiphysics.Model()
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation.Run()
+
+
+    def LaunchRunHROM(self, mu_run):
+        """
+        This method should be parallel capable
+        """
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        for Id, mu in enumerate(mu_run):
+            parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._StoreResultsByName(parameters,'HROM_Run',mu,Id)
+            model = KratosMultiphysics.Model()
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation.Run()
+
+
 
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
         """
