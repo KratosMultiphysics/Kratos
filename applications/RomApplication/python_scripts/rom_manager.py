@@ -153,6 +153,47 @@ class RomManager(object):
 
 
 
+    def RunFOM(self, mu_run):
+        if mu_run is None:
+            mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
+        self.LaunchRunFOM(mu_run)
+
+
+    def RunROM(self, mu_run):
+        if mu_run is None:
+            mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
+        #######################
+        ######  Galerkin ######
+        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
+            self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
+        #######################################
+        ##  Least-Squares Petrov Galerkin   ###
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
+            self._ChangeRomFlags(simulation_to_run = "lspg")
+        ##########################
+        ###  Petrov Galerkin   ###
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
+            self._ChangeRomFlags(simulation_to_run = "PG")
+        self.LaunchRunROM(mu_run)
+
+    def RunHROM(self, mu_run):
+        if mu_run is None:
+            mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
+        #######################
+        ######  Galerkin ######
+        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
+            self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+        #######################################
+        ##  Least-Squares Petrov Galerkin   ###
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
+            raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
+        ##########################
+        ###  Petrov Galerkin   ###
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
+            self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+        self.LaunchRunHROM(mu_run)
+
+
 
     def PrintErrors(self):
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
