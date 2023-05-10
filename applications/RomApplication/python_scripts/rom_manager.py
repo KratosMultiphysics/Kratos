@@ -539,7 +539,7 @@ class RomManager(object):
 
         # Define the directory and file path
         directory = './SnapshotsMatrices'
-        file_path = os.path.join(directory, string_numpy_array_name + '.npy')
+        file_path = os.path.join(directory, f'{string_numpy_array_name}.npy')
 
         # Create the directory if it doesn't exist
         if not os.path.exists(directory):
