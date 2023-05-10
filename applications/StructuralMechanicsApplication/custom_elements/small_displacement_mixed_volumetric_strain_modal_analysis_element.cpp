@@ -303,7 +303,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLeftHa
             rLeftHandSideMatrix(i,j) = aux_stiffnes(i,j);
             rLeftHandSideMatrix(i, matrix_size + j) = aux_oss_stab_operator(i,j);
             // rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_operator(i,j);
-            rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_stab_operator(i,j);
+            rLeftHandSideMatrix(matrix_size + j, i) = aux_oss_stab_operator(i,j);
             rLeftHandSideMatrix(matrix_size + i, matrix_size + j) = aux_lumped_mass_operator(i,j);
         }
     }
