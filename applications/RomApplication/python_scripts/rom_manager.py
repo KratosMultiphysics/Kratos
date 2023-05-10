@@ -153,10 +153,13 @@ class RomManager(object):
 
 
 
+
     def RunFOM(self, mu_run=None):
         if mu_run is None:
             mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         self.LaunchRunFOM(mu_run)
+
+
 
 
     def RunROM(self, mu_run=None):
@@ -175,6 +178,8 @@ class RomManager(object):
         elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
             self._ChangeRomFlags(simulation_to_run = "PG")
         self.LaunchRunROM(mu_run)
+
+
 
     def RunHROM(self, mu_run=None):
         if mu_run is None:
@@ -208,6 +213,7 @@ class RomManager(object):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
+
     def LaunchTrainROM(self, mu_train):
         """
         This method should be parallel capable
@@ -231,6 +237,7 @@ class RomManager(object):
         BasisOutputProcess._PrintRomBasis(SnapshotsMatrix) #Calling the RomOutput Process for creating the RomParameter.json
 
         return SnapshotsMatrix
+
 
 
     def LaunchROM(self, mu_train):
