@@ -7,11 +7,10 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:       Nelson Lafontaine
-//                      Carlos A. Roig
+//  Main authors:    Nelson Lafontaine
+//                   Carlos A. Roig
 
-#if !defined(KRATOS_BINS_DYNAMIC_OBJECTS_CONTAINER_H_INCLUDED)
-#define  KRATOS_BINS_DYNAMIC_OBJECTS_CONTAINER_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -80,10 +79,6 @@ public:
   typedef Tvector<CoordinateType,Dimension>             CoordinateArray;
   typedef Tvector<SizeType,Dimension>                   SizeArray;
   typedef Tvector<IndexType,Dimension>                  IndexArray;
-
-  ///Contact Pair
-  typedef typename TConfigure::ContainerContactType     ContainerContactType;
-  typedef typename TConfigure::IteratorContactType      IteratorContactType;
 
   ///typedef TreeNodeType LeafType;
   typedef typename TreeNodeType::IteratorIteratorType   IteratorIteratorType;
@@ -540,33 +535,6 @@ virtual void SearchObjectsInRadiusExclusive(IteratorType const& ThisObjects, Siz
 
       SearchInRadiusExclusive(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );
     }
-  }
-
-  /// Contact search API
-
-  /**
-   * [SearchContact description]
-   * NOTE[Charlie]: Why this function does not return the number of results like the others?
-   * @param Result [description]
-   */
-  void SearchContact(ContainerContactType& Result) {
-    for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++) {
-      icell->SearchContact(Result);
-    }
-  }
-
-  /**
-   * [SearchContact description]
-   * @param  Result             [description]
-   * @param  MaxNumberOfResults [description]
-   * @return                    [description]
-   */
-  SizeType SearchContact(IteratorContactType& Result, const SizeType& MaxNumberOfResults ) {
-    SizeType NumberOfResults = 0;
-    for (CellContainerIterator icell = mCells.begin() ; icell!= mCells.end(); icell++) {
-      icell->SearchContact(Result, NumberOfResults, MaxNumberOfResults);
-    }
-    return NumberOfResults;
   }
 
   /// Add/Remove
@@ -1847,5 +1815,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FILENAME_H_INCLUDED  defined

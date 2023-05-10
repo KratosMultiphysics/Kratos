@@ -11,14 +11,14 @@
 //                   Ruben Zorrilla
 //
 
-
 // System includes
 
 // External includes
 
 // Project includes
-#include "add_operations_to_python.h"
+#include "includes/define_python.h"
 #include "operations/operation.h"
+#include "add_operations_to_python.h"
 
 namespace Kratos::Python
 {

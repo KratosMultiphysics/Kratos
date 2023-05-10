@@ -64,7 +64,7 @@ public:
         mAppendFile   = rParameters["append_file"].GetBool();
         mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------

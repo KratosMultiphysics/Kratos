@@ -4,13 +4,12 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -244,4 +243,3 @@ private:
 
 }; // Class LinearPlaneStress
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED  defined

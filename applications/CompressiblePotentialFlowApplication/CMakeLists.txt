@@ -18,6 +18,7 @@ file( GLOB_RECURSE KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_operations/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )

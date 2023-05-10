@@ -67,7 +67,7 @@ void BilinearCohesive2DLaw::
                             const Vector& StrainVector,
                             const double& CriticalDisplacement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     rEquivalentStrain = sqrt(StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1])/CriticalDisplacement;
 
@@ -81,7 +81,7 @@ void BilinearCohesive2DLaw::
                                    const Vector& StrainVector,
                                    const double& CriticalDisplacement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     rEquivalentStrain = fabs(StrainVector[0])/CriticalDisplacement;
 
@@ -98,7 +98,7 @@ void BilinearCohesive2DLaw::
                                      const double& DamageThreshold,
                                      const double& CriticalDisplacement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     rConstitutiveMatrix(0,0) = YieldStress/((1.0-DamageThreshold)*CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
                                 StrainVector[0]*StrainVector[0]/(CriticalDisplacement*CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable) );
@@ -124,7 +124,7 @@ void BilinearCohesive2DLaw::
                                             const double& DamageThreshold,
                                             const double& CriticalDisplacement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     rConstitutiveMatrix(0,0) = YieldStress/((1.0-DamageThreshold)*CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
                                 StrainVector[0]*StrainVector[0]/(CriticalDisplacement*CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable) );
@@ -161,7 +161,7 @@ void BilinearCohesive2DLaw::
                                        const double& DamageThreshold,
                                        const double& CriticalDisplacement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     rConstitutiveMatrix(0,0) = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold);
     rConstitutiveMatrix(1,1) = rConstitutiveMatrix(0,0);
@@ -184,7 +184,7 @@ void BilinearCohesive2DLaw::
                                               const double& DamageThreshold,
                                               const double& CriticalDisplacement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     rConstitutiveMatrix(0,0) = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold);
     rConstitutiveMatrix(1,1) = YoungModulus/(DamageThreshold*CriticalDisplacement);
@@ -216,7 +216,7 @@ void BilinearCohesive2DLaw::
                         const double& DamageThreshold,
                         const double& CriticalDisplacement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     rStressVector[0] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold) * StrainVector[0];
     rStressVector[1] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold) * StrainVector[1];
@@ -236,7 +236,7 @@ void BilinearCohesive2DLaw::
                                const double& DamageThreshold,
                                const double& CriticalDisplacement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     // Note: StrainVector[1] < 0.0
     rStressVector[1] = YoungModulus/(DamageThreshold*CriticalDisplacement)*StrainVector[1];

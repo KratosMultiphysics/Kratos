@@ -67,6 +67,8 @@
 #include "utilities/model_part_graph_utilities.h"
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
 #include "utilities/particles_utilities.h"
+#include "utilities/string_utilities.h"
+#include "utilities/model_part_operation_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -792,6 +794,24 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<Model&, Parameters>())
         .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
     ;
+
+    m.def_submodule("StringUtilities", "Free-floating utility functions for string manipulation.")
+        .def("ConvertCamelCaseToSnakeCase",
+             StringUtilities::ConvertCamelCaseToSnakeCase,
+             "CamelCase to snake_case conversion.")
+        .def("ConvertSnakeCaseToCamelCase",
+             StringUtilities::ConvertSnakeCaseToCamelCase,
+             "snake_case to CamelCase conversion")
+        ;
+
+    m.def_submodule("ModelPartOperationUtilities", "Free-floating utility functions for model part operations.")
+        .def("CheckValidityOfModelPartsForOperations", &ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations, py::arg("main_model_part"), py::arg("list_of_checking_model_parts"), py::arg("thow_error"))
+        .def("Union", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartUnionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_merge"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
+        .def("Substract", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartSubstractionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
+        .def("Intersect", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartIntersectionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
+        .def("HasIntersection", &ModelPartOperationUtilities::HasIntersection, py::arg("model_parts_to_intersect"))
+    ;
+
 }
 
 } // namespace Python.

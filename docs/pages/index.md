@@ -96,7 +96,7 @@ Kratos has been used for simulation of many different problems in a wide variety
 Organizations contributing to Kratos:
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
-</br></br><p>International Center for Numerical Methods in Engineering</p>
+<br><br><p>International Center for Numerical Methods in Engineering</p>
 
 </br></br>
 

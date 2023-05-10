@@ -52,13 +52,13 @@ namespace Kratos
    {
    public:
       // The process info type definition
-      typedef ProcessInfo            ProcessInfoType;
+      using ProcessInfoType = ProcessInfo;
 
       // The base class ConstitutiveLaw type definition
-      typedef ConstitutiveLaw        BaseType;
+      using BaseType = ConstitutiveLaw;
 
       /// The size type definition
-      typedef std::size_t            SizeType;
+      using SizeType = std::size_t;
 
       /// Static definition of the dimension
       static constexpr SizeType Dimension = N_DIM_3D;
