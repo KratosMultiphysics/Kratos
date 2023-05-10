@@ -153,13 +153,13 @@ class RomManager(object):
 
 
 
-    def RunFOM(self, mu_run):
+    def RunFOM(self, mu_run=None):
         if mu_run is None:
             mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         self.LaunchRunFOM(mu_run)
 
 
-    def RunROM(self, mu_run):
+    def RunROM(self, mu_run=None):
         if mu_run is None:
             mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         #######################
@@ -176,7 +176,7 @@ class RomManager(object):
             self._ChangeRomFlags(simulation_to_run = "PG")
         self.LaunchRunROM(mu_run)
 
-    def RunHROM(self, mu_run):
+    def RunHROM(self, mu_run=None):
         if mu_run is None:
             mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         #######################
