@@ -59,10 +59,6 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
             # Calculate the required neighbors
             nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
             nodal_neighbours_process.Execute()
-            avg_num_elements = 10
-            dimensions = self.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
-            elemental_neighbours_process = KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, dimensions, avg_num_elements)
-            elemental_neighbours_process.Execute()
 
             # Create the MLS basis and add multi-point constraints for all negative nodes of intersected elements
             settings = KratosMultiphysics.Parameters("""{}""")

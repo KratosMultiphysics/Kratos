@@ -90,7 +90,7 @@ void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasis(NodesCloudM
                 const std::size_t found = rExtensionOperatorMap.count(&r_node);
                 if (r_node.IsNot(ACTIVE) && !found) {
 
-                    // Get the current negative node neighbours cloud
+                    // Get the current negative node neighbors cloud
                     Matrix cloud_nodes_coordinates;
                     PointerVector<NodeType> cloud_nodes;
                     SetNegativeNodeSupportCloud(r_node, cloud_nodes, cloud_nodes_coordinates);
@@ -149,52 +149,23 @@ void EmbeddedMLSConstraintProcess::SetInterfaceFlags()
 {
     // Initialize flags to false
     block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
-        rNode.Set(ACTIVE, false); // Nodes that belong to the elements to be assembled
-        rNode.Set(BOUNDARY, false); // Nodes that belong to the surrogate boundary
-        rNode.Set(INTERFACE, false); // Nodes that belong to the cloud of points
+        rNode.Set(ACTIVE, false);        // Nodes that belong to completely positive elements
+        rNode.Set(INTERFACE, false);     // Nodes that belong to the clouds points for MLS shape functions
     });
     block_for_each(mpModelPart->Elements(), [](Element& rElement){
-        rElement.Set(ACTIVE, false); // Elements in the positive distance region (the ones to be assembled)
-        rElement.Set(BOUNDARY, false); // Intersected elements
-        rElement.Set(INTERFACE, false); // Positive distance elements owning the surrogate boundary nodes
+        rElement.Set(ACTIVE, false);     // Elements in the positive distance region (the ones to be assembled)
+        rElement.Set(INTERFACE, false);  // Positive distance elements owning the cloud nodes
     });
 
     // Find active regions
     for (auto& rElement : mpModelPart->Elements()) {
         auto& r_geom = rElement.GetGeometry();
-        if (IsSplit(r_geom)) {
-            // Mark the intersected elements as BOUNDARY
-            rElement.Set(BOUNDARY, true);
-            // Mark the positive intersected nodes as BOUNDARY
-            for (auto& rNode : r_geom) {
-                if (rNode.FastGetSolutionStepValue(DISTANCE) >= 0.0) {
-                    rNode.Set(BOUNDARY, true);
-                }
-            }
-        } else if (!IsNegative(r_geom)) {
+        if (!IsSplit(r_geom) && !IsNegative(r_geom)) {
             // Mark the positive element as ACTIVE to assemble it
             rElement.Set(ACTIVE, true);
             // Mark the active element nodes as ACTIVE
             for (auto& rNode : r_geom) {
                 rNode.Set(ACTIVE, true);
-            }
-        }
-    }
-
-    // Find the surrogate boundary elements
-    // Note that we rely on the fact that the neighbours are sorted according to the faces
-    for (auto& rElement : mpModelPart->Elements()) {
-        if (rElement.Is(BOUNDARY)) {
-            const auto& r_geom = rElement.GetGeometry();
-            const std::size_t n_faces = r_geom.FacesNumber();
-            auto& r_neigh_elems = rElement.GetValue(NEIGHBOUR_ELEMENTS);
-            for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-                // The neighbour corresponding to the current face is ACTIVE means that the current face is surrogate boundary
-                // Flag the current neighbour owning the surrogate face as INTERFACE
-                auto& r_neigh_elem = r_neigh_elems[i_face];
-                if (r_neigh_elem.Is(ACTIVE)) {
-                    r_neigh_elem.Set(INTERFACE, true);
-                }
             }
         }
     }
@@ -292,62 +263,61 @@ void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
 {
     // Find the positive side support cloud of nodes
     // Note that we use an unordered_set to ensure that these are unique
-    NodesCloudSetType aux_set;
-    std::vector<NodeType::Pointer> cur_layer_nodes;
-    std::vector<NodeType::Pointer> prev_layer_nodes;
-    const std::size_t n_layers = mMLSExtensionOperatorOrder + 2;
+    NodesCloudSetType cloud_nodes_set;
+    std::vector<NodeType::Pointer> current_layer_nodes;
+    std::vector<NodeType::Pointer> previous_layer_nodes;
+    const std::size_t n_layers = mMLSExtensionOperatorOrder + 1;
 
-    // Add negative node to previous layer, in order to find the negative nodes neighbours that are in the surrogate boundary
-    // This is to find the first layer of positive nodes neighbouring a negative one
+    // Add negative node to previous layer, in order to find the negative nodes neighbors that are in the surrogate boundary
+    // This is to find the first layer of positive nodes neighboring a negative one
     NodeType* p_negative_node = &const_cast<NodeType&>(rNegativeNode);
-    prev_layer_nodes.push_back(p_negative_node);
+    previous_layer_nodes.push_back(p_negative_node);
 
     // Note that we check the order of the MLS interpolation to add nodes from enough interior layers
-    for (std::size_t i_layer = 0; i_layer < n_layers; ++i_layer) {
-        for (auto& p_node : prev_layer_nodes) {
-            auto& r_node_neigh = p_node->GetValue(NEIGHBOUR_NODES);
-            const std::size_t n_neigh = r_node_neigh.size();
-            for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh) {
-                auto& r_neigh = r_node_neigh[i_neigh];
-                if (r_neigh.Is(ACTIVE)) {
-                    NodeType::Pointer p_neigh = &r_neigh;
-                    p_neigh->Set(INTERFACE, true);
-                    aux_set.insert(p_neigh);
-                    cur_layer_nodes.push_back(p_neigh);
+    for (std::size_t i_layer = 0; i_layer < n_layers+1; ++i_layer) {
+        for (auto& p_node : previous_layer_nodes) {
+            auto& r_neighbors = p_node->GetValue(NEIGHBOUR_NODES);
+            const std::size_t n_neighbors = r_neighbors.size();
+            for (std::size_t i_neighbor = 0; i_neighbor < n_neighbors; ++i_neighbor) {
+                auto& r_neighbor = r_neighbors[i_neighbor];
+                if (r_neighbor.Is(ACTIVE)) {
+                    NodeType::Pointer p_neighbor = &r_neighbor;
+                    p_neighbor->Set(INTERFACE, true);
+                    cloud_nodes_set.insert(p_neighbor);
+                    current_layer_nodes.push_back(p_neighbor);
                 }
             }
         }
-
-        prev_layer_nodes = cur_layer_nodes;
-        cur_layer_nodes.clear();
+        previous_layer_nodes = current_layer_nodes;
+        current_layer_nodes.clear();
     }
 
-    // Check that the current nodes are enough to perform the MLS calculation
-    // If not sufficient, add the nodal neighbours of the current nodes to the cloud of points
-    const std::size_t n_cloud_nodes_temp = aux_set.size();
-    KRATOS_ERROR_IF(n_cloud_nodes_temp == 0) << "Degenerated case with no neighbours. Check if the node " << rNegativeNode.Id() << " belongs to an intersected and isolated element." << std::endl;
+    // Check that the current number of support nodes is enough to perform the MLS calculation
+    // If not sufficient, add the nodal neighbors of the current nodes to the support cloud
+    const std::size_t n_cloud_nodes_temp = cloud_nodes_set.size();
+    KRATOS_ERROR_IF(n_cloud_nodes_temp == 0) << "Degenerated case with no neighbors. Check if the node " << rNegativeNode.Id() << " belongs to an intersected and isolated element." << std::endl;
     if (n_cloud_nodes_temp < GetRequiredNumberOfPoints()) {
-        NodesCloudSetType aux_extra_set(aux_set);
-        for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
-            auto& r_it_set_neighs = (*it_set)->GetValue(NEIGHBOUR_NODES);
-            const std::size_t n_neigh = r_it_set_neighs.size();
-            for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh) {
-                auto& r_neigh = r_it_set_neighs[i_neigh];
-                if (r_neigh.Is(ACTIVE)) {
-                    NodeType::Pointer p_neigh = &r_neigh;
-                    p_neigh->Set(INTERFACE, true);
-                    aux_extra_set.insert(p_neigh);
+        NodesCloudSetType cloud_nodes_set_extra(cloud_nodes_set);
+        for (auto it_set = cloud_nodes_set.begin(); it_set != cloud_nodes_set.end(); ++it_set) {
+            auto& r_neighbors = (*it_set)->GetValue(NEIGHBOUR_NODES);
+            const std::size_t n_neighbors = r_neighbors.size();
+            for (std::size_t i_neighbor = 0; i_neighbor < n_neighbors; ++i_neighbor) {
+                auto& r_neighbor = r_neighbors[i_neighbor];
+                if (r_neighbor.Is(ACTIVE)) {
+                    NodeType::Pointer p_neighbor = &r_neighbor;
+                    p_neighbor->Set(INTERFACE, true);
+                    cloud_nodes_set_extra.insert(p_neighbor);
                 }
             }
         }
-        aux_set = aux_extra_set;
+        cloud_nodes_set = cloud_nodes_set_extra;
     }
 
     // Sort the obtained nodes by id
-    const std::size_t n_cloud_nodes = aux_set.size();
+    const std::size_t n_cloud_nodes = cloud_nodes_set.size();
     rCloudNodes.resize(n_cloud_nodes);
     std::size_t aux_i = 0;
-    for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
+    for (auto it_set = cloud_nodes_set.begin(); it_set != cloud_nodes_set.end(); ++it_set) {
         rCloudNodes(aux_i++) = *it_set;
     }
     std::sort(rCloudNodes.ptr_begin(), rCloudNodes.ptr_end(), [](NodeType::Pointer& pNode1, NodeType::Pointer rNode2){return (pNode1->Id() < rNode2->Id());});
