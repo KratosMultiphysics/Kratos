@@ -8,7 +8,7 @@ class ResponseFunction(ABC):
     """Base response function.
 
     This reponse function is the base response function. This is assumed to have following responsibilities.
-        1. CalculateValue for a fresh design. (@see CalculateValue)
+        1. CalculateValue for a new design. (@see CalculateValue)
         2. CalculateSensitivity for a fresh design (@see CalculateSensitivity)
 
     This response should only work on one model part. Hence, if multiple model parts required then,
