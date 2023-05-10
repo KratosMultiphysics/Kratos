@@ -91,9 +91,11 @@ void HelmholtzSolidElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix
 {
     KRATOS_TRY
 
-
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_HELMHOLTZ_INVERSE))
     << "COMPUTE_HELMHOLTZ_INVERSE not defined in the ProcessInfo!" << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(HELMHOLTZ_INTEGRATED_FIELD))
+    << "HELMHOLTZ_INTEGRATED_FIELD not defined in the ProcessInfo!" << std::endl;
 
     auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
@@ -115,26 +117,30 @@ void HelmholtzSolidElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix
     MatrixType M;
     CalculateMassMatrix(M,rCurrentProcessInfo);
 
-    MatrixType A;
-    CalculateStiffnessMatrix(A,rCurrentProcessInfo);
-
     MatrixType K;
-    if(rCurrentProcessInfo[COMPUTE_HELMHOLTZ_INVERSE])
-        K = M;
-    else
-        K = M + A;
+    CalculateStiffnessMatrix(K,rCurrentProcessInfo);
+
+    noalias(rLeftHandSideMatrix) += M;
+    if(!rCurrentProcessInfo[COMPUTE_HELMHOLTZ_INVERSE])
+        noalias(rLeftHandSideMatrix) += K;
 
     const unsigned int number_of_points = r_geometry.size();
     Vector nodal_vals(number_of_points);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
-        const auto &source = r_geometry[node_element].FastGetSolutionStepValue(HELMHOLTZ_SCALAR_SOURCE);
+        const auto &source = r_geometry[node_element].GetValue(HELMHOLTZ_SCALAR_SOURCE);
         auto node_weight = r_geometry[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-        nodal_vals[node_element] = source/node_weight;
+        nodal_vals[node_element] = source;
+        if(rCurrentProcessInfo[HELMHOLTZ_INTEGRATED_FIELD])
+            nodal_vals[node_element] /= node_weight;
     }
 
-    noalias(rLeftHandSideMatrix) += K;
-    noalias(rRightHandSideVector) += nodal_vals;
+    if(rCurrentProcessInfo[HELMHOLTZ_INTEGRATED_FIELD])
+        noalias(rRightHandSideVector) += nodal_vals;
+    else if (rCurrentProcessInfo[COMPUTE_HELMHOLTZ_INVERSE])
+        noalias(rRightHandSideVector) += prod(K+M,nodal_vals);
+    else
+        noalias(rRightHandSideVector) += prod(M,nodal_vals);
 
     //apply drichlet BC
     Vector temp;

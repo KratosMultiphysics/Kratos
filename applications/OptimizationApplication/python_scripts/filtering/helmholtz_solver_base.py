@@ -27,16 +27,14 @@ class HelmholtzSolverBase(PythonSolver):
         else:
             self.original_model_part = model.CreateModelPart(model_part_name)
 
-        # Create Helmholtz model part
-        self.helmholtz_model_part = self.model.CreateModelPart(self.original_model_part.Name+"_helmholtz_filter_mdp")
-        self.helmholtz_model_part.GetProperties()[0].SetValue(KOA.HELMHOLTZ_RADIUS,self.settings["filter_radius"].GetDouble())
-
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
 
-        self.original_model_part.ProcessInfo.SetValue(KOA.COMPUTE_HELMHOLTZ_INVERSE, False)
         self.original_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+        # Create Helmholtz model part
+        self.helmholtz_model_part = self.model.CreateModelPart(self.original_model_part.Name+"_helmholtz_filter_mdp")
 
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
 
@@ -90,6 +88,7 @@ class HelmholtzSolverBase(PythonSolver):
     def Initialize(self):
         self._GetSolutionStrategy().Initialize()
         KOA.ImplicitFilterUtils.CalculateNodeNeighbourCount(self.helmholtz_model_part)
+        self.helmholtz_model_part.GetProperties()[0].SetValue(KOA.HELMHOLTZ_RADIUS,self.settings["filter_radius"].GetDouble())
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self):
