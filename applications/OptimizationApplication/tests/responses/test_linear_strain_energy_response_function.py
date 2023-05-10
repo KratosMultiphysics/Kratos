@@ -23,8 +23,8 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             # creating the execution policy wrapper
             execution_policy_wrapper_settings = Kratos.Parameters("""{
                 "name"    : "primal",
-                "module"  : "KratosMultiphysics.OptimizationApplication.execution_policies",
-                "type"    : "SteppingAnalysisExecutionPolicy",
+                "module": "KratosMultiphysics.OptimizationApplication.execution_policies",
+                "type": "stepping_analysis_execution_policy",
                 "settings": {
                     "model_part_names" : ["Structure"],
                     "analysis_module"  : "KratosMultiphysics.StructuralMechanicsApplication",
@@ -39,7 +39,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
                 "log_file_name"            : "structure.log"
             }""")
             cls.execution_policy_decorator = ExecutionPolicyDecorator(cls.model, execution_policy_wrapper_settings, cls.optimization_problem)
-            cls.optimization_problem.AddExecutionPolicy(cls.execution_policy_decorator.GetExecutionPolicyName(), cls.execution_policy_decorator)
+            cls.optimization_problem.AddComponent(cls.execution_policy_decorator)
 
             Kratos.ModelPartIO("Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(cls.model_part)
 
@@ -50,15 +50,14 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
                 "perturbation_size"         : 1e-8
             }""")
             cls.response_function: LinearStrainEnergyResponseFunction = LinearStrainEnergyResponseFunction("strain_energy", cls.model, response_function_settings, cls.optimization_problem)
-            cls.optimization_problem.AddResponse("strain_energy", cls.response_function)
+            cls.optimization_problem.AddComponent(cls.response_function)
 
-            cls.execution_policy_decorator.ExecuteInitialize()
+            cls.execution_policy_decorator.Initialize()
             cls.response_function.Initialize()
 
             # now replace the properties
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model["Structure.structure"], cls.model_part.Elements)
 
-            cls.execution_policy_decorator.ExecuteInitializeSolutionStep()
             cls.execution_policy_decorator.Execute()
             cls.ref_value = cls.response_function.CalculateValue()
 

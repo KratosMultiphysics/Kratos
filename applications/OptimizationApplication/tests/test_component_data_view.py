@@ -33,7 +33,7 @@ class TestComponentDataView(kratos_unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.optimization_problem = OptimizationProblem()
         cls.response = TestComponentDataView.TestResponse()
-        cls.optimization_problem.AddResponse("test", cls.response)
+        cls.optimization_problem.AddComponent(cls.response)
 
     def test_SetDataBuffer(self):
         response_data = ComponentDataView(self.response, self.optimization_problem)

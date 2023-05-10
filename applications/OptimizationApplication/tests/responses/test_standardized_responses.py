@@ -22,7 +22,7 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
         cls.optimization_problem = OptimizationProblem()
 
         cls.response_function = MassResponseFunction("mass", cls.model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""))
-        cls.optimization_problem.AddResponse("mass", cls.response_function)
+        cls.optimization_problem.AddComponent(cls.response_function)
 
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
