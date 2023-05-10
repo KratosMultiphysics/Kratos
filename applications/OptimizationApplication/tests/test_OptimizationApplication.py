@@ -17,8 +17,9 @@ import symmetry_utilities_tests.symmetry_tests
 import test_execution_policies
 import test_optimization_info
 import test_optimization_utils
-import test_mass_response_function
-import test_linear_strain_energy_response_function
+import responses_tests.test_overhang_response_function
+import responses_tests.test_mass_response_function
+import responses_tests.test_linear_strain_energy_response_function
 import test_model_part_utils
 import test_model_part_controllers
 import test_container_expression_utils
@@ -26,6 +27,7 @@ import test_container_expression
 import test_collective_expressions
 import test_buffered_dict
 import test_standardized_responses
+import control.material.test_material_properties_control
 
 # Nightly tests
 
@@ -58,10 +60,11 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression_utils.TestContainerExpressionUtils]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mass_response_function.TestMassResponseFunctionBeams]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mass_response_function.TestMassResponseFunctionShells]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mass_response_function.TestMassResponseFunctionSolids]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_mass_response_function.TestMassResponseFunctionBeams]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_mass_response_function.TestMassResponseFunctionShells]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_mass_response_function.TestMassResponseFunctionSolids]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_overhang_response_function.TestOverHangResponseFunction]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedObjective]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedConstraint]))
@@ -71,6 +74,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_collective_expressions.TestCollectiveExpressions]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_controllers.TestMdpaModelPartController]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_material_properties_control.TestMaterialPropertiesControl]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
