@@ -46,9 +46,6 @@ EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
     // Set the order of the MLS extension operator used in the MLS shape functions utility
     mMLSExtensionOperatorOrder = ThisParameters["mls_extension_operator_order"].GetInt();
 
-    // Set whether nodal distances will be modified to avoid levelset zeros
-    mAvoidZeroDistances = ThisParameters["avoid_zero_distances"].GetBool();
-
     // Set which elements will not be active
     mDeactivateNegativeElements = ThisParameters["deactivate_negative_elements"].GetBool();
     mDeactivateIntersectedElements = ThisParameters["deactivate_intersected_elements"].GetBool();
@@ -59,13 +56,11 @@ void EmbeddedMLSConstraintProcess::Execute()
     // Declare extension operator map for negative nodes of split elements
     NodesCloudMapType ext_op_map;
 
-    if (mAvoidZeroDistances) { ModifyDistances(); }
-
     // Set the required interface flags
     // NOTE: this will deactivate all negative as well as intersected elements
     SetInterfaceFlags();
 
-    // Calculate the conforming extension basis 
+    // Calculate the conforming extension basis
     CalculateConformingExtensionBasis(ext_op_map);
 
     // Reactivate intersected and negative elements as well as their nodes depending on the process settings
@@ -78,7 +73,7 @@ void EmbeddedMLSConstraintProcess::Execute()
 /* Protected functions ****************************************************/
 
 /* Private functions ****************************************************/
-   
+
 void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasis(NodesCloudMapType& rExtensionOperatorMap)
 {
     // Get the MLS shape functions function
@@ -127,7 +122,7 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
 {
     // Initialize counter of master slave constraints
     ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
-    // Get variable to constrain 
+    // Get variable to constrain
     const auto& r_var = KratosComponents<Variable<double>>::Get(mUnknownVariable);
 
     // Loop through all negative nodes of split elements (slave nodes)
@@ -143,11 +138,11 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
             const double support_node_N = std::get<1>(r_node_data);
 
             // Add master slave constraint, the support node MLS shape function value N serves as weight of the constraint
-            mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++, 
-            *p_support_node, r_var, *p_slave_node, r_var, 
+            mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
+            *p_support_node, r_var, *p_slave_node, r_var,
             support_node_N, 0.0);
         }
-    }  
+    }
 }
 
 void EmbeddedMLSConstraintProcess::SetInterfaceFlags()
@@ -233,19 +228,6 @@ void EmbeddedMLSConstraintProcess::ReactivateElementsAndNodes()
             }
         }
     }
-}
-
-void EmbeddedMLSConstraintProcess::ModifyDistances()
-{
-    block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
-        const double tol_d = 1.0e-12;
-        double& d = rNode.FastGetSolutionStepValue(DISTANCE);
-
-        // Check if the distance values are close to zero, if so set the tolerance as distance value
-        if (std::abs(d) < tol_d) { 
-            d = (d > 0.0) ? tol_d : -tol_d; 
-        }
-    });
 }
 
 bool EmbeddedMLSConstraintProcess::IsSplit(const GeometryType& rGeometry)
