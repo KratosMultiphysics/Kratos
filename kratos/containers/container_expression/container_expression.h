@@ -140,7 +140,9 @@ public:
     /**
      * @brief Move data from pBegin array to internal structure.
      *
-     * @warning This instance takes ownership of the passed array.
+     * @warning This instance does not take the ownership of the passed array. 
+     *  The life time of the passed array is not managed by this instance
+     * @warning Seg faults if this is used when passed @ref pBegin was destroyed. 
      *
      * @param pBegin            Starting pointer to the data.
      * @param NumberOfEntities  Number of entities present in data.

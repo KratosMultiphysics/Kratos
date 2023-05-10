@@ -1162,13 +1162,6 @@ public:
     */
     static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
     {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-      Matrix A(input);
-      AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-      int singular = lu_factorization.determinant();
-      inverse = lu_factorization.inverse();
-      return singular;
-#else
       typedef permutation_matrix<std::size_t> pmatrix;
       Matrix A(input);
       pmatrix pm(A.size1());
@@ -1176,7 +1169,6 @@ public:
       inverse.assign( IdentityMatrix(A.size1()));
       lu_substitute(A, pm, inverse);
       return singular;
- #endif // ifdef KRATOS_USE_AMATRIX
     }
 
     /**
