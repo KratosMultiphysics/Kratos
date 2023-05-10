@@ -4,6 +4,7 @@ from typing import Any
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
+from KratosMultiphysics.OptimizationApplication.controls.control import Control
 
 class OptimizationProblem:
     """This is the main data holder for optimization problems
@@ -23,7 +24,8 @@ class OptimizationProblem:
         # create the optimization components data container with basic types
         self.__components: 'dict[Any, dict[str, Any]]' = {
             ResponseFunction: {},
-            ExecutionPolicy: {}
+            ExecutionPolicy: {},
+            Control: {}
         }
 
         # create the unbufferd optimization problem data container
@@ -31,6 +33,26 @@ class OptimizationProblem:
 
         # initialize the step
         self.__problem_data["step"] = 0
+
+    def GetComponentType(self, component: Any) -> Any:
+        for k in self.__components.keys():
+            if isinstance(component, k):
+                return k
+
+        return None
+
+    def GetComponentName(self, component: Any) -> str:
+        component_type = self.GetComponentType(component)
+        if not component_type is None:
+            components = self.__components[component_type]
+        else:
+            raise RuntimeError(f"Unsupported component type {component} provided.")
+
+        for comp_name, current_component in components.items():
+            if component == current_component:
+                return comp_name
+
+        raise RuntimeError(f"The given {component} not found in components of type {component_type}.")
 
     def AddResponse(self, name: str, response_function: ResponseFunction) -> None:
         self.__AddComponent(name, response_function, ResponseFunction)
@@ -45,8 +67,8 @@ class OptimizationProblem:
         self.__RemoveComponent(name, ResponseFunction)
         self.__RemoveComponentDataContainer(name, ResponseFunction)
 
-    def AddExecutionPolicy(self, name: str, response_function: ExecutionPolicy) -> None:
-        self.__AddComponent(name, response_function, ExecutionPolicy)
+    def AddExecutionPolicy(self, name: str, execution_policy: ExecutionPolicy) -> None:
+        self.__AddComponent(name, execution_policy, ExecutionPolicy)
 
     def GetExecutionPolicy(self, name: str) -> ExecutionPolicy:
         return self.__GetComponent(name, ExecutionPolicy)
@@ -57,6 +79,16 @@ class OptimizationProblem:
     def RemoveExecutionPolicy(self, name: str) -> None:
         self.__RemoveComponent(name, ExecutionPolicy)
         self.__RemoveComponentDataContainer(name, ExecutionPolicy)
+
+    def AddControl(self, name: str, control: Control) -> None:
+        self.__AddComponent(name, control, Control)
+
+    def GetControl(self, name: str) -> Control:
+        return self.__GetComponent(name, Control)
+
+    def RemoveControl(self, name: str) -> None:
+        self.__RemoveComponent(name, Control)
+        self.__RemoveComponentDataContainer(name, Control)
 
     def GetStep(self) -> int:
         """Gets the current step of the optimization info

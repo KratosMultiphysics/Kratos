@@ -5,6 +5,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 from KratosMultiphysics.kratos_utilities import GetKratosMultiphysicsPath
+from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
 def GetClassModuleFromKratos(class_name: str) -> str:
     snake_case_class_name = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(class_name)
@@ -30,6 +31,15 @@ def GetClassModuleFromKratos(class_name: str) -> str:
 def CallOnAll(list_of_objects: 'list[any]', method: any, *args, **kwargs):
     for obj in list_of_objects:
         getattr(obj, method.__name__)(*args, **kwargs)
+
+def IsSameContainerExpression(container_expression_1: ContainerExpressionTypes, container_expression_2: ContainerExpressionTypes) -> bool:
+    if container_expression_1.GetModelPart().FullName() != container_expression_2.GetModelPart().FullName():
+        return False
+
+    if type(container_expression_1) != type(container_expression_2):
+        return False
+
+    return True
 
 def OptimizationProcessFactory(
     module_name: str,
