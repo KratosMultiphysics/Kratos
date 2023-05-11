@@ -238,7 +238,6 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-
     def LaunchROM(self, mu_train):
         """
         This method should be parallel capable
