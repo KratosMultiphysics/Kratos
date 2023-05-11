@@ -33,11 +33,11 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.LaunchTrainROM(mu_train)
+                fom_snapshots = self.__LaunchTrainROM(mu_train)
                 if store_all_snapshots or store_fom_snapshots:
                     self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                rom_snapshots = self.LaunchROM(mu_train)
+                rom_snapshots = self.__LaunchROM(mu_train)
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
@@ -45,24 +45,23 @@ class RomManager(object):
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
-                self.LaunchTrainHROM(mu_train, store_residuals_projected)
+                self.__LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                hrom_snapshots = self.LaunchHROM(mu_train)
+                hrom_snapshots = self.__LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################
 
-
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.LaunchTrainROM(mu_train)
+                fom_snapshots = self.__LaunchTrainROM(mu_train)
                 if store_all_snapshots or store_fom_snapshots:
                     self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                rom_snapshots = self.LaunchROM(mu_train)
+                rom_snapshots = self.__LaunchROM(mu_train)
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
@@ -74,22 +73,22 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.LaunchTrainROM(mu_train)
+                fom_snapshots = self.__LaunchTrainROM(mu_train)
                 if store_all_snapshots or store_fom_snapshots:
                     self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "TrainPG")
-                self.TrainPG(mu_train)
+                self.__LaunchTrainPG(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                rom_snapshots = self.LaunchROM(mu_train)
+                rom_snapshots = self.__LaunchROM(mu_train)
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
-                self.LaunchTrainHROM(mu_train, store_residuals_projected)
+                self.__LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                hrom_snapshots = self.LaunchHROM(mu_train)
+                hrom_snapshots = self.__LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
@@ -104,15 +103,15 @@ class RomManager(object):
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in testing_stages):
-                fom_snapshots = self.LaunchTestFOM(mu_test)
+                fom_snapshots = self.__LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                rom_snapshots = self.LaunchTestROM(mu_test)
+                rom_snapshots = self.__LaunchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only test HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                hrom_snapshots = self.LaunchTestHROM(mu_test)
+                hrom_snapshots = self.__LaunchTestHROM(mu_test)
                 self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
 
 
@@ -120,9 +119,9 @@ class RomManager(object):
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in testing_stages):
-                fom_snapshots = self.LaunchTestFOM(mu_test)
+                fom_snapshots = self.__LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                rom_snapshots = self.LaunchTestROM(mu_test)
+                rom_snapshots = self.__LaunchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in testing_stages):
                 raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
@@ -133,14 +132,14 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in testing_stages):
-                fom_snapshots = self.LaunchTestFOM(mu_test)
+                fom_snapshots = self.__LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                rom_snapshots = self.LaunchTestROM(mu_test)
+                rom_snapshots = self.__LaunchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                hrom_snapshots = self.LaunchTestHROM(mu_test)
+                hrom_snapshots = self.__LaunchTestHROM(mu_test)
                 self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
 
@@ -167,7 +166,7 @@ class RomManager(object):
         else:
             err_msg = f"Provided projection strategy '{self.general_rom_manager_parameters["projection_strategy"].GetString()}' is not supported. Available options are 'galerkin', 'lspg' and 'petrov_galerkin'."
             raise Exception(err_msg)
-        self.LaunchRunROM(mu_run)
+        self.__LaunchRunROM(mu_run)
 
     def RunHROM(self, mu_run=[None]):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -183,7 +182,7 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
             self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-        self.LaunchRunHROM(mu_run)
+        self.__LaunchRunHROM(mu_run)
 
 
 
@@ -201,7 +200,7 @@ class RomManager(object):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
-    def LaunchTrainROM(self, mu_train):
+    def __LaunchTrainROM(self, mu_train):
         """
         This method should be parallel capable
         """
