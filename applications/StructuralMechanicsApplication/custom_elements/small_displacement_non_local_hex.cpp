@@ -395,8 +395,10 @@ void SmallDisplacementNonLocalHex::FinalizeSolutionStep( const ProcessInfo& rCur
         }
     }
     if (required) {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        const GeometryType& r_geometry = GetGeometry();
+        const Properties& r_properties = GetProperties();
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
 
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
@@ -404,7 +406,7 @@ void SmallDisplacementNonLocalHex::FinalizeSolutionStep( const ProcessInfo& rCur
         NonLocalConstitutiveVariables this_non_local_constitutive_variables(strain_size);
 
         // Create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters Values(r_geometry, r_properties, rCurrentProcessInfo);
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -418,8 +420,6 @@ void SmallDisplacementNonLocalHex::FinalizeSolutionStep( const ProcessInfo& rCur
         SetNonLocalConstitutiveVariables(mConstitutiveMatrix, this_constitutive_variables, this_non_local_constitutive_variables);
 
         // Reading integration points
-        const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
         const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
 
         // Reading integration points
@@ -839,7 +839,7 @@ void SmallDisplacementNonLocalHex::CalculateOnIntegrationPoints(
 
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
             // Compute element kinematics B, F, DN_DX ...
             CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
@@ -850,6 +850,42 @@ void SmallDisplacementNonLocalHex::CalculateOnIntegrationPoints(
             }
             rOutput[point_number] = this_constitutive_variables.StressVector;
         }
+    } else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR ) {
+            // Create and initialize element variables:
+            const SizeType number_of_nodes = r_geometry.size();
+            const SizeType dimension = r_geometry.WorkingSpaceDimension();
+            const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+
+            KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+            ConstitutiveVariables this_constitutive_variables(strain_size);
+            NonLocalConstitutiveVariables this_non_local_constitutive_variables(strain_size);
+
+            // Create constitutive law parameters:
+            ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+
+            // Set constitutive law flags:
+            Flags &ConstitutiveLawOptions=Values.GetOptions();
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+            Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+            const ConstitutiveLaw::StressMeasure this_stress_measure = rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ? ConstitutiveLaw::StressMeasure_PK2 : ConstitutiveLaw::StressMeasure_Kirchhoff;
+
+            //reading integration points
+            for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
+                // Compute element kinematics B, F, DN_DX ...
+                CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
+
+                // Compute material reponse
+                CalculateAllConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, this_non_local_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+                if ( rOutput[point_number].size() != strain_size)
+                    rOutput[point_number].resize( strain_size, false );
+
+                rOutput[point_number] = this_constitutive_variables.StrainVector;
+            }
     }else{
         BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
