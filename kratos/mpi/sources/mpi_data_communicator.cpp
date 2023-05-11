@@ -908,7 +908,7 @@ void MPIDataCommunicator::AllGathervDetail(
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const
 {
     #ifdef KRATOS_DEBUG
-    ValidateGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets, Rank());
+    ValidateAllGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets);
     #endif // KRATOS_DEBUG
 
     const int sends_per_rank = MPIMessageSize(rSendValues);
@@ -1086,6 +1086,47 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
         }
     }
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(failed, RecvRank)) << message.str();
+}
+
+template<class TDataType>
+void MPIDataCommunicator::ValidateAllGathervInput(
+    const TDataType& rSendValues, TDataType& rRecvValues,
+    const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const
+{
+    // All ranks send a message of the correct size
+    int expected_recv_size = 0;
+    const int send_size = MPIMessageSize(rSendValues);
+    int ierr = MPI_Allreduce(&send_size, &expected_recv_size, 1, MPI_INT, MPI_SUM, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allreduce");
+    KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(send_size != expected_recv_size))
+    << "Input error in call to MPI_Allgatherv for rank " << Rank() << ": "
+    << "This rank will send " << send_size << " values but all ranks expect "
+    << expected_recv_size << " values from it." << std::endl;
+
+    // Message size is not larger than total expected size (can only check for too large, since the recv message may be padded).
+    int total_size = 0;
+    const int message_size = MPIMessageSize(rSendValues);
+    const int expected_message_size = MPIMessageSize(rRecvValues);
+    ierr = MPI_Reduce(&message_size, &total_size, 1, MPI_INT, MPI_SUM, Rank(), mComm);
+    CheckMPIErrorCode(ierr, "MPI_Reduce");
+    KRATOS_ERROR_IF(BroadcastErrorIfTrue(total_size > expected_message_size, Rank()))
+    << "Input error in call to MPI_Allgatherv for rank " << Rank() << ": "
+    << "The sent messages contain " << total_size << " values in total, but only "
+    << expected_message_size << " values are expected in all ranks." << std::endl;
+
+    // No overflow in recv buffer.
+    std::stringstream message;
+    bool failed = false;
+    for (int i = 0; i < Size(); i++) {
+        if (rRecvOffsets[i]+rRecvCounts[i] > expected_message_size) {
+            message
+            << "Input error in call to MPI_Allgatherv for rank " << Rank() << ": "
+            << "Writing past buffer end when sending message for rank " << i << "." << std::endl;
+            failed = true;
+            break;
+        }
+    }
+    KRATOS_ERROR_IF(BroadcastErrorIfTrue(failed, Rank())) << message.str();
 }
 
 template <class TDataType> void MPIDataCommunicator::PrepareScattervBuffers(
