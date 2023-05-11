@@ -210,7 +210,7 @@ class RomManager(object):
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'FOM',mu,Id)
+            parameters = self._StoreResultsByName(parameters,'FOM_Fit',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
@@ -236,7 +236,7 @@ class RomManager(object):
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'ROM',mu,Id)
+            parameters = self._StoreResultsByName(parameters,'ROM_Fit',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
@@ -260,7 +260,7 @@ class RomManager(object):
         PetrovGalerkinTrainMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreResultsByName(parameters,'ROM',mu,Id)
+            parameters = self._StoreNoResults(parameters)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
@@ -307,7 +307,7 @@ class RomManager(object):
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)
-            parameters = self._StoreResultsByName(parameters,'HROM',mu,Id)
+            parameters = self._StoreResultsByName(parameters,'HROM_Fit',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
