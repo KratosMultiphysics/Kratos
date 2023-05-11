@@ -38,8 +38,8 @@ namespace Kratos
         mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
         mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
         // Helmholtz elements
-        mHelmholtzShellElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-        mHelmholtzShellElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzSurfaceElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+        mHelmholtzSurfaceElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzSolidElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzSolidElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
         /* CONDITIONS */
@@ -200,8 +200,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("HelmholtzBulkTopology3D4N", mHelmholtzBulkTopology3D4N);
 
         // Register the helmholtz elements
-		KRATOS_REGISTER_ELEMENT("HelmholtzShellElement3D3N", mHelmholtzShellElement3D3N);
-		KRATOS_REGISTER_ELEMENT("HelmholtzShellElement3D4N", mHelmholtzShellElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSurfaceElement3D3N", mHelmholtzSurfaceElement3D3N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSurfaceElement3D4N", mHelmholtzSurfaceElement3D4N);
 		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D4N", mHelmholtzSolidElement3D4N);
 		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D8N", mHelmholtzSolidElement3D8N);
 

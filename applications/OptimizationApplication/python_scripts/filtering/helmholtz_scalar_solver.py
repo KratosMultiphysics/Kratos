@@ -29,6 +29,31 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
         KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: DOFs ADDED.")
 
     def PrepareModelPart(self):
-        KM.ConnectivityPreserveModeler().GenerateModelPart(
-                self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidElement3D8N")
+
+        #check elements types
+        is_surface = False
+        num_nodes = None
+        for elem in self.original_model_part.Elements:
+            geom = elem.GetGeometry()
+            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
+                is_surface = True
+            num_nodes = len(elem.GetNodes())
+            break
+
+        if is_surface:
+            if num_nodes == 3:
+                KM.ConnectivityPreserveModeler().GenerateModelPart(
+                        self.original_model_part, self.helmholtz_model_part, "HelmholtzSurfaceElement3D3N")
+            elif num_nodes == 4:
+                KM.ConnectivityPreserveModeler().GenerateModelPart(
+                        self.original_model_part, self.helmholtz_model_part, "HelmholtzSurfaceElement3D4N")
+        else:
+            if num_nodes == 4:
+                KM.ConnectivityPreserveModeler().GenerateModelPart(
+                        self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidElement3D4N")
+            elif num_nodes == 8:
+                KM.ConnectivityPreserveModeler().GenerateModelPart(
+                        self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidElement3D8N")
+
+
 

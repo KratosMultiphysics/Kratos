@@ -69,9 +69,22 @@ class HelmholtzAnalysis(AnalysisStage):
 
     def _MapNodalSolutionToDataExpression(self, output_data_exp_type):
         if output_data_exp_type == KM.ContainerExpression.NodalNonHistoricalExpression:
-            solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
-            solution_field.Read(KOA.HELMHOLTZ_SCALAR)
-            return solution_field
+            hist_nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
+            hist_nodal_solution_field.Read(KOA.HELMHOLTZ_SCALAR)
+            non_hist_nodal_solution_field = KM.ContainerExpression.NodalNonHistoricalExpression(hist_nodal_solution_field)
+            return non_hist_nodal_solution_field
+        elif output_data_exp_type == KM.ContainerExpression.ElementNonHistoricalExpression:
+            nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
+            nodal_solution_field.Read(KOA.HELMHOLTZ_SCALAR)
+            mapped_elemental_solution_field = KM.ContainerExpression.ElementNonHistoricalExpression(self._GetComputingModelPart())
+            KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_elemental_solution_field, nodal_solution_field)
+            return mapped_elemental_solution_field
+        elif output_data_exp_type == KM.ContainerExpression.ConditionNonHistoricalExpression:
+            nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
+            nodal_solution_field.Read(KOA.HELMHOLTZ_SCALAR)
+            mapped_condition_solution_field = KM.ContainerExpression.ConditionNonHistoricalExpression(self._GetComputingModelPart())
+            KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_condition_solution_field, nodal_solution_field)
+            return mapped_condition_solution_field
 
     #### Public user interface functions ####
     def Initialize(self):

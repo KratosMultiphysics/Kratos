@@ -21,6 +21,8 @@
 #include "includes/element.h"
 #include "utilities/integration_utilities.h"
 #include "utilities/geometry_utilities.h"
+#include "geometries/pyramid_3d_5.h"
+#include "geometries/tetrahedra_3d_4.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "optimization_application_variables.h"
@@ -50,32 +52,37 @@ namespace Kratos
 
 /// Short class definition.
 /**
- * @class HelmholtzShellElement
+ * @class HelmholtzSurfaceElement
  * @ingroup OptimizationApplication
  * @brief Helmholtz filtering element for 3D geometries.
  * @details Implements Sobolev/Helmholtz filter for filtering/regularization. This works for arbitrary geometries in 3D
  * @author Reza Najian Asl
  */
-class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzShellElement
+class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzSurfaceElement
     : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
+        typedef Node<3>                             PointType;
+        typedef Node<3>::Pointer                    PointPtrType;
+        typedef Geometry<PointType>                 GeometryType;
+        typedef Pyramid3D5<PointType>               PyramidGeometryType;
+        typedef Tetrahedra3D4<PointType>            TetrahedraGeometryType;
 
-    /// Counted pointer of HelmholtzShellElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzShellElement);
+    /// Counted pointer of HelmholtzSurfaceElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzSurfaceElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HelmholtzShellElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    HelmholtzShellElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    HelmholtzSurfaceElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    HelmholtzSurfaceElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~HelmholtzShellElement();
+    virtual ~HelmholtzSurfaceElement();
 
 
     ///@}
@@ -265,7 +272,7 @@ protected:
     ///@}
 
     // Protected default constructor necessary for serialization
-    HelmholtzShellElement() : Element()
+    HelmholtzSurfaceElement() : Element()
     {
     }
 
@@ -302,8 +309,10 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    void CalculateBulkMassMatrix(MatrixType& rMassMatrix,const ProcessInfo& rCurrentProcessInfo) const;
-    void CalculateBulkStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
+    void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
+    void GetPseudoBulkSurfaceShapeFunctionsValues(MatrixType& rNMatrix,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;
+    void CalculatePseudoBulkSurfaceDN_DXMatrix(MatrixType& rDN_DX, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber, const ProcessInfo& rCurrentProcessInfo) const;   
+    void CalculateAvgSurfUnitNormal(VectorType & rNormal) const;
 
     ///@}
     ///@name Private  Access
@@ -316,7 +325,7 @@ private:
 
     ///@}
 
-}; // Class HelmholtzShellElement
+}; // Class HelmholtzSurfaceElement
 
 ///@}
 ///@name Type Definitions

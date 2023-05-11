@@ -35,7 +35,7 @@
 #include "custom_elements/helmholtz_bulk_shape_element.h"
 #include "custom_elements/helmholtz_bulk_element.h"
 #include "custom_elements/helmholtz_solid_element.h"
-#include "custom_elements/helmholtz_shell_element.h"
+#include "custom_elements/helmholtz_surface_element.h"
 
 /* ADJOINT ELEMENTS */
 #include "custom_elements/adjoint_small_displacement_element.h"
@@ -210,8 +210,8 @@ namespace Kratos
 		const HelmholtzBulkElement mHelmholtzBulkTopology3D4N;
 
 		// Helmholtz elements
-		const HelmholtzShellElement mHelmholtzShellElement3D3N;
-		const HelmholtzShellElement mHelmholtzShellElement3D4N;
+		const HelmholtzSurfaceElement mHelmholtzSurfaceElement3D3N;
+		const HelmholtzSurfaceElement mHelmholtzSurfaceElement3D4N;
 		const HelmholtzSolidElement mHelmholtzSolidElement3D4N;
 		const HelmholtzSolidElement mHelmholtzSolidElement3D8N;
 
