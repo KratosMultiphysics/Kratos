@@ -48,21 +48,21 @@ AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToN
 
 // Search for the neighbouring nodes (in rStructureNodes) of each rNode on a given array of rNodes
 void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNodes(
-    const NodesContainerType& rNodes,
+    const NodesContainerType& pNodes,
     const double Radius,
     const double MinNumOfNeighNodes,
     VectorResultNodesContainerType& rResults)
 {
     KRATOS_TRY;
-    auto& r_nodes_array = rNodes.GetContainer();
+    auto& p_nodes_array = pNodes.GetContainer();
 
     // Resize rResults vector
-    rResults.resize(r_nodes_array.size());
+    rResults.resize(p_nodes_array.size());
 
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
-    block_for_each(r_nodes_array, [&](const Node<3>::Pointer& pNode)
+    block_for_each(p_nodes_array, [&](const Node<3>::Pointer& pNode)
     {
         double local_radius = Radius;
 
@@ -224,7 +224,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
 
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
-    NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
+    auto& p_nodes_array = pNodes.GetContainer();
 
     ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
@@ -236,7 +236,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
-    block_for_each(nodes_array, [&](Node<3>::Pointer& pNode) {
+    block_for_each(p_nodes_array, [&](Node<3>::Pointer& pNode) {
 
         double local_radius = Radius;
 
@@ -297,7 +297,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
 
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
-    NodesContainerType::ContainerType& nodes_array = const_cast<NodesContainerType::ContainerType&>(pNodes.GetContainer());
+    auto& p_nodes_array = pNodes.GetContainer();
 
     ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
@@ -309,7 +309,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
-    block_for_each(nodes_array, [&](Node<3>::Pointer& pNode) {
+    block_for_each(p_nodes_array, [&](Node<3>::Pointer& pNode) {
 
         double local_radius = Radius;
 
