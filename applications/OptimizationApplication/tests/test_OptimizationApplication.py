@@ -27,6 +27,8 @@ import test_container_expression
 import test_collective_expressions
 import test_buffered_dict
 import test_standardized_responses
+import control.test_master_control
+import control.material.test_material_properties_control
 
 # Nightly tests
 
@@ -73,6 +75,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_collective_expressions.TestCollectiveExpressions]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_controllers.TestMdpaModelPartController]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.test_master_control.TestMassterControl]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_material_properties_control.TestMaterialPropertiesControl]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
