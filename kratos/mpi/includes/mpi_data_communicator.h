@@ -448,6 +448,11 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
         const int RecvRank) const;
 
+    template<class TDataType>
+    void ValidateAllGathervInput(
+        const TDataType& rSendValues, TDataType& rRecvValues,
+        const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const;
+
     template<class TDataType> void PrepareScattervBuffers(
         const std::vector<std::vector<TDataType>>& rInputMessage,
         std::vector<TDataType>& rScattervMessage,
