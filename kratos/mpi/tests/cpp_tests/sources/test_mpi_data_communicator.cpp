@@ -2546,12 +2546,10 @@ template<typename T> void MPIDataCommunicatorAllGathervIntegralTypeVectorTest()
     #ifdef KRATOS_DEBUG
     // recv sizes do not match
     std::vector<int> wrong_recv_sizes = recv_sizes;
-    if (world_rank == recv_rank) {
-        wrong_recv_sizes[0] += 1;
-    }
+    wrong_recv_sizes[0] += 1;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        mpi_world_communicator.Gatherv(
-            send_buffer, recv_buffer, wrong_recv_sizes, recv_offsets, recv_rank),
+        mpi_world_communicator.AllGatherv(
+            send_buffer, recv_buffer, wrong_recv_sizes, recv_offsets),
             "Error");
 
     // recv message is too small
@@ -2561,16 +2559,13 @@ template<typename T> void MPIDataCommunicatorAllGathervIntegralTypeVectorTest()
         wrong_recv_message.resize(recv_buffer.size()-1);
     }
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        mpi_world_communicator.Gatherv(send_buffer, wrong_recv_message, recv_sizes, recv_offsets, recv_rank),
+        mpi_world_communicator.AllGatherv(send_buffer, wrong_recv_message, recv_sizes, recv_offsets),
         "Error");
     // sent offsets overflow
     std::vector<int> wrong_recv_offsets = recv_offsets;
-    if (world_rank == recv_rank)
-    {
-        wrong_recv_offsets[world_size - 1] += 5;
-    }
+    wrong_recv_offsets[world_size - 1] += 5;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        mpi_world_communicator.Gatherv(send_buffer, recv_buffer, recv_sizes, wrong_recv_offsets, recv_rank),
+        mpi_world_communicator.AllGatherv(send_buffer, recv_buffer, recv_sizes, wrong_recv_offsets),
         "Error");
 
     #endif
