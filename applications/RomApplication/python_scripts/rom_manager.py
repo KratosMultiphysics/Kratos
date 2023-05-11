@@ -93,6 +93,9 @@ class RomManager(object):
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
+        else:
+            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
+            raise Exception(err_msg)
 
 
 
@@ -142,6 +145,9 @@ class RomManager(object):
                 hrom_snapshots = self.__LaunchTestHROM(mu_test)
                 self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
+        else:
+            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
+            raise Exception(err_msg)
 
 
 
@@ -182,6 +188,9 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+        else:
+            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
+            raise Exception(err_msg)
         self.__LaunchRunHROM(mu_run)
 
 
