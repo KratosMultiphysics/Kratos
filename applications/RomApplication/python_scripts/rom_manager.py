@@ -429,7 +429,7 @@ class RomManager(object):
             simulation.Run()
 
 
-    def LaunchRunROM(self, mu_run):
+    def __LaunchRunROM(self, mu_run):
         """
         This method should be parallel capable
         """
