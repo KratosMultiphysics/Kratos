@@ -29,9 +29,9 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Process to create the animated Eigenvectors
-/** This process distributes a load on surface load conditions belonging to a modelpart.
- *  The load is distributed according to the surface area.
+/// Process to equally distribute a single force on a surface
+/** This process distributes a force on a all surface load conditions belonging to a modelpart.
+ *  The surface load is computed by equally distributing the force over the surface area
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DistributeLoadOnSurfaceProcess : public Process
 {

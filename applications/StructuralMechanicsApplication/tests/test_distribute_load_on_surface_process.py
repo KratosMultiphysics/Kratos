@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestDistributeLoadOnSurfaceProcess(KratosUnittest.TestCase):
 
     def test_load_on_surface_distribution(self):
-        """distribute on 2 triangles and 1 quad with a total area of 2.0."""
+        """Distribute a single force on 2 triangles and 1 quad with a total area of 2.0."""
 
         current_model = KM.Model()
         mp = current_model.CreateModelPart("main")
@@ -44,12 +44,17 @@ class TestDistributeLoadOnSurfaceProcess(KratosUnittest.TestCase):
         surface_load_1 = cond1.GetValue(KSM.SURFACE_LOAD)
         surface_load_2 = cond2.GetValue(KSM.SURFACE_LOAD)
         surface_load_3 = cond3.GetValue(KSM.SURFACE_LOAD)
-        total_load = KM.Vector([1.0, 2.0, 3.0])
+        total_force = KM.Vector([1.0, 2.0, 3.0])
 
-        self.assertVectorAlmostEqual(surface_load_1, total_load / 2.0 * 0.5)
-        self.assertVectorAlmostEqual(surface_load_2, total_load / 2.0 * 0.5)
-        self.assertVectorAlmostEqual(surface_load_3, total_load / 2.0 * 1.0)
-        self.assertVectorAlmostEqual(surface_load_1 + surface_load_2 + surface_load_3, total_load)
+        area1 = cond1.GetGeometry().Area()
+        area2 = cond2.GetGeometry().Area()
+        area3 = cond3.GetGeometry().Area()
+        total_area = area1 + area2 + area3
+
+        self.assertVectorAlmostEqual(surface_load_1, total_force / total_area)
+        self.assertVectorAlmostEqual(surface_load_2, total_force / total_area)
+        self.assertVectorAlmostEqual(surface_load_3, total_force / total_area)
+        self.assertVectorAlmostEqual(surface_load_1 * area1 + surface_load_2 * area2 + surface_load_3 * area3, total_force)
 
         process.ExecuteFinalizeSolutionStep()
         process.ExecuteBeforeOutputStep()

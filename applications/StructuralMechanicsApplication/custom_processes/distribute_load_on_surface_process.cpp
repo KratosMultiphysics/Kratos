@@ -28,7 +28,7 @@ DistributeLoadOnSurfaceProcess::DistributeLoadOnSurfaceProcess(ModelPart& rModel
 {
     Parameters default_parameters(R"(
         {
-            "help"            : "This process distributes a load on surface load conditions belonging to a modelpart. The load is distributed according to the surface area.",
+            "help"            : "This process distributes a force on a all surface load conditions belonging to a modelpart. The surface load is computed by equally distributing the force over the surface area",
             "model_part_name" : "please_specify_model_part_name",
             "interval"        : [0.0, 1e30],
             "load"           : [1.0, 0.0, 0.0]
@@ -58,8 +58,7 @@ void DistributeLoadOnSurfaceProcess::ExecuteInitializeSolutionStep()
         Vector force_by_area = mParameters["load"].GetVector() / global_total_area;
 
         for (auto& r_cond : mrModelPart.Conditions()) {
-            const double area = r_cond.GetGeometry().Area();
-            r_cond.SetValue(SURFACE_LOAD, force_by_area * area);
+            r_cond.SetValue(SURFACE_LOAD, force_by_area);
         }
     }
 }
