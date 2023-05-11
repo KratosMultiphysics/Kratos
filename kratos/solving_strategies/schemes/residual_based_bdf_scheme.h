@@ -4,21 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+#pragma once
 
-#if !defined(KRATOS_RESIDUAL_BASED_BDF_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_BDF_SCHEME
+// System includes
 
-/* System includes */
+// External includes
 
-/* External includes */
-
-/* Project includes */
+// Project includes
 #include "includes/checks.h"
 #include "utilities/time_discretization.h"
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
@@ -458,7 +456,7 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const std::size_t this_thread = ParallelUtilities::GetThreadId();
         const auto& r_const_obj_ref = rObject;
 
         // Adding inertia contribution
@@ -570,5 +568,3 @@ private:
 ///@{
 ///@}
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_BASED_BDF_SCHEME defined */

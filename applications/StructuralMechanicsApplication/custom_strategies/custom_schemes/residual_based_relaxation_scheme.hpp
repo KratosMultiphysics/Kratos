@@ -295,7 +295,7 @@ public:
     ) override
     {
         KRATOS_TRY
-        int k = OpenMPUtils::ThisThread();
+        int k = ParallelUtilities::GetThreadId();
         //Initializing the non linear iteration for the current element
         //KRATOS_WATCH( LHS_Contribution )
         //basic operations for the element considered
@@ -324,7 +324,7 @@ public:
         Element::EquationIdVectorType& EquationId,
         const ProcessInfo& CurrentProcessInfo) override
     {
-        int k = OpenMPUtils::ThisThread();
+        int k = ParallelUtilities::GetThreadId();
         //Initializing the non linear iteration for the current element
 
         //basic operations for the element considered
@@ -350,7 +350,7 @@ public:
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
-        int k = OpenMPUtils::ThisThread();
+        int k = ParallelUtilities::GetThreadId();
         rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentCondition.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
@@ -371,7 +371,7 @@ public:
         const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
-        int k = OpenMPUtils::ThisThread();
+        int k = ParallelUtilities::GetThreadId();
         //Initializing the non linear iteration for the current condition
 
         //basic operations for the element considered
@@ -593,7 +593,7 @@ protected:
         //adding inertia contribution
         if (M.size1() != 0)
         {
-            int k = OpenMPUtils::ThisThread();
+            int k = ParallelUtilities::GetThreadId();
             const auto& r_const_elem_ref = rCurrentElement;
             /*              rCurrentElement-
             >GetSecondDerivativesVector(RelaxationAuxiliaryies::macc,0);
@@ -627,7 +627,7 @@ protected:
         //adding inertia contribution - DO NOT ADD
         if (M.size1() != 0)
         {
-            int k = OpenMPUtils::ThisThread();
+            int k = ParallelUtilities::GetThreadId();
             /*              rCurrentCondition-
             >GetSecondDerivativesVector(RelaxationAuxiliaryies::macc,0);
                             (RelaxationAuxiliaryies::macc) *= (1.00-mAlphaBossak);

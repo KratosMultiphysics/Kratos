@@ -409,7 +409,7 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const std::size_t this_thread = ParallelUtilities::GetThreadId();
         const auto& r_const_elem_ref = rElement;
         // Adding damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) {
@@ -438,7 +438,7 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        const std::size_t this_thread = ParallelUtilities::GetThreadId();
         const auto& r_const_cond_ref = rCondition;
         // Adding damping contribution
         // Damping contribution

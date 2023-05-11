@@ -4,21 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
+#pragma once
 
-#if !defined(KRATOS_RESIDUAL_BASED_IMPLICIT_TIME_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_IMPLICIT_TIME_SCHEME
+// System includes
 
-/* System includes */
+// External includes
 
-/* External includes */
-
-/* Project includes */
+// Project includes
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/entities_utilities.h"
 
@@ -462,7 +460,7 @@ private:
     {
         KRATOS_TRY;
 
-        const IndexType this_thread = OpenMPUtils::ThisThread();
+        const IndexType this_thread = ParallelUtilities::GetThreadId();
 
         rObject.CalculateLocalSystem(rLHSContribution,rRHSContribution,rCurrentProcessInfo);
 
@@ -496,7 +494,7 @@ private:
     {
         KRATOS_TRY;
 
-        const IndexType this_thread = OpenMPUtils::ThisThread();
+        const IndexType this_thread = ParallelUtilities::GetThreadId();
 
         rObject.CalculateRightHandSide(rRHSContribution,rCurrentProcessInfo);
 
@@ -535,5 +533,3 @@ private:
 ///@{
 ///@}
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_BASED_IMPLICIT_TIME_SCHEME defined */
