@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_VMS_H_INCLUDED )
-#define  KRATOS_VMS_H_INCLUDED
+#if !defined(KRATOS_HYPOELASTICSOLID_H_INCLUDED )
+#define  KRATOS_HYPOELASTICSOLID_H_INCLUDED
 
 // System includes
 #include <string>
@@ -32,7 +32,7 @@
 #include "utilities/geometry_utilities.h"
 
 // Application includes
-#include "fluid_dynamics_application_variables.h"
+#include "pfem_melting_application_variables.h"
 
 namespace Kratos
 {
@@ -100,14 +100,14 @@ namespace Kratos
  */
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) VMS : public Element
+class KRATOS_API(PFEM_MELTING_APPLICATION) HYPO : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of VMS
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(VMS);
+    /// Pointer definition of HYPO
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HYPO);
 
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
@@ -154,7 +154,7 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    VMS(IndexType NewId = 0) :
+    HYPO(IndexType NewId = 0) :
         Element(NewId)
     {}
 
@@ -163,7 +163,7 @@ public:
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    VMS(IndexType NewId, const NodesArrayType& ThisNodes) :
+    HYPO(IndexType NewId, const NodesArrayType& ThisNodes) :
         Element(NewId, ThisNodes)
     {}
 
@@ -172,7 +172,7 @@ public:
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    VMS(IndexType NewId, GeometryType::Pointer pGeometry) :
+    HYPO(IndexType NewId, GeometryType::Pointer pGeometry) :
         Element(NewId, pGeometry)
     {}
 
@@ -182,12 +182,12 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    VMS(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+    HYPO(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
         Element(NewId, pGeometry, pProperties)
     {}
 
     /// Destructor.
-    ~VMS() override
+    ~HYPO() override
     {}
 
 
@@ -202,7 +202,7 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new VMS element, created using given input
+     * Returns a pointer to a new HYPO element, created using given input
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -211,14 +211,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive< VMS<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive< HYPO<TDim, TNumNodes> >(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive< VMS<TDim, TNumNodes> >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< HYPO<TDim, TNumNodes> >(NewId, pGeom, pProperties);
     }
 
     /// Provides local contributions from body forces and OSS projection terms
@@ -235,7 +235,7 @@ public:
                                       VectorType& rRightHandSideVector,
                                       const ProcessInfo& rCurrentProcessInfo) override
     {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+        const unsigned int LocalSize = TDim  * TNumNodes;
 
         // Check sizes and initialize matrix
         if (rLeftHandSideMatrix.size1() != LocalSize)
@@ -255,7 +255,7 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                 const ProcessInfo& rCurrentProcessInfo) override
     {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+        const unsigned int LocalSize = TDim * TNumNodes;
 
         if (rLeftHandSideMatrix.size1() != LocalSize)
             rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
@@ -275,14 +275,26 @@ public:
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override
-    {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
-
+     {
+        const unsigned int LocalSize = TDim * TNumNodes;
+	//KRATOS_WATCH("ALLLLLLLLLLA")
         // Check sizes and initialize
         if (rRightHandSideVector.size() != LocalSize)
             rRightHandSideVector.resize(LocalSize, false);
 
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+	//KRATOS_THROW_ERROR(std::logic_error,"pressure calculation 3D not implemented","");
+
+        /*if(rRightHandSideVector.size() != 6)
+        	rRightHandSideVector.resize(6,false);*/
+
+        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+    	//noalias(rRightHandSideVector) = ZeroVector(6);
+    	//KRATOS_THROW_ERROR(std::logic_error,"not dereeeeeeeeeeeeeeeeeeeeeeecha","");
+/*    KRATOS_WATCH("SOLIDOOOOOOOOOOOOOOOOOOOOOOOOOO")
+    KRATOS_WATCH("SOLIDOOOOOOOOOOOOOOOOOOOOOOOOOO")
+    KRATOS_WATCH("SOLIDOOOOOOOOOOOOOOOOOOOOOOOOOO")*/
 
         // Calculate this element's geometric parameters
         double Area;
@@ -290,30 +302,209 @@ public:
         BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
 
+
         // Calculate this element's fluid properties
         double Density;
         this->EvaluateInPoint(Density, DENSITY, N);
 
+        //KRATOS_WATCH("DENSITY")
+        //KRATOS_WATCH(Density)
+
         // Calculate Momentum RHS contribution
-        this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
+        //this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
 
-        // For OSS: Add projection of residuals to RHS
-        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
-        if (r_const_process_info[OSS_SWITCH] == 1)
-        {
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
 
-            double ElemSize = this->ElementSize(Area);
-            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
+        //writing the body force
+	    const array_1d<double,3>& body_force = 0.333333333*(this->GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+ this->GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE) + this->GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE));
+	    //const array_1d<double,3>& body_force = GetProperties()[BODY_FORCE];
 
-            // stabilization parameters
-            double TauOne, TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
+	    if(TDim==2){
+	    for(unsigned int i = 0; i<TNumNodes; i++)
+	    {
+		rRightHandSideVector[i*2] = body_force[0]* Density * 0.3333333333333;
+		rRightHandSideVector[i*2+1] = body_force[1] * Density * 0.3333333333333;
 
-            this->AddProjectionToRHS(rRightHandSideVector, AdvVel, Density, TauOne, TauTwo, N, DN_DX, Area,rCurrentProcessInfo[DELTA_TIME]);
-        }
+	    }}
+	    else{
+	    for(unsigned int i = 0; i<TNumNodes; i++)
+	    {
+	    const array_1d< double, 3 > & rBodyForce = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
+	    for (unsigned int d = 0; d < TDim; ++d)
+		    {
+		        rRightHandSideVector[d] += 0.25 * Density * rBodyForce[d];
+		    }
+            }
+
+	    }
+
+	    if(TDim==2)
+	    {
+	    //get the value of Cauchy stress at the Gauss point. It is given by:
+		    const BoundedMatrix<double,2,2> & CauchyStress=this->GetValue(CAUCHY_STRESS_TENSOR);
+
+		    //KRATOS_WATCH(CauchyStress)
+		    /*
+		    //dN1/dx*SigmaX + 0 + dN1/dy*TauXY
+		    rRightHandSideVector[0] -= DN_DX(0,0)*CauchyStress(0,0) + DN_DX(0,1)*CauchyStress(0,1) ;
+		    //0  +   dN1/dy*SigmaY + 0 + dN1/dx*TauXY
+		    rRightHandSideVector[1] -= DN_DX(0,1)*CauchyStress(1,1) + DN_DX(0,0)*CauchyStress(0,1) ;
+		    //dN2/dx*SigmaX + 0 + dN2/dy*TauXY
+		    rRightHandSideVector[2] -= DN_DX(1,0)*CauchyStress(0,0) + DN_DX(1,1)*CauchyStress(0,1) ;
+		    //0  +   dN2/dy*SigmaY + 0 + dN2/dx*TauXY
+		    rRightHandSideVector[3] -= DN_DX(1,1)*CauchyStress(1,1) + DN_DX(1,0)*CauchyStress(0,1) ;
+		    //dN3/dx*SigmaX + 0 + dN3/dy*TauXY
+		    rRightHandSideVector[4] -= DN_DX(2,0)*CauchyStress(0,0) + DN_DX(2,1)*CauchyStress(0,1) ;
+		    //0  +   dN3/dy*SigmaY + 0 + dN3/dx*TauXY
+		    rRightHandSideVector[5] -= DN_DX(2,1)*CauchyStress(1,1) + DN_DX(2,0)*CauchyStress(0,1) ;
+
+		    rRightHandSideVector*=Area;
+
+		    */
+
+		    double SXX= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX);
+		    double SXY= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY);
+		    //double SXZ= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ);
+
+		    double SYX= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX);
+		    double SYY= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY);
+		    //double SYZ= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ);
+
+		    //double SZX= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX);
+		    //double SZY= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY);
+		    //double SZZ= 0.333333333 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ) + 0.333333333 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ)+0.333333333 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ);
+
+
+		    rRightHandSideVector[0] -= DN_DX(0,0)*SXX + DN_DX(0,1)*SXY;
+
+		    //0  +   dN1/dy*SigmaY + 0 + dN1/dx*TauXY
+		    rRightHandSideVector[1] -= DN_DX(0,0)*SYX + DN_DX(0,1)*SYY;
+
+		    //dN2/dx*SigmaX + 0 + dN2/dy*TauXY
+		    rRightHandSideVector[2] -= DN_DX(1,0)*SXX + DN_DX(1,1)*SXY;
+
+		    //0  +   dN2/dy*SigmaY + 0 + dN2/dx*TauXY
+		    rRightHandSideVector[3] -= DN_DX(1,0)*SYX + DN_DX(1,1)*SYY;
+
+		    //dN3/dx*SigmaX + 0 + dN3/dy*TauXY
+		    rRightHandSideVector[4] -= DN_DX(2,0)*SXX + DN_DX(2,1)*SXY;
+
+		    //0  +   dN3/dy*SigmaY + 0 + dN3/dx*TauXY
+		    rRightHandSideVector[5] -= DN_DX(2,0)*SYX + DN_DX(2,1)*SYY;
+
+		    rRightHandSideVector*=Area;
+
+
+
+
+    	    }
+	else{
+		    const BoundedMatrix<double,3,3> & CauchyStress=this->GetValue(CAUCHY_STRESS_TENSOR);
+	            //KRATOS_WATCH(CauchyStress)
+	            /*
+		    //dN1/dx*SigmaX + 0 + dN1/dy*TauXY
+		    rRightHandSideVector[0] -= DN_DX(0,0)*CauchyStress(0,0) + DN_DX(0,1)*CauchyStress(0,1) + DN_DX(0,2)*CauchyStress(0,2);
+		    //0  +   dN1/dy*SigmaY + 0 + dN1/dx*TauXY
+		    rRightHandSideVector[1] -= DN_DX(0,0)*CauchyStress(1,0) + DN_DX(0,1)*CauchyStress(1,1) + DN_DX(0,2)*CauchyStress(1,2);
+
+		    rRightHandSideVector[2] -= DN_DX(0,0)*CauchyStress(2,0) + DN_DX(0,1)*CauchyStress(2,1) + DN_DX(0,2)*CauchyStress(2,2);
+
+
+		    //dN2/dx*SigmaX + 0 + dN2/dy*TauXY
+		    rRightHandSideVector[3] -= DN_DX(1,0)*CauchyStress(0,0) + DN_DX(1,1)*CauchyStress(0,1) + DN_DX(1,2)*CauchyStress(0,2);
+		    //0  +   dN2/dy*SigmaY + 0 + dN2/dx*TauXY
+		    rRightHandSideVector[4] -= DN_DX(1,0)*CauchyStress(1,0) + DN_DX(1,1)*CauchyStress(1,1) + DN_DX(1,2)*CauchyStress(1,2) ;
+
+		    rRightHandSideVector[5] -= DN_DX(1,0)*CauchyStress(2,0) + DN_DX(1,1)*CauchyStress(2,1) + DN_DX(1,2)*CauchyStress(2,2) ;
+
+
+
+		    //dN3/dx*SigmaX + 0 + dN3/dy*TauXY
+		    rRightHandSideVector[6] -= DN_DX(2,0)*CauchyStress(0,0) + DN_DX(2,1)*CauchyStress(0,1) + DN_DX(2,2)*CauchyStress(0,2) ;
+		    //0  +   dN3/dy*SigmaY + 0 + dN3/dx*TauXY
+		    rRightHandSideVector[7] -= DN_DX(2,0)*CauchyStress(1,0) + DN_DX(2,1)*CauchyStress(1,1) + DN_DX(2,2)*CauchyStress(1,2) ;
+
+		    rRightHandSideVector[8] -= DN_DX(2,0)*CauchyStress(2,0) + DN_DX(2,1)*CauchyStress(2,1) + DN_DX(2,2)*CauchyStress(2,2) ;
+
+		     //dN3/dx*SigmaX + 0 + dN3/dy*TauXY
+		    rRightHandSideVector[9] -= DN_DX(3,0)*CauchyStress(0,0) + DN_DX(3,1)*CauchyStress(0,1) + DN_DX(3,2)*CauchyStress(0,2) ;
+		    //0  +   dN3/dy*SigmaY + 0 + dN3/dx*TauXY
+		    rRightHandSideVector[10] -= DN_DX(3,0)*CauchyStress(1,0) + DN_DX(3,1)*CauchyStress(1,1) + DN_DX(3,2)*CauchyStress(1,2) ;
+
+		    rRightHandSideVector[11] -= DN_DX(3,0)*CauchyStress(2,0) + DN_DX(3,1)*CauchyStress(2,1) + DN_DX(3,2)*CauchyStress(2,2) ;
+
+		    */
+
+
+		    //dN1/dx*SigmaX + 0 + dN1/dy*TauXY
+
+		    double SXX= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX);
+		    double SXY= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY);
+		    double SXZ= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ);
+
+		    double SYX= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX);
+		    double SYY= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY);
+		    double SYZ= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ);
+
+		    double SZX= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX);
+		    double SZY= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY);
+		    double SZZ= 0.25 * this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ) + 0.25 * this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ)+0.25 * this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ)+0.25 * this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ);
+
+
+		    //rRightHandSideVector[0] -= DN_DX(0,0)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + DN_DX(0,1)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + DN_DX(0,2)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ);
+		    rRightHandSideVector[0] -= DN_DX(0,0)*SXX + DN_DX(0,1)*SXY + DN_DX(0,2)*SXZ;
+
+		    //0  +   dN1/dy*SigmaY + 0 + dN1/dx*TauXY
+		    //rRightHandSideVector[1] -= DN_DX(0,0)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX) + DN_DX(0,1)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY) + DN_DX(0,2)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ);
+		    rRightHandSideVector[1] -= DN_DX(0,0)*SYX + DN_DX(0,1)*SYY + DN_DX(0,2)*SYZ;
+
+		    //rRightHandSideVector[2] -= DN_DX(0,0)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX) + DN_DX(0,1)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + DN_DX(0,2)*this->GetGeometry()[0].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ);
+		    rRightHandSideVector[2] -= DN_DX(0,0)*SZX + DN_DX(0,1)*SZY + DN_DX(0,2)*SZZ;
+
+
+		    //dN2/dx*SigmaX + 0 + dN2/dy*TauXY
+		    //rRightHandSideVector[3] -= DN_DX(1,0)*this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + DN_DX(1,1)*this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + DN_DX(1,2)*this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ);
+		    rRightHandSideVector[3] -= DN_DX(1,0)*SXX + DN_DX(1,1)*SXY + DN_DX(1,2)*SXZ;
+
+		    //0  +   dN2/dy*SigmaY + 0 + dN2/dx*TauXY
+		    //rRightHandSideVector[4] -= DN_DX(1,0)*this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX) + DN_DX(1,1)*this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY) + DN_DX(1,2)*this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ) ;
+		    rRightHandSideVector[4] -= DN_DX(1,0)*SYX + DN_DX(1,1)*SYY + DN_DX(1,2)*SYZ;
+
+
+		    //rRightHandSideVector[5] -= DN_DX(1,0)*this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX) + DN_DX(1,1)*this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + DN_DX(1,2)*this->GetGeometry()[1].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ) ;
+		    rRightHandSideVector[5] -= DN_DX(1,0)*SZX + DN_DX(1,1)*SZY + DN_DX(1,2)*SZZ;
+
+
+
+		    //dN3/dx*SigmaX + 0 + dN3/dy*TauXY
+		    //rRightHandSideVector[6] -= DN_DX(2,0)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + DN_DX(2,1)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + DN_DX(2,2)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ) ;
+		    rRightHandSideVector[6] -= DN_DX(2,0)*SXX + DN_DX(2,1)*SXY + DN_DX(2,2)*SXZ ;
+
+		    //0  +   dN3/dy*SigmaY + 0 + dN3/dx*TauXY
+		    //rRightHandSideVector[7] -= DN_DX(2,0)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX) + DN_DX(2,1)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY) + DN_DX(2,2)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ) ;
+		    rRightHandSideVector[7] -= DN_DX(2,0)*SYX + DN_DX(2,1)*SYY + DN_DX(2,2)*SYZ ;
+
+
+		    //rRightHandSideVector[8] -= DN_DX(2,0)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX) + DN_DX(2,1)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + DN_DX(2,2)*this->GetGeometry()[2].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ) ;
+		    rRightHandSideVector[8] -= DN_DX(2,0)*SZX + DN_DX(2,1)*SZY + DN_DX(2,2)*SZZ;
+
+		     //dN3/dx*SigmaX + 0 + dN3/dy*TauXY
+		    //rRightHandSideVector[9] -= DN_DX(3,0)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XX) + DN_DX(3,1)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XY) + DN_DX(3,2)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_XZ) ;
+		    rRightHandSideVector[9] -= DN_DX(3,0)*SXX + DN_DX(3,1)*SXY + DN_DX(3,2)*SXZ ;
+
+		    //0  +   dN3/dy*SigmaY + 0 + dN3/dx*TauXY
+		    //rRightHandSideVector[10] -= DN_DX(3,0)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_YX) + DN_DX(3,1)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_YY) + DN_DX(3,2)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_YZ) ;
+		    rRightHandSideVector[10] -= DN_DX(3,0)*SYX + DN_DX(3,1)*SYY + DN_DX(3,2)*SYZ ;
+
+		    //rRightHandSideVector[11] -= DN_DX(3,0)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZX) + DN_DX(3,1)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZY) + DN_DX(3,2)*this->GetGeometry()[3].FastGetSolutionStepValue(HISTORICAL_SIGMA_ZZ) ;
+		    rRightHandSideVector[11] -= DN_DX(3,0)*SZX + DN_DX(3,1)*SZY + DN_DX(3,2)*SZZ ;
+
+		    rRightHandSideVector*=Area;
+
+
+	}
+
     }
+
 
     /// Computes local contributions to the mass matrix
     /**
@@ -324,8 +515,9 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+{
+    KRATOS_TRY
+        const unsigned int LocalSize = TDim * TNumNodes;
 
         // Resize and set to zero
         if (rMassMatrix.size1() != LocalSize)
@@ -347,28 +539,36 @@ public:
         double Coeff = Density * Area / TNumNodes; //Optimize!
         this->CalculateLumpedMassMatrix(rMassMatrix, Coeff);
 
-        /* For ASGS: add dynamic stabilization terms.
-         These terms are not used in OSS, as they belong to the finite element
-         space and cancel out with their projections.
-         */
-        const ProcessInfo& r_const_process_info = rCurrentProcessInfo;
-        if (r_const_process_info[OSS_SWITCH] != 1)
+/*    const double& density = 0.333333333*(this->GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
+                                         this->GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
+                                         this->GetGeometry()[2].FastGetSolutionStepValue(DENSITY));
+    //lumped
+    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    unsigned int NumberOfNodes = this->GetGeometry().size();
+
+    double mA0 = GeometryUtils::CalculateVolume2D(this->GetGeometry());
+
+    if(rMassMatrix.size1() != 6)
+        rMassMatrix.resize(6,6,false);
+
+    noalias(rMassMatrix) = ZeroMatrix(6,6);
+
+    double nodal_mass = mA0 * density * 0.333333333333333333;
+
+    for(unsigned int i=0; i<NumberOfNodes; i++)
+    {
+        for(unsigned int j=0; j<dimension; j++)
         {
-            double ElemSize = this->ElementSize(Area);
-            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
-
-            // Get Advective velocity
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-
-            // stabilization parameters
-            double TauOne, TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
-
-            // Add dynamic stabilization terms ( all terms involving a delta(u) )
-            this->AddMassStabTerms(rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, Area);
+            unsigned int index = i*dimension + j;
+            rMassMatrix(index,index) = nodal_mass;
         }
     }
+
+    */
+    //KRATOS_WATCH(rMassMatrix)
+
+    KRATOS_CATCH("")
+}
 
     /// Computes the local contribution associated to 'new' velocity and pressure values
     /**
@@ -382,58 +582,305 @@ public:
     void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override
+ {
+    KRATOS_TRY
+/*    if (rDampingMatrix.size1() != 6)
+        rDampingMatrix.resize(6, 6, false);
+
+    noalias(rDampingMatrix) = ZeroMatrix(6, 6);*/
+
+    const unsigned int LocalSize = TDim * TNumNodes;
+
+    // Resize and set to zero the matrix
+    // Note that we don't clean the RHS because it will already contain body force (and stabilization) contributions
+    if (rDampingMatrix.size1() != LocalSize)
+        rDampingMatrix.resize(LocalSize, LocalSize, false);
+
+    noalias(rDampingMatrix) = ZeroMatrix(LocalSize, LocalSize);
+
+
+    if(TDim==2)
     {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+	    //fill in the damping matrix
+	    BoundedMatrix<double,3,6> msB;
+	    BoundedMatrix<double,3,3> ms_constitutive_matrix;
+	    BoundedMatrix<double,3,6> ms_temp;
 
-        // Resize and set to zero the matrix
-        // Note that we don't clean the RHS because it will already contain body force (and stabilization) contributions
-        if (rDampingMatrix.size1() != LocalSize)
-            rDampingMatrix.resize(LocalSize, LocalSize, false);
+	    BoundedMatrix<double,3,2> msDN_Dx;
+	    array_1d<double,3> msN; //dimension = number of nodes
 
-        noalias(rDampingMatrix) = ZeroMatrix(LocalSize, LocalSize);
+	    unsigned int NumberOfNodes = this->GetGeometry().size();
+	    unsigned int dim = this->GetGeometry().WorkingSpaceDimension();
 
-        // Get this element's geometric properties
-        double Area;
-        array_1d<double, TNumNodes> N;
-        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+	    //getting data for the given geometry
+	    double Area;
+	    GeometryUtils::CalculateGeometryData(this->GetGeometry(), msDN_Dx, msN, Area);
 
-        // Calculate this element's fluid properties
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
 
-        double ElemSize = this->ElementSize(Area);
-        double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
+	    double NU = this->GetProperties()[POISSON_RATIO];//  GetProperties()[POISSON_RATIO];
+	    double E = this->GetProperties()[YOUNG_MODULUS];
 
-        // Get Advective velocity
-        array_1d<double, 3 > AdvVel;
-        this->GetAdvectiveVel(AdvVel, N);
 
-        // stabilization parameters
-        double TauOne, TauTwo;
-        this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
 
-        this->AddIntegrationPointVelocityContribution(rDampingMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
+	    double dt = rCurrentProcessInfo[DELTA_TIME];
+	    //Lame constants. note that for the hypoelastic solid the Lame constants must be multiplied by the timestep
+	    //const
+	    double MU=0.5*dt*E/(1.0+NU);
+	    //const
+	    double LAMBDA=NU*E*dt/((1.0+NU)*(1.0-2.0*NU));
+	    //const
+	    double KAPPA=LAMBDA+0.6666666*MU;
 
-        // Now calculate an additional contribution to the residual: r -= rDampingMatrix * (u,p)
-        VectorType U = ZeroVector(LocalSize);
-        int LocalIndex = 0;
+	    //SHEAR CONTRIBUTION TO THE "DAMPING" MATRIX
+	    for (unsigned int i=0; i<NumberOfNodes; i++)
+	    {
+		unsigned int index = dim*i;
+		msB(0,index+0)=msDN_Dx(i,0);
+		msB(0,index+1)= 0.0;
+		msB(1,index+0)=0.0;
+		msB(1,index+1)= msDN_Dx(i,1);
+		msB(2,index+0)= msDN_Dx(i,1);
+		msB(2,index+1)= msDN_Dx(i,0);
+	    }
 
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            array_1d< double, 3 > & rVel = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-            for (unsigned int d = 0; d < TDim; ++d) // Velocity Dofs
-            {
-                U[LocalIndex] = rVel[d];
-                ++LocalIndex;
-            }
-            U[LocalIndex] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
-            ++LocalIndex;
-        }
+	    //constitutive tensor
+	    ms_constitutive_matrix(0,0) = (4.0/3.0)*MU;
+	    ms_constitutive_matrix(0,1) = -2.0/3.0*MU;
+	    ms_constitutive_matrix(0,2) = 0.0;
+	    ms_constitutive_matrix(1,0) = -2.0/3.0*MU;
+	    ms_constitutive_matrix(1,1) = 4.0/3.0*MU;
+	    ms_constitutive_matrix(1,2) = 0.0;
+	    ms_constitutive_matrix(2,0) = 0.0;
+	    ms_constitutive_matrix(2,1) = 0.0;
+	    ms_constitutive_matrix(2,2) = MU;
 
-        noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
+	    //calculating viscous contributions
+	    ms_temp = prod( ms_constitutive_matrix , msB);
+	    noalias(rDampingMatrix) = prod( trans(msB) , ms_temp);
+
+
+	    //now we reuse the constitutive tensor
+	    ms_constitutive_matrix(0,0) = KAPPA;
+	    ms_constitutive_matrix(0,1) = KAPPA ;
+	    ms_constitutive_matrix(0,2) = 0.0;
+	    ms_constitutive_matrix(1,0) = KAPPA;
+	    ms_constitutive_matrix(1,1) = KAPPA;
+	    ms_constitutive_matrix(1,2) = 0.0;
+	    ms_constitutive_matrix(2,0) = 0.0;
+	    ms_constitutive_matrix(2,1) = 0.0;
+	    ms_constitutive_matrix(2,2) = 0.0;
+
+	    //calculating volumetric contribution
+	    ms_temp = prod( ms_constitutive_matrix , msB);
+	    //ms_temp*=dt;
+	    rDampingMatrix+= prod( trans(msB) , ms_temp);
+
+	    rDampingMatrix *= Area;
+
+	    //Now calculate an additional contribution to the residual: r -= rDampingMatrix * (v)
+	    array_1d< double, 6 > Vel;
+	    Vel[0] = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
+	    Vel[1] = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
+	    Vel[2] = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_X);
+	    Vel[3] = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_Y);
+	    Vel[4] = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_X);
+	    Vel[5] = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_Y);
+
+	    noalias(rRightHandSideVector) -= prod(rDampingMatrix, Vel);
+    }
+    else{
+
+    	    //fill in the damping matrix
+	    BoundedMatrix<double,6,12> msB = ZeroMatrix(6,12);
+	    BoundedMatrix<double,6,6> ms_constitutive_matrix;
+	    BoundedMatrix<double,6,12> ms_temp;
+
+	    BoundedMatrix<double,4,3> msDN_Dx;
+    	    array_1d<double,4> msN; //dimension = number of nodes
+
+	    unsigned int NumberOfNodes = this->GetGeometry().size();
+	    unsigned int dim = this->GetGeometry().WorkingSpaceDimension();
+
+	    //getting data for the given geometry
+	    double Area;
+	    GeometryUtils::CalculateGeometryData(this->GetGeometry(), msDN_Dx, msN, Area);
+
+
+	    double NU = this->GetProperties()[POISSON_RATIO];//  GetProperties()[POISSON_RATIO];
+	    double E = this->GetProperties()[YOUNG_MODULUS];
+
+	    /*KRATOS_WATCH(NU)
+	    KRATOS_WATCH(E)*/
+
+
+
+	    double dt = rCurrentProcessInfo[DELTA_TIME];
+	    //Lame constants. note that for the hypoelastic solid the Lame constants must be multiplied by the timestep
+	    //const
+	    double MU=0.5*dt*E/(1.0+NU);
+	    //const
+	    double LAMBDA=NU*E*dt/((1.0+NU)*(1.0-2.0*NU));
+	    //const
+	    double KAPPA=LAMBDA+0.6666666*MU;
+
+	    //SHEAR CONTRIBUTION TO THE "DAMPING" MATRIX
+	    for (unsigned int i=0; i<NumberOfNodes; i++)
+	    {
+		unsigned int start = dim*i;
+
+		msB(0,start) =	msDN_Dx(i,0);
+		msB(1,start+1)=	msDN_Dx(i,1);
+		msB(2,start+2)= msDN_Dx(i,2);
+		msB(3,start) =	msDN_Dx(i,1);
+		msB(3,start+1) = msDN_Dx(i,0);
+		msB(4,start) =	msDN_Dx(i,2);
+		msB(4,start+2) = msDN_Dx(i,0);
+		msB(5,start+1)= msDN_Dx(i,2);
+		msB(5,start+2) = msDN_Dx(i,1);
+	    }
+
+    ms_constitutive_matrix(0,0) = (4.0/3.0)*MU;
+    ms_constitutive_matrix(0,1) = -2.0/3.0*MU;
+    ms_constitutive_matrix(0,2) = -2.0/3.0*MU;
+    ms_constitutive_matrix(0,3) = 0.0;
+    ms_constitutive_matrix(0,4) = 0.0;
+    ms_constitutive_matrix(0,5) = 0.0;
+
+    ms_constitutive_matrix(1,0) = -2.0/3.0*MU;
+    ms_constitutive_matrix(1,1) = 4.0/3.0*MU;
+    ms_constitutive_matrix(1,2) = -2.0/3.0*MU;
+    ms_constitutive_matrix(1,3) = 0.0;
+    ms_constitutive_matrix(1,4) = 0.0;
+    ms_constitutive_matrix(1,5) = 0.0;
+
+    ms_constitutive_matrix(2,0) = -2.0/3.0*MU;
+    ms_constitutive_matrix(2,1) = -2.0/3.0*MU;
+    ms_constitutive_matrix(2,2) = 4.0/3.0*MU;
+    ms_constitutive_matrix(2,3) = 0.0;
+    ms_constitutive_matrix(2,4) = 0.0;
+    ms_constitutive_matrix(2,5) = 0.0;
+
+    ms_constitutive_matrix(3,0) = 0.0;
+    ms_constitutive_matrix(3,1) = 0.0;
+    ms_constitutive_matrix(3,2) = 0.0;
+    ms_constitutive_matrix(3,3) = MU;
+    ms_constitutive_matrix(3,4) = 0.0;
+    ms_constitutive_matrix(3,5) = 0.0;
+
+    ms_constitutive_matrix(4,0) = 0.0;
+    ms_constitutive_matrix(4,1) = 0.0;
+    ms_constitutive_matrix(4,2) = 0.0;
+    ms_constitutive_matrix(4,3) = 0.0;
+    ms_constitutive_matrix(4,4) = MU;
+    ms_constitutive_matrix(4,5) = 0.0;
+
+    ms_constitutive_matrix(5,0) = 0.0;
+    ms_constitutive_matrix(5,1) = 0.0;
+    ms_constitutive_matrix(5,2) = 0.0;
+    ms_constitutive_matrix(5,3) = 0.0;
+    ms_constitutive_matrix(5,4) = 0.0;
+    ms_constitutive_matrix(5,5) = MU;
+
+	    //calculating volumetric contribution
+	    ms_temp = prod( ms_constitutive_matrix , msB);
+	    //ms_temp*=dt;
+	    rDampingMatrix+= prod( trans(msB) , ms_temp);
+
+	    //rDampingMatrix *= Area;
+	    //constitutive tensor
+	    ms_constitutive_matrix(0,0) = KAPPA;
+	    ms_constitutive_matrix(0,1) = KAPPA ;
+	    ms_constitutive_matrix(0,2) = KAPPA;
+	    ms_constitutive_matrix(0,3)= 0.0;
+	    ms_constitutive_matrix(0,4) = 0.0 ;
+	    ms_constitutive_matrix(0,5) = 0.0;
+
+	    ms_constitutive_matrix(1,0) = KAPPA;
+	    ms_constitutive_matrix(1,1) = KAPPA;
+	    ms_constitutive_matrix(1,2) = KAPPA;
+	    ms_constitutive_matrix(1,3) = 0.0;
+	    ms_constitutive_matrix(1,4) = 0.0;
+	    ms_constitutive_matrix(1,5) = 0.0;
+
+	    ms_constitutive_matrix(2,0) = KAPPA;
+	    ms_constitutive_matrix(2,1) = KAPPA;
+	    ms_constitutive_matrix(2,2) = KAPPA;
+	    ms_constitutive_matrix(2,3) = 0.0;
+	    ms_constitutive_matrix(2,4) = 0.0;
+	    ms_constitutive_matrix(2,5) = 0.0;
+
+	    ms_constitutive_matrix(3,0) = 0.0;
+	    ms_constitutive_matrix(3,1) = 0.0;
+	    ms_constitutive_matrix(3,2) = 0.0;
+	    ms_constitutive_matrix(3,3) = 0.0;
+	    ms_constitutive_matrix(3,4) = 0.0;
+	    ms_constitutive_matrix(3,5) = 0.0;
+
+	    ms_constitutive_matrix(4,0) = 0.0;
+	    ms_constitutive_matrix(4,1) = 0.0;
+	    ms_constitutive_matrix(4,2) = 0.0;
+	    ms_constitutive_matrix(4,3) = 0.0;
+	    ms_constitutive_matrix(4,4) = 0.0;
+	    ms_constitutive_matrix(4,5) = 0.0;
+
+	    ms_constitutive_matrix(5,0) = 0.0;
+	    ms_constitutive_matrix(5,1) = 0.0;
+	    ms_constitutive_matrix(5,2) = 0.0;
+	    ms_constitutive_matrix(5,3) = 0.0;
+	    ms_constitutive_matrix(5,4) = 0.0;
+	    ms_constitutive_matrix(5,5) = 0.0;
+
+   	    //calculating volumetric contribution
+	    ms_temp = prod( ms_constitutive_matrix , msB);
+	    //ms_temp*=dt;
+	    rDampingMatrix+= prod( trans(msB) , ms_temp);
+
+	    rDampingMatrix *= Area;
+
+	    //Now calculate an additional contribution to the residual: r -= rDampingMatrix * (v)
+	    /*array_1d< double, 12 > Vel;
+	    Vel[0]  = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
+	    Vel[1]  = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
+	    Vel[2]  = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
+
+	    Vel[3]  = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_X);
+	    Vel[4]  = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_Y);
+	    Vel[5]  = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY_Z);
+
+	    Vel[6]  = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_X);
+	    Vel[7]  = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_Y);
+	    Vel[8]  = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_Z);
+
+	    Vel[9]  = this->GetGeometry()[3].FastGetSolutionStepValue(VELOCITY_X);
+	    Vel[10] = this->GetGeometry()[3].FastGetSolutionStepValue(VELOCITY_Y);
+	    Vel[11] = this->GetGeometry()[3].FastGetSolutionStepValue(VELOCITY_Z);
+
+	    noalias(rRightHandSideVector) -= prod(rDampingMatrix, Vel);*/
+
     }
 
+    VectorType U = ZeroVector(LocalSize);
+    int LocalIndex = 0;
+
+    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+    {
+        array_1d< double, 3 > & rVel = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < TDim; ++d) // Velocity Dofs
+        {
+            U[LocalIndex] = rVel[d];
+            ++LocalIndex;
+        }
+        /*U[LocalIndex] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
+        ++LocalIndex;*/
+    }
+
+    noalias(rRightHandSideVector) -= prod(rDampingMatrix, U);
+
+
+    //KRATOS_WATCH(rDampingMatrix)
+    //KRATOS_WATCH(rRightHandSideVector)
+    KRATOS_CATCH("")
+}
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
     {
     }
@@ -451,16 +898,12 @@ public:
      * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
      * @see MarkForRefinement for a use of the error ratio
      */
+
     void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override
     {
-        if (rVariable == ERROR_RATIO)
-        {
-            rOutput = this->SubscaleErrorEstimate(rCurrentProcessInfo);
-            this->SetValue(ERROR_RATIO,rOutput);
-        }
-        else if (rVariable == NODAL_AREA)
+        if (rVariable == NODAL_AREA)
         {
             // Get the element's geometric parameters
             double Area;
@@ -471,8 +914,10 @@ public:
             // Carefully write results to nodal variables, to avoid parallelism problems
             for (unsigned int i = 0; i < TNumNodes; ++i)
             {
+
                 this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-                this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
+                this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS) += Area * N[i];
+
                 this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
             }
         }
@@ -490,114 +935,161 @@ public:
      * @param Output Will be overwritten with the elemental momentum error
      * @param rCurrentProcessInfo Process info instance (unused)
      */
-    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+/*    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) override
+                           const ProcessInfo& rCurrentProcessInfo)
+{
+
+
+    virtual void Calculate(const Variable<Vector >& rVariable,
+                           Vector& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
     {
-        if (rVariable == ADVPROJ) // Compute residual projections for OSS
-        {
-            // Get the element's geometric parameters
-            double Area;
-            array_1d<double, TNumNodes> N;
-            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            // Calculate this element's fluid properties
-            double Density;
-            this->EvaluateInPoint(Density, DENSITY, N);
-
-            // Get Advective velocity
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-
-            // Output containers
-            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
-            double ElementalMassRes(0);
-
-            this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
-
-            if (rCurrentProcessInfo[OSS_SWITCH] == 1)
-            {
-                // Carefully write results to nodal variables, to avoid parallelism problems
-                for (unsigned int i = 0; i < TNumNodes; ++i)
-                {
-                    this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-                    array_1d< double, 3 > & rAdvProj = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
-                    for (unsigned int d = 0; d < TDim; ++d)
-                        rAdvProj[d] += N[i] * ElementalMomRes[d];
-
-                    this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ) += N[i] * ElementalMassRes;
-                    this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
-                    this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
-                }
-            }
-
-            /// Return output
-            rOutput = ElementalMomRes;
-        }
-        else if (rVariable == SUBSCALE_VELOCITY)
-        {
-            // Get the element's geometric parameters
-            double Area;
-            array_1d<double, TNumNodes> N;
-            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            // Calculate this element's fluid properties
-            double Density;
-            this->EvaluateInPoint(Density, DENSITY, N);
-
-            // Get Advective velocity
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-
-            // Output containers
-            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
-            double ElementalMassRes(0.0);
-
-            this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
-
-            if (rCurrentProcessInfo[OSS_SWITCH] == 1)
-            {
-                /* Projections of the elemental residual are computed with
-                 * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
-                 */
-                const double Weight = ConsistentMassCoef(Area); // Consistent mass matrix is Weigth * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
-                // Carefully write results to nodal variables, to avoid parallelism problems
-                for (unsigned int i = 0; i < TNumNodes; ++i)
-                {
-                    this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-
-                    // Add elemental residual to RHS
-                    array_1d< double, 3 > & rMomRHS = this->GetGeometry()[i].GetValue(ADVPROJ);
-                    double& rMassRHS = this->GetGeometry()[i].GetValue(DIVPROJ);
-                    for (unsigned int d = 0; d < TDim; ++d)
-                        rMomRHS[d] += N[i] * ElementalMomRes[d];
-
-                    rMassRHS += N[i] * ElementalMassRes;
-
-                    // Write nodal area
-                    this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
-
-                    // Substract M(consistent)*x(i-1) from RHS
-                    for(unsigned int j = 0; j < TNumNodes; ++j) // RHS -= Weigth * Ones(TNumNodes,TNumNodes) * x(i-1)
-                    {
-                        for(unsigned int d = 0; d < TDim; ++d)
-                            rMomRHS[d] -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ)[d];
-                        rMassRHS -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
-                    }
-                    for(unsigned int d = 0; d < TDim; ++d) // RHS -= Weigth * Identity(TNumNodes,TNumNodes) * x(i-1)
-                        rMomRHS[d] -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ)[d];
-                    rMassRHS -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
-
-                    this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
-                }
-            }
-
-            /// Return output
-            rOutput = ElementalMomRes;
-        }
     }
+
+    virtual void Calculate(const Variable<Matrix >& rVariable,
+                           Matrix& Output,
+                           const ProcessInfo& rCurrentProcessInfo)
+
+                           */
+    virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) override
+     {
+
+  if(rVariable == CAUCHY_STRESS_TENSOR)
+    {
+    if(TDim==2)
+    {
+	    BoundedMatrix<double,2,2> CauchyStress=ZeroMatrix(2,2);
+	    BoundedMatrix<double,2,2> HistoricalCauchyStress=ZeroMatrix(2,2);
+	    //KRATOS_THROW_ERROR(std::logic_error,"not dereeeeeeeeeeeeeeeeeeeeeeecha","");
+	    //noalias(rCauchyStress) = ZeroMatrix(2, 2);
+
+	    const array_1d<double,3>& v0 = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+	    const array_1d<double,3>& v1 = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+	    const array_1d<double,3>& v2 = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+
+	    double Area;
+	    BoundedMatrix<double,3,2> msDN_Dx;
+	    array_1d<double,3> msN; //dimension = number of nodes
+	    GeometryUtils::CalculateGeometryData(this->GetGeometry(), msDN_Dx, msN, Area);
+
+	    double NU = this->GetProperties()[POISSON_RATIO];
+	    double E = this->GetProperties()[YOUNG_MODULUS];
+
+	    double dt = rCurrentProcessInfo[DELTA_TIME];
+	    //Lame constants. note that for the hypoelastic solid the Lame constants must be multiplied by the timestep
+	    //const
+	    double MU=0.5*dt*E/(1.0+NU);
+	    //const
+	    double LAMBDA=NU*E*dt/((1.0+NU)*(1.0-2.0*NU));
+	    //const
+	    double KAPPA=LAMBDA+0.6666666*MU;
+
+
+	    CauchyStress(0,0)=2.0* (msDN_Dx(0,0)*v0[0]+msDN_Dx(1,0)*v1[0]+msDN_Dx(2,0)*v2[0]);
+	    CauchyStress(0,1)=msDN_Dx(0,1)*v0[0]+msDN_Dx(1,1)*v1[0]+msDN_Dx(2,1)*v2[0] + msDN_Dx(0,0)*v0[1]+msDN_Dx(1,0)*v1[1]+msDN_Dx(2,0)*v2[1];
+
+	    CauchyStress(1,0)=msDN_Dx(0,1)*v0[0]+msDN_Dx(1,1)*v1[0]+msDN_Dx(2,1)*v2[0] + msDN_Dx(0,0)*v0[1]+msDN_Dx(1,0)*v1[1]+msDN_Dx(2,0)*v2[1];
+	    CauchyStress(1,1)=2.0*(msDN_Dx(0,1)*v0[1]+msDN_Dx(1,1)*v1[1]+msDN_Dx(2,1)*v2[1]);
+
+	    CauchyStress*=MU;
+
+	    //adding the volumetric part
+	    double div_v = msDN_Dx(0,0)*v0[0] + msDN_Dx(0,1)*v0[1];
+	    div_v+=       msDN_Dx(1,0)*v1[0] + msDN_Dx(1,1)*v1[1];
+	    div_v+=	  msDN_Dx(2,0)*v2[0] + msDN_Dx(2,1)*v2[1];
+
+	    CauchyStress(0,0)+=KAPPA*div_v;
+	    CauchyStress(1,1)+=KAPPA*div_v;
+
+	    this->SetValue(CAUCHY_STRESS_TENSOR, CauchyStress);
+	}
+    else{
+
+	double Area;
+        array_1d<double, TNumNodes> N;
+        BoundedMatrix<double, TNumNodes, TDim> msDN_Dx;
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), msDN_Dx, N, Area);
+
+        BoundedMatrix<double,3,3> CauchyStress=ZeroMatrix(3,3);
+	//BoundedMatrix<double,3,3> HistoricalCauchyStress=ZeroMatrix(3,3);
+	/*KRATOS_WATCH("222222222222222222222222222222222")
+	KRATOS_WATCH("222222222222222222222222222222222")
+	KRATOS_WATCH("222222222222222222222222222222222")
+	KRATOS_WATCH("222222222222222222222222222222222")	*/
+	//KRATOS_THROW_ERROR(std::logic_error,"not dereeeeeeeeeeeeeeeeeeeeeeecha","");
+	//noalias(rCauchyStress) = ZeroMatrix(2, 2);
+
+	const array_1d<double,3>& v0 = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+	const array_1d<double,3>& v1 = this->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+	const array_1d<double,3>& v2 = this->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double,3>& v3 = this->GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
+
+        double NU = this->GetProperties()[POISSON_RATIO];
+	double E = this->GetProperties()[YOUNG_MODULUS];
+        //NU = 3.000000e-01;
+        //E = 3.00000e+05;
+
+	double dt = rCurrentProcessInfo[DELTA_TIME];
+	//Lame constants. note that for the hypoelastic solid the Lame constants must be multiplied by the timestep
+	//const
+	double MU=0.5*dt*E/(1.0+NU);
+
+	//const
+	double LAMBDA=NU*E*dt/((1.0+NU)*(1.0-2.0*NU));
+	//const
+	double KAPPA=LAMBDA+0.6666666*MU;
+        //KRATOS_WATCH(CauchyStress)
+        CauchyStress(0,0)=2.0* (msDN_Dx(0,0)*v0[0]+msDN_Dx(1,0)*v1[0]+msDN_Dx(2,0)*v2[0]+msDN_Dx(3,0)*v3[0]);
+	CauchyStress(0,1)=msDN_Dx(0,1)*v0[0]+msDN_Dx(1,1)*v1[0]+msDN_Dx(2,1)*v2[0]+msDN_Dx(3,1)*v3[0]+msDN_Dx(0,0)*v0[1]+msDN_Dx(1,0)*v1[1]+msDN_Dx(2,0)*v2[1]+msDN_Dx(3,0)*v3[1];
+	CauchyStress(0,2)=msDN_Dx(0,2)*v0[0]+msDN_Dx(1,2)*v1[0]+msDN_Dx(2,2)*v2[0]+msDN_Dx(3,2)*v3[0]+msDN_Dx(0,0)*v0[2]+msDN_Dx(1,0)*v1[2]+msDN_Dx(2,0)*v2[2]+msDN_Dx(3,0)*v3[2];
+
+
+	CauchyStress(1,0)=CauchyStress(0,1);//msDN_Dx(0,1)*v0[0]+msDN_Dx(1,1)*v1[0]+msDN_Dx(2,1)*v2[0]+msDN_Dx(3,1)*v3[0] + msDN_Dx(0,0)*v0[1]+msDN_Dx(1,0)*v1[1]+msDN_Dx(2,0)*v2[1]+msDN_Dx(3,0)*v3[1];
+	CauchyStress(1,1)=2.0*(msDN_Dx(0,1)*v0[1]+msDN_Dx(1,1)*v1[1]+msDN_Dx(2,1)*v2[1]+msDN_Dx(3,1)*v3[1]);
+	CauchyStress(1,2)=msDN_Dx(0,2)*v0[1]+msDN_Dx(1,2)*v1[1]+msDN_Dx(2,2)*v2[1] +msDN_Dx(3,2)*v3[1] + msDN_Dx(0,1)*v0[2]+msDN_Dx(1,1)*v1[2]+msDN_Dx(2,1)*v2[2]+msDN_Dx(3,1)*v3[2];
+
+
+	CauchyStress(2,0)=CauchyStress(0,2);//msDN_Dx(0,2)*v0[0]+msDN_Dx(1,2)*v1[0]+msDN_Dx(2,2)*v2[0]+msDN_Dx(3,2)*v3[0] + msDN_Dx(0,0)*v0[2]+msDN_Dx(1,0)*v1[2]+msDN_Dx(2,0)*v2[2]+msDN_Dx(3,0)*v3[2];
+	CauchyStress(2,1)=CauchyStress(1,2);//CauchyStress(1,2);//msDN_Dx(0,2)*v0[1]+msDN_Dx(1,2)*v1[1]+msDN_Dx(2,2)*v2[1] +msDN_Dx(3,2)*v3[1] + msDN_Dx(0,1)*v0[2]+msDN_Dx(1,1)*v1[2]+msDN_Dx(2,1)*v2[2]+msDN_Dx(2,1)*v3[2];
+	CauchyStress(2,2)=2.0*(msDN_Dx(0,2)*v0[2]+msDN_Dx(1,2)*v1[2]+msDN_Dx(2,2)*v2[2]+msDN_Dx(3,2)*v3[2]);
+
+       CauchyStress*=MU;
+
+       //KRATOS_WATCH(CauchyStress)
+
+       //KRATOS_WATCH(CauchyStress)
+       //adding the volumetric part
+       double div_v = msDN_Dx(0,0)*v0[0] + msDN_Dx(0,1)*v0[1] + msDN_Dx(0,2)*v0[2];
+       div_v+= msDN_Dx(1,0)*v1[0] + msDN_Dx(1,1)*v1[1] + msDN_Dx(1,2)*v1[2];
+       div_v+=	msDN_Dx(2,0)*v2[0] + msDN_Dx(2,1)*v2[1] + msDN_Dx(2,2)*v2[2];
+       div_v+=	msDN_Dx(3,0)*v3[0] + msDN_Dx(3,1)*v3[1] + msDN_Dx(3,2)*v3[2];
+
+       CauchyStress(0,0)+=KAPPA*div_v;
+       CauchyStress(1,1)+=KAPPA*div_v;
+       CauchyStress(2,2)+=KAPPA*div_v;
+	    //KRATOS_WATCH(CauchyStress)
+       //KRATOS_WATCH(HistoricalCauchyStress)
+       //HistoricalCauchyStress=this->GetValue(CAUCHY_STRESS_TENSOR);
+       //KRATOS_WATCH(HistoricalCauchyStress)
+       //CauchyStress+=HistoricalCauchyStress;
+       //KRATOS_WATCH(CauchyStress)
+
+       this->SetValue(CAUCHY_STRESS_TENSOR, CauchyStress);
+       //KRATOS_WATCH(CauchyStress)
+
+    }
+
+
+
+
+
+    }
+    else
+       KRATOS_ERROR << "Wrong variable. Calculate function of hypoelastic element is meant to compute Cauchy stress only." << std::endl;
+
+
+}
 
     // The following methods have different implementations depending on TDim
     /// Provides the global indices for each one of this element's local rows
@@ -663,136 +1155,7 @@ public:
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rVariable == TAUONE || rVariable == TAUTWO || rVariable == MU || rVariable == TAU)
-        {
-            double Area;
-            array_1d<double, TNumNodes> N;
-            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-
-            double Density;
-            this->EvaluateInPoint(Density,DENSITY,N);
-
-            double ElemSize = this->ElementSize(Area);
-            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
-
-            // stabilization parameters
-            double TauOne, TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
-
-
-            rValues.resize(1, false);
-            if (rVariable == TAUONE)
-            {
-                rValues[0] = TauOne;
-            }
-            else if (rVariable == TAUTWO)
-            {
-                rValues[0] = TauTwo;
-            }
-            else if (rVariable == MU)
-            {
-                rValues[0] = Viscosity;
-            }
-            else if (rVariable == TAU)
-            {
-                double NormS = this->EquivalentStrainRate(DN_DX);
-                rValues[0] = Viscosity*NormS;
-            }
-        }
-        else if (rVariable == EQ_STRAIN_RATE)
-        {
-            double Area;
-            array_1d<double, TNumNodes> N;
-            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            rValues.resize(1, false);
-            rValues[0] = this->EquivalentStrainRate(DN_DX);
-        }
-        else if(rVariable == SUBSCALE_PRESSURE)
-        {
-            double Area;
-            array_1d<double, TNumNodes> N;
-            BoundedMatrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-
-            double Density;
-            this->EvaluateInPoint(Density,DENSITY,N);
-
-            double ElemSize = this->ElementSize(Area);
-            double Viscosity = this->EffectiveViscosity(Density,N,DN_DX,ElemSize,rCurrentProcessInfo);
-
-            // stabilization parameters
-            double TauOne, TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,ElemSize,Density,Viscosity,rCurrentProcessInfo);
-
-            double DivU = 0.0;
-            for(unsigned int i=0; i < TNumNodes; i++)
-            {
-                for(unsigned int d = 0; d < TDim; d++)
-                    DivU -= DN_DX(i,d) * this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[d];
-            }
-
-            rValues.resize(1, false);
-            rValues[0] = TauTwo * DivU;
-            if(rCurrentProcessInfo[OSS_SWITCH]==1)
-            {
-                double Proj = 0.0;
-                for(unsigned int i=0; i < TNumNodes; i++)
-                {
-                    Proj += N[i]*this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
-                }
-                rValues[0] -= TauTwo*Proj;
-            }
-        }
-        else if (rVariable == NODAL_AREA && TDim == 3)
-        {
-            MatrixType J = ZeroMatrix(3,3);
-            const array_1d<double,3>& X0 = this->GetGeometry()[0].Coordinates();
-            const array_1d<double,3>& X1 = this->GetGeometry()[1].Coordinates();
-            const array_1d<double,3>& X2 = this->GetGeometry()[2].Coordinates();
-            const array_1d<double,3>& X3 = this->GetGeometry()[3].Coordinates();
-
-            J(0,0) = X1[0]-X0[0];
-            J(0,1) = X2[0]-X0[0];
-            J(0,2) = X3[0]-X0[0];
-            J(1,0) = X1[1]-X0[1];
-            J(1,1) = X2[1]-X0[1];
-            J(1,2) = X3[1]-X0[1];
-            J(2,0) = X1[2]-X0[2];
-            J(2,1) = X2[2]-X0[2];
-            J(2,2) = X3[2]-X0[2];
-
-            double DetJ = J(0,0)*( J(1,1)*J(2,2) - J(1,2)*J(2,1) ) + J(0,1)*( J(1,2)*J(2,0) - J(1,0)*J(2,2) ) + J(0,2)*( J(1,0)*J(2,1) - J(1,1)*J(2,0) );
-            rValues.resize(1, false);
-            rValues[0] = DetJ;
-        }
-        else if (rVariable == ERROR_RATIO)
-        {
-            rValues.resize(1,false);
-            rValues[0] = this->SubscaleErrorEstimate(rCurrentProcessInfo);
-        }
-        else // Default behaviour (returns elemental data)
-        {
-            rValues.resize(1, false);
-            /*
-             The cast is done to avoid modification of the element's data. Data modification
-             would happen if rVariable is not stored now (would initialize a pointer to &rVariable
-             with associated value of 0.0). This is catastrophic if the variable referenced
-             goes out of scope.
-             */
-            const VMS<TDim, TNumNodes>* const_this = static_cast<const VMS<TDim, TNumNodes>*> (this);
-            rValues[0] = const_this->GetValue(rVariable);
-        }
-    }
+    {}
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
     void CalculateOnIntegrationPoints(
@@ -857,7 +1220,7 @@ public:
 
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
-            if constexpr (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
+            if (TDim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
             KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
         }
         // Not checking OSS related variables NODAL_AREA, ADVPROJ, DIVPROJ, which are only required as SolutionStepData if OSS_SWITCH == 1
@@ -890,14 +1253,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "VMS #" << Id();
+        buffer << "HYPO #" << Id();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "VMS" << TDim << "D";
+        rOStream << "HYPO" << TDim << "D";
     }
 
 //        /// Print object's data.
@@ -942,25 +1305,7 @@ protected:
      * @param Viscosity Dynamic viscosity (mu) on integrartion point
      * @param rCurrentProcessInfo Process info instance
      */
-    virtual void CalculateTau(double& TauOne,
-                              double& TauTwo,
-                              const array_1d< double, 3 > & rAdvVel,
-                              const double ElemSize,
-                              const double Density,
-                              const double Viscosity,
-                              const ProcessInfo& rCurrentProcessInfo)
-    {
-        // Compute mean advective velocity norm
-        double AdvVelNorm = 0.0;
-        for (unsigned int d = 0; d < TDim; ++d)
-            AdvVelNorm += rAdvVel[d] * rAdvVel[d];
 
-        AdvVelNorm = sqrt(AdvVelNorm);
-
-        double InvTau = Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 2.0*AdvVelNorm / ElemSize ) + 4.0*Viscosity/ (ElemSize * ElemSize);
-        TauOne = 1.0 / InvTau;
-        TauTwo = Viscosity + 0.5 * Density * ElemSize * AdvVelNorm;
-    }
 
     /// Calculate momentum stabilization parameter (without time term).
     /**
@@ -973,22 +1318,6 @@ protected:
      * @param Density Density on integrartion point
      * @param Viscosity Dynamic viscosity (mu) on integrartion point
      */
-    virtual void CalculateStaticTau(double& TauOne,
-                                    const array_1d< double, 3 > & rAdvVel,
-                                    const double ElemSize,
-                                    const double Density,
-                                    const double Viscosity)
-    {
-        // Compute mean advective velocity norm
-        double AdvVelNorm = 0.0;
-        for (unsigned int d = 0; d < TDim; ++d)
-            AdvVelNorm += rAdvVel[d] * rAdvVel[d];
-
-        AdvVelNorm = sqrt(AdvVelNorm);
-
-        double InvTau = 2.0*Density*AdvVelNorm / ElemSize + 4.0*Viscosity/ (ElemSize * ElemSize);
-        TauOne = 1.0 / InvTau;
-    }
 
     /// Add the momentum equation contribution to the RHS (body forces)
     virtual void AddMomentumRHS(VectorType& F,
@@ -1015,41 +1344,6 @@ protected:
     }
 
     /// Add OSS projection terms to the RHS
-    virtual void AddProjectionToRHS(VectorType& RHS,
-                                    const array_1d<double, 3 > & rAdvVel,
-                                    const double Density,
-                                    const double TauOne,
-                                    const double TauTwo,
-                                    const array_1d<double, TNumNodes>& rShapeFunc,
-                                    const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
-                                    const double Weight,
-                                    const double DeltaTime = 1.0)
-    {
-        const unsigned int BlockSize = TDim + 1;
-
-        array_1d<double, TNumNodes> AGradN;
-        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
-        array_1d<double,3> MomProj = ZeroVector(3);
-        double DivProj = 0.0;
-        this->EvaluateInPoint(MomProj,ADVPROJ,rShapeFunc);
-        this->EvaluateInPoint(DivProj,DIVPROJ,rShapeFunc);
-
-        MomProj *= TauOne;
-        DivProj *= TauTwo;
-
-        unsigned int FirstRow = 0;
-
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            for (unsigned int d = 0; d < TDim; d++)
-            {
-                RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + rShapeDeriv(i,d) * DivProj); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
-                RHS[FirstRow+TDim] -= Weight * rShapeDeriv(i,d) * MomProj[d]; // TauOne * Grad(q) * MomProjection
-            }
-            FirstRow += BlockSize;
-        }
-    }
 
     /// Add lumped mass matrix
     /**
@@ -1069,42 +1363,10 @@ protected:
                 rLHSMatrix(DofIndex, DofIndex) += Mass;
                 ++DofIndex;
             }
-            ++DofIndex; // Skip pressure Dof
+           // ++DofIndex; // Skip pressure Dof
         }
     }
 
-    void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix,
-            const array_1d<double,TNumNodes>& rShapeFunc,
-            const double Density,
-            const double Weight)
-    {
-        const unsigned int BlockSize = TDim + 1;
-
-        double Coef = Density * Weight;
-        unsigned int FirstRow(0), FirstCol(0);
-        double K; // Temporary results
-
-        // Note: Dof order is (vx,vy,[vz,]p) for each node
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            // Loop over columns
-            for (unsigned int j = 0; j < TNumNodes; ++j)
-            {
-                // Delta(u) * TauOne * [ AdvVel * Grad(v) ] in velocity block
-                K = Coef * rShapeFunc[i] * rShapeFunc[j];
-
-                for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
-                {
-                    rLHSMatrix(FirstRow + d, FirstCol + d) += K;
-                }
-                // Update column index
-                FirstCol += BlockSize;
-            }
-            // Update matrix indices
-            FirstRow += BlockSize;
-            FirstCol = 0;
-        }
-    }
 
 
     /// Add mass-like stabilization terms to LHS.
@@ -1120,179 +1382,16 @@ protected:
      * @param rShapeDeriv Shape function derivatives evaluated on integration point
      * @param Weight Area (or volume) times integration point weight
      */
-    void AddMassStabTerms(MatrixType& rLHSMatrix,
-                          const double Density,
-                          const array_1d<double, 3 > & rAdvVel,
-                          const double TauOne,
-                          const array_1d<double, TNumNodes>& rShapeFunc,
-                          const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
-                          const double Weight)
-    {
-        const unsigned int BlockSize = TDim + 1;
 
-        double Coef = Weight * TauOne;
-        unsigned int FirstRow(0), FirstCol(0);
-        double K; // Temporary results
-
-        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
-        array_1d<double, TNumNodes> AGradN;
-        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
-        // Note: Dof order is (vx,vy,[vz,]p) for each node
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
-            // Loop over columns
-            for (unsigned int j = 0; j < TNumNodes; ++j)
-            {
-                // Delta(u) * TauOne * [ AdvVel * Grad(v) ] in velocity block
-                K = Coef * Density * AGradN[i] * Density * rShapeFunc[j];
-
-                for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
-                {
-                    rLHSMatrix(FirstRow + d, FirstCol + d) += K;
-                    // Delta(u) * TauOne * Grad(q) in q * Div(u) block
-                    rLHSMatrix(FirstRow + TDim, FirstCol + d) += Coef * Density * rShapeDeriv(i, d) * rShapeFunc[j];
-                }
-                // Update column index
-                FirstCol += BlockSize;
-            }
-            // Update matrix indices
-            FirstRow += BlockSize;
-            FirstCol = 0;
-        }
-    }
 
     /// Add a the contribution from a single integration point to the velocity contribution
-    void AddIntegrationPointVelocityContribution(MatrixType& rDampingMatrix,
-            VectorType& rDampRHS,
-            const double Density,
-            const double Viscosity,
-            const array_1d< double, 3 > & rAdvVel,
-            const double TauOne,
-            const double TauTwo,
-            const array_1d< double, TNumNodes >& rShapeFunc,
-            const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
-            const double Weight)
-    {
-        const unsigned int BlockSize = TDim + 1;
-
-        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
-        array_1d<double, TNumNodes> AGradN;
-        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
-        // Build the local matrix and RHS
-        unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
-        double K, G, PDivV, L, qF; // Temporary results
-
-        array_1d<double,3> BodyForce = ZeroVector(3);
-        this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
-        BodyForce *= Density;
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
-        {
-            for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
-            {
-                // Calculate the part of the contributions that is constant for each node combination
-
-                // Velocity block
-                K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
-                //K = 0.5 * Density * (rShapeFunc[i] * AGradN[j] - AGradN[i] * rShapeFunc[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
-                K += TauOne * Density * AGradN[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
-                K *= Weight;
-
-                // q-p stabilization block (reset result)
-                L = 0;
-
-                for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
-                {
-                    // Velocity block
-                    //K += Weight * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
-
-                    // v * Grad(p) block
-                    G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
-                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
-
-                    // Write v * Grad(p) component
-                    rDampingMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
-                    // Use symmetry to write the q * Div(u) component
-                    rDampingMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
-
-                    // q-p stabilization block
-                    L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
-
-                    for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
-                    {
-                        // Velocity block
-                        rDampingMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
-                    }
-
-                }
-
-                // Write remaining terms to velocity block
-                for (unsigned int d = 0; d < TDim; ++d)
-                    rDampingMatrix(FirstRow + d, FirstCol + d) += K;
-
-                // Write q-p stabilization block
-                rDampingMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
-
-
-                // Update reference column index for next iteration
-                FirstCol += BlockSize;
-            }
-
-            // Operate on RHS
-            qF = 0.0;
-            for (unsigned int d = 0; d < TDim; ++d)
-            {
-                rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-                qF += rShapeDeriv(i, d) * BodyForce[d];
-            }
-            rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
-
-            // Update reference indices
-            FirstRow += BlockSize;
-            FirstCol = 0;
-        }
-
-//            this->AddBTransCB(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
-        this->AddViscousTerm(rDampingMatrix,rShapeDeriv,Viscosity*Weight);
-    }
-
 
     /// Assemble the contribution from an integration point to the element's residual.
     /** Note that the dynamic term is not included in the momentum equation.
      *  If OSS_SWITCH = 1, we don't take into account the 'dynamic' stabilization
      *  terms, as it they belong to the finite element space.
      */
-    void AddProjectionResidualContribution(const array_1d< double, 3 > & rAdvVel,
-                                           const double Density,
-                                           array_1d< double, 3 > & rElementalMomRes,
-                                           double& rElementalMassRes,
-                                           const array_1d< double, TNumNodes >& rShapeFunc,
-                                           const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
-                                           const double Weight)
-    {
-        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
-        array_1d<double, TNumNodes> AGradN;
-        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
-        // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
-        for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
-        {
-
-            // Variable references
-            const array_1d< double, 3 > & rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            const array_1d< double, 3 > & rBodyForce = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-            const double& rPressure = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-
-            // Compute this node's contribution to the residual (evaluated at inegration point)
-            for (unsigned int d = 0; d < TDim; ++d)
-            {
-                rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
-                rElementalMassRes -= Weight * rShapeDeriv(i, d) * rVelocity[d];
-            }
-        }
-    }
 
     /// Assemble the contribution from an integration point to the element's residual.
     /**
@@ -1304,34 +1403,7 @@ protected:
      * @param rShapeDeriv Shape function derivatives evaluated at integration point
      * @param Weight Integration point weight (as a fraction of area or volume)
      */
-    void ASGSMomResidual(const array_1d< double, 3 > & rAdvVel,
-                         const double Density,
-                         array_1d< double, 3 > & rElementalMomRes,
-                         const array_1d< double, TNumNodes >& rShapeFunc,
-                         const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
-                         const double Weight)
-    {
-        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
-        array_1d<double, TNumNodes> AGradN;
-        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
-        // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
-        for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
-        {
-
-            // Variable references
-            const array_1d< double, 3 > & rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            const array_1d< double, 3 > & rAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION);
-            const array_1d< double, 3 > & rBodyForce = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-            const double& rPressure = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-
-            // Compute this node's contribution to the residual (evaluated at inegration point)
-            for (unsigned int d = 0; d < TDim; ++d)
-            {
-                rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (rBodyForce[d] - rAcceleration[d]) - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
-            }
-        }
-    }
 
     /// Assemble the contribution from an integration point to the element's residual.
     /**
@@ -1343,35 +1415,7 @@ protected:
      * @param rShapeDeriv Shape function derivatives evaluated at integration point
      * @param Weight Integration point weight (as a fraction of area or volume)
      */
-    void OSSMomResidual(const array_1d< double, 3 > & rAdvVel,
-                        const double Density,
-                        array_1d< double, 3 > & rElementalMomRes,
-                        const array_1d< double, TNumNodes >& rShapeFunc,
-                        const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
-                        const double Weight)
-    {
-        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
-        array_1d<double, TNumNodes> AGradN;
-        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
-        // Compute contribution to Kij * Uj, with Kij = Ni * Residual(Nj); Uj = (v,p)Node_j (column vector)
-        for (unsigned int i = 0; i < TNumNodes; ++i) // Iterate over element nodes
-        {
-
-            // Variable references
-            const array_1d< double, 3 > & rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-            const array_1d< double, 3 > & rBodyForce = this->GetGeometry()[i].FastGetSolutionStepValue(BODY_FORCE);
-            const array_1d< double, 3 > & rProjection = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
-            const double& rPressure = this->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-
-            // Compute this node's contribution to the residual (evaluated at inegration point)
-            for (unsigned int d = 0; d < TDim; ++d)
-            {
-                rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
-                rElementalMomRes[d] -= Weight * rShapeFunc[i] * rProjection[d];
-            }
-        }
-    }
 
 
     /**
@@ -1389,26 +1433,6 @@ protected:
      * @param rProcessInfo ProcessInfo instance passed from the ModelPart.
      * @return Effective viscosity, in dynamic units (Pa*s or equivalent).
      */
-    virtual double EffectiveViscosity(double Density,
-                                      const array_1d< double, TNumNodes > &rN,
-                                      const BoundedMatrix<double, TNumNodes, TDim > &rDN_DX,
-                                      double ElemSize,
-                                      const ProcessInfo &rProcessInfo)
-    {
-        const double Csmag = (static_cast< const VMS<TDim> * >(this) )->GetValue(C_SMAGORINSKY);
-        double Viscosity = 0.0;
-        this->EvaluateInPoint(Viscosity,VISCOSITY,rN);
-
-        if (Csmag > 0.0)
-        {
-            double StrainRate = this->EquivalentStrainRate(rDN_DX); // (2SijSij)^0.5
-            double LengthScale = Csmag*ElemSize;
-            LengthScale *= LengthScale; // square
-            Viscosity += 2.0*LengthScale*StrainRate;
-        }
-
-        return Density*Viscosity;
-    }
 
 
 
@@ -1542,9 +1566,9 @@ protected:
      * @param rShapeDeriv Elemental shape function derivatives
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
-    virtual void AddViscousTerm(MatrixType& rDampingMatrix,
-                                const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
-                                const double Weight);
+    //virtual void AddViscousTerm(MatrixType& rDampingMatrix,
+    //                            const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
+    //                            const double Weight);
 
     /// Adds the contribution of the viscous term to the momentum equation (alternate).
     /**
@@ -1557,139 +1581,7 @@ protected:
      * @param rShapeDeriv Elemental shape function derivatives
      * @param Weight Effective viscosity, in dynamic units, weighted by the integration point area
      */
-    void AddBTransCB(MatrixType& rDampingMatrix,
-                     const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv,
-                     const double Weight)
-    {
-        BoundedMatrix<double, (TDim * TNumNodes)/2, TDim*TNumNodes > B;
-        BoundedMatrix<double, (TDim * TNumNodes)/2, (TDim*TNumNodes)/2 > C;
-        this->CalculateB(B,rShapeDeriv);
-        this->CalculateC(C,Weight);
 
-        const unsigned int BlockSize = TDim + 1;
-        const unsigned int StrainSize = (TDim*TNumNodes)/2;
-
-        DenseVector<unsigned int> aux(TDim*TNumNodes);
-        for(unsigned int i=0; i<TNumNodes; i++)
-        {
-            int base_index = TDim*i;
-            int aux_index = BlockSize*i;
-            for(unsigned int j=0; j<TDim; j++)
-            {
-                aux[base_index+j] = aux_index+j;
-            }
-        }
-
-        for(unsigned int k=0; k< StrainSize; k++)
-        {
-            for(unsigned int l=0; l< StrainSize; l++)
-            {
-                const double Ckl = C(k,l);
-                for (unsigned int i = 0; i < TDim*TNumNodes; ++i) // iterate over v components (vx,vy[,vz])
-                {
-                    const double Bki=B(k,i);
-                    for (unsigned int j = 0; j < TDim*TNumNodes; ++j) // iterate over u components (ux,uy[,uz])
-                    {
-                        rDampingMatrix(aux[i],aux[j]) += Bki*Ckl*B(l,j);
-                    }
-
-                }
-
-            }
-        }
-    }
-
-    void ModulatedGradientDiffusion(MatrixType& rDampingMatrix,
-            const BoundedMatrix<double, TNumNodes, TDim >& rDN_DX,
-            const double Weight)
-    {
-        const GeometryType& rGeom = this->GetGeometry();
-
-        // Velocity gradient
-        MatrixType GradU = ZeroMatrix(TDim,TDim);
-        for (unsigned int n = 0; n < TNumNodes; n++)
-        {
-            const array_1d<double,3>& rVel = this->GetGeometry()[n].FastGetSolutionStepValue(VELOCITY);
-            for (unsigned int i = 0; i < TDim; i++)
-                for (unsigned int j = 0; j < TDim; j++)
-                    GradU(i,j) += rDN_DX(n,j)*rVel[i];
-        }
-
-        // Element lengths
-        array_1d<double,3> Delta;
-        Delta[0] = std::fabs(rGeom[TNumNodes-1].X()-rGeom[0].X());
-        Delta[1] = std::fabs(rGeom[TNumNodes-1].Y()-rGeom[0].Y());
-        Delta[2] = std::fabs(rGeom[TNumNodes-1].Z()-rGeom[0].Z());
-
-        for (unsigned int n = 1; n < TNumNodes; n++)
-        {
-            double hx = std::fabs(rGeom[n].X()-rGeom[n-1].X());
-            if (hx > Delta[0]) Delta[0] = hx;
-            double hy = std::fabs(rGeom[n].Y()-rGeom[n-1].Y());
-            if (hy > Delta[1]) Delta[1] = hy;
-            double hz = std::fabs(rGeom[n].Z()-rGeom[n-1].Z());
-            if (hz > Delta[2]) Delta[2] = hz;
-        }
-
-        double AvgDeltaSq = Delta[0];
-        for (unsigned int d = 1; d < TDim; d++)
-            AvgDeltaSq *= Delta[d];
-        AvgDeltaSq = std::pow(AvgDeltaSq,2./TDim);
-
-        Delta[0] = Delta[0]*Delta[0]/12.0;
-        Delta[1] = Delta[1]*Delta[1]/12.0;
-        Delta[2] = Delta[2]*Delta[2]/12.0;
-
-        // Gij
-        MatrixType G = ZeroMatrix(TDim,TDim);
-        for (unsigned int i = 0; i < TDim; i++)
-            for (unsigned int j = 0; j < TDim; j++)
-                for (unsigned int d = 0; d < TDim; d++)
-                    G(i,j) += Delta[d]*GradU(i,d)*GradU(j,d);
-
-        // Gij:Sij
-        double GijSij = 0.0;
-        for (unsigned int i = 0; i < TDim; i++)
-            for (unsigned int j = 0; j < TDim; j++)
-                GijSij += 0.5*G(i,j)*( GradU(i,j) + GradU(j,i) );
-
-        if (GijSij < 0.0) // Otherwise model term is clipped
-        {
-            // Gkk
-            double Gkk = G(0,0);
-            for (unsigned int d = 1; d < TDim; d++)
-                Gkk += G(d,d);
-
-            // C_epsilon
-            const double Ce = 1.0;
-
-            // ksgs
-            double ksgs = -4*AvgDeltaSq*GijSij/(Ce*Ce*Gkk);
-
-            // Assembly of model term
-            unsigned int RowIndex = 0;
-            unsigned int ColIndex = 0;
-
-            for (unsigned int i = 0; i < TNumNodes; i++)
-            {
-                for (unsigned int j = 0; j < TNumNodes; j++)
-                {
-                    for (unsigned int d = 0; d < TDim; d++)
-                    {
-                        double Aux = rDN_DX(i,d) * Delta[0] * G(d,0)*rDN_DX(j,0);
-                        for (unsigned int k = 1; k < TDim; k++)
-                            Aux += rDN_DX(i,d) *Delta[k] * G(d,k)*rDN_DX(j,k);
-                        rDampingMatrix(RowIndex+d,ColIndex+d) += Weight * 2.0*ksgs *  Aux;
-                    }
-
-                    ColIndex += TDim;
-                }
-                RowIndex += TDim;
-                ColIndex = 0;
-            }
-        }
-
-    }
 
     /// Calculate the strain rate matrix
     /**
@@ -1697,8 +1589,7 @@ protected:
      * @param rB Strain rate matrix
      * @param rShapeDeriv Nodal shape funcion derivatives
      */
-    void CalculateB( BoundedMatrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,
-                     const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv);
+    //void CalculateB( BoundedMatrix<double, (TDim * TNumNodes) / 2, TDim * TNumNodes >& rB,                    const BoundedMatrix<double, TNumNodes, TDim >& rShapeDeriv);
 
     /// Calculate a matrix that provides the stress given the strain rate
     /**
@@ -1708,13 +1599,12 @@ protected:
      * @param rC Matrix representation of the stress tensor (output)
      * @param Viscosity Effective viscosity, in dynamic units, weighted by the integration point area
      */
-    virtual void CalculateC( BoundedMatrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
-                             const double Viscosity);
+    //virtual void CalculateC( BoundedMatrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,                             const double Viscosity);
 
     double ConsistentMassCoef(const double Area);
 
 
-    double SubscaleErrorEstimate(const ProcessInfo& rProcessInfo)
+    /*double SubscaleErrorEstimate(const ProcessInfo& rProcessInfo)
     {
         // Get the element's geometric parameters
         double Area;
@@ -1765,7 +1655,7 @@ protected:
         //ErrorRatio /= Density;
         //this->SetValue(ERROR_RATIO, ErrorRatio);
         return ErrorRatio;
-    }
+    }*/
 
     ///@}
     ///@name Protected  Access
@@ -1834,14 +1724,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    VMS & operator=(VMS const& rOther);
+    HYPO & operator=(HYPO const& rOther);
 
     /// Copy constructor.
-    VMS(VMS const& rOther);
+    HYPO(HYPO const& rOther);
 
     ///@}
 
-}; // Class VMS
+}; // Class HYPO
 
 ///@}
 
@@ -1858,7 +1748,7 @@ private:
 template< unsigned int TDim,
           unsigned int TNumNodes >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 VMS<TDim, TNumNodes>& rThis)
+                                 HYPO<TDim, TNumNodes>& rThis)
 {
     return rIStream;
 }
@@ -1867,7 +1757,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 template< unsigned int TDim,
           unsigned int TNumNodes >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const VMS<TDim, TNumNodes>& rThis)
+                                 const HYPO<TDim, TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

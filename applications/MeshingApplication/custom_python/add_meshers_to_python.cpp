@@ -28,7 +28,7 @@
     #include "external_includes/tetgen_cdt.h"
 #else
     #define REAL double
-#endif 
+#endif
 
 #if USE_TRIANGLE_NONFREE_TPL
     #include "external_includes/trigen_pfem_refine.h"
@@ -37,7 +37,7 @@
     #include "external_includes/trigen_glass_forming.h"
     #include "external_includes/trigen_droplet_refine.h"
     #include "external_includes/trigen_cdt.h"
-#endif 
+#endif
 
 namespace Kratos
 {
@@ -200,7 +200,7 @@ void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char*
 
 void  AddMeshersToPython(pybind11::module& m)
 {
-    
+
 #ifdef USE_TETGEN_NONFREE_TPL
     // Class that allows 3D adaptive remeshing (inserting and erasing nodes)
     py::class_<TetGenPfemModeler, TetGenPfemModeler::Pointer >(m, "TetGenPfemModeler")
@@ -218,7 +218,7 @@ void  AddMeshersToPython(pybind11::module& m)
     .def(py::init< >())
     .def("ReGenerateMesh",TetRegenerateMeshContact)
     ;
-    
+
     py::class_<TetGenCDT, TetGenCDT::Pointer >(m, "TetGenCDT")
     .def(py::init< >())
     .def("GenerateCDT",GenerateCDT)
@@ -229,7 +229,7 @@ void  AddMeshersToPython(pybind11::module& m)
     .def("ReGenerateMesh",&TetGenPfemModelerVms::ReGenerateMesh)
     ;
 #endif
-    
+
 #if USE_TRIANGLE_NONFREE_TPL
     // Class that allows 2D adaptive remeshing (inserting and erasing nodes)
     py::class_<TriGenPFEMModeler, TriGenPFEMModeler::Pointer >(m, "TriGenPFEMModeler")

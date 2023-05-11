@@ -156,7 +156,6 @@ namespace Kratos
 			PointVector res(max_results);
 			DistanceVector res_distances(max_results);
 			Node<3> work_point(0,0.0,0.0,0.0);
-			KRATOS_WATCH(h_factor)
  			//if the remove_node switch is activated, we check if the nodes got too close
 			if (rem_nodes==true)
 			{
@@ -237,8 +236,7 @@ namespace Kratos
 			tetrahedralize(tetgen_options, &in, &out); //with option to remove slivers
 
 
-			double first_part_time = auxiliary.elapsed();
-			std::cout << "mesh generation time = " << first_part_time << std::endl;
+			//double first_part_time = auxiliary.elapsed();
 
 			//generate Kratos Tetrahedra3D4
 			int el_number = out.numberoftetrahedra;
@@ -390,13 +388,11 @@ namespace Kratos
 					{
 						if( radius  < prescribed_h * alpha_param * 5.0 )
 						{
-//std::cout << "element not deleted" <<std::endl;
 							preserved_list[el] = true; //preserve!!
 							number_of_preserved_elems += 1;
 						}
 						else
 						{
-//std::cout << "sliver removed" << std::endl;
 							preserved_list[el] = false;
 
 						}
@@ -406,7 +402,6 @@ namespace Kratos
 				}
 
 			}
-			std::cout << "time for passing alpha shape" << alpha_shape_time.elapsed() << std::endl;
 
 			//freeing unnecessary memory
 			in.deinitialize();
@@ -426,7 +421,6 @@ namespace Kratos
 				in2.pointlist[base+1] = (nodes_begin + i)->Y();
 				in2.pointlist[base+2] = (nodes_begin + i)->Z();
 			}
-			std::cout << "qui" << std::endl;
 			in2.numberoftetrahedra = number_of_preserved_elems;
 			in2.tetrahedronlist = new int[in2.numberoftetrahedra * 4];
 			in2.tetrahedronvolumelist = new double[in2.numberoftetrahedra];
@@ -516,7 +510,6 @@ namespace Kratos
 
 			//q - creates quality mesh, with the default radius-edge ratio set to 2.0
 
- 			std::cout << "mesh recreation time" << mesh_recreation_time.elapsed() << std::endl;
 
 
 			//PAVEL
@@ -577,7 +570,6 @@ namespace Kratos
 				}
 			}
 
-			std::cout << "During refinement we added " << outnew.numberofpoints-n_points_before_refinement<< "nodes " <<std::endl;
 
 
 			bucket_size = 50;
@@ -742,7 +734,7 @@ namespace Kratos
 					);
 
 
-#ifdef _DEBUG
+/*#ifdef _DEBUG //This part was crashing in Win and showing errors in Linux valgrind (conditional jump depends on uninitialized values)
 ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				if( *(ModelNodes).find( outnew.tetrahedronlist[base]).base() == *(ThisModelPart.Nodes().end()).base() )
 					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
@@ -752,13 +744,12 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
 				if( *(ModelNodes).find( outnew.tetrahedronlist[base+3]).base() == *(ThisModelPart.Nodes().end()).base() )
 					KRATOS_THROW_ERROR(std::logic_error,"trying to use an inexisting node","");
-#endif
+#endif*/
 
 				Element::Pointer p_element = rReferenceElement.Create(id, geom, properties);
 				(ThisModelPart.Elements()).push_back(p_element);
 
 			}
-			std::cout << "time for adding elems" << adding_elems.elapsed() << std::endl;;
 			ThisModelPart.Elements().Sort();
 
 			boost::timer adding_neighb;
@@ -782,7 +773,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 						neighb(i) = Element::WeakPointer();
 				}
 			}
-			std::cout << "time for adding neigbours" << adding_neighb.elapsed() << std::endl;;
 
 
 
@@ -797,7 +787,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				in->FastGetSolutionStepValue(IS_BOUNDARY) = 0;
 			}
 
-                        std::cout << "reset the boundary flag" << adding_neighb.elapsed() << std::endl;;
 			//***********************************************************************************
 			//***********************************************************************************
 			boost::timer adding_faces;
@@ -844,7 +833,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			}
 			outnew.deinitialize();
 			outnew.initialize();
-			std::cout << "time for adding faces" << adding_faces.elapsed() << std::endl;;
 
 
 
@@ -869,8 +857,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			*/
 
 
-			double second_part_time = auxiliary.elapsed();
-			std::cout << "second part time = " << second_part_time - first_part_time << std::endl;
+			//double second_part_time = auxiliary.elapsed();
 
 
 			KRATOS_CATCH("")
@@ -1138,7 +1125,6 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			const double x2 = c3[0]; const double y2 = c3[1]; const double z2 = c3[2];
 			const double x3 = c4[0]; const double y3 = c4[1]; const double z3 = c4[2];
 
-// 			KRATOS_WATCH("111111111111111111111");
 			//calculate min side lenght
 			//(use xc as a auxiliary vector) !!!!!!!!!!!!
 			double aux;

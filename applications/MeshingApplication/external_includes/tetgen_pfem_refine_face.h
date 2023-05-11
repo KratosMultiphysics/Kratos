@@ -1311,7 +1311,6 @@ private:
         const double y3 = c4[1];
         const double z3 = c4[2];
 
-// 			KRATOS_WATCH("111111111111111111111");
         //calculate min side lenght
         //(use xc as a auxiliary vector) !!!!!!!!!!!!
         double aux;

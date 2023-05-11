@@ -874,7 +874,7 @@ namespace Kratos {
         //*********************************************************************************
         //Updating first time Derivative
         //*********************************************************************************
-        void UpdateDisplacement(array_1d<double, 3 > & CurrentDisplacement,
+        virtual void UpdateDisplacement(array_1d<double, 3 > & CurrentDisplacement,
                                 const array_1d<double, 3 > & OldDisplacement,
                                 const array_1d<double, 3 > & OldVelocity,
                                 const array_1d<double, 3 > & OldAcceleration,
