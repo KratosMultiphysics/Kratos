@@ -225,7 +225,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def LaunchROM(self, mu_train):
+    def __LaunchROM(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -250,7 +250,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def TrainPG(self, mu_train):
+    def __LaunchTrainPG(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -269,7 +269,7 @@ class RomManager(object):
         simulation.GetPetrovGalerkinTrainUtility().CalculateAndSaveBasis(np.block(PetrovGalerkinTrainMatrix))
 
 
-    def LaunchTrainHROM(self, mu_train, store_residuals_projected=False):
+    def __LaunchTrainHROM(self, mu_train, store_residuals_projected=False):
         """
         This method should be parallel capable
         """
@@ -296,7 +296,7 @@ class RomManager(object):
         simulation.GetHROM_utility().CreateHRomModelParts()
 
 
-    def LaunchHROM(self, mu_train):
+    def __LaunchHROM(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -321,7 +321,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def LaunchTestFOM(self, mu_test):
+    def __LaunchTestFOM(self, mu_test):
         """
         This method should be parallel capable
         """
@@ -347,7 +347,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def LaunchTestROM(self, mu_test):
+    def __LaunchTestROM(self, mu_test):
         """
         This method should be parallel capable
         """
@@ -373,7 +373,7 @@ class RomManager(object):
 
 
 
-    def LaunchTestHROM(self, mu_test):
+    def __LaunchTestHROM(self, mu_test):
         """
         This method should be parallel capable
         """
