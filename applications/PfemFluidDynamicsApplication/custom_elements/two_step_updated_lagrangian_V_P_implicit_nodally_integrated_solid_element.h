@@ -202,13 +202,14 @@ namespace Kratos
                                          VectorType &rRightHandSideVector,
                                          const ProcessInfo &rCurrentProcessInfo) override;
 
-    void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
-                                          double TimeStep,
-                                          unsigned int g,
-                                          const ProcessInfo &rCurrentProcessInfo,
-                                          double &Density,
-                                          double &DeviatoricCoeff,
-                                          double &VolumetricCoeff) override;
+    void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override;
 
     // The following methods have different implementations depending on TDim
     /// Provides the global indices for each one of this element's local rows
