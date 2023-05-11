@@ -74,6 +74,11 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     @return The thread number for this thread, 0 if scalar run.
+     */
+    [[nodiscard]] static int GetThreadId();
+
     /** @brief Returns the current number of threads
      * @return number of threads
      */

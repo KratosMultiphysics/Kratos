@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
@@ -30,6 +30,18 @@ namespace {
     std::once_flag flag_once;
 }
 
+int ParallelUtilities::GetThreadId()
+{
+#ifdef KRATOS_SMP_OPENMP
+    const int ithreads = omp_get_thread_num();
+    return ithreads;
+#elif defined(KRATOS_SMP_CXX11)
+    KRATOS_ERROR << "No equivalent definition of GetThreadId in C++11. Replace current implementation to something that fits the C++ STL requirements" << std::endl;
+    return -1;
+#else
+    return 0;
+#endif
+}
 
 int ParallelUtilities::GetNumThreads()
 {
