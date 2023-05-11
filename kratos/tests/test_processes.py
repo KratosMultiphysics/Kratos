@@ -2522,12 +2522,12 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[1].Id, 2)
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[2].Id, 31)
     
-    def test_assign_mpcs_to_neighbours_process(self):
+    def test_assign_master_slave_constraints_to_neighbours_process(self):
         # Set up the model
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_assign_mpcs_to_neighbours_process"))
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_assign_master_slave_constraints_to_neighbours_process"))
         model_part_io.ReadModelPart(model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
 
@@ -2537,16 +2537,16 @@ class TestProcesses(KratosUnittest.TestCase):
             {
                 "process_list" : [
                     {
-                        "python_module": "assign_mpcs_to_neighbours_process",
+                        "python_module": "assign_master_slave_constraints_to_neighbours_process",
                         "kratos_module": "KratosMultiphysics",
-                        "process_name": "AssignMPCsToNeighboursProcess",
+                        "process_name": "AssignMasterSlaveCostraintsToNeighboursProcess",
                         "Parameters": {
-                            "computing_model_part_name": "Main",
+                            "model_part_name": "Main",
                             "master_model_part_name": "Main.GENERIC_Master",
                             "slave_model_part_name": "Main.GENERIC_Slave",
                             "search_radius": 0.01,
                             "minimum_number_of_neighbouring_nodes": 3,
-                            "assign_mpcs_every_time_step":  true,
+                            "reform_constraints_at_each_step":  true,
                             "variable_names": ["DISPLACEMENT_X"]
                         }
                     }
@@ -2555,11 +2555,10 @@ class TestProcesses(KratosUnittest.TestCase):
             """
         )
 
-        # Create and execute processes
-        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(settings["process_list"])
-        for process in list_of_processes:
-            process.ExecuteInitialize()
-            process.ExecuteInitializeSolutionStep()
+        # Create and execute process
+        process = KratosMultiphysics.AssignMasterSlaveCostraintsToNeighboursProcess(model_part, settings)
+        process.ExecuteInitialize()
+        process.ExecuteInitializeSolutionStep()
 
         # Define expected constraint weights
         expected_constraints_weights = [
