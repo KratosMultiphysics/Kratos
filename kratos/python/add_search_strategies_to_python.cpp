@@ -733,7 +733,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         std::vector<std::vector<ResultType>> results;
-        self.IterativeSearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
+        self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
 
         // Copy the results to the python list
         py::list list_results;
@@ -746,10 +746,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         }
         return list_results;
     })
-    .def("SearchNearestInRadius", &GeometricalObjectsBins::SearchNearestInRadius)
+    .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        return self.SearchNearestInRadius(rPoint, Radius);
+    })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        std::vector<ResultType> results = self.IterativeSearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
+        std::vector<ResultType> results = self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
 
         // Copy the results to the python list
         py::list list_results;
@@ -758,10 +761,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         }
         return list_results;
     })
-    .def("SearchNearest", &GeometricalObjectsBins::SearchNearest)
+    .def("SearchNearest", [&](GeometricalObjectsBins& self, const Point& rPoint) {
+        // Perform the search
+        return self.SearchNearest(rPoint);
+    })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        std::vector<ResultType> results = self.IterativeSearchNearest(rNodes.begin(), rNodes.end());
+        std::vector<ResultType> results = self.SearchNearest(rNodes.begin(), rNodes.end());
 
         // Copy the results to the python list
         py::list list_results;
@@ -770,10 +776,13 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         }
         return list_results;
     })
-    .def("SearchIsInside", &GeometricalObjectsBins::SearchIsInside)
+    .def("SearchIsInside", [&](GeometricalObjectsBins& self, const Point& rPoint) {
+        // Perform the search
+        return self.SearchIsInside(rPoint);
+    })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        std::vector<ResultType> results = self.IterativeSearchIsInside(rNodes.begin(), rNodes.end());
+        std::vector<ResultType> results = self.SearchIsInside(rNodes.begin(), rNodes.end());
 
         // Copy the results to the python list
         py::list list_results;
