@@ -153,15 +153,15 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         #######################
         ######  Galerkin ######
-        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
+        if chosen_projection_strategy == "galerkin":
             self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
+        elif chosen_projection_strategy == "lspg":
             self._ChangeRomFlags(simulation_to_run = "lspg")
         ##########################
         ###  Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
+        elif chosen_projection_strategy == "petrov_galerkin":
             self._ChangeRomFlags(simulation_to_run = "PG")
         else:
             err_msg = f"Provided projection strategy '{self.general_rom_manager_parameters["projection_strategy"].GetString()}' is not supported. Available options are 'galerkin', 'lspg' and 'petrov_galerkin'."
@@ -172,15 +172,15 @@ class RomManager(object):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         #######################
         ######  Galerkin ######
-        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
+        if chosen_projection_strategy == "galerkin":
             self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
+        elif chosen_projection_strategy == "lspg":
             raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
         ##########################
         ###  Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
+        elif chosen_projection_strategy == "petrov_galerkin":
             self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
         self.__LaunchRunHROM(mu_run)
 
