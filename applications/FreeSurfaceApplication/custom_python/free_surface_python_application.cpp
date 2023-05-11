@@ -40,7 +40,6 @@ namespace Kratos
 					   KratosApplication>(pymodule, "KratosFreeSurfaceApplication")
 				.def(py::init<>());
 
-			AddCustomStrategiesToPython(pymodule);
 			AddCustomUtilitiesToPython(pymodule);
 			AddCustomEdgeBasedLevelSetToPython(pymodule);
 
