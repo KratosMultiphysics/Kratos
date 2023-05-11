@@ -413,7 +413,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def LaunchRunFOM(self, mu_run):
+    def __LaunchRunFOM(self, mu_run):
         """
         This method should be parallel capable
         """
