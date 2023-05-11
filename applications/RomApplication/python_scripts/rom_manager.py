@@ -213,7 +213,6 @@ class RomManager(object):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
-
     def LaunchTrainROM(self, mu_train):
         """
         This method should be parallel capable
