@@ -51,23 +51,21 @@ void DistributeLoadOnSurfaceProcess::ExecuteInitializeSolutionStep()
     IntervalUtility interval_utility(mParameters);
     if (interval_utility.IsInInterval(current_time)) {
         // Calculate the total area
-        const auto& r_communicator = mrModelPart.GetCommunicator();
-        const auto& r_local_mesh = r_communicator.LocalMesh();
-        const auto& r_conditions_array = r_local_mesh.Conditions();
+        const auto& r_conditions_array = mrModelPart.Conditions();
         const double total_area = block_for_each<SumReduction<double>>(r_conditions_array, [&](Condition& rCond) {
             return rCond.GetGeometry().Area();
         });
 
         // Compute the total area
-        const double global_total_area = r_communicator.GetDataCommunicator().SumAll(total_area);
+        const double global_total_area = mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(total_area);
 
         // Getting force by area
         const Vector force_by_area = mParameters["load"].GetVector() / global_total_area;
 
         // Assign on conditions
-        for (auto& r_cond : mrModelPart.Conditions()) {
-            r_cond.SetValue(SURFACE_LOAD, force_by_area);
-        }
+        block_for_each(r_conditions_array, [&](Condition& rCond) {
+            rCond.SetValue(SURFACE_LOAD, force_by_area);
+        });
     }
 }
 
