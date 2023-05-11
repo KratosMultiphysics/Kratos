@@ -26,13 +26,12 @@ class RomManager(object):
 
 
 
-    def Fit(self, mu_train=None, store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
-        if mu_train is None:
-            mu_train = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
+    def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         #######################
         ######  Galerkin ######
-        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
-            training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+        if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in training_stages):
                 fom_snapshots = self.LaunchTrainROM(mu_train)
                 if store_all_snapshots or store_fom_snapshots:
@@ -57,8 +56,7 @@ class RomManager(object):
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
-            training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+        elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in training_stages):
                 fom_snapshots = self.LaunchTrainROM(mu_train)
                 if store_all_snapshots or store_fom_snapshots:
@@ -72,11 +70,9 @@ class RomManager(object):
                 raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
         #######################################
 
-
         ##########################
         ###  Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
-            training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+        elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in training_stages):
                 fom_snapshots = self.LaunchTrainROM(mu_train)
                 if store_all_snapshots or store_fom_snapshots:
@@ -101,13 +97,12 @@ class RomManager(object):
 
 
 
-    def Test(self, mu_test=None):
-        if mu_test is None:
-            mu_test = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
+    def Test(self, mu_test=[None]):
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         #######################
         ######  Galerkin ######
-        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
-            testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
+        if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in testing_stages):
                 fom_snapshots = self.LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
@@ -123,8 +118,7 @@ class RomManager(object):
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
-            testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
+        elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in testing_stages):
                 fom_snapshots = self.LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
@@ -137,8 +131,7 @@ class RomManager(object):
 
         ##########################
         ###  Petrov Galerkin   ###
-        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
-            testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
+        elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in testing_stages):
                 fom_snapshots = self.LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "PG")
@@ -154,14 +147,11 @@ class RomManager(object):
 
 
 
-    def RunFOM(self, mu_run=None):
-        if mu_run is None:
-            mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
-        self.LaunchRunFOM(mu_run)
+    def RunFOM(self, mu_run=[None]):
+        self.__LaunchRunFOM(mu_run)
 
-    def RunROM(self, mu_run=None):
-        if mu_run is None:
-            mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
+    def RunROM(self, mu_run=[None]):
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         #######################
         ######  Galerkin ######
         if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
@@ -179,9 +169,8 @@ class RomManager(object):
             raise Exception(err_msg)
         self.LaunchRunROM(mu_run)
 
-    def RunHROM(self, mu_run=None):
-        if mu_run is None:
-            mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
+    def RunHROM(self, mu_run=[None]):
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         #######################
         ######  Galerkin ######
         if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
@@ -199,15 +188,16 @@ class RomManager(object):
 
 
     def PrintErrors(self):
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         if any(item == "ROM" for item in training_stages):
             print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_train)
-        if any(item == "HROM" for item in training_stages) and not(self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg"):
+        if any(item == "HROM" for item in training_stages) and not(chosen_projection_strategy == "lspg"):
             print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
         if any(item == "ROM" for item in testing_stages):
             print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
-        if any(item == "HROM" for item in testing_stages) and not(self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg"):
+        if any(item == "HROM" for item in testing_stages) and not(chosen_projection_strategy == "lspg"):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
