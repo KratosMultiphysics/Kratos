@@ -164,7 +164,7 @@ class RomManager(object):
         elif chosen_projection_strategy == "petrov_galerkin":
             self._ChangeRomFlags(simulation_to_run = "PG")
         else:
-            err_msg = f"Provided projection strategy '{self.general_rom_manager_parameters["projection_strategy"].GetString()}' is not supported. Available options are 'galerkin', 'lspg' and 'petrov_galerkin'."
+            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
         self.__LaunchRunROM(mu_run)
 
