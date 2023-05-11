@@ -159,9 +159,6 @@ class RomManager(object):
             mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         self.LaunchRunFOM(mu_run)
 
-
-
-
     def RunROM(self, mu_run=None):
         if mu_run is None:
             mu_run = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
