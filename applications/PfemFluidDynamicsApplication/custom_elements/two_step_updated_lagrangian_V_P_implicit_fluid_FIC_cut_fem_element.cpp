@@ -947,7 +947,7 @@ namespace Kratos
             this->InitializeElementalVariables(elemental_variables);
 
             // Add the boundary terms
-            const double kappa = 1.0e6; // TODO: Make this user-definable
+            const double kappa = 1.0e1; // TODO: Make this user-definable
             const double h = this->ElementSize();
 
             array_1d<double, TDim> proj_dev_stress;
@@ -1022,25 +1022,25 @@ namespace Kratos
                 CalculateBMatrix(g_DN_DX, B);
                 VoigtTransformForProduct(r_g_unit_normal, voigt_normal);
                 BoundedMatrix<double, StrainSize, TDim *NumNodes> aux_BC = prod(trans(B), trans(r_constitutive_matrix));
-                BoundedMatrix<double, TDim * NumNodes, TDim> aux_BC_proj = prod(aux_BC, voigt_normal);
+                BoundedMatrix<double, TDim * NumNodes, TDim> aux_BC_proj = prod(aux_BC, trans(voigt_normal));
                 for (IndexType i = 0; i < n_nodes; ++i)
                 {
                     for (IndexType j = 0; j < n_nodes; ++j)
                     {
                         const auto &r_vel_j = r_geom[j].FastGetSolutionStepValue(VELOCITY); // FIXME: This must be evaluated at n+theta
                         const array_1d<double, 3> bc_vel = ZeroVector(3);                   // TODO: This should be the "structure" velocity in the future
-                        const double aux = g_weight * penalty_parameter * g_shape_functions[i] * g_shape_functions[j];
+                        const double aux_1 = g_weight * penalty_parameter * g_shape_functions[i] * g_shape_functions[j];
                         const double aux_2 = g_weight * g_shape_functions[j];
-                        for (IndexType d = 0; d < TDim; ++d)
+                        for (IndexType d1 = 0; d1 < TDim; ++d1)
                         {
                             // Penalty term
-                            rLeftHandSideMatrix(i * TDim + d, j * TDim + d) += aux;
-                            rRightHandSideVector(i * TDim + d) -= aux * (r_vel_j[d] - bc_vel[d]);
+                            rLeftHandSideMatrix(i * TDim + d1, j * TDim + d1) += aux_1;
+                            rRightHandSideVector(i * TDim + d1) -= aux_1 * (r_vel_j[d1] - bc_vel[d1]);
                             // Nitsche term (only viscous component)
                             for (IndexType d2 = 0; d2 < TDim; ++d2)
                             {
-                                rLeftHandSideMatrix(i * TDim + d, j * TDim + d2) -= aux_BC_proj(i * TDim + d, i * TDim + d2) * aux_2;
-                                rRightHandSideVector(i * TDim + d) += aux_BC_proj(i * TDim + d, i * TDim + d2) * aux_2 * (r_vel_j[d] - bc_vel[d]);
+                                rLeftHandSideMatrix(i * TDim + d1, j * TDim + d2) -= aux_BC_proj(i * TDim + d1,  d2) * aux_2;
+                                rRightHandSideVector(i * TDim + d1) += aux_BC_proj(i * TDim + d1, d2) * aux_2 * (r_vel_j[d1] - bc_vel[d1]);
                             }
                         }
                     }
@@ -1301,6 +1301,7 @@ namespace Kratos
         BoundedMatrix<double, StrainSize, 2 * NumNodes> &rB)
     {
         IndexType index;
+        rB = ZeroMatrix(StrainSize, 2 * NumNodes);
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             index = 2 * i;
@@ -1317,6 +1318,7 @@ namespace Kratos
         BoundedMatrix<double, StrainSize, 3 * NumNodes> &rB)
     {
         IndexType index;
+        rB = ZeroMatrix(StrainSize, 3 * NumNodes);
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             index = 3 * i;
