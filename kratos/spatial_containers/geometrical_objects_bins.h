@@ -156,7 +156,7 @@ public:
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    void IterativeSearchInRadius(
+    void SearchInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius,
@@ -196,7 +196,7 @@ public:
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    std::vector<ResultType> IterativeSearchNearestInRadius(
+    std::vector<ResultType> SearchNearestInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius
@@ -231,7 +231,7 @@ public:
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    std::vector<ResultType> IterativeSearchNearest(
+    std::vector<ResultType> SearchNearest(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd
         )
@@ -269,7 +269,7 @@ public:
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    std::vector<ResultType> IterativeSearchIsInside(
+    std::vector<ResultType> SearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd
         )
