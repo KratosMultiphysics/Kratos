@@ -57,7 +57,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( GeometricalProjectionUtilities );
 
     // Some geometrical definitions
-    typedef Node<3>                                              NodeType;
+    typedef Node                                              NodeType;
     typedef Point                                               PointType;
 
     /// Index type definition
@@ -247,7 +247,7 @@ public:
      */
     static DistanceComputed FastMinimalDistanceOnLineWithRadius(
         double& rDistance,
-        const Geometry<Node<3>>& rSegment,
+        const Geometry<Node>& rSegment,
         const Point& rPoint,
         const double Radius,
         const double Tolerance = 1.0e-9

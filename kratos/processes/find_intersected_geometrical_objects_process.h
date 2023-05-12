@@ -350,7 +350,7 @@ public:
     typedef Point PointType;
 
     /// Definition of the node type
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Definition of the geometry type
     using GeometryType = Geometry<NodeType>;

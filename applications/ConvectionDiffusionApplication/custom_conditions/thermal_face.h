@@ -97,11 +97,11 @@ public:
 
     ThermalFace(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry);
+        Geometry< Node >::Pointer pGeometry);
 
     ThermalFace(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry,
+        Geometry< Node >::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     /// Destructor.

@@ -201,7 +201,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::BlockElement(const IndexType iElement
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateNode(
+Node::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
