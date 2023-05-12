@@ -922,7 +922,7 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo ) co
     KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    const NodeType& r_node = this->GetGeometry()[0];
+    const Node& r_node = this->GetGeometry()[0];
 
     // The displacement terms
     if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||

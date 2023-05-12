@@ -62,8 +62,7 @@ public:
     typedef std::size_t                                     IndexType;
 
     /// Geometric type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Geometry<NodeType>                           GeometryType;
+    typedef Geometry<Node>                               GeometryType;
 
     /// The definition of the containers
     typedef ModelPart::NodesContainerType              NodesArrayType;
@@ -247,7 +246,7 @@ private:
      * @return The pointer of the geometry of interest
      */
     GeometryType::Pointer GetPointGeometryFromNode(
-        PointerVector<NodeType>& rArrayNodes,
+        PointerVector<Node>& rArrayNodes,
         const SizeType Dimension
         );
 
