@@ -14,6 +14,7 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
+#include <limits>
 
 // External includes
 
@@ -56,7 +57,7 @@ void NearestElementInterfaceInfo::SaveSearchResult(const InterfaceObject& rInter
     if (is_full_projection) {
         SetLocalSearchWasSuccessful();
     } else {
-        if (!ComputeApproximation || mLocalCoordTol < std::numeric_limits<double>::epsilon) {
+        if (!ComputeApproximation || mLocalCoordTol < std::numeric_limits<double>::epsilon()) {
             return;
         } else {
             SetIsApproximation();
