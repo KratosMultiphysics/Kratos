@@ -122,7 +122,8 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
     )
 {
     KRATOS_TRY;
-    rCloudOfDofs.push_back(pNode->pGetDof(rVariable));
+    rCloudOfDofs.resize(1); // FIXME: I dont like this, I would rather declare it as thread_local Dof<double>::Pointer r_slave_dof and then do rCloudDofs = pNode->pGetDof(rVariable);, but the Master-Slave Constraints only support DofPointerVectorType.
+    rCloudOfDofs[0] = pNode->pGetDof(rVariable);
     rSlaveCoordinates = pNode->Coordinates();
     KRATOS_CATCH("");
 }
@@ -238,6 +239,15 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
 
     MasterSlaveConstarintQueue concurrent_constraints;
 
+    // Declare thread-local storage (TLS) variables
+    thread_local DofPointerVectorType r_cloud_of_dofs;
+    thread_local DofPointerVectorType r_slave_dof;
+    thread_local Matrix r_cloud_of_nodes_coordinates;
+    thread_local array_1d<double, 3> r_slave_coordinates;
+    thread_local Vector r_n_container;
+    thread_local Vector constant_vector;
+    thread_local Matrix shape_matrix;
+
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
@@ -254,20 +264,17 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
         }
 
         // Get Dofs and Coordinates
-        DofPointerVectorType r_cloud_of_dofs, r_slave_dof;
-        Matrix r_cloud_of_nodes_coordinates;
-        array_1d<double, 3> r_slave_coordinates;
+        // DofPointerVectorType r_slave_dof;//This can't be TLS
         GetDofsAndCoordinatesForNode(pNode, rVariable, r_slave_dof, r_slave_coordinates);
         GetDofsAndCoordinatesForNodes(r_result, rVariable, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
 
         // Calculate shape functions
-        Vector r_n_container;
         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
 
         // Create MPCs
-        Matrix shape_matrix(1, r_n_container.size());
+        shape_matrix.resize(1, r_n_container.size());
         noalias(row(shape_matrix, 0)) = r_n_container; // Shape functions matrix
-        const Vector constant_vector = ZeroVector(r_n_container.size());
+        constant_vector.resize(r_n_container.size());
         IndexType it = i.fetch_add(1); // Atomically increment the counter and get the previous value
         concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mpcs + it + 1, r_cloud_of_dofs, r_slave_dof, shape_matrix, constant_vector));
     });
