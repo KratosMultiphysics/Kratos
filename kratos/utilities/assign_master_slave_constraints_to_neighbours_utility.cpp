@@ -226,12 +226,12 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
     if (prev_num_mpcs > 0) {
-        KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous MPCs exist in the ModelPart. The new MPCs may interact with the existing ones." << std::endl;
+        KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
     }
 
     auto& p_nodes_array = pNodes.GetContainer();
 
-    ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+    const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
     // Create a concurrent queue for constraints
     using MasterSlaveConstarintQueue = moodycamel::ConcurrentQueue<ModelPart::MasterSlaveConstraintType::Pointer>;
@@ -310,12 +310,12 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
     if (prev_num_mpcs > 0) {
-        KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous MPCs exist in the ModelPart. The new MPCs may interact with the existing ones." << std::endl;
+        KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
     }
 
     auto& p_nodes_array = pNodes.GetContainer();
 
-    ModelPart::MasterSlaveConstraintType const& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+    const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
     // Create a concurrent queue for constraints
     using MasterSlaveConstarintQueue = moodycamel::ConcurrentQueue<ModelPart::MasterSlaveConstraintType::Pointer>;
