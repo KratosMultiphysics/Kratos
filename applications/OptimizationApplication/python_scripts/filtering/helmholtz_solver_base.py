@@ -46,6 +46,9 @@ class HelmholtzSolverBase(PythonSolver):
             "filter_type"     : "",
             "filter_radius"     : 0.0,
             "model_part_name"       : "",
+            "time_stepping" : {
+                "time_step"       : 1.0
+            },
             "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
@@ -70,6 +73,14 @@ class HelmholtzSolverBase(PythonSolver):
         return this_defaults
 
     #### Public user interface functions ####
+
+    def AdvanceInTime(self, current_time):
+        dt = self.settings["time_stepping"]["time_step"].GetDouble()
+        new_time = current_time + dt
+        self.helmholtz_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.helmholtz_model_part.CloneTimeStep(new_time)
+
+        return new_time
 
     def Initialize(self):
         self._GetSolutionStrategy().Initialize()
