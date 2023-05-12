@@ -79,9 +79,12 @@ class TestProperties(KratosUnittest.TestCase):
         table.AddRow(10.0, 1.0)
         properties.SetTable(KM.TEMPERATURE, KM.YOUNG_MODULUS, table)
         print(properties)
-        self.assertTrue("Properties" in mock_stdout.getvalue())
-        self.assertTrue("Id : 1" in mock_stdout.getvalue())
-        self.assertTrue("This properties contains 1 tables" in mock_stdout.getvalue())
+        output = mock_stdout.getvalue()
+        self.assertTrue("Properties" in output)
+        self.assertTrue("Id : 1" in output)
+        self.assertTrue("This properties contains 1 tables" in output)
+        self.assertTrue("\t9\t\t1" in output)
+        self.assertTrue("\t10\t\t1" in output)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
