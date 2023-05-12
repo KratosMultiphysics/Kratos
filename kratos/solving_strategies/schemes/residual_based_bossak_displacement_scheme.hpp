@@ -18,7 +18,6 @@
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "includes/variables.h"
 #include "includes/checks.h"
-#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -592,7 +591,7 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        const std::size_t this_thread = ParallelUtilities::GetThreadId();
+        const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         const auto& r_const_elem_ref = rElement;
         // Adding inertia contribution
@@ -630,7 +629,7 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        const std::size_t this_thread = ParallelUtilities::GetThreadId();
+        const std::size_t this_thread = OpenMPUtils::ThisThread();
         const auto& r_const_cond_ref = rCondition;
 
         // Adding inertia contribution

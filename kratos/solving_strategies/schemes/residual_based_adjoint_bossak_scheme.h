@@ -10,7 +10,8 @@
 //  Main authors:
 //
 
-#pragma once
+#if !defined(KRATOS_RESIDUAL_BASED_ADJOINT_BOSSAK_SCHEME_H_INCLUDED)
+#define KRATOS_RESIDUAL_BASED_ADJOINT_BOSSAK_SCHEME_H_INCLUDED
 
 // System includes
 #include <vector>
@@ -232,7 +233,7 @@ public:
     {
         KRATOS_TRY;
 
-        const auto k = ParallelUtilities::GetThreadId();
+        const auto k = OpenMPUtils::ThisThread();
         const auto& r_const_elem_ref = rCurrentElement;
 
         r_const_elem_ref.GetValuesVector(mAdjointValuesVector[k]);
@@ -289,7 +290,7 @@ public:
     {
         KRATOS_TRY;
 
-        const auto k = ParallelUtilities::GetThreadId();
+        const auto k = OpenMPUtils::ThisThread();
         const auto& r_const_cond_ref = rCurrentCondition;
         r_const_cond_ref.GetValuesVector(mAdjointValuesVector[k]);
         const auto local_size = mAdjointValuesVector[k].size();
@@ -593,7 +594,7 @@ protected:
 
     virtual void CheckAndResizeThreadStorage(unsigned SystemSize)
     {
-        const int k = ParallelUtilities::GetThreadId();
+        const int k = OpenMPUtils::ThisThread();
 
         if (mLeftHandSide[k].size1() != SystemSize || mLeftHandSide[k].size2() != SystemSize)
         {
@@ -663,7 +664,7 @@ private:
         LocalSystemVectorType& rRHS_Contribution,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        int k = ParallelUtilities::GetThreadId();
+        int k = OpenMPUtils::ThisThread();
         auto& r_residual_adjoint = mAdjointValuesVector[k];
         const auto& r_const_entity_ref = rCurrentEntity;
         r_const_entity_ref.GetValuesVector(r_residual_adjoint);
@@ -691,7 +692,7 @@ private:
         LocalSystemVectorType& rRHS_Contribution,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        int k = ParallelUtilities::GetThreadId();
+        int k = OpenMPUtils::ThisThread();
         rCurrentEntity.CalculateLeftHandSide(mLeftHandSide[k], rCurrentProcessInfo);
         this->mpResponseFunction->CalculateGradient(
             rCurrentEntity, mLeftHandSide[k], mResponseGradient[k], rCurrentProcessInfo);
@@ -720,7 +721,7 @@ private:
         LocalSystemVectorType& rRHS_Contribution,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        int k = ParallelUtilities::GetThreadId();
+        int k = OpenMPUtils::ThisThread();
         rCurrentEntity.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], rCurrentProcessInfo);
         mpResponseFunction->CalculateFirstDerivativesGradient(
             rCurrentEntity, mFirstDerivsLHS[k],
@@ -751,7 +752,7 @@ private:
         LocalSystemVectorType& rRHS_Contribution,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        int k = ParallelUtilities::GetThreadId();
+        int k = OpenMPUtils::ThisThread();
         rCurrentEntity.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rCurrentProcessInfo);
         mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
         this->mpResponseFunction->CalculateSecondDerivativesGradient(
@@ -787,7 +788,7 @@ private:
         const ProcessInfo& rCurrentProcessInfo)
     {
         const auto& r_geometry = rCurrentElement.GetGeometry();
-        const auto k = ParallelUtilities::GetThreadId();
+        const auto k = OpenMPUtils::ThisThread();
         auto& r_extensions = *rCurrentElement.GetValue(ADJOINT_EXTENSIONS);
 
         unsigned local_index = 0;
@@ -840,7 +841,7 @@ private:
     {
         KRATOS_TRY
 
-        const int k = ParallelUtilities::GetThreadId();
+        const int k = OpenMPUtils::ThisThread();
         const auto& r_const_entity_ref = rCurrentEntity;
         r_const_entity_ref.GetValuesVector(mAdjointValuesVector[k]);
         this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
@@ -889,7 +890,7 @@ private:
     {
         KRATOS_TRY
 
-        const int k = ParallelUtilities::GetThreadId();
+        const int k = OpenMPUtils::ThisThread();
         const auto& r_const_entity_ref = rCurrentEntity;
         r_const_entity_ref.GetValuesVector(mAdjointValuesVector[k]);
         this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
@@ -998,7 +999,7 @@ private:
             auto& r_adjoint2_aux = std::get<0>(rAdjointTLS);
             auto& r_adjoint3_aux = std::get<1>(rAdjointTLS);
 
-            const int k = ParallelUtilities::GetThreadId();
+            const int k = OpenMPUtils::ThisThread();
 
             this->CalculateTimeSchemeContributions(
                 rEntity, r_adjoint2_aux, r_adjoint3_aux, *this->mpResponseFunction,
@@ -1110,7 +1111,7 @@ private:
 
         Vector aux_adjoint_vector;
         block_for_each(rEntityContainer, aux_adjoint_vector, [&, this](typename TEntityContainerType::value_type& rEntity, Vector& rAuxAdjointVectorTLS){
-            const int k = ParallelUtilities::GetThreadId();
+            const int k = OpenMPUtils::ThisThread();
 
             this->CalculateAuxiliaryVariableContributions(
                 rEntity, rAuxAdjointVectorTLS, *this->mpResponseFunction, mBossak, rProcessInfo);
@@ -1247,7 +1248,7 @@ private:
         std::vector<std::unordered_set<const VariableData*, Hash, Pred>> thread_vars(num_threads);
         block_for_each(rElements, local_vars, [&](const Element& rElement, std::vector<const VariableData*>& rLocalVarsTLS){
             GetLocalVars(*(rElement.GetValue(ADJOINT_EXTENSIONS)), rLocalVarsTLS);
-            const int k = ParallelUtilities::GetThreadId();
+            const int k = OpenMPUtils::ThisThread();
             thread_vars[k].insert(rLocalVarsTLS.begin(), rLocalVarsTLS.end());
         });
         std::unordered_set<const VariableData*, Hash, Pred> all_vars;
@@ -1341,3 +1342,5 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
+
+#endif /* KRATOS_RESIDUAL_BASED_ADJOINT_BOSSAK_SCHEME_H_INCLUDED defined */

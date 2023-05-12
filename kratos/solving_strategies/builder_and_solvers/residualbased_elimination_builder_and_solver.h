@@ -4,22 +4,27 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborators:   Vicente Mataix
 //
+//
 
-#pragma once
+#if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER )
+#define  KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER
 
-// System includes
+/* System includes */
 #include <set>
 #include <unordered_set>
 
-// External includes
+/* External includes */
+#ifdef KRATOS_SMP_OPENMP
+#include <omp.h>
+#endif
 
-// Project includes
+/* Project includes */
 #include "utilities/timer.h"
 #include "includes/define.h"
 #include "includes/key_hash.h"
@@ -667,7 +672,7 @@ public:
 
         IndexPartition<std::size_t>(nelements).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
             auto it_elem = r_elements_array.begin() + Index;
-            const IndexType this_thread_id = ParallelUtilities::GetThreadId();
+            const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
             // Gets list of Dof involved on every element
             pScheme->GetDofList(*it_elem, tls_elemental_dof_list, r_current_process_info);
@@ -680,7 +685,7 @@ public:
 
         IndexPartition<std::size_t>(nconditions).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
             auto it_cond = r_conditions_array.begin() + Index;
-            const IndexType this_thread_id = ParallelUtilities::GetThreadId();
+            const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
             // Gets list of Dof involved on every element
             pScheme->GetDofList(*it_cond, tls_elemental_dof_list, r_current_process_info);
@@ -1479,3 +1484,5 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
+
+#endif /* KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER  defined */
