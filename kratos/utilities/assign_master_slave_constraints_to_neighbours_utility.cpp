@@ -114,7 +114,6 @@ const Variable<double>& AssignMasterSlaveConstraintsToNeighboursUtility::GetComp
     }
 }
 
-
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNode(
     NodeType::Pointer pNode,
     const Variable<double>& rVariable,
@@ -155,6 +154,35 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
     KRATOS_CATCH("");
 }
 
+void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNode(
+    NodeType::Pointer pNode,
+    std::array<const Kratos::Variable<double>*, 3> ComponentVariables,
+    DofPointerVectorType& rCloudOfDofsX,
+    DofPointerVectorType& rCloudOfDofsY,
+    DofPointerVectorType& rCloudOfDofsZ,
+    array_1d<double,3>& rSlaveCoordinates
+    )
+{
+    KRATOS_TRY;
+
+    // Check if the node has the required DOFs
+    if (pNode->HasDofFor(*ComponentVariables[0]) &&
+        pNode->HasDofFor(*ComponentVariables[1]) &&
+        pNode->HasDofFor(*ComponentVariables[2])) {
+
+        rCloudOfDofsX.push_back(pNode->pGetDof(*ComponentVariables[0]));
+        rCloudOfDofsY.push_back(pNode->pGetDof(*ComponentVariables[1]));
+        rCloudOfDofsZ.push_back(pNode->pGetDof(*ComponentVariables[2]));
+
+    } else {
+            std::stringstream variables_str;
+            variables_str << "[" << *ComponentVariables[0] << ", " << *ComponentVariables[1] << ", " << *ComponentVariables[2] << "]";
+            KRATOS_ERROR << "The node with ID " << pNode->Id() << " does not have the required DOFs for one of the variables " << variables_str.str() << std::endl;
+    }
+    rSlaveCoordinates = pNode->Coordinates();
+    KRATOS_CATCH("");
+}
+
 // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
     ResultNodesContainerType nodes_array,
@@ -172,7 +200,6 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
     }
     KRATOS_CATCH("");
 }
-
 
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
     ResultNodesContainerType nodes_array,
@@ -193,6 +220,8 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
     {
         NodeType::Pointer pNode = nodes_array[i];
 
+        KRATOS_WATCH(GetComponentVariable(rVariable, 0))
+
         // Check if the node has the required DOFs
         if (pNode->HasDofFor(GetComponentVariable(rVariable, 0)) &&
             pNode->HasDofFor(GetComponentVariable(rVariable, 1)) &&
@@ -204,6 +233,44 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
 
         } else {
             KRATOS_ERROR << "The node with ID " << pNode->Id() << " does not have the required DOFs for the variable " << rVariable << std::endl;
+        }
+        noalias(row(rCloudOfNodesCoordinates, i)) = pNode->Coordinates();
+    }
+    KRATOS_CATCH("");
+}
+
+
+void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
+    ResultNodesContainerType nodes_array,
+    std::array<const Kratos::Variable<double>*, 3> ComponentVariables,
+    DofPointerVectorType& rCloudOfDofsX,
+    DofPointerVectorType& rCloudOfDofsY,
+    DofPointerVectorType& rCloudOfDofsZ,
+    Matrix& rCloudOfNodesCoordinates
+)
+{
+    KRATOS_TRY;
+    rCloudOfDofsX.resize(nodes_array.size());
+    rCloudOfDofsY.resize(nodes_array.size());
+    rCloudOfDofsZ.resize(nodes_array.size());
+    rCloudOfNodesCoordinates.resize(nodes_array.size(), 3);
+
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
+    {
+        NodeType::Pointer pNode = nodes_array[i];
+
+        // Check if the node has the required DOFs
+        if (pNode->HasDofFor(*ComponentVariables[0]) &&
+            pNode->HasDofFor(*ComponentVariables[1]) &&
+            pNode->HasDofFor(*ComponentVariables[2])){
+          rCloudOfDofsX[i] = pNode->pGetDof(*ComponentVariables[0]);
+          rCloudOfDofsY[i] = pNode->pGetDof(*ComponentVariables[1]);
+          rCloudOfDofsZ[i] = pNode->pGetDof(*ComponentVariables[2]);
+
+        } else {
+            std::stringstream variables_str;
+            variables_str << "[" << *ComponentVariables[0] << ", " << *ComponentVariables[1] << ", " << *ComponentVariables[2] << "]";
+            KRATOS_ERROR << "The node with ID " << pNode->Id() << " does not have the required DOFs for one of the variables " << variables_str.str() << std::endl;
         }
         noalias(row(rCloudOfNodesCoordinates, i)) = pNode->Coordinates();
     }
@@ -294,6 +361,13 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
     KRATOS_TRY;
 
     BuiltinTimer build_and_assign_mpcs;
+    
+    // Create array of component variables
+    std::array<const Kratos::Variable<double>*, 3> component_variables = {
+        &GetComponentVariable(rVariable, 0),
+        &GetComponentVariable(rVariable, 1),
+        &GetComponentVariable(rVariable, 2)
+    };
 
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
@@ -322,14 +396,14 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
         }
 
         // Get Dofs and Coordinates
-        DofPointerVectorType r_cloud_of_dofs_x,r_cloud_of_dofs_y,r_cloud_of_dofs_z,r_slave_dof_x,r_slave_dof_y,r_slave_dof_z;
-        Matrix r_cloud_of_nodes_coordinates;
-        array_1d<double, 3> r_slave_coordinates;
-        GetDofsAndCoordinatesForNode(pNode, rVariable, r_slave_dof_x,r_slave_dof_y,r_slave_dof_z, r_slave_coordinates);
-        GetDofsAndCoordinatesForNodes(r_result, rVariable, r_cloud_of_dofs_x, r_cloud_of_dofs_y, r_cloud_of_dofs_z, r_cloud_of_nodes_coordinates);
-
+        DofPointerVectorType r_cloud_of_dofs_x,r_cloud_of_dofs_y,r_cloud_of_dofs_z,r_slave_dof_x,r_slave_dof_y,r_slave_dof_z; //Struct local storage
+        Matrix r_cloud_of_nodes_coordinates; 
+        array_1d<double, 3> r_slave_coordinates; //Struct local storage
+        GetDofsAndCoordinatesForNode(pNode, component_variables, r_slave_dof_x,r_slave_dof_y,r_slave_dof_z, r_slave_coordinates);
+        GetDofsAndCoordinatesForNodes(r_result, component_variables, r_cloud_of_dofs_x, r_cloud_of_dofs_y, r_cloud_of_dofs_z, r_cloud_of_nodes_coordinates);
+        
         // Calculate shape functions
-        Vector r_n_container;
+        Vector r_n_container;//Struct local storage
         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
 
         // Create MPCs

@@ -94,7 +94,7 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         # Initialize MPCs to neighbours utility
-        self.assign_mpcs_utility = KM.AssignMPCsToNeighboursUtility(self.master_model_part.Nodes)
+        self.assign_mpcs_utility = KM.AssignMasterSlaveConstraintsToNeighboursUtility(self.master_model_part.Nodes)
 
         # The user may only need to set up the mpcs only once
         if not self.reform_constraints_at_each_step:
