@@ -895,32 +895,6 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo ) co
 {
     KRATOS_TRY
 
-    // Check that all required variables have been registered
-
-    // The displacement terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
-        KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-        KRATOS_CHECK_VARIABLE_KEY(NODAL_MASS)
-        KRATOS_CHECK_VARIABLE_KEY(NODAL_DISPLACEMENT_STIFFNESS)
-    }
-
-        // The rotational terms
-    if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
-        mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
-        KRATOS_CHECK_VARIABLE_KEY(ROTATION)
-        KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION)
-        KRATOS_CHECK_VARIABLE_KEY(NODAL_INERTIA)
-        KRATOS_CHECK_VARIABLE_KEY(NODAL_ROTATIONAL_STIFFNESS)
-    }
-
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_DAMPING_RATIO)
-    KRATOS_CHECK_VARIABLE_KEY(NODAL_ROTATIONAL_DAMPING_RATIO)
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const Node& r_node = this->GetGeometry()[0];
 
