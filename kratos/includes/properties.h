@@ -547,8 +547,9 @@ public:
         // Tables
         if (mTables.size() > 0) {
             // Print the tables
-            rOStream << "This properties contains " << mTables.size() << " tables";
+            rOStream << "This properties contains " << mTables.size() << " tables\n";
             for (auto& r_table : mTables) {
+                rOStream << "Table key: " << r_table.first << "\n";
                 PrintDataWithIdentation(rOStream, r_table.second);
             }
         }
@@ -556,7 +557,7 @@ public:
         // Subproperties
         if (mSubPropertiesList.size() > 0) {
             // Print the subproperties
-            rOStream << "\nThis properties contains the following subproperties " << mSubPropertiesList.size() << " subproperties" << std::endl;
+            rOStream << "\nThis properties contains the following subproperties " << mSubPropertiesList.size() << " subproperties\n";
             for (auto& r_subprop : mSubPropertiesList) {
                 PrintDataWithIdentation(rOStream, r_subprop);
             }
@@ -565,8 +566,9 @@ public:
         // Accessors
         if (mAccessors.size() > 0) {
             // Print the accessors
-            rOStream << "\nThis properties contains the following " << mAccessors.size() << " accessors" << std::endl;
+            rOStream << "\nThis properties contains the following " << mAccessors.size() << " accessors\n";
             for (auto& r_entry : mAccessors) {
+                rOStream << "Accessor for variable key: " << r_entry.first << "\n";
                 PrintDataWithIdentation(rOStream, *r_entry.second);
             }
         }
