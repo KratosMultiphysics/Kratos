@@ -14,33 +14,22 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
-#include <atomic>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/lock_object.h"
 #include "geometries/point.h"
 #include "includes/dof.h"
-#include "containers/pointer_vector_set.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/flags.h"
 #include "intrusive_ptr/intrusive_ptr.hpp"
-#include "containers/global_pointers_vector.h"
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
 #include "includes/kratos_flags.h"
 
 namespace Kratos
 {
-
-class Element;
-
 ///@name Kratos Globals
 ///@{
 
@@ -60,10 +49,15 @@ class Element;
 ///@name Kratos Classes
 ///@{
 
-/// This class defines the node
-/** The node class from Kratos is defined in this class
-*/
-class Node : public Point, public Flags
+/**
+ * @class Node
+ * @brief This class defines the node
+ * @details The node class from Kratos is defined in this class
+ * @ingroup KratosCore
+ * @author Pooyan Dadvand
+ */
+class Node
+    : public Point, public Flags
 {
 public:
     ///@name Type Definitions
@@ -71,9 +65,6 @@ public:
 
     /// Pointer definition of Node
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Node);
-
-    /// Node definition
-    using NodeType = Node;
 
     /// Base type
     using BaseType = Point;
@@ -103,92 +94,62 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    Node()
-        : BaseType()
-        , Flags()
-        , mNodalData(0)
-        , mDofs()
-        , mData()
-        , mInitialPosition()
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    /**
+     * @brief Default constructor. Constructs a Node object.
+     */
+    Node();
 
-    explicit Node(IndexType NewId )
-        : BaseType()
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition()
-        , mNodeLock()
-    {
-        KRATOS_ERROR <<  "Calling the default constructor for the node ... illegal operation!!" << std::endl;
-        CreateSolutionStepData();
-    }
+    /**
+     * @brief Constructs a Node object with a given ID.
+     * @param NewId The ID of the new node.
+     */
+    explicit Node(const IndexType NewId );
 
-    /// 1d constructor.
-    Node(IndexType NewId, double const& NewX)
-        : BaseType(NewX)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition(NewX)
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    /**
+     * @brief Constructs a 1D Node object with a given ID and X coordinate.
+     * @param NewId The ID of the new node.
+     * @param NewX The X coordinate of the new node.
+     */
+    Node(const IndexType NewId, const double NewX);
 
-    /// 2d constructor.
-    Node(IndexType NewId, double const& NewX, double const& NewY)
-        : BaseType(NewX, NewY)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition(NewX, NewY)
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    /**
+     * @brief Constructs a 2D Node object with a given ID, X and Y coordinates.
+     * @param NewId The ID of the new node.
+     * @param NewX The X coordinate of the new node.
+     * @param NewY The Y coordinate of the new node.
+     */
+    Node(const IndexType NewId, const double NewX, const double NewY);
 
-    /// 3d constructor.
-    Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ)
-        : BaseType(NewX, NewY, NewZ)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition(NewX, NewY, NewZ)
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    /**
+     * @brief Constructs a 3D Node object with a given ID, X, Y, and Z coordinates.
+     * @param NewId The ID of the new node.
+     * @param NewX The X coordinate of the new node.
+     * @param NewY The Y coordinate of the new node.
+     * @param NewZ The Z coordinate of the new node.
+     */
+    Node(const IndexType NewId, const double NewX, const double NewY, const double NewZ);
 
-    /// Point constructor.
-    Node(IndexType NewId, PointType const& rThisPoint)
-        : BaseType(rThisPoint)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition(rThisPoint)
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
+    /**
+     * @brief Constructs a Node object with a given ID and Point.
+     * @param NewId The ID of the new node.
+     * @param rThisPoint The point of the new node.
+     */
+    Node(const IndexType NewId, PointType const& rThisPoint);
 
-    /** Copy constructor. Initialize this node with given node.*/
+    /**
+     * @brief Copy constructor. This constructor is deleted to prevent copying.
+     * @param rOtherNode The node to be copied.
+     */
     Node(Node const& rOtherNode) = delete;
 
     /**
-     * Constructor using coordinates stored in given array. Initialize
-    this point with the coordinates in the array. */
+     * @brief Constructs a Node object with a given ID and coordinates stored in a given vector.
+     * @tparam TVectorType The type of the vector.
+     * @param NewId The ID of the new node.
+     * @param rOtherCoordinates The coordinates of the new node.
+     */
     template<class TVectorType>
-    Node(IndexType NewId, vector_expression<TVectorType> const&  rOtherCoordinates)
+    Node(const IndexType NewId, vector_expression<TVectorType> const&  rOtherCoordinates)
         : BaseType(rOtherCoordinates)
         , Flags()
         , mNodalData(NewId)
@@ -200,92 +161,76 @@ public:
         CreateSolutionStepData();
     }
 
+    /**
+     * @brief Constructs a Node object with a given ID and coordinates stored in a given std::vector.
+     * @param NewId The ID of the new node.
+     * @param rOtherCoordinates The coordinates of the new node.
+     */
+    Node(const IndexType NewId, std::vector<double> const&  rOtherCoordinates);
 
+    /**
+     * @brief Constructs a 3D Node object with a given ID, X, Y, and Z coordinates, variables list, data, and queue size.
+     * @param NewId The ID of the new node.
+     * @param NewX The X coordinate of the new node.
+     * @param NewY The Y coordinate of the new node.
+     * @param NewZ The Z coordinate of the new node.
+     * @param pVariablesList The variables list of the new node.
+     * @param ThisData The data of the new node.
+     * @param NewQueueSize The queue size of the new node.
+     */
+    Node(const IndexType NewId, const double NewX, const double NewY, const double NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1);
 
-    /** Constructor using coordinates stored in given std::vector. Initialize
-    this point with the coordinates in the array. */
-    Node(IndexType NewId, std::vector<double> const&  rOtherCoordinates)
-        : BaseType(rOtherCoordinates)
-        , Flags()
-        , mNodalData(NewId)
-        , mDofs()
-        , mData()
-        , mInitialPosition()
-        , mNodeLock()
-    {
-        CreateSolutionStepData();
-    }
-
-    /// 3d with variables list and data constructor.
-    Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ, VariablesList::Pointer  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
-        : BaseType(NewX, NewY, NewZ)
-        , Flags()
-        , mNodalData(NewId, pVariablesList,ThisData,NewQueueSize)
-        , mDofs()
-        , mData()
-        , mInitialPosition(NewX, NewY, NewZ)
-        , mNodeLock()
-    {
-    }
-
-    typename Node::Pointer Clone()
-    {
-        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
-        p_new_node->mNodalData = this->mNodalData;
-
-        Node::DofsContainerType& my_dofs = (this)->GetDofs();
-        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
-        {
-            p_new_node->pAddDof(**it_dof);
-        }
-
-        p_new_node->mData = this->mData;
-        p_new_node->mInitialPosition = this->mInitialPosition;
-
-        p_new_node->Set(Flags(*this));
-
-        return p_new_node;
-    }
+    /**
+     * @brief Clones the current Node and returns a pointer to the new Node.
+     * @return typename Node::Pointer A pointer to the new Node.
+     */
+    typename Node::Pointer Clone();
 
     /// Destructor.
-    ~Node() override
-    {
-        ClearSolutionStepsData();
-    }
+    ~Node() override;
 
     //*********************************************
     //public API of intrusive_ptr
-    unsigned int use_count() const noexcept
-    {
-        return mReferenceCounter;
-    }
+    unsigned int use_count() const noexcept;
+
     //*********************************************
 
-    IndexType Id() const
-    {
-        return mNodalData.Id();
-    }
+    /**
+     * @brief This method returns the current Id of the node.
+     * @return The Id of the node.
+     */
+    IndexType Id() const;
 
-    IndexType GetId() const
-    {
-        return mNodalData.Id();
-    }
+    /**
+     * @brief This method returns the current Id of the node.
+     * @return The Id of the node.
+     */
+    IndexType GetId() const;
 
-    void SetId(IndexType NewId)
-    {
-        mNodalData.SetId(NewId);
-    }
+    /**
+     * @brief This method sets the Id of the node.
+     * @param NewId The new Id of the node.
+     */
+    void SetId(const IndexType NewId);
 
-    LockObject& GetLock()
-    {
-        return mNodeLock;
-    }
+    /**
+     * @brief This method returns the lock of the node.
+     * @return The lock of the node.
+    */
+    LockObject& GetLock();
 
+    /**
+     * @brief Locks the node lock for thread-safe access. This function is inline to reduce function call overhead.
+     */
     inline void SetLock()
     {
         mNodeLock.lock();
     }
 
+    /**
+     * @brief Unlocks the mutex lock for the calling thread that is currently locked by 
+     * the calling thread. This function is inline to reduce function call overhead.
+     */
     inline void UnSetLock()
     {
         mNodeLock.unlock();
@@ -296,136 +241,179 @@ public:
     ///@{
 
     /// Assignment operator.
-    Node& operator=(const Node& rOther)
-    {
-        BaseType::operator=(rOther);
-        Flags::operator =(rOther);
+    Node& operator=(const Node& rOther);
 
-        mNodalData = rOther.mNodalData;
+    /// Comparison operator. 
+    bool operator==(const Node& rOther);
 
-        // Deep copying the dofs
-        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
-        {
-            pAddDof(**it_dof);
-        }
-
-        mData = rOther.mData;
-        mInitialPosition = rOther.mInitialPosition;
-
-        return *this;
-    }
-
-    bool operator==(const Node& rOther)
-    {
-        return PointType::operator ==(rOther);
-    }
-
-    template<class TVariableType> typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    /**
+     * @brief Overloads the function call operator to return the value of the given variable at the specified solution step index.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& operator()(const TVariableType& rThisVariable, const IndexType SolutionStepIndex)
     {
         return GetSolutionStepValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> typename TVariableType::Type& operator()(const TVariableType& rThisVariable)
+    /**
+     * @brief Overloads the function call operator to return the value of the given variable from the current solution step.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& operator()(const TVariableType& rThisVariable)
     {
         return GetSolutionStepValue(rThisVariable);
     }
 
-    template<class TDataType> TDataType& operator[](const Variable<TDataType>& rThisVariable)
+    /**
+     * @brief Overloads the subscript operator to return the value of the given variable.
+     * @tparam TDataType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @return TDataType& A reference to the value of the variable.
+     */
+    template<class TDataType>
+    TDataType& operator[](const Variable<TDataType>& rThisVariable)
     {
         return GetValue(rThisVariable);
     }
 
-    template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
+    /**
+     * @brief Overloads the subscript operator to return a const reference to the value of the given variable.
+     * @tparam TDataType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @return const TDataType& A const reference to the value of the variable.
+     */
+    template<class TDataType>
+    const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
     {
         return GetValue(rThisVariable);
     }
 
-    double& operator[](IndexType ThisIndex)
-    {
-        return BaseType::operator[](ThisIndex);
-    }
+    /**
+     * @brief Overloads the subscript operator to return a reference to the value at the specified index.
+     * @param ThisIndex The index of the value.
+     * @return double& A reference to the value at the index.
+     */
+    double& operator[](const IndexType ThisIndex);
 
-    double operator[](IndexType ThisIndex) const
-    {
-        return BaseType::operator[](ThisIndex);
-    }
+    /**
+     * @brief Overloads the subscript operator to return a const reference to the value at the specified index.
+     * @param ThisIndex The index of the value.
+     * @return double A const reference to the value at the index.
+     */
+    double operator[](const IndexType ThisIndex) const;
 
     ///@}
     ///@name Nodal Data
     ///@{
 
-    void CreateSolutionStepData()
-    {
-        SolutionStepData().PushFront();
-    }
+    /**
+     * @brief This method creates the solution step data for the node.
+    */
+    void CreateSolutionStepData();
 
-    void CloneSolutionStepData()
-    {
-        SolutionStepData().CloneFront();
-    }
+    /**
+     * @brief This method clones the solution step data for the node.
+    */
+    void CloneSolutionStepData();
 
-    void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
-    {
-        SolutionStepData().AssignData(SolutionStepData().Data(SourceSolutionStepIndex), DestinationSourceSolutionStepIndex);
-    }
+    /**
+     * @brief This overrides the current solution step data with the data from the given node.
+     * @param SourceSolutionStepIndex The index of the solution step to be copied.
+     * @param DestinationSourceSolutionStepIndex The index of the solution step to be overwritten.
+    */
+    void OverwriteSolutionStepData(
+        const IndexType SourceSolutionStepIndex,
+        const IndexType DestinationSourceSolutionStepIndex
+        );
 
-    void ClearSolutionStepsData()
-    {
-        SolutionStepData().Clear();
-    }
+    /**
+     * @brief This method clears the solution step data for the node.
+    */
+    void ClearSolutionStepsData();
 
-    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList)
-    {
-        SolutionStepData().SetVariablesList(pVariablesList);
-    }
+    /**
+     * @brief This method sets the solution step data for the node.
+    */
+    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList);
 
-    VariablesListDataValueContainer& SolutionStepData()
-    {
-        return mNodalData.GetSolutionStepData();
-    }
+    /**
+     * @brief This method returns the solution step data for the node.
+    */
+    VariablesListDataValueContainer& SolutionStepData();
 
-    const VariablesListDataValueContainer& SolutionStepData() const
-    {
-        return mNodalData.GetSolutionStepData();
-    }
+    /**
+     * @brief This method returns the solution step data for the node.
+     * @details This method is const and should be used only when the data is not going to be modified.
+    */
+    const VariablesListDataValueContainer& SolutionStepData() const;
 
-    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
-    DataValueContainer& Data()
-    {
-        return mData;
-    }
-
-    DataValueContainer& GetData()
-    {
-        return mData;
-    }
-
-    const DataValueContainer& GetData() const
-    {
-        return mData;
-    }
-
-    template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
+    /**
+     * @brief Returns a reference to the value of the given variable from the current solution step.
+     * @details This method accesses the value of the given variable from the SolutionStepData.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
+    /**
+     * @brief Returns a const reference to the value of the given variable from the current solution step.
+     * @details This method accesses the value of the given variable from the SolutionStepData.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @return typename TVariableType::Type const& A const reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    /**
+     * @brief Returns a reference to the value of the given variable at the specified solution step index.
+     * @details This method accesses the value of the given variable from the SolutionStepData.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, const IndexType SolutionStepIndex)
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    /**
+     * @brief Returns a const reference to the value of the given variable at the specified solution step index.
+     * @details This method accesses the value of the given variable from the SolutionStepData.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return typename TVariableType::Type const& A const reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, const IndexType SolutionStepIndex) const
     {
         return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
-
+    /**
+     * @brief Checks if the SolutionStepData has the given variable.
+     * @details This method checks if the SolutionStepData contains the given variable.
+     * @param rThisVariable The variable to check.
+     * @return bool True if the SolutionStepData contains the variable, false otherwise.
+     */
     bool SolutionStepsDataHas(const VariableData& rThisVariable) const
     {
         return SolutionStepData().Has(rThisVariable);
@@ -434,48 +422,127 @@ public:
     //*******************************************************************************************
     //By Riccardo
     //very similar to the one before BUT throws an error if the variable does not exist
-    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
+    /**
+     * @brief Returns a reference to the value of the given variable from the current solution step.
+     * @details This method accesses the value of the given variable using a fast access method.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
-    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
+    /**
+     * @brief Returns a const reference to the value of the given variable from the current solution step.
+     * @details This method accesses the value of the given variable using a fast access method.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @return const typename TVariableType::Type& A const reference to the value of the variable.
+     */
+    template<class TVariableType>
+    const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
     {
         return SolutionStepData().FastGetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    /**
+     * @brief Returns a reference to the value of the given variable at the specified solution step index.
+     * @details This method accesses the value of the given variable using a fast access method.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, const IndexType SolutionStepIndex)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    /**
+     * @brief Returns a const reference to the value of the given variable at the specified solution step index.
+     * @details This method accesses the value of the given variable using a fast access method.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return const typename TVariableType::Type& A const reference to the value of the variable.
+     */
+    template<class TVariableType>
+    const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, const IndexType SolutionStepIndex) const
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
-    template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
+    /**
+     * @brief Returns a reference to the value of the given variable at the specified solution step index and position.
+     * @details This method accesses the value of the given variable using a fast access method.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @param SolutionStepIndex The index of the solution step.
+     * @param ThisPosition The position within the solution step.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, const IndexType SolutionStepIndex, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex, ThisPosition);
     }
 
-    template<class TVariableType> typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
+    /**
+     * @brief Returns a reference to the value of the given variable at the current solution step and specified position.
+     * @details This method accesses the value of the given variable using a fast access method.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @param ThisPosition The position within the solution step.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
     {
         return SolutionStepData().FastGetCurrentValue(rThisVariable, ThisPosition);
     }
+
 //*******************************************************************************************
 
-    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
+    /**
+     * @brief Returns a reference to the value of the given variable.
+     * @details This method accesses the value of the given variable from the data container.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
     {
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
+    /**
+     * @brief Returns a const reference to the value of the given variable.
+     * @details This method accesses the value of the given variable from the data container.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @return typename TVariableType::Type const& A const reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable) const
     {
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    /**
+     * @brief Returns a reference to the value of the given variable at the specified solution step index.
+     * @details If the data container does not have the variable, the method gets the value from SolutionStepData.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return typename TVariableType::Type& A reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, const IndexType SolutionStepIndex)
     {
         if(!mData.Has(rThisVariable))
             return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
@@ -483,7 +550,16 @@ public:
         return mData.GetValue(rThisVariable);
     }
 
-    template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
+    /**
+     * @brief Returns a const reference to the value of the given variable at the specified solution step index.
+     * @details If the data container does not have the variable, the method gets the value from SolutionStepData.
+     * @tparam TVariableType The type of the variable.
+     * @param rThisVariable The variable of which the value is needed.
+     * @param SolutionStepIndex The index of the solution step.
+     * @return typename TVariableType::Type const& A const reference to the value of the variable.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, const IndexType SolutionStepIndex) const
     {
         if(!mData.Has(rThisVariable))
             return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
@@ -491,13 +567,24 @@ public:
         return mData.GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Sets the value of a given variable type.
+     * @param rThisVariable the variable type to set the value of
+     * @param rValue the value of the variable type to set
+     */
     template<class TVariableType>
     void SetValue(const TVariableType& rThisVariable, typename TVariableType::Type const& rValue)
     {
         mData.SetValue(rThisVariable, rValue);
     }
 
-    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    /**
+     * @brief Checks if the specified variable is present in the data.
+     * @param rThisVariable the variable to check for presence
+     * @return true if the variable is present, false otherwise
+     */
+    template<class TDataType>
+    bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
     }
@@ -506,6 +593,12 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Fixes the degree of freedom associated with the given variable type.
+     * @param rDofVariable the variable type for which the degree of freedom is to be fixed
+     * @throws If KRATOS_DEBUG is defined, the function checks whether it is called from within a parallel region and
+     * throws an error if it is.
+     */
     template<class TVariableType>
     inline void Fix(const TVariableType& rDofVariable)
     {
@@ -525,6 +618,15 @@ public:
         pAddDof(rDofVariable)->FixDof();
     }
 
+    /**
+     * @brief Free the degree of freedom (DOF) associated with the given variable type.
+     * @param rDofVariable the variable type of the DOF to be freed.
+     * @details This function iterates over the DOFs stored in mDofs and frees the DOF with the given variable type
+     * (rDofVariable). If the DOF is found and freed, the function returns immediately. If the DOF is not
+     * found, a new DOF is added to mDofs with the given variable type and then freed.
+     * @throws If KRATOS_DEBUG is defined, the function checks whether it is called from within a parallel region and
+     * throws an error if it is.
+     */
     template<class TVariableType>
     inline void Free(const TVariableType& rDofVariable)
     {
@@ -544,78 +646,119 @@ public:
         pAddDof(rDofVariable)->FreeDof();
     }
 
-    IndexType GetBufferSize() const
-    {
-        return SolutionStepData().QueueSize();
-    }
+    /**
+     * @brief Get the buffer size
+     * @return The buffer size
+     */
+    IndexType GetBufferSize() const;
 
-    void SetBufferSize(IndexType NewBufferSize)
-    {
-        SolutionStepData().Resize(NewBufferSize);
-    }
+    /**
+     * @brief Set the buffer size
+     * @param NewBufferSize The new buffer size
+     */
+    void SetBufferSize(const IndexType NewBufferSize);
 
     ///@}
     ///@name Access
     ///@{
 
-    const PointType& GetInitialPosition() const
-    {
-        return mInitialPosition;
-    }
-    PointType& GetInitialPosition()
-    {
-        return mInitialPosition;
-    }
+    /**
+     * @brief Get the non-historical data container
+     * @details Deprecated method. Use 'GetData()' instead.
+     * @return The non-historical data container
+     */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
+    DataValueContainer& Data();
 
-    double& X0()
-    {
-        return mInitialPosition.X();
-    }
-    double& Y0()
-    {
-        return mInitialPosition.Y();
-    }
-    double& Z0()
-    {
-        return mInitialPosition.Z();
-    }
+    /**
+     * @brief Get the non-historical data container
+     * @return The non-historical data container
+     */
+    DataValueContainer& GetData();
 
-    double X0() const
-    {
-        return mInitialPosition.X();
-    }
-    double Y0() const
-    {
-        return mInitialPosition.Y();
-    }
-    double Z0() const
-    {
-        return mInitialPosition.Z();
-    }
+    /**
+     * @brief Get the non-historical data container
+     * @details const version
+     * @return The non-historical data container
+     */
+    const DataValueContainer& GetData() const;
 
-    void SetInitialPosition(const PointType& NewInitialPosition)
-    {
-        mInitialPosition.X() = NewInitialPosition.X();
-        mInitialPosition.Y() = NewInitialPosition.Y();
-        mInitialPosition.Z() = NewInitialPosition.Z();
-    }
+    /**
+     * @brief Get the initial coordinates as a point
+     * @return The initial position as a point
+     * @details const version
+     */
+    const PointType& GetInitialPosition() const;
 
-    void SetInitialPosition(double X,double Y, double Z)
-    {
-        mInitialPosition.X() = X;
-        mInitialPosition.Y() = Y;
-        mInitialPosition.Z() = Z;
-    }
+    /**
+     * @brief Get the initial coordinates as a point
+     * @return The initial position as a point
+     */
+    PointType& GetInitialPosition();
 
-    VariablesList::Pointer pGetVariablesList()
-    {
-        return SolutionStepData().pGetVariablesList();
-    }
+    /**
+     * @brief Get the initial X coordinate
+     */
+    double& X0();
 
-    const VariablesList::Pointer pGetVariablesList() const
-    {
-        return SolutionStepData().pGetVariablesList();
-    }
+    /**
+     * @brief Get the initial Y coordinate
+     */
+    double& Y0();
+
+    /**
+     * @brief Get the initial Z coordinate
+     */
+    double& Z0();
+
+    /**
+     * @brief Get the initial X coordinate
+     * @details const version
+     */
+    double X0() const;
+
+    /**
+     * @brief Get the initial Y coordinate
+     * @details const version
+     */
+    double Y0() const;
+
+    /**
+     * @brief Get the initial Z coordinate
+     * @details const version
+     */
+    double Z0() const;
+
+    /**
+     * @brief Set the initial coordinates
+     * @param rNewInitialPosition The new initial position
+     */
+    void SetInitialPosition(const PointType& rNewInitialPosition);
+
+    /**
+     * @brief Set the initial coordinates
+     * @param X The new initial X coordinate
+     * @param Y The new initial Y coordinate
+     * @param Z The new initial Z coordinate
+     */
+    void SetInitialPosition(
+        const double X,
+        const double Y,
+        const double Z
+        );
+
+    /**
+     * @brief Get the list of variables
+     * @return The list of variables
+     */
+    VariablesList::Pointer pGetVariablesList();
+
+    /**
+     * @brief Get the list of variables
+     * @details const version
+     * @return The list of variables
+     */
+    const VariablesList::Pointer pGetVariablesList() const;
 
     ///@}
     ///@name Dofs
@@ -687,21 +830,19 @@ public:
                 return **it_dof;
             }
         }
-
         KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
-
     }
 
-    /** returns all of the Dofs  */
-    DofsContainerType& GetDofs()
-    {
-        return mDofs;
-    }
+    /**
+     * @brief Returns all of the Dofs
+     */
+    DofsContainerType& GetDofs();
 
-    const DofsContainerType& GetDofs() const
-    {
-        return mDofs;
-    }
+    /**
+     * @brief Returns all of the Dofs
+     * @details const version
+     */
+    const DofsContainerType& GetDofs() const;
 
     /**
      * @brief Get DoF counted pointer for a given variable
@@ -719,7 +860,6 @@ public:
         }
 
         KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
-
     }
 
     /**
@@ -755,8 +895,11 @@ public:
         KRATOS_ERROR <<  "Non-existent DOF in node #" << Id() << " for variable : " << rDofVariable.Name() << std::endl;
     }
 
-
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Adds a Degree of Freedom (DoF) with the given variable to the current node if it does not already exist.
+     * @param rDofVariable the variable of the DoF to add
+     * @return a pointer to the newly added DoF
+     */
     template<class TVariableType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable)
     {
@@ -779,15 +922,18 @@ public:
         KRATOS_CATCH(*this);
     }
 
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Adds a degree of freedom (DOF) to the mesh node and returns the pointer to it.
+     * @param SourceDof the DOF to be added
+     * @return a pointer to the added DOF
+     */
     inline typename DofType::Pointer pAddDof(DofType const& SourceDof)
     {
         KRATOS_TRY
 
         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
             if((*it_dof)->GetVariable() == SourceDof.GetVariable()){
-                if((*it_dof)->GetReaction() != SourceDof.GetReaction())
-                {
+                if((*it_dof)->GetReaction() != SourceDof.GetReaction()) {
                     **it_dof = SourceDof;
                     (*it_dof)->SetNodalData(&mNodalData);
                 }
@@ -807,7 +953,12 @@ public:
         KRATOS_CATCH(*this);
     }
 
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Adds a degree of freedom to the nodal data.
+     * @param rDofVariable the degree of freedom variable
+     * @param rDofReaction the reaction type of the degree of freedom
+     * @return a pointer to the new degree of freedom
+     */
     template<class TVariableType, class TReactionType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
@@ -832,7 +983,10 @@ public:
 
     }
 
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Add a Dof to the node and return new added dof or existed one.
+     * @param rDofVariable The variable
+    */
     template<class TVariableType>
     inline DofType& AddDof(TVariableType const& rDofVariable)
     {
@@ -856,7 +1010,11 @@ public:
 
     }
 
-    /** adds a Dof to the node and return new added dof or existed one. */
+    /**
+     * @brief Add a Dof to the node and return new added dof or existed one.
+     * @param rDofVariable The variable
+     * @param rDofReaction The reaction variable
+    */
     template<class TVariableType, class TReactionType>
     inline DofType& AddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
@@ -878,14 +1036,17 @@ public:
         return *p_new_dof;
 
         KRATOS_CATCH(*this);
-
     }
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    /** Return true if the dof of freedom is present on the node */
+    /**
+     * @brief Determine if the provided `VariableData` has a degree of freedom (DOF).
+     * @param rDofVariable the `VariableData` to check for a DOF.
+     * @return `true` if a DOF exists for the provided `VariableData`, `false` otherwise.
+     */
     inline bool HasDofFor(const VariableData& rDofVariable) const
     {
         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
@@ -896,7 +1057,13 @@ public:
         return false;
     }
 
-    inline  bool IsFixed(const VariableData& rDofVariable) const
+    /**
+     * @brief Determines whether a given VariableData object is fixed or not by searching
+     * for it in the list of DOFs.
+     * @param rDofVariable the VariableData object to search for
+     * @return true if the VariableData object is fixed, false otherwise
+     */
+    inline bool IsFixed(const VariableData& rDofVariable) const
     {
         for(auto it_dof = mDofs.begin() ; it_dof != mDofs.end() ; it_dof++){
             if((*it_dof)->GetVariable() == rDofVariable){
@@ -920,28 +1087,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "Node #" << Id();
-        return buffer.str();
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        BaseType::PrintData(rOStream);
-        if(!mDofs.empty())
-            rOStream << std::endl << "    Dofs :" << std::endl;
-        for(typename DofsContainerType::const_iterator i = mDofs.begin() ; i != mDofs.end() ; i++)
-            rOStream << "        " << (*i)->Info() << std::endl;
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -985,18 +1137,19 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// Non-historical storage for the nodal data
     NodalData mNodalData;
 
-    /** storage for the dof of the node */
+    /// storage for the dof of the node
     DofsContainerType  mDofs;
 
-    /** A pointer to data related to this node. */
+    /// A pointer to data related to this node.
     DataValueContainer mData;
-
 
     ///Initial Position of the node
     PointType mInitialPosition;
 
+    /// The lock object for node
     LockObject mNodeLock;
 
     ///@}
@@ -1006,12 +1159,21 @@ private:
     //this block is needed for refcounting
     mutable std::atomic<int> mReferenceCounter{0};
 
-    friend void intrusive_ptr_add_ref(const NodeType* x)
+    /**
+     * @brief A friend function that increments the reference counter of a node type.
+     * @param x a pointer to the node type for which the reference counter is incremented.
+     */
+    friend void intrusive_ptr_add_ref(const Node* x)
     {
         x->mReferenceCounter.fetch_add(1, std::memory_order_relaxed);
     }
 
-    friend void intrusive_ptr_release(const NodeType* x)
+    /**
+     * @brief Decrements the reference count of the given Node object, and deletes it if
+     * the reference count becomes zero.
+     * @param x Pointer to the Node object whose reference count needs to be decremented
+     */
+    friend void intrusive_ptr_release(const Node* x)
     {
         if (x->mReferenceCounter.fetch_sub(1, std::memory_order_release) == 1) {
         std::atomic_thread_fence(std::memory_order_acquire);
@@ -1020,12 +1182,11 @@ private:
     }
     //*********************************************
 
+    /**
+     * @brief This method sorts the dofs of the node
+     */
+    void SortDofs();
 
-    void SortDofs(){
-        std::sort(mDofs.begin(), mDofs.end(), [](Kratos::unique_ptr<DofType> const& First, Kratos::unique_ptr<DofType> const& Second)->bool{
-            return First->GetVariable().Key() < Second->GetVariable().Key();
-        });
-    }
     ///@}
     ///@name Private Operations
     ///@{
@@ -1036,27 +1197,15 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
-        rSerializer.save("NodalData", &mNodalData); // Storing it as pointer to be shared by Dof pointer
-        rSerializer.save("Data", mData);
-        rSerializer.save("Initial Position", mInitialPosition);
-        rSerializer.save("Data", mDofs);
+    /**
+     * @brief This method is used to serialize the node
+     */
+    void save(Serializer& rSerializer) const override;
 
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        NodalData* p_nodal_data = &mNodalData;
-        rSerializer.load("NodalData", p_nodal_data);
-        rSerializer.load("Data", mData);
-        rSerializer.load("Initial Position", mInitialPosition);
-        rSerializer.load("Data", mDofs);
-    }
+    /**
+     * @brief This method is used to deserialize the node
+     */
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access
@@ -1103,10 +1252,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
-//     namespace Globals
-//     {
-// 	extern Node DefaultNode3;
-//     }
 
 }  // namespace Kratos.
