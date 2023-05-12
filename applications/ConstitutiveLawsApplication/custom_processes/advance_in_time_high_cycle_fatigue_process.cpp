@@ -220,7 +220,17 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
             }
         }
     }
-    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 3.0e-3 && acumulated_rev_factor_rel_error < 3.0e-3 && fatigue_in_course)) {
+
+    // if (time > 6.15986000000e+05 && (acumulated_max_stress_rel_error >= 1e-3 || acumulated_rev_factor_rel_error >= 1e-3)){
+        
+    //     KRATOS_WATCH(local_number_of_cycles)
+    //     KRATOS_WATCH(DamageIndicator)
+    //     KRATOS_WATCH(fatigue_in_course)
+    //     KRATOS_WATCH(acumulated_max_stress_rel_error)
+    //     KRATOS_WATCH(acumulated_rev_factor_rel_error)
+    // }
+
+    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 3e-3 && acumulated_rev_factor_rel_error < 3e-3 && fatigue_in_course)) {
         rAdvancingStrategy = true;
     }
 }
