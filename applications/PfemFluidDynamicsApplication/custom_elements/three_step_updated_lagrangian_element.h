@@ -401,9 +401,15 @@ namespace Kratos
                            const ShapeFunctionsType &rN,
                            const double Weight) override;
 
-    virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
-                                                  unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                                  double &DeviatoricCoeff, double &VolumetricCoeff) override{};
+    virtual void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override
+    {};
 
     ///@}
     ///@name Protected  Access

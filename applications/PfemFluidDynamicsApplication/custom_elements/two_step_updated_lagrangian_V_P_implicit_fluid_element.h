@@ -326,9 +326,14 @@ namespace Kratos
     void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
                                const double Weight) override;
 
-    void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
-                                          const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                          double &DeviatoricCoeff, double &VolumetricCoeff) override;
+    void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override;
 
     double GetThetaMomentum() override { return 0.5; };
 

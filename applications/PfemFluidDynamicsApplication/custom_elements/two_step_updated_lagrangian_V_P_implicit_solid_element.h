@@ -343,9 +343,14 @@ namespace Kratos
                                const double BoundRHSCoeffAcc,
                                const double BoundRHSCoeffDev) override{};
 
-    void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
-                                          const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                          double &DeviatoricCoeff, double &VolumetricCoeff) override;
+    void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override;
 
     void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                                VectorType &rRightHandSideVector,

@@ -144,11 +144,8 @@ public:
         rDistance = inner_prod(vector_points, rNormal);
 
         TPointClass3 point_projected;
-    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        point_projected = rPointToProject - rNormal * rDistance;
-    #else
+
         noalias(point_projected) = rPointToProject - rNormal * rDistance;
-    #endif // ifdef KRATOS_USE_AMATRIX
 
         return point_projected;
     }
@@ -359,15 +356,9 @@ public:
             Matrix ShapeFunctionsGradients;
             ShapeFunctionsGradients = rGeomOrigin.ShapeFunctionsLocalGradients(ShapeFunctionsGradients, rResultingPoint );
 
-        #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            DN = prod(X,ShapeFunctionsGradients);
-
-            J = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
-        #else
             noalias(DN) = prod(X,ShapeFunctionsGradients);
 
             noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
-        #endif // ifdef KRATOS_USE_AMATRIX
 
             const Vector RHS = prod(trans(DN),subrange(current_destiny_global_coords - current_global_coords,0,2));
 

@@ -22,6 +22,8 @@
 #include "spatial_containers/spatial_search.h"
 #include "spatial_containers/specialized_spatial_search.h"
 #include "spatial_containers/specialized_spatial_search_factory.h"
+#include "spatial_containers/geometrical_objects_bins.h"
+#include "spatial_containers/spatial_search_result.h"
 
 namespace Kratos::Python
 {
@@ -690,7 +692,106 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def(py::init< >())
     .def(py::init<Parameters>())
     ;
+
+    using ResultType = SpatialSearchResult<GeometricalObject>;
+
+    py::class_<ResultType, ResultType::Pointer>(m, "ResultType")
+    .def(py::init< >())
+    .def(py::init<GeometricalObject*>())
+    .def("Reset", &ResultType::Reset)
+    .def("Get", [&](ResultType& self) {return self.Get().get();})
+    .def("Set", &ResultType::Set)
+    .def("GetDistance", &ResultType::GetDistance)
+    .def("SetDistance", &ResultType::SetDistance)
+    .def("IsObjectFound", &ResultType::IsObjectFound)
+    .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
+    ;
+
+    using NodesContainerType = ModelPart::NodesContainerType;
+    using ElementsContainerType = ModelPart::ElementsContainerType;
+    using ConditionsContainerType = ModelPart::ConditionsContainerType;
+
+    py::class_<GeometricalObjectsBins, GeometricalObjectsBins::Pointer>(m, "GeometricalObjectsBins")
+    .def(py::init<ElementsContainerType&>())
+    .def(py::init<ConditionsContainerType&>())
+    .def("GetBoundingBox", &GeometricalObjectsBins::GetBoundingBox)
+    .def("GetCellSizes", &GeometricalObjectsBins::GetCellSizes)
+    .def("GetNumberOfCells", &GeometricalObjectsBins::GetNumberOfCells)
+    .def("GetTotalNumberOfCells", &GeometricalObjectsBins::GetTotalNumberOfCells)
+    .def("SearchInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        std::vector<ResultType> results;
+        self.SearchInRadius(rPoint, Radius, results);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("SearchInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        std::vector<std::vector<ResultType>> results;
+        self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            py::list sub_list_results;
+            for (auto& r_sub_result : r_result) {
+                sub_list_results.append(r_sub_result);
+            }
+            list_results.append(sub_list_results);
+        }
+        return list_results;
+    })
+    .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        return self.SearchNearestInRadius(rPoint, Radius);
+    })
+    .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        std::vector<ResultType> results = self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("SearchNearest", [&](GeometricalObjectsBins& self, const Point& rPoint) {
+        // Perform the search
+        return self.SearchNearest(rPoint);
+    })
+    .def("SearchNearest", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
+        // Perform the search
+        std::vector<ResultType> results = self.SearchNearest(rNodes.begin(), rNodes.end());
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("SearchIsInside", [&](GeometricalObjectsBins& self, const Point& rPoint) {
+        // Perform the search
+        return self.SearchIsInside(rPoint);
+    })
+    .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
+        // Perform the search
+        std::vector<ResultType> results = self.SearchIsInside(rNodes.begin(), rNodes.end());
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    ;
 }
 
 }  // namespace Kratos::Python.
-

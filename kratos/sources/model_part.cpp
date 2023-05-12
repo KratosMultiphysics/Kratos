@@ -82,6 +82,7 @@ void ModelPart::Clear()
 
     // Clear meshes list
     mMeshes.clear();
+    mMeshes.emplace_back(Kratos::make_shared<MeshType>());
 
     // Clear geometries
     mGeometries.Clear();

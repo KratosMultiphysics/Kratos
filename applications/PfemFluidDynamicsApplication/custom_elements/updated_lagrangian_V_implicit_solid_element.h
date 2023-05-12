@@ -292,9 +292,14 @@ namespace Kratos
        * @param Weight Multiplication coefficient for the matrix, typically Density times integration point weight.
        */
 
-    void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
-                                          const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                          double &DeviatoricCoeff, double &VolumetricCoeff) override;
+    void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override;
 
     double GetThetaMomentum() override { return 1.0; };
 
