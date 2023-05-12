@@ -5,9 +5,9 @@ namespace {
 using namespace Kratos;
 
 // Helper function to retrieve dofs from nodes
-Node<3>::DofType::Pointer GetDof(
+Node::DofType::Pointer GetDof(
     VariableData::KeyType Key,
-    Node<3>& rNode)
+    Node& rNode)
 {
     auto& r_node_dofs = rNode.GetDofs();
     for (auto i_dof = r_node_dofs.begin(); i_dof != r_node_dofs.end(); ++i_dof) {
