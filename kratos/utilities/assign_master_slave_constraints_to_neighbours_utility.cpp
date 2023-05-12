@@ -158,24 +158,24 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
 
 // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
-    ResultNodesContainerType nodes_array,
+    ResultNodesContainerType NodesArray,
     const Variable<double>& rVariable,
     DofPointerVectorType& rCloudOfDofs,
     Matrix& rCloudOfNodesCoordinates
     )
 {
     KRATOS_TRY;
-    rCloudOfDofs.resize(nodes_array.size());
-    rCloudOfNodesCoordinates.resize(nodes_array.size(),3);
-    for(unsigned int i = 0; i < nodes_array.size(); i++){
-        rCloudOfDofs[i] = nodes_array[i]->pGetDof(rVariable);
-        noalias(row(rCloudOfNodesCoordinates,i)) = nodes_array[i]->Coordinates();
+    rCloudOfDofs.resize(NodesArray.size());
+    rCloudOfNodesCoordinates.resize(NodesArray.size(),3);
+    for(unsigned int i = 0; i < NodesArray.size(); i++){
+        rCloudOfDofs[i] = NodesArray[i]->pGetDof(rVariable);
+        noalias(row(rCloudOfNodesCoordinates,i)) = NodesArray[i]->Coordinates();
     }
     KRATOS_CATCH("");
 }
 
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
-    ResultNodesContainerType nodes_array,
+    ResultNodesContainerType NodesArray,
     std::array<const Kratos::Variable<double>*, 3> ComponentVariables,
     DofPointerVectorType& rCloudOfDofsX,
     DofPointerVectorType& rCloudOfDofsY,
@@ -184,14 +184,14 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
 )
 {
     KRATOS_TRY;
-    rCloudOfDofsX.resize(nodes_array.size());
-    rCloudOfDofsY.resize(nodes_array.size());
-    rCloudOfDofsZ.resize(nodes_array.size());
-    rCloudOfNodesCoordinates.resize(nodes_array.size(), 3);
+    rCloudOfDofsX.resize(NodesArray.size());
+    rCloudOfDofsY.resize(NodesArray.size());
+    rCloudOfDofsZ.resize(NodesArray.size());
+    rCloudOfNodesCoordinates.resize(NodesArray.size(), 3);
 
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
+    for(int i = 0; i < static_cast<int>(NodesArray.size()); i++)
     {
-        NodeType::Pointer pNode = nodes_array[i];
+        NodeType::Pointer pNode = NodesArray[i];
 
         // Check if the node has the required DOFs
         if (pNode->HasDofFor(*ComponentVariables[0]) &&
