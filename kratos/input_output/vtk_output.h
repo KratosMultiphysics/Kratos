@@ -41,7 +41,7 @@ public:
     using IndexType = std::size_t;
 
     /// Definition of the node type
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Definition of the geometry type with given NodeType
     using GeometryType = Geometry<NodeType>;

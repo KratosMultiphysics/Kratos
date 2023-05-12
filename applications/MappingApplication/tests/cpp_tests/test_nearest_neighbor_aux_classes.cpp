@@ -23,7 +23,7 @@ namespace Kratos::Testing {
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(MapperInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {

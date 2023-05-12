@@ -112,7 +112,7 @@ public:
     typedef Epetra_MpiComm EpetraCommunicatorType;
 
     /// DoF types definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef DofType::Pointer DofPointerType;
 

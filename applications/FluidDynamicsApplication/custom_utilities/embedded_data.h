@@ -73,7 +73,7 @@ void Initialize(
     const ProcessInfo& rProcessInfo) override
 {
     TFluidData::Initialize(rElement, rProcessInfo);
-    const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
+    const Geometry<Node >& r_geometry = rElement.GetGeometry();
     this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
 
     NumPositiveNodes = 0;
@@ -98,7 +98,7 @@ void InitializeBoundaryConditionData(const ProcessInfo &rProcessInfo)
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Geometry< Node >& r_geometry = rElement.GetGeometry();
     for (unsigned int i = 0; i < TFluidData::NumNodes; i++) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,r_geometry[i]);
     }

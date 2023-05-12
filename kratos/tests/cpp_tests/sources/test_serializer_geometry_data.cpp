@@ -29,27 +29,27 @@
 
 namespace Kratos {
     namespace Testing {
-        typedef Geometry<Node<3>> GeometryType;
-        typedef Node<3> NodeType;
+        typedef Geometry<Node> GeometryType;
+        typedef Node NodeType;
 
-        Geometry<Node<3>>::Pointer GenerateLine2D3Test(ModelPart& rModelPart) {
+        Geometry<Node>::Pointer GenerateLine2D3Test(ModelPart& rModelPart) {
             rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.5, 0.0, 0.0);
 
-            return Kratos::make_shared<Line2D3<Node<3>>>(
+            return Kratos::make_shared<Line2D3<Node>>(
                 rModelPart.pGetNode(1),
                 rModelPart.pGetNode(2),
                 rModelPart.pGetNode(3)
                 );
         }
 
-        Geometry<Node<3>>::Pointer GenerateLine2D3TestLoad(ModelPart& rModelPart) {
+        Geometry<Node>::Pointer GenerateLine2D3TestLoad(ModelPart& rModelPart) {
             rModelPart.CreateNewNode(4, 20, 0.0, 0.0);
             rModelPart.CreateNewNode(5, 20, 0.0, 0.0);
             rModelPart.CreateNewNode(6, 20, 0.0, 0.0);
 
-            return Kratos::make_shared<Line2D3<Node<3>>>(
+            return Kratos::make_shared<Line2D3<Node>>(
                 rModelPart.pGetNode(4),
                 rModelPart.pGetNode(5),
                 rModelPart.pGetNode(6)
@@ -60,7 +60,7 @@ namespace Kratos {
          * Generates a point type right triangle with origin in the origin and leg size 1.
          * @return  Pointer to a triangle2D3
          */
-        Geometry<Node<3>>::Pointer GeneratePointsTriangle2D3TestQP(ModelPart& rModelPart) {
+        Geometry<Node>::Pointer GeneratePointsTriangle2D3TestQP(ModelPart& rModelPart) {
             rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
             rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
@@ -72,7 +72,7 @@ namespace Kratos {
                 );
         }
 
-        Geometry<Node<3>>::Pointer GenerateQuadraturePoint2DTest(ModelPart& rModelPart) {
+        Geometry<Node>::Pointer GenerateQuadraturePoint2DTest(ModelPart& rModelPart) {
             auto triangle = GeneratePointsTriangle2D3TestQP(rModelPart);
 
             auto integration_points = triangle->IntegrationPoints();
@@ -92,8 +92,8 @@ namespace Kratos {
                 N_i,
                 DN_De);
 
-            Geometry<Node<3>>::Pointer p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
+            Geometry<Node>::Pointer p_this_quadrature_point(
+                Kratos::make_shared<QuadraturePointGeometry<Node, 2, 2>>(
                     triangle->Points(),
                     data_container,
                     triangle.get()));
@@ -101,7 +101,7 @@ namespace Kratos {
             return p_this_quadrature_point;
         }
 
-        Geometry<Node<3>>::Pointer GenerateQuadraturePoint2DTestLoad() {
+        Geometry<Node>::Pointer GenerateQuadraturePoint2DTestLoad() {
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 GeometryData::IntegrationMethod::GI_GAUSS_1,
@@ -109,8 +109,8 @@ namespace Kratos {
                 Matrix(),
                 Matrix());
 
-            Geometry<Node<3>>::Pointer p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2>>(
+            Geometry<Node>::Pointer p_this_quadrature_point(
+                Kratos::make_shared<QuadraturePointGeometry<Node, 2>>(
                     GeometryType::PointsArrayType(3),
                     data_container));
 

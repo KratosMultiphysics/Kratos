@@ -53,7 +53,7 @@ namespace Kratos {
         ModelPart& r_model_part = current_model.CreateModelPart("test");
         auto p_node = r_model_part.CreateNewNode(1, 1., 0, 0);
         auto& r_node = *p_node;
-        IndexedObjectHasher<Node<3>> indexed_object_hasher;
+        IndexedObjectHasher<Node> indexed_object_hasher;
 
         KRATOS_CHECK_EQUAL(indexed_object_hasher(r_node), 1);
     }
@@ -66,7 +66,7 @@ namespace Kratos {
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("test");
         auto p_node = r_model_part.CreateNewNode(1, 1., 0, 0);
-        IndexedObjectPointerHasher<Node<3>::Pointer> indexed_object_hasher;
+        IndexedObjectPointerHasher<Node::Pointer> indexed_object_hasher;
 
         KRATOS_CHECK_EQUAL(indexed_object_hasher(p_node), 1);
     }
@@ -145,7 +145,7 @@ namespace Kratos {
         auto p_node2 = r_model_part.CreateNewNode(2, 2., 0, 0);
         auto& r_node1 = *p_node1;
         auto& r_node2 = *p_node2;
-        IndexedObjectComparator<Node<3>> indexed_object_comparor;
+        IndexedObjectComparator<Node> indexed_object_comparor;
 
         KRATOS_CHECK(indexed_object_comparor(r_node1, r_model_part.GetNode(1)));
         KRATOS_CHECK_IS_FALSE(indexed_object_comparor(r_node1, r_node2));
@@ -160,7 +160,7 @@ namespace Kratos {
         ModelPart& r_model_part = current_model.CreateModelPart("test");
         auto p_node1 = r_model_part.CreateNewNode(1, 1., 0, 0);
         auto p_node2 = r_model_part.CreateNewNode(2, 2., 0, 0);
-        IndexedObjectPointerComparator<Node<3>::Pointer> indexed_object_comparor;
+        IndexedObjectPointerComparator<Node::Pointer> indexed_object_comparor;
 
         KRATOS_CHECK(indexed_object_comparor(p_node1, r_model_part.pGetNode(1)));
         KRATOS_CHECK_IS_FALSE(indexed_object_comparor(p_node1, p_node2));
@@ -175,7 +175,7 @@ namespace Kratos {
         ModelPart& r_model_part = current_model.CreateModelPart("test");
         auto p_node1 = r_model_part.CreateNewNode(1, 1., 0, 0);
         auto p_node2 = r_model_part.CreateNewNode(2, 2., 0, 0);
-        SharedPointerComparator<Node<3>::Pointer> shared_pointer_comparor;
+        SharedPointerComparator<Node::Pointer> shared_pointer_comparor;
 
         KRATOS_CHECK(shared_pointer_comparor(p_node1, r_model_part.pGetNode(1)));
         KRATOS_CHECK_IS_FALSE(shared_pointer_comparor(p_node1, p_node2));

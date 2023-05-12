@@ -49,7 +49,7 @@ namespace Kratos {
 
     /// Geometric definitions
     typedef Point PointType;
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<PointType> GeometryPointType;
 

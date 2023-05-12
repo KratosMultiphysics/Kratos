@@ -105,7 +105,7 @@ public:
 	/// Pointer definition of FSGeneralizedWallCondition
 	KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FSGeneralizedWallCondition);
 
-	typedef Node < 3 > NodeType;
+	typedef Node NodeType;
 
 	typedef Properties PropertiesType;
 

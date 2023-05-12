@@ -161,7 +161,7 @@ namespace Kratos
                                   std::function<void(char*)> reportTextualProgress,
                                   std::function<bool()> shouldCancel);
 
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -202,7 +202,6 @@ namespace Kratos
         ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
         LinearSolverType::Pointer setup_solver_dgeoflow();
         GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
-        void parseMesh(ModelPart &model_part, std::string filepath);
         void parseMaterial(Model &model, std::string filepath);
 
         Parameters openProjectParamsFile(std::string filepath);

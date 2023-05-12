@@ -226,7 +226,7 @@ private:
     void WriteFacet(const GeometryType & rGeom);
 
     bool IsValidGeometry(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         std::size_t& rNumDegenerateGeos) const;
 
     ///@}

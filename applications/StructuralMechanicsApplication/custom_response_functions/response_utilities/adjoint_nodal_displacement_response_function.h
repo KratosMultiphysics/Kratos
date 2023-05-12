@@ -54,7 +54,7 @@ public:
     ///@{
 
     typedef Element::DofsVectorType DofsVectorType;
-    typedef Node<3>::Pointer PointTypePointer;
+    typedef Node::Pointer PointTypePointer;
     typedef Variable<array_1d<double, 3>> ArrayVariableType;
 
     ///@}
