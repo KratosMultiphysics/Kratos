@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-
+#include "includes/global_pointer.h"
 
 namespace Kratos
 {

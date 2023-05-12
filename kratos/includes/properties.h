@@ -22,10 +22,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/accessor.h"
 #include "includes/node.h"
 #include "includes/indexed_object.h"
+#include "containers/pointer_vector_set.h"
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"
