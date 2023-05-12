@@ -97,19 +97,7 @@ public:
     using TablesContainerType = std::unordered_map<std::size_t, TableType>; // This is a provisional implementation and should be changed to hash. Pooyan.
 
     /// Properties container. A vector set of properties with their Id's as key.
-    typedef PointerVectorSet<Properties, IndexedObject> SubPropertiesContainerType;
-
-    /** Iterator over the properties. This iterator is an indirect
-    iterator over Properties::Pointer which turn back a reference to
-    properties by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename SubPropertiesContainerType::iterator SubPropertiesIterator;
-
-    /** Const iterator over the properties. This iterator is an indirect
-    iterator over Properties::Pointer which turn back a reference to
-    properties by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename SubPropertiesContainerType::const_iterator SubPropertiesConstantIterator;
+    using SubPropertiesContainerType = PointerVectorSet<Properties, IndexedObject>;
 
     ///@}
     ///@name Life Cycle
@@ -390,7 +378,7 @@ public:
     Properties::Pointer pGetSubProperties(const IndexType SubPropertyIndex)
     {
         // Looking into the database
-        SubPropertiesIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator.base());
         } else {
@@ -407,7 +395,7 @@ public:
     const Properties::Pointer pGetSubProperties(const IndexType SubPropertyIndex) const
     {
         // Looking into the database
-        SubPropertiesConstantIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator.base());
         } else {
@@ -424,7 +412,7 @@ public:
     Properties& GetSubProperties(const IndexType SubPropertyIndex)
     {
         // Looking into the database
-        SubPropertiesIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator);
         } else {
@@ -531,7 +519,6 @@ public:
         return (mTables.find(Key(XVariable.Key(), YVariable.Key())) != mTables.end());
     }
 
-
     ///@}
     ///@name Input and output
     ///@{
@@ -551,71 +538,77 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
+        // Id
+        rOStream << "Id : " << this->Id() << "\n";
+
+        // Data
         mData.PrintData(rOStream);
-        rOStream << "This properties contains " << mTables.size() << " tables";
-        if (mSubPropertiesList.size() > 0) {
-            rOStream << "\nThis properties contains the following subproperties " << mSubPropertiesList.size() << " subproperties" << std::endl;
-            for (auto& r_subprop : mSubPropertiesList) {
-                r_subprop.PrintData(rOStream);
+
+        // Tables
+        if (mTables.size() > 0) {
+            // Print the tables
+            rOStream << "This properties contains " << mTables.size() << " tables";
+            for (auto& r_table : mTables) {
+                PrintDataWithIdentation(rOStream, r_table.second);
             }
         }
+
+        // Subproperties
+        if (mSubPropertiesList.size() > 0) {
+            // Print the subproperties
+            rOStream << "\nThis properties contains the following subproperties " << mSubPropertiesList.size() << " subproperties" << std::endl;
+            for (auto& r_subprop : mSubPropertiesList) {
+                PrintDataWithIdentation(rOStream, r_subprop);
+            }
+        }
+
+        // Accessors
         if (mAccessors.size() > 0) {
+            // Print the accessors
             rOStream << "\nThis properties contains the following " << mAccessors.size() << " accessors" << std::endl;
             for (auto& r_entry : mAccessors) {
-                (r_entry.second)->PrintData(rOStream);
+                PrintDataWithIdentation(rOStream, *r_entry.second);
             }
         }
     }
-
 
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -635,7 +628,36 @@ private:
 
     ///@}
     ///@name Private Operations
-    ///@{
+    ///@
+
+    /**
+     * @brief Prints the data of an object of type TClass to the given output stream with indentation.
+     * @param rOStream The output stream where the data will be printed.
+     * @param rThisClass The object of type TClass whose data will be printed.
+     * @param Identation (optional) The string used for the indentation. Default is four spaces.
+     */
+    template<class TClass>
+    static void PrintDataWithIdentation(
+        std::ostream& rOStream,
+        const TClass& rThisClass,
+        const std::string Identation = "\t"
+        )
+    {
+        // Auxiliary stream and line
+        std::stringstream ss;
+        std::string line;
+        rThisClass.PrintData(ss);
+
+        // Get the output string from the stringstream.
+        const std::string& r_output = ss.str();
+
+        // Split the output string into lines.
+        std::istringstream iss(r_output);
+        while (std::getline(iss, line)) {
+            // Here, 'line' is a single line from the output.
+            rOStream << Identation << line << "\n";
+        }
+    }
 
     ///@}
     ///@name Serialization
@@ -681,11 +703,9 @@ private:
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
 
     ///@}
 
@@ -696,11 +716,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -717,6 +735,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
