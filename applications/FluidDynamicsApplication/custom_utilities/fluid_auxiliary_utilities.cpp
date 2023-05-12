@@ -454,7 +454,7 @@ void FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF(
     cut_elem_nodes.Unique();
 
     unsigned int max_results = 100; //deliberately low, we do not want to interpolate from more than this nodes
-    auto TLS = std::make_pair(std::vector<Node<3>::Pointer>(max_results), std::vector<double>(max_results));
+    auto TLS = std::make_pair(std::vector<Node::Pointer>(max_results), std::vector<double>(max_results));
 
     //for every interface node (nodes in cut elements)
     block_for_each(cut_elem_nodes, TLS, [&locator, SearchRadius](auto& rNode, auto& rTLS){
