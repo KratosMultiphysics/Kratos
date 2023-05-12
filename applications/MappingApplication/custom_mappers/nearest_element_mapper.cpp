@@ -56,7 +56,7 @@ void NearestElementInterfaceInfo::SaveSearchResult(const InterfaceObject& rInter
     if (is_full_projection) {
         SetLocalSearchWasSuccessful();
     } else {
-        if (!ComputeApproximation) {
+        if (!ComputeApproximation || mLocalCoordTol < std::numeric_limits<double>::epsilon) {
             return;
         } else {
             SetIsApproximation();
