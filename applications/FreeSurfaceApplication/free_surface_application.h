@@ -113,7 +113,7 @@ public:
 		PrintData(rOStream);
 	}
 
-	///// Print object's data.
+	/// Print object's data.
 	virtual void PrintData(std::ostream& rOStream) const override
 	{
   		KRATOS_WATCH("in my application");

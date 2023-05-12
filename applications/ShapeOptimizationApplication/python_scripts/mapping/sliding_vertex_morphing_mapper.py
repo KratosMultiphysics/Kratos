@@ -10,8 +10,12 @@
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
-import KratosMultiphysics.StructuralMechanicsApplication as KSM
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as KSM
+    from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+except ImportError:
+    KSM = None
+    StructuralMechanicsAnalysis = None
 SpacialMapperFactory = KM.MapperFactory
 
 from ..custom_ios.wrl_io import WrlIO
@@ -33,6 +37,8 @@ class SlidingVertexMorphingMapper():
         from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
         if not SpacialMapperFactory:
             raise Exception("SlidingVertexMorphingMapper: MappingApplication is required!")
+        if not KSM:
+            raise Exception("SlidingVertexMorphingMapper: StructuralMechanicsApplication is required!")
 
         self.settings = settings
         self.origin_model_part = origin_model_part

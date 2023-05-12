@@ -184,12 +184,13 @@ private:
     static void ValidateType()
     {
         static_assert(
-            std::is_same<TDataType, double>::value ||
-            std::is_same<TDataType, int>::value    ||
-            std::is_same<TDataType, bool>::value   ||
-            std::is_same<TDataType, Info>::value   || // makes it recursive
+            std::is_same<TDataType, double>::value      ||
+            std::is_same<TDataType, int>::value         ||
+            std::is_same<TDataType, std::size_t>::value ||
+            std::is_same<TDataType, bool>::value        ||
+            std::is_same<TDataType, Info>::value        || // makes it recursive
             std::is_same<TDataType, std::string>::value,
-                "Only allowed types are double, int, bool, string, Info");
+                "Only allowed types are double, int, size_t, bool, string, Info");
     }
 
     friend class CoSimIO::Internals::Serializer; // needs "CoSimIO::Internals::" because it is in different namespace
@@ -213,6 +214,7 @@ inline std::ostream & operator <<(
 namespace Internals {
 
 template<> inline std::string Name<int>()         {return "int";}
+template<> inline std::string Name<std::size_t>() {return "size_t";}
 template<> inline std::string Name<double>()      {return "double";}
 template<> inline std::string Name<bool>()        {return "bool";}
 template<> inline std::string Name<std::string>() {return "string";}

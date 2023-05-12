@@ -21,6 +21,7 @@
 
 
 // Project includes
+#include "containers/model.h"
 #include "processes/process.h"
 #include "geometries/geometry.h"
 #include "includes/kratos_parameters.h"
@@ -71,27 +72,46 @@ public:
 
     typedef Geometry<Point> GeometryType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor with Model and Parameters
+    CalculateDistanceToBoundaryProcess(
+        Model& rModel,
+        Parameters ThisParameters) :
+            Process(),
+            mrModelPart(rModel.GetModelPart(ThisParameters["computing_model_part_name"].GetString())),
+            mrBoundaryPart(rModel.GetModelPart(ThisParameters["absorbing_boundary_name"].GetString()))
+    {
+        msInstancesCount++;
+        mInitializeDistance = (msInstancesCount == 1);
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+        mRSquaredThreshold = ThisParameters["r_squared_threshold"].GetDouble();
+        FindApproximatingGeometry(mpBoundary, mrBoundaryPart);
+    }
+
+    /// Constructor with ModelPart
     CalculateDistanceToBoundaryProcess(
         ModelPart& rComputingModelPart,
         ModelPart& rBoundaryModelPart,
-        Parameters ThisParameters = Parameters()) :
+        double RSquaredThreshold = 0.99) :
             Process(),
-            mrModelPart(rComputingModelPart)
+            mrModelPart(rComputingModelPart),
+            mrBoundaryPart(rBoundaryModelPart)
     {
-        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-        mRSquaredThreshold = ThisParameters["r_squared_threshold"].GetDouble();
-        FindApproximatingGeometry(mpBoundary, rBoundaryModelPart);
+        msInstancesCount++;
+        mInitializeDistance = (msInstancesCount == 1);
+        mRSquaredThreshold = RSquaredThreshold;
+        FindApproximatingGeometry(mpBoundary, mrBoundaryPart);
     }
 
     /// Destructor.
-    virtual ~CalculateDistanceToBoundaryProcess() {}
+    virtual ~CalculateDistanceToBoundaryProcess() {
+        msInstancesCount--;
+    }
 
     ///@}
     ///@name Operators
@@ -107,8 +127,6 @@ public:
     void ExecuteBeforeSolutionLoop() override;
 
     const Parameters GetDefaultParameters() const override;
-
-    double GetRSquared();
 
     ///@}
     ///@name Access
@@ -155,15 +173,18 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    GeometryType::Pointer mpBoundary;
-    double mRSquaredThreshold;
-    double mRSquared;
+    static std::size_t msInstancesCount;
 
     ///@}
     ///@name Member Variables
     ///@{
 
+    ModelPart& mrModelPart;
+    ModelPart& mrBoundaryPart;
+    GeometryType::Pointer mpBoundary;
+    double mRSquaredThreshold;
+    bool mBruteForceSearch;
+    bool mInitializeDistance;
 
     ///@}
     ///@name Private Operators
@@ -179,6 +200,8 @@ private:
     double RSquared(const GeometryType& rLine, const ModelPart& rBoundaryPart);
 
     double SquaredDistance(const Point& rPointA, const Point& rPointB);
+
+    double Distance(const Point& rPointA, const Point& rPointB);
 
     ///@}
     ///@name Private  Access

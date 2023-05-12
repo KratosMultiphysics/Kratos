@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -15,8 +15,8 @@
 
 // Project includes
 #include "custom_constitutive/linear_plane_strain.h"
-
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -76,42 +76,10 @@ Matrix& LinearPlaneStrain::GetValue(const Variable<Matrix>& rThisVariable, Matri
 /***********************************************************************************/
 /***********************************************************************************/
 
-// ConstitutiveLaw::VoigtSizeMatrixType& LinearPlaneStrain::GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, ConstitutiveLaw::VoigtSizeMatrixType& rValue)
-// {
-//     return rValue;
-// }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-// ConstitutiveLaw::DeformationGradientMatrixType& LinearPlaneStrain::GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, ConstitutiveLaw::DeformationGradientMatrixType& rValue)
-// {
-//     return rValue;
-// }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 Vector& LinearPlaneStrain::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     return rValue;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-// ConstitutiveLaw::StrainVectorType& LinearPlaneStrain::GetValue(const Variable<StrainVectorType>& rThisVariable, ConstitutiveLaw::StrainVectorType& rValue)
-// {
-//     return rValue;
-// }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-// ConstitutiveLaw::StressVectorType& LinearPlaneStrain::GetValue(const Variable<StressVectorType>& rThisVariable, ConstitutiveLaw::StressVectorType& rValue)
-// {
-//     return rValue;
-// }
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -145,24 +113,9 @@ void LinearPlaneStrain::GetLawFeatures(Features& rFeatures)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearPlaneStrain::CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStrain::CalculateElasticMatrix(VoigtSizeMatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    this->CheckClearElasticMatrix(C);
-
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-    const double c1 = (1.00 - NU)*c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU)*c0;
-
-    C(0, 0) = c1;
-    C(0, 1) = c2;
-    C(1, 0) = c2;
-    C(1, 1) = c1;
-    C(2, 2) = c3;
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStrain(rC, rValues);
 }
 
 /***********************************************************************************/

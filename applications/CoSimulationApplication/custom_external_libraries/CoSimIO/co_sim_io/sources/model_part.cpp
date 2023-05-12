@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/model_part.hpp"
-#include "includes/utilities.hpp"
 
 namespace CoSimIO {
 
@@ -138,8 +137,8 @@ Node& ModelPart::CreateNewNode(
 
     CoSimIO::intrusive_ptr<Node> new_node(CoSimIO::make_intrusive<Node>(I_Id, I_X, I_Y, I_Z));
 
-    mNodes.push_back(new_node);
-    GetLocalModelPart().mNodes.push_back(new_node);
+    mNodes.push_back(new_node, I_Id);
+    GetLocalModelPart().mNodes.push_back(new_node, I_Id);
 
     return *new_node;
 }
@@ -152,12 +151,13 @@ Node& ModelPart::CreateNewGhostNode(
     const int PartitionIndex)
 {
     CO_SIM_IO_ERROR_IF(HasNode(I_Id)) << "The Node with Id " << I_Id << " exists already!" << std::endl;
+    CO_SIM_IO_ERROR_IF(PartitionIndex<0) << "PartitionIndex must be >= 0!" << std::endl;
 
     CoSimIO::intrusive_ptr<Node> new_node(CoSimIO::make_intrusive<Node>(I_Id, I_X, I_Y, I_Z));
 
-    mNodes.push_back(new_node);
-    GetGhostModelPart().mNodes.push_back(new_node);
-    GetPartitionModelPart(PartitionIndex).mNodes.push_back(new_node);
+    mNodes.push_back(new_node, I_Id);
+    GetGhostModelPart().mNodes.push_back(new_node, I_Id);
+    GetPartitionModelPart(PartitionIndex).mNodes.push_back(new_node, I_Id);
 
     return *new_node;
 }
@@ -177,8 +177,8 @@ Element& ModelPart::CreateNewElement(
 
     CoSimIO::intrusive_ptr<Element> new_element(CoSimIO::make_intrusive<Element>(I_Id, I_Type, nodes));
 
-    mElements.push_back(new_element);
-    GetLocalModelPart().mElements.push_back(new_element);
+    mElements.push_back(new_element, I_Id);
+    GetLocalModelPart().mElements.push_back(new_element, I_Id);
 
     return *new_element;
 }
@@ -247,40 +247,32 @@ void ModelPart::Clear()
 
 ModelPart::NodesContainerType::const_iterator ModelPart::FindNode(const IdType I_Id) const
 {
-    return std::find_if(
-        mNodes.begin(), mNodes.end(),
-        [I_Id](const NodePointerType& rp_node) { return rp_node->Id() == I_Id;});
+    return mNodes.find(I_Id);
 }
 
 ModelPart::NodesContainerType::iterator ModelPart::FindNode(const IdType I_Id)
 {
-    return std::find_if(
-        mNodes.begin(), mNodes.end(),
-        [I_Id](const NodePointerType& rp_node) { return rp_node->Id() == I_Id;});
+    return mNodes.find(I_Id);
 }
 
 ModelPart::ElementsContainerType::const_iterator ModelPart::FindElement(const IdType I_Id) const
 {
-    return std::find_if(
-        mElements.begin(), mElements.end(),
-        [I_Id](const ElementPointerType& rp_elem) { return rp_elem->Id() == I_Id;});
+    return mElements.find(I_Id);
 }
 
 ModelPart::ElementsContainerType::iterator ModelPart::FindElement(const IdType I_Id)
 {
-    return std::find_if(
-        mElements.begin(), mElements.end(),
-        [I_Id](const ElementPointerType& rp_elem) { return rp_elem->Id() == I_Id;});
+    return mElements.find(I_Id);
 }
 
 bool ModelPart::HasNode(const IdType I_Id) const
 {
-    return FindNode(I_Id) != mNodes.end();
+    return mNodes.contains(I_Id);
 }
 
 bool ModelPart::HasElement(const IdType I_Id) const
 {
-    return FindElement(I_Id) != mElements.end();
+    return mElements.contains(I_Id);
 }
 
 ModelPart& ModelPart::GetLocalModelPart()

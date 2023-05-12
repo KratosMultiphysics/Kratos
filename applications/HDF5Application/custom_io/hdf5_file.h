@@ -53,7 +53,7 @@ struct WriteInfo
  * meta data. Reading and writing data sets is the responsibility of the derived
  * class.
  */
-class File
+class KRATOS_API(HDF5_APPLICATION) File
 {
 public:
     ///@name Type Definitions
@@ -166,6 +166,12 @@ public:
     bool HasFloatDataType(const std::string& rPath) const;
 
     void Flush();
+
+    /// Terminate access to the HDF5 file.
+    /*
+     *  @throws If the underlying HDF5 call fails.
+     */
+    void Close();
 
     unsigned GetFileSize() const;
 

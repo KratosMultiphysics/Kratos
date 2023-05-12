@@ -30,7 +30,7 @@ public:
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef NurbsSurfaceGeometry<3, PointerVector<NodeType>> NurbsSurfaceGeometryType;
     typedef typename NurbsSurfaceGeometryType::Pointer NurbsSurfaceGeometryPointerType;
@@ -77,6 +77,46 @@ public:
     static void KnotRefinementV(
         NurbsSurfaceGeometryType& rGeometry,
         std::vector<double>& rKnotsVToInsert,
+        PointerVector<NodeType>& rPointsRefined,
+        Vector& rKnotsVRefined,
+        Vector& rWeightsRefined);
+
+    /*
+     * @brief Elevates the degree-u of a NurbsSurfaceGeometry.
+     * @details This function adopts the surface degree elevation algorithm from
+     *          Piegl 1995, Algorithm A5.10.
+     *
+     * Portet from carat++ (https://www.bgu.tum.de/st/software/forschung/carat/)
+     *
+     * @param rGeometry surface to be refined.
+     * @param rDegreeUToElevate Degree to be elevated.
+     * @param rPointsRefined the nodes for the refined geometry.
+     * @param rKnotsURefined the new knot vector.
+     * @param rWeightsRefined the new weight vector.
+     */
+    static void DegreeElevationU(
+        NurbsSurfaceGeometryType& rGeometry,
+        SizeType& rDegreeUToElevate,
+        PointerVector<NodeType>& rPointsRefined,
+        Vector& rKnotsURefined,
+        Vector& rWeightsRefined);
+
+    /*
+     * @brief Elevates the degree-v of a NurbsSurfaceGeometry.
+     * @details This function adopts the surface degree elevation algorithm from
+     *          Piegl 1995, Algorithm A5.10.
+     *
+     * Portet from carat++ (https://www.bgu.tum.de/st/software/forschung/carat/)
+     *
+     * @param rGeometry surface to be refined.
+     * @param rDegreeVToElevate Degree to be elevated.
+     * @param rPointsRefined the nodes for the refined geometry.
+     * @param rKnotsVRefined the new knot vector.
+     * @param rWeightsRefined the new weight vector.
+     */
+    static void DegreeElevationV(
+        NurbsSurfaceGeometryType& rGeometry,
+        SizeType& rDegreeVToElevate,
         PointerVector<NodeType>& rPointsRefined,
         Vector& rKnotsVRefined,
         Vector& rWeightsRefined);

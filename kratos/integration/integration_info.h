@@ -76,8 +76,8 @@ public:
         QuadratureMethod ThisQuadratureMethod = QuadratureMethod::GAUSS);
 
     IntegrationInfo(
-        std::vector<SizeType> NumberOfIntegrationPointsPerSpanVector,
-        std::vector<QuadratureMethod> ThisQuadratureMethodVector);
+        const std::vector<SizeType>& NumberOfIntegrationPointsPerSpanVector,
+        const std::vector<QuadratureMethod>& ThisQuadratureMethodVector);
 
     ///@}
     ///@name Dimension
@@ -157,7 +157,7 @@ public:
             break;
         case 5:
             if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
-                return IntegrationMethod::NumberOfIntegrationMethods;
+                return IntegrationMethod::GI_GAUSS_5;
             }
             else {
                 return IntegrationMethod::GI_EXTENDED_GAUSS_5;

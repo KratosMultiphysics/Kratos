@@ -25,14 +25,14 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
 
     Line2D2 <NodeType> GenerateExampleLine()
     {
         // First we create the nodes
-        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node<3>>(1, 0.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node<3>>(2, 1.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node>(2, 1.0 , 0.0 , 0.0);
 
         // Now we create the geometry
         std::vector<NodeType::Pointer> line_nodes (2);
@@ -46,9 +46,9 @@ namespace Testing {
     Triangle2D3 <NodeType> GenerateExampleTriangle()
     {
         // First we create the nodes
-        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node<3>>(1, 0.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node<3>>(2, 1.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_3 = Kratos::make_intrusive<Node<3>>(3, 1.0 , 1.0 , 0.0);
+        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node>(2, 1.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_3 = Kratos::make_intrusive<Node>(3, 1.0 , 1.0 , 0.0);
 
         // Now we create the geometry
         std::vector<NodeType::Pointer> triangle_nodes (3);
@@ -63,9 +63,9 @@ namespace Testing {
     Triangle3D3 <NodeType> GenerateExampleTriangle3D()
     {
         // First we create the nodes
-        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node<3>>(1, 0.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node<3>>(2, 1.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_3 = Kratos::make_intrusive<Node<3>>(3, 1.0 , 1.0 , 0.0);
+        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node>(2, 1.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_3 = Kratos::make_intrusive<Node>(3, 1.0 , 1.0 , 0.0);
 
         // Now we create the geometry
         std::vector<NodeType::Pointer> triangle_nodes (3);
@@ -80,10 +80,10 @@ namespace Testing {
     Tetrahedra3D4 <NodeType> GenerateExampleTetrahedra()
     {
         // First we create the nodes
-        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node<3>>(1, 0.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node<3>>(2, 1.0 , 0.0 , 0.0);
-        NodeType::Pointer p_node_3 = Kratos::make_intrusive<Node<3>>(3, 1.0 , 1.0 , 0.0);
-        NodeType::Pointer p_node_4 = Kratos::make_intrusive<Node<3>>(4, 1.0 , 1.0 , 1.0);
+        NodeType::Pointer p_node_1 = Kratos::make_intrusive<Node>(1, 0.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_2 = Kratos::make_intrusive<Node>(2, 1.0 , 0.0 , 0.0);
+        NodeType::Pointer p_node_3 = Kratos::make_intrusive<Node>(3, 1.0 , 1.0 , 0.0);
+        NodeType::Pointer p_node_4 = Kratos::make_intrusive<Node>(4, 1.0 , 1.0 , 1.0);
 
         // Now we create the geometry
         std::vector<NodeType::Pointer> tetrahedra_nodes (4);
@@ -563,6 +563,28 @@ namespace Testing {
         BoundedMatrix<double, 3, 3> old_velocity_gradient;
         GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(old_velocity_gradient, tetrahedra, VELOCITY, DN_DX, 1);
         KRATOS_CHECK_MATRIX_NEAR(check_old_velocity_gradient, old_velocity_gradient, 1e-15);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ProjectedIsInside, KratosCoreFastSuite)
+    {
+        Geometry<Node>::CoordinatesArrayType aux;
+
+        auto line = GenerateExampleLine();
+
+        auto p_node_1 = Kratos::make_intrusive<Node>(1, 0.5, 1.0e-6, 0.0);
+
+        auto p_node_2 = Kratos::make_intrusive<Node>(2, 0.5, 1.0e-1, 0.0);
+
+        KRATOS_CHECK_EQUAL(GeometryUtils::ProjectedIsInside(line, *p_node_1, aux), true);
+        KRATOS_CHECK_EQUAL(GeometryUtils::ProjectedIsInside(line, *p_node_2, aux), false);
+
+        auto triangle = GenerateExampleTriangle3D();
+
+        auto p_node_3 = Kratos::make_intrusive<Node>(3, 1.0/3.0, 1.0/3.0, 1.0e-7);
+        auto p_node_4 = Kratos::make_intrusive<Node>(4, 1.0/3.0, 1.0/3.0, 1.0e-1);
+
+        KRATOS_CHECK_EQUAL(GeometryUtils::ProjectedIsInside(triangle, *p_node_3, aux), true);
+        KRATOS_CHECK_EQUAL(GeometryUtils::ProjectedIsInside(triangle, *p_node_4, aux), false);
     }
 }  // namespace Testing.
 }  // namespace Kratos.

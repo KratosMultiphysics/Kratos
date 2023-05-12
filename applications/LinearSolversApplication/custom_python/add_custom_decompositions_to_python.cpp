@@ -48,6 +48,7 @@ void AddCustomDecompositionsToPython(pybind11::module& m)
         .def("Solve", [](HouseholderQRType& rHouseholderQR, MatrixType& rB, MatrixType& rX){rHouseholderQR.Solve(rB, rX);})
         .def("Solve", [](HouseholderQRType& rHouseholderQR, VectorType& rB, VectorType& rX){rHouseholderQR.Solve(rB, rX);})
         .def("MatrixQ", &HouseholderQRType::MatrixQ)
+        .def("MatrixR", &HouseholderQRType::MatrixR)
         ;
 
     typedef EigenDenseColumnPivotingHouseholderQRDecomposition<DenseSpaceType> ColPivHouseholderQRType;

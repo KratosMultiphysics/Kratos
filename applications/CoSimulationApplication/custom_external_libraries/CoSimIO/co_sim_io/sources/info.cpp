@@ -61,20 +61,22 @@ void Info::RegisterTypesInSerializer()
     if (!mpSerializerTypesRegistered) {
         const std::lock_guard<std::mutex> scope_lock(register_mutex);
         if (!mpSerializerTypesRegistered) {
-            static bool types_are_registered; // no need to initialize, all that matters is that mpSerializerTypesRegistered is no longer a null_ptr
-            mpSerializerTypesRegistered = &types_are_registered;
-
             static Internals::InfoData<int> info_data_int(1);
+            static Internals::InfoData<std::size_t> info_data_size_t(1);
             static Internals::InfoData<double> info_data_double(1);
             static Internals::InfoData<bool> info_data_bool(1);
             static Internals::InfoData<std::string> info_data_string("");
             static Internals::InfoData<Info> info_data_info(Info{});
 
             CoSimIO::Internals::Serializer::Register("info_data_int",    info_data_int);
+            CoSimIO::Internals::Serializer::Register("info_data_size_t", info_data_size_t);
             CoSimIO::Internals::Serializer::Register("info_data_double", info_data_double);
             CoSimIO::Internals::Serializer::Register("info_data_bool",   info_data_bool);
             CoSimIO::Internals::Serializer::Register("info_data_string", info_data_string);
             CoSimIO::Internals::Serializer::Register("info_data_info",   info_data_info);
+
+            static bool types_are_registered; // no need to initialize, all that matters is that mpSerializerTypesRegistered is no longer a null_ptr
+            mpSerializerTypesRegistered = &types_are_registered;
         }
     }
 

@@ -31,7 +31,7 @@ namespace Kratos
 	/// Identity function is for having the object also as key in sets
 	/**
 	*/
-	template<class TDataType> class SetIdentityFunction : public std::unary_function<TDataType, TDataType>
+	template<class TDataType> class SetIdentityFunction
 	{
 	public:
 		TDataType& operator()(TDataType& data)

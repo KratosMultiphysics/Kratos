@@ -10,8 +10,8 @@ def Create(*args):
 class ComputeNormalsOperation(CoSimulationCouplingOperation):
     """This operation computes the Normals (NORMAL) on a given ModelPart
     """
-    def __init__(self, settings, solver_wrappers, process_info):
-        super().__init__(settings, process_info)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
@@ -38,7 +38,7 @@ class ComputeNormalsOperation(CoSimulationCouplingOperation):
         if not self.interface_data.IsDefinedOnThisRank(): return
 
         smp_normal_calculator = self.interface_data.GetModelPart()
-        KM.NormalCalculationUtils().CalculateOnSimplex(smp_normal_calculator, smp_normal_calculator.ProcessInfo[KM.DOMAIN_SIZE])
+        KM.NormalCalculationUtils().CalculateNormals(smp_normal_calculator)
 
     def PrintInfo(self):
         pass

@@ -8,7 +8,7 @@
 namespace Kratos {
 namespace Testing {
 
-void TestShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom)
+void TestShapeFunctionsLocalGradients(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
     auto local_gradients = rGeom.ShapeFunctionsLocalGradients();
@@ -18,7 +18,7 @@ void TestShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom)
     KRATOS_CATCH("");
 }
 
-void TestShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom,
+void TestShapeFunctionsLocalGradients(Geometry<Node> const& rGeom,
                                       GeometryData::IntegrationMethod ThisMethod)
 {
     KRATOS_TRY;
@@ -29,7 +29,7 @@ void TestShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom,
     KRATOS_CATCH("");
 }
 
-void TestShapeFunctionsLocalGradients_IntegrationPointIndex(Geometry<Node<3>> const& rGeom)
+void TestShapeFunctionsLocalGradients_IntegrationPointIndex(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
     auto integration_points = rGeom.IntegrationPoints();
@@ -40,7 +40,7 @@ void TestShapeFunctionsLocalGradients_IntegrationPointIndex(Geometry<Node<3>> co
 }
 
 void TestShapeFunctionsLocalGradients_IntegrationPointIndex(
-    Geometry<Node<3>> const& rGeom, GeometryData::IntegrationMethod ThisMethod)
+    Geometry<Node> const& rGeom, GeometryData::IntegrationMethod ThisMethod)
 {
     KRATOS_TRY;
     auto integration_points = rGeom.IntegrationPoints(ThisMethod);
@@ -52,7 +52,7 @@ void TestShapeFunctionsLocalGradients_IntegrationPointIndex(
 
 
 void TestShapeFunctionsLocalGradients_IntegrationPointIndex_ShapeFunctionIndex(
-    Geometry<Node<3>> const& rGeom, GeometryData::IntegrationMethod ThisMethod)
+    Geometry<Node> const& rGeom, GeometryData::IntegrationMethod ThisMethod)
 {
     KRATOS_TRY;
     auto integration_points = rGeom.IntegrationPoints(ThisMethod);
@@ -64,18 +64,18 @@ void TestShapeFunctionsLocalGradients_IntegrationPointIndex_ShapeFunctionIndex(
     KRATOS_CATCH("");
 }
 
-void TestShapeFunctionsLocalGradients_Point(Geometry<Node<3>> const& rGeom)
+void TestShapeFunctionsLocalGradients_Point(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
     Matrix local_gradient;
     auto integration_points = rGeom.IntegrationPoints();
-    for (auto point : integration_points)
+    for (const auto& point : integration_points)
         TestShapeFunctionsLocalGradient(
             rGeom, point, rGeom.ShapeFunctionsLocalGradients(local_gradient, point));
     KRATOS_CATCH("");
 }
 
-void TestAllShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom)
+void TestAllShapeFunctionsLocalGradients(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
     TestShapeFunctionsLocalGradients(rGeom);
@@ -92,11 +92,11 @@ void TestAllShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom)
 
 namespace
 {
-double FiniteDifference4(std::function<double(double)> f, double delta=1e-3);
+double FiniteDifference4(const std::function<double(double)>& f, double delta=1e-3);
 }
 
-void TestShapeFunctionsLocalGradient(Geometry<Node<3>> const& rGeom,
-                                     Geometry<Node<3>>::IntegrationPointType Point,
+void TestShapeFunctionsLocalGradient(Geometry<Node> const& rGeom,
+                                     Geometry<Node>::IntegrationPointType Point,
                                      Matrix const& rLocalGradient)
 {
     KRATOS_TRY;
@@ -125,7 +125,7 @@ namespace {
 * @return Finite difference approximation.
 */
 //
-double FiniteDifference4(std::function<double(double)> f, double delta)
+double FiniteDifference4(const std::function<double(double)>& f, double delta)
 {
     return (-f(2.0 * delta) + 8.0 * f(delta) - 8.0 * f(-delta) + f(-2.0 * delta)) /
            (12.0 * delta);

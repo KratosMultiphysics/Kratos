@@ -23,7 +23,7 @@
 // Application includes
 
 // Constitutive law
-#include "custom_constitutive/viscous_generalized_kelvin.h"
+#include "custom_constitutive/small_strains/viscous/viscous_generalized_kelvin.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "constitutive_laws_application_variables.h"
@@ -33,7 +33,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the associated plasticity Constitutive laws...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /**
 * Check the correct calculation of the integrated stress with the CL's

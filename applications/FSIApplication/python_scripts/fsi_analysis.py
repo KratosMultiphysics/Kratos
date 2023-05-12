@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -90,7 +89,7 @@ class FsiAnalysis(AnalysisStage):
         self._GetSolver().InitializeSolutionStep()
 
     def OutputSolutionStep(self):
-        super(FSIAnalysis, self).OutputSolutionStep()
+        super().OutputSolutionStep()
 
         if self.save_restart:
             fluid_restart_utility = self._GetFluidRestartUtility()

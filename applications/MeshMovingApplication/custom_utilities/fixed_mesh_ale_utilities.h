@@ -102,11 +102,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
-    FixedMeshALEUtilities(
-        ModelPart &rVirtualModelPart,
-        ModelPart &rStructureModelPart);
-
     /// Constructor with model and parameters
     FixedMeshALEUtilities(
         Model &rModel,
@@ -201,13 +196,7 @@ public:
 
 
     ///@}
-protected:
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-
-    ///@}
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -220,56 +209,13 @@ protected:
     ModelPart &mrStructureModelPart;
     ModelPart *mpOriginModelPart = nullptr;
 
+    double mSearchTolerance;
+    unsigned int mSearchMaxResults;
+
     Parameters mEmbeddedNodalVariableSettings;
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    /**
-    * This method fills the mrVirtualModelPart with the nodes and elmens of a given model part
-    * It has to be performed once since after each values projection the virtual mesh configuration
-    * is reverted to its original status.
-    * @param rOriginModelPart model part from where the nodes and elements are copied
-    */
-    virtual void FillVirtualModelPart(ModelPart &rOriginModelPart);
-
-    /**
-     * @brief Create the virtual model part elements
-     * This method creates the elements in the virtual model part
-     * @param rOriginModelPart Origin model part to mimic the elements from
-     */
-    virtual void CreateVirtualModelPartElements(const ModelPart &rOriginModelPart);
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
+    std::vector<const Variable<double>*> mScalarVariablesList;
+    std::vector<const Variable<array_1d<double,3>>*> mArrayVariablesList;
 
     LinearSolverType::Pointer mpLinearSolver = nullptr;
     StrategyPointerType mpMeshMovingStrategy = nullptr;
@@ -296,6 +242,21 @@ private:
      * @param rLinearSolverSettings Settings of the linear solver
      */
     void SetLinearSolverPointer(const Parameters &rLinearSolverSettings);
+
+    /**
+    * This method fills the mrVirtualModelPart with the nodes and elmens of a given model part
+    * It has to be performed once since after each values projection the virtual mesh configuration
+    * is reverted to its original status.
+    * @param rOriginModelPart model part from where the nodes and elements are copied
+    */
+    virtual void FillVirtualModelPart(ModelPart &rOriginModelPart);
+
+    /**
+     * @brief Create the virtual model part elements
+     * This method creates the elements in the virtual model part
+     * @param rOriginModelPart Origin model part to mimic the elements from
+     */
+    virtual void CreateVirtualModelPartElements(const ModelPart &rOriginModelPart);
 
     /**
      * @brief Set the Mesh Moving Strategy object

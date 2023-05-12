@@ -57,7 +57,7 @@
             }
         }],
         "list_other_processes"     : [],
-        "recursive_remeshing_process" :[
+        "mesh_adaptivity_processes" :[
         {
             "python_module"   : "mmg_process",
             "kratos_module"   : "KratosMultiphysics.MeshingApplication",

@@ -40,8 +40,8 @@ public:
 
     using BaseType = Element;
 
-    /// Node type (default is: Node<3>)
-    using NodeType = Node<3>;
+    /// Node type (default is: Node)
+    using NodeType = Node;
 
     /// Geometry type (using with given NodeType)
     using GeometryType = Geometry<NodeType>;
@@ -158,7 +158,7 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<CurrentElementType>(
-            NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -192,7 +192,7 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<CurrentElementType>(
-            NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
+            NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
         KRATOS_CATCH("");
     }
 
@@ -335,43 +335,6 @@ protected:
     void GetValuesArray(
         BoundedVector<double, TNumNodes>& rValues,
         const int Step = 0) const;
-
-    /**
-     * @brief Get the Divergence Operator object
-     *
-     * Calculates divergence of a vector at a gauss point
-     *
-     * @param rVariable          Vector variable
-     * @param rShapeDerivatives  Shape derivatives at gauss point
-     * @param Step               time step
-     * @return double            Divergence of the variable
-     */
-    double GetDivergenceOperator(
-        const Variable<array_1d<double, 3>>& rVariable,
-        const Matrix& rShapeDerivatives,
-        const int Step = 0) const;
-
-    /**
-     * @brief Get the Convection Operator object
-     *
-     * Calculates convection operator given by following equation
-     *
-     * \[
-     *  w_i\frac{\partial N^a}{\partial x_i}
-     * \]
-     *
-     * $w_i$ being the $i^{th}$ dimension of $\underline{w}$ vector, $N^a$ being the
-     * shape function of $a^{th}$ node, $x_i$ being the $i^{th}$ dimension
-     * of local coordinates
-     *
-     * @param rOutput           Vector of results
-     * @param rVector           Input vector (i.e. $\underline{w}$)
-     * @param rShapeDerivatives Shape function derivatives w.r.t. physical coordinates
-     */
-    void GetConvectionOperator(
-        BoundedVector<double, TNumNodes>& rOutput,
-        const array_1d<double, 3>& rVector,
-        const Matrix& rShapeDerivatives) const;
 
     /**
      * @brief Calculates shape function data for this element

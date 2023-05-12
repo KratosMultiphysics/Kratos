@@ -4,13 +4,12 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED)
-#define  KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -157,6 +156,14 @@ private:
     void CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * It calculates the pk2 stress vector
+     * @param rStrainVector: The strain vector
+     * @param rStressVector: The stress vector
+     * @param rValues: The rvalues of the CL
+     */
+    void CalculatePK2Stress(const Vector &rStrainVector, ConstitutiveLaw::StressVectorType &rStressVector, ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
      * It calculates the strain vector
      * @param rValues: The Internalvalues of the law
      * @param rStrainVector: The strain vector in Voigt notation
@@ -195,4 +202,3 @@ private:
 
 }; // Class AxisymElasticIsotropic
 }  // namespace Kratos.
-#endif // KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED  defined

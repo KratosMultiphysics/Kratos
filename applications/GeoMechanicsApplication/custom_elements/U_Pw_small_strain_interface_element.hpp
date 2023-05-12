@@ -34,13 +34,13 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
@@ -107,7 +107,6 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                       std::vector<array_1d<double,3>>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
-
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -204,6 +203,10 @@ protected:
                                                      std::vector<Matrix>& rOutput,
                                                      const ProcessInfo& rCurrentProcessInfo);
 
+    virtual void CalculateOnLobattoIntegrationPoints(const Variable<Vector>& rVariable,
+                                                     std::vector<Vector>& rOutput,
+                                                     const ProcessInfo& rCurrentProcessInfo);
+
     void CalculateInitialGap(const GeometryType& Geom);
 
     void ExtrapolateGPValues (const std::vector<double>& JointWidthContainer);
@@ -232,8 +235,8 @@ protected:
     void CheckAndCalculateJointWidth(double& rJointWidth,
                                     ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     double& rNormalRelDisp,
-                                    const double& MinimumJointWidth,
-                                    const unsigned int& GPoint);
+                                    double MinimumJointWidth,
+                                    unsigned int GPoint);
 
     template< class TMatrixType >
     void CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,
@@ -294,7 +297,7 @@ protected:
     void SetRetentionParameters(const InterfaceElementVariables &rVariables,
                                 RetentionLaw::Parameters &rRetentionParameters);
 
-    double CalculateFluidPressure( const InterfaceElementVariables &rVariables, const unsigned int &PointNumber );
+    double CalculateFluidPressure( const InterfaceElementVariables &rVariables);
 
     double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
 
@@ -303,7 +306,7 @@ protected:
 
     void CalculateRetentionResponse( InterfaceElementVariables& rVariables,
                                      RetentionLaw::Parameters& rRetentionParameters,
-                                     const unsigned int &GPoint );
+                                     unsigned int GPoint );
 
     void CalculateSoilGamma(InterfaceElementVariables &rVariables);
 
@@ -311,6 +314,8 @@ protected:
 
     void SetConstitutiveParameters(InterfaceElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
+
+    Vector SetFullStressVector(const Vector& rStressVector);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -45,7 +45,10 @@ Info Hello()
 
 Info Connect(const Info& I_Settings)
 {
-    return Internals::ConnectImpl(I_Settings, std::make_shared<CoSimIO::Internals::DataCommunicator>());
+    return Internals::ConnectImpl(
+        I_Settings,
+        std::make_shared<Internals::DataCommunicator>(),
+        Internals::CommunicationFactory());
 }
 
 

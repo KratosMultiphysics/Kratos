@@ -1,27 +1,29 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license:
-//kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B Sautter (based on the work of JMCarbonel)
 //
 //
 
-#if !defined(KRATOS_MECHANICAL_EXPLICIT_STRATEGY)
-#define KRATOS_MECHANICAL_EXPLICIT_STRATEGY
+#pragma once
 
-/* System includes */
+// System includes
 
-/* Project includes */
+// External includes
+
+// Project includes
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
 #include "utilities/constraint_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "includes/ublas_interface.h"
+#include "includes/variables.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -70,7 +72,7 @@ public:
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
     /// DoF types definition
-    typedef typename Node<3>::DofType DofType;
+    typedef typename Node::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
     /// Counted pointer of MechanicalExplicitStrategy
@@ -229,34 +231,29 @@ public:
 
             // Iterate over the elements
             ElementsArrayType& r_elements = r_model_part.Elements();
-            const auto it_elem_begin = r_elements.begin();
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
 
             Vector dummy_vector;
             // If we consider the rotation DoF
-            const bool has_dof_for_rot_z = r_model_part.Nodes().begin()->HasDofFor(ROTATION_Z);
+            const bool has_dof_for_rot_z = !r_nodes.empty() && r_nodes.begin()->HasDofFor(ROTATION_Z);
             if (has_dof_for_rot_z) {
                 const array_1d<double, 3> zero_array = ZeroVector(3);
                 VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
                 VariableUtils().SetNonHistoricalVariable(NODAL_ROTATION_DAMPING, zero_array, r_nodes);
 
-                #pragma omp parallel for firstprivate(dummy_vector), schedule(guided,512)
-                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                block_for_each(r_elements, dummy_vector, [&r_current_process_info](Element& r_element, Vector& r_dummy_vector){
                     // Getting nodal mass and inertia from element
                     // this function needs to be implemented in the respective
                     // element to provide inertias and nodal masses
-                    auto it_elem = it_elem_begin + i;
-                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
-                }
+                    r_element.AddExplicitContribution(r_dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
+                });
             } else { // Only NODAL_MASS is needed
-                #pragma omp parallel for firstprivate(dummy_vector), schedule(guided,512)
-                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                block_for_each(r_elements, dummy_vector, [&r_current_process_info](Element& r_element, Vector& r_dummy_vector){
                     // Getting nodal mass and inertia from element
                     // this function needs to be implemented in the respective
-                    // element to provide nodal masses
-                    auto it_elem = it_elem_begin + i;
-                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
-                }
+                    // element to provide inertias and nodal masses
+                    r_element.AddExplicitContribution(r_dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
+                });
             }
 
             // Precompute for masses and inertias
@@ -290,7 +287,6 @@ public:
         if (BaseType::mRebuildLevel > 0) { // TODO: Right now is computed in the Initialize() because is always zero, the option to set the RebuildLevel should be added in the constructor or in some place
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
             ElementsArrayType& r_elements = r_model_part.Elements();
-            const auto it_elem_begin = r_elements.begin();
 
             // Set Nodal Mass and Damping to zero
             NodesArrayType& r_nodes = r_model_part.Nodes();
@@ -305,23 +301,19 @@ public:
                 VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
                 VariableUtils().SetNonHistoricalVariable(NODAL_ROTATION_DAMPING, zero_array, r_nodes);
 
-                #pragma omp parallel for firstprivate(dummy_vector), schedule(guided,512)
-                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                block_for_each(r_elements, dummy_vector, [&r_current_process_info](Element& r_element, Vector& r_dummy_vector){
                     // Getting nodal mass and inertia from element
                     // this function needs to be implemented in the respective
                     // element to provide inertias and nodal masses
-                    auto it_elem = it_elem_begin + i;
-                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
-                }
+                    r_element.AddExplicitContribution(r_dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
+                });
             } else { // Only NODAL_MASS and NODAL_DISPLACEMENT_DAMPING are needed
-                #pragma omp parallel for firstprivate(dummy_vector), schedule(guided,512)
-                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                block_for_each(r_elements, dummy_vector, [&r_current_process_info](Element& r_element, Vector& r_dummy_vector){
                     // Getting nodal mass and inertia from element
                     // this function needs to be implemented in the respective
-                    // element to provide nodal masses
-                    auto it_elem = it_elem_begin + i;
-                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
-                }
+                    // element to provide inertias and nodal masses
+                    r_element.AddExplicitContribution(r_dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
+                });
             }
 
             // Precompute for masses and inertias
@@ -509,58 +501,62 @@ private:
         // We iterate over the nodes
         auto& r_nodes = rModelPart.Nodes();
 
-        // If we consider rotation dofs
-        const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
+        if (!r_nodes.empty()) {
+            // If we consider rotation dofs
+            const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
 
-        // Auxiliar values
-        const array_1d<double, 3> zero_array = ZeroVector(3);
-        array_1d<double, 3> force_residual = ZeroVector(3);
-        array_1d<double, 3> moment_residual = ZeroVector(3);
+            // Auxiliary values
+            const array_1d<double,3> zero_array = ZeroVector(3);
 
-        // Getting
-        const auto it_node_begin = r_nodes.begin();
-        const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-        const IndexType rotppos = it_node_begin->GetDofPosition(ROTATION_X);
+            // Getting
+            const auto it_node_begin = r_nodes.begin();
+            const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+            const IndexType rotppos = it_node_begin->GetDofPosition(ROTATION_X);
 
-        // Iterating nodes
-        #pragma omp parallel for firstprivate(force_residual, moment_residual), schedule(guided,512)
-        for(int i=0; i<static_cast<int>(r_nodes.size()); ++i) {
-            auto it_node = it_node_begin + i;
+            // Construct loop lambda depending on whether nodes have rot_z
+            std::function<void(Node&)> loop_base, loop;
 
-            noalias(force_residual) = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+            loop_base = [&disppos](Node& rNode){
+                const auto force_residual = rNode.FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+                if (rNode.GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
+                    double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_X);
+                    r_reaction = force_residual[0];
+                }
+                if (rNode.GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed()) {
+                    double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_Y);
+                    r_reaction = force_residual[1];
+                }
+                if (rNode.GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed()) {
+                    double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_Z);
+                    r_reaction = force_residual[2];
+                }
+            };
+
             if (has_dof_for_rot_z) {
-                noalias(moment_residual) = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+                loop = [&rotppos, &loop_base](Node& rNode){
+                    loop_base(rNode);
+                    const auto moment_residual = rNode.FastGetSolutionStepValue(MOMENT_RESIDUAL);
+                    if (rNode.GetDof(ROTATION_X, rotppos).IsFixed()) {
+                        double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_MOMENT_X);
+                        r_reaction = moment_residual[0];
+                    }
+                    if (rNode.GetDof(ROTATION_Y, rotppos + 1).IsFixed()) {
+                        double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_MOMENT_Y);
+                        r_reaction = moment_residual[1];
+                    }
+                    if (rNode.GetDof(ROTATION_Z, rotppos + 2).IsFixed()) {
+                        double& r_reaction = rNode.FastGetSolutionStepValue(REACTION_MOMENT_Z);
+                        r_reaction = moment_residual[2];
+                    }
+                };
             } else {
-                noalias(moment_residual) = zero_array;
+                loop = loop_base;
             }
 
-            if (it_node->GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
-                double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_X);
-                r_reaction = force_residual[0];
-            }
-            if (it_node->GetDof(DISPLACEMENT_Y, disppos + 1).IsFixed()) {
-                double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Y);
-                r_reaction = force_residual[1];
-            }
-            if (it_node->GetDof(DISPLACEMENT_Z, disppos + 2).IsFixed()) {
-                double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Z);
-                r_reaction = force_residual[2];
-            }
-            if (has_dof_for_rot_z) {
-                if (it_node->GetDof(ROTATION_X, rotppos).IsFixed()) {
-                    double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_X);
-                    r_reaction = moment_residual[0];
-                }
-                if (it_node->GetDof(ROTATION_Y, rotppos + 1).IsFixed()) {
-                    double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Y);
-                    r_reaction = moment_residual[1];
-                }
-                if (it_node->GetDof(ROTATION_Z, rotppos + 2).IsFixed()) {
-                    double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Z);
-                    r_reaction = moment_residual[2];
-                }
-            }
-        }
+            // Compute on nodes
+            block_for_each(r_nodes, loop);
+        } // if not nodes.empty()
     }
 
     ///@}
@@ -642,5 +638,3 @@ protected:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_STRATEGY  defined */

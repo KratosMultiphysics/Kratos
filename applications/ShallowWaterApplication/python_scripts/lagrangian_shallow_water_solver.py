@@ -16,15 +16,11 @@ class LagrangianShallowWaterSolver(PythonSolver):
         self.mesh_solver = WaveSolver(self.model, self.settings["mesh_solver_settings"])
 
         # Either retrieve the model part from the model or create a new one
-        model_part_name = self.settings["model_part_name"].GetString()
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name)
+        self.main_model_part = self.model.CreateModelPart(self.settings["model_part_name"].GetString())
 
         eulerian_model_part = self.main_model_part
         lagrangian_model_part = self.mesh_solver.main_model_part
-        self.mesh_moving = SW.MoveMeshUtility(lagrangian_model_part, eulerian_model_part, self.settings["mesh_moving_settings"])
+        self.mesh_moving = SW.MoveShallowMeshUtility(lagrangian_model_part, eulerian_model_part, self.settings["mesh_moving_settings"])
 
     def AddVariables(self):
         self.mesh_solver.AddVariables()
@@ -63,6 +59,7 @@ class LagrangianShallowWaterSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         self.mesh_solver.FinalizeSolutionStep()
         self.mesh_moving.MapResults()
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
 
     def Finalize(self):
         self.mesh_solver.Finalize()

@@ -21,13 +21,12 @@
 
 // Application includes
 // Integrator
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
 // Yield surfaces
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-// Plastic potentials
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
 // Constitutive law
-#include "custom_constitutive/generic_small_strain_high_cycle_fatigue_law.h"
+#include "custom_constitutive/small_strains/fatigue/generic_small_strain_high_cycle_fatigue_law.h"
 #include "geometries/tetrahedra_3d_4.h"
 
 namespace Kratos
@@ -35,8 +34,8 @@ namespace Kratos
 namespace Testing
 {
 // We test the associated damage Constitutive laws...
-typedef Node<3> NodeType;
-typedef GenericSmallStrainHighCycleFatigueLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> FatigueLawType;
+typedef Node NodeType;
+typedef GenericSmallStrainHighCycleFatigueLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> FatigueLawType;
 
 /**
     * Check the correct calculation of the integrated stress with the CL's

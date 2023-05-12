@@ -9,6 +9,9 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 set(CO_SIM_IO_BUILD_TESTING OFF CACHE BOOL "")
 set(CO_SIM_IO_BUILD_MPI ${USE_MPI} CACHE BOOL "")
+if (${USE_MPI})
+    set(CO_SIM_IO_BUILD_MPI_COMMUNICATION ON CACHE BOOL "")
+endif()
 add_subdirectory(custom_external_libraries/CoSimIO)
 
 ## CoSimulation Core sources

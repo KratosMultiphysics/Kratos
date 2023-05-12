@@ -22,7 +22,6 @@
 #include "includes/model_part.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 
 //Database includes

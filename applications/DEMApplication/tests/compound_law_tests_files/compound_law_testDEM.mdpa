@@ -26,6 +26,9 @@ Begin SubModelPart 1 // GUI conditionid DEM-VelocityIC group identifier: Rock
   INITIAL_ANGULAR_VELOCITY_Y_VALUE 0.0
   INITIAL_ANGULAR_VELOCITY_Z_VALUE 0.0
   End SubModelPartData
+  Begin SubModelPartElements
+  10
+  End SubModelPartElements
   Begin SubModelPartNodes
   3
   End SubModelPartNodes

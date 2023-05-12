@@ -4,10 +4,11 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
+
 // System includes
 #include <iostream>
 
@@ -15,7 +16,7 @@
 
 // Project includes
 #include "custom_constitutive/linear_plane_stress.h"
-
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -89,23 +90,9 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress::CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStress::CalculateElasticMatrix(VoigtSizeMatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    this->CheckClearElasticMatrix(C);
-
-    const double c1 = E / (1.00 - NU * NU);
-    const double c2 = c1 * NU;
-    const double c3 = 0.5*E / (1 + NU);
-
-    C(0, 0) = c1;
-    C(0, 1) = c2;
-    C(1, 0) = c2;
-    C(1, 1) = c1;
-    C(2, 2) = c3;
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rC, rValues);
 }
 
 //************************************************************************************

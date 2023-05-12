@@ -51,7 +51,7 @@ namespace Kratos {
 ///@{
 
 /// This application provides an interface to write Kratos data using HDF5.
-class KratosHDF5Application : public KratosApplication {
+class KRATOS_API(HDF5_APPLICATION) KratosHDF5Application : public KratosApplication {
 public:
 	///@name Type Definitions
 	///@{

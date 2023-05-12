@@ -8,8 +8,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -59,9 +57,9 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         for itr in range(1,number_of_constraints+1):
-            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr)+"DX")
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DX")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
-            nodal_variable = KM.KratosGlobals.GetVariable("DC"+str(itr)+"DX_MAPPED")
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DX_MAPPED")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT_UPDATE)
@@ -76,6 +74,11 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE_GRADIENT)
 
+        # sensitivity heatmap
+        if self.optimization_settings["output"].Has("sensitivity_heatmap") and \
+            self.optimization_settings["output"]["sensitivity_heatmap"].GetBool():
+            self.__AddVariablesToBeUsedBySensitivityHeatmap()
+
     def __AddVariablesToBeUsedByDesignVariables(self):
         if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
             self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():
@@ -89,6 +92,61 @@ class Optimizer:
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
                 model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
+
+        if self.optimization_settings["design_variables"]["filter"]["filter_radius"].IsString() and \
+            self.optimization_settings["design_variables"]["filter"]["filter_radius"].GetString() == "adaptive":
+            # variables required for adaptive
+            model_part = self.model_part_controller.GetOptimizationModelPart()
+            model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS)
+            model_part.AddNodalSolutionStepVariable(KSO.VERTEX_MORPHING_RADIUS_RAW)
+            model_part.AddNodalSolutionStepVariable(KSO.GAUSSIAN_CURVATURE)
+            model_part.AddNodalSolutionStepVariable(KSO.MAX_NEIGHBOUR_DISTANCE)
+
+    def __AddVariablesToBeUsedBySensitivityHeatmap(self):
+        model_part = self.model_part_controller.GetOptimizationModelPart()
+
+        model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
+
+        sensitivity_heatmap_settings = None
+        if self.optimization_settings["output"].Has("sensitivity_heatmap_settings"):
+            sensitivity_heatmap_settings = self.optimization_settings["output"]["sensitivity_heatmap_settings"]
+
+        weigthing = True
+        mapping = True
+        if sensitivity_heatmap_settings:
+            if sensitivity_heatmap_settings.Has("sensitivity_weighting") and \
+                not sensitivity_heatmap_settings["sensitivity_weighting"].GetBool():
+                weigthing = False
+            if sensitivity_heatmap_settings.Has("mapping") and \
+                not sensitivity_heatmap_settings["mapping"].GetBool():
+                mapping = False
+
+        if self.optimization_settings["optimization_algorithm"]["name"].GetString() == "bead_optimization":
+            model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DALPHA)
+            if weigthing:
+                model_part.AddNodalSolutionStepVariable(KSO.DF1DALPHA_WEIGHTED)
+                if mapping:
+                    model_part.AddNodalSolutionStepVariable(KSO.DF1DALPHA_WEIGHTED_MAPPED)
+        else:
+            model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_DF1DX)
+            if weigthing:
+                model_part.AddNodalSolutionStepVariable(KSO.DF1DX_WEIGHTED)
+                if mapping:
+                    model_part.AddNodalSolutionStepVariable(KSO.DF1DX_WEIGHTED_MAPPED)
+
+            number_of_constraints = self.optimization_settings["constraints"].size()
+            if number_of_constraints != 0:
+                model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_MAX)
+                model_part.AddNodalSolutionStepVariable(KSO.HEATMAP_L2)
+            for itr in range(1,number_of_constraints+1):
+                nodal_variable = KM.KratosGlobals.GetVariable(f"HEATMAP_DC{(itr)}DX")
+                model_part.AddNodalSolutionStepVariable(nodal_variable)
+                if weigthing:
+                    nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DX_WEIGHTED")
+                    model_part.AddNodalSolutionStepVariable(nodal_variable)
+                    if mapping:
+                        nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DX_WEIGHTED_MAPPED")
+                        model_part.AddNodalSolutionStepVariable(nodal_variable)
 
     # --------------------------------------------------------------------------
     def Optimize(self):

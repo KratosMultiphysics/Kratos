@@ -58,6 +58,14 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         outflow_discharge = self.calculate_outflow_discharge(simulation)
         self.assert_outflow_discharge(simulation, Q)
         error_outflow_discharge = abs(outflow_discharge - Q) / (Q + 1e-60)
+        print('Writing tex file in: ', os.path.abspath(file_path + "\\test_darcy_law_on_one_element.tex"))
+        output_file_for_latex = open(file_path + "\\test_darcy_law_on_one_element.tex", "w")
+        output_file_for_latex.write(' & '.join(['Q',
+                                                str(round(Q, 2)),
+                                                str(round(outflow_discharge, 2)),
+                                                str(round(error_outflow_discharge * 100, 2))]) +
+                                    ' \\\\ \hline \n')
+        output_file_for_latex.close()
 
     def test_flow_under_dam(self):
         for test_name, Q in self.test_confined_aquifer:
@@ -67,6 +75,14 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
                 outflow_discharge = self.calculate_outflow_discharge(simulation)
                 error_outflow_discharge = abs(outflow_discharge - Q) / (Q + 1e-60)
                 self.assertTrue(error_outflow_discharge < 0.03)
+                print('Writing tex file in: ', os.path.abspath(file_path + "\\test_flow_under_dam.tex"))
+                output_file_for_latex = open(file_path + "\\test_flow_under_dam.tex", "w")
+                output_file_for_latex.write(' & '.join(['Q',
+                                                        str(round(Q, 2)),
+                                                        str(round(outflow_discharge, 2)),
+                                                        str(round(error_outflow_discharge * 100, 2))]) +
+                                            ' \\\\ \hline \n')
+                output_file_for_latex.close()
 
     def test_flow_rate_heterogeneous_soil(self):
         test_name = 'flow_rate_heterogeneous_soil'
@@ -77,6 +93,14 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         error_outflow_discharge = abs(outflow_discharge - analytical_solution_outflow_discharge) / \
                                   (analytical_solution_outflow_discharge + 1e-60)
         self.assertTrue(error_outflow_discharge < 0.03)
+        print('Writing tex file in: ', os.path.abspath(file_path + "\\test_pressure_in_confined_aquifer.tex"))
+        output_file_for_latex = open(file_path + "\\test_flow_rate_heterogeneous_soil.tex","w")
+        output_file_for_latex.write(' & '.join(['Q',
+                                                str(round(analytical_solution_outflow_discharge,2)),
+                                                str(round(outflow_discharge,2)),
+                                                str(round(error_outflow_discharge*100,2))]) +
+                                                ' \\\\ \hline \n')
+        output_file_for_latex.close()
 
     def test_pressure_in_confined_aquifer(self):
         # run kratos model
@@ -96,6 +120,18 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         error_water_pressure = abs(pore_pressure_middle - analytical_solution_water_pressure) / \
                                   (abs(analytical_solution_water_pressure) + 1e-60)
         self.assertTrue(error_outflow_discharge < 0.03)
+        print('Writing tex file in: ', os.path.abspath(file_path + "\\test_pressure_in_confined_aquifer.tex"))
+        output_file_for_latex = open(file_path + "\\test_pressure_in_confined_aquifer.tex","w")
+        output_file_for_latex.write(' & '.join(['water pressure',
+                                                str(round(analytical_solution_water_pressure,2)),
+                                                str(round(pore_pressure_middle,2)),
+                                                str(round(error_water_pressure*100,2))]) + ' \\\\ \hline \n')
+        output_file_for_latex.write(' & '.join(['Q',
+                                                str(round(analytical_solution_outflow_discharge,2)),
+                                                str(round(outflow_discharge,2)),
+                                                str(round(error_outflow_discharge*100,2))]) +
+                                                ' \\\\ \hline \n')
+        output_file_for_latex.close()
 
     def calculate_outflow_discharge(self, simulation):
         """

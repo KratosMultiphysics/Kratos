@@ -1,4 +1,4 @@
-from numpy import pi, sqrt, tanh
+from math import pi, sqrt, tanh
 from scipy.optimize import root
 
 
@@ -8,25 +8,29 @@ class WaveTheory:
     def __init__(self, depth, gravity=9.81, *, period=0, wavelength=0, amplitude=0):
         self.gravity = gravity
         self.depth = depth
+        if self.depth <= 0:
+            raise Exception('WaveTheory. The water depth must be greather than 0.')
+        if self.gravity <= 0:
+            raise Exception('WaveTheory. The gravity must be greather than 0.')
         if wavelength > 0 and period > 0:
             raise Exception('WaveTheory. Specify only the wavelength or the period.')
-        self.SetPeriod(period)
-        self.SetWavelength(wavelength)
-        self.SetAmplitude(amplitude)
+        if period > 0:
+            self.SetPeriod(period)
+        if wavelength > 0:
+            self.SetWavelength(wavelength)
+        if amplitude > 0:
+            self.SetAmplitude(amplitude)
 
     def SetPeriod(self, period):
-        if period > 0:
-            self.period = period
-            self.wavelength = self._CalculateWavelength(period)
+        self.period = period
+        self.wavelength = self._CalculateWavelength(period)
 
     def SetWavelength(self, wavelength):
-        if wavelength > 0:
-            self.wavelength = wavelength
-            self.period = self._CalculatePeriod(wavelength)
+        self.wavelength = wavelength
+        self.period = self._CalculatePeriod(wavelength)
 
     def SetAmplitude(self, amplitude):
-        if amplitude > 0:
-            self.amplitude = amplitude
+        self.amplitude = amplitude
 
     @property
     def horizontal_velocity(self):
@@ -94,7 +98,7 @@ class BoussinesqTheory(WaveTheory):
     def _PhaseSpeed(self, wavenumber):
         kh = wavenumber * self.depth
         gh = self.gravity * self.depth
-        return sqrt(gh * (1 -(self.alpha + 1/3) * kh**2) / (1 -self.alpha * kh**2))
+        return sqrt(max(0, gh * (1 -(self.alpha + 1/3) * kh**2) / (1 -self.alpha * kh**2)))
 
 
 class LinearTheory(WaveTheory):

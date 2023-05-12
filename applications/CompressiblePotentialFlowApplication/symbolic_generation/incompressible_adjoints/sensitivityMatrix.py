@@ -13,9 +13,9 @@
 
 # This scripts computes the sensitivity matrix for the incompressible
 # potential flow formulation simbolicaly using Kratos and sympy.
-from sympy import *
+import sympy
 from KratosMultiphysics import *
-from sympy_fe_utilities import *
+from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Symbolic generation settings
 do_simplifications = False
@@ -55,25 +55,25 @@ p = DefineVector('p', nnodes)
 #  |dx/dxi  dx/deta|	|x1-x0   x2-x0|
 #J=|				|=	|			  |
 #  |dy/dxi  dy/deta|	|y1-y0   y2-y0|
-J = simplify(x.transpose()*DNDe)
+J = sympy.simplify(x.transpose()*DNDe)
 
 # Inverse of the jacobian
-JInverse = simplify((J)**(-1))
+JInverse = sympy.simplify((J)**(-1))
 
 # Derivative of the shape functions w.r.t x and y
-DNDx = simplify(DNDe*JInverse)
+DNDx = sympy.simplify(DNDe*JInverse)
 
 # Determinant of the jacobian (half of the area of the triangle)
-det_J = simplify(0.5*J.det())
+det_J = sympy.simplify(0.5*J.det())
 
 # Local stiffness matrix (before integrating over the area)
-A = simplify(DNDx*DNDx.transpose())
+A = sympy.simplify(DNDx*DNDx.transpose())
 
 # Multiplying with the area:
-K = simplify(A*det_J)
+K = sympy.simplify(A*det_J)
 
 # Computing the right hand side
-B = simplify(-K * p)
+B = sympy.simplify(-K * p)
 
 # Deriving the right hand side w.r.t. each coordinate
 DB_Dx = DefineMatrix('DB_Dx',dim*nnodes,nnodes)
@@ -84,7 +84,7 @@ for i_node in range(nnodes):
     for j_dim in range(dim):
         # Looping over columns (i.e. )
         for k_x in range(nnodes):
-            DB_Dx[ i_node * dim + j_dim , k_x ] = simplify(diff( B[k_x], x[i_node,j_dim]))
+            DB_Dx[ i_node * dim + j_dim , k_x ] = sympy.simplify(sympy.diff( B[k_x], x[i_node,j_dim]))
 
 dB_Dx_out = OutputMatrix_CollectingFactors(DB_Dx, "rOutput", mode)
 

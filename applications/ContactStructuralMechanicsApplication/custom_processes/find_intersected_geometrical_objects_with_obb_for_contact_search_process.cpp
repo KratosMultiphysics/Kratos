@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -144,11 +144,7 @@ void FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::SetOctreeBoun
     }
 
     // TODO: Octree needs refactoring to work with BoundingBox. Pooyan.
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    GetOctreePointer()->SetBoundingBox(low.data(), high.data());
-#else
     GetOctreePointer()->SetBoundingBox(low.data().data(), high.data().data());
-#endif // ifdef KRATOS_USE_AMATRIX
 }
 
 /***********************************************************************************/
@@ -167,14 +163,14 @@ void FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::MarkIfInterse
         for (auto p_leaf : rLeaves) {
             auto& r_leaf = *(p_leaf->pGetObjects());
             // We clear previously assign flags
-            for (auto p_condition_2 : r_leaf) {
+            for (const auto& p_condition_2 : r_leaf) {
                 if (p_condition_2->IsNot(VISITED)) {
                     p_condition_2->Reset(SELECTED);
                 }
             }
 
             // We iterate again and check intersection
-            for (auto p_condition_2 : r_leaf) {
+            for (const auto& p_condition_2 : r_leaf) {
                 if (p_condition_2->IsNot(VISITED)) {
                     if (HasIntersection(rIntersectedGeometricalObject.GetGeometry(), p_condition_2->GetGeometry())) {
                         rIntersectedGeometricalObject.Set(SELECTED);
@@ -187,7 +183,7 @@ void FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::MarkIfInterse
         // Reset VISITED flag
         for (auto p_leaf : rLeaves) {
             auto& r_leaf = *(p_leaf->pGetObjects());
-            for (auto p_condition_2 : r_leaf) {
+            for (const auto& p_condition_2 : r_leaf) {
                 p_condition_2->Reset(VISITED);
             }
         }

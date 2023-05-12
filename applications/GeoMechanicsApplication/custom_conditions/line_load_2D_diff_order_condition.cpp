@@ -68,8 +68,7 @@ void LineLoad2DDiffOrderCondition::
     rVariables.ConditionVector.resize(2,false);
     noalias(rVariables.ConditionVector) = ZeroVector(2);
 
-    for ( SizeType i = 0; i < NumUNodes; i++ )
-    {
+    for ( SizeType i = 0; i < NumUNodes; ++i ) {
         LineLoad = rGeom[i].FastGetSolutionStepValue(LINE_LOAD);
 
         rVariables.ConditionVector[0] += rVariables.Nu[i]*LineLoad[0];
@@ -80,33 +79,32 @@ void LineLoad2DDiffOrderCondition::
 }
 
 //----------------------------------------------------------------------------------------
+double LineLoad2DDiffOrderCondition::
+    CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                    const GeometryType::JacobiansType& JContainer,
+                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 
-void LineLoad2DDiffOrderCondition::
-    CalculateIntegrationCoefficient(ConditionVariables& rVariables,
-                                     unsigned int PointNumber, double weight)
 {
     KRATOS_TRY
 
-    double dx_dxi = rVariables.JContainer[PointNumber](0,0);
-    double dy_dxi = rVariables.JContainer[PointNumber](1,0);
+    const double dx_dxi = JContainer[PointNumber](0,0);
+    const double dy_dxi = JContainer[PointNumber](1,0);
 
-    double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
+    const double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
 
-    rVariables.IntegrationCoefficient = ds * weight;
+    return ds * IntegrationPoints[PointNumber].Weight();
 
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
-
 void LineLoad2DDiffOrderCondition::
     CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
                                   ConditionVariables& rVariables)
 {
     const SizeType NumUNodes = GetGeometry().PointsNumber();
 
-    for ( SizeType i = 0; i < NumUNodes; i++ )
-    {
+    for ( SizeType i = 0; i < NumUNodes; ++i ) {
         SizeType Index = i * 2;
 
         rRightHandSideVector[Index]   += rVariables.Nu[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;

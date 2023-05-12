@@ -43,7 +43,7 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::EquationIdVector(Equation
     {
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_X,pos).EquationId();
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Y,pos+1).EquationId();
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Z,pos+2).EquationId();
         }
     }
@@ -62,7 +62,7 @@ void ComputeComponentGradientSimplex<TDim, TNumNodes>::GetDofList(DofsVectorType
     {
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_X);
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_Y);
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_Z);
         }
     }

@@ -2,7 +2,7 @@
 // co_spawn.hpp
 // ~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2020 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2021 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -95,6 +95,11 @@ struct awaitable_signature<awaitable<void, Executor>>
  *     std::cout << "transferred " << n << "\n";
  *   });
  * @endcode
+ *
+ * @par Per-Operation Cancellation
+ * The new thread of execution is created with a cancellation state that
+ * supports @c cancellation_type::terminal values only. To change the
+ * cancellation state, call asio::this_coro::reset_cancellation_state.
  */
 template <typename Executor, typename T, typename AwaitableExecutor,
     ASIO_COMPLETION_TOKEN_FOR(
@@ -105,10 +110,10 @@ inline ASIO_INITFN_AUTO_RESULT_TYPE(
 co_spawn(const Executor& ex, awaitable<T, AwaitableExecutor> a,
     CompletionToken&& token
       ASIO_DEFAULT_COMPLETION_TOKEN(Executor),
-    typename enable_if<
+    typename constraint<
       (is_executor<Executor>::value || execution::is_executor<Executor>::value)
         && is_convertible<Executor, AwaitableExecutor>::value
-    >::type* = 0);
+    >::type = 0);
 
 /// Spawn a new coroutined-based thread of execution.
 /**
@@ -151,6 +156,11 @@ co_spawn(const Executor& ex, awaitable<T, AwaitableExecutor> a,
  *   echo(std::move(my_tcp_socket)),
  *   asio::detached);
  * @endcode
+ *
+ * @par Per-Operation Cancellation
+ * The new thread of execution is created with a cancellation state that
+ * supports @c cancellation_type::terminal values only. To change the
+ * cancellation state, call asio::this_coro::reset_cancellation_state.
  */
 template <typename Executor, typename AwaitableExecutor,
     ASIO_COMPLETION_TOKEN_FOR(
@@ -161,10 +171,10 @@ inline ASIO_INITFN_AUTO_RESULT_TYPE(
 co_spawn(const Executor& ex, awaitable<void, AwaitableExecutor> a,
     CompletionToken&& token
       ASIO_DEFAULT_COMPLETION_TOKEN(Executor),
-    typename enable_if<
+    typename constraint<
       (is_executor<Executor>::value || execution::is_executor<Executor>::value)
         && is_convertible<Executor, AwaitableExecutor>::value
-    >::type* = 0);
+    >::type = 0);
 
 /// Spawn a new coroutined-based thread of execution.
 /**
@@ -215,6 +225,11 @@ co_spawn(const Executor& ex, awaitable<void, AwaitableExecutor> a,
  *     std::cout << "transferred " << n << "\n";
  *   });
  * @endcode
+ *
+ * @par Per-Operation Cancellation
+ * The new thread of execution is created with a cancellation state that
+ * supports @c cancellation_type::terminal values only. To change the
+ * cancellation state, call asio::this_coro::reset_cancellation_state.
  */
 template <typename ExecutionContext, typename T, typename AwaitableExecutor,
     ASIO_COMPLETION_TOKEN_FOR(
@@ -227,11 +242,11 @@ co_spawn(ExecutionContext& ctx, awaitable<T, AwaitableExecutor> a,
     CompletionToken&& token
       ASIO_DEFAULT_COMPLETION_TOKEN(
         typename ExecutionContext::executor_type),
-    typename enable_if<
+    typename constraint<
       is_convertible<ExecutionContext&, execution_context&>::value
         && is_convertible<typename ExecutionContext::executor_type,
           AwaitableExecutor>::value
-    >::type* = 0);
+    >::type = 0);
 
 /// Spawn a new coroutined-based thread of execution.
 /**
@@ -274,6 +289,11 @@ co_spawn(ExecutionContext& ctx, awaitable<T, AwaitableExecutor> a,
  *   echo(std::move(my_tcp_socket)),
  *   asio::detached);
  * @endcode
+ *
+ * @par Per-Operation Cancellation
+ * The new thread of execution is created with a cancellation state that
+ * supports @c cancellation_type::terminal values only. To change the
+ * cancellation state, call asio::this_coro::reset_cancellation_state.
  */
 template <typename ExecutionContext, typename AwaitableExecutor,
     ASIO_COMPLETION_TOKEN_FOR(
@@ -286,11 +306,11 @@ co_spawn(ExecutionContext& ctx, awaitable<void, AwaitableExecutor> a,
     CompletionToken&& token
       ASIO_DEFAULT_COMPLETION_TOKEN(
         typename ExecutionContext::executor_type),
-    typename enable_if<
+    typename constraint<
       is_convertible<ExecutionContext&, execution_context&>::value
         && is_convertible<typename ExecutionContext::executor_type,
           AwaitableExecutor>::value
-    >::type* = 0);
+    >::type = 0);
 
 /// Spawn a new coroutined-based thread of execution.
 /**
@@ -308,7 +328,6 @@ co_spawn(ExecutionContext& ctx, awaitable<void, AwaitableExecutor> a,
  * @code void handler(std::exception_ptr); @endcode
  * Otherwise, the function signature of the completion handler must be:
  * @code void handler(std::exception_ptr, R); @endcode
- *
  *
  * @par Example
  * @code
@@ -361,6 +380,11 @@ co_spawn(ExecutionContext& ctx, awaitable<void, AwaitableExecutor> a,
  *     }
  *   }, asio::detached);
  * @endcode
+ *
+ * @par Per-Operation Cancellation
+ * The new thread of execution is created with a cancellation state that
+ * supports @c cancellation_type::terminal values only. To change the
+ * cancellation state, call asio::this_coro::reset_cancellation_state.
  */
 template <typename Executor, typename F,
     ASIO_COMPLETION_TOKEN_FOR(typename detail::awaitable_signature<
@@ -371,9 +395,9 @@ ASIO_INITFN_AUTO_RESULT_TYPE(CompletionToken,
 co_spawn(const Executor& ex, F&& f,
     CompletionToken&& token
       ASIO_DEFAULT_COMPLETION_TOKEN(Executor),
-    typename enable_if<
+    typename constraint<
       is_executor<Executor>::value || execution::is_executor<Executor>::value
-    >::type* = 0);
+    >::type = 0);
 
 /// Spawn a new coroutined-based thread of execution.
 /**
@@ -391,7 +415,6 @@ co_spawn(const Executor& ex, F&& f,
  * @code void handler(std::exception_ptr); @endcode
  * Otherwise, the function signature of the completion handler must be:
  * @code void handler(std::exception_ptr, R); @endcode
- *
  *
  * @par Example
  * @code
@@ -444,6 +467,11 @@ co_spawn(const Executor& ex, F&& f,
  *     }
  *   }, asio::detached);
  * @endcode
+ *
+ * @par Per-Operation Cancellation
+ * The new thread of execution is created with a cancellation state that
+ * supports @c cancellation_type::terminal values only. To change the
+ * cancellation state, call asio::this_coro::reset_cancellation_state.
  */
 template <typename ExecutionContext, typename F,
     ASIO_COMPLETION_TOKEN_FOR(typename detail::awaitable_signature<
@@ -456,9 +484,9 @@ co_spawn(ExecutionContext& ctx, F&& f,
     CompletionToken&& token
       ASIO_DEFAULT_COMPLETION_TOKEN(
         typename ExecutionContext::executor_type),
-    typename enable_if<
+    typename constraint<
       is_convertible<ExecutionContext&, execution_context&>::value
-    >::type* = 0);
+    >::type = 0);
 
 } // namespace asio
 

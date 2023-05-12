@@ -14,13 +14,13 @@ ApplyCompressibleNavierStokesBoundaryConditionsProcess::ApplyCompressibleNavierS
 
     Parameters.ValidateAndAssignDefaults(GetDefaultParameters());
     mpModelPart = &rModel.GetModelPart(Parameters["model_part_name"].GetString());
-    
+
     // Reading flow direction
     const auto flow_direction_name = Parameters["flow_direction_variable"].GetString();
 
     KRATOS_ERROR_IF_NOT(KratosComponents<VectorVariable>::Has(flow_direction_name))
         << "specified flow direction variable is not a known vector variable." << std::endl;
-    
+
     mpFlowDirectionVariable = & KratosComponents<VectorVariable>::Get(flow_direction_name);
 
     mRefreshNormalsEveryTimeStep = Parameters["refresh_normals_every_time_step"].GetBool();
@@ -45,7 +45,7 @@ ApplyCompressibleNavierStokesBoundaryConditionsProcess::ApplyCompressibleNavierS
 
 void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitialize()
 {
-    NormalCalculationUtils().CalculateUnitNormals<Condition>(*mpModelPart);
+    NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(*mpModelPart);
 }
 
 
@@ -53,7 +53,7 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitializeSo
 {
     if(mRefreshNormalsEveryTimeStep)
     {
-        NormalCalculationUtils().CalculateUnitNormals<Condition>(*mpModelPart);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(*mpModelPart);
     }
 
     // Enabling and disabling BC according to the time and active interval
@@ -78,15 +78,15 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitializeSo
 
         const double mach = rNode.GetValue(MACH);
         const double flow_direction_norm = norm_2(r_flow_direction);
-        
+
         bool supersonic = false;
-        
+
         if(std::abs(flow_direction_norm) > std::numeric_limits<double>::min())
         {
             const double mach_projection = mach * inner_prod(r_normal, r_flow_direction) / flow_direction_norm;
             supersonic = std::abs(mach_projection) >= 1.0;
         }
-        
+
         // Chosing BC set to enforce according to mach
         const auto& active_bc  = supersonic ? mSupersonicBCs : mSubsonicBCs;
 
@@ -179,13 +179,13 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ReadBoundaryConditi
 
     KRATOS_ERROR_IF_NOT(Parameters.Has("variable_name"))
         << "Missing string field 'variable_name' in boundary condition:\n" << Parameters  << std::endl;
-    
+
     KRATOS_ERROR_IF_NOT(Parameters.Has("value"))
         << "Missing double (or vector) field 'value' in boundary condition:\n" << Parameters  << std::endl;
 
     // Reading interval
     IntervalUtility interval_utility{Parameters};
-    
+
     // Reading value and acting depending on if it's vector or double
     if(Parameters["value"].IsNumber())
     {
@@ -218,7 +218,7 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ReadBoundaryConditi
             << Parameters << std::endl;
 
         std::string variable_component_name = Parameters["variable_name"].GetString() + "_X";
-        
+
         for(std::size_t i=0; i<n_components; ++i)
         {
             if(constraints[i].GetBool())

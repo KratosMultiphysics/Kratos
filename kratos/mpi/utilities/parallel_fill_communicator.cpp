@@ -412,8 +412,10 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     // Assign elements and conditions for LocalMesh.
     rModelPart.GetCommunicator().LocalMesh().Elements().clear();
     rModelPart.GetCommunicator().LocalMesh().Conditions().clear();
+    rModelPart.GetCommunicator().LocalMesh().MasterSlaveConstraints().clear();
     rModelPart.GetCommunicator().LocalMesh().Elements() = rModelPart.Elements();
     rModelPart.GetCommunicator().LocalMesh().Conditions() = rModelPart.Conditions();
+    rModelPart.GetCommunicator().LocalMesh().MasterSlaveConstraints() = rModelPart.MasterSlaveConstraints();
 
     // Call the sub model part.
     for (ModelPart& r_sub_model_part : rModelPart.SubModelParts())

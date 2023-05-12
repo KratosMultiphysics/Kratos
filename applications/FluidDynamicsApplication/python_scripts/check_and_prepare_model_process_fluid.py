@@ -32,6 +32,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         #self.list_of_inlets = Parameters["list_of_inlets"]
 
 
+    def _ElementsAreNotSimplex(self):
+        "Checks whether the first element is non-simplex"
+        if self.main_model_part.NumberOfElements() == 0:
+            return True
+
+        geometry = self.main_model_part.Elements.__iter__().__next__().GetGeometry()
+        is_simplex = geometry.LocalSpaceDimension() + 1 == geometry.PointsNumber()
+        return not is_simplex
+
 
     def Execute(self):
         if self.main_model_part.Name == self.volume_model_part_name:
@@ -45,24 +54,32 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
         #construct a model part which contains both the skin and the volume
         #temporarily we call it "fluid_computational_model_part"
-        self.main_model_part.CreateSubModelPart("fluid_computational_model_part")
-        fluid_computational_model_part= self.main_model_part.GetSubModelPart("fluid_computational_model_part")
-        fluid_computational_model_part.ProcessInfo = self.main_model_part.ProcessInfo
+        if self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
+            fluid_computational_model_part = self.main_model_part.GetSubModelPart("fluid_computational_model_part")
+        else:
+            fluid_computational_model_part = self.main_model_part.CreateSubModelPart("fluid_computational_model_part")
+            fluid_computational_model_part.ProcessInfo = self.main_model_part.ProcessInfo
 
-        for node in self.volume_model_part.Nodes:
-            fluid_computational_model_part.AddNode(node,0)
-        for elem in self.volume_model_part.Elements:
-            fluid_computational_model_part.AddElement(elem,0)
+            for node in self.volume_model_part.Nodes:
+                fluid_computational_model_part.AddNode(node,0)
+            for elem in self.volume_model_part.Elements:
+                fluid_computational_model_part.AddElement(elem,0)
 
-        #do some gymnastics to have this done fast. - create an ordered list to be added
-        list_of_ids = set()
-        for part in skin_parts:
-            for cond in part.Conditions:
-                list_of_ids.add(cond.Id)
+            #do some gymnastics to have this done fast. - create an ordered list to be added
+            list_of_ids = set()
+            for part in skin_parts:
+                for cond in part.Conditions:
+                    list_of_ids.add(cond.Id)
 
-        fluid_computational_model_part.AddConditions(list(list_of_ids))
+            fluid_computational_model_part.AddConditions(list(list_of_ids))
 
-        #verify the orientation of the skin
+        #verify the orientation of the skin (only implemented for tris and tets)
+        if self._ElementsAreNotSimplex():
+            msg = "Geoemetry is not simplex. Orientation check is only available"
+            msg += " for simplex geometries and hence it will be skipped."
+            KratosMultiphysics.Logger.PrintWarning(type(self).__name__, msg)
+            return
+
         tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
         throw_errors = False
         flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()

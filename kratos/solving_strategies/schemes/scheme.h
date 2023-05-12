@@ -81,10 +81,6 @@ public:
     typedef Dof<double> TDofType;
     /// DoF array type definition
     typedef ModelPart::DofsArrayType DofsArrayType;
-    /// DoF iterator type definition
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::iterator DofIterator;
-    /// DoF constant iterator type definition
-    typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;
 
     /// Elements containers definition
     typedef ModelPart::ElementsContainerType ElementsArrayType;
@@ -97,7 +93,7 @@ public:
 
     /**
      * @brief Default Constructor
-     * @details Initiliazes the flags
+     * @details Initializes the flags
      */
     explicit Scheme()
     {
@@ -174,7 +170,7 @@ public:
 
     /**
      * @brief This method returns if the scheme is initialized
-     * @return True if initilized, false otherwise
+     * @return True if initialized, false otherwise
      */
     bool SchemeIsInitialized()
     {
@@ -182,7 +178,7 @@ public:
     }
 
     /**
-     * @brief This method sets if the elements have been initilized or not (true by default)
+     * @brief This method sets if the elements have been initialized or not (true by default)
      * @param ElementsAreInitializedFlag If the flag must be set to true or false
      */
     void SetSchemeIsInitialized(bool SchemeIsInitializedFlag = true)
@@ -192,7 +188,7 @@ public:
 
     /**
      * @brief This method returns if the elements are initialized
-     * @return True if initilized, false otherwise
+     * @return True if initialized, false otherwise
      */
     bool ElementsAreInitialized()
     {
@@ -200,7 +196,7 @@ public:
     }
 
     /**
-     * @brief This method sets if the elements have been initilized or not (true by default)
+     * @brief This method sets if the elements have been initialized or not (true by default)
      * @param ElementsAreInitializedFlag If the flag must be set to true or false
      */
     void SetElementsAreInitialized(bool ElementsAreInitializedFlag = true)
@@ -210,7 +206,7 @@ public:
 
     /**
      * @brief This method returns if the conditions are initialized
-     * @return True if initilized, false otherwise
+     * @return True if initialized, false otherwise
      */
     bool ConditionsAreInitialized()
     {
@@ -218,7 +214,7 @@ public:
     }
 
     /**
-     * @brief This method sets if the conditions have been initilized or not (true by default)
+     * @brief This method sets if the conditions have been initialized or not (true by default)
      * @param ConditionsAreInitializedFlag If the flag must be set to true or false
      */
     void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag = true)
@@ -251,7 +247,7 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
+        KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initializing Conditions, initialize Elements FIRST" << std::endl;
 
         EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
@@ -310,7 +306,7 @@ public:
     /***********************************************************************************/
 
 //     /**
-//      * @brief Initializes solution step, to be used when system is not explicitely defined
+//      * @brief Initializes solution step, to be used when system is not explicitly defined
 //      * @details For example for fractional step strategies
 //      * @warning Must be defined in derived classes
 //      * @param rModelPart The model part of the problem to solve
@@ -322,7 +318,7 @@ public:
 //     }
 //
 //     /**
-//      * @brief Finalizes solution step, to be used when system is not explicitely defined
+//      * @brief Finalizes solution step, to be used when system is not explicitly defined
 //      * @details For example for fractional step strategies
 //      * @warning Must be defined in derived classes
 //      * @param rModelPart The model part of the problem to solve
@@ -538,31 +534,6 @@ public:
     virtual int Check(const ModelPart& rModelPart) const
     {
         KRATOS_TRY
-
-        //TODO: This is required for the exception handling. It can be removed once we move to the C++ parallelism
-#ifdef KRATOS_SMP_CXX11
-        int num_threads = ParallelUtilities::GetNumThreads();
-#else
-        int num_threads = 1;
-#endif
-
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Checks for all of the elements
-        BlockPartition<const ModelPart::ElementsContainerType>(rModelPart.Elements(), num_threads).for_each([&r_current_process_info](const Element& rElement){
-            rElement.Check(r_current_process_info);
-        });
-
-        // Checks for all of the conditions
-        BlockPartition<const ModelPart::ConditionsContainerType>(rModelPart.Conditions(), num_threads).for_each([&r_current_process_info](const Condition& rCondition){
-            rCondition.Check(r_current_process_info);
-        });
-
-        // Checks for all of the constraints
-        BlockPartition<const ModelPart::MasterSlaveConstraintContainerType>(rModelPart.MasterSlaveConstraints(), num_threads).for_each([&r_current_process_info](const MasterSlaveConstraint& rConstraint){
-            rConstraint.Check(r_current_process_info);
-        });
-
         return 0;
         KRATOS_CATCH("");
     }
@@ -807,7 +778,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been intialized or not
+    bool mSchemeIsInitialized;      /// Flag to be used in controlling if the Scheme has been initialized or not
     bool mElementsAreInitialized;   /// Flag taking in account if the elements were initialized correctly or not
     bool mConditionsAreInitialized; /// Flag taking in account if the conditions were initialized correctly or not
 

@@ -143,11 +143,12 @@ public:
     ModelPart&                                       mrModelPart;
     double                                              mDensity;
     double                                            mViscosity;
-    double                                      mIndependentTerm;
-    double                                         mMaximumAlpha;
-    double                                             mCenterx1;
-    double                                             mCenterx2;
+    double                                         mPermeability;
+    double                                                mAlpha;
+    double                                                mUchar;
     bool                                      mInitialConditions;
+    bool                                 mAlternativeFormulation;
+
 
     ///@}
     ///@name Protected Operators

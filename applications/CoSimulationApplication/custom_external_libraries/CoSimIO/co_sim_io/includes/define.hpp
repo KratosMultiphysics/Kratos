@@ -85,17 +85,21 @@ intrusive_ptr<C> make_intrusive(Args &&...args) {
 }
 
 // OS detection
-#if defined(_WIN32)
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    #define CO_SIM_IO_COMPILED_IN_LINUX
+#elif defined(__APPLE__) && defined(__MACH__)
+    #define CO_SIM_IO_COMPILED_IN_OS
+#elif defined(_WIN32) || defined(_WIN64)
     #define CO_SIM_IO_COMPILED_IN_WINDOWS
 #endif
 
 inline std::string GetOsName()
 {
-#ifdef _WIN32
+#if defined(CO_SIM_IO_COMPILED_IN_WINDOWS)
     return "Windows";
-#elif __APPLE__ || __MACH__
+#elif defined(CO_SIM_IO_COMPILED_IN_OS)
     return "Mac OSX";
-#elif __linux__
+#elif defined(CO_SIM_IO_COMPILED_IN_LINUX)
     return "Linux";
 #else
     return "Other";

@@ -54,7 +54,7 @@ namespace Kratos
     };
 
     // Returns a pointer to the splitting utility
-    const DivideGeometry::Pointer ModifiedShapeFunctions::pGetSplittingUtil() const {
+    const DivideGeometry<Node>::Pointer ModifiedShapeFunctions::pGetSplittingUtil() const {
         KRATOS_ERROR << "Trying to retrieve the splitting utility from the modified shape functions base class. \n" <<
                          "Implement the pGetSplittingUtil according to the input geometry in the proper modified shape functions derived class.";
     };
@@ -499,7 +499,7 @@ namespace Kratos
         const unsigned int split_edges_size = n_edges_global + n_nodes_global;     // Split edges vector size
 
         const unsigned int n_subdivision = rSubdivisionsVector.size();                                         // Number of positive or negative subdivisions
-        const unsigned int n_dim = (*rSubdivisionsVector[0]).Dimension();                                      // Number of dimensions
+        const unsigned int n_dim = (*rSubdivisionsVector[0]).WorkingSpaceDimension();                          // Number of dimensions
         const unsigned int n_nodes = (*rSubdivisionsVector[0]).PointsNumber();                                 // Number of nodes per subdivision
         const unsigned int n_int_pts = (*rSubdivisionsVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per subdivision
 
@@ -587,7 +587,7 @@ namespace Kratos
         const unsigned int n_edges = p_input_geometry->EdgesNumber();                                        // Number of edges in original geometry
         const unsigned int split_edges_size = n_edges + n_nodes;                                             // Split edges vector size
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
-        const unsigned int n_dim = (*rParentGeometriesVector[0]).Dimension();                                // Number of dimensions
+        const unsigned int n_dim = (*rParentGeometriesVector[0]).WorkingSpaceDimension();                    // Number of dimensions
         const unsigned int n_int_pts =
             n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.

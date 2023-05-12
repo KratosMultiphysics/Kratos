@@ -14,7 +14,6 @@ def GetFilePath(fileName):
 
 class FrictionDecayTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "friction_decay_tests_files")
 
@@ -24,24 +23,37 @@ class FrictionDecayTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnitt
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         tolerance = 1e-4
-        for node in self.spheres_model_part.Nodes:
+
+        if self.time > 0.0499999 and self.time < 0.0500001:
+            node = self.spheres_model_part.GetNode(1)
             total_force = node.GetSolutionStepValue(Kratos.TOTAL_FORCES)
-            if self.time > 0.0499999 and self.time < 0.0500001:
-                if node.Id == 1:
-                    self.assertAlmostEqual(total_force[0], -4.406849, delta=tolerance)
-                if node.Id == 2:
-                    self.assertAlmostEqual(total_force[0], -6.480977, delta=tolerance)
-                if node.Id == 3:
-                    self.assertAlmostEqual(total_force[0], -4.392052, delta=tolerance)
-                if node.Id == 4:
-                    self.assertAlmostEqual(total_force[0], -5.724009, delta=tolerance)
-                if node.Id == 5:
-                    self.assertAlmostEqual(total_force[0], -4.392052, delta=tolerance)
-                if node.Id == 6:
-                    self.assertAlmostEqual(total_force[0], -4.406849, delta=tolerance)
+            self.assertAlmostEqual(total_force[0], -4.406849, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(2)
+            total_force = node.GetSolutionStepValue(Kratos.TOTAL_FORCES)
+            self.assertAlmostEqual(total_force[0], -6.480977, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(3)
+            total_force = node.GetSolutionStepValue(Kratos.TOTAL_FORCES)
+            self.assertAlmostEqual(total_force[0], -4.392052, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(4)
+            total_force = node.GetSolutionStepValue(Kratos.TOTAL_FORCES)
+            self.assertAlmostEqual(total_force[0], -5.724009, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(5)
+            total_force = node.GetSolutionStepValue(Kratos.TOTAL_FORCES)
+            self.assertAlmostEqual(total_force[0], -4.392052, delta=tolerance)
+
+            node = self.spheres_model_part.GetNode(6)
+            total_force = node.GetSolutionStepValue(Kratos.TOTAL_FORCES)
+            self.assertAlmostEqual(total_force[0], -4.406849, delta=tolerance)
+
+            self.check_mark_1 = True
 
 
     def Finalize(self):
+        self.assertTrue(self.check_mark_1)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
@@ -50,7 +62,6 @@ class TestFrictionDecay(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
     def test_Friction_Decay(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "friction_decay_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")

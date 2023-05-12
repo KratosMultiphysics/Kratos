@@ -12,25 +12,18 @@
 #ifndef FILTER_FUNCTION_H
 #define FILTER_FUNCTION_H
 
-#define PI 3.141592653589793238462643383279502884197169399375105820974944592308
-
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
 #include <iostream>
 #include <string>
-#include <algorithm>
+#include <functional>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
-#include "includes/model_part.h"
-#include "includes/kratos_flags.h"
-#include "shape_optimization_application.h"
+#include "spaces/ublas_space.h"
 
 // ==============================================================================
 
@@ -61,7 +54,7 @@ namespace Kratos
  * FilterFunction implementations.
 */
 
-class FilterFunction
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) FilterFunction
 {
   public:
     ///@name Type Definitions
@@ -76,35 +69,7 @@ class FilterFunction
     ///@{
 
     /// Default constructor.
-    FilterFunction(const std::string FilterFunctionType, const double Radius)
-        : mRadius(Radius)
-    {
-        // Set type of weighting function
-
-        // Type 1: Gaussian function
-        if (FilterFunctionType == "gaussian")
-            mFilterFunctional =  [](double radius, double distance) {return std::max(0.0, exp(-(distance*distance) / (2 * radius * radius / 9.0)));};
-
-        // Type 2: Linear function
-        else if (FilterFunctionType == "linear")
-            mFilterFunctional =  [](double radius, double distance) {return std::max(0.0, (radius - distance) / radius);};
-
-        // Type 3: Constant function
-        else if (FilterFunctionType == "constant")
-            mFilterFunctional = [](double radius, double distance) {return 1.0;};
-
-        // Type 4: Cosine function
-        else if (FilterFunctionType == "cosine")
-            mFilterFunctional = [](double radius, double distance) {return std::max(0.0, 1-0.5*(1-cos(PI/radius*distance)));};
-
-        // Type 5: Quartic function
-        else if (FilterFunctionType == "quartic")
-            mFilterFunctional = [](double radius, double distance) {return std::max(0.0, (pow(distance-radius,4.0)/pow(radius,4.0)));};
-
-        // Throw error message in case of wrong specification
-        else
-            KRATOS_ERROR << "Specified kernel function of type : "<< FilterFunctionType << " is not recognized. \n \t Options are: constant, linear , gaussian, cosine, quartic." << std::endl;
-    }
+    FilterFunction(const std::string FilterFunctionType);
 
     /// Destructor.
     virtual ~FilterFunction()
@@ -119,18 +84,7 @@ class FilterFunction
     ///@name Operations
     ///@{
 
-    double ComputeWeight(const Array3DType& ICoord, const Array3DType& JCoord) const
-    {
-        KRATOS_TRY;
-
-        // Compute distance vector
-        const double distance = GetDistance(ICoord, JCoord);
-
-        // Depending on which weighting function is chosen, compute weight
-        return mFilterFunctional(mRadius, distance);
-
-        KRATOS_CATCH("");
-    }
+    double ComputeWeight(const Array3DType& ICoord, const Array3DType& JCoord, const double Radius) const;
 
     ///@}
     ///@name Access
@@ -175,7 +129,6 @@ class FilterFunction
     ///@name Member Variables
     ///@{
 
-    double mRadius;
     std::function<double (double, double)> mFilterFunctional;
 
     ///@}

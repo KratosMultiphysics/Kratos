@@ -30,13 +30,13 @@ void Flags::load(Serializer& rSerializer)
     rSerializer.load("Flags",  mFlags);
 }
 
-void Flags::Set(Flags ThisFlag)
+void Flags::Set(const Flags ThisFlag)
 {
     mIsDefined |= ThisFlag.mIsDefined;
     mFlags = (mFlags & ~ThisFlag.mIsDefined) | (ThisFlag.mIsDefined & ThisFlag.mFlags);
 }
 
-void Flags::Set(Flags ThisFlag, bool value)
+void Flags::Set(const Flags ThisFlag, bool value)
 {
     mIsDefined |= ThisFlag.mIsDefined;
     mFlags = (mFlags & ~ThisFlag.mIsDefined) | (ThisFlag.mIsDefined * BlockType(value));

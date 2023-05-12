@@ -24,6 +24,7 @@
 #include "containers/model.h"
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/binbased_fast_point_locator.h"
 
 namespace Kratos
 {
@@ -58,6 +59,7 @@ class ModelPart;
  * @details The boundary conditions are assumed to be contained in a line
  * @author Miguel Maso Sotomayor
  */
+template<std::size_t TDim>
 class KRATOS_API(SHALLOW_WATER_APPLICATION) DepthIntegrationProcess : public Process
 {
 public:
@@ -68,7 +70,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DepthIntegrationProcess);
 
     /// Definition of the node type
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Definition of the geometry type
     using GeometryType = Geometry<NodeType>;
@@ -145,19 +147,23 @@ public:
     ///@}
 
 private:
-    ///@name Static Member Variables
+    ///@name Member Variables
     ///@{
 
     ModelPart& mrVolumeModelPart;
     ModelPart& mrInterfaceModelPart;
-    ModelPart* mpIntegrationModelPart;
     array_1d<double,3> mDirection;
     bool mStoreHistorical;
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+    // Option to print a debug file
+    bool mPrintVelocityProfile;
 
+    // Option to substitute the boundaries by the neighbor
+    bool mExtrapolateBoundaries;
+    NodeType::Pointer mpFirstBoundaryNode;
+    NodeType::Pointer mpSecondBoundaryNode;
+    NodeType::Pointer mpFirstBoundaryNeighbor;
+    NodeType::Pointer mpSecondBoundaryNeighbor;
 
     ///@}
     ///@name Private Operators
@@ -168,24 +174,41 @@ private:
     ///@name Private Operations
     ///@{
 
-    void InitializeIntegrationModelPart();
-
     void GetBoundingVolumeLimits(double& rMin, double& rMax);
 
-    void CreateIntegrationLines(const double Low, const double High);
+    void Integrate(
+        NodeType& rNode,
+        const double Bottom,
+        const double Top,
+        BinBasedFastPointLocator<TDim>& rLocator,
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType& rResults,
+        Vector& rShapeFunctionsValues);
 
-    void Integrate(std::vector<PointerVector<GeometricalObject>>& rResults);
-
-    void Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode);
+    array_1d<double,3> InterpolateVelocity(
+        const Element::Pointer ElementId,
+        const Vector& rShapeFunctionValues) const;
 
     template<class TDataType, class TVarType = Variable<TDataType>>
-    void SetValue(NodeType& rNode, const TVarType& rVariable, TDataType& rValue)
+    void SetValue(NodeType& rNode, const TVarType& rVariable, TDataType rValue)
     {
         if (mStoreHistorical)
             rNode.FastGetSolutionStepValue(rVariable) = rValue;
         else
             rNode.GetValue(rVariable) = rValue;
     }
+
+    template<class TDataType, class TVarType = Variable<TDataType>>
+    TDataType GetValue(const NodeType& rNode, const TVarType& rVariable)
+    {
+        if (mStoreHistorical)
+            return rNode.FastGetSolutionStepValue(rVariable);
+        else
+            return rNode.GetValue(rVariable);
+    }
+
+    void FindBoundaryNeighbors();
+
+    void CopyValues(const NodeType& rOriginNode, NodeType& rDestinationNode);
 
     ///@}
     ///@name Private  Access
@@ -221,18 +244,6 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream, DepthIntegrationProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream, const DepthIntegrationProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 
 ///@}
 

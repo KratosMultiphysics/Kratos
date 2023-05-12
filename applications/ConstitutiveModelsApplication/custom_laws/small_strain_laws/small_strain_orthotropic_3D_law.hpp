@@ -185,7 +185,7 @@ namespace Kratos
        */
       int Check(const Properties& rProperties,
 		const GeometryType& rElementGeometry,
-		const ProcessInfo& rCurrentProcessInfo) override
+		const ProcessInfo& rCurrentProcessInfo) const override
       {
 
 	if(YOUNG_MODULUS_X.Key() == 0 || !rProperties.Has(YOUNG_MODULUS_X))

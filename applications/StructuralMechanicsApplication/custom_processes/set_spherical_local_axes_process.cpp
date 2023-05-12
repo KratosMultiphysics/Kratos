@@ -3,12 +3,17 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/model_part.h"
 #include "custom_processes/set_spherical_local_axes_process.h"
 #include "utilities/parallel_utilities.h"
@@ -71,12 +76,23 @@ void SetSphericalLocalAxesProcess::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SetSphericalLocalAxesProcess::ExecuteInitializeSolutionStep()
+{
+    if (mThisParameters["update_at_each_step"].GetBool()) {
+        ExecuteInitialize();
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 const Parameters SetSphericalLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
         "spherical_reference_axis"   : [0.0,0.0,1.0],
-        "spherical_central_point"    : [0.0,0.0,0.0]
+        "spherical_central_point"    : [0.0,0.0,0.0],
+        "update_at_each_step"        : false
     })" );
 
     return default_parameters;

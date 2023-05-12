@@ -42,7 +42,7 @@ namespace Kratos {
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
-    void GluedToWallScheme::Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
+    void GluedToWallScheme::Move(Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag) {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
 
         const unsigned int num_nodes = mCondition->GetGeometry().size();
@@ -123,7 +123,7 @@ namespace Kratos {
         #endif
     }
 
-    void GluedToWallScheme::Rotate(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
+    void GluedToWallScheme::Rotate(Node & i, const double delta_t, const double moment_reduction_factor, const int StepFlag) {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
         //NOTE: ANGULAR_VELOCITY was calculated in the 'Move' function.
         array_1d<double, 3> rotation_vector;

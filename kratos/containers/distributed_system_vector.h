@@ -29,6 +29,7 @@
 #include "containers/distributed_vector_exporter.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -206,8 +207,20 @@ public:
             AddEntry(*it);
     }
 
+    TDataType Dot(const DistributedSystemVector& rOtherVector, MpiIndexType gather_on_rank=0)
+    {
+        const auto& other_data = rOtherVector.GetLocalData();
+        TDataType dot_value = IndexPartition<IndexType>(mLocalData.size()).template for_each<SumReduction<TDataType>>([&](IndexType i){
+                return mLocalData[i]*other_data[i];
+            });
 
-    void Add(const double factor,
+        dot_value = GetComm().Sum(dot_value, gather_on_rank);
+        if(GetComm().Rank() != gather_on_rank) dot_value = -1; //give an impossible result in case it is not on the reduction rank
+        return dot_value; // note that the value to be reduced should be returned
+    }
+
+
+    void Add(const TDataType factor,
              const DistributedSystemVector& rOtherVector
             )
     {
@@ -226,39 +239,44 @@ public:
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] = rOtherVector.mLocalData[i];
         });
+        return *this;
     }
 
 
-    void operator+=(const DistributedSystemVector& rOtherVector)
+    DistributedSystemVector& operator+=(const DistributedSystemVector& rOtherVector)
     {
         KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in += operator. LocalSize is " << LocalSize()
                 << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] += rOtherVector.mLocalData[i];
         });
+        return *this;
     }
 
-    void operator-=(const DistributedSystemVector& rOtherVector)
+    DistributedSystemVector& operator-=(const DistributedSystemVector& rOtherVector)
     {
         KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in -= operator. LocalSize is " << LocalSize()
                 << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] -= rOtherVector.mLocalData[i];
         });
+        return *this;
     }
 
-    void operator*=(const TDataType& multiplier_factor)
+    DistributedSystemVector& operator*=(const TDataType& multiplier_factor)
     {
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] *= multiplier_factor;
         });
+        return *this;
     }
 
-    void operator/=(const TDataType& divide_factor)
+    DistributedSystemVector& operator/=(const TDataType& divide_factor)
     {
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] /= divide_factor;
         });
+        return *this;
     }
 
     ///@}
@@ -343,10 +361,16 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedSystemVector";}
+    void PrintInfo(std::ostream& rOStream) const 
+    {
+        rOStream << "DistributedSystemVector LOCAL DATA:" << std::endl;        
+    }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const {
+        const auto k = GetComm().Rank();
+        std::cout << "Local Size=" << LocalSize() << " Total Size=" << GetNumbering().Size() << std::endl; 
+        std::cout << "Numbering begins with " << GetNumbering().GetCpuBounds()[k] << " ends at " << GetNumbering().GetCpuBounds()[k+1] << std::endl;
         std::cout << mLocalData << std::endl;
     }
 

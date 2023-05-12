@@ -589,7 +589,7 @@ private:
                     if (!it_node->IsFixed(VELOCITY_Y))
                         it_node->FastGetSolutionStepValue(VELOCITY_Y) +=
                             it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                    if(TDim > 2)
+                    if constexpr (TDim > 2)
                         if (!it_node->IsFixed(VELOCITY_Z))
                             it_node->FastGetSolutionStepValue(VELOCITY_Z) +=
                                 it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
@@ -608,7 +608,7 @@ private:
                 auto& r_slave_node = rModelPart.Nodes()[slave_node_id];
                 r_slave_node.FastGetSolutionStepValue(VELOCITY_X) = 0;
                 r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) = 0;
-                if(TDim > 2)
+                if constexpr (TDim > 2)
                     r_slave_node.FastGetSolutionStepValue(VELOCITY_Z) = 0;
             }
         }
@@ -636,7 +636,7 @@ private:
                         (r_master_node.FastGetSolutionStepValue(VELOCITY_X)) * weight;
                     r_slave_node.FastGetSolutionStepValue(VELOCITY_Y) +=
                         (r_master_node.FastGetSolutionStepValue(VELOCITY_Y)) * weight;
-                    if(TDim > 2)
+                    if constexpr (TDim > 2)
                         r_slave_node.FastGetSolutionStepValue(VELOCITY_Z) +=
                             (r_master_node.FastGetSolutionStepValue(VELOCITY_Z)) * weight;
 

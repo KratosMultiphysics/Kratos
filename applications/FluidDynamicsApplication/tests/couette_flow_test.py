@@ -105,7 +105,7 @@ class CouetteFlowTest(KratosUnittest.TestCase):
                 "output_variables" : ["VELOCITY","PRESSURE"],
                 "output_file_name" : "reference_couette_flow_test",
                 "model_part_name"  : "FluidModelPart.FluidParts_Fluid",
-                "time_frequency"   : 10.0
+                "time_frequency"   : 99.0
             }
         }""")
         output_file_name = json_output_settings["Parameters"]["output_file_name"].GetString()
@@ -124,7 +124,7 @@ class CouetteFlowTest(KratosUnittest.TestCase):
                 "model_part_name"      : "FluidModelPart.FluidParts_Fluid",
                 "tolerance"            : 0.0,
                 "relative_tolerance"   : 0.0,
-                "time_frequency"       : 10.0
+                "time_frequency"       : 99.0
             }
         }""")
         input_file_name = json_check_settings["Parameters"]["input_file_name"].GetString()

@@ -24,7 +24,7 @@
 // Application includes
 
 // Constitutive law
-#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
+#include "custom_constitutive/small_strains/damage/d_plus_d_minus_damage_masonry_3d.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "constitutive_laws_application_variables.h"
@@ -34,7 +34,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the d+ d- damage Constitutive Law (for masonry) 2D...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /**
 * Check the correct calculation of the integrated stress with the CL's

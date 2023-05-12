@@ -21,6 +21,8 @@ class PotentialFlowFormulation(object):
                 self._SetUpEmbeddedIncompressibleElement(formulation_settings)
             elif element_type == "embedded_compressible":
                 self._SetUpEmbeddedCompressibleElement(formulation_settings)
+            elif element_type == "embedded_perturbation_transonic":
+                self._SetUpEmbeddedTransonicPerturbationElement(formulation_settings)
             elif element_type == "perturbation_incompressible":
                 self._SetUpIncompressiblePerturbationElement(formulation_settings)
             elif element_type == "perturbation_compressible":
@@ -106,6 +108,19 @@ class PotentialFlowFormulation(object):
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
         self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
+    def _SetUpEmbeddedTransonicPerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "embedded_perturbation_transonic",
+            "stabilization_factor": 0.0,
+            "penalty_coefficient": 0.0
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "EmbeddedTransonicPerturbationPotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowSolver(model, custom_settings)
@@ -129,9 +144,14 @@ class PotentialFlowSolver(FluidSolver):
             "formulation": {
                 "element_type": "incompressible"
             },
+            "element_replace_settings": {       
+                "condition_name":  "",
+                "element_name": ""
+            },
             "maximum_iterations": 10,
             "echo_level": 0,
             "potential_application_echo_level": 0,
+            "convergence_criterion": "residual_criterion",
             "relative_tolerance": 1e-12,
             "absolute_tolerance": 1e-12,
             "compute_reactions": false,
@@ -222,16 +242,30 @@ class PotentialFlowSolver(FluidSolver):
             strategy_type = None
         return strategy_type
 
-    @classmethod
+    def _CreateBuilderAndSolver(self):
+        linear_solver = self._GetLinearSolver()
+        return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+
     def _CreateScheme(self):
         # Fake scheme creation to do the solution update
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         return scheme
 
     def _CreateConvergenceCriterion(self):
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(
-            self.settings["relative_tolerance"].GetDouble(),
-            self.settings["absolute_tolerance"].GetDouble())
+        criterion = self.settings["convergence_criterion"].GetString()
+        if criterion == "solution_criterion":
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        elif criterion == "residual_criterion":
+            convergence_criterion = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        else:
+            err_msg =  "The requested convergence criterion \"" + criterion + "\" is not available!\n"
+            err_msg += "Available options are: \"solution_criterion\", \"residual_criterion\""
+            raise Exception(err_msg)
+        convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
     def _CreateSolutionStrategy(self):
@@ -239,11 +273,13 @@ class PotentialFlowSolver(FluidSolver):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
         linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         if strategy_type == "linear":
             solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
                 computing_model_part,
                 time_scheme,
                 linear_solver,
+                builder_and_solver,
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["calculate_solution_norm"].GetBool(),
@@ -255,6 +291,7 @@ class PotentialFlowSolver(FluidSolver):
                 time_scheme,
                 linear_solver,
                 convergence_criterion,
+                builder_and_solver,
                 self.settings["maximum_iterations"].GetInt(),
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),

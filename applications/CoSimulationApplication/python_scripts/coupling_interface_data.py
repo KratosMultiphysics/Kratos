@@ -7,6 +7,9 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 # Other imports
 import numpy as np
 
+# STD imports
+import typing
+
 class BaseCouplingInterfaceData:
     """This class serves as interface to the data structure (Model and ModelPart)
     that holds the data used during CoSimulation
@@ -62,7 +65,8 @@ class BaseCouplingInterfaceData:
             "model_part_name" : "",
             "variable_name"   : "",
             "location"        : "node_historical",
-            "dimension"       : -1
+            "dimension"       : -1,
+            "additional_info" : { }
         }""")
 
     def IsDefinedOnThisRank(self):
@@ -154,7 +158,7 @@ class CouplingInterfaceData(BaseCouplingInterfaceData):
         else:
             return {}
 
-    def GetData(self, solution_step_index=0):
+    def GetData(self, solution_step_index=0) -> "np.ndarray[typing.Union[bool,np.intc,np.uintc,np.double]]":
         self.__CheckBufferSize(solution_step_index)
 
         if self.location == "node_historical":
@@ -258,7 +262,7 @@ def SetSolutionStepValue(entity, variable, solution_step_index, value):
 def GetNumpyDataType(variable_type):
     # https://docs.scipy.org/doc/numpy/user/basics.types.html
     dtype_map = {
-        "Bool" : np.bool,
+        "Bool" : bool,
         "Integer" : np.intc,
         "Unsigned Integer" : np.uintc,
         "Double" : np.double,

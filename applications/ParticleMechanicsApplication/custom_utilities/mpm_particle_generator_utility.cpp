@@ -87,7 +87,7 @@ namespace MPMParticleGeneratorUtility
                     // Get geometry and dimension of the background grid
                     const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                     const std::size_t domain_size = rBackgroundGridModelPart.GetProcessInfo()[DOMAIN_SIZE];
-                    const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
+                    const Geometry< Node >& r_geometry = i->GetGeometry(); // current element's geometry
 
                     // Get integration method and shape function values
                     IntegrationMethod int_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
@@ -108,15 +108,15 @@ namespace MPMParticleGeneratorUtility
                     }
 
                     // Set element type
-                    std::string element_type_name = "UpdatedLagrangian";
+                    std::string element_type_name = "MPMUpdatedLagrangian";
                     if (IsMixedFormulation) {
-                        if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
+                        if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "MPMUpdatedLagrangianUP";
                         else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
                     else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {
                         if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM)) {
-                            element_type_name = "UpdatedLagrangianPQ";
+                            element_type_name = "MPMUpdatedLagrangianPQ";
                             KRATOS_ERROR_IF(IsAxisSymmetry) << "PQMPM is not implemented for axisymmetric elements yet." << std::endl;
                         }
                     }
@@ -157,7 +157,7 @@ namespace MPMParticleGeneratorUtility
                         if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
 
                         pelem->Set(ACTIVE);
-                        auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                        auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                             pelem->pGetGeometry(), xg[0],
                             mp_volume[0]);
 
@@ -208,6 +208,7 @@ namespace MPMParticleGeneratorUtility
         std::vector<array_1d<double, 3>> mpc_xg = { ZeroVector(3) };
         array_1d<double,3> mpc_normal = ZeroVector(3);
         std::vector<array_1d<double, 3>> mpc_displacement = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mpc_delta_displacement = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_imposed_displacement = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_velocity = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_imposed_velocity = { ZeroVector(3) };
@@ -287,7 +288,7 @@ namespace MPMParticleGeneratorUtility
                         ParticleMechanicsMathUtilities<double>::Normalize(mpc_normal);
 
                         // Get shape_function_values from defined particle_per_condition
-                        const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current condition's geometry
+                        const Geometry< Node >& r_geometry = i->GetGeometry(); // current condition's geometry
 
                         Matrix shape_functions_values;
 
@@ -374,7 +375,7 @@ namespace MPMParticleGeneratorUtility
                             bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
                             if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
 
-                            auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                            auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                                 pelem->pGetGeometry(), mpc_xg[0],
                                 mpc_area[0]);
 
@@ -383,18 +384,27 @@ namespace MPMParticleGeneratorUtility
 
 
                             ProcessInfo process_info = ProcessInfo();
+                            if (is_interface)
+                            {
+                                p_condition->Set(INTERFACE);
+                                p_condition->SetValuesOnIntegrationPoints(POINT_LOAD,  mpc_contact_force , process_info);
+                                
+                            }
 
                             // Setting particle condition's initial condition
                             p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                             p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area, process_info);
                             p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_DELTA_DISPLACEMENT, { mpc_delta_displacement }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
                             // Mark as boundary condition
                             p_condition->Set(BOUNDARY, true);
 
-                            last_condition_id += 1;
-
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                            last_condition_id +=1;
 
                         }
                         // Loop over the conditions to create inner particle condition (except point load condition)
@@ -419,7 +429,7 @@ namespace MPMParticleGeneratorUtility
                                 if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::MPC search failed." << std::endl;
 
                                 pelem->Set(ACTIVE);
-                                auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                                auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                                     pelem->pGetGeometry(), mpc_xg[0],
                                     mpc_area[0]);
 

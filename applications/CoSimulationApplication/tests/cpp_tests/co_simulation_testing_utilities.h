@@ -12,7 +12,7 @@
 // System includes
 
 // External includes
-#include "custom_external_libraries/CoSimIO/co_sim_io/co_sim_io.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/includes/model_part.hpp"
 
 // Project includes
 #include "testing/testing.h"
@@ -23,7 +23,7 @@ namespace Kratos {
 namespace Testing {
 
 void CheckNodesAreEqual(
-    const Kratos::Node<3>& rKratosNode,
+    const Kratos::Node& rKratosNode,
     const CoSimIO::Node& rCoSimIONode);
 
 void CheckElementsAreEqual(
@@ -34,7 +34,15 @@ void CheckModelPartsAreEqual(
     const Kratos::ModelPart& rKratosModelPart,
     const CoSimIO::ModelPart& rCoSimIOModelPart);
 
+void CheckModelPartsAreEqualButEntitiesAreOrderedDifferently(
+    const Kratos::ModelPart& rKratosModelPart,
+    const CoSimIO::ModelPart& rCoSimIOModelPart);
+
 void CheckDistributedModelPartsAreEqual(
+    const Kratos::ModelPart& rKratosModelPart,
+    const CoSimIO::ModelPart& rCoSimIOModelPart);
+
+void CheckDistributedModelPartsAreEqualButEntitiesAreOrderedDifferently(
     const Kratos::ModelPart& rKratosModelPart,
     const CoSimIO::ModelPart& rCoSimIOModelPart);
 

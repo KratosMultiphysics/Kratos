@@ -71,9 +71,9 @@ public:
         AllowableIncrements(double NewMax, double NewMin) {max = NewMax; min = NewMin;}
     };
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
-    typedef GlobalPointersVector<Node<3>> GlobalPointersVectorType;
+    typedef GlobalPointersVector<Node> GlobalPointersVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -191,6 +191,9 @@ private:
         if (rVariable == HEIGHT) {
             mUnlimitedFlux.push_back(HeightUnlimitedFlux);
             mAllowableIncrements.push_back(HeightAllowableIncrements);
+        } else if (rVariable == FREE_SURFACE_ELEVATION) {
+            mUnlimitedFlux.push_back(FreeSurfaceUnlimitedFlux);
+            mAllowableIncrements.push_back(FreeSurfaceAllowableIncrements);
         } else {
             KRATOS_ERROR << "FluxLimiter: The limiter for the variable " << rVariable << " is undefined." << std::endl;
         }
@@ -214,13 +217,18 @@ private:
         return rContributions(3*iNode + 2);
     }
 
+    static double FreeSurfaceUnlimitedFlux(const TLocalVectorType& rContributions, const NodeType& rNode, IndexType iNode)
+    {
+        return rContributions(3*iNode + 2);
+    }
+
     static double FlowRateUnlimitedFlux(const TLocalVectorType& rContributions, const NodeType& rNode, IndexType iNode)
     {
         array_1d<double,3> flux;
         flux[0] = rContributions(3*iNode);
         flux[1] = rContributions(3*iNode + 1);
         flux[2] = 0.0;
-        const auto v = rNode.FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double,3>& v = rNode.FastGetSolutionStepValue(VELOCITY);
         return inner_prod(flux, v); // projection onto velocity
     }
 
@@ -231,8 +239,8 @@ private:
         flux_q[1] = rContributions(3*iNode + 1);
         flux_q[2] = 0.0;
         double flux_h = rContributions(3*iNode + 2);
-        const auto h = rNode.FastGetSolutionStepValue(HEIGHT);
-        const auto v = rNode.FastGetSolutionStepValue(VELOCITY);
+        const double h = rNode.FastGetSolutionStepValue(HEIGHT);
+        const array_1d<double,3>& v = rNode.FastGetSolutionStepValue(VELOCITY);
         const double next_h = h + flux_h;
         flux_v = flux_q / next_h - v * flux_h / next_h;
         return inner_prod(flux_v, v); // projection onto velocity
@@ -252,16 +260,30 @@ private:
         return increments;
     }
 
+    static AllowableIncrements FreeSurfaceAllowableIncrements(const NodeType& rNode)
+    {
+        // Getting the maximum increments for the free surface variable
+        AllowableIncrements increments(0.0, 0.0);
+        const auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
+        const double h_i = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
+        for (IndexType j = 0; j < neigh_nodes.size(); ++j) {
+            double delta_ij = neigh_nodes[j].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - h_i;
+            increments.max = std::max(increments.max, delta_ij);
+            increments.min = std::min(increments.min, delta_ij);
+        }
+        return increments;
+    }
+
     static AllowableIncrements FlowRateAllowableIncrements(const NodeType& rNode)
     {
         // Getting the maximum increments for the flow rate variable
         // The increments are projected to convert it to a scalar
         AllowableIncrements increments(0.0, 0.0);
         const auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
-        const auto& q_i = rNode.FastGetSolutionStepValue(MOMENTUM);
-        const auto& v_i = rNode.FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double,3>& q_i = rNode.FastGetSolutionStepValue(MOMENTUM);
+        const array_1d<double,3>& v_i = rNode.FastGetSolutionStepValue(VELOCITY);
         for (IndexType j = 0; j < neigh_nodes.size(); ++j) {
-            const auto& delta_ij = neigh_nodes[j].FastGetSolutionStepValue(MOMENTUM) - q_i;
+            const array_1d<double,3>& delta_ij = neigh_nodes[j].FastGetSolutionStepValue(MOMENTUM) - q_i;
             double proj_ij = inner_prod(v_i, delta_ij);
             increments.max = std::max(increments.max, proj_ij);
             increments.min = std::min(increments.min, proj_ij);
@@ -275,9 +297,9 @@ private:
         // The increments are projected to convert it to a scalar
         AllowableIncrements increments(0.0, 0.0);
         const auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
-        const auto& v_i = rNode.FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double,3>& v_i = rNode.FastGetSolutionStepValue(VELOCITY);
         for (IndexType j = 0; j < neigh_nodes.size(); ++j) {
-            const auto& delta_ij = neigh_nodes[j].FastGetSolutionStepValue(VELOCITY) - v_i;
+            const array_1d<double,3>& delta_ij = neigh_nodes[j].FastGetSolutionStepValue(VELOCITY) - v_i;
             double proj_ij = inner_prod(v_i, delta_ij);
             increments.max = std::max(increments.max, proj_ij);
             increments.min = std::min(increments.min, proj_ij);

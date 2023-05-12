@@ -284,7 +284,7 @@ int TransientPwElement<TDim,TNumNodes>::
     if (!Prop.Has( BIOT_COEFFICIENT ))
         KRATOS_ERROR << "BIOT_COEFFICIENT does not exist in the material properties in element" << this->Id() << std::endl;
 
-    if (TDim > 2) {
+    if constexpr (TDim > 2) {
         if ( Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
             KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
@@ -738,7 +738,7 @@ void TransientPwElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void TransientPwElement<TDim,TNumNodes>::
     CalculateKinematics( ElementVariables& rVariables,
-                         const unsigned int &PointNumber )
+                         unsigned int PointNumber )
 
 {
     KRATOS_TRY
@@ -772,6 +772,8 @@ template class TransientPwElement<3,8>;
 template class TransientPwElement<2,6>;
 template class TransientPwElement<2,8>;
 template class TransientPwElement<2,9>;
+template class TransientPwElement<2,10>;
+template class TransientPwElement<2,15>;
 template class TransientPwElement<3,10>;
 template class TransientPwElement<3,20>;
 template class TransientPwElement<3,27>;

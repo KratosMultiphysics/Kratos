@@ -4,8 +4,8 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_
 # Other imports
 import numpy as np
 
-def Create(settings):
-    return SumDistributedToSingle(settings)
+def Create(*args):
+    return SumDistributedToSingle(*args)
 
 class SumDistributedToSingle(CoSimulationDataTransferOperator):
     """DataTransferOperator to sum values on one interface and put it to another interface.

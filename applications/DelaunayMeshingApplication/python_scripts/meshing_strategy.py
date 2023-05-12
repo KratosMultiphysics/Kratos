@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 #import kratos core and applications
 import KratosMultiphysics
@@ -170,11 +169,6 @@ class MeshingStrategy(object):
     def FinalizeMeshGeneration(self):
 
         self.SetMeshInfo()
-
-        info_parameters    = self.MeshingParameters.GetInfoParameters()
-        smoothing_required = info_parameters.CheckMechanicalSmoothing()
-
-        refining_parameters = self.MeshingParameters.GetRefiningParameters()
 
         if( self.global_transfer == True ):
             self.MeshDataTransfer.TransferNodalValuesToElements(self.TransferParameters,self.model_part)

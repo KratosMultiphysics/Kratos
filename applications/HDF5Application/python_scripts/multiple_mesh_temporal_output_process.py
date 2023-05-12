@@ -73,7 +73,7 @@ def Factory(settings, Model):
 
 
 def MultipleMeshTemporalOutputProcessFactory(core_settings, Model):
-    return core.Factory(core_settings, Model)
+    return core.Factory(core_settings, Model, KratosMultiphysics.OutputProcess)
 
 
 def CreateCoreSettings(user_settings, model):

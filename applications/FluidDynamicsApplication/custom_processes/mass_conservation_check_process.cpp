@@ -35,7 +35,7 @@ MassConservationCheckProcess::MassConservationCheckProcess(
         const bool PerformCorrections,
         const int CorrectionFreq,
         const bool WriteToLogFile,
-        const std::string LogFileName)
+        const std::string& LogFileName)
     : Process(), mrModelPart(rModelPart) {
 
     mCorrectionFreq = CorrectionFreq;
@@ -75,14 +75,12 @@ std::string MassConservationCheckProcess::Initialize(){
     double pos_vol = 0.0;
     double neg_vol = 0.0;
     double inter_area = 0.0;
-    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
 
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
-    this->mInitialPositiveVolume = r_comm.SumAll(pos_vol);
-    this->mInitialNegativeVolume = r_comm.SumAll(neg_vol);
+    this->mInitialPositiveVolume = pos_vol;
+    this->mInitialNegativeVolume = neg_vol;
     this->mTheoreticalNegativeVolume = neg_vol;
-    inter_area = r_comm.SumAll(inter_area);
 
     std::string output_line =   "------ Initial values ----------------- \n";
     output_line +=              "  positive volume (air)   = " + std::to_string(this->mInitialPositiveVolume) + "\n";
@@ -105,18 +103,6 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
     double net_inflow_inlet = ComputeFlowOverBoundary(INLET);
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
-
-    // computing global quantities via MPI communication
-    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
-    std::vector<double> local_data{pos_vol, neg_vol, inter_area, net_inflow_inlet, net_inflow_outlet};
-    std::vector<double> remote_sum{0, 0, 0, 0, 0};
-    r_comm.SumAll(local_data, remote_sum);
-
-    pos_vol = remote_sum[0];
-    neg_vol = remote_sum[1];
-    inter_area = remote_sum[2];
-    net_inflow_inlet = remote_sum[3];
-    net_inflow_outlet = remote_sum[4];
 
     // making a "time step forwards" and updating the
     const double current_time = mrModelPart.GetProcessInfo()[TIME];
@@ -254,10 +240,16 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             }
         }
     }
+    // computing global quantities via MPI communication
+    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();   
+    std::vector<double> local_data{pos_vol, neg_vol, int_area};
+    std::vector<double> remote_sum{0, 0, 0};
+    r_comm.SumAll(local_data, remote_sum);    
+
     // assigning the values to the arguments of type reference
-    positiveVolume = pos_vol;
-    negativeVolume = neg_vol;
-    interfaceArea = int_area;
+    positiveVolume = remote_sum[0];
+    negativeVolume = remote_sum[1];
+    interfaceArea = remote_sum[2];
 }
 
 
@@ -592,6 +584,9 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
             }
         }
     }
+    // computing global quantities via MPI communication
+    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    inflow_over_boundary = r_comm.SumAll(inflow_over_boundary);
     return inflow_over_boundary;
 }
 
@@ -613,7 +608,7 @@ void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
 
 
 
-void MassConservationCheckProcess::CalculateNormal2D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry){
+void MassConservationCheckProcess::CalculateNormal2D(array_1d<double,3>& An, const Geometry<Node >& pGeometry){
 
     An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
     An[1] = - (pGeometry[1].X() - pGeometry[0].X());
@@ -622,7 +617,7 @@ void MassConservationCheckProcess::CalculateNormal2D(array_1d<double,3>& An, con
 
 
 
-void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry){
+void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, const Geometry<Node >& pGeometry){
 
     array_1d<double,3> v1,v2;
     v1[0] = pGeometry[1].X() - pGeometry[0].X();
@@ -640,7 +635,7 @@ void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, con
 
 
 /// Function to convert Triangle3D3N into Triangle2D3N which can be handled by the splitting utilitity
-Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle( const Geometry<Node<3> >& rGeom ){
+Triangle2D3<Node>::Pointer MassConservationCheckProcess::GenerateAuxTriangle( const Geometry<Node >& rGeom ){
 
     // Generating auxiliary "Triangle2D3" because the original geometry is "Triangle3D3"
 
@@ -672,18 +667,18 @@ Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle(
                             std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-7 );
 
     // creating auxiliary nodes based on the transformed position
-    Node<3UL>::Pointer node1 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
-    Node<3UL>::Pointer node2 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
-    Node<3UL>::Pointer node3 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
+    Node::Pointer node1 = Kratos::make_intrusive<Kratos::Node>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
+    Node::Pointer node2 = Kratos::make_intrusive<Kratos::Node>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
+    Node::Pointer node3 = Kratos::make_intrusive<Kratos::Node>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
 
     // finally creating the desired Triangle2D3 based on the nodes
-    Triangle2D3<Node<3>>::Pointer aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
+    Triangle2D3<Node>::Pointer aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node > >( node1, node2, node3 );
     return aux_2D_triangle;
 }
 
 
 
-void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rGeom,
+void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node >& rGeom,
                                                     const Vector& distance,
                                                     Line3D2<IndexedPoint>::Pointer& p_aux_line,
                                                     array_1d<double, 3>& aux_velocity1,

@@ -117,12 +117,17 @@ def AssembleTestSuites():
         MembraneSinglePatchFourPointSailImplicitDynamic,
         # 5p Shell Hierarchic
         TShell5pHierarchicLinearThickBeamTest,
-        TShell5pHierarchicLinearScordelisTest,
-        TShell5pHierarchicNonLinearThickBeamTest
         ]))
 
+    validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+        TShell5pHierarchicLinearScordelisTest,
+        TShell5pHierarchicNonLinearThickBeamTest
+    ]))
+
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 

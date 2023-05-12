@@ -18,15 +18,11 @@
 #include "containers/model.h"
 
 #include "includes/define.h"
-#include "includes/shared_pointers.h"
 #include "includes/model_part.h"
-#include "containers/pointer_vector.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
-#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
-#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
@@ -181,9 +177,9 @@ public:
     typedef Kratos::intrusive_ptr<PrimalElement> Pointer;
     typedef Kratos::unique_ptr<PrimalElement> UniquePointer;
 
-    static Pointer CreateEntity(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
+    static Pointer CreateEntity(Node::Pointer pNode1, Node::Pointer pNode2)
     {
-        auto nodes = PointerVector<Node<3>>{};
+        auto nodes = PointerVector<Node>{};
         nodes.push_back(pNode1);
         nodes.push_back(pNode2);
         return Kratos::make_intrusive<PrimalElement>(nodes);
@@ -285,9 +281,9 @@ public:
     typedef Kratos::intrusive_ptr<PrimalCondition> Pointer;
     typedef Kratos::unique_ptr<PrimalCondition> UniquePointer;
 
-    static Pointer CreateEntity(Node<3>::Pointer pNode1)
+    static Pointer CreateEntity(Node::Pointer pNode1)
     {
-        auto nodes = PointerVector<Node<3>>{};
+        auto nodes = PointerVector<Node>{};
         nodes.push_back(pNode1);
         return Kratos::make_intrusive<PrimalCondition>(nodes);
     }
@@ -445,9 +441,9 @@ public:
     typedef Kratos::unique_ptr<AdjointElement> UniquePointer;
 
 
-    static Pointer CreateEntity(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
+    static Pointer CreateEntity(Node::Pointer pNode1, Node::Pointer pNode2)
     {
-        auto nodes = PointerVector<Node<3>>{};
+        auto nodes = PointerVector<Node>{};
         nodes.push_back(pNode1);
         nodes.push_back(pNode2);
         return Kratos::make_intrusive<AdjointElement>(nodes);
@@ -626,9 +622,9 @@ public:
     typedef Kratos::unique_ptr<AdjointCondition> UniquePointer;
 
 
-    static Pointer CreateEntity(Node<3>::Pointer pNode1)
+    static Pointer CreateEntity(Node::Pointer pNode1)
     {
-        auto nodes = PointerVector<Node<3>>{};
+        auto nodes = PointerVector<Node>{};
         nodes.push_back(pNode1);
         return Kratos::make_intrusive<AdjointCondition>(nodes);
     }

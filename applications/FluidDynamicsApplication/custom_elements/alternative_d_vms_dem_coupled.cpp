@@ -89,6 +89,77 @@ Element::Pointer AlternativeDVMSDEMCoupled<TElementData>::Create(
     return Kratos::make_intrusive<AlternativeDVMSDEMCoupled>(NewId, pGeom, pProperties);
 }
 
+template <class TElementData>
+void AlternativeDVMSDEMCoupled<TElementData>::Calculate(
+    const Variable<array_1d<double, 3>>& rVariable,
+    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
+    // Lumped projection terms
+    if (rVariable == ADVPROJ) {
+        this->CalculateProjections(rCurrentProcessInfo);
+    }
+    else if (rVariable == SUBSCALE_VELOCITY){
+        // Get Shape function data
+        Vector GaussWeights;
+        Matrix ShapeFunctions;
+        ShapeFunctionDerivativesArrayType ShapeDerivatives;
+        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
+        const unsigned int NumGauss = GaussWeights.size();
+
+        array_1d<double,NumNodes*Dim> momentum_rhs = ZeroVector(NumNodes*Dim);
+        VectorType MassRHS = ZeroVector(NumNodes);
+        VectorType NodalArea = ZeroVector(NumNodes);
+
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        for (unsigned int g = 0; g < NumGauss; g++)
+        {
+            this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+
+            array_1d<double, 3> MomentumRes = ZeroVector(3);
+            double MassRes = 0.0;
+
+            array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(data);
+
+            this->MomentumProjTerm(data, convective_velocity, MomentumRes);
+            this->MassProjTerm(data,MassRes);
+
+            for (unsigned int i = 0; i < NumNodes; i++)
+            {
+                double W = data.Weight*data.N[i];
+                unsigned int row = i*Dim;
+                for (unsigned int d = 0; d < Dim; d++)
+                    momentum_rhs[row+d] += W*MomentumRes[d];
+                NodalArea[i] += W;
+                MassRHS[i] += W*MassRes;
+                }
+        }
+            /* Projections of the elemental residual are computed with
+                * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
+                */
+            // Carefully write results to nodal variables, to avoid parallelism problems
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+            double W = data.Weight*data.N[i];
+            // Write nodal area
+            this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) +=NodalArea[i];
+
+            // Substract M(consistent)*x(i-1) from RHS
+            for(unsigned int j = 0; j < NumNodes; ++j) // RHS -= Weigth * Ones(TNumNodes,TNumNodes) * x(i-1)
+            {
+                for(unsigned int d = 0; d < Dim; ++d)
+                    momentum_rhs[d] -= W * this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ)[d];
+                MassRHS[j] -= W * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
+            }
+            for(unsigned int d = 0; d < Dim; ++d) // RHS -= Weigth * Identity(TNumNodes,TNumNodes) * x(i-1)
+                momentum_rhs[d] -= W * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ)[d];
+            MassRHS[i] -= W * this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
+            this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+        }
+
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
@@ -168,8 +239,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const
     data.Initialize(*this,rCurrentProcessInfo);
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
         this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
-
-        this->UpdateSubscaleVelocityPrediction(data);
     }
 }
 
@@ -380,7 +449,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
                 double GBetaDiag = tau_one(d,d) * fluid_fraction * kin_viscosity * rData.N[i] / dt * rData.DN_DX(j,d) * fluid_fraction_gradient[d];
                 double AGBetaDiag = tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[i] * (rData.DN_DX(j,d) * fluid_fraction_gradient[d]);
-                double GBetaADiag = 2.0 / 3.0 * kin_viscosity * fluid_fraction * tau_one(d,d) * AGradN[j] * fluid_fraction_gradient[d] * rData.DN_DX(i,d);
+                double GBetaADiag = tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[d] * rData.DN_DX(i,d) * AGradN[j];
 
                 LHS(row+d,col+d) += rData.Weight * (V + AA - A + GBetaDiag - AGBetaDiag + GBetaADiag);
                 // Galerkin pressure term: Div(v) * p
@@ -569,8 +638,8 @@ void AlternativeDVMSDEMCoupled<TElementData>::MassProjTerm(
             {
                 rMassRHS -= fluid_fraction * rData.DN_DX(i, d) * velocities(i, d) + fluid_fraction_gradient[d] * rData.N[i] * velocities(i,d);
             }
-            rMassRHS += mass_source - fluid_fraction_rate;
         }
+        rMassRHS += mass_source - fluid_fraction_rate;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -635,6 +704,65 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddMassStabilization(
                 rMassMatrix(row+Dim,col+d) += W * UGAlpha;
             }
         }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template< class TElementData >
+void AlternativeDVMSDEMCoupled<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
+{
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_derivatives);
+    const unsigned int NumGauss = gauss_weights.size();
+
+    VectorType MomentumRHS = ZeroVector(NumNodes * Dim);
+    VectorType MassRHS = ZeroVector(NumNodes);
+    VectorType NodalArea = ZeroVector(NumNodes);
+
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < NumGauss; g++)
+    {
+        this->UpdateIntegrationPointData(
+            data, g, gauss_weights[g],
+            row(shape_functions,g),shape_function_derivatives[g]);
+
+        array_1d<double, 3> MomentumRes = ZeroVector(3);
+        double MassRes = 0.0;
+
+        array_1d<double, 3> convection_velocity = this->FullConvectiveVelocity(data);
+
+        this->MomentumProjTerm(data, convection_velocity, MomentumRes);
+        this->MassProjTerm(data, MassRes);
+
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            double W = data.Weight*data.N[i];
+            unsigned int Row = i*Dim;
+            for (unsigned int d = 0; d < Dim; d++)
+                MomentumRHS[Row+d] += W*MomentumRes[d];
+            NodalArea[i] += W;
+            MassRHS[i] += W*MassRes;
+        }
+    }
+
+    // Add carefully to nodal variables to avoid OpenMP race condition
+    GeometryType& r_geometry = this->GetGeometry();
+    unsigned int Row = 0;
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
+        array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(ADVPROJ);
+        for (unsigned int d = 0; d < Dim; ++d)
+            rMomValue[d] += MomentumRHS[Row++];
+        r_geometry[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
+        r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
+        r_geometry[i].UnSetLock(); // Free the node for other threads
     }
 }
 
@@ -776,8 +904,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
 {
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction,rData.N);
-    array_1d<double,3> resolved_convection_velocity = this->FullConvectiveVelocity(rData);
-    const double dt = rData.DeltaTime;
+
     array_1d<double,3> predicted_subscale_velocity = ZeroVector(3);
 
     const array_1d<double,Dim>& r_old_subscale_velocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
@@ -789,24 +916,26 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
     for (size_t i = 0; i < NumNodes; i++) {
         array_1d<double, 3> subscale_velocity_on_previous_iteration = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
         for (size_t d = 0; d < Dim; d++) {
-            previous_subscale_velocity[d] += rData.N[i] * subscale_velocity_on_previous_iteration[d];
+            previous_subscale_velocity[d] += subscale_velocity_on_previous_iteration[d];
         }
     }
-
-    // Part of the residual that does not depend on the subscale
-    array_1d<double,3> static_residual = ZeroVector(3);
-
-    // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
-    if (!rData.UseOSS)
-        this->AlgebraicMomentumResidual(rData,resolved_convection_velocity,static_residual);
-    else
-        this->OrthogonalMomentumResidual(rData,resolved_convection_velocity,static_residual);
 
     array_1d<double,3> v_d = ZeroVector(Dim);
     for (unsigned int d = 0; d < Dim; d++)
     {
         v_d[d] = previous_velocity[d] + previous_subscale_velocity[d];
     }
+    const double dt = rData.DeltaTime;
+
+    // Part of the residual that does not depend on the subscale
+    array_1d<double,3> static_residual = ZeroVector(3);
+
+    if (!rData.UseOSS)
+        this->AlgebraicMomentumResidual(rData,v_d,static_residual);
+    else
+        this->OrthogonalMomentumResidual(rData,v_d,static_residual);
+
+
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
 
@@ -888,7 +1017,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
 
     BoundedMatrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
     array_1d<double,Dim> rhs = ZeroVector(Dim);
-    array_1d<double,Dim>& u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
+    array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
     array_1d<double,Dim> du = ZeroVector(Dim);
 
     while ( (!converged) && (iter++ < subscale_prediction_maximum_iterations) ) {

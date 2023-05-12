@@ -17,12 +17,9 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
 
     def AddVariables(self):
         super().AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.ATMOSPHERIC_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KM.MESH_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.WIND)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.MOMENTUM_X, self.main_model_part)
@@ -38,10 +35,8 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY_AIR, 1e0)
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY, 1e3)
         self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, False)
-        if self.compute_neighbors:
-            dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
-            avg_neigh = 2 * dimension
-            KM.FindElementalNeighboursProcess(self.main_model_part, dimension, avg_neigh).Execute()
+        if self.compute_neighbours:
+            KM.GenericFindElementalNeighboursProcess(self.main_model_part).Execute()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -56,7 +51,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         "time_integration_order"     : 2,
         "relative_dry_height"        : 0.1,
         "stabilization_factor"       : 0.01,
-        "shock_capturing_factor" : 1.0,
+        "shock_capturing_factor"     : 1.0,
         "shock_capturing_type"       : "residual_viscosity"
         }
         """)
@@ -65,10 +60,12 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
 
     def _CreateScheme(self):
         if self.add_flux_correction:
-            time_scheme = SW.FluxCorrectedShallowWaterScheme(self.settings["time_integration_order"].GetInt())
+            scheme_settings = KM.Parameters()
+            scheme_settings.AddStringArray("limiting_variables", ["FREE_SURFACE_ELEVATION","MOMENTUM"])
+            scheme_settings.AddValue("order", self.settings["time_integration_order"])
+            time_scheme = SW.FluxCorrectedShallowWaterScheme(scheme_settings)
             if self.settings["shock_capturing_factor"].GetDouble() > 0.0:
-                self.settings["shock_capturing_factor"].SetDouble(0.0)
-                KM.Logger.PrintWarning(self.__class__.__name__, "Detected shock stabilization with flux correction. The shock stabilization factor will be set to 0.")
+                KM.Logger.PrintInfo(self.__class__.__name__, "Detected a non-zero shock capturing factor and flux correction. The shock capturing factor will be ignored.")
         else:
             time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_integration_order"].GetInt())
         return time_scheme
@@ -90,19 +87,19 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
     def _SetUpFormulation(self):
         shock_capturing_type = self.settings["shock_capturing_type"].GetString()
         if  shock_capturing_type == "residual_viscosity":
-            self.element_name = "ShallowWater"
-            self.condition_name = "LineCondition"
-            self.compute_neighbors = False
+            self.element_name = "ConservativeElementRV"
+            self.condition_name = "ConservativeCondition"
+            self.compute_neighbours = False
             self.add_flux_correction = False
         elif shock_capturing_type == "flux_correction":
-            self.element_name = "ShallowWater"
-            self.condition_name = "LineCondition"
-            self.compute_neighbors = False
+            self.element_name = "ConservativeElementFC"
+            self.condition_name = "ConservativeCondition"
+            self.compute_neighbours = False
             self.add_flux_correction = True
         elif shock_capturing_type == "gradient_jump":
-            self.element_name = "ConservativeElement"
+            self.element_name = "ConservativeElementGJ"
             self.condition_name = "ConservativeCondition"
-            self.compute_neighbors = True
+            self.compute_neighbours = True
             self.add_flux_correction = False
         else:
             msg  = "StabilizedShallowWaterSolver._SetUpFormulation:\n"

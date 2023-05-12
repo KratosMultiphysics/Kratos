@@ -5,28 +5,26 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-//  Collaborators:    Vicente Mataix Ferrandiz
-//                    Pablo Becker
+//  Collaborators:   Vicente Mataix Ferrandiz
+//                   Pablo Becker
 //
 
-#if !defined(KRATOS_MATH_UTILS )
-#define  KRATOS_MATH_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 #include <cmath>
 #include <type_traits>
 
-/* External includes */
+// External includes
 
-/* External includes */
+// Project includes
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
-#include "containers/array_1d.h"
 
 namespace Kratos
 {
@@ -106,28 +104,13 @@ public:
     }
 
     /**
-     * @brief This function calculates the number of elements between first and last.
-     * @param rFirstData First element
-     * @param rSecondData Second element
-     * @return Distance Number of elements
-     */
-    static TDataType Distance(
-        const TDataType& rFirstData,
-        const TDataType& rSecondData
-        )
-    {
-        return rFirstData.Distance(rSecondData);
-    }
-
-    /**
      * @brief In geometry, Heron's formula (sometimes called Hero's formula), named after Hero of Alexandria, gives the area of a triangle by requiring no arbitrary choice of side as base or vertex as origin, contrary to other formulas for the area of a triangle, such as half the base times the height or half the norm of a cross product of two sides.
      * @param a First length
      * @param b Second length
      * @param c Third length
      * @return Heron solution: Heron's formula states that the area of a triangle whose sides have lengths a, b, and c
      */
-
-    template<bool check>// = false>
+    template<bool TCheck>// = false>
     static inline double Heron(
         double a,
         double b,
@@ -136,7 +119,7 @@ public:
     {
         const double s = 0.5 * (a + b + c);
         const double A2 = s * (s - a) * (s - b) * (s - c);
-        if(check) {
+        if constexpr(TCheck) {
             if(A2 < 0.0) {
                 KRATOS_ERROR << "The square of area is negative, probably the triangle is in bad shape:" << A2 << std::endl;
             } else {
@@ -215,11 +198,7 @@ public:
             if (k != j)
                 ia2(j_sub++) = k;
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
-#else
         boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
-#endif // KRATOS_USE_AMATRIX
         const TDataType first_minor = Det(sub_mat);
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
@@ -264,14 +243,14 @@ public:
         /* Compute Determinant of the matrix */
         rInputMatrixDet = Det(rInputMatrix);
 
-        if(TDim == 1) {
+        if constexpr (TDim == 1) {
             inverted_matrix(0,0) = 1.0/rInputMatrix(0,0);
             rInputMatrixDet = rInputMatrix(0,0);
-        } else if (TDim == 2) {
+        } else if constexpr (TDim == 2) {
             InvertMatrix2(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 3) {
+        } else if constexpr (TDim == 3) {
             InvertMatrix3(rInputMatrix, inverted_matrix, rInputMatrixDet);
-        } else if (TDim == 4) {
+        } else if constexpr (TDim == 4) {
             InvertMatrix4(rInputMatrix, inverted_matrix, rInputMatrixDet);
         } else {
             KRATOS_ERROR << "Size not implemented. Size: " << TDim << std::endl;
@@ -325,25 +304,30 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @param Tolerance The maximum tolerance considered
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
+    template<class TMatrix1, class TMatrix2>
     static void GeneralizedInvertMatrix(
-        const MatrixType& rInputMatrix,
-        MatrixType& rInvertedMatrix,
-        TDataType& rInputMatrixDet
+        const TMatrix1& rInputMatrix,
+        TMatrix2& rInvertedMatrix,
+        TDataType& rInputMatrixDet,
+        const TDataType Tolerance = ZeroTolerance
         )
     {
         const SizeType size_1 = rInputMatrix.size1();
         const SizeType size_2 = rInputMatrix.size2();
 
         if (size_1 == size_2) {
-            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet);
+            InvertMatrix(rInputMatrix, rInvertedMatrix, rInputMatrixDet, Tolerance);
         } else if (size_1 < size_2) { // Right inverse
             if (rInvertedMatrix.size1() != size_2 || rInvertedMatrix.size2() != size_1) {
                 rInvertedMatrix.resize(size_2, size_1, false);
             }
             const Matrix aux = prod(rInputMatrix, trans(rInputMatrix));
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            InvertMatrix(aux, auxInv, rInputMatrixDet, Tolerance);
             rInputMatrixDet = std::sqrt(rInputMatrixDet);
             noalias(rInvertedMatrix) = prod(trans(rInputMatrix), auxInv);
         } else { // Left inverse
@@ -352,7 +336,7 @@ public:
             }
             const Matrix aux = prod(trans(rInputMatrix), rInputMatrix);
             Matrix auxInv;
-            InvertMatrix(aux, auxInv, rInputMatrixDet);
+            InvertMatrix(aux, auxInv, rInputMatrixDet, Tolerance);
             rInputMatrixDet = std::sqrt(rInputMatrixDet);
             noalias(rInvertedMatrix) = prod(auxInv, trans(rInputMatrix));
         }
@@ -370,12 +354,6 @@ public:
         const VectorType& rB
         )
     {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-        double determinant = lu_factorization.determinant();
-        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "Matrix is singular: " << A << std::endl;
-        rX = lu_factorization.solve(rB);
-#else
         const SizeType size1 = A.size1();
         rX = rB;
         typedef permutation_matrix<SizeType> pmatrix;
@@ -383,7 +361,6 @@ public:
         int singular = lu_factorize(A,pm);
         KRATOS_DEBUG_ERROR_IF(singular == 1) << "Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
-#endif // ifdef KRATOS_USE_AMATRIX
     }
 
     /**
@@ -391,6 +368,8 @@ public:
      * @param rInputMatrix Is the input matrix (unchanged at output)
      * @param rInvertedMatrix Is the inverse of the input matrix
      * @param rInputMatrixDet Is the determinant of the input matrix
+     * @tparam TMatrix1 The type of the input matrix
+     * @tparam TMatrix2 Is the type of the output matrix
      */
     template<class TMatrix1, class TMatrix2>
     static void InvertMatrix(
@@ -425,12 +404,6 @@ public:
             }
 
             Matrix A(rInputMatrix);
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-            rInputMatrixDet = lu_factorization.determinant();
-            KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
-            rInvertedMatrix = lu_factorization.inverse();
-#else
             typedef permutation_matrix<SizeType> pmatrix;
             pmatrix pm(A.size1());
             const int singular = lu_factorize(A,pm);
@@ -445,7 +418,6 @@ public:
                 IndexType ki = pm[i] == i ? 0 : 1;
                 rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
- #endif // ifdef KRATOS_USE_AMATRIX
        } else { // Bounded-matrix case
             const SizeType size1 = rInputMatrix.size1();
             const SizeType size2 = rInputMatrix.size2();
@@ -453,12 +425,6 @@ public:
             Matrix A(rInputMatrix);
             Matrix invA(rInvertedMatrix);
 
- #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-            rInputMatrixDet = lu_factorization.determinant();
-            KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
-            invA = lu_factorization.inverse();
- #else
             typedef permutation_matrix<SizeType> pmatrix;
             pmatrix pm(size1);
             const int singular = lu_factorize(A,pm);
@@ -473,7 +439,6 @@ public:
                 IndexType ki = pm[i] == i ? 0 : 1;
                 rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
- #endif // ifdef KRATOS_USE_AMATRIX
 
             for (IndexType i = 0; i < size1;++i) {
                 for (IndexType j = 0; j < size2;++j) {
@@ -689,11 +654,6 @@ public:
                 return Det4(rA);
             default:
                 TDataType det = 1.0;
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-                Matrix temp(rA);
-                AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
-                det = lu_factorization.determinant();
-#else
                 using namespace boost::numeric::ublas;
                 typedef permutation_matrix<SizeType> pmatrix;
                 Matrix Aux(rA);
@@ -708,7 +668,6 @@ public:
                     IndexType ki = pm[i] == i ? 0 : 1;
                     det *= std::pow(-1.0, ki) * Aux(i,i);
                 }
-#endif // ifdef KRATOS_USE_AMATRIX
                 return det;
        }
     }
@@ -1597,12 +1556,8 @@ public:
         const SizeType size1 = rB.size2();
         const SizeType size2 = rB.size2();
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("BtDBProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BtDBProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
-#else
         if (rA.size1() != size1 || rA.size2() != size2)
             rA.resize(size1, size2, false);
-#endif // KRATOS_USE_AMATRIX
 
         // Direct multiplication
         // noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
@@ -1642,12 +1597,8 @@ public:
         const SizeType size1 = rB.size1();
         const SizeType size2 = rB.size1();
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("BDBtProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BDBtProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
-#else
         if (rA.size1() != size1 || rA.size2() != size2)
             rA.resize(size1, size2, false);
-#endif // KRATOS_USE_AMATRIX
 
         // Direct multiplication
         // noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
@@ -1692,15 +1643,10 @@ public:
 
         const SizeType size = rA.size1();
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("EigenSystem", rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenVectorsMatrix matrix. Please resize before compute" << std::endl;
-        KRATOS_WARNING_IF("EigenSystem", rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenValuesMatrix matrix. Please resize before compute" << std::endl;
-#else
         if (rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size)
             rEigenVectorsMatrix.resize(size, size, false);
         if (rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size)
             rEigenValuesMatrix.resize(size, size, false);
-#endif // KRATOS_USE_AMATRIX
 
         const TMatrixType2 identity_matrix = IdentityMatrix(size);
         noalias(rEigenVectorsMatrix) = identity_matrix;
@@ -1981,11 +1927,8 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_MATH_UTILS  defined */

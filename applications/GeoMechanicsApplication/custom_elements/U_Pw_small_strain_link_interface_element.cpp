@@ -34,8 +34,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    if (rVariable == FLUID_FLUX_VECTOR)
-    {
+    if (rVariable == FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -72,8 +71,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         SFGradAuxVariables SFGradAuxVars;
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-        {
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
@@ -82,8 +80,15 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
-            this->template CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
-                                                                                                                DN_DeContainer[GPoint],NContainer,JointWidth,GPoint);
+            this->template CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(
+                                GradNpT,
+                                SFGradAuxVars,
+                                JContainer[GPoint],
+                                RotationMatrix,
+                                DN_DeContainer[GPoint],
+                                NContainer,
+                                JointWidth,
+                                GPoint);
 
             GeoElementUtilities::
                 InterpolateVariableWithComponents<TDim, TNumNodes>( BodyAcceleration,
@@ -105,63 +110,16 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
         }
     }
-    else if (rVariable == LOCAL_STRESS_VECTOR)
-    {
-        //Defining necessary variables
-        // const PropertiesType& Prop = this->GetProperties();
-        // const GeometryType& Geom = this->GetGeometry();
-        // const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-        // array_1d<double,TNumNodes*TDim> DisplacementVector;
-        // GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
-        // BoundedMatrix<double,TDim, TDim> RotationMatrix;
-        // this->CalculateRotationMatrix(RotationMatrix,Geom);
-        // BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
-        // array_1d<double,TDim> RelDispVector;
-        // const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-        // double JointWidth;
+    else if (rVariable == LOCAL_STRESS_VECTOR) {
         array_1d<double,TDim> LocalStressVector;
 
-        // //Create constitutive law parameters:
-        // Vector StrainVector(TDim);
-        // Matrix ConstitutiveMatrix(TDim,TDim);
-        // Vector Np(TNumNodes);
-        // Matrix GradNpT(TNumNodes,TDim);
-        // Matrix F = identity_matrix<double>(TDim);
-        // double detF = 1.0;
-        // ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
-        // ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-        // ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        // ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        // ConstitutiveParameters.SetStrainVector(StrainVector);
-        // ConstitutiveParameters.SetShapeFunctionsValues(Np);
-        // ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
-        // ConstitutiveParameters.SetDeterminantF(detF);
-        // ConstitutiveParameters.SetDeformationGradientF(F);
-
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
-        {
-            // InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
-
-            // noalias(RelDispVector) = prod(Nu,DisplacementVector);
-
-            // noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
-
-            // this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
-
-            // noalias(Np) = row(NContainer,GPoint);
-
-            // //compute constitutive tensor and/or stresses
-            // ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-            // mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
             noalias(LocalStressVector) = mStressVector[GPoint];
-
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], LocalStressVector);
         }
     }
-    else if (rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
-    {
+    else if (rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR) {
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
@@ -174,8 +132,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         array_1d<double,TDim> RelDispVector;
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
-        {
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
@@ -185,8 +142,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalRelDispVector);
         }
     }
-    else if (rVariable == LOCAL_FLUID_FLUX_VECTOR)
-    {
+    else if (rVariable == LOCAL_FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -222,8 +178,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         SFGradAuxVariables SFGradAuxVars;
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-        {
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
@@ -232,8 +187,15 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
-            this->template CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,SFGradAuxVars,JContainer[GPoint],RotationMatrix,
-                                                                                                                DN_DeContainer[GPoint],NContainer,JointWidth,GPoint);
+            this->template CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(
+                                GradNpT,
+                                SFGradAuxVars,
+                                JContainer[GPoint],
+                                RotationMatrix,
+                                DN_DeContainer[GPoint],
+                                NContainer,
+                                JointWidth,
+                                GPoint);
 
             GeoElementUtilities::
                 InterpolateVariableWithComponents<TDim, TNumNodes>( BodyAcceleration,
@@ -265,8 +227,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    if (rVariable == PERMEABILITY_MATRIX)
-    {
+    if (rVariable == PERMEABILITY_MATRIX) {
         const GeometryType& Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
@@ -287,8 +248,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
-        {
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
@@ -304,9 +264,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
-    }
-    else if (rVariable == LOCAL_PERMEABILITY_MATRIX)
-    {
+    } else if (rVariable == LOCAL_PERMEABILITY_MATRIX) {
         const GeometryType& Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
 
@@ -326,8 +284,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
 
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); GPoint++ )
-        {
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
 
             noalias(RelDispVector) = prod(Nu,DisplacementVector);
@@ -374,9 +331,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
-    // if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-    // Stiffness matrix is always needed to calculate Biot coefficient
+    // Stiffness matrix is always needed in order to calculate Biot coefficient
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -398,8 +354,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute Np, StrainVector, JointWidth, GradNpT
         noalias(Variables.Np) = row(NContainer,GPoint);
         InterfaceElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);

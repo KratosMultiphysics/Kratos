@@ -4,6 +4,7 @@ import KratosMultiphysics.mpi as KratosMPI
 
 # Other imports
 from pathlib import Path
+from time import time
 
 class DistributedImportModelPartUtility:
 
@@ -12,9 +13,9 @@ class DistributedImportModelPartUtility:
         self.settings = settings
         if settings["model_import_settings"].Has("data_communicator_name"):
             data_comm_name = settings["model_import_settings"]["data_communicator_name"].GetString()
+            self.comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator(data_comm_name)
         else:
-            data_comm_name = "World"
-        self.comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator(data_comm_name)
+            self.comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
 
     def ExecutePartitioningAndReading(self):
         warning_msg  = 'Calling "ExecutePartitioningAndReading" which is DEPRECATED\n'
@@ -62,7 +63,7 @@ class DistributedImportModelPartUtility:
 
                 # Partition of the original .mdpa file
                 number_of_partitions = self.comm.Size() # Number of partitions equals the number of processors
-                domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+                domain_size = 0 # this is not used by Metis, it will be refactored in the future
                 verbosity = self.settings["echo_level"].GetInt()
 
                 # Make sure that the condition goes to the same partition as the element is a face of
@@ -70,8 +71,10 @@ class DistributedImportModelPartUtility:
 
                 # Original .mdpa file reading
                 model_part_io = KratosMultiphysics.ReorderConsecutiveModelPartIO(input_filename, import_flags)
-                
-                KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Starting with Metis partitioning.")
+
+                KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", 'Starting with Metis partitioning of "{}".'.format(input_filename))
+
+                start_time = time()
 
                 if not partition_in_memory:
                     ## Serial partition of the original .mdpa file
@@ -82,8 +85,6 @@ class DistributedImportModelPartUtility:
                         else:
                             partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                         partitioner.Execute()
-
-                        KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis divide finished.")
                 else:
                     # Create a second io that does not reorder the parts while reading from memory
                     serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename, import_flags)
@@ -92,7 +93,7 @@ class DistributedImportModelPartUtility:
                     partitioner.Execute()
                     serial_model_part_io.ReadModelPart(self.main_model_part)
 
-                    KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis divide finished.",data_communicator=self.comm)
+                KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis divide finished in {0:.{1}f} [s]".format(time()-start_time,1),data_communicator=self.comm)
 
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "Metis partitioning not executed.",data_communicator=self.comm)

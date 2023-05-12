@@ -45,7 +45,7 @@ public:
         mpTable = model_part.pGetTable(TableId);
         mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ public:
             const double deltaH = mpTable->GetValue(Time);
 
             if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
                     const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
                     const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
 
@@ -79,11 +79,11 @@ public:
                         rNode.FastGetSolutionStepValue(var) = pressure;
                         if (mIsFixed) rNode.Fix(var);
                     } else {
-                        rNode.Free(var);
+                        if (mIsFixedProvided) rNode.Free(var);
                     }
                 });
             } else {
-                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
                     const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
                     const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
 

@@ -68,7 +68,7 @@ Condition::Pointer LineLoadFromDEMCondition2D<TDim>::Clone (
 //***********************************************************************************
 
 template<std::size_t TDim>
-GeometryData::IntegrationMethod LineLoadFromDEMCondition2D<TDim>::GetIntegrationMethod()
+GeometryData::IntegrationMethod LineLoadFromDEMCondition2D<TDim>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
     //return this->GetGeometry().GetDefaultIntegrationMethod();
@@ -166,3 +166,5 @@ void LineLoadFromDEMCondition2D<TDim>::InterpolateLineLoad(array_1d<double,3>& r
 template class LineLoadFromDEMCondition2D<2>;
 
 } // Namespace Kratos
+
+

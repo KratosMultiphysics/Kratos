@@ -1,0 +1,156 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "Shell_Initial_Strain_MWE",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                     : "Static",
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 3,
+        "echo_level"                      : 1,
+        "analysis_type"                   : "non_linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "InitialStateElasticity/initial_strain_shell_Q4_thick_test"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "InitialStateElasticity/initial_strain_shell_Q4_thick_test_materials.json"
+        },
+        "time_stepping"                   : {
+            "time_step" : 1.1
+        },
+        "line_search"                     : false,
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 10,
+        "rotation_dofs"                   : true,
+        "volumetric_strain_dofs"          : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Vertex_LB",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Vertex_LT",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,false,true],
+                "value"           : [null,null,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Vertex_RB",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,true],
+                "value"           : [null,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Vertex_RT",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,false,true],
+                "value"           : [null,null,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "set_initial_state_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "set_initial_state_process",
+            "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Structure.Parts_Shell_Slab",
+            "dimension"       : 2,
+            "imposed_strain"  : [1.0e-4,-5.0e-5,-2e-4],
+            "imposed_stress"  : [0,0,0],
+            "imposed_deformation_gradient" : [[1,0],[0,1]],
+            "interval"        : [0.0,"End"]
+            }
+        }],
+        //"print_output_process" : [{
+        //    "python_module" : "json_output_process",
+        //    "kratos_module" : "KratosMultiphysics",
+        //    "help"          : "",
+        //    "process_name"  : "JsonOutputProcess",
+        //    "Parameters"    : {
+        //        "model_part_name"  : "Structure.Parts_Shell_Slab",
+        //        "output_variables" : ["DISPLACEMENT"],
+        //        "output_file_name" : "InitialStateElasticity/initial_strain_shell_Q4_thick_test_results.json",
+        //        "time_frequency"   : 1.0
+        //        }
+        //    }
+        //],
+        "json_check_process" : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "model_part_name"   : "Structure.Parts_Shell_Slab",
+                "check_variables"   : ["DISPLACEMENT"],
+                "input_file_name"   : "InitialStateElasticity/initial_strain_shell_Q4_thick_test_results.json",
+                "time_frequency"    : 1.0
+            }
+        }
+        ],
+        "list_other_processes"     : []
+    },
+    "output_processes" : {
+        //"gid_output" : [{
+        //    "python_module" : "gid_output_process",
+        //    "kratos_module" : "KratosMultiphysics",
+        //    "process_name"  : "GiDOutputProcess",
+        //    "help"          : "This process writes postprocessing files for GiD",
+        //    "Parameters"    : {
+        //        "model_part_name"        : "Structure",
+        //        "output_name"            : "initial_strain_shell_Q4_thick_test",
+        //        "postprocess_parameters" : {
+        //            "result_file_configuration" : {
+        //                "gidpost_flags"               : {
+        //                    "GiDPostMode"           : "GiD_PostBinary",
+        //                    "WriteDeformedMeshFlag" : "WriteDeformed",
+        //                    "WriteConditionsFlag"   : "WriteConditions",
+        //                    "MultiFileFlag"         : "SingleFile"
+        //                },
+        //                "file_label"                  : "step",
+        //                "output_control_type"         : "step",
+        //                "output_interval"             : 1,
+        //                "body_output"                 : true,
+        //                "node_output"                 : false,
+        //                "skin_output"                 : false,
+        //                "plane_output"                : [],
+        //                "nodal_results"               : ["DISPLACEMENT","REACTION","ROTATION"],
+        //                "gauss_point_results"         : ["SHELL_FORCE_GLOBAL","SHELL_MOMENT_GLOBAL","VON_MISES_STRESS_TOP_SURFACE","VON_MISES_STRESS_MIDDLE_SURFACE","VON_MISES_STRESS_BOTTOM_SURFACE"],
+        //                "nodal_nonhistorical_results" : []
+        //            },
+        //            "point_data_configuration"  : []
+        //        }
+        //    }
+        //}]
+    }
+}

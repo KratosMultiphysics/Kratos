@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@ namespace backend {
 /// Blaze backend
 /**
  * This is a backend that uses types defined in the Blaze library
- * (https://code.google.com/p/blaze-lib).
+ * (https://bitbucket.org/blaze-lib/blaze/src).
  *
  * \param real Value type.
  * \ingroup backends
@@ -53,6 +53,8 @@ template <class real>
 struct blaze {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
+    typedef ptrdiff_t col_type;
+    typedef ptrdiff_t ptr_type;
 
     struct provides_row_iterator : std::true_type {};
 

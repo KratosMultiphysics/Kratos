@@ -1,11 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Based on the work of Massimo Petracca and Peter Wilson
@@ -502,6 +501,25 @@ void BaseShellElement<TCoordinateTransformation>::CalculateOnIntegrationPoints(
                rVariable == LOCAL_MATERIAL_AXIS_2 ||
                rVariable == LOCAL_MATERIAL_AXIS_3) {
         ComputeLocalMaterialAxis(rVariable, rOutput);
+    }
+}
+
+template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        rValues.clear();
+        for (const auto& p_sec : mSections) {
+            auto vec_integration_points = p_sec->GetConstitutiveLawsVector(GetProperties());
+            rValues.reserve(rValues.size() + vec_integration_points.size());
+            for (std::size_t i=0; i<vec_integration_points.size(); ++i) {
+                rValues.push_back(vec_integration_points[i]);
+            }
+        }
     }
 }
 

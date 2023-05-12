@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as KM
 
@@ -79,6 +78,11 @@ class algorithm_gradient_projection_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_gradient_projection_test"
     execution_file = "run_test"
 
+@kratos_unittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+class algorithm_qn_bb_relaxed_gradient_projection_test(ShapeOptimizationTestFactory):
+    execution_directory = "algorithm_qn_bb_relaxed_gradient_projection_test"
+    execution_file = "run_test"
+
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class algorithm_trust_region_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_trust_region_test"
@@ -93,6 +97,11 @@ class algorithm_bead_optimization_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_bead_optimization_test"
     execution_file = "run_test"
 
+@kratos_unittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+class algorithm_shape_fraction_test(ShapeOptimizationTestFactory):
+    execution_directory = "algorithm_shape_fraction_test"
+    execution_file = "run_test"
+
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class opt_process_step_adaption_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_step_adaption_test"
@@ -103,25 +112,25 @@ class opt_process_multiobjective_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_multiobjective_test"
     execution_file = "run_test"
 
-@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-class opt_process_stress_test(ShapeOptimizationTestFactory):
-    execution_directory = "opt_process_stress_test"
-    execution_file = "run_test"
+# @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+# class opt_process_stress_test(ShapeOptimizationTestFactory):
+#     execution_directory = "opt_process_stress_test"
+#     execution_file = "run_test"
 
-@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-class sensitivity_verification_semi_analytic_process_test(ShapeOptimizationTestFactory):
-    execution_directory = "sensitivity_verification_process_test"
-    execution_file = "run_semi_analytic_step_size_verification"
+# @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+# class sensitivity_verification_semi_analytic_process_test(ShapeOptimizationTestFactory):
+#     execution_directory = "sensitivity_verification_process_test"
+#     execution_file = "run_semi_analytic_step_size_verification"
 
-@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-class sensitivity_verification_in_design_space_process_test(ShapeOptimizationTestFactory):
-    execution_directory = "sensitivity_verification_process_test"
-    execution_file = "run_sensitivity_verification_in_design_space"
+# @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+# class sensitivity_verification_in_design_space_process_test(ShapeOptimizationTestFactory):
+#     execution_directory = "sensitivity_verification_process_test"
+#     execution_file = "run_sensitivity_verification_in_design_space"
 
-@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-class sensitivity_verification_in_geometry_space_process_test(ShapeOptimizationTestFactory):
-    execution_directory = "sensitivity_verification_process_test"
-    execution_file = "run_sensitivity_verification_in_geometry_space"
+# @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+# class sensitivity_verification_in_geometry_space_process_test(ShapeOptimizationTestFactory):
+#     execution_directory = "sensitivity_verification_process_test"
+#     execution_file = "run_sensitivity_verification_in_geometry_space"
 
 @kratos_unittest.skipIfApplicationsNotAvailable("MappingApplication")
 class in_plane_opt_test(ShapeOptimizationTestFactory):
@@ -141,12 +150,36 @@ class remeshing_opt_process_test(ShapeOptimizationTestFactory):
     execution_directory = "remeshing_opt_process_test"
     execution_file = "run_test"
 
-@kratos_unittest.skipIfApplicationsNotAvailable("MappingApplication")
+@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "MappingApplication")
 class sliding_opt_test(ShapeOptimizationTestFactory):
     execution_directory = "sliding_opt_test"
     execution_file = "run_test"
 
 class direction_damping_test(ShapeOptimizationTestFactory):
     execution_directory = "direction_damping_test"
+    execution_file = "run_test"
+
+class curvature_3NTriangle_test(ShapeOptimizationTestFactory):
+    execution_directory = "geom_util_curvature_3NTriangle_test"
+    execution_file = "run_test"
+
+class curvature_6NTriangle_test(ShapeOptimizationTestFactory):
+    execution_directory = "geom_util_curvature_6NTriangle_test"
+    execution_file = "run_test"
+
+class curvature_4NQuad_test(ShapeOptimizationTestFactory):
+    execution_directory = "geom_util_curvature_4NQuad_test"
+    execution_file = "run_test"
+
+class curvature_8NQuad_test(ShapeOptimizationTestFactory):
+    execution_directory = "geom_util_curvature_8NQuad_test"
+    execution_file = "run_test"
+
+class mapper_adaptive_filter_curvature_test(ShapeOptimizationTestFactory):
+    execution_directory = "mapper_adaptive_filter_curvature_test"
+    execution_file = "run_test"
+
+class sensitivity_heatmap_test(ShapeOptimizationTestFactory):
+    execution_directory = "sensitivity_heatmap_test"
     execution_file = "run_test"
 # ==============================================================================

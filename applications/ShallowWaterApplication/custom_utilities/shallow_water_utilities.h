@@ -62,7 +62,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 
@@ -91,6 +91,8 @@ public:
     void ComputeSmoothVelocity(ModelPart& rModelPart);
 
     void ComputeMomentum(ModelPart& rModelPart);
+
+    void ComputeLinearizedMomentum(ModelPart& rModelPart);
 
     template<bool THistorical>
     void ComputeFroude(ModelPart& rModelPart, const double Epsilon);
@@ -148,6 +150,11 @@ public:
      * @brief Move the z-coordinate of the mesh according to a variable
      */
     void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
+
+    /**
+     * @brief Move the z-coordinate of the mesh according to a variable
+     */
+    void OffsetMeshZCoordinate(ModelPart& rModelPart, const double Increment);
 
     /**
      * @brief Swap the Y and Z coordinates of the nodes
@@ -234,30 +241,21 @@ public:
         const double RelativeDryHeight = -1.0)
     {
         KRATOS_ERROR_IF_NOT(rProcessInfo.Has(GRAVITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : GRAVITY is not defined in the ProcessInfo" << std::endl;
-        KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the ProcessInfo" << std::endl;
-        const double gravity = rProcessInfo.GetValue(GRAVITY_Z);
-        const double density = rProcessInfo.GetValue(DENSITY);
+        if (rContainer.size() > 0) {
+            const auto& r_prop = rContainer.begin()->GetProperties();
+            KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the Properties" << std::endl;
+        }
 
         array_1d<double,3> forces = ZeroVector(3);
         forces = block_for_each<SumReduction<array_1d<double,3>>>(
             rContainer, [&](typename TContainerType::value_type& rEntity){
-                const auto& r_geom = rEntity.GetGeometry();
-                const double area = r_geom.Area();
-                const array_1d<double,3> normal = r_geom.UnitNormal(r_geom[0]); // At the first Point
-                double height = 0.0;
-                for (auto& r_node : r_geom) {
-                    height += r_node.FastGetSolutionStepValue(HEIGHT);
-                }
-                height /= r_geom.size();
-                array_1d<double,3> local_force;
+                array_1d<double,3> local_force = ZeroVector(3);
                 if (RelativeDryHeight >= 0.0) {
-                    if (IsWet(r_geom, height, RelativeDryHeight)) {
-                        local_force = EvaluateHydrostaticForce<TContainerType>(density, gravity, height, area, normal);
-                    } else {
-                        local_force = ZeroVector(3);
+                    if (IsWet(rEntity.GetGeometry(), RelativeDryHeight)) {
+                        rEntity.Calculate(FORCE, local_force, rProcessInfo);
                     }
                 } else {
-                    local_force = EvaluateHydrostaticForce<TContainerType>(density, gravity, height, area, normal);
+                    rEntity.Calculate(FORCE, local_force, rProcessInfo);
                 }
                 return local_force;
             }
@@ -282,14 +280,6 @@ private:
     bool IsWet(const GeometryType& rGeometry, const double Height, const double RelativeDryHeight);
 
     bool IsWet(const double Height, const double DryHeight);
-
-    template<class TContainerType>
-    array_1d<double,3> EvaluateHydrostaticForce(
-        const double Density,
-        const double Gravity,
-        const double Height,
-        const double Area,
-        const array_1d<double,3>& rNormal);
 
     ///@}
 

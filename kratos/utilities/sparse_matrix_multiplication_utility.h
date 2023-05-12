@@ -15,7 +15,7 @@
 
 // System includes
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <numeric>
 #ifdef _OPENMP
@@ -1044,20 +1044,20 @@ private:
             TIndex c2 = *Column2;
 
             if (c1 < c2) {
-                if (TNeedOut) *Column3 = c1;
+                if constexpr (TNeedOut) *Column3 = c1;
                 ++Column1;
             } else if (c1 == c2) {
-                if (TNeedOut) *Column3 = c1;
+                if constexpr (TNeedOut) *Column3 = c1;
                 ++Column1;
                 ++Column2;
             } else {
-                if (TNeedOut) *Column3 = c2;
+                if constexpr (TNeedOut) *Column3 = c2;
                 ++Column2;
             }
             ++Column3;
         }
 
-        if (TNeedOut) {
+        if constexpr (TNeedOut) {
             if (Column1 < Column1End) {
                 return std::copy(Column1, Column1End, Column3);
             } else if (Column2 < Column2End) {

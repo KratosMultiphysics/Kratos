@@ -66,20 +66,20 @@ public:
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
             if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
                     const double pressure = CalculatePressure(rNode);
 
                     if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0.0) {
                         rNode.FastGetSolutionStepValue(var) = pressure;
                         if (mIsFixed) rNode.Fix(var);
                     } else {
-                        rNode.Free(var);
+                        if (mIsFixedProvided) rNode.Free(var);
                     }
                 });
             } else {
-                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
                     if (mIsFixed) rNode.Fix(var);
-                    else          rNode.Free(var);
+                    else if (mIsFixedProvided) rNode.Free(var);
 
                     const double pressure = CalculatePressure(rNode);
 

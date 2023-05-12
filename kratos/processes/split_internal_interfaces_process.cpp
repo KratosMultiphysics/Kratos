@@ -57,8 +57,7 @@ void SplitInternalInterfacesProcess::ExecuteInitialize()
     }
 
     if(property_ids.size()) {
-        std::size_t domain_size = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension(); //TODO: this may not be a very good solution.
-        FindElementalNeighboursProcess(mrModelPart, domain_size).Execute();
+        GenericFindElementalNeighboursProcess(mrModelPart).Execute();
         for (auto it=property_ids.begin(); it!=(--property_ids.end()); ++it) {
             std::size_t id = *it;
             KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids ..."<< std::endl;
@@ -78,15 +77,15 @@ void SplitInternalInterfacesProcess::SplitBoundary(
     KRATOS_TRY
 
     //construct list of faces on the interface
-    std::vector< Geometry<Node<3> > > interface_faces;
-    std::vector< std::pair< Geometry< Node<3> >::Pointer, Geometry< Node<3> >::Pointer> > neighbouring_elements;
+    std::vector< Geometry<Node > > interface_faces;
+    std::vector< std::pair< Geometry< Node >::Pointer, Geometry< Node >::Pointer> > neighbouring_elements;
 
     for(auto& rElem : mrModelPart.Elements()) {
         const auto& neighb = rElem.GetValue(NEIGHBOUR_ELEMENTS);
 
         for(unsigned int i=0; i<rElem.GetGeometry().size(); ++i) {
 
-            if(rElem.GetProperties().Id() == PropertyIdBeingProcessed && neighb[i].GetProperties().Id() > PropertyIdBeingProcessed) {
+            if(rElem.GetProperties().Id() == PropertyIdBeingProcessed && neighb(i).get()!=nullptr && neighb[i].GetProperties().Id() > PropertyIdBeingProcessed) {
                 auto boundary_entities = rElem.GetGeometry().GenerateBoundariesEntities();
                 interface_faces.push_back(boundary_entities[i]);
                 neighbouring_elements.push_back( std::make_pair(rElem.pGetGeometry(), neighb[i].pGetGeometry()) );
@@ -113,7 +112,7 @@ void SplitInternalInterfacesProcess::SplitBoundary(
     }
     max_node_id++;
 
-    std::map<std::size_t, Node<3>::Pointer> new_nodes_map;
+    std::map<std::size_t, Node::Pointer> new_nodes_map;
     std::size_t aux = 0;
     for(auto& id : ids_on_interface) {
         auto& rOrigNode = rModelPart.Nodes()[id];

@@ -16,9 +16,41 @@
 
 // Project includes
 #include "includes/parallel_environment.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 #include "co_sim_io_conversion_utilities.h"
+#include "co_simulation_application_variables.h"
 
 namespace Kratos {
+
+template<> KRATOS_API(CO_SIMULATION_APPLICATION)
+void CoSimIOConversionUtilities::GetData(
+    Kratos::ModelPart& rModelPart,
+    std::vector<double>& rData,
+    const Variable<double>& rVariable,
+    const DataLocation DataLoc);
+
+template<> KRATOS_API(CO_SIMULATION_APPLICATION)
+void CoSimIOConversionUtilities::GetData(
+    Kratos::ModelPart& rModelPart,
+    std::vector<double>& rData,
+    const Variable<array_1d<double,3>>& rVariable,
+    const DataLocation DataLoc);
+
+template<> KRATOS_API(CO_SIMULATION_APPLICATION)
+void CoSimIOConversionUtilities::SetData(
+    Kratos::ModelPart& rModelPart,
+    const std::vector<double>& rData,
+    const Variable<double>& rVariable,
+    const DataLocation DataLoc);
+
+template<> KRATOS_API(CO_SIMULATION_APPLICATION)
+void CoSimIOConversionUtilities::SetData(
+    Kratos::ModelPart& rModelPart,
+    const std::vector<double>& rData,
+    const Variable<array_1d<double,3>>& rVariable,
+    const DataLocation DataLoc);
+
 namespace {
 
 //  TODO refactor with switch?
@@ -74,6 +106,134 @@ const std::map<CoSimIO::ElementType, std::string> elem_name_map {
     {CoSimIO::ElementType::Point3D, "Element3D1N"}
 };
 
+template<typename A>
+void ResizeIfRequired(
+    A& rA,
+    std::size_t Size)
+{
+    if (rA.size() != Size) rA.resize(Size);
+}
+
+struct Accessor_Get_Base
+{
+    template<class TContainerType, class TDataContainerType>
+    static void SizeCheck(
+        const TContainerType& rContainer,
+        TDataContainerType& rData,
+        const Variable<double>& rVariable)
+    {
+        ResizeIfRequired(rData, rContainer.size());
+    }
+
+    template<class TContainerType, class TDataContainerType, std::size_t TSize>
+    static void SizeCheck(
+        const TContainerType& rContainer,
+        TDataContainerType& rData,
+        const Variable<array_1d<double, TSize>>& rVariable)
+    {
+        ResizeIfRequired(rData, rContainer.size()*TSize);
+    }
+};
+
+struct Accessor_Set_Base
+{
+    template<class TContainerType, class TDataContainerType>
+    static void SizeCheck(
+        const TContainerType& rContainer,
+        TDataContainerType& rData,
+        const Variable<double>& rVariable)
+    {
+        KRATOS_ERROR_IF(rContainer.size() != rData.size()) << "Mismatch in container sizes! Size of Container: " << rContainer.size() << " | size of Data: " << rData.size() << std::endl;
+    }
+
+    template<class TContainerType, class TDataContainerType, std::size_t TSize>
+    static void SizeCheck(
+        const TContainerType& rContainer,
+        TDataContainerType& rData,
+        const Variable<array_1d<double, TSize>>& rVariable)
+    {
+        KRATOS_ERROR_IF(rContainer.size()*TSize != rData.size()) << "Mismatch in container sizes! Size of Container: " << rContainer.size()*TSize << " | size of Data: " << rData.size() << std::endl;
+    }
+};
+
+struct Accessor_Hist_Get : public Accessor_Get_Base
+{
+    static void Execute(const Node& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
+        rData[Index] = rNode.FastGetSolutionStepValue(rVariable);
+    }
+
+    template<std::size_t TSize>
+    static void Execute(const Node& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
+        const array_1d<double, TSize>& var = rNode.FastGetSolutionStepValue(rVariable);
+        for (std::size_t i=0; i<TSize; ++i) { rData[Index*TSize+i] = var[i]; }
+    }
+};
+
+struct Accessor_NonHist_Get : public Accessor_Get_Base
+{
+    template<class TEntityType>
+    static void Execute(const TEntityType& rEntity, std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
+        rData[Index] = rEntity.GetValue(rVariable);
+    }
+
+    template<class TEntityType, std::size_t TSize>
+    static void Execute(const TEntityType& rNode, std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
+        const array_1d<double, TSize>& var = rNode.GetValue(rVariable);
+        for (std::size_t i=0; i<TSize; ++i) { rData[Index*TSize+i] = var[i]; }
+    }
+};
+
+struct Accessor_Hist_Set : public Accessor_Set_Base
+{
+    static void Execute(Node& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
+        rNode.FastGetSolutionStepValue(rVariable) = rData[Index];
+    }
+
+    template<std::size_t TSize>
+    static void Execute(Node& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
+        array_1d<double, TSize>& var = rNode.FastGetSolutionStepValue(rVariable);
+        for (std::size_t i=0; i<TSize; ++i) { var[i] = rData[Index*TSize+i]; }
+    }
+};
+
+struct Accessor_NonHist_Set : public Accessor_Set_Base
+{
+    template<class TEntityType>
+    static void Execute(TEntityType& rEntity, const std::vector<double>& rData, const std::size_t Index, const Variable<double>& rVariable) {
+        rEntity.SetValue(rVariable, rData[Index]);
+    }
+
+    template<class TEntityType, std::size_t TSize>
+    static void Execute(TEntityType& rNode, const std::vector<double>& rData, const std::size_t Index, const Variable<array_1d<double, TSize>>& rVariable) {
+        array_1d<double, TSize> temp_var;
+        for (std::size_t i=0; i<TSize; ++i) { temp_var[i] = rData[Index*TSize+i]; }
+        rNode.SetValue(rVariable, temp_var);
+    }
+};
+
+template<class TAccessor, class TContainerType, class TVarDataType, class TDataContainerType>
+void AccessDataWithOrder(
+    const TContainerType& rContainer, // must be const as otherwise PointerVectorSet might sort in "find", which causes the parallel access to crash. The content (i.e. nodes or elements can still be modified)
+    const Variable<TVarDataType>& rVariable,
+    const std::vector<std::size_t>& rOrder,
+    TDataContainerType& rData)
+{
+    KRATOS_TRY
+
+    TAccessor::SizeCheck(rContainer, rData, rVariable);
+
+    IndexPartition<std::size_t>(rContainer.size()).for_each(
+        [&rContainer, &rVariable, &rOrder, &rData]
+            (const std::size_t Index) {
+                const std::size_t entity_id = rOrder[Index];
+                auto it_entity = rContainer.find(entity_id);
+                KRATOS_DEBUG_ERROR_IF(it_entity == rContainer.end()) << "The entity with Id " << entity_id << " could not be found!" << std::endl;
+                TAccessor::Execute(*it_entity, rData, Index, rVariable);
+    });
+
+    KRATOS_CATCH("")
+}
+
 } // anonymous namespace
 
 void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
@@ -83,7 +243,6 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
 {
     KRATOS_TRY
 
-    // fill ModelPart from received Mesh
     KRATOS_ERROR_IF(rKratosModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
     KRATOS_ERROR_IF(rKratosModelPart.NumberOfProperties() > 0) << "ModelPart is not empty, it has properties!" << std::endl;
     KRATOS_ERROR_IF(rKratosModelPart.IsDistributed()) << "ModelPart cannot be distributed!" << std::endl;
@@ -95,39 +254,45 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
         rKratosModelPart.AddNodalSolutionStepVariable(PARTITION_INDEX); // to be on the safe side
     }
 
-    // check if nodes are ordered consecutively
-    // this is unfortunately necessary for several resons, e.g. AddElements and the ParallelFillCommunicator
-    std::size_t max_node_id = 0;
-    for (const auto& r_node : rCoSimIOModelPart.Nodes()) {
-        KRATOS_ERROR_IF(max_node_id >= static_cast<std::size_t>(r_node.Id())) << "The nodes must be consecutively ordered!" << std::endl;
-        max_node_id = r_node.Id();
-    }
+    KRATOS_ERROR_IF(!is_distributed && rCoSimIOModelPart.GetPartitionModelParts().size()>0) << "Ghost entities exist in CoSimIO ModelPart in serial simulation!" << std::endl;
+
+    std::vector<std::size_t> nodes_id_to_index(rCoSimIOModelPart.NumberOfNodes());
+    std::vector<std::size_t> elements_id_to_index(rCoSimIOModelPart.NumberOfElements());
+
+    IndexPartition<std::size_t>(rCoSimIOModelPart.NumberOfNodes()).for_each(
+        [&nodes_id_to_index, &rCoSimIOModelPart]
+            (const std::size_t i){
+                nodes_id_to_index[i] = (**(rCoSimIOModelPart.NodesBegin()+i)).Id();
+    });
+
+    IndexPartition<std::size_t>(rCoSimIOModelPart.NumberOfElements()).for_each(
+        [&elements_id_to_index, &rCoSimIOModelPart]
+            (const std::size_t i){
+                elements_id_to_index[i] = (**(rCoSimIOModelPart.ElementsBegin()+i)).Id();
+    });
+
+    rKratosModelPart[NODES_ID_INDEX_MAP] = std::move(nodes_id_to_index);
+    rKratosModelPart[ELEMENTS_ID_INDEX_MAP] = std::move(elements_id_to_index);
 
     for (const auto& r_node : rCoSimIOModelPart.LocalNodes()) {
-        auto p_node = rKratosModelPart.CreateNewNode(
+        rKratosModelPart.CreateNewNode(
             r_node.Id(),
             r_node.X(),
             r_node.Y(),
             r_node.Z()
         );
-
-        if (is_distributed) {
-            // alternatively use VariableUtils
-            p_node->FastGetSolutionStepValue(PARTITION_INDEX) = my_rank;
-        }
     };
 
-    KRATOS_ERROR_IF(!is_distributed && rCoSimIOModelPart.GetPartitionModelParts().size()>0) << "Ghost entities exist in CoSimIO ModelPart in serial simulation!" << std::endl;
+    if (is_distributed) {
+        // at this point only the local nodes are created yet
+        VariableUtils().SetVariable(PARTITION_INDEX, my_rank, rKratosModelPart.Nodes());
+    }
 
     for (const auto& r_partition_pair : rCoSimIOModelPart.GetPartitionModelParts()) {
         const int partition_index = r_partition_pair.first;
-        const std::unique_ptr<CoSimIO::ModelPart>& rp_partition_model_part = r_partition_pair.second;
+        const auto& rp_partition_model_part = r_partition_pair.second;
 
-        max_node_id = 0;
         for (const auto& r_node : rp_partition_model_part->Nodes()) {
-            KRATOS_ERROR_IF(max_node_id >= static_cast<std::size_t>(r_node.Id())) << "The nodes must be consecutively ordered!" << std::endl;
-            max_node_id = r_node.Id();
-
             auto p_node = rKratosModelPart.CreateNewNode(
                 r_node.Id(),
                 r_node.X(),
@@ -146,12 +311,8 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
     }
 
     std::vector<IndexType> conn;
-    std::size_t max_elem_id = 0;
     for (auto elem_it=rCoSimIOModelPart.ElementsBegin(); elem_it!=rCoSimIOModelPart.ElementsEnd(); ++elem_it) {
         const auto& r_elem = **elem_it;
-
-        KRATOS_ERROR_IF(max_elem_id >= static_cast<std::size_t>(r_elem.Id())) << "The elements must be consecutively ordered!" << std::endl;
-        max_elem_id = r_elem.Id();
 
         if (conn.size() != r_elem.NumberOfNodes()) {
             conn.resize(r_elem.NumberOfNodes());
@@ -176,8 +337,7 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
             elem_name_it->second,
             r_elem.Id(),
             conn,
-            p_props
-        );
+            p_props);
     };
 
     if (rDataComm.IsDistributed()) {
@@ -194,10 +354,12 @@ void CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF(rCoSimIOModelPart.NumberOfNodes() > 0) << "ModelPart is not empty, it has nodes!" << std::endl;
+
     const int my_rank = rKratosModelPart.GetCommunicator().MyPID();
     const bool is_distributed = rKratosModelPart.IsDistributed();
 
-    const auto is_local_node = [my_rank, is_distributed](const Kratos::Node<3>& rNode) -> bool {
+    const auto is_local_node = [my_rank, is_distributed](const Kratos::Node& rNode) -> bool {
         if (is_distributed) {
             const int node_rank = rNode.FastGetSolutionStepValue(PARTITION_INDEX);
             return node_rank == my_rank;
@@ -248,6 +410,94 @@ void CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(
             conn
         );
     };
+
+    KRATOS_CATCH("")
+}
+
+template<>
+void CoSimIOConversionUtilities::GetData(
+    Kratos::ModelPart& rModelPart,
+    std::vector<double>& rData,
+    const Variable<double>& rVariable,
+    const DataLocation DataLoc)
+{
+    KRATOS_TRY
+
+    if (DataLoc == DataLocation::NodeHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_Hist_Get>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+    } else if (DataLoc == DataLocation::NodeNonHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+    } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
+    } else {
+        AuxiliarModelPartUtilities(rModelPart).GetScalarData(rVariable, DataLoc, rData);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<>
+void CoSimIOConversionUtilities::SetData(
+    Kratos::ModelPart& rModelPart,
+    const std::vector<double>& rData,
+    const Variable<double>& rVariable,
+    const DataLocation DataLoc)
+{
+    KRATOS_TRY
+
+    if (DataLoc == DataLocation::NodeHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_Hist_Set>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+    } else if (DataLoc == DataLocation::NodeNonHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+    } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
+    } else {
+        AuxiliarModelPartUtilities(rModelPart).SetScalarData(rVariable, DataLoc, rData);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<>
+void CoSimIOConversionUtilities::GetData(
+    Kratos::ModelPart& rModelPart,
+    std::vector<double>& rData,
+    const Variable<array_1d<double, 3>>& rVariable,
+    const DataLocation DataLoc)
+{
+    KRATOS_TRY
+
+    if (DataLoc == DataLocation::NodeHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_Hist_Get>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+    } else if (DataLoc == DataLocation::NodeNonHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+    } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_NonHist_Get>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
+    } else {
+        AuxiliarModelPartUtilities(rModelPart).GetVectorData(rVariable, DataLoc, rData);
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<>
+void CoSimIOConversionUtilities::SetData(
+    Kratos::ModelPart& rModelPart,
+    const std::vector<double>& rData,
+    const Variable<array_1d<double, 3>>& rVariable,
+    const DataLocation DataLoc)
+{
+    KRATOS_TRY
+
+    if (DataLoc == DataLocation::NodeHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_Hist_Set>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+    } else if (DataLoc == DataLocation::NodeNonHistorical && rModelPart.Has(NODES_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Nodes(), rVariable, rModelPart[NODES_ID_INDEX_MAP], rData);
+    } else if (DataLoc == DataLocation::Element && rModelPart.Has(ELEMENTS_ID_INDEX_MAP)) {
+        AccessDataWithOrder<Accessor_NonHist_Set>(rModelPart.Elements(), rVariable, rModelPart[ELEMENTS_ID_INDEX_MAP], rData);
+    } else {
+        AuxiliarModelPartUtilities(rModelPart).SetVectorData(rVariable, DataLoc, rData);
+    }
 
     KRATOS_CATCH("")
 }

@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/binbased_fast_point_locator_conditions.h"
 
 namespace Kratos
 {
@@ -58,7 +59,7 @@ class KRATOS_API(KRATOS_CORE) RVEPeriodicityUtility
     typedef std::vector< DofType::Pointer > DofPointerVectorType;
 
     /// Definition of the node
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Definition of the component of variable type
     typedef Variable<double> DoubleVariableType;
@@ -192,6 +193,14 @@ private:
         const Matrix& rRelationMatrix,
         const Vector& rTranslationVector
         );
+
+    template<std::size_t TDim>
+    void AuxiliaryAssignPeriodicity(
+        ModelPart& rMasterModelPart,
+        ModelPart& rSlaveModelPart,
+        const Matrix& rStrainTensor,
+        const Vector& rDirection,
+        const double SearchTolerance = 1.0e-6);
 
     ///@}
 

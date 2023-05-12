@@ -65,7 +65,7 @@ public:
     ///@{
 
     typedef std::size_t                     IndexType;
-    typedef Node<3>                         NodeType;
+    typedef Node                         NodeType;
 
     /// Pointer definition of ApplySinusoidalFunctionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplySinusoidalFunctionProcess);
@@ -156,6 +156,7 @@ private:
     double mPhase;
     double mShift;
     double mSmoothTime;
+    Vector mSmoothTimes;
 
     ///@}
     ///@name Private Operators
@@ -169,6 +170,8 @@ private:
     const Parameters GetDefaultParameters() const override;
 
     double Function(const array_1d<double,3>& rCoordinates, const double& rTime);
+
+    double SmoothFactor(const double& rTime);
 
     ///@}
     ///@name Private  Access

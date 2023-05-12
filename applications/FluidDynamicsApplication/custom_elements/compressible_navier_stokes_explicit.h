@@ -27,6 +27,8 @@
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/cfd_variables.h"
+#include "utilities/element_size_calculator.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -71,8 +73,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Block size
-    constexpr static unsigned int BlockSize = TDim + 2;
+    /// Compile-time known quantities
+    constexpr static unsigned int Dim = TDim;
+    constexpr static unsigned int NumNodes = TNumNodes;
+    constexpr static unsigned int BlockSize = Dim + 2;
+    constexpr static unsigned int DofSize = NumNodes * BlockSize;
 
     /// Counted pointer of
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleNavierStokesExplicit);
@@ -438,6 +443,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     /**
      * @brief Calculate the midpoint velocity divergence
@@ -508,6 +515,537 @@ private:
 
 
 ///@}
+
+
+/// Implementation of template-parameter independent methods
+
+template <unsigned int TDim, unsigned int TNumNodes>
+int CompressibleNavierStokesExplicit<TDim, TNumNodes>::Check(const ProcessInfo &rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    // Perform basic element checks
+    int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
+    if (ErrorCode != 0) {
+        return ErrorCode;
+    }
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY)) << "Missing DENSITY variable on solution step data for node " << this->GetGeometry()[i].Id();
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(MOMENTUM)) << "Missing MOMENTUM variable on solution step data for node " << this->GetGeometry()[i].Id();
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY variable on solution step data for node " << this->GetGeometry()[i].Id();
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE)) << "Missing BODY_FORCE variable on solution step data for node " << this->GetGeometry()[i].Id();
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(HEAT_SOURCE)) << "Missing HEAT_SOURCE variable on solution step data for node " << this->GetGeometry()[i].Id();
+
+        // Activate as soon as we start using the explicit DOF based strategy
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing DENSITY DOF in node ", this->GetGeometry()[i].Id();
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_X) || this->GetGeometry()[i].HasDofFor(MOMENTUM_Y)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
+        if constexpr (TDim == 3) {
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_Z)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
+        }
+        KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY DOF in node ", this->GetGeometry()[i].Id();
+    }
+
+    return 0;
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
+    const Variable<double>& rVariable,
+    double& Output,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    // Lumped projection terms
+    if (rVariable == DENSITY_PROJECTION) {
+        CalculateDensityProjection(rCurrentProcessInfo);
+    } else if (rVariable == TOTAL_ENERGY_PROJECTION) {
+        CalculateTotalEnergyProjection(rCurrentProcessInfo);
+    } else if (rVariable == VELOCITY_DIVERGENCE) {
+        Output = CalculateMidPointVelocityDivergence();
+    } else if (rVariable == SOUND_VELOCITY) {
+        Output = CalculateMidPointSoundVelocity();
+    } else {
+        KRATOS_ERROR << "Variable not implemented." << std::endl;
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
+    const Variable<array_1d<double, 3 > >& rVariable,
+    array_1d<double, 3 > & Output,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == DENSITY_GRADIENT) {
+        Output = CalculateMidPointDensityGradient();
+    } else if (rVariable == TEMPERATURE_GRADIENT) {
+        Output = CalculateMidPointTemperatureGradient();
+    } else if (rVariable == VELOCITY_ROTATIONAL) {
+        Output = CalculateMidPointVelocityRotational();
+    } else if (rVariable == MOMENTUM_PROJECTION) {
+        CalculateMomentumProjection(rCurrentProcessInfo);
+    } else {
+        KRATOS_ERROR << "Variable not implemented." << std::endl;
+    }
+}
+
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix & Output,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == VELOCITY_GRADIENT) {
+        Output = CalculateMidPointVelocityGradient();
+    } else {
+        KRATOS_ERROR << "Variable not implemented." << std::endl;
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints();
+    if (rOutput.size() != r_integration_points.size()) {
+        rOutput.resize( r_integration_points.size() );
+    }
+
+    if (rVariable == SHOCK_SENSOR) {
+        const double sc = this->GetValue(SHOCK_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == SHEAR_SENSOR) {
+        const double sc = this->GetValue(SHEAR_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == THERMAL_SENSOR) {
+        const double sc = this->GetValue(THERMAL_SENSOR);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = sc;
+        }
+    } else if (rVariable == ARTIFICIAL_CONDUCTIVITY) {
+        const double k_star = this->GetValue(ARTIFICIAL_CONDUCTIVITY);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = k_star;
+        }
+    } else if (rVariable == ARTIFICIAL_BULK_VISCOSITY) {
+        const double beta_star = this->GetValue(ARTIFICIAL_BULK_VISCOSITY);
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = beta_star;
+        }
+    } else if (rVariable == VELOCITY_DIVERGENCE) {
+        const double div_v = CalculateMidPointVelocityDivergence();
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = div_v;
+        }
+    } else {
+        KRATOS_ERROR << "Variable not implemented." << std::endl;
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double,3>>& rVariable,
+    std::vector<array_1d<double,3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints();
+    if (rOutput.size() != r_integration_points.size()) {
+        rOutput.resize( r_integration_points.size() );
+    }
+
+    if (rVariable == DENSITY_GRADIENT) {
+        const array_1d<double,3> rho_grad = CalculateMidPointDensityGradient();
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = rho_grad;
+        }
+    } else if (rVariable == TEMPERATURE_GRADIENT) {
+        const array_1d<double,3> temp_grad = CalculateMidPointTemperatureGradient();
+
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = temp_grad;
+        }
+    } else if (rVariable == VELOCITY_ROTATIONAL) {
+        const array_1d<double,3> rot_v = CalculateMidPointVelocityRotational();
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = rot_v;
+        }
+    } else {
+        KRATOS_ERROR << "Variable not implemented." << std::endl;
+    }
+}
+
+/**
+ *  This namespace is used to implement the compile-time choice of:
+ *  1. Shape function calculator
+ *  2. Element size calculator
+ *
+ *  [1] This is necessary because simplex geometries' shape functions are known
+ *  at compile-time whereas non-simplex's ones are not (because they depend on
+ *  the actual shape of the element).
+ *
+ *  [2] This is useful because GradientsElementSize is only implemented for
+ *  simplex types.
+ *
+ *  This problem is solved using SFINAE
+ */
+namespace CompressibleNavierStokesExplicitInternal
+{
+    template<unsigned int TDim, unsigned int TNumNodes>
+    using ElementDataStruct = typename CompressibleNavierStokesExplicit<TDim, TNumNodes>::ElementDataStruct;
+
+
+    constexpr bool IsSimplex(const unsigned int dimensions, const unsigned int nnodes)
+    {
+        return dimensions == nnodes-1;
+    }
+
+    // Specialization for simplex geometries
+    template<unsigned int TDim, unsigned int TNumNodes>
+    static typename std::enable_if<IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
+        const Geometry<Node> & rGeometry,
+        ElementDataStruct<TDim, TNumNodes>& rData)
+    {
+        GeometryUtils::CalculateGeometryData(rGeometry, rData.DN_DX, rData.N, rData.volume);
+        rData.h = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rData.DN_DX);
+    }
+
+    /**
+     * Specialization for geometries with non-uniform jacobian (non-simplex)
+     * Shape functions cannot be obtained here. They will need to be calculated
+     * during integration at each gauss point.
+     */
+    template<unsigned int TDim, unsigned int TNumNodes>
+    static typename std::enable_if<!IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
+        const Geometry<Node> & rGeometry,
+        ElementDataStruct<TDim, TNumNodes>& rData)
+    {
+        rData.volume = rGeometry.DomainSize();
+        rData.h = ElementSizeCalculator<TDim, TNumNodes>::AverageElementSize(rGeometry);
+    }
+}
+
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
+    ElementDataStruct &rData,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Getting data for the given geometry
+    const auto& r_geometry = GetGeometry();
+
+    // Loads shape function info only if jacobian is uniform
+    CompressibleNavierStokesExplicitInternal::ComputeGeometryData<TDim, TNumNodes>(r_geometry, rData);
+
+    // Database access to all of the variables needed
+    Properties &r_properties = this->GetProperties();
+    rData.mu = r_properties.GetValue(DYNAMIC_VISCOSITY);
+    rData.lambda = r_properties.GetValue(CONDUCTIVITY);
+    rData.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
+    rData.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
+
+    rData.UseOSS = rCurrentProcessInfo[OSS_SWITCH];
+    rData.ShockCapturing = rCurrentProcessInfo[SHOCK_CAPTURING_SWITCH];
+
+    // Magnitudes to calculate the time derivatives
+    const double time_step = rCurrentProcessInfo[DELTA_TIME];
+    const double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
+    const double aux_theta = theta > 0 ? 1.0 / (theta * time_step) : 0.0;
+
+    // Get nodal values
+    if (rData.UseOSS) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            const auto& r_node = r_geometry[i];
+            // Vector data
+            const array_1d<double,3>& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
+            const array_1d<double,3>& r_momentum_old = r_node.FastGetSolutionStepValue(MOMENTUM, 1);
+            const array_1d<double,3>& r_momentum_projection = r_node.GetValue(MOMENTUM_PROJECTION);
+            const array_1d<double,3> mom_inc = r_momentum - r_momentum_old;
+            const auto& r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
+            for (unsigned int k = 0; k < TDim; ++k) {
+                rData.U(i, k + 1) = r_momentum[k];
+                rData.dUdt(i, k + 1) = aux_theta * mom_inc[k];
+                rData.ResProj(i, k + 1) = r_momentum_projection[k];
+                rData.f_ext(i, k) = r_body_force[k];
+            }
+            // Density data
+            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+            const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
+            const double rho_inc = r_rho - r_rho_old;
+            rData.U(i, 0) = r_rho;
+            rData.dUdt(i, 0) = aux_theta * rho_inc;
+            rData.ResProj(i, 0) = r_node.GetValue(DENSITY_PROJECTION);
+            // Total energy data
+            const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+            const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
+            const double tot_ener_inc = r_tot_ener - r_tot_ener_old;
+            rData.U(i, TDim + 1) = r_tot_ener;
+            rData.dUdt(i, TDim + 1) = aux_theta * tot_ener_inc;
+            rData.ResProj(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_PROJECTION);
+            // Source data
+            rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
+            rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
+            // Shock capturing data
+            rData.alpha_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY);
+            rData.mu_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+            rData.beta_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
+            rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
+        }
+    } else {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            const auto& r_node = r_geometry[i];
+            // Vector data
+            const array_1d<double,3>& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
+            const array_1d<double,3>& r_momentum_old = r_node.FastGetSolutionStepValue(MOMENTUM, 1);
+            const array_1d<double,3> mom_inc = r_momentum - r_momentum_old;
+            const auto& r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
+            for (unsigned int k = 0; k < TDim; ++k) {
+                rData.U(i, k + 1) = r_momentum[k];
+                rData.dUdt(i, k + 1) = aux_theta * mom_inc[k];
+                rData.f_ext(i, k) = r_body_force[k];
+            }
+            // Density data
+            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+            const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
+            rData.U(i, 0) = r_rho;
+            rData.dUdt(i, 0) = aux_theta * (r_rho - r_rho_old);
+            // Total energy data
+            const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+            const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
+            rData.U(i, TDim + 1) = r_tot_ener;
+            rData.dUdt(i, TDim + 1) = aux_theta * (r_tot_ener - r_tot_ener_old);
+            // Source data
+            rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
+            rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
+            // Shock capturing data
+            rData.alpha_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY);
+            rData.mu_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+            rData.beta_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
+            rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
+        }
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointDensityGradient() const
+{
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int NumNodes = r_geom.PointsNumber();
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    array_1d<double,3> midpoint_grad_rho = ZeroVector(3);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+            midpoint_grad_rho[d1] += node_dNdX(d1) * r_rho;
+        }
+    }
+
+    return midpoint_grad_rho;
+}
+
+// TODO: IN HERE WE HAVE LINEARIZED THE DERIVATIVE... CHECK IF WE SHOULD PROPERLY COMPUTE IT
+template <unsigned int TDim, unsigned int TNumNodes>
+array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointTemperatureGradient() const
+{
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int NumNodes = r_geom.PointsNumber();
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    const double c_v = GetProperties()[SPECIFIC_HEAT];
+    array_1d<double,3> midpoint_grad_temp = ZeroVector(3);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+        const array_1d<double, 3> vel = r_mom / r_rho;
+        const double temp = (r_tot_ener / r_rho - 0.5 * inner_prod(vel, vel)) / c_v;
+        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+            midpoint_grad_temp[d1] += node_dNdX(d1) * temp;
+        }
+    }
+
+    return midpoint_grad_temp;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointSoundVelocity() const
+{
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int NumNodes = r_geom.PointsNumber();
+
+    // Calculate midpoint magnitudes
+    double midpoint_rho = 0.0;
+    double midpoint_tot_ener = 0.0;
+    array_1d<double,TDim> midpoint_mom = ZeroVector(TDim);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
+        midpoint_rho += r_rho;
+        midpoint_tot_ener += r_tot_ener;
+        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+            midpoint_mom[d1] += r_mom(d1);
+        }
+    }
+    midpoint_rho /= NumNodes;
+    midpoint_mom /= NumNodes;
+    midpoint_tot_ener /= NumNodes;
+
+    // Calculate midpoint speed of sound
+    const auto& r_prop = GetProperties();
+    const double c_v = r_prop.GetValue(SPECIFIC_HEAT);
+    const double gamma = r_prop.GetValue(HEAT_CAPACITY_RATIO);
+    const double temp = (midpoint_tot_ener / midpoint_rho - inner_prod(midpoint_mom, midpoint_mom) / (2 * std::pow(midpoint_rho, 2))) / c_v;
+    double midpoint_c = std::sqrt(gamma * (gamma - 1.0) * c_v * temp);
+    return midpoint_c;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointVelocityDivergence() const
+{
+    // Get geometry data
+    const auto& r_geom = GetGeometry();
+    const unsigned int NumNodes = r_geom.PointsNumber();
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const auto& r_dNdX = dNdX_container[0];
+
+    // Calculate midpoint magnitudes
+    double midpoint_rho = 0.0;
+    double midpoint_div_mom = 0.0;
+    array_1d<double,TDim> midpoint_mom = ZeroVector(TDim);
+    array_1d<double,TDim> midpoint_grad_rho = ZeroVector(TDim);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        auto& r_node = r_geom[i_node];
+        const auto node_dNdX = row(r_dNdX, i_node);
+        const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
+        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
+        midpoint_rho += r_rho;
+        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+            midpoint_mom[d1] += r_mom(d1);
+            midpoint_div_mom += node_dNdX(d1) * r_mom(d1);
+            midpoint_grad_rho[d1] += node_dNdX(d1) * r_rho;
+        }
+    }
+    midpoint_rho /= NumNodes;
+    midpoint_mom /= NumNodes;
+
+    // Calculate velocity divergence
+    // Note that the formulation is written in conservative variables. Hence we do div(mom/rho).
+    double midpoint_div_v = (midpoint_rho * midpoint_div_mom - inner_prod(midpoint_mom, midpoint_grad_rho)) / std::pow(midpoint_rho, 2);
+    return midpoint_div_v;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateLumpedMassVector(
+    VectorType& rLumpedMassVector,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    // Initialize the lumped mass vector
+    constexpr IndexType size = TNumNodes * BlockSize;
+    if (rLumpedMassVector.size() != BlockSize) {
+        rLumpedMassVector.resize(size, false);
+    }
+
+    // Fill the lumped mass vector
+    const double nodal_mass = GetGeometry().DomainSize() / TNumNodes;
+    std::fill(rLumpedMassVector.begin(),rLumpedMassVector.end(),nodal_mass);
+}
+
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
+{
+    // Calculate the explicit residual vector
+    BoundedVector<double, DofSize> rhs;
+    CalculateRightHandSideInternal(rhs, rCurrentProcessInfo);
+
+    // Add the residual contribution
+    // Note that the reaction is indeed the formulation residual
+    auto& r_geometry = GetGeometry();
+
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node)
+    {
+        auto& r_node = r_geometry[i_node];
+
+        IndexType i_dof = BlockSize * i_node;
+
+        AtomicAdd(r_node.FastGetSolutionStepValue(REACTION_DENSITY), rhs[i_dof++]);
+
+        for (IndexType d = 0; d < Dim; ++d)
+        {
+            AtomicAdd(r_node.FastGetSolutionStepValue(REACTION)[d], rhs[i_dof++]);
+        }
+
+        AtomicAdd(r_node.FastGetSolutionStepValue(REACTION_ENERGY),  rhs[i_dof]);
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+const Parameters CompressibleNavierStokesExplicit<TDim, TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["explicit"],
+        "framework"                  : "eulerian",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["SHOCK_SENSOR","SHEAR_SENSOR","THERMAL_SENSOR","ARTIFICIAL_CONDUCTIVITY","ARTIFICIAL_BULK_VISCOSITY","VELOCITY_DIVERGENCE"],
+            "nodal_historical"       : ["DENSITY","MOMENTUM","TOTAL_ENERGY"],
+            "nodal_non_historical"   : ["ARTIFICIAL_MASS_DIFFUSIVITY","ARTIFICIAL_DYNAMIC_VISCOSITY","ARTIFICIAL_BULK_VISCOSITY","ARTIFICIAL_CONDUCTIVITY","DENSITY_PROJECTION","MOMENTUM_PROJECTION","TOTAL_ENERGY_PROJECTION"],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DENSITY","MOMENTUM","TOTAL_ENERGY","BODY_FORCE","HEAT_SOURCE"],
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4","Tetrahedra3D4"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   :
+            "This element implements a compressible Navier-Stokes formulation written in conservative variables. A Variational MultiScales (VMS) stabilization technique, both with Algebraic SubGrid Scales (ASGS) and Orthogonal Subgrid Scales (OSS), is used. This element is compatible with both entropy-based and physics-based shock capturing techniques."
+    })");
+
+    if constexpr (TDim == 2) {
+        std::vector<std::string> dofs_2d({"DENSITY","MOMENTUM_X","MOMENTUM_Y","TOTAL_ENERGY"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"DENSITY","MOMENTUM_X","MOMENTUM_Y","MOMENTUM_Z","TOTAL_ENERGY"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
+
 } // namespace Kratos.
 
 #endif // KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_H_INCLUDED  defined

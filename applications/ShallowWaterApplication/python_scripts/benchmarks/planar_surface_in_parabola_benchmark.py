@@ -4,7 +4,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.ShallowWaterApplication.benchmarks.base_benchmark_process import BaseBenchmarkProcess
 
 # Other imports
-import numpy as np
+from math import sqrt, sin, cos
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -56,7 +56,7 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
         x0 = self.__x0(time)
         x1 = self.__x1(time)
         if x0 < x < x1:
-            return -self.h0*(((x - 0.5*self.L)/self.a + 0.5/self.a*np.cos(self.C*time/self.a))**2 - 1)
+            return -self.h0*(((x - 0.5*self.L)/self.a + 0.5/self.a*cos(self.C*time/self.a))**2 - 1)
         else:
             return 0.0
 
@@ -65,7 +65,7 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
         x0 = self.__x0(time)
         x1 = self.__x1(time)
         if x0 < x < x1:
-            return [self.B * np.sin(self.C*time/self.a), 0.0, 0.0]
+            return [self.B * sin(self.C*time/self.a), 0.0, 0.0]
         else:
             return [0.0, 0.0, 0.0]
 
@@ -91,7 +91,7 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
         return self.__C() / 2.0 / self.a
 
     def __C(self):
-        return np.sqrt(2*self.g*self.h0)
+        return sqrt(2*self.g*self.h0)
 
     def __L(self):
         x0 = 1.0
@@ -110,7 +110,7 @@ class PlanarSurfaceInParabolaBenchmark(BaseBenchmarkProcess):
         return x1 - x0
 
     def __x0(self, time):
-        return -0.5*np.cos(self.C/self.a*time) - self.a + 0.5*self.L
+        return -0.5*cos(self.C/self.a*time) - self.a + 0.5*self.L
 
     def __x1(self, time):
-        return -0.5*np.cos(self.C/self.a*time) + self.a + 0.5*self.L
+        return -0.5*cos(self.C/self.a*time) + self.a + 0.5*self.L

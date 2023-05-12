@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -197,6 +197,12 @@ struct rhs_of< static_matrix<T, N, N> > {
     typedef static_matrix<T, N, 1> type;
 };
 
+/// Element type of a non-scalar type
+template <class T, int N, int M>
+struct element_of< static_matrix<T, N, M> > {
+    typedef T type;
+};
+
 /// Whether the value type is a statically sized matrix.
 template <class T, int N, int M>
 struct is_static_matrix< static_matrix<T, N, M> > : std::true_type {};
@@ -323,7 +329,8 @@ struct inverse_impl< static_matrix<T, N, N> >
 {
     static static_matrix<T, N, N> get(static_matrix<T, N, N> A) {
         std::array<T, N * N> buf;
-        detail::inverse(N, A.data(), buf.data());
+        std::array<int, N> p;
+        detail::inverse(N, A.data(), buf.data(), p.data());
         return A;
     }
 };

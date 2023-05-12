@@ -5,8 +5,7 @@
 //                   Multi-Physics PfemFluidDynamics Application
 //
 //  License:         BSD License
-//    Kratos default license:
-//  kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //                   Miguel Maso Sotomayor
@@ -47,7 +46,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
+
+    typedef Geometry<NodeType> GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -124,12 +125,31 @@ private:
     array_1d<double,3> mDirection;
     array_1d<double,3> mCoordinates;
     double mMeanWaterLevel;
-    double mSearchRadius;
+    bool mUseLocalElementSize;
+    bool mUseNearestNode;
+    double mRelativeRadius;
+    double mAbsoluteRadius;
+    double mMeanElementSize;
 
     ///@}
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculate the averaged wave height from the nearest nodes with a given search radius.
+     */
+    double CalculateAverage(const array_1d<double,3>& rCoordinates, double SearchRadius) const;
+
+
+    /**
+     * @brief Calculate the averaged wave height from the nearest nodes.
+     */
+    double CalculateAverage(const array_1d<double,3>& rCoordinates) const;
+
+    /**
+     * @brief Calculate the wave height from the nearest node.
+     */
+    double CalculateNearest(const array_1d<double,3>& rCoordinates) const;
 
     ///@}
     ///@name Private  Access

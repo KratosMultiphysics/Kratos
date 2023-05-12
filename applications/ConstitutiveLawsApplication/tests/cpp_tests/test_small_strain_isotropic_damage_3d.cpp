@@ -26,7 +26,7 @@
 #include "constitutive_laws_application_variables.h"
 
 // Constitutive law
-#include "custom_constitutive/small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/small_strains/damage/small_strain_isotropic_damage_3d.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -34,7 +34,7 @@ namespace Kratos
 {
 namespace Testing
 {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosConstitutiveLawsFastSuite)
 {

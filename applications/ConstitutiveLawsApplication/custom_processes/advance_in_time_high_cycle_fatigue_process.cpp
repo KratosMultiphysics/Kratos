@@ -236,7 +236,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
         std::vector<int>  local_number_of_cycles;
         std::vector<int>  global_number_of_cycles;
         std::vector<double> period;
-        double time_increment;
+        double time_increment = 0.0;
         std::vector<double> previous_cycle_time;    //time when the previous cycle finished. It is used to obtain the new period for the current cycle
 
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();

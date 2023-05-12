@@ -21,7 +21,7 @@
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "utilities/parallel_levelset_distance_calculator.h"
+#include "processes/parallel_distance_calculation_process.h"
 #include "utilities/variable_utils.h"
 
 // Application includes
@@ -233,13 +233,24 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
     VariableUtils().SetVariable(r_distance_variable, 0.0, r_main_model_part.Nodes(),
                                 VISITED, false);
 
+    Parameters parallel_distance_settings(R"({
+        "max_levels" : 100,
+        "max_distance" : 1e30,
+        "distance_variable" : "DISTANCE",
+        "nodal_area_variable" : "NODAL_AREA"
+    })");
+    parallel_distance_settings["max_levels"].SetInt(mMaxLevels);
+    parallel_distance_settings["max_distance"].SetDouble(mMaxDistance);
+    parallel_distance_settings["distance_variable"].SetString(r_distance_variable.Name());
+    parallel_distance_settings["nodal_area_variable"].SetString(r_nodal_area_variable.Name());
+
     const int domain_size = r_main_model_part.GetProcessInfo()[DOMAIN_SIZE];
     if (domain_size == 2) {
-        ParallelDistanceCalculator<2>().CalculateDistances(
-            r_main_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
+        ParallelDistanceCalculationProcess<2>(
+            r_main_model_part, parallel_distance_settings).Execute();
     } else if (domain_size == 3) {
-        ParallelDistanceCalculator<3>().CalculateDistances(
-            r_main_model_part, r_distance_variable, r_nodal_area_variable, mMaxLevels, mMaxDistance);
+        ParallelDistanceCalculationProcess<3>(
+            r_main_model_part, parallel_distance_settings).Execute();
     } else {
         KRATOS_ERROR << "Unsupported domain size in " << r_main_model_part.Name()
                      << ". [ DOMAIN_SIZE = " << domain_size << " ]\n";

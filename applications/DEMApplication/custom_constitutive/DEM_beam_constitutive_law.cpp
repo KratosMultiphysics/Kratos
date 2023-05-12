@@ -1,6 +1,7 @@
 // Project includes
 #include "DEM_beam_constitutive_law.h"
 #include "custom_elements/spheric_continuum_particle.h"
+#include "dem_contact.h"
 
 namespace Kratos {
 
@@ -296,6 +297,52 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    void DEMBeamConstitutiveLaw::CalculateMoments(SphericContinuumParticle* element, 
+                    SphericContinuumParticle* neighbor, 
+                    double equiv_young, 
+                    double distance, 
+                    double calculation_area,
+                    double LocalCoordSystem[3][3], 
+                    double ElasticLocalRotationalMoment[3], 
+                    double ViscoLocalRotationalMoment[3], 
+                    double equiv_poisson, 
+                    double indentation, 
+                    double LocalElasticContactForce[3],
+                    double normalLocalContactForce,
+                    double GlobalElasticContactForces[3],
+                    double LocalCoordSystem_2[3],
+                    const int i_neighbor_count) 
+    {
+        KRATOS_TRY
+
+        int failure_type = element->mIniNeighbourFailureId[i_neighbor_count];
+        //int continuum_ini_neighbors_size = element->mContinuumInitialNeighborsSize;
+
+        if (failure_type == 0) {
+                ComputeParticleRotationalMoments(element, 
+                                        neighbor, 
+                                        equiv_young, 
+                                        distance, 
+                                        calculation_area,
+                                        LocalCoordSystem, 
+                                        ElasticLocalRotationalMoment, 
+                                        ViscoLocalRotationalMoment, 
+                                        equiv_poisson, 
+                                        indentation, 
+                                        LocalElasticContactForce);
+        }              
+
+        DemContact::ComputeParticleContactMoments(normalLocalContactForce,
+                                                GlobalElasticContactForces,
+                                                LocalCoordSystem_2,
+                                                element,
+                                                neighbor,
+                                                indentation,
+                                                i_neighbor_count);
+
+        KRATOS_CATCH("")
+    }
+
     void DEMBeamConstitutiveLaw::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                                   SphericContinuumParticle* neighbor,
                                                                   double equiv_young,
@@ -305,7 +352,8 @@ namespace Kratos {
                                                                   double ElasticLocalRotationalMoment[3],
                                                                   double ViscoLocalRotationalMoment[3],
                                                                   double equiv_poisson,
-                                                                  double indentation) {
+                                                                  double indentation,
+                                                                  double LocalElasticContactForce[3]) {
 
         KRATOS_TRY
 

@@ -32,12 +32,12 @@ namespace Testing {
         Model current_model;
 
         // Generate the origin model part (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
+        Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+        Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+        Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+        Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
 
-        Quadrilateral2D4<Node<3> > geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+        Quadrilateral2D4<Node > geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
         Parameters mesher_parameters(R"(
         {
@@ -116,7 +116,11 @@ namespace Testing {
         CalculateDistanceToSkinProcess<2>(origin_model_part, str_model_part).Execute();
 
         // Set the FM-ALE utility
-        auto p_mesh_moving = Kratos::make_shared<FixedMeshALEUtilities>(virtual_model_part, str_model_part);
+        Parameters fm_ale_settings(R"({
+            "virtual_model_part_name" : "VirtualModelPart",
+            "structure_model_part_name" : "StructureModelPart"
+        })");
+        auto p_mesh_moving = Kratos::make_shared<FixedMeshALEUtilities>(current_model, fm_ale_settings);
 
         // Fill the virtual model part geometry
         p_mesh_moving->Initialize(origin_model_part);
@@ -200,6 +204,16 @@ namespace Testing {
         const std::array<double,8> obtained_projected_values{{v_29[0], v_29[1], v_29[2], p_29, v_53[0], v_53[1], v_53[2], p_53}};
         for (std::size_t i = 0; i < 8; ++i) {
             KRATOS_CHECK_NEAR(obtained_projected_values[i], expected_projected_values[i], tol);
+        }
+
+        const auto v_n_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(VELOCITY, 1);
+        const auto v_n_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(VELOCITY, 1);
+        const auto p_n_29 = origin_model_part.pGetNode(29)->FastGetSolutionStepValue(PRESSURE, 1);
+        const auto p_n_53 = origin_model_part.pGetNode(54)->FastGetSolutionStepValue(PRESSURE, 1);
+        const std::array<double,8> expected_projected_values_n{{0.459105,0,0,0.1,0.885347,0,0,0.1}};
+        const std::array<double,8> obtained_projected_values_n{{v_n_29[0], v_n_29[1], v_n_29[2], p_n_29, v_n_53[0], v_n_53[1], v_n_53[2], p_n_53}};
+        for (std::size_t i = 0; i < 8; ++i) {
+            KRATOS_CHECK_NEAR(obtained_projected_values_n[i], expected_projected_values_n[i], tol);
         }
     }
 }

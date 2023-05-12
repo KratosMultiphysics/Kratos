@@ -1021,7 +1021,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVaria
 {
     auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-    rAverageVector += r_elem_neigb[edge].GetValue(rThisVariable);
+    if(r_elem_neigb(edge).get()!=nullptr) {
+        rAverageVector += r_elem_neigb[edge].GetValue(rThisVariable);
+    } else {
+        rAverageVector += pCurrentElement->GetValue(rThisVariable);
+    }
     rAverageVector *= 0.5;
 }
 
@@ -1121,7 +1125,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage3D(const Vector& rEdgeDamages)
 {
     // 7 modes of fracture of the tetrahedron
-    Vector damage_mode_fracture = ZeroVector(7);
+    Vector damage_mode_fracture(7);
     const double one_third = 1.0 / 3.0;
     damage_mode_fracture[0] = one_third * (rEdgeDamages[0] + rEdgeDamages[1] + rEdgeDamages[2]);
     damage_mode_fracture[1] = one_third * (rEdgeDamages[0] + rEdgeDamages[3] + rEdgeDamages[4]);

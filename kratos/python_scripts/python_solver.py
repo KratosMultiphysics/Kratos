@@ -2,8 +2,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.restart_utility import RestartUtility
 
-# Other imports
-import os
 
 class PythonSolver:
     """The base class for the Python Solvers in the applications
@@ -39,7 +37,10 @@ class PythonSolver:
         """This function returns the default-settings used by this class
         """
         return KratosMultiphysics.Parameters("""{
-            "echo_level" : 0
+            "echo_level" : 0,
+            "model_import_settings" : {
+                "input_type" : "use_input_model_part"
+            }
         }""")
 
     def ValidateSettings(self):
@@ -59,6 +60,14 @@ class PythonSolver:
         It has to be called AFTER the ModelPart is read!
         """
         pass
+
+    def GetDofsList(self):
+        """This function returns a list containing the DOFs required by this PythonSolver
+        In needs to be reimplemented in the derived solvers according to the physics to be solved
+        Ideally, DOFs list must be retrieved from the elements and conditions GetSpecification method
+        (see GetDofsListFromSpecifications in the SpecificationUtilities)
+        """
+        raise Exception("This function has to be implemented in the derived class")
 
     def ImportModelPart(self):
         """This function reads the ModelPart

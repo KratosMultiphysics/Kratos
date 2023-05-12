@@ -35,18 +35,30 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : publi
 
 public:
 
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
+
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( GeneralUPwDiffOrderCondition );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Default constructor
-    GeneralUPwDiffOrderCondition();
+    GeneralUPwDiffOrderCondition() : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
 
-    // Constructor 1
-    GeneralUPwDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    GeneralUPwDiffOrderCondition( IndexType               NewId,
+                                  GeometryType::Pointer   pGeometry )
+        : GeneralUPwDiffOrderCondition(NewId, pGeometry, nullptr)
+    {}
 
-    // Constructor 2
-    GeneralUPwDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    GeneralUPwDiffOrderCondition( IndexType               NewId,
+                                  GeometryType::Pointer   pGeometry,
+                                  PropertiesType::Pointer pProperties )
+        : Condition(NewId, pGeometry, pProperties)
+    {}
 
     // Destructor
     virtual ~GeneralUPwDiffOrderCondition();
@@ -98,10 +110,7 @@ protected:
     };
 
     // Member Variables
-
-    IntegrationMethod mThisIntegrationMethod;
-
-    Geometry< Node<3> >::Pointer mpPressureGeometry;
+    Geometry< Node >::Pointer mpPressureGeometry;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -116,15 +125,20 @@ protected:
 
     void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber);
 
-    virtual void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber);
+    virtual void CalculateConditionVector(ConditionVariables& rVariables,
+                                          unsigned int PointNumber);
 
-    virtual void CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight);
+    virtual double CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                                   const GeometryType::JacobiansType& JContainer,
+                                                   const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
+
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables);
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
 
-    virtual void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
+    virtual void CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+                                                ConditionVariables& rVariables);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -4,13 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Ruben Zorrilla
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -21,9 +23,48 @@
 
 namespace Kratos
 {
-namespace SpecificationsUtilities
+
+namespace
 {
-void AddMissingVariables(ModelPart& rModelPart)
+
+template< class TContainerType>
+std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TContainerType& rContainer)
+{
+    // Create a set with the DOFs variables in the container entities specifications
+    std::unordered_set<std::string> dofs_var_names_set;
+    const std::size_t n_entities = rContainer.size();
+    for (std::size_t i = 0; i < n_entities; ++i) {
+        const auto it_entity = rContainer.begin() + i;
+        const auto specifications = it_entity->GetSpecifications();
+        if (specifications.Has("required_dofs")) {
+            const auto required_dofs = specifications["required_dofs"].GetStringArray();
+            for (std::size_t i_dof = 0; i_dof < required_dofs.size(); ++i_dof) {
+                dofs_var_names_set.insert(required_dofs[i_dof]);
+            }
+        }
+    }
+    KRATOS_WARNING_IF("GetDofsListFromGenericEntitiesSpecifications", n_entities > 0 && dofs_var_names_set.empty())
+        << "DOFs variables set is empty. Check and complete your element/condition GetSpecifications() implementation." << std::endl;
+
+    // Check that all the DOFs variables exist
+    for (auto& r_var_name : dofs_var_names_set) {
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_var_name))
+            << "DOF \'" << r_var_name << "\' is not in KratosComponents. Check your element/condition GetSpecifications() implementation." << std::endl;
+    }
+
+    // Return a list with the DOFs variables
+    std::vector<std::string> dofs_var_names_list;
+    dofs_var_names_list.insert(dofs_var_names_list.end(), dofs_var_names_set.begin(), dofs_var_names_set.end());
+
+    return dofs_var_names_list;
+}
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpecificationsUtilities::AddMissingVariables(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -82,7 +123,39 @@ void AddMissingVariables(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AddMissingVariablesFromSpecifications(
+void SpecificationsUtilities::AddMissingVariablesFromEntitiesList(
+    ModelPart& rModelPart,
+    const Parameters EntitiesList
+    )
+{
+    // Define specifications
+    Parameters specifications;
+
+    // Iterate over elements
+    if (EntitiesList.Has("element_list")) {
+        const auto& element_list = EntitiesList["element_list"].GetStringArray();
+        for (auto& r_element_name : element_list) {
+            const Element& r_element = KratosComponents<Element>::Get(r_element_name);
+            specifications = r_element.GetSpecifications();
+            AddMissingVariablesFromSpecifications(rModelPart, specifications, r_element_name);
+        }
+    }
+
+    // Iterate over conditions
+    if (EntitiesList.Has("condition_list")) {
+        const auto& condition_list = EntitiesList["condition_list"].GetStringArray();
+        for (auto& r_condition_name : condition_list) {
+            const Condition& r_condition = KratosComponents<Condition>::Get(r_condition_name);
+            specifications = r_condition.GetSpecifications();
+            AddMissingVariablesFromSpecifications(rModelPart, specifications, r_condition_name);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpecificationsUtilities::AddMissingVariablesFromSpecifications(
     ModelPart& rModelPart,
     const Parameters SpecificationsParameters,
     const std::string EntityName
@@ -173,7 +246,7 @@ void AddMissingVariablesFromSpecifications(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AddMissingDofs(ModelPart& rModelPart)
+void SpecificationsUtilities::AddMissingDofs(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -233,7 +306,39 @@ void AddMissingDofs(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AddMissingDofsFromSpecifications(
+void SpecificationsUtilities::AddMissingDofsFromEntitiesList(
+    ModelPart& rModelPart,
+    const Parameters EntitiesList
+    )
+{
+    // Define specifications
+    Parameters specifications;
+
+    // Iterate over elements
+    if (EntitiesList.Has("element_list")) {
+        const auto& element_list = EntitiesList["element_list"].GetStringArray();
+        for (auto& r_element_name : element_list) {
+            const Element& r_element = KratosComponents<Element>::Get(r_element_name);
+            specifications = r_element.GetSpecifications();
+            AddMissingDofsFromSpecifications(rModelPart, specifications, r_element_name);
+        }
+    }
+
+    // Iterate over conditions
+    if (EntitiesList.Has("condition_list")) {
+        const auto& condition_list = EntitiesList["condition_list"].GetStringArray();
+        for (auto& r_condition_name : condition_list) {
+            const Condition& r_condition = KratosComponents<Condition>::Get(r_condition_name);
+            specifications = r_condition.GetSpecifications();
+            AddMissingDofsFromSpecifications(rModelPart, specifications, r_condition_name);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpecificationsUtilities::AddMissingDofsFromSpecifications(
     ModelPart& rModelPart,
     const Parameters SpecificationsParameters,
     const std::string EntityName
@@ -269,7 +374,43 @@ void AddMissingDofsFromSpecifications(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void DetermineFlagsUsed(ModelPart& rModelPart)
+std::vector<std::string> SpecificationsUtilities::GetDofsListFromSpecifications(const ModelPart& rModelPart)
+{
+    // Get DOFs variable names list from elements and conditions
+    const auto elem_dofs_list = GetDofsListFromElementsSpecifications(rModelPart);
+    const auto cond_dofs_list = GetDofsListFromConditionsSpecifications(rModelPart);
+
+    // Remove duplicates
+    std::vector<std::string> all_dofs;
+    std::merge(elem_dofs_list.begin(), elem_dofs_list.end(), cond_dofs_list.begin(), cond_dofs_list.end(), std::back_inserter(all_dofs));
+    std::sort(all_dofs.begin(),all_dofs.end());
+    all_dofs.erase(std::unique(all_dofs.begin(),all_dofs.end()), all_dofs.end());
+
+    return all_dofs;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::string> SpecificationsUtilities::GetDofsListFromElementsSpecifications(const ModelPart& rModelPart)
+{
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "This method is not MPI-compatible yet." << std::endl;
+    return GetDofsListFromGenericEntitiesSpecifications(rModelPart.Elements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::string> SpecificationsUtilities::GetDofsListFromConditionsSpecifications(const ModelPart& rModelPart)
+{
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "This method is not MPI-compatible yet." << std::endl;
+    return GetDofsListFromGenericEntitiesSpecifications(rModelPart.Conditions());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpecificationsUtilities::DetermineFlagsUsed(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -348,7 +489,7 @@ void DetermineFlagsUsed(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::vector<std::string> DetermineTimeIntegration(ModelPart& rModelPart)
+std::vector<std::string> SpecificationsUtilities::DetermineTimeIntegration(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -458,7 +599,7 @@ std::vector<std::string> DetermineTimeIntegration(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string DetermineFramework(ModelPart& rModelPart)
+std::string SpecificationsUtilities::DetermineFramework(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -553,7 +694,7 @@ std::string DetermineFramework(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool DetermineSymmetricLHS(ModelPart& rModelPart)
+bool SpecificationsUtilities::DetermineSymmetricLHS(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -664,7 +805,7 @@ bool DetermineSymmetricLHS(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
+bool SpecificationsUtilities::DeterminePositiveDefiniteLHS(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -775,7 +916,7 @@ bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
+bool SpecificationsUtilities::DetermineIfCompatibleGeometries(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -806,7 +947,7 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
             }
             if (!compatible_geometry) {
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_begin, element_name);
-                KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "is not compatible with the following geometries:\n";
+                KRATOS_WARNING("SpecificationsUtilities") << "The element: " << it_elem_begin->Info() << " current geometry is " << GeometryUtils::GetGeometryName(r_geometry_type) << ", and is compatible with the following geometries:\n";
                 for (auto& r_geometry_name : compatible_geometries) {
                     KRATOS_WARNING("")  << r_geometry_name << "\n";
                 }
@@ -839,7 +980,7 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
                     }
                     if (!compatible_geometry) {
                         CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
-                        KRATOS_WARNING("SpecificationsUtilities") << "The element: " << element_name << "is not compatible with the following geometries:\n";
+                        KRATOS_WARNING("SpecificationsUtilities") << "The element: " << it_elem_current->Info() << " current geometry is " << GeometryUtils::GetGeometryName(r_geometry_type) << ", and is compatible with the following geometries:\n";
                         for (auto& r_geometry_name : compatible_geometries) {
                             KRATOS_WARNING("")  << r_geometry_name << "\n";
                         }
@@ -872,7 +1013,7 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
             }
             if (!compatible_geometry) {
                 CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_begin, condition_name);
-                KRATOS_WARNING("SpecificationsUtilities") << "The element: " << condition_name << "is not compatible with the following geometries:\n";
+                KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << it_cond_begin->Info() << " current geometry is " << GeometryUtils::GetGeometryName(r_geometry_type) << ", and is compatible with the following geometries:\n";
                 for (auto& r_geometry_name : compatible_geometries) {
                     KRATOS_WARNING("")  << r_geometry_name << "\n";
                 }
@@ -905,7 +1046,7 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
                     }
                     if (!compatible_geometry) {
                         CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
-                        KRATOS_WARNING("SpecificationsUtilities") << "The element: " << condition_name << "is not compatible with the following geometries:\n";
+                        KRATOS_WARNING("SpecificationsUtilities") << "The condition: " << it_cond_current->Info() << " current geometry is " << GeometryUtils::GetGeometryName(r_geometry_type) << ", and is compatible with the following geometries:\n";
                         for (auto& r_geometry_name : compatible_geometries) {
                             KRATOS_WARNING("")  << r_geometry_name << "\n";
                         }
@@ -924,7 +1065,7 @@ bool DetermineIfCompatibleGeometries(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
+bool SpecificationsUtilities::DetermineIfRequiresTimeIntegration(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -1035,7 +1176,7 @@ bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
+bool SpecificationsUtilities::CheckCompatibleConstitutiveLaws(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -1067,9 +1208,9 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
             const Vector compatible_constitutive_laws_strain_size = specifications["compatible_constitutive_laws"]["strain_size"].GetVector();
             const std::size_t number_of_cl_compatible = compatible_constitutive_laws_strain_size.size();
             // If the vector is full of nullptr we just return true
-            if (cl_vector.size() > 0) 
-                if (cl_vector[0] == nullptr) 
-                    return true; 
+            if (cl_vector.size() > 0)
+                if (cl_vector[0] == nullptr)
+                    return true;
             for (auto& p_cl : cl_vector) {
                 bool check = false;
                 for (std::size_t i = 0; i < number_of_cl_compatible; ++i) {
@@ -1112,9 +1253,9 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                     const Vector compatible_constitutive_laws_strain_size = specifications["compatible_constitutive_laws"]["strain_size"].GetVector();
                     const std::size_t number_of_cl_compatible = compatible_constitutive_laws_strain_size.size();
                     // If the vector is full of nullptr we just return true
-                    if (cl_vector.size() > 0) 
-                        if (cl_vector[0] == nullptr) 
-                            return true; 
+                    if (cl_vector.size() > 0)
+                        if (cl_vector[0] == nullptr)
+                            return true;
                     for (auto& p_cl : cl_vector) {
                         bool check = false;
                         for (std::size_t i = 0; i < number_of_cl_compatible; ++i) {
@@ -1154,7 +1295,7 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-int CheckGeometricalPolynomialDegree(ModelPart& rModelPart)
+int SpecificationsUtilities::CheckGeometricalPolynomialDegree(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -1237,7 +1378,7 @@ int CheckGeometricalPolynomialDegree(ModelPart& rModelPart)
         }
     }
 
-    // Final message 
+    // Final message
     KRATOS_WARNING_IF("SpecificationsUtilities", polynomial_degree_of_geometry > 0) << "Finally, the polynomial degree of geometry considered is: " << polynomial_degree_of_geometry << std::endl;
 
     return polynomial_degree_of_geometry;
@@ -1248,7 +1389,7 @@ int CheckGeometricalPolynomialDegree(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters GetDocumention(ModelPart& rModelPart)
+Parameters SpecificationsUtilities::GetDocumention(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -1316,5 +1457,4 @@ Parameters GetDocumention(ModelPart& rModelPart)
     KRATOS_CATCH("")
 }
 
-} // namespace SpecificationsUtilities
 } // namespace Kratos

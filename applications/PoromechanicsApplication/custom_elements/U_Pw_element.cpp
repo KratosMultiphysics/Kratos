@@ -179,7 +179,7 @@ void UPwElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList, 
     {
         rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
         rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
-        if(TDim>2)
+        if constexpr (TDim>2)
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Z);
         rElementalDofList[index++] = rGeom[i].pGetDof(WATER_PRESSURE);
     }
@@ -555,11 +555,13 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
-    //if(rVariable == DAMAGE_VARIABLE || rVariable == STATE_VARIABLE)
-    if ( rValues.size() != mConstitutiveLawVector.size() )
-        rValues.resize(mConstitutiveLawVector.size());
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
-    for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+    if ( rValues.size() != integration_points_number )
+        rValues.resize( integration_points_number, false );
+
+    for ( unsigned int i = 0;  i < integration_points_number; i++ )
     {
         rValues[i] = 0.0;
         rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
@@ -572,10 +574,13 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,std::vector<array_1d<double,3>>& rValues,
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
-    if ( rValues.size() != mConstitutiveLawVector.size() )
-        rValues.resize(mConstitutiveLawVector.size());
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
-    for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+    if ( rValues.size() != integration_points_number )
+        rValues.resize( integration_points_number );
+    
+    for ( unsigned int i = 0;  i < integration_points_number; i++ )
     {
         noalias(rValues[i]) = ZeroVector(3);
         rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
@@ -588,10 +593,13 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,
                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
-    if ( rValues.size() != mConstitutiveLawVector.size() )
-        rValues.resize(mConstitutiveLawVector.size());
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
 
-    for ( unsigned int i = 0;  i < mConstitutiveLawVector.size(); i++ )
+    if ( rValues.size() != integration_points_number )
+        rValues.resize( integration_points_number );
+
+    for ( unsigned int i = 0;  i < integration_points_number; i++ )
     {
         rValues[i].resize(TDim,TDim,false);
         noalias(rValues[i]) = ZeroMatrix(TDim,TDim);
@@ -605,13 +613,14 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,std::vector<ConstitutiveLaw::Pointer>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
-    if(rVariable == CONSTITUTIVE_LAW)
-    {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
-            rValues.resize(mConstitutiveLawVector.size());
-
-        for(unsigned int i=0; i < mConstitutiveLawVector.size(); i++)
-            rValues[i] = mConstitutiveLawVector[i];
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const unsigned int integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (unsigned int point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
     }
 }
 

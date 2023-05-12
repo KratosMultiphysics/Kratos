@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_UTILITIES_H_INCLUDED)
-#define  KRATOS_MAPPER_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <array>
@@ -25,6 +24,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/math_utils.h"
 #include "mapping_application_variables.h"
 #include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
@@ -35,7 +35,7 @@ namespace MapperUtilities {
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointerType;
 
@@ -117,11 +117,15 @@ GetUpdateFunction(const Kratos::Flags& rMappingOptions)
 template<class TVectorType, bool TParallel=true>
 void UpdateSystemVectorFromModelPart(
     TVectorType& rVector,
-    ModelPart& rModelPart,
+    const ModelPart& rModelPart,
     const Variable<double>& rVariable,
     const Kratos::Flags& rMappingOptions,
     const bool InParallel=true)
 {
+    KRATOS_TRY;
+
+    if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) return;
+
     // Here we construct a function pointer to not have the if all the time inside the loop
     const auto fill_fct = MapperUtilities::GetFillFunction(rMappingOptions);
 
@@ -131,9 +135,13 @@ void UpdateSystemVectorFromModelPart(
     // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
     const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
+    KRATOS_ERROR_IF(!rMappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL) && !rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Solution step variable \"" << rVariable.Name() << "\" missing in ModelPart \"" << rModelPart.FullName() << "\"!" << std::endl;
+
     IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
+
+    KRATOS_CATCH("");
 }
 
 template<class TVectorType>
@@ -144,6 +152,10 @@ void UpdateModelPartFromSystemVector(
     const Kratos::Flags& rMappingOptions,
     const bool InParallel=true)
 {
+    KRATOS_TRY;
+
+    if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) return;
+
     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
 
     // Here we construct a function pointer to not have the if all the time inside the loop
@@ -158,17 +170,19 @@ void UpdateModelPartFromSystemVector(
     // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
     const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
+    KRATOS_ERROR_IF(!rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL) && !rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Solution step variable \"" << rVariable.Name() << "\" missing in ModelPart \"" << rModelPart.FullName() << "\"!" << std::endl;
+
     IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
 
-    if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-        if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
-            rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
-        } else {
-            rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
-        }
+    if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
+    } else {
+        rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
     }
+
+    KRATOS_CATCH("");
 }
 
 /**
@@ -196,6 +210,22 @@ inline double ComputeDistance(const T1& rCoords1,
     return std::sqrt( std::pow(rCoords1[0] - rCoords2[0] , 2) +
                       std::pow(rCoords1[1] - rCoords2[1] , 2) +
                       std::pow(rCoords1[2] - rCoords2[2] , 2) );
+}
+
+template <class T1, class T2, class T3>
+bool PointsAreCollinear(
+    const T1& rP1,
+    const T2& rP2,
+    const T3& rP3)
+{
+    // TODO this can probably be optimized
+    const double a = MathUtils<double>::Norm3(rP1-rP2);
+    const double b = MathUtils<double>::Norm3(rP2-rP3);
+    const double c = MathUtils<double>::Norm3(rP3-rP1);
+
+    const double s = (a+b+c) / 2.0;
+
+    return (std::sqrt(s*(s-a)*(s-b)*(s-c))) < 1e-12;
 }
 
 template <typename TContainer>
@@ -228,8 +258,8 @@ void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVaria
 {
     KRATOS_TRY;
 
-    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
-        rNode.Data().Erase(rVariable);
+    block_for_each(rModelPart.Nodes(), [&](Node& rNode){
+        rNode.GetData().Erase(rVariable);
     });
 
     KRATOS_CATCH("");
@@ -296,5 +326,3 @@ private:
 }  // namespace MapperUtilities.
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_UTILITIES_H_INCLUDED  defined

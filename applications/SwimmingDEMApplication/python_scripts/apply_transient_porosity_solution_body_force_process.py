@@ -38,7 +38,7 @@ class ApplyTransientPorositySolutionBodyForceProcess(KratosMultiphysics.Process)
         self.model_part = model[self.settings["model_part_name"].GetString()]
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        self.TransientPorositySolutionBodyForceProcess = KratosSDEM.TransientPorositySolutionBodyForceProcess(self.model_part, self.settings)
+        self.TransientPorositySolutionBodyForceProcess = KratosSDEM.BumpTransientPorositySolutionBodyForceProcess(self.model_part, self.settings)
 
     def ExecuteBeforeSolutionLoop(self):
         self.TransientPorositySolutionBodyForceProcess.ExecuteBeforeSolutionLoop()

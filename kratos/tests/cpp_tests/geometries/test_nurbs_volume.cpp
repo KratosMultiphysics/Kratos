@@ -24,7 +24,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     NurbsVolumeGeometry<PointerVector<NodeType>> GenerateTruncatedPyramid() {
         // Construct Truncated Pyramid with: lower_base = 2x2; uper_base = 1.8x1.8; heigth = 4
@@ -102,10 +102,8 @@ namespace Testing {
         // Construct a distroted cube.
         PointerVector<Point> points(100);
         std::vector<double> y_direction = {-1.0, -1.0/3.0, 1.0/3.0, 1.0};
-        double t = 0.8;
         int index = 0;
         for( int i = 0; i <=4; ++i){
-            t += 0.2;
             for( auto j : y_direction) {
                 for( int k = -2; k <=2; ++k ) {
                     double x = k;
@@ -171,7 +169,6 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryIntegrationPoints1, KratosCoreNurbsGeometriesFastSuite) {
             NurbsVolumeGeometry<PointerVector<NodeType>> TruncatedPyramid = GenerateTruncatedPyramid();
 
-            KRATOS_CHECK_EQUAL(TruncatedPyramid.Dimension(), 3);
             KRATOS_CHECK_EQUAL(TruncatedPyramid.WorkingSpaceDimension(), 3);
             KRATOS_CHECK_EQUAL(TruncatedPyramid.LocalSpaceDimension(), 3);
             KRATOS_CHECK_EQUAL(TruncatedPyramid.IsRational(), false);
@@ -347,7 +344,6 @@ namespace Testing {
         typename Geometry<Point>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = DistortedCube.GetDefaultIntegrationInfo();
         DistortedCube.CreateIntegrationPoints(integration_points, integration_info);
-        KRATOS_CHECK_EQUAL(DistortedCube.Dimension(), 3);
         KRATOS_CHECK_EQUAL(DistortedCube.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(DistortedCube.LocalSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(DistortedCube.IsRational(), false);

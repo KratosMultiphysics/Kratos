@@ -14,8 +14,8 @@ def Create(*args):
 class ElementalToNodalData(CoSimulationCouplingOperation):
     """This operation maps the Elemental Data to Nodal Data for a given ModelPart
     """
-    def __init__(self, settings, solver_wrappers, process_info):
-        super().__init__(settings, process_info)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)

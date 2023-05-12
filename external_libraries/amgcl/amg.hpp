@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -70,13 +70,15 @@ class amg {
         typedef Backend backend_type;
 
         typedef typename Backend::value_type value_type;
+        typedef typename Backend::col_type   col_type;
+        typedef typename Backend::ptr_type   ptr_type;
         typedef typename Backend::matrix     matrix;
         typedef typename Backend::vector     vector;
 
-        typedef Coarsening<Backend>          coarsening_type;
-        typedef Relax<Backend>               relax_type;
+        typedef Coarsening<Backend>            coarsening_type;
+        typedef Relax<Backend>                 relax_type;
 
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
 
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
@@ -129,11 +131,15 @@ class amg {
             /// Number of cycles to make as part of preconditioning.
             unsigned pre_cycles;
 
+            /// Keep matrices in internal format to allow for quick rebuild of the hierarchy
+            bool allow_rebuild;
+
             params() :
                 coarse_enough( Backend::direct_solver::coarse_enough() ),
                 direct_coarse(true),
                 max_levels( std::numeric_limits<unsigned>::max() ),
-                npre(1), npost(1), ncycle(1), pre_cycles(1)
+                npre(1), npost(1), ncycle(1), pre_cycles(1),
+                allow_rebuild(std::is_same<matrix, build_matrix>::value)
             {}
 
 #ifndef AMGCL_NO_BOOST
@@ -146,11 +152,12 @@ class amg {
                   AMGCL_PARAMS_IMPORT_VALUE(p, npre),
                   AMGCL_PARAMS_IMPORT_VALUE(p, npost),
                   AMGCL_PARAMS_IMPORT_VALUE(p, ncycle),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, pre_cycles)
+                  AMGCL_PARAMS_IMPORT_VALUE(p, pre_cycles),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, allow_rebuild)
             {
                 check_params(p, {"coarsening", "relax", "coarse_enough",
                         "direct_coarse", "max_levels", "npre", "npost",
-                        "ncycle",  "pre_cycles"});
+                        "ncycle",  "pre_cycles", "allow_rebuild"});
 
                 precondition(max_levels > 0, "max_levels should be positive");
             }
@@ -169,6 +176,7 @@ class amg {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, npost);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, ncycle);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, pre_cycles);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, allow_rebuild);
             }
 #endif
         } prm;
@@ -216,6 +224,48 @@ class amg {
            ) : prm(p)
         {
             do_init(A, bprm);
+        }
+
+        /// Rebuild the hierarchy using the new system matrix.
+        /**
+         * This requires for prm.allow_rebuild to be set. The transfer
+         * operators created during the initial setup are reused.
+         */
+        template <class Matrix>
+        void rebuild(
+                const Matrix &M,
+                const backend_params &bprm = backend_params()
+                )
+        {
+            auto A = std::make_shared<build_matrix>(M);
+            sort_rows(*A);
+            rebuild(A, bprm);
+        }
+
+        /// Rebuild the hierarchy using the new system matrix.
+        /**
+         * This requires for prm.allow_rebuild to be set. The transfer
+         * operators created during the initial setup are reused.
+         */
+        void rebuild(
+                std::shared_ptr<build_matrix> A,
+                const backend_params &bprm = backend_params()
+                )
+        {
+            precondition(prm.allow_rebuild,
+                    "allow_rebuild is not set!");
+            precondition(
+                    backend::rows(*A) == backend::rows(system_matrix()) &&
+                    backend::cols(*A) == backend::rows(*A),
+                    "Matrix dimensions differ from the original ones!"
+                    );
+
+            AMGCL_TIC("rebuild");
+            coarsening_type C(prm.coarsening);
+            for(auto &level : levels) {
+                A = level.rebuild(A, C, prm, bprm);
+            }
+            AMGCL_TOC("rebuild");
         }
 
         /// Performs single V-cycle for the given right-hand side and solution.
@@ -272,6 +322,9 @@ class amg {
             std::shared_ptr<matrix> P;
             std::shared_ptr<matrix> R;
 
+            std::shared_ptr<build_matrix> bP;
+            std::shared_ptr<build_matrix> bR;
+
             std::shared_ptr< typename Backend::direct_solver > solve;
 
             std::shared_ptr<relax_type> relax;
@@ -293,7 +346,7 @@ class amg {
                 return b;
             }
 
-            level() {}
+            level() : m_rows(0), m_nonzeros(0) {}
 
             level(std::shared_ptr<build_matrix> A,
                     params &prm, const backend_params &bprm)
@@ -313,7 +366,8 @@ class amg {
 
             std::shared_ptr<build_matrix> step_down(
                     std::shared_ptr<build_matrix> A,
-                    coarsening_type &C, const backend_params &bprm)
+                    coarsening_type &C, const backend_params &bprm,
+                    bool allow_rebuild)
             {
                 AMGCL_TIC("transfer operators");
                 std::shared_ptr<build_matrix> P, R;
@@ -327,6 +381,11 @@ class amg {
 
                 sort_rows(*P);
                 sort_rows(*R);
+
+                if (allow_rebuild) {
+                    bP = P;
+                    bR = R;
+                }
                 AMGCL_TOC("transfer operators");
 
                 AMGCL_TIC("move to backend");
@@ -355,6 +414,41 @@ class amg {
                 solve = Backend::create_solver(A, bprm);
                 if (single_level)
                     this->A = Backend::copy_matrix(A, bprm);
+            }
+
+            std::shared_ptr<build_matrix> rebuild(
+                    std::shared_ptr<build_matrix> A,
+                    const coarsening_type &C,
+                    const params &prm,
+                    const backend_params &bprm
+                    )
+            {
+                if (this->A) {
+                    AMGCL_TIC("move to backend");
+                    this->A = Backend::copy_matrix(A, bprm);
+                    AMGCL_TOC("move to backend");
+                }
+
+                if(relax) {
+                    AMGCL_TIC("relaxation");
+                    relax = std::make_shared<relax_type>(*A, prm.relax, bprm);
+                    AMGCL_TOC("relaxation");
+                }
+
+                if (solve) {
+                    AMGCL_TIC("coarsest level");
+                    solve = Backend::create_solver(A, bprm);
+                    AMGCL_TOC("coarsest level");
+                }
+
+                if (bP && bR) {
+                    AMGCL_TIC("coarse operator");
+                    A = C.coarse_operator(*A, *bP, *bR);
+                    sort_rows(*A);
+                    AMGCL_TOC("coarse operator");
+                }
+
+                return A;
             }
 
             size_t rows() const {
@@ -389,7 +483,7 @@ class amg {
 
                 if (levels.size() >= prm.max_levels) break;
 
-                A = levels.back().step_down(A, C, bprm);
+                A = levels.back().step_down(A, C, bprm, prm.allow_rebuild);
                 if (!A) {
                     // Zero-sized coarse level. Probably the system matrix on
                     // this level is diagonal, should be easily solvable with a

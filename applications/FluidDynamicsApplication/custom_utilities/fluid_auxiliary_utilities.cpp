@@ -20,8 +20,11 @@
 // Project includes
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "spatial_containers/bins_dynamic.h"
+#include "utilities/rbf_shape_functions_utility.h"
 
 // Application includes
 #include "fluid_auxiliary_utilities.h"
@@ -416,6 +419,97 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
     ModifiedShapeFunctions::ShapeFunctionsGradientsType n_pos_DN_DX;
     rpModShapeFunc->ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(rShapeFunctions, n_pos_DN_DX, rWeights, FaceId, GeometryData::IntegrationMethod::GI_GAUSS_2);
     rpModShapeFunc->ComputeNegativeExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::IntegrationMethod::GI_GAUSS_2);
+}
+
+void FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF(
+    ModelPart& rVolumeModelPart,
+    ModelPart& rSkinModelPart,
+    const double SearchRadius)
+{
+    //put the nodes in the skin into a search database
+    typedef BinsDynamic<3, Node, std::vector<Node::Pointer>> DynamicBins;
+    DynamicBins locator(rSkinModelPart.Nodes().GetContainer().begin(), rSkinModelPart.Nodes().GetContainer().end());
+
+    //reset the EMBEDDED_VELOCITY
+    block_for_each(rVolumeModelPart.Nodes(), [](auto& rNode){
+        rNode.GetValue(EMBEDDED_VELOCITY).clear();
+    });
+
+    //detect all the nodes that belong to cut elements
+    ModelPart::NodesContainerType cut_elem_nodes;
+    for(const auto& r_elem : rVolumeModelPart.Elements()){
+        const auto& r_geom = r_elem.GetGeometry();
+
+        unsigned int npos=0, nneg=0;
+        for (const auto& r_node : r_geom) {
+            r_node.FastGetSolutionStepValue(DISTANCE) > 0 ? ++npos : ++nneg;
+        }
+
+        if(npos>0 && nneg>0){ //element is split
+            for(unsigned int i=0; i<r_geom.size(); ++i) {
+                cut_elem_nodes.push_back(r_geom(i));
+            }
+        }
+    }
+    cut_elem_nodes.Unique();
+
+    unsigned int max_results = 100; //deliberately low, we do not want to interpolate from more than this nodes
+    auto TLS = std::make_pair(std::vector<Node::Pointer>(max_results), std::vector<double>(max_results));
+
+    //for every interface node (nodes in cut elements)
+    block_for_each(cut_elem_nodes, TLS, [&locator, SearchRadius](auto& rNode, auto& rTLS){
+            //find all neighbours within a radius
+            auto& r_neighbours = rTLS.first;
+            auto& r_distances  = rTLS.second;
+            const unsigned int nfound = locator.SearchInRadius(
+                rNode,
+                SearchRadius,
+                r_neighbours.begin(),
+                r_distances.begin(),
+                r_neighbours.size());
+            KRATOS_ERROR_IF(nfound == 0) << "Not found any neighbor for node " << rNode.Id() << " in skin model part." << std::endl;
+
+            //compute RBF basis
+            Matrix cloud_coords(nfound,3);
+            Vector shape_functions(nfound);
+            for(unsigned int i=0; i<nfound; ++i){
+                cloud_coords(i,0)=r_neighbours[i]->X();
+                cloud_coords(i,1)=r_neighbours[i]->Y();
+                cloud_coords(i,2)=r_neighbours[i]->Z();
+            }
+            RBFShapeFunctionsUtility::CalculateShapeFunctions(cloud_coords,rNode.Coordinates(), shape_functions);
+
+            //assign interpolation
+            auto& r_v = rNode.GetValue(EMBEDDED_VELOCITY); //we know it is zero since we zeroed all the nodes at the beginning of the function
+            for(unsigned int i=0; i<nfound; ++i){
+                noalias(r_v) += shape_functions[i]*r_neighbours[i]->FastGetSolutionStepValue(VELOCITY);
+            }
+        });
+}
+
+double FluidAuxiliaryUtilities::FindMaximumEdgeLength(
+    ModelPart &rModelPart,
+    const bool CalculateNodalNeighbours)
+{
+    // If required, calculate nodal neighbours
+    if (CalculateNodalNeighbours) {
+        FindGlobalNodalNeighboursProcess nodal_neigh_process(rModelPart);
+        nodal_neigh_process.Execute();
+    }
+
+    // Find maximum edge length by iterating the nodal neigbours
+    const double l_max = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [](auto& rNode){
+        const auto& r_coords = rNode.Coordinates();
+        double l_max_local = 0.0;
+        for (auto& r_neigh : rNode.GetValue(NEIGHBOUR_NODES)) {
+            const auto& r_coords_neigh = r_neigh.Coordinates();
+            const double l_aux = std::pow(r_coords[0] - r_coords_neigh[0], 2) + std::pow(r_coords[1] - r_coords_neigh[1], 2) + std::pow(r_coords[2] - r_coords_neigh[2], 2);
+            l_max_local = l_aux > l_max_local ? l_aux : l_max_local;
+        }
+        return std::sqrt(l_max_local);
+    });
+
+    return l_max;
 }
 
 } // namespace Kratos

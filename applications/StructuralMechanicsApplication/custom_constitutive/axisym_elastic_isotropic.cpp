@@ -4,10 +4,11 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
+
 // System includes
 #include <iostream>
 
@@ -79,28 +80,57 @@ void AxisymElasticIsotropic::GetLawFeatures(Features& rFeatures)
 void AxisymElasticIsotropic::CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
-    const double& E = MaterialProperties[YOUNG_MODULUS];
-    const double& NU = MaterialProperties[POISSON_RATIO];
+    const double E = MaterialProperties[YOUNG_MODULUS];
+    const double NU = MaterialProperties[POISSON_RATIO];
 
     if (C.size1() != 4 || C.size2() != 4)
-        C.resize(4, 4);
+        C.resize(4, 4, false);
     noalias(C) = ZeroMatrix(4, 4);
 
-    const double c0 = (1.0-NU);
-    const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
-    const double c2 = (1-2*NU)/(2*c0);
-    const double c3 = NU/c0;
+    const double aux_value = (1.0 - 2.0 * NU);
+    const double c1 = E / ((1.0 + NU) * aux_value);
+    const double c0 = c1 * (1.0 - NU);
+    const double c2 = 0.5 * c1 * aux_value;
+    const double c3 = NU * c1;
 
-    C(0, 0) = c1*c0;
-    C(1, 1) = C(0, 0);
-    C(2, 2) = C(0, 0);
-    C(3, 3) = C(0, 0)*c2;
-    C(0, 1) = C(0, 0)*c3;
-    C(1, 0) = C(0, 1);
-    C(0, 2) = C(0, 1);
-    C(2, 0) = C(0, 1);
-    C(1, 2) = C(0, 1);
-    C(2, 1) = C(0, 1);
+    C(0, 0) = c0;
+    C(0, 1) = c3;
+    C(0, 2) = c3;
+
+    C(1, 0) = c3;
+    C(1, 1) = c0;
+    C(1, 2) = c3;
+
+    C(2, 0) = c3;
+    C(2, 1) = c3;
+    C(2, 2) = c0;
+
+    C(3, 3) = c2;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AxisymElasticIsotropic::CalculatePK2Stress(
+    const Vector& rStrainVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E  = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+
+    const double aux_value = (1.0 - 2.0 * NU);
+    const double c1 = E / ((1.0 + NU) * aux_value);
+    const double c0 = c1 * (1.0 - NU);
+    const double c2 = 0.5 * c1 * aux_value;
+    const double c3 = NU * c1;
+
+    rStressVector[0] = (c0 * rStrainVector[0] + c3 * rStrainVector[1] + c3 * rStrainVector[2]);
+    rStressVector[1] = (c3 * rStrainVector[0] + c0 * rStrainVector[1] + c3 * rStrainVector[2]);
+    rStressVector[2] = (c3 * rStrainVector[0] + c3 * rStrainVector[1] + c0 * rStrainVector[2]);
+    rStressVector[3] = (c2 * rStrainVector[3]);
 }
 
 //************************************************************************************

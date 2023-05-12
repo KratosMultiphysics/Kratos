@@ -5,14 +5,13 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//	                 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //                   Ashish Darekar
 //
 
-#if !defined (KRATOS_PYRAMID_3D_5_H_INCLUDED)
-#define KRATOS_PYRAMID_3D_5_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath> // std::abs for double
@@ -22,8 +21,9 @@
 // Project includes
 #include "includes/define.h"
 #include "geometries/geometry.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
 #include "integration/pyramid_gauss_legendre_integration_points.h"
-
 
 namespace Kratos {
 
@@ -63,6 +63,13 @@ public:
 
     /// Geometry as base class.
     typedef Geometry<TPointType> BaseType;
+
+    /**
+     * Type of edge and face geometries
+     */
+    typedef Line3D2<TPointType> EdgeType;
+    typedef Triangle3D3<TPointType> FaceType1;
+    typedef Quadrilateral3D4<TPointType> FaceType2;
 
     /// Pointer definition of Pyramid3D5
     KRATOS_CLASS_POINTER_DEFINITION(Pyramid3D5);
@@ -215,6 +222,16 @@ public:
     {
     }
 
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Pyramid;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Pyramid3D5;
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -255,6 +272,40 @@ public:
     }
 
     ///@}
+    ///@name Create Methods
+    ///@{
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
+    {
+        return typename BaseType::Pointer( new Pyramid3D5( NewGeometryId, rThisPoints ) );
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new Pyramid3D5( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    ///@}
     ///@name Informations
     ///@{
 
@@ -274,6 +325,45 @@ public:
     }
 
     /**
+     * @brief This method gives you all edges of this geometry.
+     * @details This method will gives you all the edges with one dimension less than this geometry.
+     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @return GeometriesArrayType containes this geometry edges.
+     * @see EdgesNumber()
+     * @see Edge()
+     */
+    GeometriesArrayType GenerateEdges() const override
+    {
+        GeometriesArrayType edges = GeometriesArrayType();
+        typedef typename Geometry<TPointType>::Pointer EdgePointerType;
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 1 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 2 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 3 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 0 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        edges.push_back( EdgePointerType( new EdgeType(
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        return edges;
+    }
+
+    /**
      * @brief Returns the number of faces of the current geometry.
      * @see EdgesNumber
      * @see Edges
@@ -282,6 +372,42 @@ public:
     SizeType FacesNumber() const override
     {
         return 5;
+    }
+
+    /**
+     * @brief Returns all faces of the current geometry.
+     * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
+     * @return GeometriesArrayType containes this geometry faces.
+     * @see EdgesNumber
+     * @see GenerateEdges
+     * @see FacesNumber
+     */
+    GeometriesArrayType GenerateFaces() const override
+    {
+        GeometriesArrayType faces = GeometriesArrayType();
+        typedef typename Geometry<TPointType>::Pointer FacePointerType;
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType2(
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 3 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        faces.push_back( FacePointerType( new FaceType1(
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 4 ) ) ) );
+        return faces;
     }
 
     /** This method calculate and return volume of this
@@ -295,16 +421,23 @@ public:
     */
     double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
-        double vol = 0.00;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
+    }
 
-        for (std::size_t i=0; i<integration_points.size(); ++i) {
-            vol += temp[i] * integration_points[i].Weight();
-        }
-
-        return vol;
+    /**
+     * This method calculate and return length, area or volume of
+     * this geometry depending to it's dimension. For one dimensional
+     * geometry it returns its length, for two dimensional it gives area
+     * and for three dimensional geometries it gives its volume.
+     *
+     * @return double value contains length, area or volume.
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     */
+    double DomainSize() const override
+    {
+        return Volume();
     }
 
     /**
@@ -731,9 +864,6 @@ GeometryData Pyramid3D5<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Pyramid3D5<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Pyramid3D5<TPointType>::msGeometryDimension(3, 3);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_PYRAMID_3D_5_H_INCLUDED defined

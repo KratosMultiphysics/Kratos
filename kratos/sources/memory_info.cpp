@@ -92,7 +92,7 @@ std::size_t MemoryInfo::GetCurrentMemoryUsage() {
 #endif
 }
 
-std::string MemoryInfo::HumanReadableSize(std::size_t InBytes) const {
+std::string MemoryInfo::HumanReadableSize(std::size_t InBytes) {
     constexpr char extension[] = {'\0', 'K', 'M', 'G', 'T', 'P', 'E', 'E'};
 
     std::stringstream output;

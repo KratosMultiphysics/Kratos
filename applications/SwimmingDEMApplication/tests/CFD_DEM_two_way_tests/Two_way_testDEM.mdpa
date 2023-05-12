@@ -45,6 +45,9 @@ Begin SubModelPart 1 // GUI DEM-VelocityIC - DEM-VelocityIC - group identifier: 
     FORCE_INTEGRATION_GROUP 0
     IDENTIFIER DEM_Particle
   End SubModelPartData
+  Begin SubModelPartElements
+       6399
+  End SubModelPartElements
   Begin SubModelPartNodes
        380
   End SubModelPartNodes

@@ -48,7 +48,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(IncompressiblePotentialFlowVelocityInletCondition);
 
     using BaseType = Condition;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using PropertiesType = Properties;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
@@ -201,7 +201,7 @@ public:
         VectorType& rValues,
         int Step = 0) const override;
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,

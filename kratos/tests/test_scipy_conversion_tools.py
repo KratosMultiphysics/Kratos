@@ -1,9 +1,12 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import numpy as np
+
 try:
+    import scipy
+    import scipy.sparse
     import KratosMultiphysics.scipy_conversion_tools
-    import numpy as np
     missing_scipy = False
 except ImportError as e:
     missing_scipy = True

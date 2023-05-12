@@ -22,7 +22,8 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
             "interface_model_part_name" : "",
             "output_model_part_name"    : "",
             "store_historical_database" : false,
-            "direction_of_integration"  : [0.0, 0.0, 1.0],
+            "extrapolate_boundaries"    : false,
+            "print_velocity_profile"    : false,
             "interval"                  : [0.0,"End"],
             "file_settings"             : {},
             "output_time_settings"      : {}
@@ -41,7 +42,10 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         self.interval = KM.IntervalUtility(self.settings)
         self.variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT]
 
-        self.integration_process = SW.DepthIntegrationProcess(model, self._CreateIntegrationParameters())
+        if self.volume_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
+            self.integration_process = SW.DepthIntegrationProcess2D(model, self._CreateIntegrationParameters())
+        else:
+            self.integration_process = SW.DepthIntegrationProcess3D(model, self._CreateIntegrationParameters())
         self.hdf5_process = single_mesh_temporal_output_process.Factory(self._CreateHDF5Parameters(), model)
 
 
@@ -63,18 +67,14 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
 
     def ExecuteBeforeSolutionLoop(self):
         '''Write the interface model part in HDF5 format.'''
+        self.integration_process.Execute()
+        self._MapToOutputModelPart()
         self.hdf5_process.ExecuteBeforeSolutionLoop()
 
 
     def ExecuteInitializeSolutionStep(self):
         '''Synchronize the ProcessInfo of the output and interface model part.'''
         self._SetOutputProcessInfo()
-
-
-    def ExecuteBeforeOutputStep(self):
-        '''Perform the depth integration over the interface model part.'''
-        self.integration_process.Execute()
-        self._MapToOutputModelPart()
 
 
     def IsOutputStep(self):
@@ -84,7 +84,9 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
 
 
     def PrintOutput(self):
-        '''Print the integrated variables from interface model part.'''
+        '''Perform the depth integration over the interface model part.'''
+        self.integration_process.Execute()
+        self._MapToOutputModelPart()
         self.hdf5_process.ExecuteFinalizeSolutionStep()
 
 
@@ -98,6 +100,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         condition_name = "LineCondition{}D2N".format(domain_size)
         KM.DuplicateMeshModeler(self.interface_model_part).GenerateMesh(
             self.output_model_part, element_name, condition_name)
+        self.output_model_part.ProcessInfo[KM.DOMAIN_SIZE] = domain_size
 
 
     def _MapToOutputModelPart(self):
@@ -110,14 +113,11 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
                     0)
         else:
             for variable in self.variables:
-                for node_src, node_dest in zip(self.interface_model_part.Nodes, self.output_model_part.Nodes):
-                    node_dest.SetValue(variable, node_src.GetValue(variable))
-                #TODO: implement this function in VariableUtils
-                # KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
-                #     variable,
-                #     self.interface_model_part,
-                #     self.output_model_part,
-                #     KM.Flags(), True)
+                KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+                    variable, variable,
+                    self.interface_model_part,
+                    self.output_model_part,
+                    KM.Flags(), False)
 
 
     def _SetOutputProcessInfo(self):
@@ -131,8 +131,9 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         integration_settings = KM.Parameters()
         integration_settings.AddValue("volume_model_part_name", self.settings["volume_model_part_name"])
         integration_settings.AddValue("interface_model_part_name", self.settings["interface_model_part_name"])
-        integration_settings.AddValue("direction_of_integration", self.settings["direction_of_integration"])
         integration_settings.AddValue("store_historical_database", self.settings["store_historical_database"])
+        integration_settings.AddValue("extrapolate_boundaries", self.settings["extrapolate_boundaries"])
+        integration_settings.AddValue("print_velocity_profile", self.settings["print_velocity_profile"])
         return integration_settings
 
 

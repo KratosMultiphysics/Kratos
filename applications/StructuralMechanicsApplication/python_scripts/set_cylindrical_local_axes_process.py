@@ -12,7 +12,8 @@ def Factory(settings, Model):
         """{
             "model_part_name"               : "set_model_part_name",
             "cylindrical_generatrix_axis"   : [0.0,0.0,1.0],
-            "cylindrical_generatrix_point"  : [0.0,0.0,0.0]
+            "cylindrical_generatrix_point"  : [0.0,0.0,0.0],
+            "update_at_each_step"           : false
         }""")
     process_settings = settings["Parameters"]
     process_settings.ValidateAndAssignDefaults(default_settings)

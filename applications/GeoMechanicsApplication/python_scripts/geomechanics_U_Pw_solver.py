@@ -40,6 +40,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             },
             "buffer_size": 2,
             "echo_level": 0,
+            "rebuild_level": 2,
             "reform_dofs_at_each_step": false,
             "clear_storage": false,
             "compute_reactions": false,
@@ -54,6 +55,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
+            "max_piping_iterations": 50,
             "convergence_criterion": "Displacement_criterion",
             "water_pressure_relative_tolerance": 1.0e-4,
             "water_pressure_absolute_tolerance": 1.0e-9,
@@ -79,6 +81,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "line_search_tolerance"      : 0.5,
             "rotation_dofs"              : false,
             "block_builder"              : true,
+            "prebuild_dynamics"          : false,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
                 "solver_type": "AMGCL",
@@ -183,7 +186,8 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         self.linear_solver = self._ConstructLinearSolver()
 
         # Builder and solver creation
-        builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
+        self.builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool(),
+                                                                  self.settings["prebuild_dynamics"].GetBool())
 
         # Solution scheme creation
         self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
@@ -193,7 +197,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
 
         # Solver creation
-        self.solver = self._ConstructSolver(builder_and_solver,
+        self.solver = self._ConstructSolver(self.builder_and_solver,
                                             self.settings["strategy_type"].GetString())
 
         # Set echo_level
@@ -303,11 +307,14 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         return linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _ConstructBuilderAndSolver(self, block_builder):
+    def _ConstructBuilderAndSolver(self, block_builder, prebuild_dynamics):
 
         # Creating the builder and solver
         if (block_builder):
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            if prebuild_dynamics:
+                builder_and_solver = KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
@@ -346,7 +353,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                     scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
               raise Exception("Undefined solution type", solution_type)
-        elif (scheme_type.lower() == "backward_euler"or solution_type.lower() == "backward-euler"):
+        elif (scheme_type.lower() == "backward_euler"or scheme_type.lower() == "backward-euler"):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
@@ -373,17 +380,23 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion.lower() == "residual_criterion"):
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            # other_dof_name = "WATER_PRESSURE"
+            # convergence_criterion = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             convergence_criterion.SetEchoLevel(echo_level)
         elif(convergence_criterion.lower() == "and_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            # other_dof_name = "WATER_PRESSURE"
+            # Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
         elif(convergence_criterion.lower() == "or_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
-            Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            # Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
+            other_dof_name = "WATER_PRESSURE"
+            Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
         elif(convergence_criterion.lower() == "water_pressure_criterion"):
@@ -423,6 +436,22 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                            compute_reactions,
                                                                            reform_step_dofs,
                                                                            move_mesh_flag)
+        elif strategy_type.lower() == "newton_raphson_with_piping":
+            self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
+            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
+            solving_strategy = KratosGeo.GeoMechanicsNewtonRaphsonErosionProcessStrategy(self.computing_model_part,
+                                                                                             self.scheme,
+                                                                                             self.linear_solver,
+                                                                                             self.convergence_criterion,
+                                                                                             builder_and_solver,
+                                                                                             self.strategy_params,
+                                                                                             max_iters,
+                                                                                             compute_reactions,
+                                                                                             reform_step_dofs,
+                                                                                             move_mesh_flag)
+
         elif strategy_type.lower() == "line_search":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("max_iteration",              self.settings["max_iterations"])
@@ -433,7 +462,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             self.strategy_params.AddValue("min_alpha",                  self.settings["min_alpha"])
             self.strategy_params.AddValue("max_alpha",                  self.settings["max_alpha"])
             self.strategy_params.AddValue("line_search_tolerance",      self.settings["line_search_tolerance"])
-            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
             self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
             self.strategy_params.AddValue("reform_dofs_at_each_step",   self.settings["reform_dofs_at_each_step"])
             self.strategy_params.AddValue("echo_level",                 self.settings["echo_level"])

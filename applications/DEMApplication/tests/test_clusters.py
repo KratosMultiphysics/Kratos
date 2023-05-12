@@ -19,26 +19,6 @@ subfolder_name = "cluster_tests_files"
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class ClustersTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
-
-    def GetProblemNameWithPath(self):
-        return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
-
-    def Finalize(self):
-        tol = 1e-3
-        for node in self.spheres_model_part.Nodes:
-            if node.Id == 21:
-                velz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-                self.assertAlmostEqual(velz, -0.3888113323025093, delta=tol)
-            if node.Id == 30:
-                velz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
-                self.assertAlmostEqual(velz, 0.029044273544728355, delta=tol)
-
-        del node
-
-        super().Finalize()
-
-
 class TestClusters(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -46,13 +26,82 @@ class TestClusters(KratosUnittest.TestCase):
         destination = os.path.join(os.path.dirname(os.path.realpath(__file__)), subfolder_name, "linecluster3D.clu")
         copyfile(source, destination)
 
-    @classmethod
     def test_clusters_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), subfolder_name)
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        with open(parameters_file_name,'r') as parameter_file:
+            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
         model = KratosMultiphysics.Model()
+
         with auxiliary_functions_for_tests.controlledExecutionScope(path):
-            auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ClustersTestSolution, model, parameters_file_name, 1)
+            modified_dem_analysis_stage = KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage(model, project_parameters)
+
+            backup_original_finalize = modified_dem_analysis_stage.Finalize
+            def ModifiedFinalize(*args, **kwargs):
+                def Aux(fnc, *args, **kwargs):
+                    tol = 1.0e-3
+                    node = modified_dem_analysis_stage.spheres_model_part.GetNode(22)
+                    velz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
+                    self.assertAlmostEqual(velz, -0.3888113323025093, delta=tol)
+
+                    node = modified_dem_analysis_stage.spheres_model_part.GetNode(31)
+                    velz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
+                    self.assertAlmostEqual(velz, 0.029044273544728355, delta=tol)
+
+                    fnc(*args, **kwargs)
+
+                Aux(backup_original_finalize, *args, **kwargs)
+
+            modified_dem_analysis_stage.Finalize = ModifiedFinalize
+
+            auxiliary_functions_for_tests.RunStageInSelectedNumberOfOpenMPThreads(modified_dem_analysis_stage, 1)
+
+    def test_clusters_2(self):
+        self.check_mark_1 = False
+        self.check_mark_2 = False
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), subfolder_name)
+        parameters_file_name = os.path.join(path, "ProjectParametersDEM2.json")
+        with open(parameters_file_name,'r') as parameter_file:
+            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model = KratosMultiphysics.Model()
+
+        with auxiliary_functions_for_tests.controlledExecutionScope(path):
+            modified_dem_analysis_stage = KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage(model, project_parameters)
+            backup_original_finalize_solution_step = modified_dem_analysis_stage.FinalizeSolutionStep
+
+            def ModifiedFinalizeSolutionStep(*args, **kwargs):
+                def Aux(fnc, *args, **kwargs):
+                    self.assertTrue(modified_dem_analysis_stage.DEM_parameters["BoundingBoxOption"].GetBool())
+                    self.assertAlmostEqual(modified_dem_analysis_stage.bounding_box_time_limits[0], 1.0e-6, delta=1e-12)
+                    self.assertAlmostEqual(modified_dem_analysis_stage.bounding_box_time_limits[1], 1000.0, delta=1e-12)
+                    if modified_dem_analysis_stage.time < 4.4e-6:
+                        self.assertEqual(modified_dem_analysis_stage.spheres_model_part.NumberOfNodes(0), 128)
+                        self.assertEqual(modified_dem_analysis_stage.spheres_model_part.NumberOfElements(0), 128)
+                        self.assertEqual(modified_dem_analysis_stage.cluster_model_part.NumberOfNodes(0), 2)
+                        self.assertEqual(modified_dem_analysis_stage.cluster_model_part.NumberOfElements(0), 2)
+                        self.check_mark_1 = True
+                    else:
+                        self.assertEqual(modified_dem_analysis_stage.spheres_model_part.NumberOfNodes(0), 64)
+                        self.assertEqual(modified_dem_analysis_stage.spheres_model_part.NumberOfElements(0), 64)
+                        self.assertEqual(modified_dem_analysis_stage.cluster_model_part.NumberOfNodes(0), 1)
+                        self.assertEqual(modified_dem_analysis_stage.cluster_model_part.NumberOfElements(0), 1)
+                        self.check_mark_2 = True
+                    fnc(*args, **kwargs)
+                Aux(backup_original_finalize_solution_step, *args, **kwargs)
+
+            backup_original_finalize = modified_dem_analysis_stage.Finalize
+            def ModifiedFinalize(*args, **kwargs):
+                def Aux(fnc, *args, **kwargs):
+                    self.assertTrue(self.check_mark_1)
+                    self.assertTrue(self.check_mark_2)
+                    fnc(*args, **kwargs)
+                Aux(backup_original_finalize, *args, **kwargs)
+
+
+            modified_dem_analysis_stage.FinalizeSolutionStep = ModifiedFinalizeSolutionStep
+            modified_dem_analysis_stage.Finalize = ModifiedFinalize
+
+            auxiliary_functions_for_tests.RunStageInSelectedNumberOfOpenMPThreads(modified_dem_analysis_stage, 1)
 
     def tearDown(self):
         file_to_remove = os.path.join(subfolder_name, "TimesPartialRelease")
@@ -62,7 +111,6 @@ class TestClusters(KratosUnittest.TestCase):
         file_to_remove = os.path.join(subfolder_name, "linecluster3D.clu")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
-
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

@@ -170,13 +170,13 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
       rElementalDofList.resize( N_DOF_ELEMENT );
 
     unsigned int index = 0;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
             rElementalDofList[index++] = rGeom[i].pGetDof(ROTATION_Z);
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_X);
             rElementalDofList[index++] = rGeom[i].pGetDof(DISPLACEMENT_Y);
@@ -303,13 +303,13 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
       rResult.resize( N_DOF_ELEMENT, false );
 
     unsigned int index = 0;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(ROTATION_Z).EquationId();
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
@@ -387,13 +387,13 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         rValues.resize( N_DOF_ELEMENT, false );
 
     unsigned int index = 0;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ROTATION_Z,     Step );
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
@@ -425,13 +425,13 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         rValues.resize( N_DOF_ELEMENT, false );
 
     unsigned int index = 0;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
@@ -464,13 +464,13 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         rValues.resize( N_DOF_ELEMENT, false );
 
     unsigned int index = 0;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
@@ -602,13 +602,13 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     // KRATOS_INFO("0-GeoStructuralBaseElement::GetNodalDofValuesVector") << std::endl;
 
     unsigned int index = 0;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rNodalVariableVector[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, SolutionStepIndex);
             rNodalVariableVector[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, SolutionStepIndex);
             rNodalVariableVector[index++] = rGeom[i].FastGetSolutionStepValue(ROTATION_Z, SolutionStepIndex);
         }
-    } else if (TDim == 3) {
+    } else if constexpr (TDim == 3) {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rNodalVariableVector[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X, SolutionStepIndex);
             rNodalVariableVector[index++] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y, SolutionStepIndex);

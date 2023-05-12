@@ -25,10 +25,19 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LineLoad2DDiffOrderCondition : public GeneralUPwDiffOrderCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) 
+    LineLoad2DDiffOrderCondition : public GeneralUPwDiffOrderCondition
 {
 
 public:
+
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineLoad2DDiffOrderCondition );
 
@@ -62,7 +71,10 @@ protected:
 
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
-    void CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight) override;
+    double CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                           const GeometryType::JacobiansType& JContainer,
+                                           const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
+
         
     void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
     

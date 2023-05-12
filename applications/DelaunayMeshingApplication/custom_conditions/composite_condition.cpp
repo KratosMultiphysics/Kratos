@@ -180,9 +180,9 @@ void CompositeCondition::AddChild(ConditionType::Pointer pNewChildCondition)
 //************************************************************************************
 //************************************************************************************
 
-CompositeCondition::IntegrationMethod CompositeCondition::GetIntegrationMethod()
+CompositeCondition::IntegrationMethod CompositeCondition::GetIntegrationMethod() const
 {
-  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+  for (ConditionConstantIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       return cn->GetIntegrationMethod();
     }

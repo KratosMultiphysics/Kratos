@@ -40,10 +40,8 @@ class TestDistanceSmoothing(KratosUnittest.TestCase):
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(
                 kratos_comm, model_part).Execute()
 
-        dimensions = model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
-        avg_num_elements = 3
-        KratosMultiphysics.FindElementalNeighboursProcess(
-            model_part, dimensions, avg_num_elements).Execute()
+        KratosMultiphysics.GenericFindElementalNeighboursProcess(
+            model_part).Execute()
 
         # Set IS_STRUCTURE to define contact with solid
         for node in model_part.Nodes:

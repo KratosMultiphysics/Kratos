@@ -30,7 +30,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Kernel is in charge of synchronization the whole system of Kratos itself and its appliction.
+/// Kernel is in charge of synchronization the whole system of Kratos itself and its application.
 /** Kernel is the first component of the Kratos to be created and then used to plug the application into Kratos.
     Kernel takes the list of variables defined in the Variables file in Kratos and then by adding each application
     synchronizes the variables of this application with its variables and add the new ones to the Kratos.
@@ -85,9 +85,9 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     ///@name Operations
     ///@{
 
-    /// Pluging an application into Kratos.
+    /// Plugging an application into Kratos.
     /** This method first call the register method of the new application in order to create the
-        components list of the application and then syncronizes the lists of its components with Kratos ones.
+        components list of the application and then synchronizes the lists of its components with Kratos ones.
         The synchronized lists are
       - Variables
       - Elements
@@ -97,8 +97,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void ImportApplication(KratosApplication::Pointer pNewApplication);
 
-    /// To be deprecated becuase variables have their own hash key.
-    /** The keys of Variables are not sequencial anymore, so this method will be deprecated
+    /// To be deprecated because variables have their own hash key.
+    /** The keys of Variables are not sequential anymore, so this method will be deprecated
     */
     void Initialize();
 
@@ -110,7 +110,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     */
     void InitializeApplication(KratosApplication& NewApplication) {}
 
-    bool IsImported(std::string ApplicationName) const;
+    bool IsImported(const std::string& ApplicationName) const;
 
     static bool IsDistributedRun();
 
@@ -134,6 +134,14 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     static std::string BuildType();
 
+    static std::string OSName();
+
+    static std::string PythonVersion();
+
+    static std::string Compiler();
+
+    static void SetPythonVersion(std::string);
+
     void PrintParallelismSupportInfo() const;
 
     ///@}
@@ -144,7 +152,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
 
     KratosApplication::Pointer mpKratosCoreApplication;
 
-    static bool mIsDistributedRun;
+    static bool         mIsDistributedRun;
+    static std::string  mPyVersion;
 
     ///@}
     ///@name Member Variables

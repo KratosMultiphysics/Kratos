@@ -18,6 +18,7 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
@@ -67,7 +68,7 @@ protected:
 
         //Update DtPressure
 
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
             rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = DeltaPressure / mDeltaTime;

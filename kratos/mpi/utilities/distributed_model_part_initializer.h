@@ -58,8 +58,10 @@ public:
     /// Constructor.
     DistributedModelPartInitializer(
         ModelPart& rModelPart,
-        const int SourceRank)
+        const DataCommunicator& rDataComm,
+        int SourceRank)
         : mrModelPart(rModelPart),
+          mrDataComm(rDataComm),
           mSourceRank(SourceRank)
         { }
 
@@ -70,6 +72,8 @@ public:
     ///@name Operations
     ///@{
 
+    void CopySubModelPartStructure();
+
     void Execute();
 
     ///@}
@@ -79,6 +83,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    const DataCommunicator& mrDataComm;
     int mSourceRank;
 
     ///@}

@@ -51,11 +51,14 @@ if(${INCLUDE_MMG} MATCHES ON)
 
     IF (MMG_ROOT)
         set(MMG_BUILDDIR ${MMG_ROOT})
+        set(MMG_DIR ${MMG_ROOT})
         set(MMG_LIBDIR ${MMG_ROOT}/lib)
+        set(MMG_INCDIR ${MMG_ROOT}/include)
     ENDIF(MMG_ROOT)
 
     MESSAGE(STATUS "Searching for MMG in MMG_BUILDDIR: ${MMG_BUILDDIR}")
-    MESSAGE(STATUS "... and MMG_LIBDIR: ${MMG_LIBDIR}")
+    MESSAGE(STATUS "... MMG_LIBDIR: ${MMG_LIBDIR}")
+    MESSAGE(STATUS "... MMG_INCDIR: ${MMG_INCDIR}")
 
     find_package(MMG)
     find_package(MMG2D)

@@ -59,7 +59,7 @@ class AnalysisStage(object):
         It can be overridden by derived classes
         """
         while self.KeepAdvancingSolutionLoop():
-            self.time = self._GetSolver().AdvanceInTime(self.time)
+            self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
@@ -105,8 +105,9 @@ class AnalysisStage(object):
             self.time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
 
-        ## If the echo level is high enough, print the complete list of settings used to run the simualtion
+        ## If the echo level is high enough, print the complete list of settings used to run the simulation
         if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
@@ -210,7 +211,13 @@ class AnalysisStage(object):
         """Create the solver
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")
-
+        
+    def _AdvanceTime(self):
+        """ Computes the following time 
+            The default method simply calls the solver
+        """
+        return self._GetSolver().AdvanceInTime(self.time)
+    
     ### Modelers
     def _ModelersSetupGeometryModel(self):
         # Import or generate geometry models from external input.
@@ -250,9 +257,9 @@ class AnalysisStage(object):
     def _CreateModelers(self):
         """ List of modelers in following format:
         "modelers" : [{
-            "modeler_name" : "geometry_import":
-            "parameters" : {
-                "echo_level" : 0:
+            "modeler_name" : "geometry_import",
+            "Parameters" : {
+                "echo_level" : 0,
                 // settings for this modeler
             }
         },{ ... }]
@@ -294,7 +301,7 @@ class AnalysisStage(object):
                 { proces_specific_params }
             ]
         }
-        The order of intialization can be specified by setting it in "initialization_order"
+        The order of initialization can be specified by setting it in "initialization_order"
         if e.g. the "boundary_processes" should be constructed before the "initial_processes", then
         initialization_order should be a list containing ["boundary_processes", "initial_processes"]
         see the functions _GetOrderOfProcessesInitialization and _GetOrderOfOutputProcessesInitialization
@@ -330,6 +337,16 @@ class AnalysisStage(object):
         """
         return []
 
+    def _CheckDeprecatedOutputProcesses(self, list_of_processes):
+        deprecated_output_processes = []
+        for process in list_of_processes:
+            if issubclass(type(process), KratosMultiphysics.OutputProcess):
+                deprecated_output_processes.append(process)
+                msg  = "{} is an OutputProcess. However, it has been constructed as a regular process.\n"
+                msg += "Please, define it as an 'output_processes' in the ProjectParameters."
+                IssueDeprecationWarning("AnalysisStage", msg.format(process.__class__.__name__))
+        return deprecated_output_processes
+
     def _GetSimulationName(self):
         """Returns the name of the Simulation
         """
@@ -340,9 +357,11 @@ class AnalysisStage(object):
         """
         order_processes_initialization = self._GetOrderOfProcessesInitialization()
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        deprecated_output_processes    = self._CheckDeprecatedOutputProcesses(self._list_of_processes)
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+        self._list_of_output_processes.extend(deprecated_output_processes)
 
     def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
         """In case the solver does not return the state of convergence

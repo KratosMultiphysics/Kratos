@@ -98,7 +98,7 @@ public:
     ///@{
 
     enum PointerType {SP_INVALID_POINTER, SP_BASE_CLASS_POINTER, SP_DERIVED_CLASS_POINTER};
-    enum TraceType {SERIALIZER_NO_TRACE=0, SERIALIZER_TRACE_ERROR=1, SERIALIZER_TRACE_ALL=2};
+    enum TraceType {SERIALIZER_NO_TRACE=0, SERIALIZER_TRACE_ERROR=1, SERIALIZER_TRACE_ALL=2, SERIALIZER_ASCII=3};
 
     ///@}
     ///@name Type Definitions
@@ -154,6 +154,10 @@ public:
     /// This function returns the "trace type" used in initializing the serializer.
     /// Trace type is one of SERIALIZER_NO_TRACE,SERIALIZER_TRACE_ERROR,SERIALIZER_TRACE_ALL
     TraceType GetTraceType() const {return mTrace;}
+
+    static std::string TraceTypeToString(Serializer::TraceType Trace);
+
+    static Serializer::TraceType StringToTraceType(const std::string& Trace);
 
     void SetBuffer(BufferType* pBuffer)
     {
@@ -579,31 +583,18 @@ public:
 
     void save_trace_point(std::string const & rTag)
     {
-        if(mTrace) {
+        if(mTrace == SERIALIZER_TRACE_ERROR || mTrace == SERIALIZER_TRACE_ALL) {
             write(rTag);
         }
     }
 
     bool load_trace_point(std::string const & rTag)
     {
-        if(mTrace == SERIALIZER_TRACE_ERROR) {// only reporting the errors
+        if (mTrace == SERIALIZER_TRACE_ERROR || mTrace == SERIALIZER_TRACE_ALL) {
             std::string read_tag;
             read(read_tag);
             if(read_tag == rTag) {
-                return true;
-            } else {
-                std::stringstream buffer;
-                buffer << "In line " << mNumberOfLines;
-                buffer << " the trace tag is not the expected one:" << std::endl;
-                buffer << "    Tag found : " << read_tag << std::endl;
-                buffer << "    Tag given : " << rTag << std::endl;
-                CO_SIM_IO_ERROR << buffer.str() << std::endl;
-            }
-        } else if (mTrace == SERIALIZER_TRACE_ALL) {// also reporting matched tags.
-            std::string read_tag;
-            read(read_tag);
-            if(read_tag == rTag) {
-                CO_SIM_IO_INFO("Serializer") << "In line " << mNumberOfLines << " loading " << rTag << " as expected" << std::endl;
+                CO_SIM_IO_INFO_IF("CoSimIO-Serializer", mTrace==SERIALIZER_TRACE_ALL) << "In line " << mNumberOfLines << " loading " << rTag << " as expected" << std::endl;
                 return true;
             } else {
                 std::stringstream buffer;
@@ -767,11 +758,10 @@ private:
 
         SizeType size;
         mpBuffer->read((char *)(&size),sizeof(SizeType));
-        char* c_binStream = new char [size];
-        mpBuffer->read(c_binStream,size);
-        std::string s_binStream(c_binStream,size);
-        rValue = s_binStream;
-        delete [] c_binStream;
+        rValue.resize(size);
+        if (size>0) {
+            mpBuffer->read(&rValue.front(),size);
+        }
 
         CO_SIM_IO_SERIALIZER_MODE_ASCII
 
@@ -797,6 +787,9 @@ private:
         mpBuffer->write(data,rData_size);
 
         CO_SIM_IO_SERIALIZER_MODE_ASCII
+
+        CO_SIM_IO_DEBUG_ERROR_IF_NOT(rValue.find('"') == std::string::npos)  << "String contains a quote character, which is not supported!" << std::endl;
+        CO_SIM_IO_DEBUG_ERROR_IF_NOT(rValue.find('\n') == std::string::npos) << "String contains a newline character, which is not supported!" << std::endl;
 
         *mpBuffer << "\"" << rValue << "\"" << std::endl;
 

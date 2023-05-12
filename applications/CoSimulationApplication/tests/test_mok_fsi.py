@@ -7,12 +7,6 @@ from KratosMultiphysics.testing.utilities import GetPython3Command
 import co_simulation_test_case
 import os
 
-try:
-    import numpy
-    numpy_available = True
-except ImportError:
-    numpy_available = False
-
 have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
 
 def GetFilePath(fileName):
@@ -22,8 +16,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
     cfd_tes_file_name = "fsi_mok/ProjectParametersCFD_for_test.json"
 
     def setUp(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
         if not have_fsi_dependencies:
             self.skipTest("FSI dependencies are not available!")
 
@@ -61,7 +53,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__RemoveOutputFromCFD() # comment to get output
             self.__AddTestingToCFD()
             self.__DumpUpdatedCFDSettings()
-            self._runTestWithExternal([GetPython3Command(), "structural_mechanics_analysis_with_co_sim_io.py", ext_parameter_file_name])
+            self._runTestWithExternal([GetPython3Command(), "testing_structural_mechanics_analysis_with_co_sim_io.py", ext_parameter_file_name])
 
     def test_mok_fsi_mvqn_external_structure_remote_controlled(self):
         self.accelerator_type = "mvqn"
@@ -91,7 +83,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.cfd_parameters["problem_data"]["parallel_type"].SetString("MPI")
             self.__DumpUpdatedCFDSettings()
             num_procs = KM.Testing.GetDefaultDataCommunicator().Size()
-            self._runTestWithExternal(["mpiexec", "-np", str(num_procs), GetPython3Command(), "structural_mechanics_analysis_with_co_sim_io.py", "--using-mpi", ext_parameter_file_name])
+            self._runTestWithExternal(["mpiexec", "-np", str(num_procs), GetPython3Command(), "testing_structural_mechanics_analysis_with_co_sim_io.py", "--using-mpi", ext_parameter_file_name])
 
 
     def __ManipulateCFDSettings(self):

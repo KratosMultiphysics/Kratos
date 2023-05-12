@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -36,7 +36,6 @@ void SolidShellThickComputeProcess::Execute()
     // Now we iterate over the elements to create a connectivity map
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
 
-//     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i){
         const auto it_elem = elements_array.begin() + i;
 

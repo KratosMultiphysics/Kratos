@@ -4,14 +4,13 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrandiz
+//  Co-authors:      Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED )
-#define  KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -63,7 +62,7 @@
 #include "custom_elements/nodal_concentrated_element.h"
 
 /* Adding the spring damper element */
-#include "custom_elements/spring_damper_element_3D2N.hpp"
+#include "custom_elements/spring_damper_element.hpp"
 
 /* Adding the SPRISM element */
 #include "custom_elements/solid_shell_element_sprism_3D6N.h"
@@ -80,6 +79,8 @@
 
 /* Adding the mixed solid elements */
 #include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "custom_elements/total_lagrangian_mixed_volumetric_strain_element.h"
+#include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
 
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
@@ -93,6 +94,7 @@
 #include "custom_conditions/small_displacement_surface_load_condition_3d.h"
 #include "custom_conditions/point_moment_condition_3d.h"
 #include "custom_conditions/displacement_control_condition.h"
+#include "custom_conditions/moving_load_condition.h"
 
 /* Adding the adjoint conditions */
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
@@ -161,7 +163,6 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -172,11 +173,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -213,46 +212,36 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -262,7 +251,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
 
     /* ELEMENTS */
 
@@ -309,10 +297,14 @@ private:
     const SmallDisplacement mSmallDisplacement2D6N;
     const SmallDisplacement mSmallDisplacement2D8N;
     const SmallDisplacement mSmallDisplacement2D9N;
+    const SmallDisplacement mSmallDisplacement2D10N;
+    const SmallDisplacement mSmallDisplacement2D15N;
     const SmallDisplacement mSmallDisplacement3D4N;
+    const SmallDisplacement mSmallDisplacement3D5N;
     const SmallDisplacement mSmallDisplacement3D6N;
     const SmallDisplacement mSmallDisplacement3D8N;
     const SmallDisplacement mSmallDisplacement3D10N;
+    const SmallDisplacement mSmallDisplacement3D13N;
     const SmallDisplacement mSmallDisplacement3D15N;
     const SmallDisplacement mSmallDisplacement3D20N;
     const SmallDisplacement mSmallDisplacement3D27N;
@@ -324,6 +316,16 @@ private:
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement2D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D4N;
     const SmallDisplacementMixedVolumetricStrainElement mSmallDisplacementMixedVolumetricStrainElement3D8N;
+
+    const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
+    const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
+
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D3N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D4N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D4N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D10N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D8N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D20N;
 
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;
@@ -343,10 +345,14 @@ private:
     const TotalLagrangian mTotalLagrangian2D6N;
     const TotalLagrangian mTotalLagrangian2D8N;
     const TotalLagrangian mTotalLagrangian2D9N;
+    const TotalLagrangian mTotalLagrangian2D10N;
+    const TotalLagrangian mTotalLagrangian2D15N;
     const TotalLagrangian mTotalLagrangian3D4N;
+    const TotalLagrangian mTotalLagrangian3D5N;
     const TotalLagrangian mTotalLagrangian3D6N;
     const TotalLagrangian mTotalLagrangian3D8N;
     const TotalLagrangian mTotalLagrangian3D10N;
+    const TotalLagrangian mTotalLagrangian3D13N;
     const TotalLagrangian mTotalLagrangian3D15N;
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
@@ -363,10 +369,14 @@ private:
     const UpdatedLagrangian mUpdatedLagrangian2D6N;
     const UpdatedLagrangian mUpdatedLagrangian2D8N;
     const UpdatedLagrangian mUpdatedLagrangian2D9N;
+    const UpdatedLagrangian mUpdatedLagrangian2D10N;
+    const UpdatedLagrangian mUpdatedLagrangian2D15N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
+    const UpdatedLagrangian mUpdatedLagrangian3D5N;
     const UpdatedLagrangian mUpdatedLagrangian3D6N;
     const UpdatedLagrangian mUpdatedLagrangian3D8N;
     const UpdatedLagrangian mUpdatedLagrangian3D10N;
+    const UpdatedLagrangian mUpdatedLagrangian3D13N;
     const UpdatedLagrangian mUpdatedLagrangian3D15N;
     const UpdatedLagrangian mUpdatedLagrangian3D20N;
     const UpdatedLagrangian mUpdatedLagrangian3D27N;
@@ -378,7 +388,8 @@ private:
     const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
 
     // Adding the spring damper element
-    const SpringDamperElement3D2N mSpringDamperElement3D2N;
+    const SpringDamperElement<2> mSpringDamperElement2D;
+    const SpringDamperElement<3> mSpringDamperElement3D;
 
     // Adding adjoint elements
     const AdjointFiniteDifferencingShellElement<ShellThinElement3D3N<ShellKinematics::LINEAR>> mAdjointFiniteDifferencingShellThinElement3D3N;
@@ -393,7 +404,7 @@ private:
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D4N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D6N;
     const AdjointFiniteDifferencingSmallDisplacementElement<SmallDisplacement> mAdjointFiniteDifferencingSmallDisplacementElement3D8N;
-    const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement3D2N>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
+    const AdjointFiniteDifferenceSpringDamperElement<SpringDamperElement<3>>  mAdjointFiniteDifferenceSpringDamperElement3D2N;
 
     /* CONDITIONS*/
     // Point load
@@ -407,11 +418,15 @@ private:
     // Line load
     const LineLoadCondition<2> mLineLoadCondition2D2N;
     const LineLoadCondition<2> mLineLoadCondition2D3N;
+    const LineLoadCondition<2> mLineLoadCondition2D4N;
+    const LineLoadCondition<2> mLineLoadCondition2D5N;
     const LineLoadCondition<3> mLineLoadCondition3D2N;
     const LineLoadCondition<3> mLineLoadCondition3D3N;
 
     const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D2N;
     const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D3N;
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D4N;
+    const SmallDisplacementLineLoadCondition<2> mSmallDisplacementLineLoadCondition2D5N;
     const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D2N;
     const SmallDisplacementLineLoadCondition<3> mSmallDisplacementLineLoadCondition3D3N;
 
@@ -446,6 +461,12 @@ private:
 
     // Displacement-Control Conditions
     const DisplacementControlCondition mDisplacementControlCondition3D1N;
+
+    // Moving load
+    const MovingLoadCondition<2,2> mMovingLoadCondition2D2N;
+    const MovingLoadCondition<2, 3> mMovingLoadCondition2D3N;
+    const MovingLoadCondition<3, 2> mMovingLoadCondition3D2N;
+    const MovingLoadCondition<3, 3> mMovingLoadCondition3D3N;
 
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
@@ -507,5 +528,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined

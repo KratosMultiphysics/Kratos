@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
@@ -103,12 +103,12 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
 
     std::vector<Vector> eigen_vectors_container;
 
-    Vector auxiliar_vector = ZeroVector(Dimension);
+    Vector auxiliary_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        auxiliar_vector[0] = eigen_vectors_matrix(i, 0);
-        auxiliar_vector[1] = eigen_vectors_matrix(i, 1);
-        auxiliar_vector[2] = eigen_vectors_matrix(i, 2);
-        eigen_vectors_container.push_back(auxiliar_vector);
+        auxiliary_vector[0] = eigen_vectors_matrix(i, 0);
+        auxiliary_vector[1] = eigen_vectors_matrix(i, 1);
+        auxiliary_vector[2] = eigen_vectors_matrix(i, 2);
+        eigen_vectors_container.push_back(auxiliary_vector);
     }
 
     Vector sigma_tension_vector;
@@ -172,11 +172,11 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 
     std::vector<Vector> eigen_vectors_container;
 
-    Vector auxiliar_vector = ZeroVector(Dimension);
+    Vector auxiliary_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        auxiliar_vector[0] = eigen_vectors_matrix(i, 0);
-        auxiliar_vector[1] = eigen_vectors_matrix(i, 1);
-        eigen_vectors_container.push_back(auxiliar_vector);
+        auxiliary_vector[0] = eigen_vectors_matrix(i, 0);
+        auxiliary_vector[1] = eigen_vectors_matrix(i, 1);
+        eigen_vectors_container.push_back(auxiliary_vector);
     }
 
     Vector sigma_tension_vector;
@@ -208,90 +208,161 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorVoigt(
     const BoundedMatrixType& rEulerOperator,
     BoundedMatrixVoigtType& rVoigtOperator
     )
 {
-    rVoigtOperator.clear();
+    if constexpr (Dimension == 2) {
+        const double c = rEulerOperator(0, 0);
+        const double s = rEulerOperator(0, 1);
 
-    const double l1 = rEulerOperator(0, 0);
-    const double l2 = rEulerOperator(1, 0);
-    const double l3 = rEulerOperator(2, 0);
-    const double m1 = rEulerOperator(0, 1);
-    const double m2 = rEulerOperator(1, 1);
-    const double m3 = rEulerOperator(2, 1);
-    const double n1 = rEulerOperator(0, 2);
-    const double n2 = rEulerOperator(1, 2);
-    const double n3 = rEulerOperator(2, 2);
+        rVoigtOperator(0, 0) = std::pow(c, 2);
+        rVoigtOperator(0, 1) = std::pow(s, 2);
+        rVoigtOperator(0, 2) = c * s;
 
-    rVoigtOperator(0, 0) = std::pow(l1, 2);
-    rVoigtOperator(0, 1) = std::pow(m1, 2);
-    rVoigtOperator(0, 2) = std::pow(n1, 2);
-    rVoigtOperator(0, 3) = l1 * m1;
-    rVoigtOperator(0, 4) = m1 * n1;
-    rVoigtOperator(0, 5) = n1 * l1;
+        rVoigtOperator(1, 0) = std::pow(s, 2);
+        rVoigtOperator(1, 1) = std::pow(c, 2);
+        rVoigtOperator(1, 2) = -c * s;
 
-    rVoigtOperator(1, 0) = std::pow(l2, 2);
-    rVoigtOperator(1, 1) = std::pow(m2, 2);
-    rVoigtOperator(1, 2) = std::pow(n2, 2);
-    rVoigtOperator(1, 3) = l2 * m2;
-    rVoigtOperator(1, 4) = m2 * n2;
-    rVoigtOperator(1, 5) = n2 * l2;
+        rVoigtOperator(2, 0) = -2.0 * c * s;
+        rVoigtOperator(2, 1) = 2.0 * c * s;
+        rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
+    } else {
+        const double l1 = rEulerOperator(0, 0);
+        const double l2 = rEulerOperator(1, 0);
+        const double l3 = rEulerOperator(2, 0);
+        const double m1 = rEulerOperator(0, 1);
+        const double m2 = rEulerOperator(1, 1);
+        const double m3 = rEulerOperator(2, 1);
+        const double n1 = rEulerOperator(0, 2);
+        const double n2 = rEulerOperator(1, 2);
+        const double n3 = rEulerOperator(2, 2);
 
-    rVoigtOperator(2, 0) = std::pow(l3, 2);
-    rVoigtOperator(2, 1) = std::pow(m3, 2);
-    rVoigtOperator(2, 2) = std::pow(n3, 2);
-    rVoigtOperator(2, 3) = l3 * m3;
-    rVoigtOperator(2, 4) = m3 * n3;
-    rVoigtOperator(2, 5) = n3 * l3;
+        rVoigtOperator(0, 0) = std::pow(l1, 2);
+        rVoigtOperator(0, 1) = std::pow(m1, 2);
+        rVoigtOperator(0, 2) = std::pow(n1, 2);
+        rVoigtOperator(0, 3) = l1 * m1;
+        rVoigtOperator(0, 4) = m1 * n1;
+        rVoigtOperator(0, 5) = n1 * l1;
 
-    rVoigtOperator(3, 0) = 2.0 * l1 * l2;
-    rVoigtOperator(3, 1) = 2.0 * m1 * m2;
-    rVoigtOperator(3, 2) = 2.0 * n1 * n2;
-    rVoigtOperator(3, 3) = l1 * m2 + l2 * m1;
-    rVoigtOperator(3, 4) = m1 * n2 + m2 * n1;
-    rVoigtOperator(3, 5) = n1 * l2 + n2 * l1;
+        rVoigtOperator(1, 0) = std::pow(l2, 2);
+        rVoigtOperator(1, 1) = std::pow(m2, 2);
+        rVoigtOperator(1, 2) = std::pow(n2, 2);
+        rVoigtOperator(1, 3) = l2 * m2;
+        rVoigtOperator(1, 4) = m2 * n2;
+        rVoigtOperator(1, 5) = n2 * l2;
 
-    rVoigtOperator(4, 0) = 2.0 * l2 * l3;
-    rVoigtOperator(4, 1) = 2.0 * m2 * m3;
-    rVoigtOperator(4, 2) = 2.0 * n2 * n3;
-    rVoigtOperator(4, 3) = l2 * m3 + l3 * m2;
-    rVoigtOperator(4, 4) = m2 * n3 + m3 * n2;
-    rVoigtOperator(4, 5) = n2 * l3 + n3 * l2;
+        rVoigtOperator(2, 0) = std::pow(l3, 2);
+        rVoigtOperator(2, 1) = std::pow(m3, 2);
+        rVoigtOperator(2, 2) = std::pow(n3, 2);
+        rVoigtOperator(2, 3) = l3 * m3;
+        rVoigtOperator(2, 4) = m3 * n3;
+        rVoigtOperator(2, 5) = n3 * l3;
 
-    rVoigtOperator(5, 0) = 2.0 * l3 * l1;
-    rVoigtOperator(5, 1) = 2.0 * m3 * m1;
-    rVoigtOperator(5, 2) = 2.0 * n3 * n1;
-    rVoigtOperator(5, 3) = l3 * m1 + l1 * m3;
-    rVoigtOperator(5, 4) = m3 * n1 + m1 * n3;
-    rVoigtOperator(5, 5) = n3 * l1 + n1 * l3;
+        rVoigtOperator(3, 0) = 2.0 * l1 * l2;
+        rVoigtOperator(3, 1) = 2.0 * m1 * m2;
+        rVoigtOperator(3, 2) = 2.0 * n1 * n2;
+        rVoigtOperator(3, 3) = l1 * m2 + l2 * m1;
+        rVoigtOperator(3, 4) = m1 * n2 + m2 * n1;
+        rVoigtOperator(3, 5) = n1 * l2 + n2 * l1;
+
+        rVoigtOperator(4, 0) = 2.0 * l2 * l3;
+        rVoigtOperator(4, 1) = 2.0 * m2 * m3;
+        rVoigtOperator(4, 2) = 2.0 * n2 * n3;
+        rVoigtOperator(4, 3) = l2 * m3 + l3 * m2;
+        rVoigtOperator(4, 4) = m2 * n3 + m3 * n2;
+        rVoigtOperator(4, 5) = n2 * l3 + n3 * l2;
+
+        rVoigtOperator(5, 0) = 2.0 * l3 * l1;
+        rVoigtOperator(5, 1) = 2.0 * m3 * m1;
+        rVoigtOperator(5, 2) = 2.0 * n3 * n1;
+        rVoigtOperator(5, 3) = l3 * m1 + l1 * m3;
+        rVoigtOperator(5, 4) = m3 * n1 + m1 * n3;
+        rVoigtOperator(5, 5) = n3 * l1 + n1 * l3;
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-
-template<>
-void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
-    const BoundedMatrixType& rEulerOperator,
-    BoundedMatrixVoigtType& rVoigtOperator
-    )
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
-    const double c = rEulerOperator(0, 0);
-    const double s = rEulerOperator(0, 1);
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
 
-    rVoigtOperator(0, 0) = std::pow(c, 2);
-    rVoigtOperator(0, 1) = std::pow(s, 2);
-    rVoigtOperator(0, 2) = c * s;
+    if (rC.size1() != VoigtSize)
+        rC.resize(VoigtSize, VoigtSize, false);
+    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
 
-    rVoigtOperator(1, 0) = std::pow(s, 2);
-    rVoigtOperator(1, 1) = std::pow(c, 2);
-    rVoigtOperator(1, 2) = -c * s;
+    const double c1 = E / (1.0 - NU * NU);
+    const double c2 = c1 * NU;
+    const double c3 = 0.5 * E / (1.0 + NU);
 
-    rVoigtOperator(2, 0) = -2.0 * c * s;
-    rVoigtOperator(2, 1) = 2.0 * c * s;
-    rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
+    rC(0, 0) = c1;
+    rC(0, 1) = c2;
+    rC(1, 0) = c2;
+    rC(1, 1) = c1;
+    rC(2, 2) = c3;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+
+    if (rC.size1() != VoigtSize)
+        rC.resize(VoigtSize, VoigtSize, false);
+    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
+    const double c1 = (1.0 - NU) * c0;
+    const double c2 = c0 * NU;
+    const double c3 = (0.5 - NU) * c0;
+
+    rC(0, 0) = c1;
+    rC(0, 1) = c2;
+    rC(1, 0) = c2;
+    rC(1, 1) = c1;
+    rC(2, 2) = c3;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E  = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+
+    if (rC.size1() != VoigtSize)
+        rC.resize(VoigtSize, VoigtSize, false);
+    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+
+    const double c1 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
+    const double c2 = c1 * (1.0 - NU);
+    const double c3 = c1 * NU;
+    const double c4 = c1 * 0.5 * (1.0 - 2.0 * NU);
+
+    rC(0, 0) = c2;
+    rC(0, 1) = c3;
+    rC(0, 2) = c3;
+    rC(1, 0) = c3;
+    rC(1, 1) = c2;
+    rC(1, 2) = c3;
+    rC(2, 0) = c3;
+    rC(2, 1) = c3;
+    rC(2, 2) = c2;
+    rC(3, 3) = c4;
+    rC(4, 4) = c4;
+    rC(5, 5) = c4;
 }
 
 /***********************************************************************************/

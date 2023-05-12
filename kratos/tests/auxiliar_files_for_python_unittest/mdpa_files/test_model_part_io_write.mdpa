@@ -29,6 +29,11 @@ Begin Geometries	Quadrilateral2D4
 	1	4	6	2	3	
 End Geometries
 
+Begin NodalData	BOUNDARY
+1
+2
+End NodalData
+
 Begin NodalData	DISPLACEMENT_X
 1	1	1.0000000000e-01
 2	1	2.0000000000e-01

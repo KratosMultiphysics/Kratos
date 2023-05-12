@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SOLID_SHELL_ELEMENT_SPRISM_3D6N_H_INCLUDED )
-#define  KRATOS_SOLID_SHELL_ELEMENT_SPRISM_3D6N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -87,7 +86,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// This is the definition of the node.
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The base element type
     typedef BaseSolidElement BaseType;
@@ -807,7 +806,7 @@ protected:
     /* Finalize and Initialize label*/
     bool mFinalizedStep;
 
-    /* Auxiliar vector of matrices container used for different pourposes in TL and UL */
+    /* Auxiliary vector of matrices container used for different pourposes in TL and UL */
     std::vector< Matrix > mAuxContainer; /// Container for historical total Jacobians for Total Lagrangian
                                          /// Container for historical total elastic deformation measure F0 = dx/dX  for Updated Lagrangian
 
@@ -1091,7 +1090,7 @@ protected:
     /**
      * @brief Construction of the in-plane geometric stiffness matrix:
      * @param Kgeometricmembrane Membrane component of the stiffness matrix
-     * @param rCartesianDerivatives Cartesian derivatives auxiliar struct
+     * @param rCartesianDerivatives Cartesian derivatives auxiliary struct
      * @param Part The enum that indicates upper or lower face
      */
     void CalculateAndAddMembraneKgeometric(
@@ -1105,7 +1104,7 @@ protected:
      * @brief Construction of the shear deformation tangent matrix:
      * @param BShear Shear component of the deformation tangent matrix
      * @param CShear Shear components of the Cauchy tensor
-     * @param rCartesianDerivatives Cartesian derivatives auxiliar struct
+     * @param rCartesianDerivatives Cartesian derivatives auxiliary struct
      * @param rTransverseGradient Local deformation gradient components for each Gauss point
      * @param rTransverseGradientIsoParametric Local deformation gradient components in the isogeometric space
      * @param Part The enum that indicates upper or lower face
@@ -1122,7 +1121,7 @@ protected:
     /**
      * @brief Construction of the shear geometric contribution to the stiffness matrix:
      * @param Kgeometricshear The shear geometric contribution to the stiffness matrix
-     * @param rCartesianDerivatives Cartesian derivatives auxiliar struct
+     * @param rCartesianDerivatives Cartesian derivatives auxiliary struct
      * @param SShear The shear components of the PK2 tensor
      * @param Part The enum that indicates upper or lower face
      */
@@ -1558,5 +1557,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_SOLID_SHELL_ELEMENT_SPRISM_3D6N_H_INCLUDED  defined

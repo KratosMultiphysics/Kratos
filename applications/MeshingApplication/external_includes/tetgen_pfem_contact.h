@@ -16,7 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <boost/timer.hpp>
 
 
@@ -30,7 +30,6 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application_variables.h"
-#include "processes/node_erase_process.h"
 
 #include "spatial_containers/spatial_containers.h"
 //#include "containers/bucket.h"
@@ -111,7 +110,7 @@ public:
         for(ModelPart::ElementsContainerType::iterator elem = ThisModelPart.ElementsBegin();
                 elem!=ThisModelPart.ElementsEnd(); elem++)
         {
-            Geometry< Node<3> >& geom = elem->GetGeometry();
+            Geometry< Node >& geom = elem->GetGeometry();
 //KRATOS_WATCH(geom);
 
             shell_nodes.push_back(geom(0));
@@ -130,7 +129,7 @@ public:
                 elem!=ThisModelPart.ElementsEnd(); elem++)
         {
             ++shell_num;
-            Geometry< Node<3> >& geom = elem->GetGeometry();
+            Geometry< Node >& geom = elem->GetGeometry();
             shell_list.push_back(geom[0].Id());
             shell_list.push_back(geom[1].Id());
             shell_list.push_back(geom[2].Id());
@@ -221,7 +220,7 @@ public:
             int id = iii + 1;
             int base = iii * 4;
             //KRATOS_WATCH("inside 1");
-            Tetrahedra3D4<Node<3> > geom(
+            Tetrahedra3D4<Node > geom(
                 *( (nodes_begin +  out_shell.tetrahedronlist[base]-1).base() 		),
                 *( (nodes_begin +  out_shell.tetrahedronlist[base+1]-1).base() 	),
                 *( (nodes_begin +  out_shell.tetrahedronlist[base+2]-1).base() 	),
@@ -248,7 +247,7 @@ public:
         for(ModelPart::ElementsContainerType::const_iterator iii = ThisModelPart.ElementsBegin();
                 iii != ThisModelPart.ElementsEnd(); iii++)
         {
-            //Geometry< Node<3> >& geom = iii->GetGeometry();
+            //Geometry< Node >& geom = iii->GetGeometry();
             int base = ( iii->Id() - 1 )*4;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
@@ -413,7 +412,7 @@ private:
     		{
     			KRATOS_TRY
     KRATOS_WATCH("inside create boundary");
-    			Geometry<Node<3> >& geom = origin_element->GetGeometry();
+    			Geometry<Node >& geom = origin_element->GetGeometry();
     			//mark the nodes as free surface
     			geom[i1].FastGetSolutionStepValue(IS_BOUNDARY) = 1;
     			geom[i2].FastGetSolutionStepValue(IS_BOUNDARY) = 1;
@@ -429,8 +428,8 @@ private:
     KRATOS_WATCH(geom);
     KRATOS_WATCH(properties);
     KRATOS_WATCH(rReferenceBoundaryCondition);
-    			Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
-    			//Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D< Node<3> >(temp) );
+    			Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Triangle3D3< Node >(temp) );
+    			//Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Triangle3D< Node >(temp) );
     			int id = (origin_element->Id()-1)*4;
     			//Condition::Pointer p_cond = Condition::Pointer(new Condition(id, cond, properties) );
     			//Condition::Pointer p_cond = rReferenceBoundaryCondition::Pointer(new Condition(id, cond, properties) );
@@ -438,7 +437,7 @@ private:
     			//assigning the neighbour node
     KRATOS_WATCH("face is created 2");
     			(p_cond->GetValue(NEIGHBOUR_NODES)).clear();
-    			(p_cond->GetValue(NEIGHBOUR_NODES)).push_back( Node<3>::WeakPointer( geom(outer_node_id) ) );
+    			(p_cond->GetValue(NEIGHBOUR_NODES)).push_back( Node::WeakPointer( geom(outer_node_id) ) );
     			(p_cond->GetValue(NEIGHBOUR_ELEMENTS)).clear();
     			(p_cond->GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( origin_element ) );
     			ThisModelPart.Conditions().push_back(p_cond);

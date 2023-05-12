@@ -1,5 +1,5 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.MappingApplication as KratosMapping
+import KratosMultiphysics.MappingApplication # registering the mappers
 from KratosMultiphysics import KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 import os

@@ -31,12 +31,13 @@ namespace Kratos {
 namespace Testing {
 
     // Adding some typedef
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
     constexpr double EPSILON = std::numeric_limits<double>::epsilon();
+    constexpr double ZERO_TOLERANCE = 1e-16;
     constexpr double TOLERANCE = 1e-6;
 
     /// Factory functions

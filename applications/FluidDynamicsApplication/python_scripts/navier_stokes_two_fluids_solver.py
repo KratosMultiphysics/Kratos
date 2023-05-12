@@ -12,6 +12,8 @@ if have_conv_diff:
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.read_distance_from_file import DistanceImportUtility
 
+from pathlib import Path
+
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
 
@@ -204,12 +206,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             computing_model_part)
         neighbour_search.Execute()
 
-        dimensions = computing_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
-        avg_num_elements = 10
-        elemental_neighbour_search = KratosMultiphysics.FindElementalNeighboursProcess(
-            computing_model_part,
-            dimensions,
-            avg_num_elements)
+        elemental_neighbour_search = KratosMultiphysics.GenericFindElementalNeighboursProcess(
+            computing_model_part)
         elemental_neighbour_search.Execute()
 
         # Set and initialize the solution strategy
@@ -254,90 +252,75 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # System water volume is calculated for current time step considering inlet and outlet discharge.
             system_volume = inlet_volume + self.initial_system_volume - outlet_volume
 
-        if self._TimeBufferIsInitialized():
-            # Recompute the BDF2 coefficients
-            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+        # Recompute the BDF2 coefficients
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
-            # Perform the level-set convection according to the previous step velocity
-            self.__PerformLevelSetConvection()
+        # Perform the level-set convection according to the previous step velocity
+        self._PerformLevelSetConvection()
 
-            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
-            # filtering noises is necessary for curvature calculation
-            if (self._distance_smoothing):
-                # distance gradient is used as a boundary condition for smoothing process
-                self._GetDistanceGradientProcess().Execute()
-                self._GetDistanceSmoothingProcess().Execute()
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Smoothing process is finished.")
+        # filtering noises is necessary for curvature calculation
+        if (self._distance_smoothing):
+            # distance gradient is used as a boundary condition for smoothing process
+            self._GetDistanceGradientProcess().Execute()
+            self._GetDistanceSmoothingProcess().Execute()
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Smoothing process is finished.")
 
-            if (self.main_model_part.ProcessInfo[KratosCFD.SURFACE_TENSION]):
-                # distance gradient is called again to comply with the smoothed/modified DISTANCE
-                self._GetDistanceGradientProcess().Execute()
-                # curvature is calculated using nodal distance gradient
-                self._GetDistanceCurvatureProcess().Execute()
-                # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
-                self._GetConsistentNodalPressureGradientProcess().Execute()
+        if (self.main_model_part.ProcessInfo[KratosCFD.SURFACE_TENSION]):
+            # distance gradient is called again to comply with the smoothed/modified DISTANCE
+            self._GetDistanceGradientProcess().Execute()
+            # curvature is calculated using nodal distance gradient
+            self._GetDistanceCurvatureProcess().Execute()
+            # it is needed to store level-set consistent nodal PRESSURE_GRADIENT for stabilization purpose
+            self._GetConsistentNodalPressureGradientProcess().Execute()
 
-            # TODO: Performing mass conservation check and correction process
+        # TODO: Performing mass conservation check and correction process
 
-            # Perform distance correction to prevent ill-conditioned cuts
-            self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+        # Perform distance correction to prevent ill-conditioned cuts
+        self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
-            # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
-            self._SetNodalProperties()
+        # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
+        self._SetNodalProperties()
 
-            # Initialize the solver current step
-            self._GetSolutionStrategy().InitializeSolutionStep()
+        # Initialize the solver current step
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
-            # Accumulative water volume error ratio due to level set. Adding source term
-            if self.mass_source:
-                water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-                volume_error = (water_volume_after_transport - system_volume) / system_volume
-                self.initial_system_volume=water_volume_after_transport
-            else:
-                volume_error=0
+        # Accumulative water volume error ratio due to level set. Adding source term
+        if self.mass_source:
+            water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+            volume_error = (water_volume_after_transport - system_volume) / system_volume
+            self.initial_system_volume=system_volume
+        else:
+            volume_error=0
 
-            self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
+        self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
 
-            # We set this value at every time step as other processes/solvers also use them
-            dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
+        # We set this value at every time step as other processes/solvers also use them
+        dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
 
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
-        if self._TimeBufferIsInitialized():
-            # Recompute the distance field according to the new level-set position
-            if (self._reinitialization_type == "variational"):
-                self._GetDistanceReinitializationProcess().Execute()
-            elif (self._reinitialization_type == "parallel"):
-                layers = self.settings["parallel_redistance_max_layers"].GetInt()
-                max_distance = 1.0 # use this parameter to define the redistancing range
-                # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
-                self._GetDistanceReinitializationProcess().CalculateDistances(
-                    self.main_model_part,
-                    self._levelset_variable,
-                    KratosMultiphysics.NODAL_AREA,
-                    layers,
-                    max_distance,
-                    self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        # Recompute the distance field according to the new level-set position
+        if self._reinitialization_type != "none":
+            self._GetDistanceReinitializationProcess().Execute()
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
-            if (self._reinitialization_type != "none"):
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+        # Prepare distance correction for next step
+        self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
-            # Prepare distance correction for next step
-            self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        # Finalize the solver current step
+        self._GetSolutionStrategy().FinalizeSolutionStep()
+        # Limit the obtained acceleration for the next step
+        # This limitation should be called on the second solution step onwards (e.g. STEP=2 for BDF2)
+        # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
+        if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] > 1:
+            self._GetAccelerationLimitationUtility().Execute()
 
-            # Finalize the solver current step
-            self._GetSolutionStrategy().FinalizeSolutionStep()
-            # Limit the obtained acceleration for the next step
-            # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
-            # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
-            if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
-                self._GetAccelerationLimitationUtility().Execute()
-
-    def __PerformLevelSetConvection(self):
+    def _PerformLevelSetConvection(self):
         # Solve the levelset convection problem
         self._GetLevelSetConvectionProcess().Execute()
 
@@ -350,25 +333,43 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Check if the fluid properties are provided using a .json file
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
+            data_comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator() # only using the global comm as the Communicators are not yet created when running in MPI. Hotfix since this method will disappear completely when using subproperties!
+
+            def GetAuxMaterialsFileName(mat_file_name, prop_id):
+                p_mat_file_name = Path(mat_file_name)
+                new_stem = "{}_p{}".format(p_mat_file_name.stem, prop_id)
+                return str(p_mat_file_name.with_name(new_stem).with_suffix(p_mat_file_name.suffix))
+
             with open(materials_filename,'r') as materials_file:
                 materials = KratosMultiphysics.Parameters(materials_file.read())
 
-            # Create and read an auxiliary materials file for each one of the fields
-            for i_material in materials["properties"]:
-                aux_materials = KratosMultiphysics.Parameters()
-                aux_materials.AddEmptyArray("properties")
-                aux_materials["properties"].Append(i_material)
-                prop_id = i_material["properties_id"].GetInt()
+            if data_comm.Rank() == 0:
+                # Create and read an auxiliary materials file for each one of the fields (only on one rank)
+                for i_material in materials["properties"].values():
+                    aux_materials = KratosMultiphysics.Parameters()
+                    aux_materials.AddEmptyArray("properties")
+                    aux_materials["properties"].Append(i_material)
 
-                aux_materials_filename = materials_filename + "_" + str(prop_id) + ".json"
-                with open(aux_materials_filename,'w') as aux_materials_file:
-                    aux_materials_file.write(aux_materials.WriteJsonString())
-                    aux_materials_file.close()
+                    aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
+                    with open(aux_materials_filename,'w') as aux_materials_file:
+                        aux_materials_file.write(aux_materials.WriteJsonString())
 
+            data_comm.Barrier()
+
+            # read the files on all ranks
+            for i_material in materials["properties"].values():
+                aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                 aux_material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
                 aux_material_settings["Parameters"]["materials_filename"].SetString(aux_materials_filename)
                 KratosMultiphysics.ReadMaterialsUtility(aux_material_settings, self.model)
-                KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
+
+            data_comm.Barrier()
+
+            if data_comm.Rank() == 0:
+                # remove aux files after every rank read them
+                for i_material in materials["properties"].values():
+                    aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
+                    KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
 
             materials_imported = True
         else:
@@ -522,10 +523,22 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         elif (self._reinitialization_type == "parallel"):
+            #TODO: move all this to solver settings
+            layers = self.settings["parallel_redistance_max_layers"].GetInt()
+            parallel_distance_settings = KratosMultiphysics.Parameters("""{
+                "max_levels" : 25,
+                "max_distance" : 1.0,
+                "calculate_exact_distances_to_plane" : true
+            }""")
+            parallel_distance_settings["max_levels"].SetInt(layers)
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator2D()
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess2D(
+                    self.main_model_part,
+                    parallel_distance_settings)
             else:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator3D()
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculationProcess3D(
+                    self.main_model_part,
+                    parallel_distance_settings)
         elif (self._reinitialization_type == "none"):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
         else:

@@ -48,23 +48,6 @@ namespace Python
     AddCustomStrategiesToPython(m);
     AddCustomModelersToPython(m);
 
-    // Adding enums
-    py::enum_<Framework>(m, "Framework")
-    .value("EULERIAN_FRAMEWORK", EULERIAN_FRAMEWORK)
-    .value("PFEM2_FRAMEWORK", PFEM2_FRAMEWORK)
-    ;
-
-    py::enum_<Formulation>(m, "Formulation")
-    .value("PrimitiveVariables", PrimitiveVariables)
-    .value("ConservativeVariables", ConservativeVariables)
-    ;
-
-    py::enum_<Variables>(m, "Variables")
-    .value("FreeSurfaceVariable", FreeSurfaceVariable)
-    .value("VelocityVariable", VelocityVariable)
-    .value("FreeSurfaceAndVelocity", FreeSurfaceAndVelocity)
-    ;
-
     // Registering variables in python
     // Primary variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HEIGHT);
@@ -79,14 +62,10 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RAIN);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MANNING);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CHEZY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PERMEABILITY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ATMOSPHERIC_PRESSURE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, WIND);
-
-    // Domain characteristic variables
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AMPLITUDE);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WAVELENGTH);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PERIOD);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPERSION_H);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DISPERSION_V);
 
     // Auxiliary variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATE_BY_PARTS);
@@ -94,6 +73,8 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DRY_HEIGHT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RELATIVE_DRY_HEIGHT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DRY_DISCHARGE_PENALTY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FIRST_DERIVATIVE_WEIGHTS);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SECOND_DERIVATIVE_WEIGHTS);
 
     // Absorbing boundaries variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ABSORBING_DISTANCE);
