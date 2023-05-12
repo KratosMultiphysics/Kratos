@@ -49,10 +49,10 @@ void Generate2DMesh(
     Model& rModel,
     const int NumberOfDivisions)
 {
-    Node<3>::Pointer p_point_1(new NodeType(1,  0.0,  0.0, 0.0));
-    Node<3>::Pointer p_point_2(new NodeType(2,  0.0, 10.0, 0.0));
-    Node<3>::Pointer p_point_3(new NodeType(3, 10.0, 10.0, 0.0));
-    Node<3>::Pointer p_point_4(new NodeType(4, 10.0,  0.0, 0.0));
+    Node::Pointer p_point_1(new NodeType(1,  0.0,  0.0, 0.0));
+    Node::Pointer p_point_2(new NodeType(2,  0.0, 10.0, 0.0));
+    Node::Pointer p_point_3(new NodeType(3, 10.0, 10.0, 0.0));
+    Node::Pointer p_point_4(new NodeType(4, 10.0,  0.0, 0.0));
 
     Quadrilateral2D4<NodeType> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
@@ -73,14 +73,14 @@ void Generate3DMesh(
     Model& rModel,
     const int NumberOfDivisions)
 {
-    Node<3>::Pointer p_point1(new NodeType(1,  0.0,  0.0,  0.0));
-    Node<3>::Pointer p_point2(new NodeType(2, 10.0,  0.0,  0.0));
-    Node<3>::Pointer p_point3(new NodeType(3, 10.0, 10.0,  0.0));
-    Node<3>::Pointer p_point4(new NodeType(4,  0.0, 10.0,  0.0));
-    Node<3>::Pointer p_point5(new NodeType(5,  0.0,  0.0, 10.0));
-    Node<3>::Pointer p_point6(new NodeType(6, 10.0,  0.0, 10.0));
-    Node<3>::Pointer p_point7(new NodeType(7, 10.0, 10.0, 10.0));
-    Node<3>::Pointer p_point8(new NodeType(8,  0.0, 10.0, 10.0));
+    Node::Pointer p_point1(new NodeType(1,  0.0,  0.0,  0.0));
+    Node::Pointer p_point2(new NodeType(2, 10.0,  0.0,  0.0));
+    Node::Pointer p_point3(new NodeType(3, 10.0, 10.0,  0.0));
+    Node::Pointer p_point4(new NodeType(4,  0.0, 10.0,  0.0));
+    Node::Pointer p_point5(new NodeType(5,  0.0,  0.0, 10.0));
+    Node::Pointer p_point6(new NodeType(6, 10.0,  0.0, 10.0));
+    Node::Pointer p_point7(new NodeType(7, 10.0, 10.0, 10.0));
+    Node::Pointer p_point8(new NodeType(8,  0.0, 10.0, 10.0));
 
     Hexahedra3D8<NodeType> geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 

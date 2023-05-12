@@ -48,11 +48,11 @@ class RemoveFluidNodesMesherProcess
   typedef ModelPart::ConditionType         ConditionType;
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
-  typedef Bucket<3, Node<3>, std::vector<Node<3>::Pointer>, Node<3>::Pointer, std::vector<Node<3>::Pointer>::iterator, std::vector<double>::iterator > BucketType;
+  typedef Bucket<3, Node, std::vector<Node::Pointer>, Node::Pointer, std::vector<Node::Pointer>::iterator, std::vector<double>::iterator > BucketType;
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
@@ -150,7 +150,7 @@ class RemoveFluidNodesMesherProcess
     unsigned int bucket_size = 20;
 
     //create the list of the nodes to be check during the search
-    std::vector<Node<3>::Pointer> list_of_nodes;
+    std::vector<Node::Pointer> list_of_nodes;
     list_of_nodes.reserve(rModelPart.NumberOfNodes());
     for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; ++i_node)
     {
@@ -164,13 +164,13 @@ class RemoveFluidNodesMesherProcess
     //all of the nodes in this list will be preserved
     unsigned int num_neighbours = 20;
 
-    std::vector<Node<3>::Pointer> neighbours         (num_neighbours);
+    std::vector<Node::Pointer> neighbours         (num_neighbours);
     std::vector<double>           neighbour_distances(num_neighbours);
 
 
     //radius means the distance, if the distance between two nodes is closer to radius -> mark for removing
     double radius=0;
-    Node<3> work_point(0,0.0,0.0,0.0);
+    Node work_point(0,0.0,0.0,0.0);
     unsigned int n_points_in_radius;
 
 
@@ -240,7 +240,7 @@ class RemoveFluidNodesMesherProcess
             // std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
             bool engaged_node = false;
             unsigned int counter = 0;
-            for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
+            for(std::vector<Node::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
             {
 
               if ( (*nn)->Is(BOUNDARY) && (neighbour_distances[counter] < 2.0 * size_for_distance_boundary) && (neighbour_distances[counter] > 0.0) )
@@ -366,7 +366,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  bool CheckApproachingPoint(Node<3>& rNode, Node<3>& rEdgeNode)
+  bool CheckApproachingPoint(Node& rNode, Node& rEdgeNode)
   {
     KRATOS_TRY
 
@@ -412,7 +412,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  bool CheckApproachingEdge(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
+  bool CheckApproachingEdge(Node& rNode, Node& rEdgeNodeA, Node& rEdgeNodeB)
   {
     KRATOS_TRY
 
@@ -459,7 +459,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  bool CheckApproachingFace(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, Node<3>& rEdgeNodeC)
+  bool CheckApproachingFace(Node& rNode, Node& rEdgeNodeA, Node& rEdgeNodeB, Node& rEdgeNodeC)
   {
     KRATOS_TRY
 
@@ -505,7 +505,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  double GetDistanceToNode(Node<3>& rNode, Node<3>& rEdgeNode, array_1d<double,3>& rDirection)
+  double GetDistanceToNode(Node& rNode, Node& rEdgeNode, array_1d<double,3>& rDirection)
   {
     KRATOS_TRY
 
@@ -524,7 +524,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  double GetDistanceToEdge(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, array_1d<double,3>& rDirection)
+  double GetDistanceToEdge(Node& rNode, Node& rEdgeNodeA, Node& rEdgeNodeB, array_1d<double,3>& rDirection)
   {
     KRATOS_TRY
 
@@ -542,7 +542,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  double GetDistanceToFace(Node<3>& rNode, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, Node<3>& rEdgeNodeC, array_1d<double,3>& rDirection)
+  double GetDistanceToFace(Node& rNode, Node& rEdgeNodeA, Node& rEdgeNodeB, Node& rEdgeNodeC, array_1d<double,3>& rDirection)
   {
     KRATOS_TRY
 
@@ -561,7 +561,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  void GetDirectionToEdge(array_1d<double,3>& rDirection, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB)
+  void GetDirectionToEdge(array_1d<double,3>& rDirection, Node& rEdgeNodeA, Node& rEdgeNodeB)
   {
     //get wall direction from normals:
     if( rEdgeNodeA.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 && rEdgeNodeB.FastGetSolutionStepValue(SHRINK_FACTOR) == 1 ){
@@ -587,7 +587,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  void GetDirectionToFace(array_1d<double,3>& rDirection, Node<3>& rEdgeNodeA, Node<3>& rEdgeNodeB, Node<3>& rEdgeNodeC)
+  void GetDirectionToFace(array_1d<double,3>& rDirection, Node& rEdgeNodeA, Node& rEdgeNodeB, Node& rEdgeNodeC)
   {
 
     array_1d<double,3> VectorB = rEdgeNodeB.Coordinates() - rEdgeNodeA.Coordinates();
@@ -780,7 +780,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  bool MoveBoundaryNode(Node<3>& rNode)
+  bool MoveBoundaryNode(Node& rNode)
   {
 
     KRATOS_TRY
@@ -888,7 +888,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  void MoveInsideNode(Node<3>& rNode)
+  void MoveInsideNode(Node& rNode)
   {
 
     KRATOS_TRY
@@ -938,7 +938,7 @@ class RemoveFluidNodesMesherProcess
   //**************************************************************************
   //**************************************************************************
 
-  void MoveLayerNode(Node<3>& rNode, const array_1d<double,3>& rDirection, const double& rDistance)
+  void MoveLayerNode(Node& rNode, const array_1d<double,3>& rDirection, const double& rDistance)
   {
 
     KRATOS_TRY

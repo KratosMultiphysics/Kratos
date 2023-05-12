@@ -168,19 +168,19 @@ UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<Matrix>& rV
     KRATOS_ERROR << "Matrix results are not yet supported in UNV" << std::endl;
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<bool>& rVariable) {
     outputFile << std::setw(13) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<int>& rVariable) {
     outputFile << std::setw(13) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<double>& rVariable) {
     outputFile << std::setw(13) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<array_1d<double,3>>& rVariable) {
     auto & temp = node.FastGetSolutionStepValue(rVariable);
 
     outputFile << std::setw(13) << temp[0];
@@ -189,11 +189,11 @@ void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>&
     outputFile << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Vector>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<Vector>& rVariable) {
     KRATOS_ERROR << "Dynamic Vector results are not yet supported by in UNV" << std::endl;
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Matrix>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<Matrix>& rVariable) {
     KRATOS_ERROR << "Matrix results are not yet supported by in UNV" << std::endl;
 }
 

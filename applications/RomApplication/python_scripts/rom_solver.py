@@ -75,7 +75,7 @@ def CreateSolver(cls, model, custom_settings):
                     # Add the assembling strategy prefix to the projection strategy
                     projection_strategy = f"{assembling_strategy}_{projection_strategy}"
                 else:
-                    err_msg = f"'Assembling_strategy': '{assembling_strategy}' is not available. Please select one of the following: {list(available_assembling_strategies.keys())}."
+                    err_msg = f"'Assembling_strategy': '{assembling_strategy}' is not available. Please select one of the following: {list(available_assembling_strategies)}."
                     raise ValueError(err_msg)
             # Return the validated ROM parameters
             return self.settings["rom_settings"], projection_strategy

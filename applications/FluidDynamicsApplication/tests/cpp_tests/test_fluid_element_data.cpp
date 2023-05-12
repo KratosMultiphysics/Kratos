@@ -39,7 +39,7 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
+        const Geometry<Node >& r_geometry = rElement.GetGeometry();
         for (unsigned int i = 0; i < 3; i++) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_geometry[i]);
         }
@@ -61,7 +61,7 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
+        const Geometry<Node >& r_geometry = rElement.GetGeometry();
         for (unsigned int i = 0; i < 3; i++) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_geometry[i]);
         }
@@ -150,10 +150,10 @@ void FluidElementDataTestCompleteModelPart(
 
     // Nodal data
     Element& r_element = *(rModelPart.ElementsBegin());
-    Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
+    Geometry< Node >& r_geometry = r_element.GetGeometry();
 
     for (unsigned int i = 0; i < 3; i++) {
-        Node<3>& r_node = r_geometry[i];
+        Node& r_node = r_geometry[i];
         r_node.FastGetSolutionStepValue(PRESSURE) = 10.0 * r_node.Id();
         r_node.FastGetSolutionStepValue(VELOCITY_X) = r_node.Id() + 5.0;
     }
@@ -169,7 +169,7 @@ void FluidElementDataTestCompleteModelPart(
         rModelPart.CloneTimeStep(i * DeltaTime);
 
         for (unsigned int j = 0; j < 3; j++) {
-            Node<3>& r_node = r_geometry[j];
+            Node& r_node = r_geometry[j];
             r_node.FastGetSolutionStepValue(PRESSURE) += float(i);
             r_node.FastGetSolutionStepValue(VELOCITY_Y) = r_node.Id() + i;
         }

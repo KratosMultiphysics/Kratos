@@ -33,7 +33,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the associated plasticity Constitutive laws...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /**
 * Check the correct calculation of the integrated stress with the CL's
