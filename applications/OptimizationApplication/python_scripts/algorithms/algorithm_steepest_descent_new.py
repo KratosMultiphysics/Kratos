@@ -3,10 +3,11 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
-from KratosMultiphysics.OptimizationApplication.controls.control import Control
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
+from KratosMultiphysics import Parameters, Logger
 
 
-class KratosSteepestDescent():
+class KratosSteepestDescent(Algorithm):
     """
         A classical steepest descent algorithm to solve unconstrainted optimization problems.
     """
@@ -17,27 +18,28 @@ class KratosSteepestDescent():
             "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
             "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
             "model_part_name"   : "OptimizationModelPart",
-            "objectives"        : [],
+            "objective"         : {},
             "controls"          : [],
             "echo_level"        : 0,
             "settings"          : {
                 "gradient_scaling": "inf_norm",
                 "echo_level"      : 0,
-                "step_size"       : float, 
-                "max_iter"        : float,
+                "step_size"       : 0, 
+                "max_iter"        : 2
             }
         }""")
     
-    def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, _optimization_problem: OptimizationProblem):
         self.model = model
         self.parameters = parameters
-        self.optimization_problem = optimization_problem
+        self._optimization_problem = _optimization_problem
 
         self.master_control = MasterControl() # Need to fill it with controls
-        control_param_list = parameters["controls"]
+        self.__control_param_list = parameters["controls"]
 
-        for control_name in control_param_list:
-            control = optimization_problem.GetControl(control_name)
+        for control_param in self.__control_param_list.values():
+            control_name = control_param.GetString()
+            control = _optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
 
         algorithm_parameters = parameters["settings"]
@@ -49,8 +51,11 @@ class KratosSteepestDescent():
         self.step_size = algorithm_parameters["step_size"].GetInt()
         self.__max_iter = algorithm_parameters["max_iter"].GetInt()
 
-        self.__objective = StandardizedObjective(parameters["objectives"][0], self.master_control, optimization_problem)
-        self.control_field = None
+        self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self.__control_field = None
+
+        self.__obj_val = None
+        self.opt_iter = None
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -61,7 +66,16 @@ class KratosSteepestDescent():
         
     def Initialize(self):
         self.converged = False
-        self.control_field = self.master_control.GetEmptyControlFields() # GetInitialControlFields() later
+        self.__obj_val = None
+        self.opt_iter = 1
+
+        self.__objective.Initialize()
+
+        for control_param in self.__control_param_list.values():
+            control_name = control_param.GetString()
+            control = self._optimization_problem.GetControl(control_name)
+            control.Initialize()
+        self.__control_field = self.master_control.GetEmptyField() # GetInitialControlFields() later
 
     def Finalize(self):
         pass
@@ -71,21 +85,28 @@ class KratosSteepestDescent():
     
     def LineSearch(self, search_direction) -> float:
         return self.step_size / KratosOA.ContainerExpressionUtils.NormInf(search_direction)
+    
+    def GetCurrentObjValue(self) -> float:
+        return self.__obj_val
+    
+    def GetCurrentControlField(self):
+        return self.__control_field
 
-    def SolveSolutionStep(self) -> bool:
+    def SolveOptimizationProblem(self) -> bool:
         self.Initialize()
 
         while not self.converged:
 
-            obj_val = self.__objective.CalculateStandardizedValue(self.control_field) # obj_val is typically not used. It is needed if we use Line Search Technique and for output
+            self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) # __obj_val is typically not used. It is needed if we use Line Search Technique and for output
             obj_grad = self.__objective.CalculateStandardizedGradient()
             search_direction = self.ComputeSearchDirection(obj_grad)
             alpha = self.LineSearch(search_direction)
-            self.control_field += search_direction * alpha
+            self.__control_field += search_direction * alpha
 
             self.converged = self.CheckConvergence()
 
         self.Finalize()
+        return self.converged
 
     def CheckConvergence(self) -> bool:
         return True if self.opt_iter >= self.__max_iter else False

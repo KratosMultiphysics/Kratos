@@ -3,7 +3,6 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
-from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 class StandardizedObjective(ResponseRoutine):
     """Standardized objective response function
