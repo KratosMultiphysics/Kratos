@@ -37,9 +37,9 @@ namespace Internals
 ///@addtogroup HDF5Application
 ///@{
 
-void ReadDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer& rData);
+void KRATOS_API(HDF5_APPLICATION) ReadDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer& rData);
 
-void WriteDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer const& rData);
+void KRATOS_API(HDF5_APPLICATION) WriteDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer const& rData);
 
 ///@} addtogroup
 } // namespace Internals.

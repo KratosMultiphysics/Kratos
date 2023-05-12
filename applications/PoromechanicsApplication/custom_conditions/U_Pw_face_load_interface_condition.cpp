@@ -132,49 +132,19 @@ void UPwFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, bo
     array_1d<double,3> Vx;
     noalias(Vx) = Geom.GetPoint( 1 ) - Geom.GetPoint( 0 );
     double norm_x = norm_2(Vx);
-    if(norm_x > 1.0e-8)
-    {
+    if(norm_x > MinimumJointWidth) {
         Vx[0] *= 1.0/norm_x;
         Vx[1] *= 1.0/norm_x;
-        
+
         //Rotation Matrix
         rRotationMatrix(0,0) = Vx[0];
         rRotationMatrix(0,1) = Vx[1];
-        
-        // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
-        
-        // Unitary vector in local x direction (3D)
-        array_1d<double, 3> Vx3D;
-        Vx3D[0] = Vx[0];
-        Vx3D[1] = Vx[1];
-        Vx3D[2] = 0.0;
-        
-        // Unitary vector in local y direction (first option)
-        array_1d<double, 3> Vy3D;
-        Vy3D[0] = -Vx[1];
-        Vy3D[1] = Vx[0];
-        Vy3D[2] = 0.0;
-        
-        // Vector in global z direction (first option)
-        array_1d<double, 3> Vz;
-        MathUtils<double>::CrossProduct(Vz, Vx3D, Vy3D);
-        
-        // Vz must have the same sign as vector (0,0,1)
-        if(Vz[2] > 0.0)
-        {
-            rRotationMatrix(1,0) = -Vx[1];
-            rRotationMatrix(1,1) = Vx[0];
-        }
-        else
-        {
-            rRotationMatrix(1,0) = Vx[1];
-            rRotationMatrix(1,1) = -Vx[0];
-        }
+
+        rRotationMatrix(1,0) = -Vx[1];
+        rRotationMatrix(1,1) = Vx[0];
 
         rComputeJointWidth = true;
-    }
-    else
-    {
+    } else {
         rJointWidth = MinimumJointWidth;
         rComputeJointWidth = false;
     }
@@ -253,12 +223,21 @@ void UPwFaceLoadInterfaceCondition<2,2>::CalculateJointWidth( double& rJointWidt
     noalias(rLocalRelDispVector) = prod(RotationMatrix,rRelDispVector);
 
     rJointWidth = mInitialGap[GPoint] + rLocalRelDispVector[0]; //The joint width is obtained in the local x direction
-        
-    if(rJointWidth < MinimumJointWidth)
-    {
-        rJointWidth = MinimumJointWidth;
+    
+    // No contact
+    if(rJointWidth > 0.0) {
+        if(rJointWidth < MinimumJointWidth)
+        {
+            rJointWidth = MinimumJointWidth;
+        }
+    } else {
+        // Contact
+        if(std::abs(rJointWidth) < MinimumJointWidth){
+            rJointWidth = MinimumJointWidth;
+        } else {
+            rJointWidth = -rJointWidth;
+        }
     }
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -277,9 +256,19 @@ void UPwFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWidt
 
     rJointWidth = mInitialGap[GPoint] + rLocalRelDispVector[1]; //The joint width is obtained in the local y direction
 
-    if(rJointWidth < MinimumJointWidth)
-    {
-        rJointWidth = MinimumJointWidth;
+    // No contact
+    if(rJointWidth > 0.0) {
+        if(rJointWidth < MinimumJointWidth)
+        {
+            rJointWidth = MinimumJointWidth;
+        }
+    } else {
+        // Contact
+        if(std::abs(rJointWidth) < MinimumJointWidth){
+            rJointWidth = MinimumJointWidth;
+        } else {
+            rJointWidth = -rJointWidth;
+        }
     }
 }
 

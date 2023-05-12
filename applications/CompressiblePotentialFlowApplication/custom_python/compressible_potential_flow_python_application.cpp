@@ -21,6 +21,7 @@
 #include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_operations_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -40,6 +41,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     AddCustomResponseFunctionUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomOperationsToPython(m);
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python

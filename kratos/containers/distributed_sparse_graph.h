@@ -10,9 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_DISTRIBUTED_SPARSE_GRAPH_H_INCLUDED )
-#define  KRATOS_DISTRIBUTED_SPARSE_GRAPH_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <iostream>
@@ -91,7 +89,7 @@ public:
       mLocalGraph(LocalSize)
     {
         mNonLocalGraphs.resize(mpComm->Size(),false);
-        mNonLocalLocks.resize(mpComm->Size());
+        mNonLocalLocks = decltype(mNonLocalLocks)(mpComm->Size());
 
         mpRowNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(*mpComm,LocalSize);
     }
@@ -473,7 +471,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_DISTRIBUTED_SPARSE_GRAPH_H_INCLUDED  defined
-
-

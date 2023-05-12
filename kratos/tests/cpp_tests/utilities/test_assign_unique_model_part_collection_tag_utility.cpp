@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <filesystem>
 #include <unordered_set>
 
 // External includes
@@ -19,7 +20,6 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_filesystem.h"
 #include "utilities/cpp_tests_utilities.h"
 
 /* Utilities */
@@ -29,7 +29,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef std::size_t IndexSize;
         typedef std::unordered_map<IndexSize,IndexSize> IndexIndexMapType;
         typedef std::unordered_map<IndexSize,std::vector<std::string>> IndexStringMapType;
@@ -296,7 +296,7 @@ namespace Kratos
                 }
             }
 
-            Kratos::filesystem::remove(FilesystemExtensions::JoinPaths({FilesystemExtensions::CurrentWorkingDirectory(), filename + ".json"}));
+            std::filesystem::remove(std::filesystem::current_path() / (filename + ".json"));
         }
 
     } // namespace Testing

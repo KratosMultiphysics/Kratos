@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
@@ -23,8 +23,7 @@
 #include "custom_utilities/mapper_utilities.h"
 #include "custom_mappers/nearest_neighbor_mapper.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
@@ -204,10 +203,10 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Node-ids do not matter here
-    auto node_local_sys_1(Kratos::make_shared<Node<3>>(87, -2.0, 3.5, 3.0)); // in bbox 1&2
-    auto node_local_sys_2(Kratos::make_shared<Node<3>>(26, 10.0, -25.0, 3.0)); // in bbox 1
-    auto node_local_sys_3(Kratos::make_shared<Node<3>>(36, -10.0, 15.5, -5.0)); // in bbox 2
-    auto node_local_sys_4(Kratos::make_shared<Node<3>>(46, 12.6, 50.1, 5.0)); // in bbox 3
+    auto node_local_sys_1(Kratos::make_shared<Node>(87, -2.0, 3.5, 3.0)); // in bbox 1&2
+    auto node_local_sys_2(Kratos::make_shared<Node>(26, 10.0, -25.0, 3.0)); // in bbox 1
+    auto node_local_sys_3(Kratos::make_shared<Node>(36, -10.0, 15.5, -5.0)); // in bbox 2
+    auto node_local_sys_4(Kratos::make_shared<Node>(46, 12.6, 50.1, 5.0)); // in bbox 3
 
     local_systems.reserve(7);
 
@@ -259,9 +258,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     noalias(node_local_sys_1->Coordinates()) = new_coords_node_1;
     // => now "node_local_sys_1" will not fall into any bbox any more
 
-    auto node_local_sys_5(Kratos::make_shared<Node<3>>(50, -8.301, 17.75, -15.18)); // in bbox 2
-    auto node_local_sys_6(Kratos::make_shared<Node<3>>(416, 13.5, 44.58, 7.5)); // in bbox 3
-    auto node_local_sys_7(Kratos::make_shared<Node<3>>(417, 13.5125, 44.68, 8.5)); // in bbox 3
+    auto node_local_sys_5(Kratos::make_shared<Node>(50, -8.301, 17.75, -15.18)); // in bbox 2
+    auto node_local_sys_6(Kratos::make_shared<Node>(416, 13.5, 44.58, 7.5)); // in bbox 3
+    auto node_local_sys_7(Kratos::make_shared<Node>(417, 13.5125, 44.68, 8.5)); // in bbox 3
 
     local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_5.get()));
     local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_6.get()));
@@ -460,9 +459,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
         Kratos::make_shared<NearestNeighborInterfaceInfo>(coords_3, source_local_sys_idx_3, 0));
 
     // Auxiliary objects to fill the NearestNeighborInterfaceInfos with values that can be checked afterwards
-    auto node_1(Kratos::make_shared<Node<3>>(1, 1.0, 2.5, 30.0));
-    auto node_2(Kratos::make_shared<Node<3>>(3, 10.5, 20.0, 96.8));
-    auto node_3(Kratos::make_shared<Node<3>>(15, 2.3, 1.9, -2.5));
+    auto node_1(Kratos::make_shared<Node>(1, 1.0, 2.5, 30.0));
+    auto node_2(Kratos::make_shared<Node>(3, 10.5, 20.0, 96.8));
+    auto node_3(Kratos::make_shared<Node>(15, 2.3, 1.9, -2.5));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));
@@ -477,21 +476,21 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     node_3->SetValue(INTERFACE_EQUATION_ID, expected_id_found_3);
 
     // We compute the real distance bcs this would also be computed by the search
-    const double dist_1_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_1);
+    const double dist_1_1 = coords_1.Distance(*interface_node_1);
 
     p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_1);
     p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_2);
     p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_3);
 
     // Now some the checks are performed to make sure the objects are correctly initialized
-    int found_id;
+    std::vector<int> found_id(1);
     p_nearest_neighbor_info_1->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_1);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_1);
     double neighbor_dist;
     p_nearest_neighbor_info_1->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
 
-    const double dist_2_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_2);
+    const double dist_2_2 = coords_2.Distance(*interface_node_2);
 
     p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_1);
     p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_2);
@@ -499,11 +498,11 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     p_nearest_neighbor_info_2->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_2);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_2);
     p_nearest_neighbor_info_2->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_2_2);
 
-    const double dist_3_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_3);
+    const double dist_3_3 = coords_3.Distance(*interface_node_3);
 
     p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_1);
     p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_2);
@@ -511,7 +510,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     p_nearest_neighbor_info_3->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_3);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_3);
     p_nearest_neighbor_info_3->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
 
@@ -559,11 +558,11 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     const auto& r_info_3 = interface_info_container_new[0][0];
 
     r_info_1->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_1);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_1);
     r_info_2->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_2);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_2);
     r_info_3->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
-    KRATOS_CHECK_EQUAL(found_id, expected_id_found_3);
+    KRATOS_CHECK_EQUAL(found_id[0], expected_id_found_3);
 
     r_info_1->GetValue(neighbor_dist, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_1_1);
@@ -693,5 +692,4 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointsAreCollinear, KratosMappingAppli
     KRATOS_CHECK_IS_FALSE(MapperUtilities::PointsAreCollinear(p2,p3,p4));
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

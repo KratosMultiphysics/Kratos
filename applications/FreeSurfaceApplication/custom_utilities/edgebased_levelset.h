@@ -670,7 +670,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            typedef Node<3> PointType;
+            typedef Node PointType;
             typedef GlobalPointersVector<PointType> PointVector;
             typedef PointVector::iterator PointIterator;
 
@@ -691,8 +691,8 @@ namespace Kratos
             {
                 if (inode->FastGetSolutionStepValue(DISTANCE) < 0.0) // candidates are only the ones inside the fluid domain
                 {
-                    GlobalPointersVector<Node<3>> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if (i->FastGetSolutionStepValue(DISTANCE) >= 0.0) // add the node as free surface if one of its neighb is outside
                         {
@@ -711,14 +711,14 @@ namespace Kratos
             // fill layer 1 by neighbour relationships
             for (PointIterator iii = (layers[0]).begin(); iii != (layers[0]).end(); iii++)
             {
-                GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for (GlobalPointersVector<Node<3>>::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) // destination = origin1 + value * Minv*origin
+                GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector<Node>::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) // destination = origin1 + value * Minv*origin
                 {
 
                     if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
                         jjj->GetValue(IS_VISITED) == 0.0)
                     {
-                        layers[1].push_back(Node<3>::WeakPointer(*jjj.base()));
+                        layers[1].push_back(Node::WeakPointer(*jjj.base()));
                         jjj->GetValue(IS_VISITED) = 2.0;
                     }
                 }
@@ -776,8 +776,8 @@ namespace Kratos
 
                     double pavg = 0.0;
 
-                    GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if (i->GetValue(IS_VISITED) == 1.0)
                         {
@@ -1204,7 +1204,7 @@ namespace Kratos
 
             // ensure that corner nodes are wet if all of the nodes around them have a negative distance
 
-            typedef Node<3> PointType;
+            typedef Node PointType;
             typedef GlobalPointersVector<PointType> PointVector;
             typedef PointVector::iterator PointIterator;
 
@@ -1228,8 +1228,8 @@ namespace Kratos
             {
                 if (inode->FastGetSolutionStepValue(DISTANCE) < 0.0) // candidates are only the ones inside the fluid domain
                 {
-                    GlobalPointersVector<Node<3>> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if (i->FastGetSolutionStepValue(DISTANCE) >= 0.0) // add the node as free surface if one of its neighb is outside
                         {
@@ -1260,14 +1260,14 @@ namespace Kratos
             {
                 for (PointIterator iii = (layers[il]).begin(); iii != (layers[il]).end(); iii++)
                 {
-                    GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) // destination = origin1 + value * Minv*origin
+                    GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator jjj = neighb_nodes.begin(); jjj != neighb_nodes.end(); jjj++) // destination = origin1 + value * Minv*origin
                     {
 
                         if (jjj->FastGetSolutionStepValue(DISTANCE) >= 0 &&
                             jjj->GetValue(IS_VISITED) == 0.0)
                         {
-                            layers[il + 1].push_back(Node<3>::WeakPointer(*jjj.base()));
+                            layers[il + 1].push_back(Node::WeakPointer(*jjj.base()));
                             jjj->GetValue(IS_VISITED) = double(il + 2.0);
                         }
                     }
@@ -1284,8 +1284,8 @@ namespace Kratos
                 noalias(aux_proj) = ZeroVector(3);
                 double avg_number = 0.0;
 
-                GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     if (i->GetValue(IS_VISITED) == 0.0) // the node will be considered for extrapolation only if completely inside
                     {
@@ -1325,8 +1325,8 @@ namespace Kratos
 
                     double pavg = 0.0;
 
-                    GlobalPointersVector<Node<3>> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = iii->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         if (i->GetValue(IS_VISITED) < (il + 1) && i->GetValue(IS_VISITED) != 0.0)
                         {
@@ -1457,8 +1457,8 @@ namespace Kratos
                 if (inode->FastGetSolutionStepValue(DISTANCE) > 0.0) // candidates are only the ones inside the fluid domain
                 {
                     inode->GetValue(IS_VISITED) = 1.0;
-                    GlobalPointersVector<Node<3>> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         i->GetValue(IS_VISITED) = 1.0;
                     }
@@ -1486,8 +1486,8 @@ namespace Kratos
                 if (inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) // candidates are only the ones inside the fluid domain
                 {
                     inode->GetValue(IS_VISITED) = 1.0;
-                    GlobalPointersVector<Node<3>> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
-                    for (GlobalPointersVector<Node<3>>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                    GlobalPointersVector<Node> &neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                    for (GlobalPointersVector<Node>::iterator i = neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                     {
                         i->GetValue(IS_VISITED) = 1.0;
                     }
@@ -1562,7 +1562,7 @@ namespace Kratos
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
-                Geometry<Node<3>> &face_geometry = cond_it->GetGeometry();
+                Geometry<Node> &face_geometry = cond_it->GetGeometry();
 
                 // reference for area normal of the face
                 array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
@@ -1601,7 +1601,7 @@ namespace Kratos
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
-                Geometry<Node<3>> &face_geometry = cond_it->GetGeometry();
+                Geometry<Node> &face_geometry = cond_it->GetGeometry();
 
                 // reference for area normal of the face
                 array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
@@ -2292,7 +2292,7 @@ namespace Kratos
 
         void CalculateNormal2D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3> &area_normal)
         {
-            Geometry<Node<3>> &face_geometry = (cond_it)->GetGeometry();
+            Geometry<Node> &face_geometry = (cond_it)->GetGeometry();
 
             area_normal[0] = face_geometry[1].Y() - face_geometry[0].Y();
             area_normal[1] = -(face_geometry[1].X() - face_geometry[0].X());
@@ -2303,7 +2303,7 @@ namespace Kratos
 
         void CalculateNormal3D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3> &area_normal, array_1d<double, 3> &v1, array_1d<double, 3> &v2)
         {
-            Geometry<Node<3>> &face_geometry = (cond_it)->GetGeometry();
+            Geometry<Node> &face_geometry = (cond_it)->GetGeometry();
 
             v1[0] = face_geometry[1].X() - face_geometry[0].X();
             v1[1] = face_geometry[1].Y() - face_geometry[0].Y();
@@ -2494,7 +2494,7 @@ namespace Kratos
 
         //**************************************
 
-        void CornerDectectionHelper(Geometry<Node<3>> &face_geometry,
+        void CornerDectectionHelper(Geometry<Node> &face_geometry,
                                     const array_1d<double, 3> &face_normal,
                                     const double An,
                                     const GlobalPointersVector<Condition> &neighb,
@@ -2582,7 +2582,7 @@ namespace Kratos
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
-                Geometry<Node<3>> &face_geometry = cond_it->GetGeometry();
+                Geometry<Node> &face_geometry = cond_it->GetGeometry();
 
                 // reference for area normal of the face
                 const array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);

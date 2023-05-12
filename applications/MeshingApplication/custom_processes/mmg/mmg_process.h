@@ -4,14 +4,13 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MMG_PROCESS)
-#define KRATOS_MMG_PROCESS
+#pragma once
 
 // System includes
 #include <unordered_set>
@@ -103,7 +102,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
 
     /// Node definition
-    typedef Node <3>                                                   NodeType;
+    typedef Node                                                   NodeType;
     // Geometry definition
     typedef Geometry<NodeType>                                     GeometryType;
 
@@ -557,4 +556,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }// namespace Kratos.
-#endif /* KRATOS_MMG_PROCESS defined */

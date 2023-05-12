@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
@@ -23,14 +23,13 @@
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
@@ -80,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_line_interpolation, Kr
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
-    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), MapperUtilities::ComputeDistance(coords, node_2->Coordinates())));
+    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), coords.Distance(*node_2)));
 
     KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
@@ -145,7 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_line_duplicated_point, Kratos
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
-    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), MapperUtilities::ComputeDistance(coords, node_2->Coordinates())));
+    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), coords.Distance(*node_2)));
 
     KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 }
@@ -179,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_Serialization, KratosMappingA
 
     ClosestPointsContainer exp_closest_points(2);
     exp_closest_points.Add(PointWithId(108, Point(0.3, 0.0, 0.0), 0.1));
-    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), MapperUtilities::ComputeDistance(coords, node_2->Coordinates())));
+    exp_closest_points.Add(PointWithId(5, Point(1.0, 0.1, -0.2), coords.Distance(*node_2)));
 
     KRATOS_CHECK_EQUAL(barycentric_info.GetClosestPoints(), exp_closest_points);
 
@@ -473,5 +472,4 @@ KRATOS_TEST_CASE_IN_SUITE(BarycentricInterfaceInfo_simple_tetra_interpolation, K
     KRATOS_CHECK_VECTOR_EQUAL(exp_results, neighbor_coords)
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

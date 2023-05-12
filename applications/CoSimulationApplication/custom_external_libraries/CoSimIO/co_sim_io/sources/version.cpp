@@ -20,7 +20,7 @@ int GetMajorVersion() {
 }
 
 int GetMinorVersion() {
-    return 0;
+    return 2;
 }
 
 std::string GetPatchVersion() {

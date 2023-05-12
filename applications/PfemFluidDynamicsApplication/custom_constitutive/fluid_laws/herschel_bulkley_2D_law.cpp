@@ -48,7 +48,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType HerschelBulkley2DLaw::WorkingSpaceDimension() { return 2; }
 
-    ConstitutiveLaw::SizeType HerschelBulkley2DLaw::GetStrainSize() { return 3; }
+    ConstitutiveLaw::SizeType HerschelBulkley2DLaw::GetStrainSize() const { return 3; }
 
     void HerschelBulkley2DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -59,17 +59,15 @@ namespace Kratos
         Vector &r_strain_vector = rValues.GetStrainVector();
         Vector &r_stress_vector = rValues.GetStressVector();
 
-        const double dynamic_viscosity = this->GetEffectiveDynamicViscosity(rValues);
-        const double yield_shear = this->GetEffectiveYieldShear(rValues);
+        const double dynamic_viscosity = this->GetEffectiveMaterialParameter(rValues, DYNAMIC_VISCOSITY);
+        const double yield_shear = this->GetEffectiveMaterialParameter(rValues, YIELD_SHEAR);
         const double adaptive_exponent = r_properties[ADAPTIVE_EXPONENT];
-        double effective_dynamic_viscosity;
-        const double flow_index = this->GetFlowIndex(rValues);
+        const double flow_index = r_properties[FLOW_INDEX];
+        double effective_dynamic_viscosity = 0;
 
         const double equivalent_strain_rate =
             std::sqrt(2.0 * r_strain_vector[0] * r_strain_vector[0] + 2.0 * r_strain_vector[1] * r_strain_vector[1] +
                       4.0 * r_strain_vector[2] * r_strain_vector[2]);
-        
-       // KRATOS_WATCH("Hola que tal")
 
         // Ensuring that the case of equivalent_strain_rate = 0 is not problematic.
         const double tolerance = 1e-8;
@@ -79,15 +77,13 @@ namespace Kratos
         }
         else
         {
-            //Se tomará el índice de consistencia como la dynamic_vicosity
             double regularization = 1.0 - std::exp(-adaptive_exponent * equivalent_strain_rate);
-            effective_dynamic_viscosity = dynamic_viscosity * pow(equivalent_strain_rate,flow_index - 1) + regularization * yield_shear / equivalent_strain_rate;
+            effective_dynamic_viscosity = dynamic_viscosity * std::pow(equivalent_strain_rate, flow_index - 1) + regularization * yield_shear / equivalent_strain_rate;
         }
 
         const double strain_trace = r_strain_vector[0] + r_strain_vector[1];
 
-        //This stress_vector is only deviatoric
-        // d' = d - I * tr(d)/3
+        // This stress_vector is only deviatoric
         r_stress_vector[0] = 2.0 * effective_dynamic_viscosity * (r_strain_vector[0] - strain_trace / 3.0);
         r_stress_vector[1] = 2.0 * effective_dynamic_viscosity * (r_strain_vector[1] - strain_trace / 3.0);
         r_stress_vector[2] = 2.0 * effective_dynamic_viscosity * r_strain_vector[2];
@@ -104,65 +100,35 @@ namespace Kratos
     //*****************************************************************************
 
     int HerschelBulkley2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                            const ProcessInfo &rCurrentProcessInfo)
+                                    const ProcessInfo &rCurrentProcessInfo) const
     {
 
-        if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for HerschelBulkley2DLaw: "
-                         << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
+            << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for HerschelBulkley2DLaw: "
+            << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
-        if (rMaterialProperties[YIELD_SHEAR] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing YIELD_SHEAR provided in process info for HerschelBulkley2DLaw: "
-                         << rMaterialProperties[YIELD_SHEAR] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[YIELD_SHEAR] < 0.0)
+            << "Incorrect or missing YIELD_SHEAR provided in process info for HerschelBulkley2DLaw: "
+            << rMaterialProperties[YIELD_SHEAR] << std::endl;
 
-        if (rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for HerschelBulkley2DLaw: "
-                         << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[FLOW_INDEX] < 0.0)
+            << "Incorrect or missing FLOW_INDEX provided in process info for HerschelBulkley2DLaw: "
+            << rMaterialProperties[FLOW_INDEX] << std::endl;
 
-        if (rMaterialProperties[BULK_MODULUS] <= 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing BULK_MODULUS provided in process info for HerschelBulkley2DLaw: "
-                         << rMaterialProperties[BULK_MODULUS] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[ADAPTIVE_EXPONENT] < 0.0)
+            << "Incorrect or missing ADAPTIVE_EXPONENT provided in process info for HerschelBulkley2DLaw: "
+            << rMaterialProperties[ADAPTIVE_EXPONENT] << std::endl;
 
-        if (rMaterialProperties[FLOW_INDEX] <= 0.0)
-        {
-            KRATOS_ERROR << "Incorrect or missing FLOW_INDEX provided in process info for HerschelBulkley2DLaw: "
-                         << rMaterialProperties[FLOW_INDEX] << std::endl;
-        }
+        KRATOS_ERROR_IF(rMaterialProperties[BULK_MODULUS] < 0.0)
+            << "Incorrect or missing BULK_MODULUS provided in process info for HerschelBulkley2DLaw: "
+            << rMaterialProperties[BULK_MODULUS] << std::endl;
 
         return 0;
     }
 
-    double HerschelBulkley2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
+    double HerschelBulkley2DLaw::GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const
     {
-        return rParameters.GetConstitutiveMatrix()(2, 2);
-    }
-
-    double HerschelBulkley2DLaw::GetEffectiveDensity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[DENSITY];
-    }
-
-    double HerschelBulkley2DLaw::GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
-    }
-
-    double HerschelBulkley2DLaw::GetEffectiveYieldShear(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[YIELD_SHEAR];
-    }
-
-    double HerschelBulkley2DLaw::GetFlowIndex(ConstitutiveLaw::Parameters &rParameters) const
-    {
-        return rParameters.GetMaterialProperties()[FLOW_INDEX];
+        return rParameters.GetMaterialProperties()[rVariable];
     }
 
     void HerschelBulkley2DLaw::save(Serializer &rSerializer) const

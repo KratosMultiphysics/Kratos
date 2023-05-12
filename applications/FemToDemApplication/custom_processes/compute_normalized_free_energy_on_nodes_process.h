@@ -44,7 +44,7 @@ namespace Kratos
  * @brief This class calculates the Free Energy indicator at all the nodes of the mesh. This indicator will be used to compute the metric and the remesh
  * @author Alejandro Cornejo
  */
-class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ComputeNormalizedFreeEnergyOnNodesProcess : public Process
 {
     ///@name Type Definitions
     ///@{
@@ -105,21 +105,21 @@ public:
         const Vector& rStressVector, 
         const double Damage, 
         const Properties& rMatProps,
-        Geometry<Node<3>>& rGeometry);
+        Geometry<Node>& rGeometry);
 
     /**
      * @brief This method computes characteristic 
      * length of the element in 2D
      * @param rGeometry The geometry of the element
      */
-    double CalculateCharacteristicLength2D(const Geometry<Node<3>>& rGeometry);
+    double CalculateCharacteristicLength2D(const Geometry<Node>& rGeometry);
 
     /**
      * @brief This method computes characteristic 
      * length of the element in 3D
      * @param rGeometry The geometry of the element
      */
-    double CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry);
+    double CalculateCharacteristicLength3D(Geometry<Node>& rGeometry);
 
     /**
      * @brief This method computes the tensile

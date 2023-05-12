@@ -18,21 +18,17 @@
 #include "testing/testing.h"
 #include "custom_conditions/Pw_normal_flux_condition.hpp"
 
-
-using namespace std;
-
 namespace Kratos
 {
     namespace Testing
     {
-
 
         KRATOS_TEST_CASE_IN_SUITE(CalculateHorizontalNormalFlux, KratosGeoMechanicsFastSuite)
         {
 
             // initialize modelpart
             Model current_model;
-            auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
+            auto &r_model_part = current_model.CreateModelPart("ModelPart", 1);
             r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
             r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
             r_model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
@@ -41,7 +37,7 @@ namespace Kratos
             auto cond_prop = r_model_part.CreateNewProperties(0);
 
             // set constitutive law
-            const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
+            const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
             cond_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
             // Create the test piping element nodes
@@ -58,14 +54,14 @@ namespace Kratos
             node_1->UnSetLock();
             node_2->UnSetLock();
 
-            unsigned int conditionSize = 2; 
+            unsigned int conditionSize = 2;
 
             // Create the test piping element
-            std::vector<ModelPart::IndexType> cond_nodes{ 1,2};
-            //auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
+            std::vector<ModelPart::IndexType> cond_nodes{1, 2};
+            // auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
             auto cond = r_model_part.CreateNewCondition("PwNormalFluxCondition2D2N", 1, cond_nodes, cond_prop);
             // Initialize the element to initialize the constitutive law
-            const auto& r_process_info = r_model_part.GetProcessInfo();
+            const auto &r_process_info = r_model_part.GetProcessInfo();
             cond->Initialize(r_process_info);
 
             // get element geometry
@@ -89,16 +85,14 @@ namespace Kratos
                     expected_vector[i],
                     1.0e-6);
             }
-
         }
-
 
         KRATOS_TEST_CASE_IN_SUITE(CalculateInclinedNormalFlux, KratosGeoMechanicsFastSuite)
         {
 
             // initialize modelpart
             Model current_model;
-            auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
+            auto &r_model_part = current_model.CreateModelPart("ModelPart", 1);
             r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
             r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
             r_model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
@@ -107,7 +101,7 @@ namespace Kratos
             auto cond_prop = r_model_part.CreateNewProperties(0);
 
             // set constitutive law
-            const auto& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
+            const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic2DInterfaceLaw");
             cond_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
             // Create the test piping element nodes
@@ -127,11 +121,11 @@ namespace Kratos
             unsigned int conditionSize = 2;
 
             // Create the test piping element
-            std::vector<ModelPart::IndexType> cond_nodes{ 1,2 };
-            //auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
+            std::vector<ModelPart::IndexType> cond_nodes{1, 2};
+            // auto p_element = r_model_part.CreateNewElement("SteadyStatePwPipingElement2D4N", 1, element_nodes, p_elem_prop);
             auto cond = r_model_part.CreateNewCondition("PwNormalFluxCondition2D2N", 1, cond_nodes, cond_prop);
             // Initialize the element to initialize the constitutive law
-            const auto& r_process_info = r_model_part.GetProcessInfo();
+            const auto &r_process_info = r_model_part.GetProcessInfo();
             cond->Initialize(r_process_info);
 
             // get element geometry
@@ -155,9 +149,7 @@ namespace Kratos
                     expected_vector[i],
                     1.0e-6);
             }
-
         }
-
 
     }
 }

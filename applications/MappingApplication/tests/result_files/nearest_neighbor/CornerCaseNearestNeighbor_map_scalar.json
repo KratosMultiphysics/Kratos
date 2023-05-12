@@ -1,0 +1,45 @@
+{
+  "TIME": [
+    0.0
+  ],
+  "NODE_27": {
+    "TEMPERATURE": [
+      10.097651817694757
+    ]
+  },
+  "NODE_28": {
+    "TEMPERATURE": [
+      5.753106463250436
+    ]
+  },
+  "NODE_29": {
+    "TEMPERATURE": [
+      17.597651817694757
+    ]
+  },
+  "NODE_30": {
+    "TEMPERATURE": [
+      25.097651817694757
+    ]
+  },
+  "NODE_31": {
+    "TEMPERATURE": [
+      0.0
+    ]
+  },
+  "NODE_32": {
+    "TEMPERATURE": [
+      7.5
+    ]
+  },
+  "NODE_33": {
+    "TEMPERATURE": [
+      20.753106463250436
+    ]
+  },
+  "NODE_34": {
+    "TEMPERATURE": [
+      15.0
+    ]
+  }
+}

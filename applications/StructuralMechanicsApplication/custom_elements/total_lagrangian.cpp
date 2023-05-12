@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -13,7 +13,6 @@
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "custom_elements/total_lagrangian.h"
@@ -166,6 +165,7 @@ void TotalLagrangian::CalculateAll(
     const SizeType number_of_nodes = this->GetGeometry().size();
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
     const auto strain_size = GetStrainSize();
+    const bool is_rotated = IsElementRotated();
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -219,7 +219,7 @@ void TotalLagrangian::CalculateAll(
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
         // Compute material reponse
-        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure(), is_rotated);
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
@@ -520,8 +520,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(
     KRATOS_TRY;
 
     const auto& r_geom = GetGeometry();
-    if (rDesignVariable == SHAPE_SENSITIVITY)
-    {
+    if (rDesignVariable == SHAPE_SENSITIVITY) {
         const std::size_t ws_dim = r_geom.WorkingSpaceDimension();
         const std::size_t nnodes = r_geom.PointsNumber();
         const std::size_t mat_dim = nnodes * ws_dim;
@@ -537,8 +536,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(
         Vector body_force, acceleration;
         double detJ0_deriv;
         LargeDisplacementKinematics large_disp_kinematics(r_geom, this->GetIntegrationMethod());
-        for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g)
-        {
+        for (std::size_t g = 0; g < r_geom.IntegrationPointsNumber(); ++g) {
             large_disp_kinematics.DeformationGradient(g, F);
             large_disp_kinematics.ShapeFunctionsGradients(g, DN_DX0);
             CalculateB(B, F, DN_DX0);
@@ -548,8 +546,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(
             const Vector& rN = row(GetGeometry().ShapeFunctionsValues(), g);
             body_force = GetBodyForce(r_geom.IntegrationPoints(this->GetIntegrationMethod()), g);
 
-            for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
-            {
+            for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s) {
                 const auto& deriv = s.CurrentValue();
                 CalculateShapeSensitivity(deriv, DN_DX0, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
                 CalculateGreenLagrangeStrainSensitivity(F, F_deriv, strain_tensor_deriv);
@@ -570,8 +567,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(
             }
         }
 
-        for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s)
-        {
+        for (auto s = ShapeParameter::Sequence(nnodes, ws_dim); s; ++s) {
             const auto& deriv = s.CurrentValue();
             CalculateShapeGradientOfMassMatrix(M_deriv, deriv);
             GetSecondDerivativesVector(acceleration);

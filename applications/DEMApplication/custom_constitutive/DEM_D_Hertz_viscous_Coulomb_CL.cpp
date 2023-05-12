@@ -264,7 +264,6 @@ namespace Kratos {
 
         AuxElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-
         const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
         const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
         const double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
@@ -281,7 +280,7 @@ namespace Kratos {
 
         if (ActualTotalShearForce > MaximumAdmisibleShearForce) {
 
-            const double ActualElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+            const double ActualElasticShearForce = AuxElasticShearForce;
 
             const double dot_product = LocalElasticContactForce[0] * ViscoDampingLocalContactForce[0] + LocalElasticContactForce[1] * ViscoDampingLocalContactForce[1];
             const double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] +\
@@ -326,7 +325,7 @@ namespace Kratos {
                                                                 SphericParticle* const element,
                                                                 Condition* const wall) {
 
-        const double my_mass    = element->GetMass();
+        const double my_mass = element->GetMass();
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
         const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];

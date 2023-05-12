@@ -11,22 +11,18 @@
 //
 //
 
+#pragma once
 
-#if !defined(KRATOS_DISTRIBUTED_TEST_CASE_H_INCLUDED )
-#define  KRATOS_DISTRIBUTED_TEST_CASE_H_INCLUDED
-
+// System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "testing/test_case.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 ///@addtogroup KratosCore
 ///@{
@@ -68,15 +64,14 @@ public:
 
     void Run() override;
 
-
     void Profile() override;
-
 
     ///@}
     ///@name Inquiry
     ///@{
 
     bool IsEnabled() const override;
+    
     bool IsDisabled() const override;
 
     ///@}
@@ -98,6 +93,3 @@ private:
 
 ///@}
 }
-}
-
-#endif // KRATOS_DISTRIBUTED_TEST_CASE_H_INCLUDED

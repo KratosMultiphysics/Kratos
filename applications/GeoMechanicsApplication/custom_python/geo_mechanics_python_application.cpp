@@ -35,17 +35,14 @@
 namespace Kratos {
 namespace Python {
 
-  using namespace pybind11;
+namespace py = pybind11;
 
-  PYBIND11_MODULE(KratosGeoMechanicsApplication,m)
-  {
-
-  class_<KratosGeoMechanicsApplication,
-         KratosGeoMechanicsApplication::Pointer,
-         KratosApplication>(m, "KratosGeoMechanicsApplication")
-        .def(init<>());
-
-
+PYBIND11_MODULE(KratosGeoMechanicsApplication,m)
+{
+    py::class_<KratosGeoMechanicsApplication,
+            KratosGeoMechanicsApplication::Pointer,
+            KratosApplication>(m, "KratosGeoMechanicsApplication")
+            .def(py::init<>());
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
@@ -127,16 +124,14 @@ namespace Python {
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PIPE_ETA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PIPE_THETA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PIPE_D_70 )
-  	KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PIPE_START_ELEMENT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PIPE_START_ELEMENT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PIPE_ELEMENT_LENGTH )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PIPE_IN_EQUILIBRIUM )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PIPE_MODIFIED_D)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PIPE_MODEL_FACTOR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PIPE_HEIGHT)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PIPE_ACTIVE)
-
-  }
-
+}
 
 } // namespace Python.
 } // namespace Kratos.

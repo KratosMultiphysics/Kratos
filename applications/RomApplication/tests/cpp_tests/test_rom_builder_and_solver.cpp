@@ -26,8 +26,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "utilities/math_utils.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 namespace ROMBuilderAndSolverTestingInternal {
 
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
@@ -125,7 +124,7 @@ ModelPart& FillModel(Model& model)
     mpart.GetNode(3).FastGetSolutionStepValue(TEMPERATURE) = 300;
 
     // Elements
-    using LineType = Line2D2<Node<3>>;
+    using LineType = Line2D2<Node>;
     auto pProperties = mpart.pGetProperties(0);
     for(std::size_t i=1; i<=2; ++i)
     {
@@ -135,8 +134,8 @@ ModelPart& FillModel(Model& model)
     }
 
     // Basis
-    const auto phi_1 = [](Node<3> const&){ return 1.0; };
-    const auto phi_2 = [](Node<3> const& r_node){ return r_node.X(); };
+    const auto phi_1 = [](Node const&){ return 1.0; };
+    const auto phi_2 = [](Node const& r_node){ return r_node.X(); };
 
     Matrix basis = ZeroMatrix(1, 2); // 1 dof per node, 2 basis
     for(auto& r_node: mpart.Nodes())
@@ -216,5 +215,4 @@ KRATOS_TEST_CASE_IN_SUITE(ROMBuilderAndSolver, RomApplicationFastSuite)
     KRATOS_CHECK_NEAR(dx(2), 2.0 , 1e-8);
 }
 
-}
 }

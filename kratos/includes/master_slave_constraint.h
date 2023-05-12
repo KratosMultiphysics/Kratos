@@ -5,21 +5,19 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Aditya Ghantasala
-//
+//  Collaborators:   Vicente Mataix
 //
 
-#if !defined(MASTER_SLAVE_CONSTRAINT_H)
-#define MASTER_SLAVE_CONSTRAINT_H
+#pragma once
+
 // System includes
 
 // project includes
 #include "includes/define.h"
-#include "includes/dof.h"
 #include "includes/node.h"
-#include "includes/kratos_flags.h"
 #include "containers/flags.h"
 #include "containers/variable.h"
 #include "includes/process_info.h"
@@ -73,7 +71,7 @@ namespace Kratos
  * This unique equation is used later on to modify the equation system.
  * @author Aditya Ghantasala
  */
-class MasterSlaveConstraint
+class KRATOS_API(KRATOS_CORE) MasterSlaveConstraint
     :  public IndexedObject, public Flags
 {
 public:
@@ -93,7 +91,7 @@ public:
     typedef std::vector< DofType::Pointer > DofPointerVectorType;
 
     /// The node type definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The equation Id vector type definition
     typedef std::vector<std::size_t> EquationIdVectorType;
@@ -387,7 +385,7 @@ public:
     }
 
     /**
-     * @brief This method allows to set the Local System in case is not computed on tunning time (internal variable)
+     * @brief This method allows to set the Local System in case is not computed on running time (internal variable)
      * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
      * @param rConstant The constant vector (one entry for each slave)
      * @param rCurrentProcessInfo The current process info instance
@@ -406,7 +404,7 @@ public:
     }
 
     /**
-     * @brief This method allows to get the Local System in case is not computed on tunning time (internal variable)
+     * @brief This method allows to get the Local System in case is not computed on running time (internal variable)
      * @param rRelationMatrix the matrix which relates the master and slave degree of freedom
      * @param rConstant The constant vector (one entry for each slave)
      * @param rCurrentProcessInfo The current process info instance
@@ -471,7 +469,7 @@ public:
 
     /**
      * @brief Returns the string containing a detailed description of this object.
-     * @return the string with informations
+     * @return the string with information
      */
     virtual std::string GetInfo() const
     {
@@ -522,7 +520,8 @@ public:
      * @brief Check if the Data exists with Has(..) methods:
      * @param rThisVariable The variable to be check
      */
-    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    template<class TDataType> 
+    bool Has(const Variable<TDataType>& rThisVariable) const
     {
         return mData.Has(rThisVariable);
     }
@@ -532,7 +531,8 @@ public:
      * @param rThisVariable The variable to be set
      * @param rValue The value to be set
      */
-    template<class TVariableType> void SetValue(
+    template<class TVariableType>
+    void SetValue(
         const TVariableType& rThisVariable,
         typename TVariableType::Type const& rValue
         )
@@ -544,7 +544,8 @@ public:
      * @brief Get Data with GetValue and the Variable to get
      * @param rThisVariable The variable to get
      */
-    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
+    template<class TVariableType>
+    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable)
     {
         return mData.GetValue(rThisVariable);
     }
@@ -553,11 +554,23 @@ public:
      * @brief Get Data with GetValue and the Variable to get
      * @param rThisVariable The variable to get
      */
-    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable) const
+    template<class TVariableType>
+    typename TVariableType::Type& GetValue(const TVariableType& rThisVariable) const
     {
         return mData.GetValue(rThisVariable);
     }
 
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief Checks if the GeometricalObject is active
+     * @return True by default, otherwise depending on the ACTIVE flag
+     */
+    bool IsActive() const;
+
+    ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -622,7 +635,7 @@ private:
 
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<MasterSlaveConstraint>;
 
-///@name Input/Output funcitons
+///@name Input/Output functions
 ///@{
 
 /// input stream function
@@ -639,11 +652,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-
 ///@}
 
-
-
 } // namespace Kratos
-
-#endif // MASTER_SLAVE_CONSTRAINT_H

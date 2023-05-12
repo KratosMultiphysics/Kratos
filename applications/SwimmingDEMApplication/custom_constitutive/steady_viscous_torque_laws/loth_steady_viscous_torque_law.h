@@ -13,7 +13,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) LothSteadyViscousTorqueLaw : public RubinowAndKellerTorqueLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(LothSteadyViscousTorqueLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option
@@ -29,7 +29,7 @@ namespace Kratos {
 
         std::string GetTypeOfLaw() override;
 
-        void ComputeMoment(Geometry<Node<3> >& r_geometry,
+        void ComputeMoment(Geometry<Node >& r_geometry,
                            const double reynolds_number,
                            double particle_radius,
                            double fluid_density,

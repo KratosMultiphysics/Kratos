@@ -11,8 +11,7 @@
 //  Main authors:    Klaus B. Sautter
 //
 
-#if !defined (KRATOS_TRUSS_PLASTICITY_LAW_H_INCLUDED)
-#define  KRATOS_TRUSS_PLASTICITY_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -218,4 +217,3 @@ private:
 
 }; // Class TrussPlasticityConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_TRUSS_PLASTICITY_LAW_H_INCLUDED  defined

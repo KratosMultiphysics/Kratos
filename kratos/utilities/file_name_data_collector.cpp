@@ -54,7 +54,7 @@ FileNameDataCollector::FileNameDataCollector(
     auto file_name_pattern = rFileNamePattern;
     FindAndReplace(file_name_pattern, "<model_part_name>", rModelPart.Name());
     FindAndReplace(file_name_pattern, "<model_part_full_name>", rModelPart.FullName());
-    mFilePath = filesystem::parent_path(file_name_pattern);
+    mFilePath = std::filesystem::path(file_name_pattern).parent_path().string();
 
     KRATOS_ERROR_IF(mFilePath.find("<rank>") != std::string::npos)
         << "Flag \"<rank>\" is not allowed to be used inside the file path. "
@@ -85,7 +85,7 @@ FileNameDataCollector::FileNameDataCollector(
         }
     };
 
-    const auto& file_name_flags = GetPatternFlagStrings(filesystem::filename(file_name_pattern));
+    const auto& file_name_flags = GetPatternFlagStrings(std::filesystem::path(file_name_pattern).filename().string());
     for (const auto& r_flag : file_name_flags) {
         mFileNamePatternFlags.emplace_back(PatternFlag(r_flag, process_flag_formats(r_flag)));
     }
@@ -125,7 +125,7 @@ std::string FileNameDataCollector::GetFileName() const
         file_name += r_flag.GetValueString(mrModelPart);
     }
 
-    return FilesystemExtensions::JoinPaths({mFilePath, file_name});
+    return (std::filesystem::path(mFilePath) / file_name).string();
 
     KRATOS_CATCH("");
 }
@@ -154,8 +154,7 @@ bool FileNameDataCollector::RetrieveFileNameData(
         }
     }
 
-    rFileNameData.SetFileName(
-        FilesystemExtensions::JoinPaths({mFilePath, rFileNameWithoutPath}));
+    rFileNameData.SetFileName((std::filesystem::path(mFilePath) / rFileNameWithoutPath).string());
 
     return true;
 
@@ -169,8 +168,8 @@ std::vector<FileNameDataCollector::FileNameData> FileNameDataCollector::GetFileN
     std::vector<FileNameData> result;
 
     for (const auto& current_file : FilesystemExtensions::ListDirectory(mFilePath)) {
-        if (filesystem::is_regular_file(current_file)) {
-            const auto& current_file_name_without_path = filesystem::filename(current_file);
+        if (std::filesystem::is_regular_file(current_file)) {
+            const auto& current_file_name_without_path = current_file.filename().string();
             FileNameData file_name_data;
             if (RetrieveFileNameData(file_name_data, current_file_name_without_path)) {
                 result.push_back(file_name_data);

@@ -180,17 +180,15 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
     }
 
     struct TLS_container {IndexType counter = 0; Condition::Pointer p_host_cond; VectorType shape_function_values; array_1d<double, 3 > transformed_slave_coordinates;};
-    const IndexType num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), TLS_container(), [&](Node<3>& rNode, TLS_container& tls_container){
+    const IndexType num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), TLS_container(), [&](Node& rNode, TLS_container& tls_container){
         tls_container.counter = 0;
         TransformNode(rNode.Coordinates(), tls_container.transformed_slave_coordinates);
 
         // Finding the host element for this node
         const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(tls_container.transformed_slave_coordinates, tls_container.shape_function_values, tls_container.p_host_cond, mSearchMaxResults, mSearchTolerance);
-        if(is_found) 
-        {
+        if(is_found) {
             ++tls_container.counter;
-            for (unsigned int j = 0; j < num_vars; j++) 
-            {
+            for (unsigned int j = 0; j < num_vars; j++) {
                 (*functions_required[j])(rNode, tls_container.p_host_cond->GetGeometry(), tls_container.shape_function_values, variables_vector[j]);
             }
         }

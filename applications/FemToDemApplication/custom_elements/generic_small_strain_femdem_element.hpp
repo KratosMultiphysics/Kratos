@@ -51,7 +51,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template<unsigned int TDim, unsigned int TyieldSurf>
-class GenericSmallStrainFemDemElement 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) GenericSmallStrainFemDemElement 
     : public GenericTotalLagrangianFemDemElement<TDim,TyieldSurf> // Derived Element from SolidMechanics
 {
 public:
@@ -67,8 +67,8 @@ public:
     ///base type: an GeometricalObject that automatically has a unique number
     typedef GenericTotalLagrangianFemDemElement<TDim,TyieldSurf> BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters

@@ -11,8 +11,7 @@
 //                   Suneth Warnakulasuriya
 //
 
-#if !defined(KRATOS_FIND_GLOBAL_NODAL_ENTITY_NEIGHBOURS_PROCESS_H_INCLUDED )
-#define  KRATOS_FIND_GLOBAL_NODAL_ENTITY_NEIGHBOURS_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -62,6 +61,8 @@ public:
 
     using NonLocalMapType =  std::unordered_map<int, NeighbourMapType>;
 
+    using IdMapType = std::unordered_map<int, std::vector<int>>;
+
     /// Pointer definition of FindGlobalNodalEntityNeighboursProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindGlobalNodalEntityNeighboursProcess);
 
@@ -100,8 +101,7 @@ public:
 
     KRATOS_DEPRECATED_MESSAGE("This is legacy version (use Clear)") void ClearNeighbours() { Clear(); }
 
-    std::unordered_map<int, std::vector<int> > GetNeighbourIds(
-        ModelPart::NodesContainerType& rNodes);
+    IdMapType GetNeighbourIds(const ModelPart::NodesContainerType& rNodes);
 
     const Parameters GetDefaultParameters() const override;
 
@@ -173,9 +173,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_FIND_GLOBAL_NODAL_ENTITY_NEIGHBOURS_PROCESS_H_INCLUDED  defined
-
-

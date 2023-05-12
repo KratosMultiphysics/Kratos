@@ -65,6 +65,10 @@
 #include "utilities/rve_periodicity_utility.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
+#include "utilities/shifted_boundary_meshless_interface_utility.h"
+#include "utilities/particles_utilities.h"
+#include "utilities/string_utilities.h"
+#include "utilities/model_part_operation_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -408,6 +412,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag);})
         .def("RemoveConditionAndBelongingsFromAllLevels", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, ModelPart::ConditionType::Pointer pThisCondition, Flags IdentifierFlag, ModelPart::IndexType ThisIndex) { rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);})
         .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
+        .def("RemoveOrphanNodesFromSubModelParts", &Kratos::AuxiliarModelPartUtilities::RemoveOrphanNodesFromSubModelParts)
         ;
 
     // Sparse matrix multiplication utility
@@ -690,7 +695,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("ComputeEquivalentForceAndTorque", &ForceAndTorqueUtils::ComputeEquivalentForceAndTorque)
         ;
 
-    AddSubModelPartEntitiesBooleanOperationToPython<Node<3>,ModelPart::NodesContainerType>(
+    AddSubModelPartEntitiesBooleanOperationToPython<Node,ModelPart::NodesContainerType>(
         m, "SubModelPartNodesBooleanOperationUtility");
 
     AddSubModelPartEntitiesBooleanOperationToPython<Element,ModelPart::ElementsContainerType>(
@@ -732,8 +737,81 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("ApplyMinimalScalarFixity", &ModelPartGraphUtilities::ApplyMinimalScalarFixity)
         ;
 
-    auto fs_extensions = m.def_submodule("FilesystemExtensions");
-    fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
+    py::class_<ParticlesUtilities>(m, "ParticlesUtilities")
+        // TODO: I would remove unsigned int if using std::size_t
+        .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<2,true>)
+        .def_static("CountParticlesInNodesHistorical", &ParticlesUtilities::CountParticlesInNodes<3,true>)
+        .def_static("CountParticlesInNodesNonHistorical", &ParticlesUtilities::CountParticlesInNodes<2,false>)
+        .def_static("CountParticlesInNodesNonHistorical", &ParticlesUtilities::CountParticlesInNodes<3,false>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,double,true>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,double,true>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,double,false>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,double,false>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,int,true>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,int,true>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,int,false>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,int,false>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,unsigned int,true>)
+        .def_static("ClassifyParticlesInElementsHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,unsigned int,true>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<2,unsigned int,false>)
+        .def_static("ClassifyParticlesInElementsNonHistorical", &ParticlesUtilities::ClassifyParticlesInElements<3,unsigned int,false>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,double,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,double,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,std::size_t,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,std::size_t,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,unsigned int,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,unsigned int,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,array_1d<double,3>,true>)
+        .def_static("InterpolateValuesAtCoordinatesHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,array_1d<double,3>,true>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,double,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,double,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,std::size_t,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,std::size_t,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,unsigned int,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,unsigned int,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<2,array_1d<double,3>,false>)
+        .def_static("InterpolateValuesAtCoordinatesNonHistorical", &ParticlesUtilities::InterpolateValuesAtCoordinates<3,array_1d<double,3>,false>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,double, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,double, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,std::size_t, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,std::size_t, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,unsigned int, true>)
+        .def_static("MarkOutsiderParticlesHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,unsigned int, true>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,double, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,double, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,std::size_t, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,std::size_t, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<2,unsigned int, false>)
+        .def_static("MarkOutsiderParticlesNonHistorical", &ParticlesUtilities::MarkOutsiderParticles<3,unsigned int, false>)
+        ;
+
+
+    py::class_<FilesystemExtensions>(m, "FilesystemExtensions")
+        .def_static("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories )
+        ;
+
+    py::class_<ShiftedBoundaryMeshlessInterfaceUtility, ShiftedBoundaryMeshlessInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtility")
+        .def(py::init<Model&, Parameters>())
+        .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
+    ;
+
+    m.def_submodule("StringUtilities", "Free-floating utility functions for string manipulation.")
+        .def("ConvertCamelCaseToSnakeCase",
+             StringUtilities::ConvertCamelCaseToSnakeCase,
+             "CamelCase to snake_case conversion.")
+        .def("ConvertSnakeCaseToCamelCase",
+             StringUtilities::ConvertSnakeCaseToCamelCase,
+             "snake_case to CamelCase conversion")
+        ;
+
+    m.def_submodule("ModelPartOperationUtilities", "Free-floating utility functions for model part operations.")
+        .def("CheckValidityOfModelPartsForOperations", &ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations, py::arg("main_model_part"), py::arg("list_of_checking_model_parts"), py::arg("thow_error"))
+        .def("Union", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartUnionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_merge"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
+        .def("Substract", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartSubstractionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
+        .def("Intersect", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartIntersectionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
+        .def("HasIntersection", &ModelPartOperationUtilities::HasIntersection, py::arg("model_parts_to_intersect"))
+    ;
+
 }
 
 } // namespace Python.

@@ -125,7 +125,7 @@ public:
     typedef std::size_t IndexType;
 
     // GometryType
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
 
 

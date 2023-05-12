@@ -43,6 +43,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, MP_TEMPERATURE)
     KRATOS_CREATE_VARIABLE( double, NODAL_MPRESSURE )
     KRATOS_CREATE_VARIABLE(bool, IS_COMPRESSIBLE)
+    KRATOS_CREATE_VARIABLE(bool, IS_MIXED_FORMULATION)
 
     // Constitutive Law
     KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER )
@@ -63,7 +64,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, MP_HARDENING_RATIO)
 
     // Mesh variables
-    KRATOS_CREATE_VARIABLE(std::vector<typename Geometry<Node<3>>::Pointer>, GEOMETRY_NEIGHBOURS)
+    KRATOS_CREATE_VARIABLE(std::vector<typename Geometry<Node>::Pointer>, GEOMETRY_NEIGHBOURS)
 
     // Conditions
     // Essential Boundary Conditions
@@ -119,4 +120,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(bool, CALCULATE_EXPLICIT_MP_STRESS)
     KRATOS_CREATE_VARIABLE(bool, EXPLICIT_MAP_GRID_TO_MP)
     KRATOS_CREATE_VARIABLE(bool, IS_FIX_EXPLICIT_MP_ON_GRID_EDGE)
+
+    // Stabilization variables
+    KRATOS_CREATE_VARIABLE(int, STABILIZATION_TYPE)
 }

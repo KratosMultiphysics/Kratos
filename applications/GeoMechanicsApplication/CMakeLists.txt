@@ -27,7 +27,8 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp	
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_workflows/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp		
 )
 
 ## GeoMechanics testing sources

@@ -34,7 +34,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     /// Pointer definition of ApplyPeriodicConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPeriodicConditionProcess);
 
-    typedef Node<3>                                         NodeType;
+    typedef Node                                         NodeType;
     typedef Variable<double>                                VariableType;
     typedef NodeType::IndexType                             IndexType;
     typedef ModelPart::NodeIterator                         NodeIteratorType;

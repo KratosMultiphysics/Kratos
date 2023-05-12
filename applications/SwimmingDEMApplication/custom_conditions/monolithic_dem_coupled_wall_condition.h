@@ -78,7 +78,7 @@ public:
     ///@{
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicDEMCoupledWallCondition);
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 
@@ -184,7 +184,7 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new MonolithicDEMCoupledWallCondition(NewId, Condition::GetGeometry().Create(ThisNodes), pProperties));
+        return Condition::Pointer(new MonolithicDEMCoupledWallCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
     Condition::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,

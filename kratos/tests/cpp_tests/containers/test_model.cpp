@@ -35,7 +35,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelGetModelPart, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(model.GetModelPart("Main.Inlet1").Name(), smp.Name());
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Main.Random"),
-        "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe the following sub model parts are available:");
+        "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe following sub model parts are available:");
 
     // TODO this should throw in the future
     // KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Inlet1"),

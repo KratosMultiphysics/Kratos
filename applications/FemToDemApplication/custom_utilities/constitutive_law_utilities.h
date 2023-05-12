@@ -59,7 +59,7 @@ typedef std::size_t SizeType;
  * @author Vicente Mataix Ferrandiz
  */
 template <SizeType TVoigtSize = 6>
-class ConstitutiveLawUtilities
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ConstitutiveLawUtilities
 {
   public:
     ///@name Type definitions
@@ -87,7 +87,7 @@ class ConstitutiveLawUtilities
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
 
     /// Node type definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Geometry definitions
     typedef Geometry<NodeType> GeometryType;

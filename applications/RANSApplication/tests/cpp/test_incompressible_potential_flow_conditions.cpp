@@ -54,6 +54,8 @@ ModelPart& RansIncompressiblePotentialFlowVelocityInlet2D2NSetUp(
     RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(
         r_model_part, NORMAL, 1.0, 10.0);
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 
