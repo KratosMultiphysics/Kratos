@@ -190,7 +190,7 @@ class UpdateConditionsOnFreeSurfaceProcess : public Process {
 				// Loop over all elements
 				for (auto i_elem(r_computing_model_part.ElementsBegin()); i_elem != r_computing_model_part.ElementsEnd(); ++i_elem)
 				{
-					Geometry<Node<3>>& r_geometry = i_elem->GetGeometry();
+					Geometry<Node>& r_geometry = i_elem->GetGeometry();
 					DenseMatrix<unsigned int> lpofa; // connectivities of points defining faces
 					DenseVector<unsigned int> lnofa; // number of points defining faces
 					r_geometry.NodesInFaces(lpofa);

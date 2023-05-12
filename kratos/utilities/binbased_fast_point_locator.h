@@ -87,7 +87,7 @@ public:
     typedef typename BinsObjectDynamic<ConfigureType>::PointType BinsPointType;
 
     /// The definition of the node
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The definition of the geometry
     typedef Geometry<NodeType> GeometryType;

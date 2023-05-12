@@ -45,7 +45,7 @@ namespace Kratos
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
-        typedef Geometry<Node<3>> GeometryType;
+        typedef Geometry<Node> GeometryType;
         typedef typename GeometryType::Pointer GeometryPointerType;
 
         ///@}

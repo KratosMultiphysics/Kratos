@@ -161,7 +161,7 @@ namespace Kratos
                                   std::function<void(char*)> reportTextualProgress,
                                   std::function<bool()> shouldCancel);
 
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

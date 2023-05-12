@@ -49,7 +49,7 @@ namespace Kratos
       /// Pointer definition of TetrahedraBall
       KRATOS_CLASS_POINTER_DEFINITION(TetrahedraBall);
 
-	  using NodeType = Node<3>;
+	  using NodeType = Node;
 
 	  using TetrahedraContainerType = std::vector<Geometry<NodeType>* >;
 

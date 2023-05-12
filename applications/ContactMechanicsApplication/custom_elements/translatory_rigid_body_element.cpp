@@ -447,7 +447,7 @@ void TranslatoryRigidBodyElement::UpdateRigidBodyNodes(const ProcessInfo& rCurre
 
      KRATOS_TRY
 
-     Node<3>& rCenterOfGravity = this->GetGeometry()[0];
+     Node& rCenterOfGravity = this->GetGeometry()[0];
 
      ArrayType&  Displacement = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);
      ArrayType&  Velocity     = rCenterOfGravity.FastGetSolutionStepValue(VELOCITY);
