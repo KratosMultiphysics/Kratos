@@ -56,7 +56,8 @@ namespace Kratos
  * @ingroup KratosCore
  * @author Pooyan Dadvand
  */
-class Node
+class KRATOS_API(KRATOS_CORE) Node
+
     : public Point, public Flags
 {
 public:
