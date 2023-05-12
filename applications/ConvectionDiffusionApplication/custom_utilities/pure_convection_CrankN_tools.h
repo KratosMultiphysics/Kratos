@@ -97,11 +97,11 @@ public:
 
             if(index_i < mEquationSystemSize && (it->GetValue(NEIGHBOUR_NODES)).size() != 0)
             {
-                GlobalPointersVector< Node<3> >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node >& neighb_nodes = it->GetValue(NEIGHBOUR_NODES);
 
                 //filling the first neighbours list
                 work_array.push_back(index_i);
-                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
+                for( GlobalPointersVector< Node >::iterator i =	neighb_nodes.begin(); i != neighb_nodes.end(); i++)
                 {
                     unsigned int index_j = i->GetDof(rScalarVar).EquationId();
                     if(index_j < mEquationSystemSize)
@@ -193,7 +193,7 @@ public:
         for(ModelPart::ElementsContainerType::iterator i = model_part.ElementsBegin();
                 i!=model_part.ElementsEnd(); i++)
         {
-            Geometry< Node<3> >& geom = i->GetGeometry();
+            Geometry< Node >& geom = i->GetGeometry();
 
             //calculating elemental values
             double Volume;
@@ -377,7 +377,7 @@ public:
                 i!=model_part.ElementsEnd(); i++)
         {
 
-            Geometry< Node<3> >& geom = i->GetGeometry();
+            Geometry< Node >& geom = i->GetGeometry();
 
             //calculating elemental values
             double Volume;

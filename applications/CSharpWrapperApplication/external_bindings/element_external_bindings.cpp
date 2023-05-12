@@ -5,7 +5,7 @@
 #include "includes/node.h"
 
 typedef Kratos::Element ElementType;
-typedef Kratos::Node<3> NodeType;
+typedef Kratos::Node NodeType;
 
 extern "C" {
 #if defined(KRATOS_COMPILED_IN_WINDOWS)

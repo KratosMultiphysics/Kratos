@@ -737,8 +737,8 @@ namespace Kratos {
 
                 if (!r_process_info[IS_RESTARTED]){
                 // Central Node
-                Node<3>::Pointer central_node;
-                Geometry<Node<3> >::PointsArrayType central_node_list;
+                Node::Pointer central_node;
+                Geometry<Node >::PointsArrayType central_node_list;
 
                 array_1d<double, 3> reference_coordinates = ZeroVector(3);
 
@@ -786,7 +786,7 @@ namespace Kratos {
                 if (submp.Has(FREE_BODY_MOTION)) { // JIG: Backward compatibility, it should be removed in the future
                     if (submp[FREE_BODY_MOTION]) {
 
-                        std::vector<std::vector<Node<3>::Pointer> > thread_vectors_of_node_pointers;
+                        std::vector<std::vector<Node::Pointer> > thread_vectors_of_node_pointers;
                         thread_vectors_of_node_pointers.resize(mNumberOfThreads);
                         std::vector<std::vector<array_1d<double, 3> > > thread_vectors_of_coordinates;
                         thread_vectors_of_coordinates.resize(mNumberOfThreads);
@@ -975,7 +975,7 @@ namespace Kratos {
         block_for_each(r_model_part_nodes, [&](ModelPart::NodeType& rNode) {
 
             if (rNode.Is(BLOCKED)) return;
-            Node<3>& node = rNode;
+            Node& node = rNode;
 
             if (node.GetDof(VELOCITY_X, vel_x_dof_position).IsFixed()) {
                 node.Set(DEMFlags::FIXED_VEL_X, true);
@@ -1456,7 +1456,7 @@ namespace Kratos {
                         ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (p_old_contact_element.get());
                         mListOfSphericParticles[i]->mBondElements[j] = p_bond;
                     } else {
-                        Geometry<Node<3> >::PointsArrayType NodeArray(2);
+                        Geometry<Node >::PointsArrayType NodeArray(2);
                         NodeArray.GetContainer()[0] = mListOfSphericParticles[i]->GetGeometry()(0);
                         NodeArray.GetContainer()[1] = neighbour_element->GetGeometry()(0);
                         const Properties::Pointer& properties = mListOfSphericParticles[i]->pGetProperties();

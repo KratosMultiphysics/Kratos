@@ -35,13 +35,13 @@ VariableUtils.SetNonHistoricalVariableToZero(TEMPERATURE, model_part.Nodes);
 
 // create the global pointer map communicator
 // will not do anything in serial case.
-GlobalPointerMapCommunicator<Node<3>, double> pointer_map_comm(r_default_comm);
+GlobalPointerMapCommunicator<Node, double> pointer_map_comm(r_default_comm);
 
 // creates the proxy method for updating
 // this proxy is called upon only with gps in their owning processes. No communication is done in here.
 // this proxy needs to be always thread safe for parallel loops of the entitiy being passed.
-// In this case the entity is of type Node<3>
-const auto& apply_proxy = pointer_map_comm.GetApplyProxy([](Node<3>& rNode, const double& NewValue) {
+// In this case the entity is of type Node
+const auto& apply_proxy = pointer_map_comm.GetApplyProxy([](Node& rNode, const double& NewValue) {
     rNode.GetValue(TEMPERATURE) += NewValue;
 });
 

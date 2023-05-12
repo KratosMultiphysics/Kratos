@@ -40,8 +40,8 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 {
   public:
 
-    typedef Node < 3 > NodeType;
-    typedef Node < 3 > ::Pointer NodeTypePointer;
+    typedef Node NodeType;
+    typedef Node ::Pointer NodeTypePointer;
     typedef std::vector<NodeTypePointer> NodeVector;
     typedef ModelPart::NodesContainerType NodesArrayType;
     typedef std::vector<NodeTypePointer>::iterator NodeIterator;

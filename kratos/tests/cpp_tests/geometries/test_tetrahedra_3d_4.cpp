@@ -27,8 +27,8 @@
 namespace Kratos {
 	namespace Testing {
 
-    typedef Node<3>                   PointType;
-    typedef Node<3>::Pointer          PointPtrType;
+    typedef Node                   PointType;
+    typedef Node::Pointer          PointPtrType;
     typedef Tetrahedra3D4<PointType>  TetGeometryType;
     typedef TetGeometryType::Pointer  TetGeometryPtrType;
 

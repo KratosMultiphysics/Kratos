@@ -39,9 +39,9 @@ namespace Kratos
         // Standard types
         typedef std::size_t IndexType;
         typedef std::size_t SizeType;
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef typename ModelPart::GeometryType GeometryType;
-        typedef typename Geometry<Node<3>>::Pointer GeometryNodePointerType;
+        typedef typename Geometry<Node>::Pointer GeometryNodePointerType;
 
         // Boost Polygon
         typedef boost::geometry::model::point<double, 2, boost::geometry::cs::cartesian> Boost2DPointType;
@@ -110,14 +110,14 @@ namespace Kratos
             const double SideHalfLength,
             const SizeType MaxRecursions = 100);
 
-        static bool CheckFixedNodesWithinBoundingBox(const PointerVector<Node<3>>& rNodesList,
+        static bool CheckFixedNodesWithinBoundingBox(const PointerVector<Node>& rNodesList,
             const Point& rPointHigh, const Point& rPointLow, const SizeType WorkingDim);
 
         static GeometryNodePointerType CreateCustomQuadraturePoint(
             SizeType WorkingSpaceDimension,
             SizeType LocalSpaceDimension,
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
-            typename Geometry<Node<3>>::PointsArrayType rPoints,
+            typename Geometry<Node>::PointsArrayType rPoints,
             GeometryType* pGeometryParent);
     }; // class PQMPMPartitionUtilities
 }  // namespace Kratos
