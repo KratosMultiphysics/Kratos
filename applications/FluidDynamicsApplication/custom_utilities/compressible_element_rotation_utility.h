@@ -59,9 +59,9 @@ public:
 	/// Pointer definition of CompressibleElementRotationUtility
 	KRATOS_CLASS_POINTER_DEFINITION(CompressibleElementRotationUtility);
 
-	typedef Node<3> NodeType;
+	typedef Node NodeType;
 
-	typedef Geometry< Node<3> > GeometryType;
+	typedef Geometry< Node > GeometryType;
 
 	///@}
 	///@name Life Cycle

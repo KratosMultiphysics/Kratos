@@ -29,7 +29,7 @@
 namespace Kratos::Testing
 {
 /// Factory functions
-using NodeType = Node<3>;
+using NodeType = Node;
 
 /** Generates a sample Triangle3D3.
 * Generates a triangle defined by three random points in the space.

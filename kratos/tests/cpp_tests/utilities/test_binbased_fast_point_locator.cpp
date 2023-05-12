@@ -29,7 +29,7 @@ namespace Kratos
 {
     namespace Testing 
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         
         /** 
         * Checks the correct work of the binbased fast point locator

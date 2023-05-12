@@ -85,7 +85,7 @@ public:
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
     /// The node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The definition of the dof type
     typedef typename ModelPart::DofType DofType;

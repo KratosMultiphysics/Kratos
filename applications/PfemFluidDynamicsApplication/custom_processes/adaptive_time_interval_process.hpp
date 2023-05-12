@@ -340,7 +340,7 @@ public:
 				if (dimension == 2)
 				{
 					currentElementalArea = (itElem)->GetGeometry().Area();
-					Geometry<Node<3>> updatedElementCoordinates;
+					Geometry<Node> updatedElementCoordinates;
 					bool solidElement = false;
 					for (unsigned int i = 0; i < itElem->GetGeometry().size(); i++)
 					{
@@ -351,18 +351,18 @@ public:
 
 						const array_1d<double, 3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 						Point updatedNodalCoordinates = Point{itElem->GetGeometry()[i].Coordinates() + Vel * temporaryTimeInterval};
-						updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i, updatedNodalCoordinates.X(), updatedNodalCoordinates.Y(), updatedNodalCoordinates.Z())));
+						updatedElementCoordinates.push_back(Node::Pointer(new Node(i, updatedNodalCoordinates.X(), updatedNodalCoordinates.Y(), updatedNodalCoordinates.Z())));
 					}
 
 					double newArea = 0;
 					if (itElem->GetGeometry().size() == 3)
 					{
-						Triangle2D3<Node<3>> myGeometry(updatedElementCoordinates);
+						Triangle2D3<Node> myGeometry(updatedElementCoordinates);
 						newArea = myGeometry.Area();
 					}
 					else if (itElem->GetGeometry().size() == 6)
 					{
-						Triangle2D6<Node<3>> myGeometry(updatedElementCoordinates);
+						Triangle2D6<Node> myGeometry(updatedElementCoordinates);
 						newArea = myGeometry.Area();
 					}
 					else
@@ -390,23 +390,23 @@ public:
 					}
 					else
 					{
-						Geometry<Node<3>> updatedEnlargedElementCoordinates;
+						Geometry<Node> updatedEnlargedElementCoordinates;
 
 						for (unsigned int i = 0; i < itElem->GetGeometry().size(); i++)
 						{
 							const array_1d<double, 3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 							Point updatedNodalCoordinates = Point{itElem->GetGeometry()[i].Coordinates() + Vel * temporaryTimeInterval * 2.5};
-							updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i, updatedNodalCoordinates.X(), updatedNodalCoordinates.Y(), updatedNodalCoordinates.Z())));
+							updatedEnlargedElementCoordinates.push_back(Node::Pointer(new Node(i, updatedNodalCoordinates.X(), updatedNodalCoordinates.Y(), updatedNodalCoordinates.Z())));
 						}
 
 						if (itElem->GetGeometry().size() == 3)
 						{
-							Triangle2D3<Node<3>> myGeometry(updatedEnlargedElementCoordinates);
+							Triangle2D3<Node> myGeometry(updatedEnlargedElementCoordinates);
 							newArea = myGeometry.Area();
 						}
 						else if (itElem->GetGeometry().size() == 6)
 						{
-							Triangle2D6<Node<3>> myGeometry(updatedEnlargedElementCoordinates);
+							Triangle2D6<Node> myGeometry(updatedEnlargedElementCoordinates);
 							newArea = myGeometry.Area();
 						}
 						else
@@ -424,7 +424,7 @@ public:
 				else if (dimension == 3)
 				{
 					double currentElementalVolume = (itElem)->GetGeometry().Volume();
-					Geometry<Node<3>> updatedElementCoordinates;
+					Geometry<Node> updatedElementCoordinates;
 					bool solidElement = false;
 					for (unsigned int i = 0; i < itElem->GetGeometry().size(); i++)
 					{
@@ -434,18 +434,18 @@ public:
 						}
 						const array_1d<double, 3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 						Point updatedNodalCoordinates = Point{itElem->GetGeometry()[i].Coordinates() + Vel * temporaryTimeInterval};
-						updatedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i, updatedNodalCoordinates.X(), updatedNodalCoordinates.Y(), updatedNodalCoordinates.Z())));
+						updatedElementCoordinates.push_back(Node::Pointer(new Node(i, updatedNodalCoordinates.X(), updatedNodalCoordinates.Y(), updatedNodalCoordinates.Z())));
 					}
 
 					double newVolume = 0;
 					if (itElem->GetGeometry().size() == 4)
 					{
-						Tetrahedra3D4<Node<3>> myGeometry(updatedElementCoordinates);
+						Tetrahedra3D4<Node> myGeometry(updatedElementCoordinates);
 						newVolume = myGeometry.Volume();
 					}
 					else if (itElem->GetGeometry().size() == 10)
 					{
-						Tetrahedra3D10<Node<3>> myGeometry(updatedElementCoordinates);
+						Tetrahedra3D10<Node> myGeometry(updatedElementCoordinates);
 						newVolume = myGeometry.Volume();
 					}
 					else
@@ -473,23 +473,23 @@ public:
 					}
 					else
 					{
-						Geometry<Node<3>> updatedEnlargedElementCoordinates;
+						Geometry<Node> updatedEnlargedElementCoordinates;
 
 						for (unsigned int i = 0; i < itElem->GetGeometry().size(); i++)
 						{
 							const array_1d<double, 3> &Vel = itElem->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
 							Point updatedNodalCoordinates = Point{itElem->GetGeometry()[i].Coordinates() + Vel * temporaryTimeInterval * 2.5};
-							updatedEnlargedElementCoordinates.push_back(Node<3>::Pointer(new Node<3>(i, updatedNodalCoordinates.X(), updatedNodalCoordinates.Y(), updatedNodalCoordinates.Z())));
+							updatedEnlargedElementCoordinates.push_back(Node::Pointer(new Node(i, updatedNodalCoordinates.X(), updatedNodalCoordinates.Y(), updatedNodalCoordinates.Z())));
 						}
 
 						if (itElem->GetGeometry().size() == 4)
 						{
-							Tetrahedra3D4<Node<3>> myGeometry(updatedEnlargedElementCoordinates);
+							Tetrahedra3D4<Node> myGeometry(updatedEnlargedElementCoordinates);
 							newVolume = myGeometry.Volume();
 						}
 						else if (itElem->GetGeometry().size() == 10)
 						{
-							Tetrahedra3D10<Node<3>> myGeometry(updatedEnlargedElementCoordinates);
+							Tetrahedra3D10<Node> myGeometry(updatedEnlargedElementCoordinates);
 							newVolume = myGeometry.Volume();
 						}
 						else
