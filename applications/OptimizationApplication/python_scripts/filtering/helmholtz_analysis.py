@@ -13,22 +13,8 @@ class HelmholtzAnalysis(AnalysisStage):
     It can be imported and used as "black-box"
     """
     def __init__(self, model, project_parameters):
-        # Making sure that older cases fail with a meaningful error message
-        solver_settings = project_parameters["solver_settings"]
-        if not solver_settings.Has("time_stepping"):
-            raise Exception("Using the old way to pass the time_step, this was removed!")
-
-        if not solver_settings.Has("domain_size"):
-            raise Exception("Using the old way to pass the domain_size, this was removed!")
-
-        if not solver_settings.Has("model_part_name"):
-            raise Exception("Using the old way to pass the model_part_name, this was removed!")
-
-        if not solver_settings.Has("echo_level"): # this is done to remain backwards-compatible
-            raise Exception('"solver_settings" does not have "echo_level", please add it!')
 
         self.initialized = False
-
         super().__init__(model, project_parameters)
 
     #### Internal functions ####

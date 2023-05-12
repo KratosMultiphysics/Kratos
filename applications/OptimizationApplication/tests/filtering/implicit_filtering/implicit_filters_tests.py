@@ -29,9 +29,6 @@ class HelmholtzAnalysisTest(TestCase):
                                     "model_import_settings"              : {
                                         "input_type"     : "use_input_model_part"
                                     },
-                                    "time_stepping" : {
-                                        "time_step"       : 1.0
-                                    },
                                     "linear_solver_settings" : {
                                         "solver_type" : "amgcl",
                                         "smoother_type":"ilu0",
@@ -40,8 +37,7 @@ class HelmholtzAnalysisTest(TestCase):
                                         "max_iteration": 200,
                                         "verbosity" : 0,
                                         "tolerance": 1e-7
-                                    },
-                                    "compute_reactions"                : false
+                                    }
                                 },
                                 "processes" : {
                                     "boundary_conditions_process_list" : [
@@ -100,9 +96,6 @@ class HelmholtzAnalysisTest(TestCase):
                                     "model_import_settings"              : {
                                         "input_type"     : "use_input_model_part"
                                     },
-                                    "time_stepping" : {
-                                        "time_step"       : 1.0
-                                    },
                                     "linear_solver_settings" : {
                                         "solver_type" : "amgcl",
                                         "smoother_type":"ilu0",
@@ -111,8 +104,7 @@ class HelmholtzAnalysisTest(TestCase):
                                         "max_iteration": 200,
                                         "verbosity" : 0,
                                         "tolerance": 1e-7
-                                    },
-                                    "compute_reactions"                : false
+                                    }
                                 },
                                 "processes" : {
                                     "boundary_conditions_process_list" : [

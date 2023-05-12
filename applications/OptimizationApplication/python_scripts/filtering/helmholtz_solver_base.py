@@ -42,14 +42,10 @@ class HelmholtzSolverBase(PythonSolver):
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type"           : "helmholtz_solver_base",
-            "buffer_size"           : 1,
             "domain_size"           : -1,
             "filter_type"     : "",
             "filter_radius"     : 0.0,
             "model_part_name"       : "",
-            "time_stepping" : {
-                "time_step"       : 1.0
-            },
             "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
@@ -68,22 +64,12 @@ class HelmholtzSolverBase(PythonSolver):
                 "block_size": 1,
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
-            },
-            "reform_dofs_at_each_step"     : false,
-            "compute_reactions"         : false
+            }
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Public user interface functions ####
-
-    def AdvanceInTime(self, current_time):
-        dt = self.settings["time_stepping"]["time_step"].GetDouble()
-        new_time = current_time + dt
-        self.helmholtz_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.helmholtz_model_part.CloneTimeStep(new_time)
-
-        return new_time
 
     def Initialize(self):
         self._GetSolutionStrategy().Initialize()
@@ -111,10 +97,6 @@ class HelmholtzSolverBase(PythonSolver):
 
     def Clear(self):
         self._GetSolutionStrategy().Clear()
-
-    def GetMinimumBufferSize(self):
-        buffer_size = max(self.settings["buffer_size"].GetInt(), self.helmholtz_model_part.GetBufferSize())
-        return buffer_size
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
@@ -165,8 +147,8 @@ class HelmholtzSolverBase(PythonSolver):
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               scheme,
                                                               builder_and_solver,
-                                                              self.settings["compute_reactions"].GetBool(),
-                                                              self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                              False,
+                                                              False,
                                                               False,
                                                               False)
 

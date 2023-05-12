@@ -29,22 +29,6 @@
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -76,12 +60,6 @@ public:
 
     /// Destructor.
     virtual ~HelmholtzSolidElement();
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
 
     ///@}
     ///@name Operations
@@ -209,77 +187,14 @@ public:
     int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
     // Protected default constructor necessary for serialization
     HelmholtzSolidElement() : Element()
     {
     }
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
@@ -295,34 +210,15 @@ private:
     }
 
     ///@}
-    ///@name Private Operators
-    ///@{
 
-
-    ///@}
     ///@name Private Operations
     ///@{
     void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
 
 }; // Class HelmholtzSolidElement
 
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
 ///@}
 
 }  // namespace Kratos.

@@ -64,8 +64,8 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzSurfaceElement
 public:
     ///@name Type Definitions
     ///@{
-        typedef Node<3>                             PointType;
-        typedef Node<3>::Pointer                    PointPtrType;
+        typedef Node                                PointType;
+        typedef Node::Pointer                       PointPtrType;
         typedef Geometry<PointType>                 GeometryType;
         typedef Pyramid3D5<PointType>               PyramidGeometryType;
         typedef Tetrahedra3D4<PointType>            TetrahedraGeometryType;
@@ -216,77 +216,15 @@ public:
     int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
     // Protected default constructor necessary for serialization
     HelmholtzSurfaceElement() : Element()
     {
     }
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
@@ -301,12 +239,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
     ///@name Private Operations
     ///@{
     void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
@@ -315,24 +247,9 @@ private:
     void CalculateAvgSurfUnitNormal(VectorType & rNormal) const;
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
 
 }; // Class HelmholtzSurfaceElement
 
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
 ///@}
 
 }  // namespace Kratos.
