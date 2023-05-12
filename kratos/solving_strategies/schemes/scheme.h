@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "includes/kratos_parameters.h"
 #include "utilities/entities_utilities.h"
 #include "utilities/parallel_utilities.h"
