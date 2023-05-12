@@ -141,6 +141,7 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
        * @param nodes_array Nodes Container.
        * @param pNode Obtain respective dofs and coordinates for a given node or set of nodes.
        * @param rVariable Dof variable array or double.
+       * @param ComponentVariables List of Dof pointers.
        * @param rCloudOfDofs Dofs container.
        * @param rCloudOfNodesCoordinates Coordinates container.
        **/
@@ -148,15 +149,6 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
         NodeType::Pointer pNode,
         const Variable<double>& rVariable,
         DofPointerVectorType& rCloudOfDofs,
-        array_1d<double,3>& rSlaveCoordinates
-        );
-
-      void GetDofsAndCoordinatesForNode(
-        NodeType::Pointer pNode,
-        const Variable<array_1d<double, 3>>& rVariable,
-        DofPointerVectorType& rCloudOfDofsX,
-        DofPointerVectorType& rCloudOfDofsY,
-        DofPointerVectorType& rCloudOfDofsZ,
         array_1d<double,3>& rSlaveCoordinates
         );
 
@@ -174,15 +166,6 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
         ResultNodesContainerType nodes_array,
         const Variable<double>& rVariable,
         DofPointerVectorType& rCloudOfDofs,
-        Matrix& rCloudOfNodesCoordinates
-        );
-
-      void GetDofsAndCoordinatesForNodes(
-        ResultNodesContainerType nodes_array,
-        const Variable<array_1d<double, 3>>& rVariable,
-        DofPointerVectorType& rCloudOfDofsX,
-        DofPointerVectorType& rCloudOfDofsY,
-        DofPointerVectorType& rCloudOfDofsZ,
         Matrix& rCloudOfNodesCoordinates
         );
 
