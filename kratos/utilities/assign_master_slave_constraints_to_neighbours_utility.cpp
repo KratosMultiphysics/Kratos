@@ -158,7 +158,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
 
 // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
-    ResultNodesContainerType NodesArray,
+    const ResultNodesContainerType& NodesArray,
     const Variable<double>& rVariable,
     DofPointerVectorType& rCloudOfDofs,
     Matrix& rCloudOfNodesCoordinates
@@ -175,7 +175,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
 }
 
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
-    ResultNodesContainerType NodesArray,
+    const ResultNodesContainerType& NodesArray,
     std::array<const Kratos::Variable<double>*, 3> ComponentVariables,
     DofPointerVectorType& rCloudOfDofsX,
     DofPointerVectorType& rCloudOfDofsY,
@@ -224,6 +224,10 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
     BuiltinTimer build_and_assign_mpcs;
 
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
+
+    if (prev_num_mpcs > 0) {
+        KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous MPCs exist in the ModelPart. The new MPCs may interact with the existing ones." << std::endl;
+    }
 
     auto& p_nodes_array = pNodes.GetContainer();
 
@@ -304,6 +308,10 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
     };
 
     int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
+
+    if (prev_num_mpcs > 0) {
+        KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous MPCs exist in the ModelPart. The new MPCs may interact with the existing ones." << std::endl;
+    }
 
     auto& p_nodes_array = pNodes.GetContainer();
 
