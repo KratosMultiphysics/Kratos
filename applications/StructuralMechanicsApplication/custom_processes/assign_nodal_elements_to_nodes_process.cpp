@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -181,7 +181,7 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
     if (rayleigh_damping) {
         p_properties->SetValue(CONSIDER_RAYLEIGH_DAMPING, true);
     }
-    PointerVector<NodeType> aux_node_array(1);
+    PointerVector<Node> aux_node_array(1);
     const auto it_node_begin = r_model_part.NodesBegin();
     aux_node_array(0) = *(it_node_begin).base();
 
@@ -200,7 +200,7 @@ void AssignNodalElementsToNodesProcess::ExecuteInitialize()
         for(int i=0; i< static_cast<int>(number_of_nodes); ++i) {
             auto it_node = it_node_begin + i;
 
-            PointerVector<NodeType> this_node_array(1);
+            PointerVector<Node> this_node_array(1);
             this_node_array(0) = *(it_node).base();
 
             auto p_element = r_reference_element.Create(number_elements + 1 + i, GetPointGeometryFromNode(this_node_array, domain_size), p_properties);
@@ -279,14 +279,14 @@ void AssignNodalElementsToNodesProcess::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 
 AssignNodalElementsToNodesProcess::GeometryType::Pointer AssignNodalElementsToNodesProcess::GetPointGeometryFromNode(
-    PointerVector<NodeType>& rArrayNodes,
+    PointerVector<Node>& rArrayNodes,
     const SizeType Dimension
     )
 {
     if (Dimension == 2) {
-        return Kratos::make_shared<Point2D<NodeType>>(rArrayNodes);
+        return Kratos::make_shared<Point2D<Node>>(rArrayNodes);
     } else {
-        return Kratos::make_shared<Point3D<NodeType>>(rArrayNodes);
+        return Kratos::make_shared<Point3D<Node>>(rArrayNodes);
     }
 
     return nullptr;

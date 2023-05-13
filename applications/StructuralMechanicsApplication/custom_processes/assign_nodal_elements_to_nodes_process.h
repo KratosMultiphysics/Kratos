@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ASSIGN_NODAL_ELEMENTS_TO_NODES_PROCESS)
-#define KRATOS_ASSIGN_NODAL_ELEMENTS_TO_NODES_PROCESS
+#pragma once
 
 // System includes
 
@@ -301,4 +300,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }
-#endif /* KRATOS_ASSIGN_NODAL_ELEMENTS_TO_NODES_PROCESS defined */

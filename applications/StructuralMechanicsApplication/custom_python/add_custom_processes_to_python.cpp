@@ -81,9 +81,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<AssignNodalElementsToNodesProcess, AssignNodalElementsToNodesProcess::Pointer, Process>(m, "AssignNodalElementsToNodesProcess")
-    .def(py::init<ModelPart&>())
-    .def(py::init< ModelPart&, Parameters >())
-    ;
+        .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
+        ;
 
     //SPR_ERROR
     py::class_<SPRErrorProcess<2>, SPRErrorProcess<2>::Pointer, Process >(m, "SPRErrorProcess2D")
