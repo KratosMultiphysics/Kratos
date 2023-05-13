@@ -70,7 +70,7 @@ public:
     static constexpr int NumNodes = TNumNodes;
     static constexpr int Dim = TDim;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 

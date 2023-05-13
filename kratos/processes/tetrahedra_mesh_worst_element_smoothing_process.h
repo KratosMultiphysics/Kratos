@@ -51,9 +51,9 @@ namespace Kratos
       /// Pointer definition of TetrahedraMeshWorstElementSmoothingProcess
       KRATOS_CLASS_POINTER_DEFINITION(TetrahedraMeshWorstElementSmoothingProcess);
 
-	  typedef Node<3> NodeType;
+	  typedef Node NodeType;
 
-	  typedef GlobalPointersVector< Node<3> > NeighboursVectorType;
+	  typedef GlobalPointersVector< Node > NeighboursVectorType;
 
 	  typedef std::vector<Point > PointsVectorType;
 
@@ -127,7 +127,7 @@ namespace Kratos
 
 		void FindOptimumPositionsAndWeights(NodeType& rNode, PointsVectorType& rOptimumPoints, Vector& rWeights) override;
 
-    void CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point& rOptimumPoint);
+    void CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node > const& rTetrahedra, Point& rOptimumPoint);
 
       ///@}
       ///@name Protected  Access

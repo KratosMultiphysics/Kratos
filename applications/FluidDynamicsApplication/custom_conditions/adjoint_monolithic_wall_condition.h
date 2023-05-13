@@ -80,7 +80,7 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AdjointMonolithicWallCondition);
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     using PropertiesType = Properties;
 

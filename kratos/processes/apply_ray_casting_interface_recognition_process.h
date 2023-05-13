@@ -146,7 +146,7 @@ protected:
      * to the distance depending on whether the node is inside or outside.
      * If the node is on the interface we assign distance = 0.0
      */
-    std::function<void(Node<3>&, const double)> CreateApplyNodalFunction() const override;
+    std::function<void(Node&, const double)> CreateApplyNodalFunction() const override;
 
     ///@}
     ///@name Protected  Access

@@ -73,7 +73,7 @@ public:
     /// Pointer definition of StokesWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StokesWallCondition);
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 

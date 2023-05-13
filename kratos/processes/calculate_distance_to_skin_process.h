@@ -163,7 +163,7 @@ public:
      * @return double the nodal distance of the node of interest
      */
     double CalculateDistanceToNode(
-        Node<3> &rNode,
+        Node &rNode,
         PointerVector<GeometricalObject> &rIntersectedObjects,
         const double Epsilon);
 

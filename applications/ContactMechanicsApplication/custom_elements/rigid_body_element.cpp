@@ -1313,7 +1313,7 @@ void RigidBodyElement::UpdateRigidBodyNodes(const ProcessInfo& rCurrentProcessIn
 
      KRATOS_TRY
 
-     Node<3>::Pointer rCenterOfGravity = this->GetGeometry()(0);
+     Node::Pointer rCenterOfGravity = this->GetGeometry()(0);
 
      if( rCenterOfGravity->Is(SLAVE) ){
        Element& MasterElement = this->GetGeometry()[0].GetValue(MASTER_ELEMENTS).back();

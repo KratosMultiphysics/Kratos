@@ -236,7 +236,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
     auto& r_nodes_array = mrModelPart.Nodes();
 
     // Remove average variable
-    block_for_each(r_nodes_array, [&](Node<3>& rNode){
+    block_for_each(r_nodes_array, [&](Node& rNode){
         auto& data = rNode.GetData();
         data.Erase(*mpAverageVariable);
 
@@ -366,7 +366,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
     auto& r_nodes_array = mrModelPart.Nodes();
 
     // Initialize values
-    block_for_each(r_nodes_array, [&](Node<3>& rNode){
+    block_for_each(r_nodes_array, [&](Node& rNode){
         if (mExtrapolateNonHistorical)
         {
             // We initialize the doubles values

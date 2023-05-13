@@ -73,7 +73,7 @@ namespace Kratos {
             for (ModelPart::NodesContainerType::ptr_iterator node_it = rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_begin(); node_it != rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_end(); node_it++)
             {
                 ModelPart::NodeIterator i_iterator = node_it;
-                Node < 3 > & i = *i_iterator;
+                Node & i = *i_iterator;
                 if (i.IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {tot_size += 1;}
             }
             rCompleteModelPart.Nodes().reserve(tot_size);
@@ -81,13 +81,13 @@ namespace Kratos {
             for (ModelPart::NodesContainerType::ptr_iterator node_it = rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_begin(); node_it != rModelPartToAdd.GetCommunicator().LocalMesh().Nodes().ptr_end(); node_it++)
             {
                 ModelPart::NodeIterator i_iterator = node_it;
-                Node < 3 > & i = *i_iterator;
+                Node & i = *i_iterator;
                 if (i.IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {rCompleteModelPart.Nodes().push_back(*node_it);}
             }
 
             for (ModelPart::ElementsContainerType::ptr_iterator elem_it = rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_begin(); elem_it != rModelPartToAdd.GetCommunicator().LocalMesh().Elements().ptr_end(); elem_it++)
             {
-                Node < 3 >& i = (*elem_it)->GetGeometry()[0];
+                Node& i = (*elem_it)->GetGeometry()[0];
                 if (i.IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {rCompleteModelPart.Elements().push_back(*elem_it);}
             }
 
@@ -307,7 +307,7 @@ namespace Kratos {
             for (int k = 0; k < (int) pSpheresNodes.size(); k++) {
 
                 ModelPart::NodeIterator i_iterator = pSpheresNodes.ptr_begin() + k;
-                Node < 3 > & i = *i_iterator;
+                Node & i = *i_iterator;
 
                 array_1d<double, 3 >& rotated_angle = i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
 
@@ -321,7 +321,7 @@ namespace Kratos {
             for (int k = 0; k < (int) pClusterNodes.size(); k++) {
 
                 ModelPart::NodeIterator i_iterator = pClusterNodes.ptr_begin() + k;
-                Node < 3 > & i = *i_iterator;
+                Node & i = *i_iterator;
 
                 Quaternion<double>& Orientation = i.FastGetSolutionStepValue(ORIENTATION);
                 array_1d<double, 3 >& EulerAngles = i.FastGetSolutionStepValue(EULER_ANGLES);

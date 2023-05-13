@@ -34,7 +34,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the associated damage Constitutive laws...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef GenericSmallStrainHighCycleFatigueLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> FatigueLawType;
 
 /**

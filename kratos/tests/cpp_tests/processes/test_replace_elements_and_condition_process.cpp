@@ -148,7 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
     ModelPart& r_model_part = r_parent_model_part.CreateSubModelPart("Main");
     ModelPart& r_sister_model_part = r_parent_model_part.CreateSubModelPart("Sister");
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     // Generate a simple mesh
     Properties::Pointer p_prop = r_model_part.CreateNewProperties(0);
