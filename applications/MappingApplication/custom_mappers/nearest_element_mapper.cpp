@@ -34,7 +34,6 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
 
 void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
 {
-    // setting the local coord tolerance to zero means to not compute an approximation
     if (mOptions.UseApproximation) {
         SaveSearchResult(rInterfaceObject, true);
     }
