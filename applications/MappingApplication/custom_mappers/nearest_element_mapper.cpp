@@ -35,7 +35,7 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
 void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
 {
     // setting the local coord tolerance to zero means to not compute an approximation
-    if (mLocalCoordTol > 0.0) {
+    if (mOptions.UseApproximation) {
         SaveSearchResult(rInterfaceObject, true);
     }
 }
@@ -54,7 +54,7 @@ void NearestElementInterfaceInfo::SaveSearchResult(const InterfaceObject& rInter
 
     ProjectionUtilities::PairingIndex pairing_index;
 
-    const bool is_full_projection = ProjectionUtilities::ComputeProjection(*p_geom, point_to_proj, mLocalCoordTol, shape_function_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
+    const bool is_full_projection = ProjectionUtilities::ComputeProjection(*p_geom, point_to_proj, mOptions.LocalCoordTol, shape_function_values, eq_ids, proj_dist, pairing_index, ComputeApproximation);
 
     if (is_full_projection) {
         SetLocalSearchWasSuccessful();
