@@ -677,7 +677,7 @@ public:
             temp += *i++ * *j++;
         }
         return temp;
-        //return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.begin(), double());
+        //return std::inner_product(rFirstVector.begin(), rFirstVector.end(), rSecondVector.begin(), 0.0);
     }
 
     /**
