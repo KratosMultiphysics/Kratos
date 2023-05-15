@@ -50,7 +50,7 @@ AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToN
 void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNode(
     NodeType::Pointer pSlaveNode,
     double const Radius,
-    ResultNodesContainerType& rResults)
+    ResultNodesContainerType& rCloudOfNodes)
 {
 
     KRATOS_TRY;
@@ -59,7 +59,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNode
     std::size_t num_of_results = 0;
     auto results_iterator = local_results.begin();
     num_of_results = mpBins->SearchInRadius(*pSlaveNode, Radius, results_iterator, mMaxNumberOfNodes);
-    rResults.insert(rResults.begin(), local_results.begin(), local_results.begin() + num_of_results);
+    rCloudOfNodes.insert(rCloudOfNodes.begin(), local_results.begin(), local_results.begin() + num_of_results);
 
     KRATOS_CATCH("");
 }
@@ -197,7 +197,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
-    block_for_each(p_nodes_array, [&](Node<3>::Pointer& pSlaveNode) {
+    block_for_each(p_nodes_array, [&](Node<3>::Pointer& p_slave_node) {
 
         double local_radius = Radius;
 
@@ -205,12 +205,12 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
 
         while (r_cloud_of_nodes.size() < MinNumOfNeighNodes) {
             r_cloud_of_nodes.clear();
-            SearchNodesInRadiusForNode(pSlaveNode, local_radius, r_cloud_of_nodes);  // Search for nodes in the radius
+            SearchNodesInRadiusForNode(p_slave_node, local_radius, r_cloud_of_nodes);  // Search for nodes in the radius
             local_radius += Radius;
         }
 
         // Get Dofs and Coordinates for the slave node and the cloud of nodes
-        GetDofsAndCoordinatesForSlaveNode(pSlaveNode, rVariableList, r_slave_dofs, r_slave_coordinates);
+        GetDofsAndCoordinatesForSlaveNode(p_slave_node, rVariableList, r_slave_dofs, r_slave_coordinates);
         GetDofsAndCoordinatesForCloudOfNodes(r_cloud_of_nodes, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
         
         // Calculate shape functions

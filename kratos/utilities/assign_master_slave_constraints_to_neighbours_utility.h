@@ -101,12 +101,12 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
        * @details Searches for nodes within a given 'Radius' of the current node
        * @param pSlaveNode Slave Node to obtain its respective neighbouring nodes.
        * @param Radius Search radius.
-       * @param rResults Results container.
+       * @param rCloudOfNodes Results container.
        */
       void SearchNodesInRadiusForNode(
           NodeType::Pointer pSlaveNode,
           double const Radius,
-          ResultNodesContainerType& rResults);
+          ResultNodesContainerType& rCloudOfNodes);
 
       /**
        * @brief Collect Dofs and Coordinates
