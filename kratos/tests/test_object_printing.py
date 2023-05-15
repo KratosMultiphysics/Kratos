@@ -9,6 +9,7 @@ def GetFilePath(fileName):
 # The expected definitions are here to make the handling of the
 # multiline-strings easier (no need to deal with indentation)
 prop_str = '''Properties
+Id : 5
     VISCOSITY : 5.3
     DENSITY : -95.3
 This properties contains 0 tables'''
