@@ -46,41 +46,6 @@ AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToN
     KRATOS_CATCH(""); 
 } 
 
-// Search for the neighbouring nodes (in rStructureNodes) of each rNode on a given array of rNodes
-void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNodes(
-    const NodesContainerType& pNodes,
-    const double Radius,
-    const double MinNumOfNeighNodes,
-    VectorResultNodesContainerType& rResults)
-{
-    KRATOS_TRY;
-    auto& p_nodes_array = pNodes.GetContainer();
-
-    // Resize rResults vector
-    rResults.resize(p_nodes_array.size());
-
-    // Declare a counter variable outside the loop as std::atomic<int>
-    std::atomic<int> i(0);
-
-    block_for_each(p_nodes_array, [&](const Node<3>::Pointer& pNode)
-    {
-        double local_radius = Radius;
-
-        IndexType it = i.fetch_add(1); // Atomically increment the counter and get the previous value
-
-        while (rResults[it].size()<MinNumOfNeighNodes){
-            rResults[it].clear();
-            SearchNodesInRadiusForNode(pNode, local_radius, rResults[it]);
-            local_radius += Radius;
-        }
-    });
-
-    // Optimize memory usage
-    rResults.shrink_to_fit();
-
-    KRATOS_CATCH("");
-}
-
 //Search for the neighbouring nodes (in rStructureNodes) of the given rNode
 void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNode(
     NodeType::Pointer pNode,

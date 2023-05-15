@@ -92,23 +92,6 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
 
       /**
        * @brief Perform Node Search
-       * @details Searches for nodes within a given 'Radius' of the current nodes
-       * @param rStructureNodes Nodes Container.
-       * @param rNodes Nodes to obtain their respective neighbouring nodes.
-       * @param Radius Search radius.
-       * @param rResults Results container.
-       * @param MinNumOfNeighNodes Minimum Number of Neighbouring nodes (minimum cloud of nodes)
-       **/
-
-      // Search for the neighbouring nodes (in rStructureNodes) of each rNode on a given array of rNodes
-      void SearchNodesInRadiusForNodes(
-          const NodesContainerType& rNodes,
-          const double Radius,
-          const double MinNumOfNeighNodes,
-          VectorResultNodesContainerType& rResults);
-
-      /**
-       * @brief Perform Node Search
        * @details Searches for nodes within a given 'Radius' of the current node
        * @param rStructureNodes Nodes Container.
        * @param pNode Node to obtain its respective neighbouring nodes.
