@@ -131,44 +131,6 @@ public:
     }
 
     /**
-     * @brief It gives you the absolute value of a given value
-     * @param rData The value to compute the absolute value
-     * @return The absolute value of rData
-     */
-    static TDataType Abs(const TDataType& rData)
-    {
-        return rData > TDataType(0) ? rData : -rData;
-    }
-
-    /**
-     * @brief It gives you the minimum value between two values
-     * @param rValue1 The first value
-     * @param rValue2 The second value
-     * @return The minimum value
-     */
-    static TDataType Min(
-        const TDataType& rValue1,
-        const TDataType& rValue2
-        )
-    {
-        return rValue1 > rValue2 ? rValue2 : rValue1;
-    }
-
-    /**
-     * @brief It gives you the maximum value between two values
-     * @param rValue1 The first value
-     * @param rValue2 The second value
-     * @return The maximum value
-     */
-    static TDataType Max(
-        const TDataType& rValue1,
-        const TDataType& rValue2
-        )
-    {
-        return rValue1 > rValue2 ? rValue1 : rValue2;
-    }
-
-    /**
      * @brief Calculates the cofactor
      * @param rMat The matrix to calculate
      * @param i The index i
