@@ -88,9 +88,7 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
       /// Constructor taking a NodesContainerType parameter.
       AssignMasterSlaveConstraintsToNeighboursUtility(NodesContainerType& rMasterStructureNodes);
 
-      /// Destructor.
-      ~AssignMasterSlaveConstraintsToNeighboursUtility(){
-      }
+      virtual ~AssignMasterSlaveConstraintsToNeighboursUtility();
 
       ///@}
       ///@name Operations

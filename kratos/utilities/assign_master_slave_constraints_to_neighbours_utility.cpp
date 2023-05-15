@@ -46,6 +46,9 @@ AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToN
     KRATOS_CATCH(""); 
 } 
 
+// Destructor
+AssignMasterSlaveConstraintsToNeighboursUtility::~AssignMasterSlaveConstraintsToNeighboursUtility() {}
+
 // Search for neighboring nodes (in rMasterStructureNodes) of the given slave node
 void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNode(
     NodeType::Pointer pSlaveNode,
