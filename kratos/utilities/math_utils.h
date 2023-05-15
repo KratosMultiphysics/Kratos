@@ -57,7 +57,7 @@ namespace Kratos
  * @author Pooyan Dadvand
  */
 template<class TDataType = double>
-class MathUtils
+class KRATOS_API(KRATOS_CORE) MathUtils
 {
 public:
 
