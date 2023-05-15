@@ -162,13 +162,13 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     BuiltinTimer build_and_assign_mscs;
 
     // Declare thread-local storage (TLS) variables
-    thread_local std::vector<DofPointerVectorType> r_cloud_of_dofs;
-    thread_local std::vector<DofPointerVectorType> r_slave_dofs;
-    thread_local Matrix r_cloud_of_nodes_coordinates;
-    thread_local array_1d<double, 3> r_slave_coordinates;
-    thread_local Vector r_n_container;
-    thread_local Vector constant_vector;
-    thread_local Matrix shape_matrix;
+    thread_local std::vector<DofPointerVectorType> r_cloud_of_dofs;           // The DOFs of the cloud of nodes
+    thread_local std::vector<DofPointerVectorType> r_slave_dofs;              // The DOFs of the slave node
+    thread_local Matrix r_cloud_of_nodes_coordinates;                          // The coordinates of the cloud of nodes
+    thread_local array_1d<double, 3> r_slave_coordinates;                      // The coordinates of the slave node
+    thread_local Vector r_n_container;                                         // Container for shape functions
+    thread_local Vector constant_vector;                                       // Constant vector for shape functions
+    thread_local Matrix shape_matrix;                                          // Shape functions matrix
 
     int prev_num_mscs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
@@ -176,14 +176,13 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
     }
 
-    auto& p_nodes_array = pSlaveNodes.GetContainer();
+    auto& p_nodes_array = pSlaveNodes.GetContainer();  // Get the container of slave nodes
 
-    const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+    const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");  // Get the clone constraint
 
     // Create a concurrent queue for constraints
-    using MasterSlaveConstarintQueue = moodycamel::ConcurrentQueue<ModelPart::MasterSlaveConstraintType::Pointer>;
-
-    MasterSlaveConstarintQueue concurrent_constraints;
+    using MasterSlaveConstraintQueue = moodycamel::ConcurrentQueue<ModelPart::MasterSlaveConstraintType::Pointer>;
+    MasterSlaveConstraintQueue concurrent_constraints;
 
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
@@ -192,15 +191,15 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
 
         double local_radius = Radius;
 
-        ResultNodesContainerType r_cloud_of_nodes(0);
+        ResultNodesContainerType r_cloud_of_nodes(0);  // Container for the cloud of nodes
 
         while (r_cloud_of_nodes.size() < MinNumOfNeighNodes) {
             r_cloud_of_nodes.clear();
-            SearchNodesInRadiusForNode(pSlaveNode, local_radius, r_cloud_of_nodes);
+            SearchNodesInRadiusForNode(pSlaveNode, local_radius, r_cloud_of_nodes);  // Search for nodes in the radius
             local_radius += Radius;
         }
 
-        // Get Dofs and Coordinates
+        // Get Dofs and Coordinates for the slave node and the cloud of nodes
         GetDofsAndCoordinatesForSlaveNode(pSlaveNode, rVariableList, r_slave_dofs, r_slave_coordinates);
         GetDofsAndCoordinatesForCloudOfNodes(r_cloud_of_nodes, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
         
