@@ -702,7 +702,7 @@ public:
     static inline double Norm(const Vector& a)
     {
         Vector::const_iterator i = a.begin();
-        double temp = double();
+        double temp = 0.0;
         while(i != a.end()) {
             temp += (*i) * (*i);
             i++;
