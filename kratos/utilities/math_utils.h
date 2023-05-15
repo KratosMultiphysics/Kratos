@@ -56,6 +56,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Pooyan Dadvand
  */
+template<class TDataType = double>
 class MathUtils
 {
 public:

@@ -24,7 +24,8 @@
 namespace Kratos
 {
 
-void MathUtils::Solve(
+template<class TDataType>
+void MathUtils<TDataType>::Solve(
     MatrixType A,
     VectorType& rX,
     const VectorType& rB
@@ -38,5 +39,8 @@ void MathUtils::Solve(
     KRATOS_DEBUG_ERROR_IF(singular == 1) << "Matrix is singular: " << A << std::endl;
     lu_substitute(A, pm, rX);
 }
+
+/// Explicit instantation
+template class MathUtils<double>;
 
 } /// namespace Kratos
