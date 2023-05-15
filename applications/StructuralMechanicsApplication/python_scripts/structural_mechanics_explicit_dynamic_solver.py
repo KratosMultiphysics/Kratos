@@ -45,11 +45,11 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         self._add_dynamic_variables()
 
         scheme_type = self.settings["scheme_type"].GetString()
-        if(scheme_type == "central_differences"):
+        if scheme_type == "central_differences":
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
             if (self.settings["rotation_dofs"].GetBool()):
                 self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
-        if(scheme_type == "multi_stage"):
+        if scheme_type == "multi_stage":
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ACCELERATION)
             if (self.settings["rotation_dofs"].GetBool()):
                 self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.FRACTIONAL_ANGULAR_ACCELERATION)
@@ -101,13 +101,12 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.settings["rayleigh_beta"].GetDouble()
 
         # Setting the time integration schemes
-        if(scheme_type == "central_differences"):
+        if scheme_type == "central_differences":
             mechanical_scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(self.settings["max_delta_time"].GetDouble(),
                                                                              self.settings["fraction_delta_time"].GetDouble(),
                                                                              self.settings["time_step_prediction_level"].GetDouble())
-        elif(scheme_type == "multi_stage"):
+        elif scheme_type == "multi_stage":
             mechanical_scheme = StructuralMechanicsApplication.ExplicitMultiStageKimScheme(self.settings["fraction_delta_time"].GetDouble())
-
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
             err_msg += "Available options are: \"central_differences\", \"multi_stage\""
