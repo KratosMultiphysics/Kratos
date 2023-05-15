@@ -79,21 +79,27 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
             raise Exception(err_msg)
         variable_names.sort()
 
-        self.variables_list = []
+        self.variables_list = []  # Initialize the list of variables
+
         for var_name in variable_names:
+            # Check if the variable exists in KratosGlobals
             if not KM.KratosGlobals.HasVariable(var_name):
-                err_msg = "\'{}\' variable in \'variable_names\' is not in KratosGlobals. Please check provided value.".format(var_name)
-            var_type = KM.KratosGlobals.GetVariableType(var_name)
+                err_msg = "\'{}\' variable in \'variable_names\' is not in KratosGlobals. Please check the provided value.".format(var_name)
+            
+            var_type = KM.KratosGlobals.GetVariableType(var_name)  # Get the type of the variable
+
+            # Check the variable type and add it to the variables_list accordingly
             if var_type == "Array":
-                domain_size = self.computing_model_part.ProcessInfo[KM.DOMAIN_SIZE]
-                component_suffixes = ["_X","_Y","_Z"]
+                domain_size = self.computing_model_part.ProcessInfo[KM.DOMAIN_SIZE]  # Get the domain size from the ProcessInfo
+                component_suffixes = ["_X", "_Y", "_Z"]  # Suffixes for the components of the array variable
                 for i in range(domain_size):
-                    var_name_with_suffix = f"{var_name}{component_suffixes[i]}"
-                    self.variables_list.append(KM.KratosGlobals.GetVariable(var_name_with_suffix))
+                    var_name_with_suffix = f"{var_name}{component_suffixes[i]}"  # Append the component suffix to the variable name
+                    self.variables_list.append(KM.KratosGlobals.GetVariable(var_name_with_suffix))  # Add the variable to the list
             elif var_type == "Double":
-                self.variables_list.append(KM.KratosGlobals.GetVariable(var_name))
+                self.variables_list.append(KM.KratosGlobals.GetVariable(var_name))  # Add the variable to the list
             else:
-                raise Exception("Variable " + var_name + " not compatible")
+                raise Exception("Variable " + var_name + " not compatible")  # Raise an exception for incompatible variable types
+
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process

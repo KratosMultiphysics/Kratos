@@ -80,7 +80,7 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
       ///@{
 
       /// Constructor taking a NodesContainerType parameter.
-      AssignMasterSlaveConstraintsToNeighboursUtility(NodesContainerType& rStructureNodes);
+      AssignMasterSlaveConstraintsToNeighboursUtility(NodesContainerType& rMasterStructureNodes);
 
       /// Destructor.
       ~AssignMasterSlaveConstraintsToNeighboursUtility(){
@@ -93,38 +93,38 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
       /**
        * @brief Perform Node Search
        * @details Searches for nodes within a given 'Radius' of the current node
-       * @param rStructureNodes Nodes Container.
-       * @param pNode Node to obtain its respective neighbouring nodes.
+       * @param rMasterStructureNodes Master Nodes Container.
+       * @param pSlaveNode Slave Node to obtain its respective neighbouring nodes.
        * @param Radius Search radius.
        * @param rResults Results container.
        **/
-      //Search for the neighbouring nodes (in rStructureNodes) of the given rNode
+      //Search for the neighbouring nodes (in rMasterStructureNodes) of the given rNode
       void SearchNodesInRadiusForNode(
-          NodeType::Pointer pNode,
+          NodeType::Pointer pSlaveNode,
           double const Radius,
           ResultNodesContainerType& rResults);
 
       /**
        * @brief Collect Dofs and Coordinates
        * @details Collects Dofs and Coordinates for a given node or set of nodes.
-       * @param rStructureNodes Nodes Container.
-       * @param NodesArray Nodes Container.
-       * @param pNode Obtain respective dofs and coordinates for a given node or set of nodes.
+       * @param rMasterStructureNodes Master Nodes Container.
+       * @param CloudOfNodesArray Cloud of Nodes Container.
+       * @param pSlaveNode Obtain respective dofs and coordinates for a given node or set of nodes.
        * @param rVariable Dof variable array or double.
        * @param rVariableList List of rVariables.
        * @param rSlaveDofs Dofs container.
        * @param rCloudOfNodesCoordinates Coordinates container.
        **/
-      void GetDofsAndCoordinatesForNode(
-        NodeType::Pointer pNode,
+      void GetDofsAndCoordinatesForSlaveNode(
+        NodeType::Pointer pSlaveNode,
         const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
         std::vector<DofPointerVectorType>& rSlaveDofs,
         array_1d<double, 3>& rSlaveCoordinates
         );
 
       // Get Dofs and Coordinates arrays for a given variable list. (For nodes)
-      void GetDofsAndCoordinatesForNodes(
-        const ResultNodesContainerType& NodesArray,
+      void GetDofsAndCoordinatesForCloudOfNodes(
+        const ResultNodesContainerType& CloudOfNodesArray,
         const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
         std::vector<DofPointerVectorType>& rCloudOfDofs,
         Matrix& rCloudOfNodesCoordinates
@@ -134,15 +134,15 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
        * @brief Assign Master-Slave Constraints to a set of Nodes.
        * @details Assign Matser-Slave Constraints to a set of Nodes given a radius of influence
        * w.r.t MLS or RBF shape functions.
-       * @param rStructureNodes Nodes Container.
-       * @param pNodes Nodes to set MasterSlaveConstraints.
+       * @param rMasterStructureNodes Master Nodes Container.
+       * @param pSlaveNodes Nodes to set MasterSlaveConstraints.
        * @param Radius Search radius.
        * @param rComputinModelPart Model Part to which MasterSlaveConstraints are applied.
        * @param rVariable DOFs to assign the MasterSlaveConstraints. 
        * @param rVariableList List of DOFs to assign the MasterSlaveConstraints. 
        **/
       void AssignMasterSlaveConstraintsToNodes(
-          NodesContainerType pNodes,
+          NodesContainerType pSlaveNodes,
           double const Radius,
           ModelPart& rComputingModelPart,
           const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,

@@ -38,17 +38,17 @@ namespace Kratos
  */
 
 /// Default constructor.
-AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToNeighboursUtility(NodesContainerType& rStructureNodes){
+AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToNeighboursUtility(NodesContainerType& rMasterStructureNodes){
     KRATOS_TRY;
-    NodesContainerType::ContainerType& nodes_model_part = rStructureNodes.GetContainer();
+    NodesContainerType::ContainerType& nodes_model_part = rMasterStructureNodes.GetContainer();
     mpBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
-    mMaxNumberOfNodes = rStructureNodes.size();
+    mMaxNumberOfNodes = rMasterStructureNodes.size();
     KRATOS_CATCH(""); 
 } 
 
-//Search for the neighbouring nodes (in rStructureNodes) of the given rNode
+//Search for the neighbouring nodes (in rMasterStructureNodes) of the given rNode
 void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNode(
-    NodeType::Pointer pNode,
+    NodeType::Pointer pSlaveNode,
     double const Radius,
     ResultNodesContainerType& rResults)
 {
@@ -58,14 +58,14 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNode
     ResultNodesContainerType local_results(mMaxNumberOfNodes);
     std::size_t num_of_results = 0;
     auto results_iterator = local_results.begin();
-    num_of_results = mpBins->SearchInRadius(*pNode, Radius, results_iterator, mMaxNumberOfNodes);
+    num_of_results = mpBins->SearchInRadius(*pSlaveNode, Radius, results_iterator, mMaxNumberOfNodes);
     rResults.insert(rResults.begin(), local_results.begin(), local_results.begin() + num_of_results);
 
     KRATOS_CATCH("");
 }
 
-void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNode(
-    NodeType::Pointer pNode,
+void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForSlaveNode(
+    NodeType::Pointer pSlaveNode,
     const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
     std::vector<DofPointerVectorType>& rSlaveDofs,
     array_1d<double, 3>& rSlaveCoordinates
@@ -76,7 +76,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
     // Check if the node has the required DOFs for all variables in the list
     bool has_all_dofs = true;
     for (const auto& variable : rVariableList) {
-        if (!pNode->HasDofFor(variable.get())) {
+        if (!pSlaveNode->HasDofFor(variable.get())) {
             has_all_dofs = false;
             break;
         }
@@ -88,7 +88,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
         for (std::size_t i = 0; i < rVariableList.size(); ++i) {
             const auto& variable = rVariableList[i];
             rSlaveDofs[i].resize(1);
-            rSlaveDofs[i][0] = pNode->pGetDof(variable.get());
+            rSlaveDofs[i][0] = pSlaveNode->pGetDof(variable.get());
         }
     } else {
         std::stringstream variables_str;
@@ -98,17 +98,17 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
         }
         variables_str.seekp(-2, std::ios_base::end); // Remove the last ", "
         variables_str << "]";
-        KRATOS_ERROR << "The node with ID " << pNode->Id() << " does not have the required DOFs for one of the variables " << variables_str.str() << std::endl;
+        KRATOS_ERROR << "The node with ID " << pSlaveNode->Id() << " does not have the required DOFs for one of the variables " << variables_str.str() << std::endl;
     }
 
-    rSlaveCoordinates = pNode->Coordinates();
+    rSlaveCoordinates = pSlaveNode->Coordinates();
 
     KRATOS_CATCH("");
 }
 
 // Get Dofs and Coordinates arrays for a given variable list. (For nodes)
-void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
-    const ResultNodesContainerType& NodesArray,
+void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCloudOfNodes(
+    const ResultNodesContainerType& CloudOfNodesArray,
     const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
     std::vector<DofPointerVectorType>& rCloudOfDofs,
     Matrix& rCloudOfNodesCoordinates
@@ -116,41 +116,41 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
 {
     KRATOS_TRY;
     rCloudOfDofs.resize(rVariableList.size());
-    rCloudOfNodesCoordinates.resize(NodesArray.size(), 3);
+    rCloudOfNodesCoordinates.resize(CloudOfNodesArray.size(), 3);
 
     // Resize rCloudOfDofs
     for (auto& dofs : rCloudOfDofs)
     {
-        dofs.resize(NodesArray.size());
+        dofs.resize(CloudOfNodesArray.size());
     }
 
-    for (int i = 0; i < static_cast<int>(NodesArray.size()); i++)
+    for (int i = 0; i < static_cast<int>(CloudOfNodesArray.size()); i++)
     {
-        NodeType::Pointer pNode = NodesArray[i];
+        NodeType::Pointer pSlaveNode = CloudOfNodesArray[i];
 
         for (int j = 0; j < static_cast<int>(rVariableList.size()); j++)
         {
             const auto& rVariable = rVariableList[j];
 
-            if (pNode->HasDofFor(rVariable.get()))
+            if (pSlaveNode->HasDofFor(rVariable.get()))
             {
-                rCloudOfDofs[j][i] = pNode->pGetDof(rVariable.get());
+                rCloudOfDofs[j][i] = pSlaveNode->pGetDof(rVariable.get());
             }
             else
             {
                 std::stringstream variable_str;
                 variable_str << rVariable.get();
-                KRATOS_ERROR << "The node with ID " << pNode->Id() << " does not have the required DOF for the variable " << variable_str.str() << std::endl;
+                KRATOS_ERROR << "The node with ID " << pSlaveNode->Id() << " does not have the required DOF for the variable " << variable_str.str() << std::endl;
             }
         }
 
-        noalias(row(rCloudOfNodesCoordinates, i)) = pNode->Coordinates();
+        noalias(row(rCloudOfNodesCoordinates, i)) = pSlaveNode->Coordinates();
     }
     KRATOS_CATCH("");
 }
 
 void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToNodes(
-    NodesContainerType pNodes,
+    NodesContainerType pSlaveNodes,
     double const Radius,
     ModelPart& rComputingModelPart,
     const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
@@ -176,7 +176,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
     }
 
-    auto& p_nodes_array = pNodes.GetContainer();
+    auto& p_nodes_array = pSlaveNodes.GetContainer();
 
     const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
 
@@ -188,21 +188,21 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
-    block_for_each(p_nodes_array, [&](Node<3>::Pointer& pNode) {
+    block_for_each(p_nodes_array, [&](Node<3>::Pointer& pSlaveNode) {
 
         double local_radius = Radius;
 
-        ResultNodesContainerType r_result(0);
+        ResultNodesContainerType r_cloud_of_nodes(0);
 
-        while (r_result.size() < MinNumOfNeighNodes) {
-            r_result.clear();
-            SearchNodesInRadiusForNode(pNode, local_radius, r_result);
+        while (r_cloud_of_nodes.size() < MinNumOfNeighNodes) {
+            r_cloud_of_nodes.clear();
+            SearchNodesInRadiusForNode(pSlaveNode, local_radius, r_cloud_of_nodes);
             local_radius += Radius;
         }
 
         // Get Dofs and Coordinates
-        GetDofsAndCoordinatesForNode(pNode, rVariableList, r_slave_dofs, r_slave_coordinates);
-        GetDofsAndCoordinatesForNodes(r_result, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
+        GetDofsAndCoordinatesForSlaveNode(pSlaveNode, rVariableList, r_slave_dofs, r_slave_coordinates);
+        GetDofsAndCoordinatesForCloudOfNodes(r_cloud_of_nodes, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
         
         // Calculate shape functions
         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
