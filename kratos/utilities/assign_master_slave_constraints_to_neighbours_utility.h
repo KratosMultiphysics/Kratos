@@ -180,13 +180,13 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
        * @details Assign Matser-Slave Constraints to a set of Nodes given a radius of influence
        * w.r.t MLS or RBF shape functions.
        * @param rStructureNodes Nodes Container.
-       * @param pNodes Nodes to set MPCs.
+       * @param pNodes Nodes to set MasterSlaveConstraints.
        * @param Radius Search radius.
-       * @param rComputinModelPart Model Part to which MPCs are applied.
-       * @param rVariable DOFs to assign the MPCs. 
+       * @param rComputinModelPart Model Part to which MasterSlaveConstraints are applied.
+       * @param rVariable DOFs to assign the MasterSlaveConstraints. 
        * @param h Shape parameter (to scale the input of the radial kernel)
        **/
-      void AssignMPCsToNodes(
+      void AssignMasterSlaveConstraintsToNodes(
           NodesContainerType pNodes,
           double const Radius,
           ModelPart& rComputingModelPart,
@@ -194,7 +194,7 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
           double const MinNumOfNeighNodes
           );
 
-      void AssignMPCsToNodes(
+      void AssignMasterSlaveConstraintsToNodes(
           NodesContainerType pNodes,
           double const Radius,
           ModelPart& rComputingModelPart,

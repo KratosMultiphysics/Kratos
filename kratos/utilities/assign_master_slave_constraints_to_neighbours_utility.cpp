@@ -212,7 +212,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
     KRATOS_CATCH("");
 }
 
-void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
+void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToNodes(
     NodesContainerType pNodes,
     double const Radius,
     ModelPart& rComputingModelPart,
@@ -222,11 +222,11 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
 {
     KRATOS_TRY;
 
-    BuiltinTimer build_and_assign_mpcs;
+    BuiltinTimer build_and_assign_mscs;
 
-    int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
+    int prev_num_mscs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
-    if (prev_num_mpcs > 0) {
+    if (prev_num_mscs > 0) {
         KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
     }
 
@@ -271,12 +271,12 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
         // Calculate shape functions
         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
 
-        // Create MPCs
+        // Create MasterSlaveConstraints
         shape_matrix.resize(1, r_n_container.size());
         noalias(row(shape_matrix, 0)) = r_n_container; // Shape functions matrix
         constant_vector.resize(r_n_container.size());
         IndexType it = i.fetch_add(1); // Atomically increment the counter and get the previous value
-        concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mpcs + it + 1, r_cloud_of_dofs, r_slave_dof, shape_matrix, constant_vector));
+        concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + 1, r_cloud_of_dofs, r_slave_dof, shape_matrix, constant_vector));
     });
 
     // Create a temporary container to store the master-slave constraints
@@ -291,11 +291,11 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
     // Add the constraints to the rComputingModelPart in a single call
     rComputingModelPart.AddMasterSlaveConstraints(temp_constraints.begin(), temp_constraints.end());
 
-    KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
+    KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("");
 }
 
-void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
+void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToNodes(
     NodesContainerType pNodes,
     double const Radius,
     ModelPart& rComputingModelPart,
@@ -305,7 +305,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
 {
     KRATOS_TRY;
 
-    BuiltinTimer build_and_assign_mpcs;
+    BuiltinTimer build_and_assign_mscs;
     
     // Create array of component variables
     std::array<const Kratos::Variable<double>*, 3> component_variables = {
@@ -314,9 +314,9 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
         &GetComponentVariable(rVariable, 2)
     };
 
-    int prev_num_mpcs = rComputingModelPart.NumberOfMasterSlaveConstraints();
+    int prev_num_mscs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
-    if (prev_num_mpcs > 0) {
+    if (prev_num_mscs > 0) {
         KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
     }
 
@@ -355,14 +355,14 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
         Vector r_n_container;//Struct local storage
         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
 
-        // Create MPCs
+        // Create MasterSlaveConstraints
         Matrix shape_matrix(1, r_n_container.size());
         noalias(row(shape_matrix, 0)) = r_n_container; // Shape functions matrix
         const Vector constant_vector = ZeroVector(r_n_container.size());
         IndexType it = i.fetch_add(1)*3; // Atomically increment the counter and get the previous value
-        concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mpcs + it + 1, r_cloud_of_dofs_x, r_slave_dof_x, shape_matrix, constant_vector));
-        concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mpcs + it + 2, r_cloud_of_dofs_y, r_slave_dof_y, shape_matrix, constant_vector));
-        concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mpcs + it + 3, r_cloud_of_dofs_z, r_slave_dof_z, shape_matrix, constant_vector));
+        concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + 1, r_cloud_of_dofs_x, r_slave_dof_x, shape_matrix, constant_vector));
+        concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + 2, r_cloud_of_dofs_y, r_slave_dof_y, shape_matrix, constant_vector));
+        concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + 3, r_cloud_of_dofs_z, r_slave_dof_z, shape_matrix, constant_vector));
     });
 
     // Create a temporary container to store the master-slave constraints
@@ -377,7 +377,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMPCsToNodes(
     // Add the constraints to the rComputingModelPart in a single call
     rComputingModelPart.AddMasterSlaveConstraints(temp_constraints.begin(), temp_constraints.end());
 
-    KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign MPCs Time: " << build_and_assign_mpcs.ElapsedSeconds() << std::endl;
+    KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("");
 }
 }  // namespace Kratos.

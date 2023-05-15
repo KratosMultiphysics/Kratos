@@ -42,10 +42,10 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         # are necessary for this process
         settings.ValidateAndAssignDefaults(default_settings)
 
-        # Get the model part on which the mpcs are going to be applied
+        # Get the model part on which the MasterSlaveConstraints are going to be applied
         if not settings["model_part_name"].GetString():
-            raise Exception("\'model_part_name\' not provided. Please specify the model part to apply to MPCs to.")
-        model_part_name = settings["model_part_name"].GetString() #mpcs are applied to computing model part 
+            raise Exception("\'model_part_name\' not provided. Please specify the model part to apply to MasterSlaveConstraints to.")
+        model_part_name = settings["model_part_name"].GetString() #MasterSlaveConstraints are applied to computing model part 
         self.computing_model_part = model.GetModelPart(model_part_name)
         
         # Get the slave model part 
@@ -60,13 +60,13 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         master_model_part_name = settings["master_model_part_name"].GetString()
         self.master_model_part = model.GetModelPart(master_model_part_name)
 
-        # Search radius for the mpcs
+        # Search radius for the MasterSlaveConstraints
         self.search_radius = settings["search_radius"].GetDouble()
 
         # Minimum number of neighboring nodes retrieved from the search radius
         self.minimum_number_of_neighbouring_nodes = settings["minimum_number_of_neighbouring_nodes"].GetInt()
 
-        # Apply mpcs at each time step (True) or only once (False)
+        # Apply MasterSlaveConstraints at each time step (True) or only once (False)
         self.reform_constraints_at_each_step = settings["reform_constraints_at_each_step"].GetBool()
 
         # Retrieve and check if variables exist
@@ -93,13 +93,13 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        # Initialize MPCs to neighbours utility
-        self.assign_mpcs_utility = KM.AssignMasterSlaveConstraintsToNeighboursUtility(self.master_model_part.Nodes)
+        # Initialize MasterSlaveConstraints to neighbours utility
+        self.assign_mscs_utility = KM.AssignMasterSlaveConstraintsToNeighboursUtility(self.master_model_part.Nodes)
 
-        # The user may only need to set up the mpcs only once
+        # The user may only need to set up the MasterSlaveConstraints only once
         if not self.reform_constraints_at_each_step:
             for variable in self.variables_list:
-                self.assign_mpcs_utility.AssignMPCsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
+                self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -108,10 +108,10 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        # If the user want the mpcs to be updated at each time step, this is usefull for moving meshes.
+        # If the user want the mscs to be updated at each time step, this is usefull for moving meshes.
         if self.reform_constraints_at_each_step:
             for variable in self.variables_list:
-                self.assign_mpcs_utility.AssignMPCsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
+                self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -119,7 +119,7 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        # If mpcs are updated every time step, these are to me removed before being re-assigned.
+        # If MasterSlaveConstraints are updated every time step, these are to me removed before being re-assigned.
         if self.reform_constraints_at_each_step:
             self.__RemoveConstraints()
         

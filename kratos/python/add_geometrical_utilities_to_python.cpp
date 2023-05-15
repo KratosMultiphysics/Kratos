@@ -39,7 +39,6 @@
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/rbf_shape_functions_utility.h"
-#include "utilities/assign_mpcs_to_neighbours_utility.h"
 #include "utilities/assign_master_slave_constraints_to_neighbours_utility.h"
 
 namespace Kratos::Python {
@@ -433,27 +432,15 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
             return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
         ;
-    
-    // Radial Node Search and MPCs Assignation Utility
-    using NodesContainerType = typename AssignMPCsToNeighboursUtility::NodesContainerType;
-    py::class_<AssignMPCsToNeighboursUtility>(m, "AssignMPCsToNeighboursUtility")
-        .def(py::init<ModelPart::NodesContainerType&>())
-        .def("AssignRotationToNodes", &AssignMPCsToNeighboursUtility::AssignRotationToNodes)
-        // .def("AssignMPCsToNodes", &AssignMPCsToNeighboursUtility::AssignMPCsToNodes)
-        .def("AssignMPCsToNodes", [](AssignMPCsToNeighboursUtility& rAssignMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<double>& rVariable, double const MinNumOfNeighNodes){
-            return rAssignMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
-        .def("AssignMPCsToNodes", [](AssignMPCsToNeighboursUtility& rAssignMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<array_1d<double, 3>>& rVariable, double const MinNumOfNeighNodes){
-            return rAssignMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
-        ;
 
-    // Radial Node Search and MPCs Assignation Utility
+    // Radial Node Search and MasterSlaveConstraints Assignation Utility
     using NodesContainerType = typename AssignMasterSlaveConstraintsToNeighboursUtility::NodesContainerType;
     py::class_<AssignMasterSlaveConstraintsToNeighboursUtility>(m, "AssignMasterSlaveConstraintsToNeighboursUtility")
         .def(py::init<ModelPart::NodesContainerType&>())
-        .def("AssignMPCsToNodes", [](AssignMasterSlaveConstraintsToNeighboursUtility& rAssignMasterSlaveConstraintsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<double>& rVariable, double const MinNumOfNeighNodes){
-            return rAssignMasterSlaveConstraintsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
-        .def("AssignMPCsToNodes", [](AssignMasterSlaveConstraintsToNeighboursUtility& rAssignMasterSlaveConstraintsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<array_1d<double, 3>>& rVariable, double const MinNumOfNeighNodes){
-            return rAssignMasterSlaveConstraintsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
+        .def("AssignMasterSlaveConstraintsToNodes", [](AssignMasterSlaveConstraintsToNeighboursUtility& rAssignMasterSlaveConstraintsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<double>& rVariable, double const MinNumOfNeighNodes){
+            return rAssignMasterSlaveConstraintsToNeighboursUtility.AssignMasterSlaveConstraintsToNodes(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
+        .def("AssignMasterSlaveConstraintsToNodes", [](AssignMasterSlaveConstraintsToNeighboursUtility& rAssignMasterSlaveConstraintsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<array_1d<double, 3>>& rVariable, double const MinNumOfNeighNodes){
+            return rAssignMasterSlaveConstraintsToNeighboursUtility.AssignMasterSlaveConstraintsToNodes(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
         ;
 }
 
