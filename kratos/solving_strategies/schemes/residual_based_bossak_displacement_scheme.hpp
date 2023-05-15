@@ -170,7 +170,7 @@ public:
         const bool oss_switch = r_process_info.Has(OSS_SWITCH) ? r_process_info[OSS_SWITCH] : false;
         if (oss_switch) {
             const array_1d<double,3> aux_zero = ZeroVector(3);
-            block_for_each(rModelPart.Nodes(), aux_zero, [](Node<3>& rNode, array_1d<double,3>& rAuxZero){
+            block_for_each(rModelPart.Nodes(), aux_zero, [](Node& rNode, array_1d<double,3>& rAuxZero){
                 rNode.SetValue(DISPLACEMENT_PROJECTION, rAuxZero);
                 rNode.SetValue(VOLUMETRIC_STRAIN_PROJECTION, 0.0);
             });
@@ -235,7 +235,7 @@ public:
         // Calculate the OSS projections
         if (oss_switch) {
             // Initialize the projection values
-            block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+            block_for_each(rModelPart.Nodes(), [](Node& rNode){
                 rNode.GetValue(DISPLACEMENT_PROJECTION) = ZeroVector(3);
                 rNode.GetValue(VOLUMETRIC_STRAIN_PROJECTION) = 0.0;
             });
@@ -251,7 +251,7 @@ public:
 
             // Do the nodal weighting
             //TODO: We need to do the weighted L2 projection with the density for the multimaterial case
-            block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+            block_for_each(rModelPart.Nodes(), [](Node& rNode){
                 const double nodal_area = rNode.GetValue(NODAL_AREA);
                 rNode.GetValue(DISPLACEMENT_PROJECTION) /= nodal_area;
                 rNode.GetValue(VOLUMETRIC_STRAIN_PROJECTION) /= nodal_area;

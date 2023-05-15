@@ -176,7 +176,7 @@ public:
         // Calculate the OSS projections
         if (oss_switch) {
             // Initialize the projection values
-            block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+            block_for_each(rModelPart.Nodes(), [](Node& rNode){
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) = ZeroVector(3);
                 rNode.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) = 0.0;
             });
@@ -192,7 +192,7 @@ public:
 
             // Do the nodal weighting
             //TODO: We need to do the weighted L2 projection with the density for the multimaterial case
-            block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+            block_for_each(rModelPart.Nodes(), [](Node& rNode){
                 const double nodal_area = rNode.GetValue(NODAL_AREA);
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_PROJECTION) /= nodal_area;
                 rNode.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION) /= nodal_area;
