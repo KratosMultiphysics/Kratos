@@ -102,28 +102,28 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNode
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNode(
     NodeType::Pointer pNode,
     const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
-    std::vector<DofPointerVectorType>& rCloudOfDofs,
+    std::vector<DofPointerVectorType>& rSlaveDofs,
     array_1d<double, 3>& rSlaveCoordinates
 )
 {
     KRATOS_TRY;
 
     // Check if the node has the required DOFs for all variables in the list
-    bool hasAllDofs = true;
+    bool has_all_dofs = true;
     for (const auto& variable : rVariableList) {
         if (!pNode->HasDofFor(variable.get())) {
-            hasAllDofs = false;
+            has_all_dofs = false;
             break;
         }
     }
 
-    if (hasAllDofs) {
+    if (has_all_dofs) {
         // Get Dofs for each variable in the list
-        rCloudOfDofs.resize(rVariableList.size());
+        rSlaveDofs.resize(rVariableList.size());
         for (std::size_t i = 0; i < rVariableList.size(); ++i) {
             const auto& variable = rVariableList[i];
-            rCloudOfDofs[i].resize(1);
-            rCloudOfDofs[i][0] = pNode->pGetDof(variable.get());
+            rSlaveDofs[i].resize(1);
+            rSlaveDofs[i][0] = pNode->pGetDof(variable.get());
         }
     } else {
         std::stringstream variables_str;

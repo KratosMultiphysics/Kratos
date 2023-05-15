@@ -129,13 +129,13 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
        * @param pNode Obtain respective dofs and coordinates for a given node or set of nodes.
        * @param rVariable Dof variable array or double.
        * @param rVariableList List of rVariables.
-       * @param rCloudOfDofs Dofs container.
+       * @param rSlaveDofs Dofs container.
        * @param rCloudOfNodesCoordinates Coordinates container.
        **/
       void GetDofsAndCoordinatesForNode(
         NodeType::Pointer pNode,
         const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
-        std::vector<DofPointerVectorType>& rCloudOfDofs,
+        std::vector<DofPointerVectorType>& rSlaveDofs,
         array_1d<double, 3>& rSlaveCoordinates
         );
 
