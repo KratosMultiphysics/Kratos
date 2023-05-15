@@ -83,9 +83,17 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         for var_name in variable_names:
             if not KM.KratosGlobals.HasVariable(var_name):
                 err_msg = "\'{}\' variable in \'variable_names\' is not in KratosGlobals. Please check provided value.".format(var_name)
-            if not KM.KratosGlobals.GetVariableType(var_name):
-                err_msg = "\'{}\' variable in \'variable_names\' is not double type. Please check provide double type variables (e.g. [\"DISPLACEMENT_X\",\"DISPLACEMENT_Y\"]).".format(var_name)
-            self.variables_list.append(KM.KratosGlobals.GetVariable(var_name))
+            var_type = KM.KratosGlobals.GetVariableType(var_name)
+            if var_type == "Array":
+                domain_size = self.computing_model_part.ProcessInfo[KM.DOMAIN_SIZE]
+                component_suffixes = ["_X","_Y","_Z"]
+                for i in range(domain_size):
+                    var_name_with_suffix = f"{var_name}{component_suffixes[i]}"
+                    self.variables_list.append(KM.KratosGlobals.GetVariable(var_name_with_suffix))
+            elif var_type == "Double":
+                self.variables_list.append(KM.KratosGlobals.GetVariable(var_name))
+            else:
+                raise Exception("Variable " + var_name + " not compatible")
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -110,8 +118,9 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         """
         # If the user want the mscs to be updated at each time step, this is usefull for moving meshes.
         if self.reform_constraints_at_each_step:
-            for variable in self.variables_list:
-                self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
+            self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodesNew(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, self.variables_list, self.minimum_number_of_neighbouring_nodes)
+            # for variable in self.variables_list:
+            #     self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step

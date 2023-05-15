@@ -157,6 +157,51 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
     KRATOS_CATCH("");
 }
 
+void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodeNew(
+    NodeType::Pointer pNode,
+    const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+    std::vector<DofPointerVectorType>& rCloudOfDofs,
+    array_1d<double, 3>& rSlaveCoordinates
+)
+{
+    KRATOS_TRY;
+
+    // Check if the node has the required DOFs for all variables in the list
+    bool hasAllDofs = true;
+    for (const auto& variable : rVariableList) {
+        if (!pNode->HasDofFor(variable.get())) {
+            hasAllDofs = false;
+            break;
+        }
+    }
+
+    if (hasAllDofs) {
+        // Get Dofs for each variable in the list
+        rCloudOfDofs.resize(rVariableList.size());
+        for (std::size_t i = 0; i < rVariableList.size(); ++i) {
+            const auto& variable = rVariableList[i];
+            rCloudOfDofs[i].resize(1);
+            rCloudOfDofs[i][0] = pNode->pGetDof(variable.get());
+        }
+    } else {
+        std::stringstream variables_str;
+        variables_str << "[";
+        for (const auto& variable : rVariableList) {
+            variables_str << variable.get() << ", ";
+        }
+        variables_str.seekp(-2, std::ios_base::end); // Remove the last ", "
+        variables_str << "]";
+        KRATOS_ERROR << "The node with ID " << pNode->Id() << " does not have the required DOFs for one of the variables " << variables_str.str() << std::endl;
+    }
+
+    rSlaveCoordinates = pNode->Coordinates();
+
+    KRATOS_CATCH("");
+}
+
+
+
+
 // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodes(
     const ResultNodesContainerType& NodesArray,
@@ -211,6 +256,51 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNo
     }
     KRATOS_CATCH("");
 }
+
+void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForNodesNew(
+    const ResultNodesContainerType& NodesArray,
+    const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+    std::vector<DofPointerVectorType>& rCloudOfDofs,
+    Matrix& rCloudOfNodesCoordinates
+)
+{
+    KRATOS_TRY;
+    rCloudOfDofs.resize(rVariableList.size());
+    rCloudOfNodesCoordinates.resize(NodesArray.size(), 3);
+
+    // Resize rCloudOfDofs
+    for (auto& dofs : rCloudOfDofs)
+    {
+        dofs.resize(NodesArray.size());
+    }
+
+    for (int i = 0; i < static_cast<int>(NodesArray.size()); i++)
+    {
+        NodeType::Pointer pNode = NodesArray[i];
+
+        for (int j = 0; j < static_cast<int>(rVariableList.size()); j++)
+        {
+            const auto& rVariable = rVariableList[j];
+
+            if (pNode->HasDofFor(rVariable.get()))
+            {
+                rCloudOfDofs[j][i] = pNode->pGetDof(rVariable.get());
+            }
+            else
+            {
+                std::stringstream variable_str;
+                variable_str << rVariable.get();
+                KRATOS_ERROR << "The node with ID " << pNode->Id() << " does not have the required DOF for the variable " << variable_str.str() << std::endl;
+            }
+        }
+
+        noalias(row(rCloudOfNodesCoordinates, i)) = pNode->Coordinates();
+    }
+    KRATOS_CATCH("");
+}
+
+
+
 
 void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToNodes(
     NodesContainerType pNodes,
@@ -360,6 +450,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         noalias(row(shape_matrix, 0)) = r_n_container; // Shape functions matrix
         const Vector constant_vector = ZeroVector(r_n_container.size());
         IndexType it = i.fetch_add(1)*3; // Atomically increment the counter and get the previous value
+
         concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + 1, r_cloud_of_dofs_x, r_slave_dof_x, shape_matrix, constant_vector));
         concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + 2, r_cloud_of_dofs_y, r_slave_dof_y, shape_matrix, constant_vector));
         concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + 3, r_cloud_of_dofs_z, r_slave_dof_z, shape_matrix, constant_vector));
@@ -380,4 +471,97 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("");
 }
+
+void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToNodesNew(
+    NodesContainerType pNodes,
+    double const Radius,
+    ModelPart& rComputingModelPart,
+    const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+    double const MinNumOfNeighNodes
+    )
+{
+    KRATOS_TRY;
+
+    BuiltinTimer build_and_assign_mscs;
+
+    // Declare thread-local storage (TLS) variables
+    thread_local std::vector<DofPointerVectorType> r_cloud_of_dofs;
+    thread_local std::vector<DofPointerVectorType> r_slave_dofs;
+    thread_local Matrix r_cloud_of_nodes_coordinates;
+    thread_local array_1d<double, 3> r_slave_coordinates;
+    thread_local Vector r_n_container;
+    thread_local Vector constant_vector;
+    thread_local Matrix shape_matrix;
+
+    int prev_num_mscs = rComputingModelPart.NumberOfMasterSlaveConstraints();
+
+    if (prev_num_mscs > 0) {
+        KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
+    }
+
+    auto& p_nodes_array = pNodes.GetContainer();
+
+    const auto& r_clone_constraint = KratosComponents<MasterSlaveConstraint>::Get("LinearMasterSlaveConstraint");
+
+    // Create a concurrent queue for constraints
+    using MasterSlaveConstarintQueue = moodycamel::ConcurrentQueue<ModelPart::MasterSlaveConstraintType::Pointer>;
+
+    MasterSlaveConstarintQueue concurrent_constraints;
+
+    // Declare a counter variable outside the loop as std::atomic<int>
+    std::atomic<int> i(0);
+
+    block_for_each(p_nodes_array, [&](Node<3>::Pointer& pNode) {
+
+        double local_radius = Radius;
+
+        ResultNodesContainerType r_result(0);
+
+        while (r_result.size() < MinNumOfNeighNodes) {
+            r_result.clear();
+            SearchNodesInRadiusForNode(pNode, local_radius, r_result);
+            local_radius += Radius;
+        }
+
+        // Get Dofs and Coordinates
+        // std::vector<DofPointerVectorType> r_slave_dofs;
+        // std::vector<DofPointerVectorType> r_cloud_of_dofs;
+        // Matrix r_cloud_of_nodes_coordinates;
+        // array_1d<double, 3> r_slave_coordinates;
+
+        GetDofsAndCoordinatesForNodeNew(pNode, rVariableList, r_slave_dofs, r_slave_coordinates);
+        GetDofsAndCoordinatesForNodesNew(r_result, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
+        
+        // Calculate shape functions
+        // Vector r_n_container; // Struct local storage
+        RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
+
+        // Create MasterSlaveConstraints
+        shape_matrix.resize(1, r_n_container.size());
+        noalias(row(shape_matrix, 0)) = r_n_container; // Shape functions matrix
+        constant_vector.resize(r_n_container.size());
+        IndexType it = i.fetch_add(1) * rVariableList.size(); // Atomically increment the counter and get the previous value
+
+        for (std::size_t j = 0; j < rVariableList.size(); ++j)
+        {
+            concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + j + 1, const_cast<DofPointerVectorType&>(r_cloud_of_dofs[j]), r_slave_dofs[j], shape_matrix, constant_vector));
+        }
+    });
+
+    // Create a temporary container to store the master-slave constraints
+    ConstraintContainerType temp_constraints;
+    ModelPart::MasterSlaveConstraintType::Pointer p_constraint;
+
+    // Dequeue the constraints from the concurrent queue and add them to the temporary container
+    while (concurrent_constraints.try_dequeue(p_constraint)) {
+        temp_constraints.push_back(p_constraint);
+    }
+
+    // Add the constraints to the rComputingModelPart in a single call
+    rComputingModelPart.AddMasterSlaveConstraints(temp_constraints.begin(), temp_constraints.end());
+
+    KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs.ElapsedSeconds() << std::endl;
+    KRATOS_CATCH("");
+}
 }  // namespace Kratos.
+

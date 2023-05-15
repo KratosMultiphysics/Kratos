@@ -158,6 +158,13 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
         array_1d<double,3>& rSlaveCoordinates
         );
 
+      void GetDofsAndCoordinatesForNodeNew(
+        NodeType::Pointer pNode,
+        const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+        std::vector<DofPointerVectorType>& rCloudOfDofs,
+        array_1d<double, 3>& rSlaveCoordinates
+        );
+
       // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
       void GetDofsAndCoordinatesForNodes(
         const ResultNodesContainerType& NodesArray,
@@ -172,6 +179,13 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
         DofPointerVectorType& rCloudOfDofsX,
         DofPointerVectorType& rCloudOfDofsY,
         DofPointerVectorType& rCloudOfDofsZ,
+        Matrix& rCloudOfNodesCoordinates
+        );
+      
+      void GetDofsAndCoordinatesForNodesNew(
+        const ResultNodesContainerType& NodesArray,
+        const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
+        std::vector<DofPointerVectorType>& rCloudOfDofs,
         Matrix& rCloudOfNodesCoordinates
         );
 
@@ -199,6 +213,14 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
           double const Radius,
           ModelPart& rComputingModelPart,
           const Variable<array_1d<double, 3>>& rVariable,
+          double const MinNumOfNeighNodes
+          );
+      
+      void AssignMasterSlaveConstraintsToNodesNew(
+          NodesContainerType pNodes,
+          double const Radius,
+          ModelPart& rComputingModelPart,
+          const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
           double const MinNumOfNeighNodes
           );
 
