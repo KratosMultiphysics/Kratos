@@ -120,6 +120,7 @@ class GeoMechanicalSolver(PythonSolver):
             "line_search_tolerance"      : 0.5,
             "rotation_dofs"              : false,
             "block_builder"              : true,
+            "prebuild_dynamics"          : false,
             "search_neighbours_step"     : false,
             "linear_solver_settings":{
                 "solver_type": "AMGCL",
