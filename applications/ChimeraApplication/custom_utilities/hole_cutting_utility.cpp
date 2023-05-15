@@ -49,7 +49,7 @@ void ChimeraHoleCuttingUtility::RemoveOutOfDomainElements(
 
     for (auto p_elem=elem_begin; p_elem != elem_end; ++p_elem){
         bool is_elem_outside = true;
-        Geometry<Node<3>>& geom = (*p_elem)->GetGeometry();
+        Geometry<Node>& geom = (*p_elem)->GetGeometry();
         int num_nodes_outside = 0;
 
         for (auto& node : geom) {
@@ -258,9 +258,9 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 vector<IndexType> original_nodes_order =
                     ordered_skin_face_nodes_map[it->first];
 
-                Node<3>::Pointer pnode1 =
+                Node::Pointer pnode1 =
                     rVolumeModelPart.Nodes()(original_nodes_order[0]);
-                Node<3>::Pointer pnode2 =
+                Node::Pointer pnode2 =
                     rVolumeModelPart.Nodes()(original_nodes_order[1]);
 
                 // Storing the node ids list
@@ -268,7 +268,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 vector_of_node_ids.push_back(original_nodes_order[1]);
 
                 // Skin edges are added as conditions
-                Line2D2<Node<3>> line1(pnode1, pnode2);
+                Line2D2<Node> line1(pnode1, pnode2);
                 Condition::Pointer p_condition1 =
                     r_ref_line_condition.Create(id_condition++, line1, properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
@@ -281,11 +281,11 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 // including its normal orientation
                 vector<IndexType> original_nodes_order =
                     ordered_skin_face_nodes_map[it->first];
-                Node<3>::Pointer pnode1 =
+                Node::Pointer pnode1 =
                     rVolumeModelPart.Nodes()(original_nodes_order[0]);
-                Node<3>::Pointer pnode2 =
+                Node::Pointer pnode2 =
                     rVolumeModelPart.Nodes()(original_nodes_order[1]);
-                Node<3>::Pointer pnode3 =
+                Node::Pointer pnode3 =
                     rVolumeModelPart.Nodes()(original_nodes_order[2]);
 
                 // Storing the node ids list
@@ -294,7 +294,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 vector_of_node_ids.push_back(original_nodes_order[2]);
 
                 // Skin faces are added as conditions
-                Triangle3D3<Node<3>> triangle1(pnode1, pnode2, pnode3);
+                Triangle3D3<Node> triangle1(pnode1, pnode2, pnode3);
                 Condition::Pointer p_condition1 = r_ref_triangle_condition.Create(
                     id_condition++, triangle1, properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
@@ -309,13 +309,13 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 vector<IndexType> original_nodes_order =
                     ordered_skin_face_nodes_map[it->first];
 
-                Node<3>::Pointer pnode1 =
+                Node::Pointer pnode1 =
                     rVolumeModelPart.Nodes()(original_nodes_order[0]);
-                Node<3>::Pointer pnode2 =
+                Node::Pointer pnode2 =
                     rVolumeModelPart.Nodes()(original_nodes_order[1]);
-                Node<3>::Pointer pnode3 =
+                Node::Pointer pnode3 =
                     rVolumeModelPart.Nodes()(original_nodes_order[2]);
-                Node<3>::Pointer pnode4 =
+                Node::Pointer pnode4 =
                     rVolumeModelPart.Nodes()(original_nodes_order[3]);
                 // Storing the node ids list
                 vector_of_node_ids.push_back(original_nodes_order[0]);
@@ -324,13 +324,13 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
                 vector_of_node_ids.push_back(original_nodes_order[3]);
 
                 // Add triangle one as condition
-                Triangle3D3<Node<3>> triangle1(pnode1, pnode2, pnode3);
+                Triangle3D3<Node> triangle1(pnode1, pnode2, pnode3);
                 Condition::Pointer p_condition1 = r_ref_triangle_condition.Create(
                     id_condition++, triangle1, properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition1);
 
                 // Add triangle two as condition
-                Triangle3D3<Node<3>> triangle2(pnode1, pnode3, pnode4);
+                Triangle3D3<Node> triangle2(pnode1, pnode3, pnode4);
                 Condition::Pointer p_condition2 = r_ref_triangle_condition.Create(
                     id_condition++, triangle2, properties);
                 rExtractedBoundaryModelPart.Conditions().push_back(p_condition2);
@@ -344,7 +344,7 @@ void ChimeraHoleCuttingUtility::ExtractBoundaryMesh(ModelPart& rVolumeModelPart,
 
     for (const auto& i_node_id : vector_of_node_ids) {
         // Adding the nodes to the rExtractedBoundaryModelPart
-        Node<3>::Pointer pnode = rVolumeModelPart.Nodes()(i_node_id);
+        Node::Pointer pnode = rVolumeModelPart.Nodes()(i_node_id);
         rExtractedBoundaryModelPart.AddNode(pnode);
     }
 

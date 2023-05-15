@@ -427,7 +427,7 @@ void FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF(
     const double SearchRadius)
 {
     //put the nodes in the skin into a search database
-    typedef BinsDynamic<3, Node<3>, std::vector<Node<3>::Pointer>> DynamicBins;
+    typedef BinsDynamic<3, Node, std::vector<Node::Pointer>> DynamicBins;
     DynamicBins locator(rSkinModelPart.Nodes().GetContainer().begin(), rSkinModelPart.Nodes().GetContainer().end());
 
     //reset the EMBEDDED_VELOCITY
@@ -454,7 +454,7 @@ void FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF(
     cut_elem_nodes.Unique();
 
     unsigned int max_results = 100; //deliberately low, we do not want to interpolate from more than this nodes
-    auto TLS = std::make_pair(std::vector<Node<3>::Pointer>(max_results), std::vector<double>(max_results));
+    auto TLS = std::make_pair(std::vector<Node::Pointer>(max_results), std::vector<double>(max_results));
 
     //for every interface node (nodes in cut elements)
     block_for_each(cut_elem_nodes, TLS, [&locator, SearchRadius](auto& rNode, auto& rTLS){

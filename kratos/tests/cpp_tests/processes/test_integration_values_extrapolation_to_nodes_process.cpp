@@ -29,7 +29,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
 
 //         void GiDIODebugInternalExtrapolation(ModelPart& rModelPart, const std::string name = "")

@@ -47,7 +47,7 @@ namespace Kratos
 
         typedef array_1d<double, 3> CoordinatesArrayType;
 
-        //typedef CurveTessellation<PointerVector<Node<3>>> CurveTesselationType;
+        //typedef CurveTessellation<PointerVector<Node>> CurveTesselationType;
         typedef std::vector<std::pair<double, CoordinatesArrayType>> TessellationType;
 
         typedef signed long long cInt;
@@ -55,8 +55,8 @@ namespace Kratos
         //template<class TBrepLoopType, class TPointType>
         static void CreateBrepSurfaceTrimmingIntegrationPoints(
             IntegrationPointsArrayType& rIntegrationPoints,
-            const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>::Pointer>>& rOuterLoops,
-            const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>::Pointer>>& rInnerLoops,
+            const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rOuterLoops,
+            const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rInnerLoops,
             const std::vector<double>& rSpansU,
             const std::vector<double>& rSpansV,
             IntegrationInfo& rIntegrationInfo);
