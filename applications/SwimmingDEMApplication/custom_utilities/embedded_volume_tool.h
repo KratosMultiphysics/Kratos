@@ -81,7 +81,7 @@ public:
 
       for (int i = 0; i < n_dem_elements; i++){
           ElementIteratorType ielem = rfluid_model_part.ElementsBegin() + i;
-          Geometry< Node<3> >& geom = ielem->GetGeometry();
+          Geometry< Node >& geom = ielem->GetGeometry();
 
           array_1d<double, 4> distances;
           unsigned int n_negatives = 0;
@@ -240,7 +240,7 @@ private:
     //***************************************************************************************************************
     //***************************************************************************************************************
 
-    inline double CalculateVol(Geometry<Node<3> >&geom)
+    inline double CalculateVol(Geometry<Node >&geom)
     {
       return CalculateVol(geom[0].X(), geom[0].Y(), geom[0].Z(),
                           geom[1].X(), geom[1].Y(), geom[1].Z(),
@@ -289,7 +289,7 @@ private:
     //***************************************************************************************************************
 
     inline double CalculatePyramidVolume(const unsigned int j, // tip of the pyramid
-                                         const Geometry<Node<3> >&geom,
+                                         const Geometry<Node >&geom,
                                          const array_1d<double, 4>& signed_dist) // nodal signed distances
     {
       array_1d<array_1d<double, 3>, 4 > coor; // coordinates of the pyramid vertices
@@ -327,7 +327,7 @@ private:
 
     inline double CalculateHexahedronVolume(const unsigned int j, // first node included in the volume
                                             const unsigned int k, // second node included in the volume
-                                            const Geometry<Node<3> >&geom,
+                                            const Geometry<Node >&geom,
                                             const array_1d<double, 4>& signed_dist) // nodal signed distances
     {
       array_1d<array_1d<double, 3>, 4 > coor; // coordinates of the intersections

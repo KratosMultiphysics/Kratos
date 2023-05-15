@@ -1633,7 +1633,7 @@ namespace Kratos
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
-                Geometry<Node<3>> &face_geometry = cond_it->GetGeometry();
+                Geometry<Node> &face_geometry = cond_it->GetGeometry();
                 // reference for area normal of the face
                 array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
                 // slip condition
@@ -1676,7 +1676,7 @@ namespace Kratos
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
-                Geometry<Node<3>> &face_geometry = cond_it->GetGeometry();
+                Geometry<Node> &face_geometry = cond_it->GetGeometry();
                 // reference for area normal of the face
                 array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
                 bool is_inlet_or_outlet = false;
@@ -2245,7 +2245,7 @@ namespace Kratos
         // functions to calculate area normals for boundary conditions
         void CalculateNormal2D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3> &area_normal)
         {
-            Geometry<Node<3>> &face_geometry = (cond_it)->GetGeometry();
+            Geometry<Node> &face_geometry = (cond_it)->GetGeometry();
             area_normal[0] = face_geometry[1].Y() - face_geometry[0].Y();
             area_normal[1] = -(face_geometry[1].X() - face_geometry[0].X());
             area_normal[2] = 0.00;
@@ -2253,7 +2253,7 @@ namespace Kratos
         }
         void CalculateNormal3D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3> &area_normal, array_1d<double, 3> &v1, array_1d<double, 3> &v2)
         {
-            Geometry<Node<3>> &face_geometry = (cond_it)->GetGeometry();
+            Geometry<Node> &face_geometry = (cond_it)->GetGeometry();
 
             v1[0] = face_geometry[1].X() - face_geometry[0].X();
             v1[1] = face_geometry[1].Y() - face_geometry[0].Y();
@@ -2409,7 +2409,7 @@ namespace Kratos
             KRATOS_CATCH("")
         }
         //**************************************
-        void CornerDectectionHelper(Geometry<Node<3>> &face_geometry,
+        void CornerDectectionHelper(Geometry<Node> &face_geometry,
                                     const array_1d<double, 3> &face_normal,
                                     const double An,
                                     const GlobalPointersVector<Condition> &neighb,
@@ -2487,7 +2487,7 @@ namespace Kratos
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
             {
                 // get geometry data of the face
-                Geometry<Node<3>> &face_geometry = cond_it->GetGeometry();
+                Geometry<Node> &face_geometry = cond_it->GetGeometry();
                 // reference for area normal of the face
                 const array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
                 double An = norm_2(face_normal);

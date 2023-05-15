@@ -77,8 +77,8 @@ void SplitInternalInterfacesProcess::SplitBoundary(
     KRATOS_TRY
 
     //construct list of faces on the interface
-    std::vector< Geometry<Node<3> > > interface_faces;
-    std::vector< std::pair< Geometry< Node<3> >::Pointer, Geometry< Node<3> >::Pointer> > neighbouring_elements;
+    std::vector< Geometry<Node > > interface_faces;
+    std::vector< std::pair< Geometry< Node >::Pointer, Geometry< Node >::Pointer> > neighbouring_elements;
 
     for(auto& rElem : mrModelPart.Elements()) {
         const auto& neighb = rElem.GetValue(NEIGHBOUR_ELEMENTS);
@@ -112,7 +112,7 @@ void SplitInternalInterfacesProcess::SplitBoundary(
     }
     max_node_id++;
 
-    std::map<std::size_t, Node<3>::Pointer> new_nodes_map;
+    std::map<std::size_t, Node::Pointer> new_nodes_map;
     std::size_t aux = 0;
     for(auto& id : ids_on_interface) {
         auto& rOrigNode = rModelPart.Nodes()[id];

@@ -110,7 +110,7 @@ public:
         ThisModelPart.Nodes().reserve(n.len);
         for(int i = 0 ; i < n.len ; i++)
         {
-            Node<3>::Pointer p_node = Kratos::Node<3>::Pointer(new Kratos::Node<3>(0,n[i][0], n[i][1], n[i][2]));
+            Node::Pointer p_node = Kratos::Node::Pointer(new Kratos::Node(0,n[i][0], n[i][1], n[i][2]));
             p_node->SetId(i+1);
             ThisModelPart.Nodes().push_back(p_node);
         }
@@ -365,7 +365,7 @@ public:
     //
     //        for(int i = 0 ; i < n.len ; i++)
     //        {
-    //            Node<3>& r_node = ThisModelPart.Nodes()[i+1];
+    //            Node& r_node = ThisModelPart.Nodes()[i+1];
     //            n[i][0] = r_node.X();
     //            n[i][1] = r_node.Y();
     //            n[i][2] = r_node.Z();
@@ -382,7 +382,7 @@ public:
     //		ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
     //        for(int i = 0 ; i < n.len ; i++)
     //        {
-    //            Node<3>& r_node = *(in);
+    //            Node& r_node = *(in);
     //			double KratosH = r_node.FastGetSolutionStepValue(NODAL_H);
 
     //			if(r_node.FastGetSolutionStepValue(IS_BOUNDARY) == 0) //only on internal nodes
@@ -417,7 +417,7 @@ public:
 
         for(int i = 0 ; i < n.len ; i++)
         {
-            Node<3>& r_node = ThisModelPart.Nodes()[i+1];
+            Node& r_node = ThisModelPart.Nodes()[i+1];
             r_node.X() = n[i][0];
             r_node.Y() = n[i][1];
             r_node.Z() = n[i][2];
@@ -511,15 +511,15 @@ public:
         for(int i = 0 ; i < nn.len ; i++)
         {
             int numb_of_neighb = nn[i].len;
-            GlobalPointersVector< Node<3> >& neighbours = (r_model_nodes[i+1].GetValues(NEIGHBOUR_NODES));
-            //PointerVector< Node<3> >& neighbours = (r_model_nodes[i+1].GetValues(NEIGHBOUR_NODES));
+            GlobalPointersVector< Node >& neighbours = (r_model_nodes[i+1].GetValues(NEIGHBOUR_NODES));
+            //PointerVector< Node >& neighbours = (r_model_nodes[i+1].GetValues(NEIGHBOUR_NODES));
 
             neighbours.clear();
             neighbours.reserve(numb_of_neighb);
             for(int j = 0; j<numb_of_neighb; j++)
             {
                 int ii = nn[i][j]+1;
-                //neighbours.push_back(Kratos::weak_ptr< Node<3> >( r_model_nodes(ii) ) );
+                //neighbours.push_back(Kratos::weak_ptr< Node >( r_model_nodes(ii) ) );
                 neighbours.push_back( r_model_nodes(ii)  );
             }
         }
@@ -565,13 +565,13 @@ public:
 
     //	for(int i = 0 ; i < n.len ; i++)
     //	{
-    //		Node<3>::Pointer p_node = Kratos::Node<3>::Pointer(new Kratos::Node<3>(0,n[i][0], n[i][1], n[i][2]));
-    //		//Node<3>::Pointer p_node = n[i].GetKratosNode();
+    //		Node::Pointer p_node = Kratos::Node::Pointer(new Kratos::Node(0,n[i][0], n[i][1], n[i][2]));
+    //		//Node::Pointer p_node = n[i].GetKratosNode();
     //		p_node->SetId(i+1);
     //		ThisModelPart.Nodes().push_back(p_node);
     //	}
 
-    //	//Node<3> zero(0,0,0,0);
+    //	//Node zero(0,0,0,0);
     //	Properties::Pointer properties(new Properties);
 
     //	for(int i_element = 0 ; i_element < e.len ; i_element++)
@@ -584,7 +584,7 @@ public:
 
 
     //		//if(e[i_element].tipo() == e_triangulo)
-    //		//	p_geometry =  Element::GeometryType::Pointer(new Triangle2D<Node<3> >(temp.Points()));
+    //		//	p_geometry =  Element::GeometryType::Pointer(new Triangle2D<Node >(temp.Points()));
     //		//else
     //		p_geometry = Element::GeometryType::Pointer(new Element::GeometryType(temp));
 

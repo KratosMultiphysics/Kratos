@@ -56,7 +56,7 @@
 namespace Kratos {
 
     // We define the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
 KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
     : KratosApplication("StructuralMechanicsApplication"),

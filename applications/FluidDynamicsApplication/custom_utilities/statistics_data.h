@@ -109,10 +109,10 @@ public:
         KRATOS_DEBUG_ERROR_IF(NumMeasurements == 0)
         << "Trying to update statistics, but providied number of recorded steps is zero" << std::endl;
 
-        const Geometry<Node<3>> &r_geometry = rElement.GetGeometry();
+        const Geometry<Node> &r_geometry = rElement.GetGeometry();
         const GeometryData::IntegrationMethod integration_method = rElement.GetIntegrationMethod();
         Matrix shape_functions;
-        typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
+        typename Geometry<Node>::ShapeFunctionsGradientsType shape_gradients;
         this->CalculateGeometryData(r_geometry, integration_method, shape_functions, shape_gradients);
 
         for (unsigned int g = 0; g < shape_functions.size1(); g++)
@@ -157,10 +157,10 @@ public:
         const std::size_t NumberOfMeasurements,
         const std::string& rSeparator) const
     {
-        const Geometry<Node<3>> &r_geometry = rElement.GetGeometry();
+        const Geometry<Node> &r_geometry = rElement.GetGeometry();
         const GeometryData::IntegrationMethod integration_method = rElement.GetIntegrationMethod();
         Matrix shape_functions;
-        typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
+        typename Geometry<Node>::ShapeFunctionsGradientsType shape_gradients;
         this->CalculateGeometryData(r_geometry, integration_method, shape_functions, shape_gradients);
 
         for (unsigned int g = 0; g < shape_functions.size1(); g++)
@@ -260,10 +260,10 @@ protected:
     ///@{
 
     void CalculateGeometryData(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const GeometryData::IntegrationMethod IntegrationMethod,
         Matrix &rN,
-        typename Geometry<Node<3>>::ShapeFunctionsGradientsType &rDN_DX) const
+        typename Geometry<Node>::ShapeFunctionsGradientsType &rDN_DX) const
     {
         const unsigned int number_of_nodes = rGeometry.PointsNumber();
         const unsigned int number_of_gauss_points = rGeometry.IntegrationPointsNumber(IntegrationMethod);

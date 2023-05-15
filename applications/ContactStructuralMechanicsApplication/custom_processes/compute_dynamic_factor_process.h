@@ -55,7 +55,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ComputeDynamicFactorProcess);
 
     /// Node type
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
 
     /// Geometry type
     typedef Geometry<NodeType>                           GeometryType;
