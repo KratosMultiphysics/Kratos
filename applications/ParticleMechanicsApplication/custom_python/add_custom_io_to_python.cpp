@@ -29,7 +29,6 @@ namespace Kratos::Python{
         namespace py = pybind11;
 
         py::class_<ParticleVtkOutput, ParticleVtkOutput::Pointer, IO>(m, "ParticleVtkOutput")
-            .def(py::init< ModelPart&>())
             .def(py::init< ModelPart&, Parameters >())
             .def("PrintOutput", &ParticleVtkOutput::PrintOutput, py::arg("output_filename")="")
             .def_static("GetDefaultParameters", &ParticleVtkOutput::GetDefaultParameters);
