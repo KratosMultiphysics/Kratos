@@ -672,7 +672,7 @@ public:
     {
         Vector::const_iterator i = rFirstVector.begin();
         Vector::const_iterator j = rSecondVector.begin();
-        double temp = double();
+        double temp = 0.0;
         while(i != rFirstVector.end()) {
             temp += *i++ * *j++;
         }
