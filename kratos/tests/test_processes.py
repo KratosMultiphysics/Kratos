@@ -2535,28 +2535,20 @@ class TestProcesses(KratosUnittest.TestCase):
         settings = KratosMultiphysics.Parameters(
             """
             {
-                "process_list" : [
-                    {
-                        "python_module": "assign_master_slave_constraints_to_neighbours_process",
-                        "kratos_module": "KratosMultiphysics",
-                        "process_name": "AssignMasterSlaveConstraintsToNeighboursProcess",
-                        "Parameters": {
-                            "model_part_name": "Main",
-                            "master_model_part_name": "Main.GENERIC_Master",
-                            "slave_model_part_name": "Main.GENERIC_Slave",
-                            "search_radius": 0.01,
-                            "minimum_number_of_neighbouring_nodes": 3,
-                            "reform_constraints_at_each_step":  true,
-                            "variable_names": ["DISPLACEMENT_X"]
-                        }
-                    }
-                    ]
-                }
+                "model_part_name": "Main",
+                "master_model_part_name": "Main.GENERIC_Master",
+                "slave_model_part_name": "Main.GENERIC_Slave",
+                "search_radius": 0.01,
+                "minimum_number_of_neighbouring_nodes": 3,
+                "reform_constraints_at_each_step":  true,
+                "variable_names": ["DISPLACEMENT_X"]
+            }
             """
         )
 
         # Create and execute process
-        process = KratosMultiphysics.AssignMasterSlaveConstraintsToNeighboursProcess(model_part, settings)
+        from KratosMultiphysics.assign_master_slave_constraints_to_neighbours_process import AssignMasterSlaveConstraintsToNeighboursProcess
+        process = AssignMasterSlaveConstraintsToNeighboursProcess(current_model, settings)
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
 
@@ -2594,8 +2586,8 @@ class TestProcesses(KratosUnittest.TestCase):
                     matching_found = True
                     break
 
-        # If no matching element is found for the expected_weights, the test fails
-        self.assertTrue(matching_found, "No matching element found for expected_weights: {}".format(expected_weights))
+            # If no matching element is found for the expected_weights, the test fails
+            self.assertTrue(matching_found, "No matching element found for expected_weights: {}".format(expected_weights))
 
 
 
