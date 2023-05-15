@@ -2539,7 +2539,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     {
                         "python_module": "assign_master_slave_constraints_to_neighbours_process",
                         "kratos_module": "KratosMultiphysics",
-                        "process_name": "AssignMasterSlaveCostraintsToNeighboursProcess",
+                        "process_name": "AssignMasterSlaveConstraintsToNeighboursProcess",
                         "Parameters": {
                             "model_part_name": "Main",
                             "master_model_part_name": "Main.GENERIC_Master",
@@ -2556,7 +2556,7 @@ class TestProcesses(KratosUnittest.TestCase):
         )
 
         # Create and execute process
-        process = KratosMultiphysics.AssignMasterSlaveCostraintsToNeighboursProcess(model_part, settings)
+        process = KratosMultiphysics.AssignMasterSlaveConstraintsToNeighboursProcess(model_part, settings)
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
 
