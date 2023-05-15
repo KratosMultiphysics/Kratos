@@ -122,67 +122,25 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
           ResultNodesContainerType& rResults);
 
       /**
-       * @brief Get the component variable for a given vector variable and index
-       * @details Returns an array of the component variables (e.g., DISPLACEMENT_X, DISPLACEMENT_Y) corresponding to the input vector variable (e.g., DISPLACEMENT).
-       * @param rVectorVariable Input vector variable of type array_1d<double, 3>.
-       * @return The component variable corresponding to the given vector variable and index.
-       **/
-      const Variable<double>& GetComponentVariable(
-          const Variable<array_1d<double, 3>>& rVectorVariable, 
-          const std::size_t ComponentIndex);
-
-      /**
        * @brief Collect Dofs and Coordinates
        * @details Collects Dofs and Coordinates for a given node or set of nodes.
        * @param rStructureNodes Nodes Container.
        * @param NodesArray Nodes Container.
        * @param pNode Obtain respective dofs and coordinates for a given node or set of nodes.
        * @param rVariable Dof variable array or double.
-       * @param ComponentVariables List of Dof pointers.
+       * @param rVariableList List of rVariables.
        * @param rCloudOfDofs Dofs container.
        * @param rCloudOfNodesCoordinates Coordinates container.
        **/
       void GetDofsAndCoordinatesForNode(
-        NodeType::Pointer pNode,
-        const Variable<double>& rVariable,
-        DofPointerVectorType& rCloudOfDofs,
-        array_1d<double,3>& rSlaveCoordinates
-        );
-
-      void GetDofsAndCoordinatesForNode(
-        NodeType::Pointer pNode,
-        std::array<const Kratos::Variable<double>*, 3> ComponentVariables,
-        DofPointerVectorType& rCloudOfDofsX,
-        DofPointerVectorType& rCloudOfDofsY,
-        DofPointerVectorType& rCloudOfDofsZ,
-        array_1d<double,3>& rSlaveCoordinates
-        );
-
-      void GetDofsAndCoordinatesForNodeNew(
         NodeType::Pointer pNode,
         const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
         std::vector<DofPointerVectorType>& rCloudOfDofs,
         array_1d<double, 3>& rSlaveCoordinates
         );
 
-      // Get Dofs and Coordinates arrays for a given variable double. (For nodes)
+      // Get Dofs and Coordinates arrays for a given variable list. (For nodes)
       void GetDofsAndCoordinatesForNodes(
-        const ResultNodesContainerType& NodesArray,
-        const Variable<double>& rVariable,
-        DofPointerVectorType& rCloudOfDofs,
-        Matrix& rCloudOfNodesCoordinates
-        );
-
-      void GetDofsAndCoordinatesForNodes(
-        const ResultNodesContainerType& NodesArray,
-        std::array<const Kratos::Variable<double>*, 3> ComponentVariables,
-        DofPointerVectorType& rCloudOfDofsX,
-        DofPointerVectorType& rCloudOfDofsY,
-        DofPointerVectorType& rCloudOfDofsZ,
-        Matrix& rCloudOfNodesCoordinates
-        );
-      
-      void GetDofsAndCoordinatesForNodesNew(
         const ResultNodesContainerType& NodesArray,
         const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
         std::vector<DofPointerVectorType>& rCloudOfDofs,
@@ -198,25 +156,9 @@ class KRATOS_API(KRATOS_CORE) AssignMasterSlaveConstraintsToNeighboursUtility
        * @param Radius Search radius.
        * @param rComputinModelPart Model Part to which MasterSlaveConstraints are applied.
        * @param rVariable DOFs to assign the MasterSlaveConstraints. 
-       * @param h Shape parameter (to scale the input of the radial kernel)
+       * @param rVariableList List of DOFs to assign the MasterSlaveConstraints. 
        **/
       void AssignMasterSlaveConstraintsToNodes(
-          NodesContainerType pNodes,
-          double const Radius,
-          ModelPart& rComputingModelPart,
-          const Variable<double>& rVariable,
-          double const MinNumOfNeighNodes
-          );
-
-      void AssignMasterSlaveConstraintsToNodes(
-          NodesContainerType pNodes,
-          double const Radius,
-          ModelPart& rComputingModelPart,
-          const Variable<array_1d<double, 3>>& rVariable,
-          double const MinNumOfNeighNodes
-          );
-      
-      void AssignMasterSlaveConstraintsToNodesNew(
           NodesContainerType pNodes,
           double const Radius,
           ModelPart& rComputingModelPart,

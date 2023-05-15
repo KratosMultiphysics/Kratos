@@ -118,9 +118,7 @@ class AssignMasterSlaveConstraintsToNeighboursProcess(KM.Process):
         """
         # If the user want the mscs to be updated at each time step, this is usefull for moving meshes.
         if self.reform_constraints_at_each_step:
-            self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodesNew(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, self.variables_list, self.minimum_number_of_neighbouring_nodes)
-            # for variable in self.variables_list:
-            #     self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, variable, self.minimum_number_of_neighbouring_nodes)
+            self.assign_mscs_utility.AssignMasterSlaveConstraintsToNodes(self.slave_model_part.Nodes,self.search_radius,self.computing_model_part, self.variables_list, self.minimum_number_of_neighbouring_nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
