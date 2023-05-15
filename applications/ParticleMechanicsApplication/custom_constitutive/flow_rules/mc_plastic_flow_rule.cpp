@@ -448,7 +448,7 @@ void MCPlasticFlowRule::ReturnStressFromPrincipalAxis(const BoundedMatrix<double
     {
         for (unsigned int j = 0; j<3; ++j)
             aux_N[j] = rEigenVectors(j,i);
-        aux_M = MathUtils::TensorProduct3(aux_N, aux_N);
+        aux_M = MathUtils<double>::TensorProduct3(aux_N, aux_N);
         rStressMatrix += rPrincipalStress[i]*aux_M;
     }
 }
@@ -491,7 +491,7 @@ void MCPlasticFlowRule::CalculateDepSurface(BoundedMatrix<double,3,3>& rElasticM
         }
     }
 
-    double den = MathUtils::Dot(aux_F,rGNorm);
+    double den = MathUtils<double>::Dot(aux_F,rGNorm);
     rAuxDep = rElasticMatrix - num / den;
 
 }
@@ -509,7 +509,7 @@ void MCPlasticFlowRule::CalculateDepLine(BoundedMatrix<double,3,3>& rInvD, Bound
     }
 
     BoundedVector<double,3> den_1 = prod(rInvD, rGNorm);
-    double den = MathUtils::Dot(trans(rFNorm),den_1);
+    double den = MathUtils<double>::Dot(trans(rFNorm),den_1);
 
     rAuxDep = num / den;
 

@@ -374,7 +374,7 @@ namespace Kratos
       }
 
 
-    rVariables.ContactStressVector = MathUtils::StressTensorToVector( NormalForceModulus * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) , rVariables.ContactStressVector.size() );
+    rVariables.ContactStressVector = MathUtils<double>::StressTensorToVector( NormalForceModulus * outer_prod(rVariables.Surface.Normal, rVariables.Surface.Normal) , rVariables.ContactStressVector.size() );
 
 
     GetGeometry()[0].UnSetLock();
@@ -410,7 +410,7 @@ namespace Kratos
 
 
 
-    rVariables.ContactStressVector += MathUtils::StressTensorToVector( TangentForceModulus * ( outer_prod(rVariables.Surface.Normal, rVariables.Surface.Tangent) + outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal) ) , rVariables.ContactStressVector.size() );
+    rVariables.ContactStressVector += MathUtils<double>::StressTensorToVector( TangentForceModulus * ( outer_prod(rVariables.Surface.Normal, rVariables.Surface.Tangent) + outer_prod( rVariables.Surface.Tangent, rVariables.Surface.Normal) ) , rVariables.ContactStressVector.size() );
 
     GetGeometry()[0].UnSetLock();
 

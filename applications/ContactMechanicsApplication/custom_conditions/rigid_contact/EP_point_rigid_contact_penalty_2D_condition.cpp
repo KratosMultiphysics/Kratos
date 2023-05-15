@@ -121,7 +121,7 @@ namespace Kratos
         if ( nBoundary == 2)
         {
            array_1d< double, 3 > Vector1 = rElemGeom[ BoundaryNodes[1] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
-           double ThisArea = MathUtils::Norm3( Vector1);
+           double ThisArea = MathUtils<double>::Norm3( Vector1);
            AreaVector.push_back(ThisArea);
         }
 

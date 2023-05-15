@@ -45,7 +45,7 @@ void SetAutomatedInitialDamageProcess::ExecuteInitializeSolutionStep()
         KRATOS_TRY
 
         const array_1d<double, 3> hole_generatrix_axis = mThisParameters["hole_generatrix_axis"].GetVector();
-        KRATOS_ERROR_IF(MathUtils::Norm3(hole_generatrix_axis) < machine_tolerance) << "The hole generatrix axis has norm zero" << std::endl;
+        KRATOS_ERROR_IF(MathUtils<double>::Norm3(hole_generatrix_axis) < machine_tolerance) << "The hole generatrix axis has norm zero" << std::endl;
         
         const array_1d<double, 3> hole_generatrix_point = mThisParameters["hole_generatrix_point"].GetVector();
         auto& process_info = mrThisModelPart.GetProcessInfo();  
@@ -64,13 +64,13 @@ void SetAutomatedInitialDamageProcess::ExecuteInitializeSolutionStep()
             array_1d<double, 3> relative_position_vector;
             relative_position_vector = r_element_centroid - hole_generatrix_point;
 
-            const double vector_scaler = MathUtils::Dot3(relative_position_vector, normalized_generatrix_vector);
+            const double vector_scaler = MathUtils<double>::Dot3(relative_position_vector, normalized_generatrix_vector);
 
             const array_1d<double, 3> intersection_point = hole_generatrix_point + vector_scaler * normalized_generatrix_vector;
 
             const array_1d<double, 3> radial_position_vector = r_element_centroid - intersection_point;
 
-            double centroid_relative_distance = MathUtils::Norm3(radial_position_vector) - hole_radius_offset;
+            double centroid_relative_distance = MathUtils<double>::Norm3(radial_position_vector) - hole_radius_offset;
 
             if (centroid_relative_distance < 0.0){
                 if (std::abs(centroid_relative_distance) <= tolerance) {

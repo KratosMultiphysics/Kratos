@@ -442,7 +442,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen(rF.size1(),rF.size1());
     double det_b=0;
-    MathUtils::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     if( dimension == 2 )
     {
@@ -504,7 +504,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
-      MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+      MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
       //Compute cartesian derivatives [dN/dx_n]
       noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
@@ -519,11 +519,11 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
 
       //Determinant of the deformation gradient F
-      rVariables.detF  = MathUtils::Det(rVariables.F);
+      rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
       Matrix Invj;
-      MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
+      MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
       //Compute cartesian derivatives [dN/dx_n+1]
       noalias( rVariables.DN_DX ) =  prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
@@ -1245,7 +1245,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
 
       double det;
       Matrix EECCDefGrad;
-      MathUtils::InvertMatrix( EECCDefGradInverse, EECCDefGrad, det);
+      MathUtils<double>::InvertMatrix( EECCDefGradInverse, EECCDefGrad, det);
 
       double detF0 = 0;
       unsigned int step = 1;
@@ -1258,7 +1258,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       F0 *= pow( detF0 / rVariables.detF0, 1.0/ dimension_double );
 
       Matrix F0Inverse;
-      MathUtils::InvertMatrix( F0, F0Inverse, det);
+      MathUtils<double>::InvertMatrix( F0, F0Inverse, det);
 
       Matrix Update = prod( F0Inverse, EECCDefGrad);
 

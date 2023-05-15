@@ -175,7 +175,7 @@ void SmallDisplacementSurfaceLoadCondition3D::CalculateAll(
     Matrix J0(3, 2);
     for (std::size_t point_number = 0; point_number < integration_points.size(); ++point_number) {
         GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
-        const double detJ0 = MathUtils::GeneralizedDet(J0);
+        const double detJ0 = MathUtils<double>::GeneralizedDet(J0);
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ0);
         const auto& rN = row(Ncontainer, point_number);
 
@@ -187,7 +187,7 @@ void SmallDisplacementSurfaceLoadCondition3D::CalculateAll(
         tangent_eta[2] = J0(2, 1);
 
         array_1d<double, 3 > normal;
-        MathUtils::UnitCrossProduct(normal, tangent_eta, tangent_xi);
+        MathUtils<double>::UnitCrossProduct(normal, tangent_eta, tangent_xi);
 
         // Calculating the pressure on the gauss point
         double pressure = 0.0;

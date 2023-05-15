@@ -178,7 +178,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 
             array_1d<double,3> v1 = r_geometry[1].Coordinates() - r_geometry[0].Coordinates();
 
-            MathUtils::CrossProduct(normal,v1,v2 );
+            MathUtils<double>::CrossProduct(normal,v1,v2 );
             normal /= norm_2(normal);
         }
 
@@ -266,7 +266,7 @@ void MPMGridLineLoadCondition2D::CalculateAndSubKp(
             Kij = -coeff * Cross_gn;
 
             //TAKE CARE: the load correction matrix should be SUBTRACTED not added
-            MathUtils::SubtractMatrix( rK, Kij, RowIndex, ColIndex );
+            MathUtils<double>::SubtractMatrix( rK, Kij, RowIndex, ColIndex );
         }
     }
 

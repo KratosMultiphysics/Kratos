@@ -254,7 +254,7 @@ Matrix& ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateValue(
     )
 {
     if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-        rValue = MathUtils::StressVectorToTensor(this->GetPreviousStressVector());
+        rValue = MathUtils<double>::StressVectorToTensor(this->GetPreviousStressVector());
     } else {
         rValue = BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }

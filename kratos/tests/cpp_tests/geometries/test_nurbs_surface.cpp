@@ -332,8 +332,8 @@ namespace Testing {
         array_1d<double, 3> cross(0.0);
         array_1d<double, 3> colinear_vector(0.0);
         derivatives[0][2] = 0.0;
-        MathUtils::CrossProduct(cross, derivatives[1], derivatives[2]);
-        MathUtils::CrossProduct(colinear_vector, cross, derivatives[0]);
+        MathUtils<double>::CrossProduct(cross, derivatives[1], derivatives[2]);
+        MathUtils<double>::CrossProduct(colinear_vector, cross, derivatives[0]);
         KRATOS_CHECK_NEAR(norm_2(colinear_vector), 0, TOLERANCE);
 
         parameter[0] = 6.0;

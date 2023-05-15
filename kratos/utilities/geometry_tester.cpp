@@ -708,7 +708,7 @@ bool GeometryTesterUtility::VerifyAreaByIntegration(
         const double integration_weight = integration_points[point_number].Weight();
 
         // Calculating and storing inverse of the jacobian and the parameters needed
-        const double DetJ0 = MathUtils::Det( J0[point_number] );
+        const double DetJ0 = MathUtils<double>::Det( J0[point_number] );
 
         if( std::abs(determinants[point_number] - DetJ0)/std::abs(DetJ0) > 1e-13) {
             rErrorMessage << "Geometry Type = " << GetGeometryName(rGeometry) << " - IntegrationMethod = " << GetIntegrationName(rGeometry,ThisMethod) << " --> " << " determinant as computed from DeterminantOfJacobian does not match the value computed by taking the determinant of J "  << std::endl;
@@ -806,7 +806,7 @@ void GeometryTesterUtility::VerifyStrainExactness(
                 rErrorMessage << "Geometry Type = " << GetGeometryName(rGeometry) << " - IntegrationMethod = " << GetIntegrationName(rGeometry,ThisMethod) << " --> " << " error: shape functions do not sum to 1 on gauss point" << std::endl;
 
             //calculating and storing inverse of the jacobian and the parameters needed
-            MathUtils::InvertMatrix( J0[point_number], InvJ0, DetJ0 );
+            MathUtils<double>::InvertMatrix( J0[point_number], InvJ0, DetJ0 );
             DN_DX  = prod( DN_De[point_number], InvJ0 );
 
             //check that the shape function gradients as obtained from the rGeometryety match what is obtained here starting from the local_gradients

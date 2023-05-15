@@ -501,9 +501,9 @@ class RecoverVolumeLossesProcess : public Process
   //*******************************************************************************************
 
   double Compute3DArea(array_1d<double,3> PointA, array_1d<double,3> PointB, array_1d<double,3> PointC){
-    double a = MathUtils::Norm3(PointA - PointB);
-    double b = MathUtils::Norm3(PointB - PointC);
-    double c = MathUtils::Norm3(PointC - PointA);
+    double a = MathUtils<double>::Norm3(PointA - PointB);
+    double b = MathUtils<double>::Norm3(PointB - PointC);
+    double c = MathUtils<double>::Norm3(PointC - PointA);
     double s = (a+b+c) / 2.0;
     double Area=std::sqrt(s*(s-a)*(s-b)*(s-c));
     return Area;

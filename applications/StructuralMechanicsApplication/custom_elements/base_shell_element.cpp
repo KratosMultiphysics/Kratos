@@ -243,7 +243,7 @@ void BaseShellElement<TCoordinateTransformation>::Initialize(const ProcessInfo& 
 
             const array_1d<double, 3> prescribed_direcition = GetValue(LOCAL_MATERIAL_AXIS_1);
 
-            double mat_orientation_angle = MathUtils::VectorsAngle(local_axes_1[0], prescribed_direcition);
+            double mat_orientation_angle = MathUtils<double>::VectorsAngle(local_axes_1[0], prescribed_direcition);
 
             // make sure the angle is positively defined according to right hand rule
             if (inner_prod(local_axes_2[0], prescribed_direcition) < 0.0) {
@@ -672,7 +672,7 @@ void BaseShellElement<TCoordinateTransformation>::SetupOrientationAngles()
         dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
 
         Vector3Type dirX;
-        MathUtils::CrossProduct(dirX, dZ, normal);
+        MathUtils<double>::CrossProduct(dirX, dZ, normal);
 
         // try to normalize the x vector. if it is near zero it means that we need
         // to choose a default one.

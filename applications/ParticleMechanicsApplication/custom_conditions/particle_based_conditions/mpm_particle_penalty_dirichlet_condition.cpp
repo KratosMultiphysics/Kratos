@@ -158,7 +158,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
             }
         }
 
-        const double penetration = MathUtils::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
+        const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
 
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)

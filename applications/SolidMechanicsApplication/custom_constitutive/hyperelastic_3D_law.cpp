@@ -227,7 +227,7 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
   //6.-Inverse of the Right Cauchy-Green tensor C: (stored in the CauchyGreenMatrix)
   ElasticVariables.traceCG = 0;
   ElasticVariables.CauchyGreenMatrix.resize(3,3,false);
-  MathUtils::InvertMatrix( RightCauchyGreen, ElasticVariables.CauchyGreenMatrix, ElasticVariables.traceCG);
+  MathUtils<double>::InvertMatrix( RightCauchyGreen, ElasticVariables.CauchyGreenMatrix, ElasticVariables.traceCG);
 
   //7.-Green-Lagrange Strain:
   if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
@@ -467,7 +467,7 @@ void HyperElastic3DLaw::UpdateInternalVariables(Parameters& rValues)
 
     Matrix DeformationGradientF0          = DeformationGradientF;
     DeformationGradientF0 = Transform2DTo3D(DeformationGradientF0);
-    MathUtils::InvertMatrix( DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
+    MathUtils<double>::InvertMatrix( DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
     mDeterminantF0 = DeterminantF; //special treatment of the determinant
 }
 
@@ -490,7 +490,7 @@ void HyperElastic3DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauch
     // Matrix StrainMatrix(3,3);
     // noalias(StrainMatrix) = ZeroMatrix(3,3);
     // CalculateAlmansiStrain( rRightCauchyGreen, rStrainMatrix );
-    // rStrainVector = MathUtils::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
+    // rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
 
 }
 
@@ -520,7 +520,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen ( 3, 3 );
     double det_b=0;
-    MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
     rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
@@ -533,7 +533,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
     // Matrix StrainMatrix(3,3);
     // noalias(StrainMatrix) = ZeroMatrix(3,3);
     // CalculateAlmansiStrain( rLeftCauchyGreen, rStrainMatrix );
-    // rStrainVector = MathUtils::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
+    // rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
 
 }
 
@@ -550,7 +550,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
 //     //Calculating the inverse of the jacobian
 //     Matrix InverseLeftCauchyGreen ( 3, 3 );
 //     double det_b=0;
-//     MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+//     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
 //     Matrix Identity = identity_matrix<double> ( 3 );
 //     rStrainMatrix = 0.5 * prod( Identity - InverseLeftCauchyGreen);
@@ -703,7 +703,7 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
 
    }
 
-    rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+    rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
 
 }
 
@@ -746,7 +746,7 @@ void HyperElastic3DLaw::CalculateIsochoricStress( const MaterialResponseVariable
 
     }
 
-    rIsoStressVector = MathUtils::StressTensorToVector(IsoStressMatrix,rIsoStressVector.size());
+    rIsoStressVector = MathUtils<double>::StressTensorToVector(IsoStressMatrix,rIsoStressVector.size());
 
 }
 
@@ -769,7 +769,7 @@ void HyperElastic3DLaw::CalculateVolumetricStress(const MaterialResponseVariable
     VolStressMatrix = rElasticVariables.DeterminantF * Pressure * rElasticVariables.CauchyGreenMatrix;
 
 
-    rVolStressVector = MathUtils::StressTensorToVector(VolStressMatrix,rVolStressVector.size());
+    rVolStressVector = MathUtils<double>::StressTensorToVector(VolStressMatrix,rVolStressVector.size());
 
 }
 

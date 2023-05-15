@@ -126,7 +126,7 @@ GeometryType::ShapeFunctionsGradientsType CalculateGeometryParameterDerivatives(
         noalias(current_dx_de) = prod(geometry_coordinates, r_current_local_gradients);
         Matrix inv_current_dx_de(dim, dim);
         double det_J;
-        MathUtils::InvertMatrix<Matrix, Matrix>(
+        MathUtils<double>::InvertMatrix<Matrix, Matrix>(
             current_dx_de, inv_current_dx_de, det_J);
 
         de_dx[g] = inv_current_dx_de;

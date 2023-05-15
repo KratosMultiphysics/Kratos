@@ -101,7 +101,7 @@ void  HyperElasticIsotropicNeoHookean3DFEMDEM::CalculateMaterialResponsePK2(Cons
     // Inverse of the right Cauchy-Green tensor (C):
     double aux_det;
     Matrix inverse_C_tensor(dimension, dimension);
-    MathUtils::InvertMatrix( C_tensor, inverse_C_tensor, aux_det);
+    MathUtils<double>::InvertMatrix( C_tensor, inverse_C_tensor, aux_det);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateGreenLagrangianStrain(rValues, strain_vector);
@@ -547,7 +547,7 @@ void HyperElasticIsotropicNeoHookean3DFEMDEM::CalculatePK2Stress(
 
     stress_matrix = LameLambda * std::log(DeterminantF) * rInvCTensor + LameMu * ( IdentityMatrix(dimension) - rInvCTensor );
 
-    rStressVector = MathUtils::StressTensorToVector( stress_matrix, GetStrainSize() );
+    rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, GetStrainSize() );
 }
 
 /***********************************************************************************/
@@ -567,7 +567,7 @@ void HyperElasticIsotropicNeoHookean3DFEMDEM::CalculateKirchhoffStress(
 
     stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(dimension) + LameMu * ( rBTensor - IdentityMatrix(dimension) );
 
-    rStressVector = MathUtils::StressTensorToVector( stress_matrix, rStressVector.size() );
+    rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }
 
 /***********************************************************************************/

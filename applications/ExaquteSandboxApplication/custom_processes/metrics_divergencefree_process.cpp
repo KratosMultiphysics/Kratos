@@ -259,7 +259,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
                 metric_matrix(i,i) = 1.0/std::pow(element_size, 2);
 
             // Transform metric matrix to a vector
-            const TensorArrayType metric = MathUtils::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
+            const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
 
             // Setting value
             it_node->SetValue(tensor_variable, metric);
@@ -324,7 +324,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
                 metric_matrix(i,i) = 1.0/std::pow(element_size, 2);
 
             // Transform metric matrix to a vector
-            const TensorArrayType metric = MathUtils::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
+            const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
 
             // Setting value
             it_node->SetValue(tensor_variable, metric);
@@ -360,7 +360,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
             double factor = mGlobalErrorStrategyMeshConstant*std::abs(divergencefree_interp_value)/mGlobalErrorStrategyGlobalTolerance;
 
             // Check with max and min size
-            aux_element_size = std::min(std::max(factor, max_ratio), min_ratio);
+            aux_element_size = MathUtils<double>::Min(MathUtils<double>::Max(factor, max_ratio), min_ratio);
 
             // Set metric
             BoundedMatrix<double, TDim, TDim> metric_matrix = ZeroMatrix(TDim, TDim);
@@ -368,7 +368,7 @@ void MetricDivergenceFreeProcess<TDim>::CalculateMetric()
                 metric_matrix(i,i) = aux_element_size;
 
             // Transform metric matrix to a vector
-            const TensorArrayType metric = MathUtils::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
+            const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
 
             // Setting value
             it_node->SetValue(tensor_variable, metric);

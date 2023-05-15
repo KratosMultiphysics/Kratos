@@ -245,7 +245,7 @@ void AdjointDiffusionElement<PrimalElement>::CalculateSensitivityMatrix(
             GeometricalSensitivityUtility geometrical_sensitivity_utility(jacobian,shape_function_local_gradients);
 
             double det_j;
-            MathUtils::GeneralizedInvertMatrix(jacobian, jacobian_inv, det_j);
+            MathUtils<double>::GeneralizedInvertMatrix(jacobian, jacobian_inv, det_j);
             noalias(shape_function_global_gradients) = prod(shape_function_local_gradients, jacobian_inv);
             const double weight = integration_points[g].Weight();
             const auto N = row(N_values, g);

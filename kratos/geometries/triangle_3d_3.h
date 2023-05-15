@@ -481,9 +481,9 @@ public:
      */
     double Area() const override
     {
-        const double a = MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1));
-        const double b = MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2));
-        const double c = MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0));
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
         const double s = (a+b+c) / 2.0;
 
@@ -572,9 +572,9 @@ public:
     double AverageEdgeLength() const override
     {
         return CalculateAvgEdgeLength(
-        MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
         );
     }
 
@@ -588,9 +588,9 @@ public:
     double Circumradius() const override
     {
         return CalculateCircumradius(
-        MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
         );
     }
 
@@ -604,9 +604,9 @@ public:
     double Inradius() const override
     {
         return CalculateInradius(
-        MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
         );
     }
 
@@ -709,9 +709,9 @@ public:
     {
         constexpr double normFactor = 1.0;
 
-        const double a = MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1));
-        const double b = MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2));
-        const double c = MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0));
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
         return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
     };
@@ -809,9 +809,9 @@ public:
     virtual double AreaToEdgeLengthSquareRatio() const {
       constexpr double normFactor = 1.0;
 
-      const double a = MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      const double b = MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      const double c = MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0));
+      const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+      const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+      const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
       return normFactor * Area() / std::pow(a+b+c, 2);
     }
@@ -856,7 +856,7 @@ public:
         const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
 
         array_1d<double, 3> normal;
-        MathUtils::CrossProduct(normal, tangent_xi, tangent_eta);
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
 
         return 0.5 * normal;
     }
@@ -1991,7 +1991,7 @@ private:
 
         // compute direction of intersection line //
         array_1d<double, 3> intersection_direction;
-        MathUtils::CrossProduct(intersection_direction, plane_1.GetNormal(), plane_2.GetNormal());
+        MathUtils<double>::CrossProduct(intersection_direction, plane_1.GetNormal(), plane_2.GetNormal());
 
         int index = GetMajorAxis(intersection_direction);
 
@@ -2323,7 +2323,7 @@ private:
         // Bullet 2:
         //  test if the box intersects the plane of the triangle
         //  compute plane equation of triangle: normal*x+distance=0
-        MathUtils::CrossProduct(normal, edge0, edge1);
+        MathUtils<double>::CrossProduct(normal, edge0, edge1);
         distance = -inner_prod(normal, vert0);
         if(!PlaneBoxOverlap(normal, distance, rBoxHalfSize)) return false;
 

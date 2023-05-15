@@ -1652,7 +1652,7 @@ void SphericParticle::ComputeDifferentialStrainTensor(const ProcessInfo& r_proce
             CoefficientsMatrix(2,2) = 1.0;
             RightHandSide(2,2) = 1.0;
         }
-        MathUtils::InvertMatrix3(CoefficientsMatrix, InvertedCoefficientsMatrix, det);
+        MathUtils<double>::InvertMatrix3(CoefficientsMatrix, InvertedCoefficientsMatrix, det);
         *mDifferentialStrainTensor = prod(InvertedCoefficientsMatrix, RightHandSide);
         if (Dim == 2) {
             (*mDifferentialStrainTensor)(2,2) = (*mDifferentialStrainTensor)(0,2) = (*mDifferentialStrainTensor)(1,2) = (*mDifferentialStrainTensor)(2,1) = (*mDifferentialStrainTensor)(2,0) = 0.0;

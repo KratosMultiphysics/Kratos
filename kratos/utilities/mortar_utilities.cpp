@@ -56,9 +56,9 @@ bool HeronCheck(
     const PointType& rPointOrig3
     )
 {
-    const double a = MathUtils::Norm3(rPointOrig1.Coordinates()-rPointOrig2.Coordinates());
-    const double b = MathUtils::Norm3(rPointOrig2.Coordinates()-rPointOrig3.Coordinates());
-    const double c = MathUtils::Norm3(rPointOrig3.Coordinates()-rPointOrig1.Coordinates());
+    const double a = MathUtils<double>::Norm3(rPointOrig1.Coordinates()-rPointOrig2.Coordinates());
+    const double b = MathUtils<double>::Norm3(rPointOrig2.Coordinates()-rPointOrig3.Coordinates());
+    const double c = MathUtils<double>::Norm3(rPointOrig3.Coordinates()-rPointOrig1.Coordinates());
 
     const double s = 0.5 * (a + b + c);
     const double A2 = s * (s - a) * (s - b) * (s - c);
@@ -214,7 +214,7 @@ void ComputeTangentsFromNormal(
     )
 {
     array_1d<double, 3> tangent_xi, tangent_eta;
-    MathUtils::OrthonormalBasis(rNormal, tangent_xi, tangent_eta);
+    MathUtils<double>::OrthonormalBasis(rNormal, tangent_xi, tangent_eta);
     if (Dimension == 3) {
         rNode.SetValue(TANGENT_XI, tangent_xi);
         rNode.SetValue(TANGENT_ETA, tangent_eta);
@@ -315,7 +315,7 @@ void ComputeTangentNodeWithSlip(
             } else {
                 const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
                 array_1d<double, 3> tangent_xi, tangent_eta;
-                MathUtils::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+                MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
                 if (Dimension == 3) {
                     rNode.SetValue(TANGENT_XI, tangent_xi);
                 } else {
@@ -329,7 +329,7 @@ void ComputeTangentNodeWithSlip(
         } else { // In case of zero LM or zero weighted slip
             const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
             array_1d<double, 3> tangent_xi, tangent_eta;
-            MathUtils::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+            MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
             if (Dimension == 3) {
                 rNode.SetValue(TANGENT_XI, tangent_xi);
             } else {
@@ -343,7 +343,7 @@ void ComputeTangentNodeWithSlip(
     } else { // Default
         const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL, StepLM);
         array_1d<double, 3> tangent_xi, tangent_eta;
-        MathUtils::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
+        MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
         if (Dimension == 3) {
             rNode.SetValue(TANGENT_XI, tangent_xi);
         } else {

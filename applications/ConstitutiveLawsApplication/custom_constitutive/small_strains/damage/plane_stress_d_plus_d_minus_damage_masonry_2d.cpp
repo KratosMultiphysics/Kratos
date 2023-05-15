@@ -579,11 +579,11 @@ void DamageDPlusDMinusMasonry2DLaw::ConstructProjectionTensors(
 
 	const array_1d<double,3>& effective_stress_vector = data.EffectiveStressVector;
 
-	Matrix effective_stress_tensor = MathUtils::StressVectorToTensor(effective_stress_vector);
+	Matrix effective_stress_tensor = MathUtils<double>::StressVectorToTensor(effective_stress_vector);
     BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
     BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
 
-	MathUtils::GaussSeidelEigenSystem(effective_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+	MathUtils<double>::GaussSeidelEigenSystem(effective_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
 	array_1d<double,2> eigen_vector_1;
 	array_1d<double,2> eigen_vector_2;
@@ -598,12 +598,12 @@ void DamageDPlusDMinusMasonry2DLaw::ConstructProjectionTensors(
 	array_1d<double,3> projection_vector_11;
 	Matrix projection_tensor_11;
 	projection_tensor_11 = outer_prod(eigen_vector_1, eigen_vector_1);
-	projection_vector_11 = MathUtils::StressTensorToVector(projection_tensor_11);
+	projection_vector_11 = MathUtils<double>::StressTensorToVector(projection_tensor_11);
 
 	array_1d<double,3> projection_vector_22;
 	Matrix projection_tensor_22;
 	projection_tensor_22 = outer_prod(eigen_vector_2, eigen_vector_2);
-	projection_vector_22 = MathUtils::StressTensorToVector(projection_tensor_22);
+	projection_vector_22 = MathUtils<double>::StressTensorToVector(projection_tensor_22);
 
 	projection_tensor_tension.clear();
 	noalias(projection_tensor_tension) += HEAVISIDE(eigen_values_matrix(0, 0)) *
@@ -627,7 +627,7 @@ Theory from: "Viscoelasticity and rate-dependent continuum damage models"
 	array_1d<double,3> projection_vector_cross;
 	Matrix projection_tensor_cross;
 	projection_tensor_cross = 0.5 * (projection_tensor_12 + projection_tensor_21);
-	projection_vector_cross = MathUtils::StressTensorToVector(projection_tensor_cross);
+	projection_vector_cross = MathUtils<double>::StressTensorToVector(projection_tensor_cross);
 
 	double factor_12;
 	factor_12 = MACAULAY(eigen_values_matrix(0, 0)) - MACAULAY(eigen_values_matrix(1, 1));
@@ -659,7 +659,7 @@ Theory from: 	"An Energy-Equivalent d+/d- Damage Model with
 	array_1d<double,3> projection_vector_cross;
 	Matrix projection_tensor_cross;
 	projection_tensor_cross = 0.5 * (projection_tensor_12 + projection_tensor_21);
-	projection_vector_cross = MathUtils::StressTensorToVector(projection_tensor_cross);
+	projection_vector_cross = MathUtils<double>::StressTensorToVector(projection_tensor_cross);
 
 	noalias(projection_tensor_tension) += (HEAVISIDE(eigen_values_matrix(0, 0)) + HEAVISIDE(eigen_values_matrix(1, 1))) *
 										  outer_prod(projection_vector_cross, projection_vector_cross);

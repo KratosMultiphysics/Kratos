@@ -76,7 +76,7 @@ inline bool ModelSubdivisionUtilities::Slab::IsInside(const array_1d<double,3>& 
 
 inline bool ModelSubdivisionUtilities::Slab::Plane::IsOnPositiveSide(const array_1d<double,3>& rPoint, bool open) const
 {
-    const double product = MathUtils::Dot(rPoint - mReferencePoint, mNormal);
+    const double product = MathUtils<double>::Dot(rPoint - mReferencePoint, mNormal);
     if (product < 0) {
         return false;
     }

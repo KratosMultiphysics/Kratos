@@ -171,7 +171,7 @@ class PreUtilities
             const array_1d<double, 3>& coords = it->Coordinates();
             array_1d<double, 3> vector_distance_to_center;
             noalias(vector_distance_to_center) = coords;
-            const double distance_to_center = MathUtils::Norm3(vector_distance_to_center);
+            const double distance_to_center = MathUtils<double>::Norm3(vector_distance_to_center);
             if(distance_to_center < inner_radius + detection_radius) {
                 it->FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
             }
@@ -187,7 +187,7 @@ class PreUtilities
             const array_1d<double, 3>& coords = it->Coordinates();
             array_1d<double, 3> vector_distance_to_center;
             noalias(vector_distance_to_center) = coords;
-            const double distance_to_center = MathUtils::Norm3(vector_distance_to_center);
+            const double distance_to_center = MathUtils<double>::Norm3(vector_distance_to_center);
             const double radius = it->FastGetSolutionStepValue(RADIUS);
             if (distance_to_center + radius > outer_radius - detection_radius) {
                 it->FastGetSolutionStepValue(SKIN_SPHERE) = 1.0;
@@ -459,7 +459,7 @@ class PreUtilities
             const array_1d<double, 3>& coords = it->Coordinates();
             array_1d<double, 3> vector_distance_to_center;
             noalias(vector_distance_to_center) = coords - center;
-            const double distance_to_center = MathUtils::Norm3(vector_distance_to_center);
+            const double distance_to_center = MathUtils<double>::Norm3(vector_distance_to_center);
             const double radius = it->FastGetSolutionStepValue(RADIUS);
             if(distance_to_center + radius > max_radius + tolerance_for_erasing) {
                 it->Set(TO_ERASE, true);
@@ -512,7 +512,7 @@ class PreUtilities
             const array_1d<double, 3>& coords = node.Coordinates();
             array_1d<double, 3> vector_particle_to_center;
             noalias(vector_particle_to_center) = center - coords;
-            const double distance_to_center = MathUtils::Norm3(vector_particle_to_center);
+            const double distance_to_center = MathUtils<double>::Norm3(vector_particle_to_center);
             const double inv_dist = 1.0 / distance_to_center;
             array_1d<double, 3> force;
             SphericParticle* spheric_p_particle = dynamic_cast<SphericParticle*> (&*it);

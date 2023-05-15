@@ -111,7 +111,7 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::ComputeEquivalentForceAndT
             r_force = rNode.FastGetSolutionStepValue(rForceVariable);
             r_moment = rNode.FastGetSolutionStepValue(rTorqueVariable);
 
-            r_moment += MathUtils::CrossProduct<array_1d<double,3>>(
+            r_moment += MathUtils<double>::CrossProduct<array_1d<double,3>>(
                 rNode-rReferencePoint,
                 r_force
             );
@@ -128,7 +128,7 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::ComputeEquivalentForceAndT
             array_1d<double,3>& r_moment = std::get<1>(force_and_moment_nodal);
 
             r_force = rNode.FastGetSolutionStepValue(rForceVariable);
-            r_moment = MathUtils::CrossProduct<array_1d<double,3>>(
+            r_moment = MathUtils<double>::CrossProduct<array_1d<double,3>>(
                 rNode-rReferencePoint,
                 r_force
             );

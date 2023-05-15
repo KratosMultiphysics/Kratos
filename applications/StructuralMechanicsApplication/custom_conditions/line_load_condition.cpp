@@ -132,7 +132,7 @@ void LineLoadCondition<TDim>::CalculateOnIntegrationPoints(
             GetLocalAxis1(tangent_xi, J);
 
             // Computing normal
-            MathUtils::UnitCrossProduct(rOutput[point_number], tangent_xi, tangent_eta);
+            MathUtils<double>::UnitCrossProduct(rOutput[point_number], tangent_xi, tangent_eta);
         }
     } else {
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -256,7 +256,7 @@ void LineLoadCondition<TDim>::CalculateAll(
                 GetLocalAxis2(tangent_eta);
 
                 // Computing normal
-                MathUtils::UnitCrossProduct(normal, tangent_xi, tangent_eta);
+                MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
 
                 CalculateAndAddPressureForce( rRightHandSideVector, row( rNcontainer, point_number ), normal, gauss_pressure, integration_weight );
             }
@@ -320,7 +320,7 @@ void LineLoadCondition<TDim>::CalculateAndSubKp(
             const double coeff = Pressure * rN[i] * rDN_De( j, 0 ) * IntegrationWeight;
             noalias(Kij) = coeff * cross_tangent_xi;
 
-            MathUtils::AddMatrix( rK, Kij, row_index, col_index );
+            MathUtils<double>::AddMatrix( rK, Kij, row_index, col_index );
         }
     }
 

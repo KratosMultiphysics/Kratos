@@ -117,7 +117,7 @@ namespace Kratos
 
                 mass    = in->FastGetSolutionStepValue(NODAL_MASS);
                 vel     = in->FastGetSolutionStepValue(VELOCITY);
-                vel_arg = MathUtils::Norm3(vel);
+                vel_arg = MathUtils<double>::Norm3(vel);
                 KinematicEnergyPartition[k] += 0.5*vel_arg*vel_arg*mass;
             }
         }

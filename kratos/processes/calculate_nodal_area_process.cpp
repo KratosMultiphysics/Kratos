@@ -75,7 +75,7 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
 
             // Getting the jacobians and local gradients
             GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], (rTLS.J0));
-            const double detJ0 = MathUtils::GeneralizedDet((rTLS.J0));
+            const double detJ0 = MathUtils<double>::GeneralizedDet((rTLS.J0));
             const double gauss_point_volume = integration_points[point_number].Weight() * detJ0;
 
             for(std::size_t i_node =0; i_node < number_of_nodes; ++i_node) {

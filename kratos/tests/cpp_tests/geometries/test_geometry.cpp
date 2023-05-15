@@ -269,7 +269,7 @@ namespace Testing {
             const double IntegrationWeight = integration_points[PointNumber].Weight();
 
             // Calculating and storing inverse of the jacobian and the parameters needed
-            double DetJ0 = MathUtils::Det( J0[PointNumber] );
+            double DetJ0 = MathUtils<double>::Det( J0[PointNumber] );
 
             KRATOS_ERROR_IF( std::abs(determinants[PointNumber] - DetJ0)/std::abs(DetJ0) > 1e-13) << "Geometry Type = " << GetGeometryName(ThisGeometry) << " - IntegrationMethod = " << GetIntegrationName(ThisGeometry,ThisMethod) << " --> " << " determinant as computed from DeterminantOfJacobian does not match the value computed by taking the determinant of J "  << std::endl;
 
@@ -371,7 +371,7 @@ namespace Testing {
                 }
 
                 // Calculating and storing inverse of the jacobian and the parameters needed
-                MathUtils::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
+                MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
                 DN_DX  = prod( DN_De[PointNumber], InvJ0 );
 
                 // Check that the shape function gradients as obtained from the ThisGeometryety match what is obtained here starting from the local_gradients

@@ -198,7 +198,7 @@ namespace Kratos
                EigenVectors.clear();
                EigenValues.clear();
 
-         MathUtils::GaussSeidelEigenSystem<MatrixType, MatrixType>(rValues.StrainMatrix, EigenVectors, EigenValues);
+         MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(rValues.StrainMatrix, EigenVectors, EigenValues);
 
                rVariables.Strain.Matrix.clear();
                for (unsigned int i = 0; i < 3; i++)

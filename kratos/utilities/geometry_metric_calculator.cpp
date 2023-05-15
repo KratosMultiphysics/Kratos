@@ -44,7 +44,7 @@ void GeometryMetricCalculator<2,3>::CalculateMetricTensor(
     aux_vect[0] = 1.0;
     aux_vect[1] = 1.0;
     aux_vect[2] = 1.0;
-    MathUtils::Solve(aux_mat, sol, aux_vect);
+    MathUtils<double>::Solve(aux_mat, sol, aux_vect);
 
     // Set the metric tensor
     rMetricTensor(0,0) = sol[0]; rMetricTensor(0,1) = sol[1];
@@ -76,7 +76,7 @@ void GeometryMetricCalculator<3,4>::CalculateMetricTensor(
             row++;
         }
     }
-    MathUtils::Solve(aux_mat, sol, aux_vect);
+    MathUtils<double>::Solve(aux_mat, sol, aux_vect);
 
     // Set the metric tensor
     rMetricTensor(0,0) = sol[0]; rMetricTensor(0,1) = sol[1]; rMetricTensor(0,2) = sol[2];
@@ -97,7 +97,7 @@ void GeometryMetricCalculator<TDim,TNumNodes>::CalculateMetricTensor(
 
     // Calculate the eigenvalues of the metric tensor to obtain the ellipsis of inertia axes
     BoundedMatrix<double,TDim,TDim> eigenvects, eigenvals;
-    MathUtils::GaussSeidelEigenSystem(rMetricTensor, eigenvects, eigenvals);
+    MathUtils<double>::GaussSeidelEigenSystem(rMetricTensor, eigenvects, eigenvals);
 
     // Calculate the reference element size as the average of the ellipsis of inertia axes lengths
     // Note that the lenght of each semiaxe is computed from the metric tensor eigenvalues

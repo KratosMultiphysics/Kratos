@@ -589,18 +589,18 @@ public:
         const TPointType& p5 = this->GetPoint(5);
         const TPointType& p6 = this->GetPoint(6);
         const TPointType& p7 = this->GetPoint(7);
-        return (MathUtils::Norm3(p0-p1) +
-            MathUtils::Norm3(p1-p2) +
-            MathUtils::Norm3(p2-p3) +
-            MathUtils::Norm3(p3-p0) +
-            MathUtils::Norm3(p4-p5) +
-            MathUtils::Norm3(p5-p6) +
-            MathUtils::Norm3(p6-p7) +
-            MathUtils::Norm3(p7-p4) +
-            MathUtils::Norm3(p0-p4) +
-            MathUtils::Norm3(p1-p5) +
-            MathUtils::Norm3(p2-p6) +
-            MathUtils::Norm3(p3-p7)) /12.0;
+        return (MathUtils<double>::Norm3(p0-p1) +
+            MathUtils<double>::Norm3(p1-p2) +
+            MathUtils<double>::Norm3(p2-p3) +
+            MathUtils<double>::Norm3(p3-p0) +
+            MathUtils<double>::Norm3(p4-p5) +
+            MathUtils<double>::Norm3(p5-p6) +
+            MathUtils<double>::Norm3(p6-p7) +
+            MathUtils<double>::Norm3(p7-p4) +
+            MathUtils<double>::Norm3(p0-p4) +
+            MathUtils<double>::Norm3(p1-p5) +
+            MathUtils<double>::Norm3(p2-p6) +
+            MathUtils<double>::Norm3(p3-p7)) /12.0;
     }
 
     ///@}

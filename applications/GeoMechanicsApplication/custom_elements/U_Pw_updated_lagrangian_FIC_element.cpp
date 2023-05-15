@@ -218,7 +218,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             if ( rOutput[GPoint].size2() != TDim )
                 rOutput[GPoint].resize(TDim,TDim,false );
 
-            rOutput[GPoint] = MathUtils::StrainVectorToTensor(Variables.StrainVector);
+            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(Variables.StrainVector);
         }
     } else {
         UPwSmallStrainFICElement<TDim,TNumNodes>::

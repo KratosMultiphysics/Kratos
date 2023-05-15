@@ -328,7 +328,7 @@ void UpdatedLagrangian::CalculateKinematicVariables(
         DF(2, 2) = current_radius/initial_radius;
     }
 
-    const double detDF = MathUtils::Det(DF);
+    const double detDF = MathUtils<double>::Det(DF);
     rThisKinematicVariables.detF = detDF * this->ReferenceConfigurationDeformationGradientDeterminant(PointNumber);
     noalias(rThisKinematicVariables.F) = prod(DF, this->ReferenceConfigurationDeformationGradient(PointNumber));
 
@@ -358,7 +358,7 @@ double UpdatedLagrangian::CalculateDerivativesOnReferenceConfiguration(
 
     const Matrix& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
 
-    MathUtils::InvertMatrix( J0, InvJ0, detJ0 );
+    MathUtils<double>::InvertMatrix( J0, InvJ0, detJ0 );
 
     noalias( DN_DX ) = prod( DN_De, InvJ0);
 

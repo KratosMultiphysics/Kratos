@@ -89,7 +89,7 @@ namespace Kratos
 
 	  //projection on the master plane:
 	  PointType PlaneNormal;
-	  MathUtils::CrossProduct(PlaneNormal,V1,V2);
+	  MathUtils<double>::CrossProduct(PlaneNormal,V1,V2);
 	  M2 -= P1;
 	  M2 -= PlaneNormal*(inner_prod(M2,PlaneNormal));
 	  M2 += P1;
@@ -107,7 +107,7 @@ namespace Kratos
 	  V2 /= norm_2(V2);
 
 	  //projection on the master plane:
-	  MathUtils::CrossProduct(PlaneNormal,V1,V2);
+	  MathUtils<double>::CrossProduct(PlaneNormal,V1,V2);
 	  M1 -= PS1;
 	  M1 -= PlaneNormal*(inner_prod(M1,PlaneNormal));
 	  M1 += PS1;
@@ -224,10 +224,10 @@ namespace Kratos
 	{
 	  PointType P2_P1 = P2-P1;
 	  PointType V1xV2;
-	  MathUtils::CrossProduct(V1xV2,V1,V2);
+	  MathUtils<double>::CrossProduct(V1xV2,V1,V2);
 
 	  PointType P2_P1xV2;
-	  MathUtils::CrossProduct(P2_P1xV2,P2_P1,V2);
+	  MathUtils<double>::CrossProduct(P2_P1xV2,P2_P1,V2);
 
 	  if( norm_2(V1xV2) != 0 )
 	    a = norm_2(P2_P1xV2)/norm_2(V1xV2);
@@ -285,7 +285,7 @@ namespace Kratos
 
 		Normal.clear();
 
-		MathUtils::CrossProduct(Normal, D1, D2);
+		MathUtils<double>::CrossProduct(Normal, D1, D2);
 
 		if(norm_2(Normal)!=0)
 		  Normal/=norm_2(Normal);

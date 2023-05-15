@@ -215,7 +215,7 @@ void SmallDisplacement::CalculateKinematicVariables(
     Vector strain_vector(mConstitutiveLawVector[0]->GetStrainSize());
     noalias(strain_vector) = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
     ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
-    rThisKinematicVariables.detF = MathUtils::Det(rThisKinematicVariables.F);
+    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
 
 /***********************************************************************************/

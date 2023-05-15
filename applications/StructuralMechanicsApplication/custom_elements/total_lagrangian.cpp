@@ -60,7 +60,7 @@ private:
         // Calculate mInvJ0 and mDetJ0.
         GeometryUtils::JacobianOnInitialConfiguration(
             mrGeom, mrGeom.IntegrationPoints(mThisIntegrationMethod)[IntegrationPoint], mJ);
-        MathUtils::InvertMatrix(mJ, mInvJ0, mDetJ0);
+        MathUtils<double>::InvertMatrix(mJ, mInvJ0, mDetJ0);
         // Calculate mJ.
         mrGeom.Jacobian(mJ, IntegrationPoint, mThisIntegrationMethod);
         // Update current integration point.
@@ -275,7 +275,7 @@ void TotalLagrangian::CalculateKinematicVariables(
                    rThisKinematicVariables.DN_DX);
     }
 
-    rThisKinematicVariables.detF = MathUtils::Det(rThisKinematicVariables.F);
+    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
 
 /***********************************************************************************/
@@ -551,7 +551,7 @@ void TotalLagrangian::CalculateSensitivityMatrix(
                 CalculateShapeSensitivity(deriv, DN_DX0, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
                 CalculateGreenLagrangeStrainSensitivity(F, F_deriv, strain_tensor_deriv);
                 noalias(strain_vector_deriv) =
-                    MathUtils::StrainTensorToVector(strain_tensor_deriv);
+                    MathUtils<double>::StrainTensorToVector(strain_tensor_deriv);
                 CalculateStress(strain_vector_deriv, g, stress_vector_deriv, rCurrentProcessInfo);
                 CalculateBSensitivity(DN_DX0, F, DN_DX0_deriv, F_deriv, B_deriv);
                 const double weight_deriv =

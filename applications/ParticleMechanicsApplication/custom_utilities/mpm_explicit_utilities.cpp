@@ -359,7 +359,7 @@ namespace Kratos
             Matrix InvJ;
             double detJ;
             rGeom.Jacobian(Jacobian, i);
-            MathUtils::InvertMatrix(Jacobian, InvJ, detJ);
+            MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
             rDN_DXVec[i] = prod(rGeom.ShapeFunctionLocalGradient(i), InvJ); // cartesian gradients
         }
         KRATOS_CATCH("")

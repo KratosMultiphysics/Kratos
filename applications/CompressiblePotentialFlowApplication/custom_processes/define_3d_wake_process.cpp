@@ -83,7 +83,7 @@ void Define3DWakeProcess::ExecuteInitialize()
     InitializeWakeSubModelpart();
 
     // Compute span direction as the cross product: mWakeNormal x mWakeDirection
-    MathUtils::CrossProduct(mSpanDirection, mWakeNormal, mWakeDirection);
+    MathUtils<double>::CrossProduct(mSpanDirection, mWakeNormal, mWakeDirection);
 
     MarkTrailingEdgeNodesAndFindWingtipNodes();
 
@@ -263,7 +263,7 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
 
             const auto& local_span_direction = coordinates2 - coordinates1;
             array_1d<double, 3> local_wake_normal = ZeroVector(3);
-            MathUtils::CrossProduct(local_wake_normal, mWakeDirection, local_span_direction);
+            MathUtils<double>::CrossProduct(local_wake_normal, mWakeDirection, local_span_direction);
 
             const double projection = inner_prod(local_wake_normal, mWakeNormal);
 
@@ -278,7 +278,7 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
 
         for (auto& r_node: mrTrailingEdgeModelPart.Nodes()){
             auto& local_wake_normal = r_node.GetValue(WAKE_NORMAL);
-            const double norm = MathUtils::Norm3(local_wake_normal);
+            const double norm = MathUtils<double>::Norm3(local_wake_normal);
             local_wake_normal /= norm;
         }
     }
@@ -400,7 +400,7 @@ double Define3DWakeProcess::ComputeFaceNormalProjectionToWakeNormal(
     const auto& side1 = rCoordinates2 - rCoordinates1;
     const auto& side2 = rCoordinates3 - rCoordinates1;
     array_1d<double, 3> face_normal = ZeroVector(3);
-    MathUtils::CrossProduct(face_normal, side1, side2);
+    MathUtils<double>::CrossProduct(face_normal, side1, side2);
     return inner_prod(face_normal, mWakeNormal);
 }
 

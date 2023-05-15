@@ -58,7 +58,7 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
             // Fill the matrixes with the corresponding information from the intersection and normal
             Matrix mat_normal_trans = trans(mat_normal);
             ata += prod(mat_normal,mat_normal_trans);
-            const double aux = MathUtils::Dot(normal,intersection);
+            const double aux = MathUtils<double>::Dot(normal,intersection);
             Matrix mat_aux(1,1,aux);
             atb += prod(mat_normal,mat_aux);
         }
@@ -66,7 +66,7 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
 
     // Find the eigenvalues and eigenvectors to ata
     Matrix mat_eigenvectors, mat_eigenvalues;
-    const bool converged = MathUtils::GaussSeidelEigenSystem(ata, mat_eigenvectors, mat_eigenvalues);
+    const bool converged = MathUtils<double>::GaussSeidelEigenSystem(ata, mat_eigenvectors, mat_eigenvalues);
 
     KRATOS_WARNING_IF("QuadraticErrorFunctionPoint", !converged) << "Method for matrix eigenvalues didn't converge" << std::endl;
 
@@ -80,7 +80,7 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
     }
 
     Matrix ata_inverse;  
-    MathUtils::BDBtProductOperation(ata_inverse, d, mat_eigenvectors);
+    MathUtils<double>::BDBtProductOperation(ata_inverse, d, mat_eigenvectors);
     
     Matrix ata_c = prod(ata,mat_center);
     Matrix solution = prod(ata_inverse, atb - ata_c) + mat_center;        
@@ -126,7 +126,7 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
             // Fill the matrixes with the corresponding information from the intersection and normal
             Matrix mat_normal_trans = trans(mat_normal);
             ata += prod(mat_normal,mat_normal_trans);
-            double aux = MathUtils::Dot(normal,intersection);
+            double aux = MathUtils<double>::Dot(normal,intersection);
             Matrix mat_aux(1,1,aux);
             atb += prod(mat_normal,mat_aux);
         }
@@ -134,7 +134,7 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
 
     //Find the eigenvalues and eigenvectors to ata
     Matrix mat_eigenvectors, mat_eigenvalues;
-    const bool converged = MathUtils::GaussSeidelEigenSystem(ata, mat_eigenvectors, mat_eigenvalues);
+    const bool converged = MathUtils<double>::GaussSeidelEigenSystem(ata, mat_eigenvectors, mat_eigenvalues);
 
     KRATOS_WARNING_IF("QuadraticErrorFunctionPoint", !converged) << "Method for matrix eigenvalues didn't converge" << std::endl;
 
@@ -148,7 +148,7 @@ array_1d<double,3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
     }
 
     Matrix ata_inverse;  
-    MathUtils::BDBtProductOperation(ata_inverse, d, mat_eigenvectors);
+    MathUtils<double>::BDBtProductOperation(ata_inverse, d, mat_eigenvectors);
     
     Matrix ata_c = prod(ata,mat_center);
     Matrix solution = prod(ata_inverse, atb - ata_c) + mat_center;        
@@ -165,7 +165,7 @@ array_1d<double,3> QuadraticErrorFunction::CalculateNormal(const GeometryType& r
     const array_1d<double,3> u = r_nodes[1] - r_nodes[0];
     const array_1d<double,3> v = r_nodes[2] - r_nodes[0];
     array_1d<double,3> normal;
-    MathUtils::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(normal,u,v);
+    MathUtils<double>::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(normal,u,v);
     return normal;
 }
 

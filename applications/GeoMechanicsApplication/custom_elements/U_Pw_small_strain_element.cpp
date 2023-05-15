@@ -474,7 +474,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-        noalias(NodalStressTensor[i]) = MathUtils::StressVectorToTensor(NodalStressVector[i]);
+        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
@@ -927,7 +927,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
             rOutput[GPoint].resize(StressTensorSize, StressTensorSize, false );
-            rOutput[GPoint] = MathUtils::StressVectorToTensor(mStressVector[GPoint]);
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
         }
     } else if (rVariable == TOTAL_STRESS_TENSOR) {
         std::vector<Vector> StressVector;
@@ -939,7 +939,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             if (rOutput[GPoint].size2() != TDim)
                 rOutput[GPoint].resize(TDim, TDim, false);
 
-            rOutput[GPoint] = MathUtils::StressVectorToTensor(StressVector[GPoint]);
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector[GPoint]);
         }
 
     } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
@@ -952,7 +952,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             if ( rOutput[GPoint].size2() != TDim )
                 rOutput[GPoint].resize( TDim, TDim, false );
 
-            rOutput[GPoint] = MathUtils::StrainVectorToTensor(StrainVector[GPoint]);
+            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector[GPoint]);
         }
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
         std::vector<Vector> StrainVector;
@@ -964,7 +964,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             if ( rOutput[GPoint].size2() != TDim )
                 rOutput[GPoint].resize( TDim, TDim, false );
 
-            rOutput[GPoint] = MathUtils::StrainVectorToTensor(StrainVector[GPoint]);
+            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector[GPoint]);
         }
     } else if (rVariable == PERMEABILITY_MATRIX) {
 
@@ -1065,14 +1065,14 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    Matrix StressTensor = MathUtils::StressVectorToTensor( mStressVector[GPoint] );
+    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( mStressVector[GPoint] );
     Matrix ReducedKgMatrix = prod( rVariables.GradNpT,
                                    rVariables.IntegrationCoefficient *
                                    Matrix( prod( StressTensor, trans(rVariables.GradNpT) ) ) ); //to be optimized
 
     Matrix UMatrix(TNumNodes*TDim, TNumNodes*TDim);
     noalias(UMatrix) = ZeroMatrix(TNumNodes*TDim, TNumNodes*TDim);
-    MathUtils::ExpandAndAddReducedMatrix( UMatrix, ReducedKgMatrix, TDim );
+    MathUtils<double>::ExpandAndAddReducedMatrix( UMatrix, ReducedKgMatrix, TDim );
 
     //Distribute stiffness block matrix into the elemental matrix
     GeoElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix, UMatrix, TNumNodes, TDim);
@@ -1922,13 +1922,13 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     if constexpr (TDim==2) {
         Vector StrainVector;
-        StrainVector = MathUtils::StrainTensorToVector(ETensor);
+        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
     } else {
-        noalias(rVariables.StrainVector) = MathUtils::StrainTensorToVector(ETensor);
+        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
     }
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateCauchyGreenStrain()") << std::endl;
@@ -1951,7 +1951,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     Matrix ETensor;
     double det;
-    MathUtils::InvertMatrix(LeftCauchyGreen, ETensor, det );
+    MathUtils<double>::InvertMatrix(LeftCauchyGreen, ETensor, det );
 
     for (unsigned int i=0; i<TDim; ++i)
         ETensor(i,i) = 1.0 - ETensor(i,i);
@@ -1960,13 +1960,13 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     if constexpr (TDim==2) {
         Vector StrainVector;
-        StrainVector = MathUtils::StrainTensorToVector(ETensor);
+        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
     } else {
-        noalias(rVariables.StrainVector) = MathUtils::StrainTensorToVector(ETensor);
+        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
     }
 
    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateCauchyAlmansiStrain()") << std::endl;
@@ -1990,7 +1990,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     Matrix EigenVectorsMatrix = ZeroMatrix(TDim, TDim);
 
     // Decompose matrix
-    MathUtils::GaussSeidelEigenSystem(CMatrix, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
+    MathUtils<double>::GaussSeidelEigenSystem(CMatrix, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
 
     // Calculate the eigenvalues of the E matrix
     for (IndexType i = 0; i < TDim; ++i) {
@@ -1999,18 +1999,18 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     // Calculate E matrix
     Matrix ETensor = ZeroMatrix(TDim, TDim);
-    MathUtils::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
+    MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
 
     // Hencky Strain Calculation
     if constexpr (TDim==2) {
         Vector StrainVector;
-        StrainVector = MathUtils::StrainTensorToVector(ETensor);
+        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
         rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
     } else {
-        noalias(rVariables.StrainVector) = MathUtils::StrainTensorToVector(ETensor);
+        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
     }
 
     KRATOS_CATCH( "" )
@@ -2053,7 +2053,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     // Deformation gradient
     noalias(rVariables.F) = prod( J, InvJ0 );
-    rVariables.detF = MathUtils::Det(rVariables.F);
+    rVariables.detF = MathUtils<double>::Det(rVariables.F);
 
     // KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateDeformationGradient()") << std::endl;
     KRATOS_CATCH( "" )

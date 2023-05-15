@@ -301,7 +301,7 @@ void HyperElastic3DLaw::UpdateInternalVariables(Parameters& rValues)
 
     Matrix DeformationGradientF0          = DeformationGradientF;
     DeformationGradientF0 = Transform2DTo3D(DeformationGradientF0);
-    MathUtils::InvertMatrix( DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
+    MathUtils<double>::InvertMatrix( DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
     mDeterminantF0 = DeterminantF; //special treatment of the determinant
 }
 
@@ -332,7 +332,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen = ZeroMatrix( 3, 3 );
     double det_b=0;
-    MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
     rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
@@ -461,7 +461,7 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
         StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.CauchyGreenMatrix - rElasticVariables.Identity );
     }
 
-    rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+    rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
 
 }
 
@@ -479,7 +479,7 @@ void HyperElastic3DLaw::CalculateVolumetricStress(const MaterialResponseVariable
     Pressure = this->CalculateVolumetricPressure (rElasticVariables, Pressure);
 
     VolStressMatrix = rElasticVariables.DeterminantF * Pressure * rElasticVariables.CauchyGreenMatrix;
-    rVolStressVector = MathUtils::StressTensorToVector(VolStressMatrix,rVolStressVector.size());
+    rVolStressVector = MathUtils<double>::StressTensorToVector(VolStressMatrix,rVolStressVector.size());
 
 }
 
@@ -510,7 +510,7 @@ void HyperElastic3DLaw::CalculateIsochoricStress( const MaterialResponseVariable
         IsoStressMatrix *= rElasticVariables.LameMu*pow(rElasticVariables.DeterminantF,(-2.0/3.0));
     }
 
-    rIsoStressVector = MathUtils::StressTensorToVector(IsoStressMatrix,rIsoStressVector.size());
+    rIsoStressVector = MathUtils<double>::StressTensorToVector(IsoStressMatrix,rIsoStressVector.size());
 }
 
 

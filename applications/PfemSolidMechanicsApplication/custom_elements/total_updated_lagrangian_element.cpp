@@ -167,7 +167,7 @@ void TotalUpdatedLagrangianElement::CalculateKinematics(ElementDataType& rVariab
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
@@ -178,7 +178,7 @@ void TotalUpdatedLagrangianElement::CalculateKinematics(ElementDataType& rVariab
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
     //Determinant of the deformation gradient F
-    rVariables.detF  = MathUtils::Det(rVariables.F);
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //
     //

@@ -184,7 +184,7 @@ inline double LogFittingSlope(
     const array_1d<double, 2> AtY = prod(trans(A), y);
 
     Vector p;
-    MathUtils::Solve(AtA, p, AtY);
+    MathUtils<double>::Solve(AtA, p, AtY);
 
     return p[1]; // slope
 }

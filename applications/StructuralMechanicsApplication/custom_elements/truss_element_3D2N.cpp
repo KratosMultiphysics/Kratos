@@ -628,7 +628,7 @@ void TrussElement3D2N::CreateTransformationMatrix(
     }
     // local x-axis (e1_local) is the beam axis  (in GID is e3_local)
     double VectorNorm;
-    VectorNorm = MathUtils::Norm(direction_vector_x);
+    VectorNorm = MathUtils<double>::Norm(direction_vector_x);
     if (VectorNorm > numeric_limit) {
         direction_vector_x /= VectorNorm;
     }
@@ -648,9 +648,9 @@ void TrussElement3D2N::CreateTransformationMatrix(
     }
 
     else {
-        MathUtils::UnitCrossProduct(direction_vector_y, direction_vector_x,
+        MathUtils<double>::UnitCrossProduct(direction_vector_y, direction_vector_x,
                                             global_z_vector);
-        MathUtils::UnitCrossProduct(direction_vector_z, direction_vector_y,
+        MathUtils<double>::UnitCrossProduct(direction_vector_z, direction_vector_y,
                                             direction_vector_x);
     }
 

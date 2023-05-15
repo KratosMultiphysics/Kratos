@@ -157,7 +157,7 @@ void RigidEdge2D::CalculateNormal(array_1d<double, 3>& rnormal){
         rnormal[1] = delta_x;
         rnormal[2] = 0.0;
 
-        rnormal /= MathUtils::Norm3(rnormal);
+        rnormal /= MathUtils<double>::Norm3(rnormal);
     }
 }
 

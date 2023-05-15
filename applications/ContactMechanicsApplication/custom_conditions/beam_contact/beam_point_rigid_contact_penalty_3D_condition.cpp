@@ -428,7 +428,7 @@ namespace Kratos
        double SectionMeanRadius = GetProperties()[CROSS_SECTION_AREA];
        PointType RadiusVector  = SectionMeanRadius * rVariables.Surface.Normal;
        PointType ContactTorque;
-       MathUtils::CrossProduct( ContactTorque, rVariables.Surface.Tangent, RadiusVector );
+       MathUtils<double>::CrossProduct( ContactTorque, rVariables.Surface.Tangent, RadiusVector );
        ContactTorque *= TangentForceModulus;
 
        //std::cout<<" [ContactTorque]: "<<ContactTorque<<" [TangentForceModulus]: "<<TangentForceModulus<<std::endl;
@@ -488,7 +488,7 @@ namespace Kratos
 	 }
 
        array_1d<double, 3 > DeltaRotationDisplacement;
-       MathUtils::CrossProduct( DeltaRotationDisplacement, DeltaRotation, RadiusVector );
+       MathUtils<double>::CrossProduct( DeltaRotationDisplacement, DeltaRotation, RadiusVector );
 
        // bool Regularization = false;
 
@@ -530,7 +530,7 @@ namespace Kratos
 	   TotalTangentRelativeMovement[i] = DeltaDisplacement[i] + DeltaRotationDisplacement[i] - WallDisplacement[i];
 	 }
 
-       rTangentRelativeMovement = MathUtils::Norm3(TotalTangentRelativeMovement);
+       rTangentRelativeMovement = MathUtils<double>::Norm3(TotalTangentRelativeMovement);
 
        if( rTangentRelativeMovement !=0 )
 	 rVariables.Surface.Tangent = TotalTangentRelativeMovement/rTangentRelativeMovement;

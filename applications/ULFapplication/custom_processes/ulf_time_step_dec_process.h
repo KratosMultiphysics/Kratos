@@ -202,7 +202,7 @@ public:
 
             noalias(J) = I + deltatime*Dv_dx +0.5*deltatime*deltatime*Da_dx;
 
-            detJ = MathUtils::Det(J);
+            detJ = MathUtils<double>::Det(J);
 //			std::cout<<"DETJ is "<<detJ<<std::endl;
 
             if (detJ<=0)
@@ -211,13 +211,13 @@ public:
                 deltatime_new=deltatime/(1-detJ); //x=-b/k
                 deltatime=deltatime_new;
                 noalias(J) = I + deltatime*Dv_dx+0.5*deltatime*deltatime*Da_dx;
-                detJ = MathUtils::Det(J);
+                detJ = MathUtils<double>::Det(J);
                 if (detJ<=0)
                 {
                     deltatime_new=deltatime/(1-detJ); //x=-b/k
                     deltatime=deltatime_new;
                     noalias(J) = I + deltatime*Dv_dx+0.5*deltatime*deltatime*Da_dx;
-                    detJ = MathUtils::Det(J);
+                    detJ = MathUtils<double>::Det(J);
 
 
 

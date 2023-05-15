@@ -436,7 +436,7 @@ namespace Kratos
             for (unsigned int i = 0; i < 3; i++)
                StressVector(i) += ( NodalPressure - ElementalPressure);
 
-            rOutput[PointNumber] = MathUtils::StressVectorToTensor(StressVector);
+            rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(StressVector);
          }
 
       }
@@ -913,7 +913,7 @@ namespace Kratos
 
 
       // 3. Some Geometric-like terms ( obs, copied from the other side);
-      Matrix StressTensor = MathUtils::StressVectorToTensor( rVariables.StressVector);
+      Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector);
       Matrix Identity = ZeroMatrix(3,3);
       for (unsigned int i = 0; i < dimension; i++)
          Identity(i,i) = 1.0;
@@ -1122,7 +1122,7 @@ namespace Kratos
 
       ///// MALAMENT. ES LA TENSIÓ GUAY; NO UNA QUALSEVOL. SAPS??
       // MIRA AL PAPER.
-      Matrix StressTensor = MathUtils::StressVectorToTensor( rVariables.StressVector);
+      Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector);
 
       for (unsigned int i = 0; i < 3; i++)
          StressTensor(i,i) += (  rElementVariables.NodalMeanStress - rElementVariables.ElementalMeanStress);

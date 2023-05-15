@@ -173,7 +173,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
             for(unsigned int i = 0; i < 3; i++) //NumNodes
             {
                 noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
-                noalias(NodalStressTensor[i]) = MathUtils::StressVectorToTensor(NodalStressVector[i]);
+                noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
                 rGeom[i].SetLock();
                 noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
@@ -203,7 +203,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
             for(unsigned int i = 0; i < 4; i++) //TNumNodes
             {
                 noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-                noalias(NodalStressTensor[i]) = MathUtils::StressVectorToTensor(NodalStressVector[i]);
+                noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
                 rGeom[i].SetLock();
                 noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
@@ -220,7 +220,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
             for(unsigned int i = 0; i < 4; i++) //NumNodes
             {
                 noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
-                noalias(NodalStressTensor[i]) = MathUtils::StressVectorToTensor(NodalStressVector[i]);
+                noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
                 rGeom[i].SetLock();
                 noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
@@ -240,7 +240,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
             for(unsigned int i = 0; i < 8; i++) //TNumNodes
             {
                 noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-                noalias(NodalStressTensor[i]) = MathUtils::StressVectorToTensor(NodalStressVector[i]);
+                noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
                 rGeom[i].SetLock();
                 noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
@@ -400,7 +400,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
             if ( rOutput[PointNumber].size2() != dimension )
                 rOutput[PointNumber].resize( dimension, dimension, false );
 
-            rOutput[PointNumber] = MathUtils::StressVectorToTensor(StressVector[PointNumber]);
+            rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
 	    }
     }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == THERMAL_STRAIN_TENSOR)
@@ -418,7 +418,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
             if ( rOutput[PointNumber].size2() != dimension )
                 rOutput[PointNumber].resize( dimension, dimension, false );
 
-            rOutput[PointNumber] = MathUtils::StrainVectorToTensor(StrainVector[PointNumber]);
+            rOutput[PointNumber] = MathUtils<double>::StrainVectorToTensor(StrainVector[PointNumber]);
         }
     }
     else

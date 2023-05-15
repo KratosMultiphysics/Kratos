@@ -115,18 +115,18 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     typedef BoundedMatrix<double, TDim, TDim> MatrixType;
 
     // We first transform the Hessian into a matrix
-    const MatrixType hessian_matrix = MathUtils::VectorToSymmetricTensor<Vector, MatrixType>(rHessian);
+    const MatrixType hessian_matrix = MathUtils<double>::VectorToSymmetricTensor<Vector, MatrixType>(rHessian);
 
     // Calculating Metric parameters (using equation from remark 4.2.2 on Metric-Based Anisotropic Mesh Adaptation)
     double interpolation_error = rAuxiliarHessianComputationVariables.mInterpolationError;
     if (rAuxiliarHessianComputationVariables.mEstimateInterpolationError) {
-        interpolation_error = rAuxiliarHessianComputationVariables.mMeshDependentConstant * std::max(rAuxiliarHessianComputationVariables.mNodalH, rAuxiliarHessianComputationVariables.mNodalH * norm_frobenius(hessian_matrix)); // NOTE: To compute it properly instead of iterating over the nodes you should iterate over the elements and instead of ElementMaxSize you should iterate over the edges, this is equivalent when using nodes and computing NodalH previously
+        interpolation_error = rAuxiliarHessianComputationVariables.mMeshDependentConstant * MathUtils<double>::Max(rAuxiliarHessianComputationVariables.mNodalH, rAuxiliarHessianComputationVariables.mNodalH * norm_frobenius(hessian_matrix)); // NOTE: To compute it properly instead of iterating over the nodes you should iterate over the elements and instead of ElementMaxSize you should iterate over the edges, this is equivalent when using nodes and computing NodalH previously
     }
 
     // Declaring the eigen system
     MatrixType eigen_vector_matrix, eigen_values_matrix;
 
-    MathUtils::GaussSeidelEigenSystem(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
+    MathUtils<double>::GaussSeidelEigenSystem(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
 
     // We check is the interpolation error is near zero. If it is we will correct it
     if (interpolation_error < std::numeric_limits<double>::epsilon()) { // In practice, the Hessian of function u can be 0, e.g. if u is linear, then |Hu| is not definite. In this particular case, the interpolation error is 0 and we want to prescribe a mesh size which is infinite. To solve this issue, this infinite size prescription is truncated by imposing maximal size hmax . This is equivalent to truncate tiny eigenvalues by lambda  = 1/hmax^2 . See [1] pag. 34
@@ -142,7 +142,7 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
 
         // Recalculate the Metric eigen values
         for (IndexType i = 0; i < TDim; ++i) {
-            eigen_values_matrix(i, i) = std::min(std::max(c_epsilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
+            eigen_values_matrix(i, i) = MathUtils<double>::Min(MathUtils<double>::Max(c_epsilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
         }
     }
 
@@ -152,20 +152,20 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
             double eigen_max = eigen_values_matrix(0, 0);
             double eigen_min = eigen_values_matrix(0, 0);
             for (IndexType i = 1; i < TDim; ++i) {
-                eigen_max = std::max(eigen_max, eigen_values_matrix(i, i));
-                eigen_min = std::min(eigen_min, eigen_values_matrix(i, i));
+                eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
+                eigen_min = MathUtils<double>::Min(eigen_min, eigen_values_matrix(i, i));
             }
 
             const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - rAuxiliarHessianComputationVariables.mAnisotropicRatio);
             const double relative_eigen_radius = std::abs(eigen_max - eigen_radius);
 
             for (IndexType i = 0; i < TDim; ++i)
-                eigen_values_matrix(i, i) = std::max(std::min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
+                eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
         }
     } else { // NOTE: For isotropic we should consider the maximum of the eigenvalues
         double eigen_max = eigen_values_matrix(0, 0);
         for (IndexType i = 1; i < TDim; ++i)
-            eigen_max = std::max(eigen_max, eigen_values_matrix(i, i));
+            eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
         for (IndexType i = 0; i < TDim; ++i)
             eigen_values_matrix(i, i) = eigen_max;
         eigen_vector_matrix = IdentityMatrix(TDim, TDim);
@@ -173,10 +173,10 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
 
     // We compute the product
     MatrixType metric_matrix;
-    MathUtils::BDBtProductOperation(metric_matrix, eigen_values_matrix, eigen_vector_matrix);
+    MathUtils<double>::BDBtProductOperation(metric_matrix, eigen_values_matrix, eigen_vector_matrix);
 
     // Finally we transform to a vector
-    const TensorArrayType metric = MathUtils::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
+    const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
 
     return metric;
 }
@@ -261,7 +261,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 
                 // Getting the jacobians and local gradients
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], fe.J0);
-                MathUtils::GeneralizedInvertMatrix(fe.J0, fe.InvJ0, fe.detJ0);
+                MathUtils<double>::GeneralizedInvertMatrix(fe.J0, fe.InvJ0, fe.detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
                 GeometryUtils::ShapeFunctionsGradients(rDN_De, fe.InvJ0, fe.DN_DX);
 
@@ -275,7 +275,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 }
 
                 const BoundedMatrix<double,2, 2>& hessian = prod(trans(fe.DN_DX), values);
-                const array_1d<double, 3>& hessian_cond = MathUtils::StressTensorToVector<BoundedMatrix<double, 2, 2>, array_1d<double, 3>>(hessian);
+                const array_1d<double, 3>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 2, 2>, array_1d<double, 3>>(hessian);
 
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
@@ -291,7 +291,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 
                 // Getting the jacobians and local gradients
                 GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], fe.J0);
-                MathUtils::GeneralizedInvertMatrix(fe.J0, fe.InvJ0, fe.detJ0);
+                MathUtils<double>::GeneralizedInvertMatrix(fe.J0, fe.InvJ0, fe.detJ0);
                 const Matrix& rDN_De = rDN_DeContainer[point_number];
                 GeometryUtils::ShapeFunctionsGradients(rDN_De, fe.InvJ0, fe.DN_DX);
 
@@ -305,7 +305,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 }
 
                 const BoundedMatrix<double, 3, 3> hessian = prod(trans(fe.DN_DX), values);
-                const array_1d<double, 6>& hessian_cond = MathUtils::StressTensorToVector<BoundedMatrix<double, 3, 3>, array_1d<double, 6>>(hessian);
+                const array_1d<double, 6>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 3, 3>, array_1d<double, 6>>(hessian);
 
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);

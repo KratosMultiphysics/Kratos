@@ -223,7 +223,7 @@ namespace Kratos
             TangentMatrix(2,0) =  2.0* AlphaShear * ReferencePressure*std::exp(-Guess(0) / SwellingSlope)*(-1.0/SwellingSlope)*Guess(2);
             TangentMatrix(2,1) = 0.0;
             TangentMatrix(2,2) = 2.0*ShearModulus;
-            MathUtils::InvertMatrix( TangentMatrix, InverseTangent, detI);
+            MathUtils<double>::InvertMatrix( TangentMatrix, InverseTangent, detI);
 
             dGuess = prod( InverseTangent, Residual);
 

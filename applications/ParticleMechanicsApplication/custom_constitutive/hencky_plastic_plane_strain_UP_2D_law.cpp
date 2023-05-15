@@ -97,7 +97,7 @@ void HenckyElasticPlasticPlaneStrainUP2DLaw::CalculateAlmansiStrain( const Matri
     // E = 0.5*(1-invbT*invb)
     Matrix InverseLeftCauchyGreen = ZeroMatrix( rLeftCauchyGreen.size1(), rLeftCauchyGreen.size2() );
     double det_b=0;
-    MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     rStrainVector.clear();
     rStrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
@@ -109,7 +109,7 @@ void HenckyElasticPlasticPlaneStrainUP2DLaw::CalculateAlmansiStrain( const Matri
 
 Vector HenckyElasticPlasticPlaneStrainUP2DLaw::SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix)
 {
-    rStressVector = MathUtils::StressTensorToVector( rStressMatrix, rStressVector.size() );
+    rStressVector = MathUtils<double>::StressTensorToVector( rStressMatrix, rStressVector.size() );
     return rStressVector;
 }
 

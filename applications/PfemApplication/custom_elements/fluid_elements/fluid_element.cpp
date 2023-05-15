@@ -2180,7 +2180,7 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
             if ( rOutput[PointNumber].size2() != dimension )
                 rOutput[PointNumber].resize( dimension, dimension, false );
 
-            rOutput[PointNumber] = MathUtils::StressVectorToTensor(StressVector[PointNumber]);
+            rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
 
         }
     }
@@ -2200,7 +2200,7 @@ void FluidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
             if ( rOutput[PointNumber].size2() != dimension )
                 rOutput[PointNumber].resize( dimension, dimension, false );
 
-            rOutput[PointNumber] = MathUtils::StrainVectorToTensor(StrainVector[PointNumber]);
+            rOutput[PointNumber] = MathUtils<double>::StrainVectorToTensor(StrainVector[PointNumber]);
         }
     }
     else if ( rVariable == CONSTITUTIVE_MATRIX )

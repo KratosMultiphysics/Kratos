@@ -83,7 +83,7 @@ namespace Kratos
       double smoothing = 10.0; // to smooth the sharp corners
 
 
-      Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector); 
+      Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector); 
 
       TrescaStressInvariants StressInvariants;
       this->CalculateStressInvariants( rStressVector, StressInvariants);

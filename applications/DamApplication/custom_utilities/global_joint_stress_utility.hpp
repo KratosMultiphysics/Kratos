@@ -174,14 +174,14 @@ class GlobalJointStressUtility
         array_1d<double, 3> Vy;
         noalias(Vy) = point_mid2 - point_mid0;
         array_1d<double, 3> Vz;
-        MathUtils::CrossProduct(Vz, Vx, Vy);
+        MathUtils<double>::CrossProduct(Vz, Vx, Vy);
         double inv_norm_z = 1.0 / norm_2(Vz);
         Vz[0] *= inv_norm_z;
         Vz[1] *= inv_norm_z;
         Vz[2] *= inv_norm_z;
 
         //Unitary vector in local y direction
-        MathUtils::CrossProduct(Vy, Vz, Vx);
+        MathUtils<double>::CrossProduct(Vy, Vz, Vx);
 
         //Rotation Matrix
         rRotationMatrix(0, 0) = Vx[0];
@@ -213,7 +213,7 @@ class GlobalJointStressUtility
         // Computing distances and area
         noalias(Vx) = point_mid1 - point_mid0;
         noalias(Vy) = point_mid2 - point_mid0;
-        MathUtils::CrossProduct(Vz, Vx, Vy);
+        MathUtils<double>::CrossProduct(Vz, Vx, Vy);
         rArea = sqrt(Vz[0] * Vz[0] + Vz[1] * Vz[1] + Vz[2] * Vz[2]) / 2.0;
 
         KRATOS_CATCH("")

@@ -110,7 +110,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
     {
         //calculating inverse jacobian and jacobian determinant
-        MathUtils::InvertMatrix(J0[i_point],InvJ0,DetJ0);
+        MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
 
         //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[i_point],InvJ0);

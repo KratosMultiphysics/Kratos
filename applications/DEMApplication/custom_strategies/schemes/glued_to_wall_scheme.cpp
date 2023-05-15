@@ -102,7 +102,7 @@ namespace Kratos {
             BoundedVector<double,3> new_rhs = prod(trans_matrix_a, vector_b);
             double det = 0.0;
             Matrix inverse_new_lhs(3,3);
-            MathUtils::InvertMatrix3(new_lhs, inverse_new_lhs, det);
+            MathUtils<double>::InvertMatrix3(new_lhs, inverse_new_lhs, det);
             noalias(angular_velocity) = prod(inverse_new_lhs, new_rhs);
         } else if(num_nodes == 2) {
             angular_velocity[0] = 0.0;
@@ -115,7 +115,7 @@ namespace Kratos {
 
         //Once the angular velocity is found, we use it to calculate the total velocity of the sphere:
         array_1d<double, 3> linear_vel_of_sphere_due_to_rotation;
-        MathUtils::CrossProduct(linear_vel_of_sphere_due_to_rotation, angular_velocity, mCurrentNormalToWall);
+        MathUtils<double>::CrossProduct(linear_vel_of_sphere_due_to_rotation, angular_velocity, mCurrentNormalToWall);
         noalias(i.FastGetSolutionStepValue(VELOCITY)) = velocity_of_inner_point + linear_vel_of_sphere_due_to_rotation;
 
         #ifdef KRATOS_DEBUG
@@ -127,9 +127,9 @@ namespace Kratos {
         if (i.Is(DEMFlags::BELONGS_TO_A_CLUSTER)) return;
         //NOTE: ANGULAR_VELOCITY was calculated in the 'Move' function.
         array_1d<double, 3> rotation_vector;
-        MathUtils::CrossProduct(rotation_vector, mInitialNormalToWall, mCurrentNormalToWall);
-        const double norm = MathUtils::Norm3(rotation_vector);
-        const double angle_between_normals = asin( norm / ( MathUtils::Norm3(mInitialNormalToWall) * MathUtils::Norm3(mCurrentNormalToWall) ) );
+        MathUtils<double>::CrossProduct(rotation_vector, mInitialNormalToWall, mCurrentNormalToWall);
+        const double norm = MathUtils<double>::Norm3(rotation_vector);
+        const double angle_between_normals = asin( norm / ( MathUtils<double>::Norm3(mInitialNormalToWall) * MathUtils<double>::Norm3(mCurrentNormalToWall) ) );
         DEM_MULTIPLY_BY_SCALAR_3(rotation_vector, angle_between_normals);
         array_1d<double, 3>& particle_rotation_angle =  i.FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
         noalias(i.FastGetSolutionStepValue(DELTA_ROTATION)) = rotation_vector - particle_rotation_angle;

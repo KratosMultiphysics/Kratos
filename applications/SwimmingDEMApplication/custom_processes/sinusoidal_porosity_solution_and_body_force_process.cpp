@@ -273,8 +273,8 @@ void SinusoidalPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosi
             permeability(d,d) = 1.0e+30;
         }
 
-        double det_permeability = MathUtils::Det(permeability);
-        MathUtils::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
+        double det_permeability = MathUtils<double>::Det(permeability);
+        MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
         Matrix sigma = nu * rho * inv_permeability;
 
@@ -401,8 +401,8 @@ void SinusoidalPorositySolutionAndBodyForceProcess::SetBodyForceAndPorosityField
             permeability(d,d) = 1.0e+30;
         }
 
-        double det_permeability = MathUtils::Det(permeability);
-        MathUtils::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
+        double det_permeability = MathUtils<double>::Det(permeability);
+        MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
         Matrix sigma = nu * rho * inv_permeability;
 

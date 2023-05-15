@@ -261,8 +261,8 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
         this->CalculateLHSMatrix(lhs_matrix, principal_stress_vector, unknown_vector, k_p, rProp);
 
         // Compute Inverse LHS Matrix
-        double det_lhs = MathUtils::Det(lhs_matrix);
-        MathUtils::InvertMatrix( lhs_matrix, inv_lhs_matrix, det_lhs, -1.0);
+        double det_lhs = MathUtils<double>::Det(lhs_matrix);
+        MathUtils<double>::InvertMatrix( lhs_matrix, inv_lhs_matrix, det_lhs, -1.0);
 
         // Update delta_unknown_vector
         delta_unknown_vector = prod(inv_lhs_matrix, rhs_vector);
@@ -390,7 +390,7 @@ void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const BoundedVector<d
     b(0,1) = delta_phi * matrix_G(0,1);
     b(1,0) = delta_phi * ( matrix_G(1,0) + k_p * mStateFunctionSecondDerivative[4] );
     b(1,1) = 1.0 + delta_phi * matrix_G(1,1);
-    double det_b = MathUtils::Det(b);
+    double det_b = MathUtils<double>::Det(b);
 
     // Construct Vector c
     c[0] = 1.0 - delta_phi * k_p_trial * mStateFunctionSecondDerivative[5];
@@ -533,7 +533,7 @@ void BorjaCamClayPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rE
     {
         for (unsigned int j = 0; j<3; ++j)
             aux_N[j] = rEigenVectors(j,i);
-        aux_M = MathUtils::TensorProduct3(aux_N, aux_N);
+        aux_M = MathUtils<double>::TensorProduct3(aux_N, aux_N);
         rStressMatrix += rPrincipalStress[i]*aux_M;
     }
 }

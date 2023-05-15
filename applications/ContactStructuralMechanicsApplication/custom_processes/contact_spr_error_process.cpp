@@ -258,7 +258,7 @@ void ContactSPRErrorProcess<TDim>::CalculatePatch(
 
         Vector coeff(SigmaSize * (TDim+1));
         const Vector& r_b_vector = column(b, 0);
-        MathUtils::Solve(A, coeff, r_b_vector);
+        MathUtils<double>::Solve(A, coeff, r_b_vector);
 
         for (IndexType j = 0; j < SigmaSize;++j){
             p_k(j,j*(TDim + 1) + 1) = r_coordinates[0] - r_coordinates_patch_node[0];

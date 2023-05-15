@@ -43,8 +43,8 @@ void GeometricalSensitivityUtility::Initialize()
         << ") != shape function local-coordinates size(" << mrDN_De.size2()
         << ")." << std::endl;
 
-    mCofactorJ = MathUtils::CofactorMatrix(mrJ);
-    mDetJ = MathUtils::Det(mrJ);
+    mCofactorJ = MathUtils<double>::CofactorMatrix(mrJ);
+    mDetJ = MathUtils<double>::Det(mrJ);
 
     KRATOS_CATCH("");
 }
@@ -109,7 +109,7 @@ GeometricalSensitivityUtility::MatrixType GeometricalSensitivityUtility::Calcula
                         ia2(j_sub++) = k;
 
                 const MatrixType& sub_jacobian = SubMatrixType(mrJ, ia1, ia2);
-                const MatrixType& cofactor_sub_jacobian = MathUtils::CofactorMatrix(sub_jacobian);
+                const MatrixType& cofactor_sub_jacobian = MathUtils<double>::CofactorMatrix(sub_jacobian);
 
                 // Construct the corresponding shape function local gradients
                 // submatrix.

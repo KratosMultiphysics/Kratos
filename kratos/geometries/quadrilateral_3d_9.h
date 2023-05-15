@@ -596,12 +596,12 @@ public:
 
             noalias( rResult ) += DeltaXi;
 
-            if ( MathUtils::Norm3( DeltaXi ) > 30 )
+            if ( MathUtils<double>::Norm3( DeltaXi ) > 30 )
             {
                 break;
             }
 
-            if ( MathUtils::Norm3( DeltaXi ) < tol )
+            if ( MathUtils<double>::Norm3( DeltaXi ) < tol )
             {
                 if ( !( std::abs( CurrentGlobalCoords( orientation[2] ) ) <= tol ) )
                     rResult( 0 ) = 2.0;

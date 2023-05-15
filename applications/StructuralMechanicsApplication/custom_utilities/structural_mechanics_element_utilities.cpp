@@ -281,7 +281,7 @@ double CalculateReferenceLength3D2N(const Element& rElement)
         rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
         rElement.GetGeometry()[0].GetInitialPosition().Coordinates();
 
-    return MathUtils::Norm3(delta_pos);
+    return MathUtils<double>::Norm3(delta_pos);
 
     KRATOS_CATCH("")
 }
@@ -299,7 +299,7 @@ double CalculateCurrentLength3D2N(const Element& rElement)
         rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
         rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
 
-    const double l = MathUtils::Norm3(delta_pos);
+    const double l = MathUtils<double>::Norm3(delta_pos);
 
     KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
             << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
@@ -319,9 +319,9 @@ void InitialCheckLocalAxes(
     const double Tolerance
     )
 {
-    if (MathUtils::Norm3(rv1) > 1.0 + Tolerance ||
-        MathUtils::Norm3(rv2) > 1.0 + Tolerance ||
-        MathUtils::Norm3(rv3) > 1.0 + Tolerance) {
+    if (MathUtils<double>::Norm3(rv1) > 1.0 + Tolerance ||
+        MathUtils<double>::Norm3(rv2) > 1.0 + Tolerance ||
+        MathUtils<double>::Norm3(rv3) > 1.0 + Tolerance) {
             KRATOS_ERROR << "The norm of one of the LOCAL_AXIS is greater than 1.0!" << std::endl;
     }
 }

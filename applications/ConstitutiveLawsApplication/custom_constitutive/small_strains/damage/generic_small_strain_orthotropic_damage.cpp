@@ -120,10 +120,10 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateMate
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses_vector, predictive_stress_vector);
 
         BoundedMatrix<double, Dimension, Dimension> predictive_stress_tensor;
-        predictive_stress_tensor = MathUtils::StressVectorToTensor(predictive_stress_vector);
+        predictive_stress_tensor = MathUtils<double>::StressVectorToTensor(predictive_stress_vector);
         BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
         BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
-        MathUtils::GaussSeidelEigenSystem(predictive_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+        MathUtils<double>::GaussSeidelEigenSystem(predictive_stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
         Matrix rotation_matrix(VoigtSize,VoigtSize), inverse_rotation(VoigtSize,VoigtSize);
         this->CalculateRotationMatrix(rotation_matrix, trans(eigen_vectors_matrix), eigen_values_matrix);

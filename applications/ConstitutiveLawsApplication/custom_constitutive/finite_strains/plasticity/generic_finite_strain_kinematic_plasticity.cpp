@@ -411,7 +411,7 @@ Vector& GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
                 const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
                 const Matrix E_matrix = 0.5 * (prod(trans(deformation_gradient_f), deformation_gradient_f) - identity_matrix);
                 Vector& r_strain_vector = rParameterValues.GetStrainVector();
-                noalias(r_strain_vector) = MathUtils::StrainTensorToVector(E_matrix, VoigtSize);
+                noalias(r_strain_vector) = MathUtils<double>::StrainTensorToVector(E_matrix, VoigtSize);
         } else if (rThisVariable == ALMANSI_STRAIN_VECTOR) {
             const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
             const Matrix B_tensor = prod(deformation_gradient_f, trans(deformation_gradient_f));
@@ -485,7 +485,7 @@ Matrix& GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
     )
 {
     if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
-        rValue = MathUtils::StrainVectorToTensor(this->GetPlasticStrain());
+        rValue = MathUtils<double>::StrainVectorToTensor(this->GetPlasticStrain());
     } else if (this->Has(rThisVariable)) {
         return this->GetValue(rThisVariable, rValue);
     } else {

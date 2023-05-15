@@ -163,7 +163,7 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( 
 
      rElastoPlasticTangentMatrix += Pressure* ( IdentityCross - 2.0 * FourthOrderIdentity);
 
-     double det =  MathUtils::Det( mElasticLeftCauchyGreen);
+     double det =  MathUtils<double>::Det( mElasticLeftCauchyGreen);
      mElasticLeftCauchyGreen /= pow( det, 1/3);
 }
 
@@ -195,7 +195,7 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix 
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen ( 3, 3 );
     double det_b=0;
-    MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
     rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );

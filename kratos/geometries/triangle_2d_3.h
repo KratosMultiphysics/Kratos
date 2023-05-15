@@ -578,9 +578,9 @@ public:
      */
     virtual double Semiperimeter() const {
       return CalculateSemiperimeter(
-        MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
       );
     }
 
@@ -634,9 +634,9 @@ public:
      */
     double AverageEdgeLength() const override {
       return CalculateAvgEdgeLength(
-        MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
       );
     }
 
@@ -649,9 +649,9 @@ public:
      */
     double Circumradius() const override {
       return CalculateCircumradius(
-        MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
       );
     }
 
@@ -664,9 +664,9 @@ public:
      */
     double Inradius() const override {
       return CalculateInradius(
-        MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1)),
-        MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2)),
-        MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0))
+        MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
+        MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
+        MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
       );
     }
 
@@ -685,9 +685,9 @@ public:
     double InradiusToCircumradiusQuality() const override {
       constexpr double normFactor = 1.0;
 
-      double a = MathUtils::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils::Norm3(this->GetPoint(2)-this->GetPoint(0));
+      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
       return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
     };
@@ -779,7 +779,7 @@ public:
         const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
 
         array_1d<double, 3> normal;
-        MathUtils::CrossProduct(normal, tangent_xi, tangent_eta);
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
 
         return 0.5 * normal;
     }
@@ -1634,7 +1634,7 @@ private:
 // compute plane equation of triangle(V0,V1,V2) //
         noalias(E1) = V1-V0;
         noalias(E2) = V2-V0;
-        MathUtils::CrossProduct(N1, E1, E2);
+        MathUtils<double>::CrossProduct(N1, E1, E2);
         d1=-inner_prod(N1,V0);
 // plane equation 1: N1.X+d1=0 //
 
@@ -1657,7 +1657,7 @@ private:
 // compute plane of triangle (U0,U1,U2) //
         noalias(E1) = U1 - U0;
         noalias(E2) = U2 - U0;
-        MathUtils::CrossProduct(N2, E1, E2);
+        MathUtils<double>::CrossProduct(N2, E1, E2);
         d2=-inner_prod(N2,U0);
 // plane equation 2: N2.X+d2=0 //
 
@@ -1677,7 +1677,7 @@ private:
             return false;                   // no intersection occurs //
 
 // compute direction of intersection line //
-        MathUtils::CrossProduct(D, N1, N2);
+        MathUtils<double>::CrossProduct(D, N1, N2);
 
 // compute and index to the largest component of D //
         max=(double)fabs(D[0]);

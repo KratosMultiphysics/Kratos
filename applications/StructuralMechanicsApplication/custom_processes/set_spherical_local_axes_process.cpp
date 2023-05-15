@@ -42,7 +42,7 @@ void SetSphericalLocalAxesProcess::ExecuteInitialize()
     const array_1d<double, 3>& spherical_central_point   = mThisParameters["spherical_central_point"].GetVector();
     const double tolerance = std::numeric_limits<double>::epsilon();
 
-    KRATOS_ERROR_IF(MathUtils::Norm3(spherical_reference_axis) < tolerance) << "The spherical_reference_axis has norm zero" << std::endl;
+    KRATOS_ERROR_IF(MathUtils<double>::Norm3(spherical_reference_axis) < tolerance) << "The spherical_reference_axis has norm zero" << std::endl;
 
     block_for_each(mrThisModelPart.Elements(), [&](Element &rElement) {
         array_1d<double, 3> local_axis_1;

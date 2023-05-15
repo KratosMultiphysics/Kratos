@@ -167,7 +167,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateAlmansiStrain(
     //Calculating the inverse of the jacobian
     Matrix inverse_B_tensor ( Dimension, Dimension );
     double aux_det_b = 0;
-    MathUtils::InvertMatrix( B_tensor, inverse_B_tensor, aux_det_b);
+    MathUtils<double>::InvertMatrix( B_tensor, inverse_B_tensor, aux_det_b);
 
     rStrainVector[0] = 0.5 * ( 1.0 - inverse_B_tensor( 0, 0 ) );
     rStrainVector[1] = 0.5 * ( 1.0 - inverse_B_tensor( 1, 1 ) );

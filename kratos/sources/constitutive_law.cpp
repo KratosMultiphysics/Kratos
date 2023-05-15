@@ -874,11 +874,11 @@ Vector& ConstitutiveLaw::TransformStrains (Vector& rStrainVector,
 
         case StrainMeasure_Almansi:
         {
-            Matrix StrainMatrix = MathUtils::StrainVectorToTensor( rStrainVector );
+            Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector );
 
             CoVariantPushForward (StrainMatrix,rF);  //Almansi
 
-            rStrainVector = MathUtils::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
+            rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
         }
         break;
 
@@ -903,11 +903,11 @@ Vector& ConstitutiveLaw::TransformStrains (Vector& rStrainVector,
         {
         case StrainMeasure_GreenLagrange:
         {
-            Matrix StrainMatrix = MathUtils::StrainVectorToTensor( rStrainVector );
+            Matrix StrainMatrix = MathUtils<double>::StrainVectorToTensor( rStrainVector );
 
             CoVariantPullBack (StrainMatrix,rF);  //GreenLagrange
 
-            rStrainVector = MathUtils::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
+            rStrainVector = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
         }
         break;
 
@@ -964,11 +964,11 @@ Matrix& ConstitutiveLaw::TransformStresses (Matrix& rStressMatrix,
 {
     Vector StressVector;
 
-    StressVector = MathUtils::StressTensorToVector( rStressMatrix );
+    StressVector = MathUtils<double>::StressTensorToVector( rStressMatrix );
 
     StressVector=TransformStresses(StressVector,rF,rdetF,rStressInitial,rStressFinal);
 
-    rStressMatrix = MathUtils::StressVectorToTensor( StressVector );
+    rStressMatrix = MathUtils<double>::StressVectorToTensor( StressVector );
 
     return rStressMatrix;
 }
@@ -1047,38 +1047,38 @@ Vector& ConstitutiveLaw::TransformPK1Stresses (Vector& rStressVector,
 
     case StressMeasure_PK2:
     {
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
         Matrix InvF ( size, size );
         double J;
-        MathUtils::InvertMatrix( rF, InvF, J );
+        MathUtils<double>::InvertMatrix( rF, InvF, J );
 
         StressMatrix = prod( InvF, StressMatrix ); //PK2
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
     break;
 
     case StressMeasure_Kirchhoff:
     {
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
         Matrix InvF ( size, size );
         double J;
-        MathUtils::InvertMatrix( rF, InvF, J );
+        MathUtils<double>::InvertMatrix( rF, InvF, J );
 
         StressMatrix = prod( InvF, StressMatrix ); //PK2
 
         ContraVariantPushForward (StressMatrix,rF); //Kirchhoff
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
     break;
 
     case StressMeasure_Cauchy:
     {
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
         Matrix InvF ( size, size );
         double J;
-        MathUtils::InvertMatrix( rF, InvF, J );
+        MathUtils<double>::InvertMatrix( rF, InvF, J );
 
         StressMatrix = prod( InvF, StressMatrix ); //PK2
 
@@ -1086,7 +1086,7 @@ Vector& ConstitutiveLaw::TransformPK1Stresses (Vector& rStressVector,
 
         StressMatrix/=J; //Cauchy
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
     break;
 
@@ -1117,11 +1117,11 @@ Vector& ConstitutiveLaw::TransformPK2Stresses (Vector& rStressVector,
     {
     case StressMeasure_PK1:
     {
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         StressMatrix = prod( rF, StressMatrix ); //PK1
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
     break;
 
@@ -1130,25 +1130,25 @@ Vector& ConstitutiveLaw::TransformPK2Stresses (Vector& rStressVector,
 
     case StressMeasure_Kirchhoff:
     {
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPushForward (StressMatrix,rF); //Kirchhoff
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
     break;
 
     case StressMeasure_Cauchy:
     {
 
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPushForward (StressMatrix,rF); //Kirchhoff
 
         if(rdetF!=0)
             StressMatrix/=rdetF; //Cauchy
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
 
     }
     break;
@@ -1179,23 +1179,23 @@ Vector& ConstitutiveLaw::TransformKirchhoffStresses (Vector& rStressVector,
     {
     case StressMeasure_PK1:
     {
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPullBack (StressMatrix,rF);  //PK2
 
         StressMatrix = prod( rF, StressMatrix ); //PK1
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
     break;
 
     case StressMeasure_PK2:
     {
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPullBack (StressMatrix,rF);  //PK2
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
     break;
 
@@ -1237,13 +1237,13 @@ Vector& ConstitutiveLaw::TransformCauchyStresses (Vector& rStressVector,
     {
         rStressVector*=rdetF; //Kirchhoff
 
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPullBack (StressMatrix,rF);  //PK2
 
         StressMatrix = prod( rF, StressMatrix ); //PK1
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
     break;
 
@@ -1251,11 +1251,11 @@ Vector& ConstitutiveLaw::TransformCauchyStresses (Vector& rStressVector,
     {
         rStressVector*=rdetF; //Kirchhoff
 
-        Matrix StressMatrix = MathUtils::StressVectorToTensor( rStressVector );
+        Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector );
 
         ContraVariantPullBack (StressMatrix,rF);  //PK2
 
-        rStressVector = MathUtils::StressTensorToVector( StressMatrix, rStressVector.size() );
+        rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     }
     break;
 
@@ -1296,7 +1296,7 @@ void ConstitutiveLaw::PullBackConstitutiveMatrix ( Matrix& rConstitutiveMatrix,
 
     Matrix InverseF ( 3, 3 );
     double detF = 0;
-    MathUtils::InvertMatrix( rF, InverseF, detF);
+    MathUtils<double>::InvertMatrix( rF, InverseF, detF);
 
     ConstitutiveMatrixTransformation( rConstitutiveMatrix, OriginalConstitutiveMatrix, InverseF );
 }
@@ -1375,7 +1375,7 @@ void ConstitutiveLaw::ContraVariantPullBack( Matrix& rMatrix,
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
     Matrix InvF ( size, size );
     double J;
-    MathUtils::InvertMatrix( rF, InvF, J );
+    MathUtils<double>::InvertMatrix( rF, InvF, J );
 
     Matrix temp ( size, size );
 
@@ -1394,7 +1394,7 @@ void ConstitutiveLaw::CoVariantPushForward( Matrix& rMatrix,
     unsigned int size = rF.size1(); //WorkingSpaceDimension();
     Matrix InvF ( size, size );
     double J;
-    MathUtils::InvertMatrix( rF, InvF, J );
+    MathUtils<double>::InvertMatrix( rF, InvF, J );
 
     Matrix temp ( size, size );
 

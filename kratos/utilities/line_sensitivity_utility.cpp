@@ -59,9 +59,9 @@ void LineSensitivityUtility::Initialize()
     noalias(mJtJ) = prod(trans(mrJ), mrJ);
 
     mCofactorJtJ.resize(parameter_dimension, parameter_dimension, false);
-    noalias(mCofactorJtJ) = MathUtils::CofactorMatrix(mJtJ);
+    noalias(mCofactorJtJ) = MathUtils<double>::CofactorMatrix(mJtJ);
 
-    mDetJtJ = MathUtils::Det(mJtJ);
+    mDetJtJ = MathUtils<double>::Det(mJtJ);
 }
 
 }

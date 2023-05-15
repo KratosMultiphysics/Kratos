@@ -41,7 +41,7 @@ void ComputeMassMomentOfInertiaProcess::Execute()
         const double elem_mass = TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
         Vector3 ACrossB;
         Vector3 B_vec = elem_i.GetGeometry().Center() - mrPoint1;
-        MathUtils::CrossProduct(ACrossB, axis_of_rotation,  B_vec);
+        MathUtils<double>::CrossProduct(ACrossB, axis_of_rotation,  B_vec);
         const double distance_from_axis = std::sqrt(inner_prod(ACrossB, ACrossB)) / axis_length ;
         moment_of_inertia += elem_mass * (distance_from_axis*distance_from_axis) ;
     }

@@ -532,7 +532,7 @@ namespace Kratos
 		v2[1] = iii->GetGeometry()[2].Y() - iii->GetGeometry()[3].Y();
 		v2[2] = iii->GetGeometry()[2].Z() - iii->GetGeometry()[3].Z();
 
-		MathUtils::CrossProduct(area_normal,v1,v2);
+		MathUtils<double>::CrossProduct(area_normal,v1,v2);
 		//area_normal *= -0.5;
 
 		array_1d<double,3> msAuxVec = ZeroVector(3);
@@ -561,7 +561,7 @@ namespace Kratos
 		  v2[0] = iii->GetGeometry()[3].X() - iii->GetGeometry()[2].X();
 		  v2[1] = iii->GetGeometry()[3].Y() - iii->GetGeometry()[2].Y();
 		  v2[2] = iii->GetGeometry()[3].Z() - iii->GetGeometry()[2].Z();
-		  MathUtils::CrossProduct(area_normal,v1,v2);
+		  MathUtils<double>::CrossProduct(area_normal,v1,v2);
 		  //area_normal *= -0.5;
 		  array_1d<double,3> msAuxVec = ZeroVector(3);
 		  double c0 = abs(area_normal[0]);
@@ -590,7 +590,7 @@ namespace Kratos
 		  v2[1] = iii->GetGeometry()[1].Y() - iii->GetGeometry()[3].Y();
 		  v2[2] = iii->GetGeometry()[1].Z() - iii->GetGeometry()[3].Z();
 
-		  MathUtils::CrossProduct(area_normal,v1,v2);
+		  MathUtils<double>::CrossProduct(area_normal,v1,v2);
 		  //area_normal *= -0.5;
 		  array_1d<double,3> msAuxVec = ZeroVector(3);
 		  double c0 = abs(area_normal[0]);
@@ -617,7 +617,7 @@ namespace Kratos
 		  v2[1] = iii->GetGeometry()[2].Y() - iii->GetGeometry()[1].Y();
 		  v2[2] = iii->GetGeometry()[2].Z() - iii->GetGeometry()[1].Z();
 
-		  MathUtils::CrossProduct(area_normal,v1,v2);
+		  MathUtils<double>::CrossProduct(area_normal,v1,v2);
 		  //area_normal *= -0.5;
 		  array_1d<double,3> msAuxVec = ZeroVector(3);
 		  double c0 = abs(area_normal[0]);

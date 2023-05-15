@@ -246,7 +246,7 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSt
     const Vector &pressure_stress = bulk_modulus * volumetric_elastic_strain;
     Vector r_deviator_stress      = 2.0 * shear_modulus * deviatoric_elastic_strain;
 
-    rUniaxialStress = std::sqrt(1.5 * MathUtils::Dot(r_deviator_stress, r_deviator_stress));
+    rUniaxialStress = std::sqrt(1.5 * MathUtils<double>::Dot(r_deviator_stress, r_deviator_stress));
     this->ComputePlasticThreshold(rAcumulatedPlasticStrain, rThreshold, rValues);
     const double stress_excess = rUniaxialStress - rThreshold;
 
@@ -257,7 +257,7 @@ Vector GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::IntegrateSt
         const double plastic_multiplier = stress_excess / (3.0 * shear_modulus + hardening_modulus);
         rAcumulatedPlasticStrain += plastic_multiplier;
         this->ComputePlasticThreshold(rAcumulatedPlasticStrain, rThreshold, rValues);
-        rPlasticStrainVector += plastic_multiplier * std::sqrt(1.5) * r_deviator_stress / MathUtils::Norm(r_deviator_stress);
+        rPlasticStrainVector += plastic_multiplier * std::sqrt(1.5) * r_deviator_stress / MathUtils<double>::Norm(r_deviator_stress);
         r_deviator_stress = (1.0 - 3.0 * plastic_multiplier * shear_modulus / rUniaxialStress) * r_deviator_stress;
     }
     return pressure_stress + r_deviator_stress; // stress integrated
@@ -474,7 +474,7 @@ void GenericTotalLagrangianMixturesFemDemElement<TDim,TyieldSurf>::CalculateOnIn
             if (rOutput[point_number].size2() != dimension)
                 rOutput[point_number].resize(dimension, dimension, false);
 
-            rOutput[point_number] = MathUtils::StressVectorToTensor(stress_vector[point_number]);
+            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
         }
     }
 

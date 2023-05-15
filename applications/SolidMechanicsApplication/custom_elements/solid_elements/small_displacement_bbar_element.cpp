@@ -156,7 +156,7 @@ void SmallDisplacementBbarElement::CalculateKinematics(ElementDataType& rVariabl
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives  [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
@@ -303,7 +303,7 @@ void SmallDisplacementBbarElement::CalculateVolumetricDeformationMatrix(ElementD
 	const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
 	Matrix InvJ;
-	MathUtils::InvertMatrix(rVariables.J[PointNumber], InvJ, rVariables.detJ);
+	MathUtils<double>::InvertMatrix(rVariables.J[PointNumber], InvJ, rVariables.detJ);
 	noalias(rVariables.DN_DX) = prod(DN_De[PointNumber], InvJ);
 
 	double IntegrationWeight = integration_points[PointNumber].Weight() * rVariables.detJ;

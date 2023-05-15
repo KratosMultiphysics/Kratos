@@ -85,7 +85,7 @@ void LinearElasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeft
     // e= 0.5*(1-invbT*invb)
     Matrix InverseLeftCauchyGreen = ZeroMatrix( 2 , 2 );
     double det_b=0;
-    MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     rStrainVector.clear();
     rStrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );

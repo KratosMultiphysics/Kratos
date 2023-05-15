@@ -126,7 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicat
 
     // Matrix inv_M;
     // double det_M;
-    // MathUtils::InvertMatrix(M, inv_M, det_M);
+    // MathUtils<double>::InvertMatrix(M, inv_M, det_M);
     // KRATOS_WATCH_CERR(prod(inv_M, RHS))
 
     double tolerance = 1e-6;
@@ -211,7 +211,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicat
 
     // Matrix inv_M;
     // double det_M;
-    // MathUtils::InvertMatrix(M, inv_M, det_M);
+    // MathUtils<double>::InvertMatrix(M, inv_M, det_M);
     // KRATOS_WATCH_CERR(prod(inv_M, RHS))
 
     double tolerance = 1e-6;

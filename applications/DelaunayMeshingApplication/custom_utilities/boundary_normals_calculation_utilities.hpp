@@ -306,7 +306,7 @@ namespace Kratos
       v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
       v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
 
-      MathUtils::CrossProduct(An, v1, v2);
+      MathUtils<double>::CrossProduct(An, v1, v2);
 
       array_1d<double, 3> &normal = rCondition.GetValue(NORMAL);
 
@@ -357,7 +357,7 @@ namespace Kratos
         v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
         v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
 
-        MathUtils::CrossProduct(An, v1, v2);
+        MathUtils<double>::CrossProduct(An, v1, v2);
         An *= 0.5;
 
         array_1d<double, 3> &normal = rElement.GetValue(NORMAL);
@@ -655,15 +655,15 @@ namespace Kratos
             // Calculating the inverse of the jacobian and the parameters needed
             if (dimension == 2)
             {
-              MathUtils::InvertMatrix2(J, InvJ, detJ);
+              MathUtils<double>::InvertMatrix2(J, InvJ, detJ);
             }
             else if (dimension == 3)
             {
-              MathUtils::InvertMatrix3(J, InvJ, detJ);
+              MathUtils<double>::InvertMatrix3(J, InvJ, detJ);
             }
             else
             {
-              MathUtils::InvertMatrix(J, InvJ, detJ);
+              MathUtils<double>::InvertMatrix(J, InvJ, detJ);
             }
 
             // Compute cartesian derivatives for one gauss point
@@ -1206,15 +1206,15 @@ namespace Kratos
           {
 
             array_1d<double, 3> CrossProductN;
-            MathUtils::CrossProduct(CrossProductN, NormalsTriad[1], NormalsTriad[2]);
+            MathUtils<double>::CrossProduct(CrossProductN, NormalsTriad[1], NormalsTriad[2]);
             double Projection = inner_prod(NormalsTriad[0], CrossProductN);
 
             if (fabs(Projection) > 1e-15)
             {
               rNormal = CrossProductN;
-              MathUtils::CrossProduct(CrossProductN, NormalsTriad[2], NormalsTriad[0]);
+              MathUtils<double>::CrossProduct(CrossProductN, NormalsTriad[2], NormalsTriad[0]);
               rNormal += CrossProductN;
-              MathUtils::CrossProduct(CrossProductN, NormalsTriad[0], NormalsTriad[1]);
+              MathUtils<double>::CrossProduct(CrossProductN, NormalsTriad[0], NormalsTriad[1]);
               rNormal += CrossProductN;
 
               rNormal /= Projection; // intersection of three planes
@@ -1593,14 +1593,14 @@ namespace Kratos
 
     //         if(indepnorm==3){
     //           array_1d<double,3> CrossProductN;
-    //           MathUtils::CrossProduct(CrossProductN,N[1],N[2]);
+    //           MathUtils<double>::CrossProduct(CrossProductN,N[1],N[2]);
     //           double aux=inner_prod(N[0],CrossProductN);
     //           if(aux!=0){
-    //     	MathUtils::CrossProduct(CrossProductN,N[1],N[2]);
+    //     	MathUtils<double>::CrossProduct(CrossProductN,N[1],N[2]);
     //     	Normal = CrossProductN;
-    //     	MathUtils::CrossProduct(CrossProductN,N[2],N[0]);
+    //     	MathUtils<double>::CrossProduct(CrossProductN,N[2],N[0]);
     //     	Normal += CrossProductN;
-    //     	MathUtils::CrossProduct(CrossProductN,N[0],N[1]);
+    //     	MathUtils<double>::CrossProduct(CrossProductN,N[0],N[1]);
     //     	Normal += CrossProductN;
     //     	if( aux > 1e-15 )
     //     	  Normal /= aux;  //intersection of three planes

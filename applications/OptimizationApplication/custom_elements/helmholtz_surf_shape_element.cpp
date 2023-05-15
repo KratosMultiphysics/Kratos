@@ -512,7 +512,7 @@ void HelmholtzSurfShapeElement::CalculateAvgSurfUnitNormal(VectorType & rNormal)
         rNormal += r_geom.UnitNormal(point_number,integration_method);
 
     rNormal /= integration_points.size();
-    rNormal /= MathUtils::Norm3(rNormal); 
+    rNormal /= MathUtils<double>::Norm3(rNormal); 
 }
 
 void HelmholtzSurfShapeElement::CalculateCMatrix(MatrixType& rCMatrix, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber) const 

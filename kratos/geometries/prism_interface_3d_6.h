@@ -409,11 +409,11 @@ public:
 
         //heron formula
         Vector side_a = ( p0 - p1 );
-        double a = MathUtils::Norm3( side_a );
+        double a = MathUtils<double>::Norm3( side_a );
         Vector side_b = ( p1 - p2 );
-        double b = MathUtils::Norm3( side_b );
+        double b = MathUtils<double>::Norm3( side_b );
         Vector side_c = ( p2 - p0 );
-        double c = MathUtils::Norm3( side_c );
+        double c = MathUtils<double>::Norm3( side_c );
         double s = ( a + b + c ) / 2;
         return( sqrt( s*( s - a )*( s - b )*( s - c ) ) );
     }
@@ -690,7 +690,7 @@ public:
 		array_1d<double, 3> Tangent2( p2 - p0 );
 
 		array_1d<double, 3> Normal;
-		MathUtils::CrossProduct( Normal, Tangent1, Tangent2);
+		MathUtils<double>::CrossProduct( Normal, Tangent1, Tangent2);
 
         double detJ = norm_2(Normal);
 
@@ -737,7 +737,7 @@ public:
 		array_1d<double, 3> Tangent2( p2 - p0 );
 
 		array_1d<double, 3> Normal;
-		MathUtils::CrossProduct( Normal, Tangent1, Tangent2);
+		MathUtils<double>::CrossProduct( Normal, Tangent1, Tangent2);
 
         return norm_2(Normal);
     }
@@ -777,7 +777,7 @@ public:
 		array_1d<double, 3> Tangent2( p2 - p0 );
 
 		array_1d<double, 3> Normal;
-		MathUtils::CrossProduct( Normal, Tangent1, Tangent2);
+		MathUtils<double>::CrossProduct( Normal, Tangent1, Tangent2);
 
         return norm_2(Normal);
     }

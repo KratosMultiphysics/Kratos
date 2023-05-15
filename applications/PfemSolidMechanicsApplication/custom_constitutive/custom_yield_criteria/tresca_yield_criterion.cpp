@@ -372,13 +372,13 @@ namespace Kratos
          C3Vector(i) += pow(rStressInvariants.J2InvSQ, 2) / 3.0;
 
       Matrix Aux, ShearStressM;
-      ShearStressM = MathUtils::StressVectorToTensor( ShearStress);
+      ShearStressM = MathUtils<double>::StressVectorToTensor( ShearStress);
       Aux = prod(  ShearStressM, ShearStressM);
 
       for (unsigned int i = 0; i < 3; i++)
          Aux(i,i) -= 1.0/3.0 * 2.0*pow( rStressInvariants.J2InvSQ, 2);
 
-      C3Vector = MathUtils::StrainTensorToVector( Aux, 6);
+      C3Vector = MathUtils<double>::StrainTensorToVector( Aux, 6);
 
 
 
@@ -465,8 +465,8 @@ namespace Kratos
       C3Matrix /= 3.0;
 
       rLodeDerivative = ZeroVector(6);
-      Matrix ShearStressM = MathUtils::StressVectorToTensor( ShearStress);
-      double J3 = MathUtils::Det( ShearStressM);
+      Matrix ShearStressM = MathUtils<double>::StressVectorToTensor( ShearStress);
+      double J3 = MathUtils<double>::Det( ShearStressM);
 
       rLodeDerivative = C3Vector - 3.0*J3 / rStressInvariants.J2InvSQ * C2Vector; 
       
@@ -518,7 +518,7 @@ namespace Kratos
    {
 
       Matrix StressMatrix;
-      StressMatrix = MathUtils::StressVectorToTensor( rStressVector);
+      StressMatrix = MathUtils<double>::StressVectorToTensor( rStressVector);
 
       rStressInvariants.MeanStress = 0.0;
       for (unsigned int i = 0; i < 3; ++i)
@@ -542,7 +542,7 @@ namespace Kratos
       for (unsigned int i = 0; i < 3 ; ++i ) 
          StressMatrix(i,i) -= rStressInvariants.MeanStress;
 
-      rStressInvariants.LodeAngle  = MathUtils::Det( StressMatrix);
+      rStressInvariants.LodeAngle  = MathUtils<double>::Det( StressMatrix);
       rStressInvariants.LodeAngle *= 3.0*sqrt(3.0) / 2.0;    
       rStressInvariants.LodeAngle /= pow( rStressInvariants.J2InvSQ, 3);
 

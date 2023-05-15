@@ -251,7 +251,7 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateNormal3D(array_1d<double,
     v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
     v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
 
-    MathUtils::CrossProduct(An, v1, v2);
+    MathUtils<double>::CrossProduct(An, v1, v2);
     An *= 0.5;
 }
 

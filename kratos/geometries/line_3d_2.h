@@ -655,7 +655,7 @@ public:
     JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
         rResult[0] = ZeroMatrix( 1, 1 );
-        rResult[0]( 0, 0 ) = 2.0 * MathUtils::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
+        rResult[0]( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
         return rResult;
     }
 
@@ -679,7 +679,7 @@ public:
     Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
         rResult = ZeroMatrix( 1, 1 );
-        rResult( 0, 0 ) = 2.0 * MathUtils::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
+        rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
         return( rResult );
     }
 
@@ -697,7 +697,7 @@ public:
     Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         rResult = ZeroMatrix( 1, 1 );
-        rResult( 0, 0 ) = 2.0 * MathUtils::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
+        rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
         return( rResult );
     }
 

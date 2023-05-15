@@ -283,7 +283,7 @@ namespace Kratos
       noalias( OriginalHencky) = ZeroMatrix(3,3);
       OriginalHencky = rHenckyStrain;
 
-   MathUtils::GaussSeidelEigenSystem<MatrixType, MatrixType>(StressMat, EigenV, EigenStressM);
+   MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(StressMat, EigenV, EigenStressM);
       for (unsigned int i = 0; i < 3; i++)
          EigenStress(i) = EigenStressM(i,i);
 

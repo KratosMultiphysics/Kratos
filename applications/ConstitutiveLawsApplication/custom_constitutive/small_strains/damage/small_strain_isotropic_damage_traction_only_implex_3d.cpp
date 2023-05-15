@@ -55,8 +55,8 @@ void SmallStrainIsotropicDamageTractionOnlyImplex3D::ComputePositiveStressVector
 {
     BoundedMatrix<double, 3, 3> stress_matrix;
     BoundedMatrix<double, 3, 3> eigen_values, eigen_vectors;
-    stress_matrix = MathUtils::StressVectorToTensor(rStressVector);
-    MathUtils::GaussSeidelEigenSystem(stress_matrix, eigen_vectors, eigen_values);
+    stress_matrix = MathUtils<double>::StressVectorToTensor(rStressVector);
+    MathUtils<double>::GaussSeidelEigenSystem(stress_matrix, eigen_vectors, eigen_values);
     for (unsigned int i = 0; i < 3; i++)
     {
         if(eigen_values(i, i) < 0.)
@@ -64,8 +64,8 @@ void SmallStrainIsotropicDamageTractionOnlyImplex3D::ComputePositiveStressVector
             eigen_values(i, i) = 0.;
         }
     }
-    MathUtils::BDBtProductOperation(stress_matrix, eigen_values, eigen_vectors);
-    rStressVectorPos = MathUtils::StressTensorToVector(stress_matrix);
+    MathUtils<double>::BDBtProductOperation(stress_matrix, eigen_values, eigen_vectors);
+    rStressVectorPos = MathUtils<double>::StressTensorToVector(stress_matrix);
 }
 
 //************************************************************************************

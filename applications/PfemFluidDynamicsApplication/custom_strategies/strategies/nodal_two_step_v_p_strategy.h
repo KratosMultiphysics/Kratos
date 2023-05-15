@@ -759,11 +759,11 @@ namespace Kratos
 
 			if (dimension == 2)
 			{
-				MathUtils::InvertMatrix2(Fgrad, InvFgrad, detFgrad);
+				MathUtils<double>::InvertMatrix2(Fgrad, InvFgrad, detFgrad);
 			}
 			else if (dimension == 3)
 			{
-				MathUtils::InvertMatrix3(Fgrad, InvFgrad, detFgrad);
+				MathUtils<double>::InvertMatrix3(Fgrad, InvFgrad, detFgrad);
 			}
 
 			// it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
@@ -1001,11 +1001,11 @@ namespace Kratos
 
 			if (dimension == 2)
 			{
-				MathUtils::InvertMatrix2(nodalFgrad, InvFgrad, detFgrad);
+				MathUtils<double>::InvertMatrix2(nodalFgrad, InvFgrad, detFgrad);
 			}
 			else if (dimension == 3)
 			{
-				MathUtils::InvertMatrix3(nodalFgrad, InvFgrad, detFgrad);
+				MathUtils<double>::InvertMatrix3(nodalFgrad, InvFgrad, detFgrad);
 			}
 
 			// it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj

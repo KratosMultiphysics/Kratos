@@ -453,7 +453,7 @@ namespace Kratos {
         first_directions[0][0] = std::sqrt(3.0)/3.0;
         first_directions[0][1] = std::sqrt(3.0)/3.0;
         first_directions[0][2] = std::sqrt(3.0)/3.0;
-        MathUtils::OrthonormalBasis(first_directions[0], first_directions[1], first_directions[2]);
+        MathUtils<double>::OrthonormalBasis(first_directions[0], first_directions[1], first_directions[2]);
 
         array_1d<double, 3> first_half_lenghts;
         first_half_lenghts[0] = std::sqrt(3.0)/3.0;

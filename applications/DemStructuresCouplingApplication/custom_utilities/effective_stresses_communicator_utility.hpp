@@ -78,7 +78,7 @@ namespace Kratos {
                 for (int i = 0; i < (int)mrDestinationModelPart.Nodes().size(); i++) {
                     auto node_it = mrDestinationModelPart.NodesBegin() + i;
                     auto& particle_coordinates = node_it->Coordinates();
-                    const double norm = MathUtils::Norm(particle_coordinates);
+                    const double norm = MathUtils<double>::Norm(particle_coordinates);
                     if (norm > std::numeric_limits<double>::epsilon()) {
                         const double inv_norm = 1.0 / norm;
                         unitary_radial_vector[0] = particle_coordinates[0] * inv_norm;
@@ -101,7 +101,7 @@ namespace Kratos {
                             noalias(interpolated_effective_stress_tensor) += N[j] * tempM;
                         }
                         Vector tempV = prod(interpolated_effective_stress_tensor, unitary_radial_vector);
-                        double radial_stress = MathUtils::Dot(tempV, unitary_radial_vector);
+                        double radial_stress = MathUtils<double>::Dot(tempV, unitary_radial_vector);
                         node_it->SetValue(RADIAL_NORMAL_STRESS_COMPONENT, radial_stress);
                     }
                 }
@@ -122,7 +122,7 @@ namespace Kratos {
                 for (int i=0; i<(int)mrDestinationModelPart.Nodes().size(); i++) {
                     auto node_it = mrDestinationModelPart.NodesBegin() + i;
                     auto& particle_coordinates = node_it->Coordinates();
-                    const double norm = MathUtils::Norm(particle_coordinates);
+                    const double norm = MathUtils<double>::Norm(particle_coordinates);
                     if (norm > std::numeric_limits<double>::epsilon()) {
                         const double inv_norm = 1.0 / norm;
                         unitary_radial_vector[0] = particle_coordinates[0] * inv_norm;
@@ -134,7 +134,7 @@ namespace Kratos {
                     }
 
                     Vector tempV = prod(stress_tensor, unitary_radial_vector);
-                    double radial_stress = MathUtils::Dot(tempV, unitary_radial_vector);
+                    double radial_stress = MathUtils<double>::Dot(tempV, unitary_radial_vector);
                     node_it->SetValue(RADIAL_NORMAL_STRESS_COMPONENT, radial_stress);
                 }
             }

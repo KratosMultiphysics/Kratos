@@ -1074,8 +1074,8 @@ void ShellThinElement3D3N<TKinematics>::ApplyCorrectionToRHS(CalculationData& da
         z(1) = 0.0;
         z(2) = 1.0;
         Vector3Type n;
-        MathUtils::CrossProduct(n,  t,z);
-        n /= MathUtils::Norm3(n);
+        MathUtils<double>::CrossProduct(n,  t,z);
+        n /= MathUtils<double>::Norm3(n);
 
         double sx, sy;
         sx = s1(0)*n(0) + s1(2)*n(1);

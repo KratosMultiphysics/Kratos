@@ -1087,7 +1087,7 @@ void FractionalStep<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayTy
     for (unsigned int g = 0; g < NumGauss; g++)
     {
         // calculate inverse of the jacobian and its determinant
-        MathUtils::InvertMatrix( J[g], InvJ, rDetJ[g] );
+        MathUtils<double>::InvertMatrix( J[g], InvJ, rDetJ[g] );
 
         // calculate the shape function derivatives in global coordinates
         rDN_DX[g].resize(NumNodes,TDim);

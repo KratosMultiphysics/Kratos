@@ -141,7 +141,7 @@ public:
         {
             Matrix J0;
             GeometryUtils::JacobianOnInitialConfiguration(r_this_geometry, integration_points[i_point], J0); 
-            volume_area += integration_points[i_point].Weight() * MathUtils::GeneralizedDet(J0);
+            volume_area += integration_points[i_point].Weight() * MathUtils<double>::GeneralizedDet(J0);
         }           
 
 

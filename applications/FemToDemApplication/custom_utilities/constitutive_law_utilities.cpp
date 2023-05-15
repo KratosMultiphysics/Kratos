@@ -415,7 +415,7 @@ void ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(
     )
 {
     double I1, I2, I3;
-    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
     double norm = norm_frobenius(tensor);
     if (norm < tolerance) norm = 1.0;
     const BoundedVectorType norm_stress_vector = rStressVector/norm;
@@ -479,7 +479,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano
     )
 {
     double a, b, c;
-    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
     double norm = norm_frobenius(tensor);
     if (norm < tolerance) norm = 1.0;
     const BoundedVectorType norm_stress_vector = rStressVector/norm;
@@ -530,7 +530,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
     // Decompose matrix
-    MathUtils::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+    MathUtils<double>::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     // Calculate the eigenvalues of the E matrix
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -539,10 +539,10 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
 
     // Calculate E matrix
     BoundedMatrixType E_matrix;
-    MathUtils::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
+    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
 
     // Hencky Strain Calculation
-    rStrainVector = MathUtils::StrainTensorToVector(E_matrix, TVoigtSize);
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
@@ -562,7 +562,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
     // Decompose matrix
-    MathUtils::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+    MathUtils<double>::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     // Calculate the eigenvalues of the E matrix
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -571,10 +571,10 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
 
     // Calculate E matrix
     BoundedMatrixType E_matrix;
-    MathUtils::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
+    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
 
     // Biot Strain Calculation
-    rStrainVector = MathUtils::StrainTensorToVector(E_matrix, TVoigtSize);
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
@@ -602,13 +602,13 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
     // Calculating the inverse of the left Cauchy tensor
     MatrixType inverse_B_tensor ( Dimension, Dimension );
     double aux_det_b = 0;
-    MathUtils::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
+    MathUtils<double>::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
 
     // Calculate E matrix
     const BoundedMatrixType E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
 
     // Almansi Strain Calculation
-    rStrainVector = MathUtils::StrainTensorToVector(E_matrix, TVoigtSize);
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
@@ -637,7 +637,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
     const BoundedMatrixType E_matrix = 0.5 * (rCauchyTensor - identity_matrix);
 
     // Green-Lagrangian Strain Calculation
-    rStrainVector = MathUtils::StrainTensorToVector(E_matrix, TVoigtSize);
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/

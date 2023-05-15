@@ -247,7 +247,7 @@ protected:
             Matrix nodal_initial_stress_tensor(2,2); // dimension
             for(int j = 0; j < PointsNumber; j++) {
                 noalias(nodal_initial_stress_tensor) = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
-                noalias(nodal_initial_stress_vector) = MathUtils::StressTensorToVector(nodal_initial_stress_tensor);
+                noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
                 for (int k= 0; k < 3; k++) { // voigt_size
                     ComponentsNodalVariableVector[k][j] = nodal_initial_stress_vector[k];
                 }
@@ -255,7 +255,7 @@ protected:
             for (int k= 0; k < 3; k++) { // voigt_size
                 nodal_initial_stress_vector[k] = inner_prod(ShapeFunctionsValuesVector,ComponentsNodalVariableVector[k]);
             }
-            noalias(nodal_initial_stress_tensor) = MathUtils::StressVectorToTensor(nodal_initial_stress_vector);
+            noalias(nodal_initial_stress_tensor) = MathUtils<double>::StressVectorToTensor(nodal_initial_stress_vector);
             Matrix& rNodalStress = itNodeNew->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
             if(rNodalStress.size1() != 2) // Dimension
                 rNodalStress.resize(2,2,false);

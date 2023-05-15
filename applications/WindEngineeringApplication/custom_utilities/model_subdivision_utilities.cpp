@@ -172,7 +172,7 @@ ModelSubdivisionUtilities::Slab::Slab(
         mTopPlane {rTopPoint, rTopPoint - rBottomPoint},
         mIsOpen(isOpen)
 {
-    if (MathUtils::Norm(this->Normal()) < 1e-15) {
+    if (MathUtils<double>::Norm(this->Normal()) < 1e-15) {
         KRATOS_ERROR << "Degenerate slab!";
     }
 }
@@ -197,8 +197,8 @@ ModelSubdivisionUtilities::SlabStack::SlabStack(
         mInnerPlanes.reserve(numberOfSlabs - 1);
 
         // Compute the vector by which the inner planes are offset from each other
-        const double normal_length = MathUtils::Norm(this->Normal());
-        const double slab_height = MathUtils::Dot(rTopPoint - rBottomPoint, this->Normal()) / normal_length / numberOfSlabs;
+        const double normal_length = MathUtils<double>::Norm(this->Normal());
+        const double slab_height = MathUtils<double>::Dot(rTopPoint - rBottomPoint, this->Normal()) / normal_length / numberOfSlabs;
         const array_1d<double,3> normal_segment = (slab_height / normal_length) * this->Normal();
 
         // Generate inner planes (boundaries are not included)

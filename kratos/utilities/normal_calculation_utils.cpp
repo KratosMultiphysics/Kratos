@@ -476,7 +476,7 @@ void NormalCalculationUtils::CalculateNormal3D(
     rv2[1] = r_geometry[2].Y() - r_geometry[0].Y();
     rv2[2] = r_geometry[2].Z() - r_geometry[0].Z();
 
-    MathUtils::CrossProduct(rAn,rv1,rv2);
+    MathUtils<double>::CrossProduct(rAn,rv1,rv2);
     rAn *= 0.5;
 
     rCondition.SetValue(rNormalVariable, rAn);

@@ -629,7 +629,7 @@ void ShellThinElement3D3N::SetupOrientationAngles()
   dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
 
   Vector3Type dirX;
-  MathUtils::CrossProduct(dirX,   dZ, normal);
+  MathUtils<double>::CrossProduct(dirX,   dZ, normal);
 
   // try to normalize the x vector. if it is near zero it means that we need
   // to choose a default one.
@@ -1163,8 +1163,8 @@ void ShellThinElement3D3N::ApplyCorrectionToRHS(CalculationData& data, VectorTyp
     Vector3Type z;
     z(0) = 0.0; z(1) = 0.0; z(2) = 1.0;
     Vector3Type n;
-    MathUtils::CrossProduct(n,  t,z);
-    n /= MathUtils::Norm3(n);
+    MathUtils<double>::CrossProduct(n,  t,z);
+    n /= MathUtils<double>::Norm3(n);
 
     double sx, sy;
     sx = s1(0)*n(0) + s1(2)*n(1);

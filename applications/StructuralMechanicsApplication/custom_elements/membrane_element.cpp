@@ -307,8 +307,8 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
         if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2)){
 
             array_1d<array_1d<double,3>,2> local_prestress_axis;
-            local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
-            local_prestress_axis[1] = GetValue(LOCAL_PRESTRESS_AXIS_2)/MathUtils::Norm(GetValue(LOCAL_PRESTRESS_AXIS_2));
+            local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
+            local_prestress_axis[1] = GetValue(LOCAL_PRESTRESS_AXIS_2)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_2));
 
             Matrix transformation_matrix = ZeroMatrix(3);
             InPlaneTransformationMatrix(transformation_matrix,rTransformedBaseVectors,local_prestress_axis);
@@ -317,12 +317,12 @@ void MembraneElement::AddPreStressPk2(Vector& rStress, const array_1d<Vector,2>&
         } else if (Has(LOCAL_PRESTRESS_AXIS_1)) {
 
             Vector base_3 = ZeroVector(3);
-            MathUtils::UnitCrossProduct(base_3, rTransformedBaseVectors[0], rTransformedBaseVectors[1]);
+            MathUtils<double>::UnitCrossProduct(base_3, rTransformedBaseVectors[0], rTransformedBaseVectors[1]);
 
             array_1d<array_1d<double,3>,2> local_prestress_axis;
-            local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
+            local_prestress_axis[0] = GetValue(LOCAL_PRESTRESS_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_PRESTRESS_AXIS_1));
 
-            MathUtils::UnitCrossProduct(local_prestress_axis[1], base_3, local_prestress_axis[0]);
+            MathUtils<double>::UnitCrossProduct(local_prestress_axis[1], base_3, local_prestress_axis[0]);
 
             Matrix transformation_matrix = ZeroMatrix(3);
             InPlaneTransformationMatrix(transformation_matrix,rTransformedBaseVectors,local_prestress_axis);
@@ -370,7 +370,7 @@ void MembraneElement::StrainGreenLagrange(Vector& rStrain, const Matrix& rRefere
     const Matrix& rTransformationMatrix)
 {
     Matrix strain_matrix = 0.50 * (rCurrentCoVariantMetric-rReferenceCoVariantMetric);
-    Vector reference_strain = MathUtils::StrainTensorToVector(strain_matrix,3);
+    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -380,7 +380,7 @@ void MembraneElement::DerivativeStrainGreenLagrange(Vector& rStrain, const Matri
     Matrix current_covariant_metric_derivative = ZeroMatrix(2);
     DerivativeCurrentCovariantMetric(current_covariant_metric_derivative,rShapeFunctionGradientValues,DofR,rCurrentCovariantBaseVectors);
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
-    Vector reference_strain = MathUtils::StrainTensorToVector(strain_matrix_derivative,3);
+    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
@@ -393,15 +393,15 @@ void MembraneElement::Derivative2StrainGreenLagrange(Vector& rStrain,
 
     Matrix strain_matrix_derivative = 0.50 * current_covariant_metric_derivative;
 
-    Vector reference_strain = MathUtils::StrainTensorToVector(strain_matrix_derivative,3);
+    Vector reference_strain = MathUtils<double>::StrainTensorToVector(strain_matrix_derivative,3);
     TransformStrains(rStrain,reference_strain,rTransformationMatrix);
 }
 
 void MembraneElement::JacobiDeterminante(double& rDetJacobi, const array_1d<Vector,2>& rReferenceBaseVectors) const
 {
     Vector3 g3 = ZeroVector(3);
-    MathUtils::CrossProduct(g3, rReferenceBaseVectors[0], rReferenceBaseVectors[1]);
-    rDetJacobi = MathUtils::Norm(g3);
+    MathUtils<double>::CrossProduct(g3, rReferenceBaseVectors[0], rReferenceBaseVectors[1]);
+    rDetJacobi = MathUtils<double>::Norm(g3);
     KRATOS_ERROR_IF(rDetJacobi<std::numeric_limits<double>::epsilon()) << "det of Jacobi smaller 0 for element with id" << Id() << std::endl;
 }
 
@@ -717,22 +717,22 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
 
     // create local cartesian coordinate system aligned to global material vectors (orthotropic)
     if (Has(LOCAL_MATERIAL_AXIS_1) && Has(LOCAL_MATERIAL_AXIS_2)){
-        rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1)/MathUtils::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
-        rBaseVectors[1] = GetValue(LOCAL_MATERIAL_AXIS_2)/MathUtils::Norm(GetValue(LOCAL_MATERIAL_AXIS_2));
+        rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
+        rBaseVectors[1] = GetValue(LOCAL_MATERIAL_AXIS_2)/MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_2));
     } else if (Has(LOCAL_MATERIAL_AXIS_1)) {
         Vector base_3 = ZeroVector(3);
-        MathUtils::UnitCrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
+        MathUtils<double>::UnitCrossProduct(base_3, rLocalBaseVectors[0], rLocalBaseVectors[1]);
 
-        rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1)/MathUtils::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
-        MathUtils::UnitCrossProduct(rBaseVectors[1], base_3, rBaseVectors[0]);
+        rBaseVectors[0] = GetValue(LOCAL_MATERIAL_AXIS_1)/MathUtils<double>::Norm(GetValue(LOCAL_MATERIAL_AXIS_1));
+        MathUtils<double>::UnitCrossProduct(rBaseVectors[1], base_3, rBaseVectors[0]);
 
     } else {
         // create local cartesian coordinate system
         rBaseVectors[0] = ZeroVector(3);
         rBaseVectors[1] = ZeroVector(3);
-        rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils::Norm(rLocalBaseVectors[0]);
+        rBaseVectors[0] = rLocalBaseVectors[0] / MathUtils<double>::Norm(rLocalBaseVectors[0]);
         rBaseVectors[1] = rLocalBaseVectors[1] - (inner_prod(rLocalBaseVectors[1],rBaseVectors[0]) * rBaseVectors[0]);
-        rBaseVectors[1] /= MathUtils::Norm(rBaseVectors[1]);
+        rBaseVectors[1] /= MathUtils<double>::Norm(rBaseVectors[1]);
     }
 }
 
@@ -875,7 +875,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
 
 
-            Matrix stress_matrix_local_cs = MathUtils::StressVectorToTensor(stress);
+            Matrix stress_matrix_local_cs = MathUtils<double>::StressVectorToTensor(stress);
 
             // transform stresses to original bases
             Matrix stress_matrix = ZeroMatrix(3);
@@ -899,7 +899,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
                     local_stress(i,j) = inner_prod(transformed_base_vectors[i],prod(cauchy_stress_matrix,transformed_base_vectors[j]));
                 }
             }
-            stress = MathUtils::StressTensorToVector(local_stress,3);
+            stress = MathUtils<double>::StressTensorToVector(local_stress,3);
 
 
             if (rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
@@ -926,10 +926,10 @@ void MembraneElement::DeformationGradient(Matrix& rDeformationGradient, double& 
 
     // calculate out of plane local vectors (membrane has no thickness change so g3 and G3 are normalized)
     Vector current_cov_3 = ZeroVector(3);
-    MathUtils::UnitCrossProduct(current_cov_3,rCurrentCovariantBase[0],rCurrentCovariantBase[1]);
+    MathUtils<double>::UnitCrossProduct(current_cov_3,rCurrentCovariantBase[0],rCurrentCovariantBase[1]);
 
     Vector reference_contra_3 = ZeroVector(3);
-    MathUtils::UnitCrossProduct(reference_contra_3,rReferenceContraVariantBase[0],rReferenceContraVariantBase[1]);
+    MathUtils<double>::UnitCrossProduct(reference_contra_3,rReferenceContraVariantBase[0],rReferenceContraVariantBase[1]);
 
     // calculate deformation gradient
     rDeformationGradient = ZeroMatrix(3);
@@ -942,7 +942,7 @@ void MembraneElement::DeformationGradient(Matrix& rDeformationGradient, double& 
 
 
     // calculate det(F)
-    rDetDeformationGradient = MathUtils::Det(rDeformationGradient);
+    rDetDeformationGradient = MathUtils<double>::Det(rDeformationGradient);
 }
 
 void MembraneElement::CalculateOnIntegrationPoints(
@@ -991,7 +991,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
 
             if (rVariable == LOCAL_AXIS_3){
                 Vector base_vec_3 = ZeroVector(3);
-                MathUtils::UnitCrossProduct(base_vec_3,transformed_base_vectors[0],transformed_base_vectors[1]);
+                MathUtils<double>::UnitCrossProduct(base_vec_3,transformed_base_vectors[0],transformed_base_vectors[1]);
 
                 for (SizeType i =0; i<3; ++i) {
                     rOutput[point_number][i] = base_vec_3[i];
@@ -1029,7 +1029,7 @@ void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutp
             base_2 += base_vectors_current_cov[1]*integration_weight_i;
         }
 
-        MathUtils::UnitCrossProduct(base_3, base_1, base_2);
+        MathUtils<double>::UnitCrossProduct(base_3, base_1, base_2);
 
         column(rOutput,0) = base_1;
         column(rOutput,1) = base_2;

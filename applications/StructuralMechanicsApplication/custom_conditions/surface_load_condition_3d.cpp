@@ -167,7 +167,7 @@ void SurfaceLoadCondition3D::CalculateAndSubKp(
             coeff = Pressure * rN[i] * rDN_De(j, 1) * Weight;
             noalias(Kij) -= coeff * cross_tangent_xi;
 
-            MathUtils::AddMatrix(rK, Kij, row_index, column_index);
+            MathUtils<double>::AddMatrix(rK, Kij, row_index, column_index);
         }
     }
 
@@ -276,7 +276,7 @@ void SurfaceLoadCondition3D::CalculateAll(
     Matrix J(3, 2);
     for (std::size_t point_number = 0; point_number < integration_points.size(); ++point_number) {
         r_geometry.Jacobian(J, point_number, integration_method);
-        const double detJ = MathUtils::GeneralizedDet(J);
+        const double detJ = MathUtils<double>::GeneralizedDet(J);
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ);
         const auto& rN = row(Ncontainer, point_number);
 
@@ -288,7 +288,7 @@ void SurfaceLoadCondition3D::CalculateAll(
         tangent_eta[2] = J(2, 1);
 
         array_1d<double, 3 > normal;
-        MathUtils::UnitCrossProduct(normal, tangent_eta, tangent_xi);
+        MathUtils<double>::UnitCrossProduct(normal, tangent_eta, tangent_xi);
 
         // Calculating the pressure on the gauss point
         double pressure = 0.0;

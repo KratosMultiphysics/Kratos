@@ -419,10 +419,10 @@ bool DerivativesRecoveryUtility<TDim>::GeneralizedInvertMatrix(
     Matrix& rResult)
 {
     double det;
-    MathUtils::GeneralizedInvertMatrix(rInputMatrix, rResult, det, -1.0);
+    MathUtils<double>::GeneralizedInvertMatrix(rInputMatrix, rResult, det, -1.0);
     const double tolerance = std::numeric_limits<double>::epsilon();
     const bool throw_errors = false;
-    return MathUtils::CheckConditionNumber(rInputMatrix, rResult, tolerance, throw_errors);
+    return MathUtils<double>::CheckConditionNumber(rInputMatrix, rResult, tolerance, throw_errors);
 }
 
 template class DerivativesRecoveryUtility<2>;

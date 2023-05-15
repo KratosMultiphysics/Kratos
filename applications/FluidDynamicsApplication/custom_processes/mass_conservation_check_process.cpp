@@ -628,7 +628,7 @@ void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, con
     v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
     v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
 
-    MathUtils::CrossProduct(An,v1,v2);
+    MathUtils<double>::CrossProduct(An,v1,v2);
     An *= 0.5;
 }
 
@@ -644,11 +644,11 @@ Triangle2D3<Node>::Pointer MassConservationCheckProcess::GenerateAuxTriangle( co
     vec_u /= norm_2( vec_u );
 
     array_1d<double,3> vec_w;
-    MathUtils::CrossProduct(vec_w, vec_u, ( rGeom[2].Coordinates() - rGeom[0].Coordinates() ) );
+    MathUtils<double>::CrossProduct(vec_w, vec_u, ( rGeom[2].Coordinates() - rGeom[0].Coordinates() ) );
     vec_w /= norm_2( vec_w );
 
     array_1d<double,3> vec_v;
-    MathUtils::CrossProduct(vec_v, vec_u, vec_w );
+    MathUtils<double>::CrossProduct(vec_v, vec_u, vec_w );
 
     // assembly of the rotation matrix
     Matrix rot_mat = ZeroMatrix(3,3);

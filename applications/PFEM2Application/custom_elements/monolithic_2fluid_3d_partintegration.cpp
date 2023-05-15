@@ -1085,7 +1085,7 @@ namespace Kratos
 		v2[0] = node_k[0] - node_i[0];;
 		v2[1] = node_k[1] - node_i[1];
 		v2[2] = node_k[2] - node_i[2];
-		MathUtils::CrossProduct(normal,v1,v2);
+		MathUtils<double>::CrossProduct(normal,v1,v2);
 		normal *= 0.5;
     }
 

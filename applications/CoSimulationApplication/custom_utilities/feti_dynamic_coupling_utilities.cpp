@@ -728,7 +728,7 @@ namespace Kratos
             //start = std::chrono::system_clock::now();
             double det;
             Matrix inv(pK->size1(), pK->size2());
-            MathUtils::InvertMatrix(*pK, inv, det);
+            MathUtils<double>::InvertMatrix(*pK, inv, det);
             //end = std::chrono::system_clock::now();
             //auto elasped_invert = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 

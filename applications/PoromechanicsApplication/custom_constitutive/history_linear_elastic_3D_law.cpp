@@ -77,7 +77,7 @@ void HistoryLinearElastic3DLaw::AddInitialStresses( Parameters& rValues, Vector&
                 nodal_initial_stress_tensor(j,k) = r_initial_stress_tensor(j,k);
             }
         }
-        noalias(nodal_initial_stress_vector) = MathUtils::StressTensorToVector(nodal_initial_stress_tensor);
+        noalias(nodal_initial_stress_vector) = MathUtils<double>::StressTensorToVector(nodal_initial_stress_tensor);
 
         for(unsigned int j=0; j < voigt_size; j++) {
             gp_initial_stress_vector[j] += N[i] * nodal_initial_stress_vector[j];

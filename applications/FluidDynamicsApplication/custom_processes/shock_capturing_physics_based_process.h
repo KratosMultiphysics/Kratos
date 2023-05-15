@@ -262,7 +262,7 @@ private:
 
         // Inverse metric tensor calculation
         double aux_det;
-        MathUtils::InvertMatrix(r_metric_tensor, r_inv_metric_tensor, aux_det);
+        MathUtils<double>::InvertMatrix(r_metric_tensor, r_inv_metric_tensor, aux_det);
 
         // Get fluid physical properties
         const auto& r_prop = rElement.GetProperties();
@@ -379,7 +379,7 @@ private:
                 auto& r_local_shear_grad_v = rShockCapturingTLS.VelocityShearLocalGradient;
                 CalculateShearSensorValues(r_geom, r_N, r_DN_DX, mid_pt_jacobian, r_local_shear_grad_v, r_c);
                 BoundedMatrix<double,TDim,TDim> eigen_vect_mat, eigen_val_mat;
-                MathUtils::GaussSeidelEigenSystem(r_local_shear_grad_v, eigen_vect_mat, eigen_val_mat);
+                MathUtils<double>::GaussSeidelEigenSystem(r_local_shear_grad_v, eigen_vect_mat, eigen_val_mat);
                 double shear_spect_norm = 0.0;
                 for (unsigned int d = 0; d < eigen_val_mat.size1(); ++d) {
                     if (eigen_val_mat(d, d) > shear_spect_norm) {

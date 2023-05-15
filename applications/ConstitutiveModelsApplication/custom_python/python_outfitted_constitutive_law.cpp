@@ -311,7 +311,7 @@ void PythonOutfittedConstitutiveLaw::UpdateInternalVariables(Parameters& rValues
 
     Matrix TotalDeformationMatrix          = DeltaDeformationMatrix;
     TotalDeformationMatrix = Transform2DTo3D(TotalDeformationMatrix);
-    MathUtils::InvertMatrix( TotalDeformationMatrix, this->mInverseTotalDeformationMatrix, mTotalDeformationDet);
+    MathUtils<double>::InvertMatrix( TotalDeformationMatrix, this->mInverseTotalDeformationMatrix, mTotalDeformationDet);
     mTotalDeformationDet = DeltaDeformationDet; //special treatment of the determinant
 }
 

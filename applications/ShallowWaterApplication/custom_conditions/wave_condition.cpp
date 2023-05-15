@@ -342,7 +342,7 @@ void WaveCondition<TNumNodes>::AddFluxTerms(
         const double n_i = (rData.integrate_by_parts) ? rN[i] : 0.0;
 
         /// Flux contribution
-        MathUtils::AddVector(rVector, -Weight * n_i * rData.flux, 3*i);
+        MathUtils<double>::AddVector(rVector, -Weight * n_i * rData.flux, 3*i);
 
         /// Penalty stabilization
         double i_velocity_penalty = inner_prod(n, rData.nodal_v[i]) - rData.v_neumann;

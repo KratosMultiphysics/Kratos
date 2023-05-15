@@ -83,7 +83,7 @@ public:
     {
         KRATOS_TRY
 
-        Matrix LocalStressTensor  = MathUtils::StressVectorToTensor(StressVector); //reduced dimension stress tensor
+        Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
         Matrix StressTensor(3,3); //3D stress tensor
         noalias(StressTensor) = ZeroMatrix(3,3);
@@ -113,7 +113,7 @@ public:
     {
         KRATOS_TRY
 
-        Matrix LocalStressTensor  = MathUtils::StressVectorToTensor(StressVector); //reduced dimension stress tensor
+        Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
         Matrix StressTensor(3,3); //3D stress tensor
         noalias(StressTensor) = ZeroMatrix(3,3);
@@ -143,7 +143,7 @@ public:
     {
         KRATOS_TRY
 
-        Matrix StressTensor = MathUtils::StressVectorToTensor(StressVector); //reduced dimension stress tensor
+        Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
         double trace = 0.0;
         for (std::size_t i=0; i < StressTensor.size1(); ++i) {
@@ -159,7 +159,7 @@ public:
     {
         KRATOS_TRY
 
-        Matrix StressTensor = MathUtils::StressVectorToTensor(StressVector); //reduced dimension stress tensor
+        Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
         double trace = 0.0;
         for (std::size_t i=0; i < StressTensor.size1(); ++i) {

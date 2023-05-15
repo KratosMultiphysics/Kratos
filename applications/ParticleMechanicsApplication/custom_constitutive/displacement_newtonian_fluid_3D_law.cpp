@@ -282,7 +282,7 @@ void DispNewtonianFluid3DLaw::UpdateInternalVariables(Parameters& rValues)
 
     Matrix DeformationGradientF0          = DeformationGradientF;
     DeformationGradientF0 = Transform2DTo3D(DeformationGradientF0);
-    MathUtils::InvertMatrix( DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
+    MathUtils<double>::InvertMatrix( DeformationGradientF0, this->mInverseDeformationGradientF0, mDeterminantF0);
     mDeterminantF0 = DeterminantF; //special treatment of the determinant
 }
 
@@ -297,7 +297,7 @@ void DispNewtonianFluid3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchy
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen = ZeroMatrix( 3, 3 );
     double det_b=0;
-    MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     rStrainVector[0] = 0.5 * (1.00 - InverseLeftCauchyGreen(0, 0));
     rStrainVector[1] = 0.5 * (1.00 - InverseLeftCauchyGreen(1, 1));
@@ -327,7 +327,7 @@ void DispNewtonianFluid3DLaw::CalculateDeformationRate(MaterialResponseVariables
     // computation of inverse of incremental LeftCauchyGreen
     Matrix inv_b;
     double aux_det;
-    MathUtils::InvertMatrix(b, inv_b, aux_det);
+    MathUtils<double>::InvertMatrix(b, inv_b, aux_det);
 
     rViscousVariables.DeformationRate.resize(3, 3, false);
     noalias(rViscousVariables.DeformationRate) = 0.5 / rViscousVariables.DeltaTime * (rViscousVariables.Identity - inv_b);
@@ -393,7 +393,7 @@ void DispNewtonianFluid3DLaw::CalculateStress(MaterialResponseVariables& rViscou
 
     }
 
-    rStressVector=MathUtils::StressTensorToVector(rViscousVariables.StressMatrix, rStressVector.size());
+    rStressVector=MathUtils<double>::StressTensorToVector(rViscousVariables.StressMatrix, rStressVector.size());
 }
 
 //******************************* COMPUTE VOLUMETRIC STRESS  *************************
@@ -409,7 +409,7 @@ void DispNewtonianFluid3DLaw::CalculateVolumetricStress(const MaterialResponseVa
     Pressure = this->CalculateVolumetricPressure(rViscousVariables, Pressure);
 
     VolStressMatrix = Pressure * rViscousVariables.Identity;
-    rVolStressVector = MathUtils::StressTensorToVector(VolStressMatrix, rVolStressVector.size());
+    rVolStressVector = MathUtils<double>::StressTensorToVector(VolStressMatrix, rVolStressVector.size());
 
 }
 
@@ -428,7 +428,7 @@ void DispNewtonianFluid3DLaw::CalculateIsochoricStress(const MaterialResponseVar
         IsoStressMatrix = 2.0 * rViscousVariables.Mu * rViscousVariables.DeformationRate;
     }
 
-    rIsoStressVector = MathUtils::StressTensorToVector(IsoStressMatrix, rIsoStressVector.size());
+    rIsoStressVector = MathUtils<double>::StressTensorToVector(IsoStressMatrix, rIsoStressVector.size());
 
 }
 
@@ -467,7 +467,7 @@ double& DispNewtonianFluid3DLaw::ConstitutiveComponent (double& rCabcd, const Ma
     Matrix FingerMatrix = prod(f, trans(f));
     Matrix inv_b;
     double aux_det;
-    MathUtils::InvertMatrix(FingerMatrix, inv_b, aux_det);
+    MathUtils<double>::InvertMatrix(FingerMatrix, inv_b, aux_det);
     double trace_inv_b = inv_b(0, 0) + inv_b(1, 1) + inv_b(2, 2);
 
     // Volumetric part
@@ -575,7 +575,7 @@ double& DispNewtonianFluid3DLaw::IsochoricConstitutiveComponent(double& rCabcd,
     Matrix FingerMatrix = prod(f, trans(f));
     Matrix inv_b;
     double aux_det;
-    MathUtils::InvertMatrix(FingerMatrix, inv_b, aux_det);
+    MathUtils<double>::InvertMatrix(FingerMatrix, inv_b, aux_det);
 
     rCabcd = rViscousVariables.Mu / rViscousVariables.DeltaTime * (I(a, c) * inv_b(b, d) +
         I(a, d) * inv_b(b, c) + I(b, d) * inv_b(a, c) + I(b, c) * inv_b(a, d) -

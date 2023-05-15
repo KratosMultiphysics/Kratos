@@ -175,7 +175,7 @@ void SmallStrainUMAT2DPlaneStrainLaw::
       E_tensor(i, i) -= 1.0;
 
    E_tensor *= 0.5;
-   noalias(rStrainVector) = MathUtils::StrainTensorToVector(E_tensor);
+   noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
 }
 
 //----------------------------------------------------------------------------------------

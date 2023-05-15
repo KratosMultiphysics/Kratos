@@ -216,7 +216,7 @@ void FractionalStepKBasedWallCondition<3, 3>::CalculateNormal(
     v2[1] = r_geometry[2].Y() - r_geometry[0].Y();
     v2[2] = r_geometry[2].Z() - r_geometry[0].Z();
 
-    MathUtils::CrossProduct(An, v1, v2);
+    MathUtils<double>::CrossProduct(An, v1, v2);
     An *= 0.5;
 }
 

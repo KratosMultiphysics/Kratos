@@ -106,7 +106,7 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
 
   J0 = GetGeometry().Jacobian(J0, this_integration_method);
 
-  MathUtils::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
+  MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
                                   detJ0[PointNumber]);
 
   // Stiffening of elements using Jacobian determinants and exponent between
@@ -180,7 +180,7 @@ StructuralMeshMovingElement::CalculateBMatrix(const int Dimension,
   MoveMeshUtilities::CheckJacobianDimension(invJ0, detJ0, rgeom);
 
   J0 = GetGeometry().Jacobian(J0, this_integration_method);
-  MathUtils::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
+  MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
                                   detJ0[PointNumber]);
 
   Matrix DN_DX = prod(DN_De[PointNumber], invJ0[PointNumber]);

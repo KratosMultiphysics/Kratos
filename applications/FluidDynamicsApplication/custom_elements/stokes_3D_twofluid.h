@@ -776,7 +776,7 @@ public:
         //add to LHS enrichment contributions
         double det;
         BoundedMatrix<double,4,4> inverse_diag;
-        MathUtils::InvertMatrix(Kee_tot, inverse_diag,det);
+        MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag,det);
 
         if (ComputeLHSMatrix) {
             const BoundedMatrix<double,4,16> tmp = prod(inverse_diag,Htot);

@@ -64,7 +64,7 @@ static void CondenseLeftHandSide(
     //1.) inverse K22
     MatrixType K_temp = ZeroMatrix(sub_matrices[3].size1());
     double detK22 = 0.00;
-    MathUtils::InvertMatrix(sub_matrices[3],K_temp,detK22);
+    MathUtils<double>::InvertMatrix(sub_matrices[3],K_temp,detK22);
     KRATOS_ERROR_IF(std::abs(detK22) < numerical_limit) << "Element " << rTheElement.Id()
                                                         << " is singular !" << std::endl;
 
@@ -237,7 +237,7 @@ static void ConvertingCondensation(
     //2.) inverse K22
     MatrixType K22_inv = ZeroMatrix(sub_matrices[3].size1());
     double detK22 = 0.00;
-    MathUtils::InvertMatrix(sub_matrices[3], K22_inv, detK22);
+    MathUtils<double>::InvertMatrix(sub_matrices[3], K22_inv, detK22);
 
     KRATOS_ERROR_IF(std::abs(detK22) < numerical_limit) << "Element " << rTheElement.Id() << " is singular !" << std::endl;
 

@@ -145,7 +145,7 @@ void  LinearElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValu
     // Strain and Stress matrices
     const unsigned int Dim = this->WorkingSpaceDimension();
     Matrix AuxMatrix(Dim,Dim);
-    noalias(AuxMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
+    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
     noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
@@ -268,7 +268,7 @@ void LinearElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
     // Strain and Stress matrices
     const unsigned int Dim = this->WorkingSpaceDimension();
     Matrix AuxMatrix(Dim,Dim);
-    noalias(AuxMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
+    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
     noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
@@ -389,11 +389,11 @@ void LinearElasticPlastic3DLaw::CalculateReturnMapping( FlowRule::RadialReturnVa
                                                         Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector )
 {
     noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);
-    noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils::StressVectorToTensor(rStressVector);
+    noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils<double>::StressVectorToTensor(rStressVector);
 
     mpFlowRule->CalculateReturnMapping( rReturnMappingVariables, rStressMatrix );
 
-    noalias(rStressVector) = MathUtils::StressTensorToVector( rStressMatrix, StrainVector.size() );
+    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( rStressMatrix, StrainVector.size() );
 }
 
 
@@ -423,7 +423,7 @@ void LinearElasticPlastic3DLaw::UpdateInternalStateVariables( FlowRule::RadialRe
                                                             const Matrix& LinearElasticMatrix, const Vector& StrainVector )
 {
     noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);
-    noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils::StressVectorToTensor(rStressVector);
+    noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils<double>::StressVectorToTensor(rStressVector);
 
     mpFlowRule->UpdateInternalVariables( rReturnMappingVariables );
 }

@@ -306,14 +306,14 @@ void ThermalElement::CalculateKinematics(GeneralVariables& rVariables,
 
     Matrix InvJ;
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-    MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
     Matrix Invj;
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
-    MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives
     rVariables.DN_DX = prod( DN_De[rPointNumber] , Invj ); //overwrites DX now is the current position

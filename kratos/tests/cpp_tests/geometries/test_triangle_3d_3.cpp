@@ -805,7 +805,7 @@ namespace Testing
         cross_norm[1] = 0.0;
         cross_norm[2] = 1.0;
         array_1d<double, 3> cross;
-        MathUtils::CrossProduct(cross, cross_norm, normal);
+        MathUtils<double>::CrossProduct(cross, cross_norm, normal);
 
         KRATOS_CHECK_NEAR(cross[0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(cross[1], 0.0, TOLERANCE);

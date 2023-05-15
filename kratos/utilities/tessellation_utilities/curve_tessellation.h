@@ -381,7 +381,7 @@ private:
         CoordinatesArrayType vector_v = rLineA - rPoint;
         CoordinatesArrayType vector_u = rLineB - rLineA;
 
-        return MathUtils::Norm(MathUtils::CrossProduct(vector_v, vector_u)) / MathUtils::Norm(vector_u);
+        return MathUtils<double>::Norm(MathUtils<double>::CrossProduct(vector_v, vector_u)) / MathUtils<double>::Norm(vector_u);
     }
 
     ///@}

@@ -614,7 +614,7 @@ Matrix& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
     )
 {
     if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-        rValue = MathUtils::StressVectorToTensor(this->GetStressVector());
+        rValue = MathUtils<double>::StressVectorToTensor(this->GetStressVector());
     } else if (rThisVariable == CONSTITUTIVE_MATRIX) {
         this->CalculateElasticMatrix(rValue, rParameterValues);
     }

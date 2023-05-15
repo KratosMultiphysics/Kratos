@@ -1391,9 +1391,9 @@ private:
       DistanceToTip[2] = 0; //2D
 
       PointType ReferenceOrientation;
-      MathUtils::CrossProduct( ReferenceOrientation, DistanceToTip, DistanceToCenter );
+      MathUtils<double>::CrossProduct( ReferenceOrientation, DistanceToTip, DistanceToCenter );
       PointType Orientation;
-      MathUtils::CrossProduct( Orientation, DistanceToPoint, DistanceToCenter );
+      MathUtils<double>::CrossProduct( Orientation, DistanceToPoint, DistanceToCenter );
 
       double sign = (Orientation[2] * ReferenceOrientation[2]);
 

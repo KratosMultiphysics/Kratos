@@ -164,8 +164,8 @@ void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
 
-    double det_permeability = MathUtils::Det(permeability);
-    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
     sigma *= viscosity;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -195,8 +195,8 @@ void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
-    double det_permeability = MathUtils::Det(permeability);
-    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
 
@@ -241,8 +241,8 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
-    double det_permeability = MathUtils::Det(permeability);
-    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
 
@@ -332,8 +332,8 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
-    double det_permeability = MathUtils::Det(permeability);
-    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
 
@@ -470,8 +470,8 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
     BoundedMatrix<double,Dim,Dim> eigen_values_matrix, eigen_vectors_matrix;
 
-    double det_permeability = MathUtils::Det(permeability);
-    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils<double>::Det(permeability);
+    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     double velocity_norm = 0.0;
     double sigma_term = 0.0;

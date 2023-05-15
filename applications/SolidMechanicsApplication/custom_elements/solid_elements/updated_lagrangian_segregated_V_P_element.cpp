@@ -326,17 +326,17 @@ void UpdatedLagrangianSegregatedVPElement::CalculateKinematics(ElementDataType& 
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Deformation Gradient F [dx_n+1/dx_n] to be updated
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
     //Determinant of the deformation gradient F
-    rVariables.detF  = MathUtils::Det(rVariables.F);
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
-    MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
     noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
@@ -403,7 +403,7 @@ void UpdatedLagrangianSegregatedVPElement::CalculateKinetics(ElementDataType& rV
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils::InvertMatrix( rVariables.j[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], InvJ, rVariables.detJ);
 
     //Calculating the cartesian derivatives [dN/dx_n] = [dN/d£][d£/dx_0]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
@@ -412,7 +412,7 @@ void UpdatedLagrangianSegregatedVPElement::CalculateKinetics(ElementDataType& rV
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
     //Determinant of the deformation gradient F
-    rVariables.detF  = MathUtils::Det(rVariables.F);
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //Determinant of the Deformation Gradient F0
     // (in this element F = F0, then F0 is set to the identity for coherence in the constitutive law)
@@ -880,7 +880,7 @@ void UpdatedLagrangianSegregatedVPElement::GetFaceNormal(const std::vector<SizeT
       v2[1] = GetGeometry()[rFace[2]].Y() - GetGeometry()[rFace[0]].Y();
       v2[2] = GetGeometry()[rFace[2]].Z() - GetGeometry()[rFace[0]].Z();
 
-      MathUtils::CrossProduct(rNormal,v1,v2);
+      MathUtils<double>::CrossProduct(rNormal,v1,v2);
       double norm = norm_2(rNormal);
       if( norm != 0 )
         rNormal /= norm_2(rNormal);

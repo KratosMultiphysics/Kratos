@@ -36,7 +36,7 @@ void SetCylindricalLocalAxesProcess::ExecuteInitialize()
     const array_1d<double, 3>& r_generatrix_axis  = mThisParameters["cylindrical_generatrix_axis"].GetVector();
     const array_1d<double, 3>& r_generatrix_point = mThisParameters["cylindrical_generatrix_point"].GetVector();
 
-    KRATOS_ERROR_IF(MathUtils::Norm3(r_generatrix_axis) < std::numeric_limits<double>::epsilon()) << "The r_generatrix_axis has norm zero" << std::endl;
+    KRATOS_ERROR_IF(MathUtils<double>::Norm3(r_generatrix_axis) < std::numeric_limits<double>::epsilon()) << "The r_generatrix_axis has norm zero" << std::endl;
 
     block_for_each(mrThisModelPart.Elements(), [&](Element &rElement) {
         array_1d<double, 3> local_axis_1;

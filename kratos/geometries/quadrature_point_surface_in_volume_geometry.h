@@ -173,7 +173,7 @@ public:
         Vector g2 = column(global_tangents,1);
 
         // Compute normal
-        CoordinatesArrayType normal = MathUtils::CrossProduct( g1, g2 );
+        CoordinatesArrayType normal = MathUtils<double>::CrossProduct( g1, g2 );
 
         return normal;
     }
@@ -199,7 +199,7 @@ public:
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
         TangentMatrixType global_tangents = prod(J, mLocalTangents);
 
-        return MathUtils::GeneralizedDet( global_tangents );
+        return MathUtils<double>::GeneralizedDet( global_tangents );
     }
 
     /**

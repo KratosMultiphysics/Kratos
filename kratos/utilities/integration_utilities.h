@@ -111,7 +111,7 @@ public:
         Matrix J(2, 2);
         for ( unsigned int i = 0; i < r_integration_points.size(); i++ ) {
             rGeometry.Jacobian( J, i, integration_method);
-            volume += MathUtils::Det2(J) * r_integration_points[i].Weight();
+            volume += MathUtils<double>::Det2(J) * r_integration_points[i].Weight();
         }
 
         return volume;
@@ -132,7 +132,7 @@ public:
         Matrix J(3, 3);
         for ( unsigned int i = 0; i < r_integration_points.size(); i++ ) {
             rGeometry.Jacobian( J, i, integration_method);
-            volume += MathUtils::Det3(J) * r_integration_points[i].Weight();
+            volume += MathUtils<double>::Det3(J) * r_integration_points[i].Weight();
         }
 
         return volume;

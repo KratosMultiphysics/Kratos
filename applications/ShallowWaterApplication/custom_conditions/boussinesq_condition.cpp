@@ -81,8 +81,8 @@ void BoussinesqCondition<TNumNodes>::AddDispersionProjection(
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
         normal_i = rData.normal * rN[i];
-        MathUtils::AddVector(rDispersionH, Weight*normal_i*Jh, 3*i);
-        MathUtils::AddVector(rDispersionU, Weight*normal_i*Ju, 3*i);
+        MathUtils<double>::AddVector(rDispersionH, Weight*normal_i*Jh, 3*i);
+        MathUtils<double>::AddVector(rDispersionU, Weight*normal_i*Ju, 3*i);
     }
 }
 
@@ -112,7 +112,7 @@ void BoussinesqCondition<TNumNodes>::CalculateShapeFunctionDerivatives(
         rParentGeometry.PointLocalCoordinates(local_coordinates, rPoint);
         rParentGeometry.ShapeFunctionsLocalGradients(local_gradients, local_coordinates);
         rParentGeometry.Jacobian(J, local_coordinates);
-        MathUtils::InvertMatrix(J, J_inv, det_J);
+        MathUtils<double>::InvertMatrix(J, J_inv, det_J);
         noalias(rDN_DX) = prod(local_gradients, J_inv);
     }
 }

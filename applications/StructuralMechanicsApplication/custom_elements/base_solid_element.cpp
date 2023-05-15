@@ -633,7 +633,7 @@ void BaseSolidElement::CalculateMassMatrix(
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             GeometryUtils::JacobianOnInitialConfiguration(
                 r_geom, integration_points[point_number], J0);
-            const double detJ0 = MathUtils::Det(J0);
+            const double detJ0 = MathUtils<double>::Det(J0);
             const double integration_weight =
                 GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
             const Vector& rN = row(Ncontainer,point_number);
@@ -870,7 +870,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     // Calculate inverse of material matrix
                     Matrix invD(strain_size,strain_size);
                     double detD;
-                    MathUtils::InvertMatrix(this_constitutive_variables.D, invD,detD);
+                    MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
 
                     // Calculate error_energy
                     rOutput[point_number] = integration_weight * inner_prod(error_sigma, prod(invD, error_sigma));
@@ -964,7 +964,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 const array_1d<double, 3> r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
                 const array_1d<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
                 for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
-                    noalias(rOutput[point_number]) = MathUtils::CrossProduct(r_local_axis_1, local_axis_2);
+                    noalias(rOutput[point_number]) = MathUtils<double>::CrossProduct(r_local_axis_1, local_axis_2);
             }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
@@ -1177,7 +1177,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size2() != dimension )
                     rOutput[point_number].resize( dimension, dimension, false );
 
-                noalias(rOutput[point_number]) = MathUtils::StressVectorToTensor(stress_vector[point_number]);
+                noalias(rOutput[point_number]) = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
             }
         }
         else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
@@ -1192,7 +1192,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size2() != dimension )
                     rOutput[point_number].resize( dimension, dimension, false );
 
-                noalias(rOutput[point_number]) = MathUtils::StrainVectorToTensor(strain_vector[point_number]);
+                noalias(rOutput[point_number]) = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
             }
         } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
             const bool is_rotated = IsElementRotated();
@@ -1579,7 +1579,7 @@ void BaseSolidElement::BuildRotationSystem(
 
     if (StrainSize == 6) {
         noalias(local_axis_2) = this->GetValue(LOCAL_AXIS_2);
-        noalias(local_axis_3) = MathUtils::CrossProduct(r_local_axis_1, local_axis_2);
+        noalias(local_axis_3) = MathUtils<double>::CrossProduct(r_local_axis_1, local_axis_2);
     } else if (StrainSize == 3) { // we assume xy plane
         local_axis_2[0] = r_local_axis_1[1];
         local_axis_2[1] = -r_local_axis_1[0];
@@ -1618,7 +1618,7 @@ void BaseSolidElement::RotateToLocalAxes(
     } else { // Rotate F
         BoundedMatrix<double, 3, 3> inv_rotation_matrix;
         double aux_det;
-        MathUtils::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
+        MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
         rThisKinematicVariables.F = prod(rotation_matrix, rThisKinematicVariables.F);
         rThisKinematicVariables.F = prod(rThisKinematicVariables.F, inv_rotation_matrix);
         rValues.SetDeformationGradientF(rThisKinematicVariables.F);
@@ -1670,7 +1670,7 @@ void BaseSolidElement::RotateToGlobalAxes(
     if (!UseElementProvidedStrain()) {
         BoundedMatrix<double, 3, 3> inv_rotation_matrix;
         double aux_det;
-        MathUtils::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
+        MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
         rThisKinematicVariables.F = prod(inv_rotation_matrix, rThisKinematicVariables.F);
         rThisKinematicVariables.F = prod(rThisKinematicVariables.F, rotation_matrix);
         rValues.SetDeformationGradientF(rThisKinematicVariables.F);
@@ -1740,7 +1740,7 @@ double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
         GeometryUtils::JacobianOnInitialConfiguration(
             r_geom,
             this->IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
-        MathUtils::InvertMatrix(rJ0, rInvJ0, detJ0);
+        MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
         const Matrix& rDN_De =
             GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
         GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
@@ -1748,7 +1748,7 @@ double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
         const auto& integration_points =  this->IntegrationPoints();
         GeometryUtils::JacobianOnInitialConfiguration(
             r_geom, integration_points[PointNumber],rJ0);
-        MathUtils::InvertMatrix(rJ0, rInvJ0, detJ0);
+        MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
         Matrix DN_De;
         GetGeometry().ShapeFunctionsLocalGradients(DN_De, integration_points[PointNumber]);
         GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ0, rDN_DX);
@@ -1771,14 +1771,14 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
     if (UseGeometryIntegrationMethod()) {
         rJ = GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
         const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-        MathUtils::InvertMatrix( rJ, rInvJ, detJ );
+        MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
         GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     } else{
         const auto& integration_points =  this->IntegrationPoints();
         rJ = GetGeometry().Jacobian( rJ, integration_points[PointNumber] );
         Matrix DN_De;
         GetGeometry().ShapeFunctionsLocalGradients(DN_De, integration_points[PointNumber]);
-        MathUtils::InvertMatrix( rJ, rInvJ, detJ );
+        MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
         GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     }
     return detJ;
@@ -1825,10 +1825,10 @@ void BaseSolidElement::CalculateAndAddKg(
     KRATOS_TRY
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix stress_tensor_x_weigth = IntegrationWeight * MathUtils::StressVectorToTensor( StressVector );
+    const Matrix stress_tensor_x_weigth = IntegrationWeight * MathUtils<double>::StressVectorToTensor( StressVector );
     Matrix reduced_Kg(DN_DX.size1(), DN_DX.size1());
-    MathUtils::BDBtProductOperation(reduced_Kg, stress_tensor_x_weigth, DN_DX);
-    MathUtils::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
+    MathUtils<double>::BDBtProductOperation(reduced_Kg, stress_tensor_x_weigth, DN_DX);
+    MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
 
     KRATOS_CATCH( "" )
 }

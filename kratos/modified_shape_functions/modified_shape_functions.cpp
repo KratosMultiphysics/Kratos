@@ -668,7 +668,7 @@ namespace Kratos
                 Matrix aux_grad_sh_func, aux_grad_sh_func_cond, aux_grad_sh_func_local, jac_mat, inv_jac_mat;
                 aux_grad_sh_func_local = r_parent_geom.ShapeFunctionsLocalGradients(aux_grad_sh_func_local, loc_coords);
                 jac_mat = r_parent_geom.Jacobian(jac_mat, loc_coords);
-                MathUtils::InvertMatrix( jac_mat, inv_jac_mat, det_jac );
+                MathUtils<double>::InvertMatrix( jac_mat, inv_jac_mat, det_jac );
                 aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat);
 
                 Matrix aux_grad_sh_func_exp = ZeroMatrix(n_dim, split_edges_size);

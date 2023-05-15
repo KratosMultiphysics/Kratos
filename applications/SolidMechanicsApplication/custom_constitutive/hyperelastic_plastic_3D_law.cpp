@@ -506,7 +506,7 @@ void HyperElasticPlastic3DLaw::CalculatePlasticIsochoricStress( MaterialResponse
 
     mpFlowRule->CalculateReturnMapping( rReturnMappingVariables, rIsoStressMatrix );
 
-    rIsoStressVector = MathUtils::StressTensorToVector( rIsoStressMatrix, rIsoStressVector.size() );
+    rIsoStressVector = MathUtils<double>::StressTensorToVector( rIsoStressMatrix, rIsoStressVector.size() );
 
     //std::cout<<" PLASTICITY "<<rElasticVariables.Plasticity<<" rIsoStressVector "<<rIsoStressVector<<std::endl;
 

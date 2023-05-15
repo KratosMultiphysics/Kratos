@@ -260,7 +260,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 
             double detJacobian;
             BoundedMatrix<double,TDim, TDim> InvertJacobianMatrix;
-            MathUtils::InvertMatrix(JacobianMatrix,
+            MathUtils<double>::InvertMatrix(JacobianMatrix,
                                             InvertJacobianMatrix,
                                             detJacobian);
 
@@ -787,7 +787,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 
             double detJacobian;
             BoundedMatrix<double,TDim, TDim> InvertJacobianMatrix;
-            MathUtils::InvertMatrix(JacobianMatrix,
+            MathUtils<double>::InvertMatrix(JacobianMatrix,
                                             InvertJacobianMatrix,
                                             detJacobian);
 
@@ -899,7 +899,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 
                 double detJacobian;
                 BoundedMatrix<double,TDim, TDim> InvertJacobianMatrix;
-                MathUtils::InvertMatrix(JacobianMatrix,
+                MathUtils<double>::InvertMatrix(JacobianMatrix,
                                                 InvertJacobianMatrix,
                                                 detJacobian);
 
@@ -927,7 +927,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
             Vector AverageStressVector = ZeroVector(VoigtSize);
             AverageStressVector = column(AverageStresses, GPointAlong);
 
-            rOutput[GPointAlong] = MathUtils::StrainVectorToTensor(AverageStressVector);
+            rOutput[GPointAlong] = MathUtils<double>::StrainVectorToTensor(AverageStressVector);
         }
     } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
         //Previous definitions
@@ -977,7 +977,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 
                 double detJacobian;
                 BoundedMatrix<double,TDim, TDim> InvertJacobianMatrix;
-                MathUtils::InvertMatrix(JacobianMatrix,
+                MathUtils<double>::InvertMatrix(JacobianMatrix,
                                                 InvertJacobianMatrix,
                                                 detJacobian);
 
@@ -1002,7 +1002,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
             Vector AverageStrainVector = ZeroVector(VoigtSize);
             AverageStrainVector = column(AverageStrains, GPointAlong);
 
-            rOutput[GPointAlong] = MathUtils::StrainVectorToTensor(AverageStrainVector);
+            rOutput[GPointAlong] = MathUtils<double>::StrainVectorToTensor(AverageStrainVector);
         }
     } else {
         if ( rOutput.size() != mConstitutiveLawVector.size() )

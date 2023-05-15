@@ -253,7 +253,7 @@ namespace Kratos
                 }
             }
 
-            rDeterminantOfJacobian[pnt] = MathUtils::GeneralizedDet(J);
+            rDeterminantOfJacobian[pnt] = MathUtils<double>::GeneralizedDet(J);
         }
     }
 

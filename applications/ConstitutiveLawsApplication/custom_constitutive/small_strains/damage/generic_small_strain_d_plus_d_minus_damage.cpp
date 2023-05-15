@@ -637,7 +637,7 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
                                                                    predictive_stress_vector_compression);
-        rValue = MathUtils::StressVectorToTensor(predictive_stress_vector_tension);
+        rValue = MathUtils<double>::StressVectorToTensor(predictive_stress_vector_tension);
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
@@ -660,7 +660,7 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
                                                                    predictive_stress_vector_tension,
                                                                    predictive_stress_vector_compression);
 
-        rValue = MathUtils::StressVectorToTensor(predictive_stress_vector_compression);
+        rValue = MathUtils<double>::StressVectorToTensor(predictive_stress_vector_compression);
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);

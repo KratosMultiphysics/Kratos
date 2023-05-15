@@ -351,7 +351,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateKinematics(ElementDataType
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ(2,2);
     noalias(InvJ) = ZeroMatrix(2,2);
-    MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //std::cout<<" detJ "<<rVariables.detJ<<" Area "<<2*GetGeometry().DomainSize()<<std::endl;
 
@@ -368,12 +368,12 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateKinematics(ElementDataType
     CalculateDeformationGradient (rVariables.F, rVariables.DN_DX, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
 
     //Determinant of the deformation gradient F
-    rVariables.detF  = MathUtils::Det(rVariables.F);
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj(2,2);
     noalias(Invj) = ZeroMatrix(2,2);
-    MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
     noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
@@ -597,7 +597,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAlmansiStrain(const Matrix
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen ( 3, 3 );
     double det_b=0;
-    MathUtils::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     if( dimension == 2 )
     {

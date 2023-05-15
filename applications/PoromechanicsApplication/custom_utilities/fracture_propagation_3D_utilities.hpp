@@ -1917,14 +1917,14 @@ private:
         noalias(Vy) = LeftPointCoordinates - CenterPoint;
         // Unitary vector in local z direction
         array_1d<double, 3> Vz;
-        MathUtils::CrossProduct(Vz, Vx, Vy);
+        MathUtils<double>::CrossProduct(Vz, Vx, Vy);
         inv_norm = 1.0/norm_2(Vz);
         Vz[0] *= inv_norm;
         Vz[1] *= inv_norm;
         Vz[2] *= inv_norm;
 
         // Unitary vector in local y direction
-        MathUtils::CrossProduct( Vy, Vz, Vx);
+        MathUtils<double>::CrossProduct( Vy, Vz, Vx);
 
         // Rotation Matrix
         rRotationMatrix(0,0) = Vx[0];
@@ -1988,14 +1988,14 @@ private:
         noalias(Vy) = LeftPoint - CenterPoint;
         // Unitary vector in local z direction
         array_1d<double,3> Vz;
-        MathUtils::CrossProduct(Vz,Vx,Vy);
+        MathUtils<double>::CrossProduct(Vz,Vx,Vy);
         inv_norm = 1.0/norm_2(Vz);
         Vz[0] *= inv_norm;
         Vz[1] *= inv_norm;
         Vz[2] *= inv_norm;
 
         // Unitary vector in local y direction
-        MathUtils::CrossProduct(Vy, Vz, Vx);
+        MathUtils<double>::CrossProduct(Vy, Vz, Vx);
 
         // Rotation Matrix
         rAuxPropagationVariables.RotationMatrix(0,0) = Vx[0];

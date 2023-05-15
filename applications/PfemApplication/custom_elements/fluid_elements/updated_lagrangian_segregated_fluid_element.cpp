@@ -531,17 +531,17 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateKinematics(ElementDataTyp
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Deformation Gradient F [dx_n+1/dx_n] to be updated
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
     //Determinant of the deformation gradient F
-    rVariables.detF  = MathUtils::Det(rVariables.F);
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
-    MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
     noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
@@ -1048,9 +1048,9 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddKvvg(MatrixType& rL
   KRATOS_TRY
 
   SizeType dimension = GetGeometry().WorkingSpaceDimension();
-  Matrix StressTensor = MathUtils::StressVectorToTensor( rVariables.StressVector );
+  Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
   Matrix ReducedKg = prod( rVariables.DN_DX, rVariables.IntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
-  MathUtils::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
+  MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
 
   KRATOS_CATCH( "" )
 }
@@ -1617,7 +1617,7 @@ void UpdatedLagrangianSegregatedFluidElement::GetFaceNormal(const std::vector<Si
       v2[1] = GetGeometry()[rFace[2]].Y() - GetGeometry()[rFace[0]].Y();
       v2[2] = GetGeometry()[rFace[2]].Z() - GetGeometry()[rFace[0]].Z();
 
-      MathUtils::CrossProduct(rNormal,v1,v2);
+      MathUtils<double>::CrossProduct(rNormal,v1,v2);
       double norm = norm_2(rNormal);
       if( norm != 0 )
         rNormal /= norm_2(rNormal);

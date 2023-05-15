@@ -184,7 +184,7 @@ namespace Kratos
 
       //calculating the inverse
       double det_b=0;
-      MathUtils::InvertMatrix( LeftCauchyGreen, rInverseLeftCauchyGreen, det_b);
+      MathUtils<double>::InvertMatrix( LeftCauchyGreen, rInverseLeftCauchyGreen, det_b);
     }
 
         /**
@@ -284,7 +284,7 @@ namespace Kratos
 
       // Matrix StrainMatrix(3,3);
       // CalculateGreenLagrangeStrain(rDeformationGradientF, StrainMatrix);
-      // noalias(rStrainVector) = MathUtils::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
+      // noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
 
     }
 
@@ -320,7 +320,7 @@ namespace Kratos
     {
       double I3 = 0;
       Matrix InverseLeftCauchyGreen;
-      MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, I3 );
+      MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, I3 );
       InverseLeftCauchyToAlmansiStrain( InverseLeftCauchyGreen, rStrainVector );
     }
 
@@ -365,7 +365,7 @@ namespace Kratos
 
       // Matrix StrainMatrix(3,3);
       // CalculateAlmansiStrain(rDeformationGradientF, StrainMatrix);
-      // noalias(rStrainVector) = MathUtils::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
+      // noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
 
     }
 
@@ -388,7 +388,7 @@ namespace Kratos
 
       // Matrix StrainMatrix(3,3);
       // CalculateAlmansiStrain(rDeformationGradientF, StrainMatrix);
-      // noalias(rStrainVector) = MathUtils::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
+      // noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector( StrainMatrix, rStrainVector.size() );
 
     }
 
@@ -1359,7 +1359,7 @@ namespace Kratos
 
       Matrix InverseF ( 3, 3 );
       double detF = 0;
-      MathUtils::InvertMatrix( rF, InverseF, detF);
+      MathUtils<double>::InvertMatrix( rF, InverseF, detF);
 
       ConstitutiveMatrixTransformation( rConstitutiveMatrix, OriginalConstitutiveMatrix, InverseF );
     }

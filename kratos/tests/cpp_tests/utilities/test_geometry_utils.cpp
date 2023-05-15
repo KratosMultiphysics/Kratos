@@ -295,7 +295,7 @@ namespace Testing {
         // Computing
         double detJ0;
         Matrix InvJ0(2, 2);
-        MathUtils::InvertMatrix(J0, InvJ0, detJ0);
+        MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
         Matrix DN_De(3, 2);
         triangle.ShapeFunctionsLocalGradients( DN_De, integration_points[0].Coordinates() );
         Matrix DN_DX(3, 2);

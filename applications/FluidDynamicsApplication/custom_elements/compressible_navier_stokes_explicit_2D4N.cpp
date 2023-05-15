@@ -250,7 +250,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
 
         double detJ;
         r_geometry.Jacobian(J, gauss_point.Coordinates());
-        MathUtils::InvertMatrix(J, Jinv, detJ);
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
         r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
         GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
@@ -333,7 +333,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
 
         double detJ;
         r_geometry.Jacobian(J, gauss_point.Coordinates());
-        MathUtils::InvertMatrix(J, Jinv, detJ);
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
         r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
         GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
@@ -387,7 +387,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
 
         double detJ;
         r_geometry.Jacobian(J, gauss_point.Coordinates());
-        MathUtils::InvertMatrix(J, Jinv, detJ);
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
         r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
         GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
@@ -468,7 +468,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
 
             double detJ;
             r_geometry.Jacobian(J, gauss_point.Coordinates());
-            MathUtils::InvertMatrix(J, Jinv, detJ);
+            MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
             r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
             GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
@@ -759,7 +759,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
 
             double detJ;
             r_geometry.Jacobian(J, gauss_point.Coordinates());
-            MathUtils::InvertMatrix(J, Jinv, detJ);
+            MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
             r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
             GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
@@ -1065,7 +1065,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMassMatrix(
 
         double detJ;
         r_geometry.Jacobian(J, gauss_point.Coordinates());
-        MathUtils::InvertMatrix(J, Jinv, detJ);
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
         noalias(M) += outer_prod(N, N) * detJ * w;
     }

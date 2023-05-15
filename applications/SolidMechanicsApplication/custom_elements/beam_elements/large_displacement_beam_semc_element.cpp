@@ -520,7 +520,7 @@ namespace Kratos
       BeamMathUtilsType::VectorToSkewSymmetricTensor( InertiaxRotationVector, InertiaxRotationTensor );
 
       Vector RotationxInertiaRotationVector;
-      MathUtils::CrossProduct(RotationxInertiaRotationVector, CurrentStepRotationVector, InertiaxRotationVector);
+      MathUtils<double>::CrossProduct(RotationxInertiaRotationVector, CurrentStepRotationVector, InertiaxRotationVector);
       //Vector RotationxInertiaRotationVector = prod(RotationTensor,InertiaxRotationVector);
 
       // (3) tangent:
@@ -648,7 +648,7 @@ namespace Kratos
       // (2) rotation and inertia terms:
       Vector InertiaxRotationVector = prod(InertiaDyadic, CurrentStepRotationVector);
       Vector RotationxInertiaRotationVector;
-      MathUtils::CrossProduct(RotationxInertiaRotationVector, CurrentStepRotationVector, InertiaxRotationVector);
+      MathUtils<double>::CrossProduct(RotationxInertiaRotationVector, CurrentStepRotationVector, InertiaxRotationVector);
 
       // (3) residual:
       Residual  = c1 * InertiaxRotationVector + c2 * RotationxInertiaRotationVector;

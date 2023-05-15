@@ -491,32 +491,32 @@ void WaveElement<TNumNodes>::AddWaveTerms(
             }
 
             /// First component
-            MathUtils::AddMatrix(rMatrix,  Weight*g1_ij*rData.A1, 3*i, 3*j);
-            MathUtils::AddVector(rVector, -Weight*g1_ij*rData.b1*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*g1_ij*rData.A1, 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*g1_ij*rData.b1*z[j], 3*i);
 
             /// Second component
-            MathUtils::AddMatrix(rMatrix,  Weight*g2_ij*rData.A2, 3*i, 3*j);
-            MathUtils::AddVector(rVector, -Weight*g2_ij*rData.b2*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*g2_ij*rData.A2, 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*g2_ij*rData.b2*z[j], 3*i);
 
             /// Stabilization x-x
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            MathUtils::AddMatrix(rMatrix,  Weight*l*d_ij*AA11, 3*i, 3*j);
-            MathUtils::AddVector(rVector, -Weight*l*d_ij*Ab11*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*l*d_ij*AA11, 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*Ab11*z[j], 3*i);
 
             /// Stabilization y-y
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            MathUtils::AddMatrix(rMatrix,  Weight*l*d_ij*AA22, 3*i, 3*j);
-            MathUtils::AddVector(rVector, -Weight*l*d_ij*Ab22*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*l*d_ij*AA22, 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*Ab22*z[j], 3*i);
 
             /// Stabilization x-y
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            MathUtils::AddMatrix(rMatrix,  Weight*l*d_ij*AA12, 3*i, 3*j);
-            MathUtils::AddVector(rVector, -Weight*l*d_ij*Ab12*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*l*d_ij*AA12, 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*Ab12*z[j], 3*i);
 
             /// Stabilization y-x
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            MathUtils::AddMatrix(rMatrix,  Weight*l*d_ij*AA21, 3*i, 3*j);
-            MathUtils::AddVector(rVector, -Weight*l*d_ij*Ab21*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*l*d_ij*AA21, 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*Ab21*z[j], 3*i);
         }
     }
 }
@@ -547,17 +547,17 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
-        MathUtils::AddMatrix(rMatrix, Weight*lumping_factor*Sf, 3*i, 3*i);
+        MathUtils<double>::AddMatrix(rMatrix, Weight*lumping_factor*Sf, 3*i, 3*i);
 
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            MathUtils::AddMatrix(rMatrix, Weight*l*g1_ij*ASf1, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*ASf1, 3*i, 3*j);
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            MathUtils::AddMatrix(rMatrix, Weight*l*g2_ij*ASf2, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*ASf2, 3*i, 3*j);
         }
     }
 }
@@ -613,7 +613,7 @@ void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
             bjh[1] = rDN_DX(j,1);
 
             tmp = prod(D, trans(bjq));
-            MathUtils::AddMatrix(rMatrix, Weight*prod(biq, tmp), 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*prod(biq, tmp), 3*i, 3*j);
             rMatrix(3*i + 2, 3*j + 2) += inner_prod(bih, Weight*prod(C, bjh));
             // rVector[3*i + 2]          -= inner_prod(bih, Weight*prod(C, bjh)) * rData.nodal_z[j];
         }
@@ -638,15 +638,15 @@ void WaveElement<TNumNodes>::AddMassTerms(
         {
             // Consistent mass matrix
             const double n_ij = ShapeFunctionProduct(rN, i, j);//rN[i] * rN[j];
-            MathUtils::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
 
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            MathUtils::AddMatrix(rMatrix, Weight*l*g1_ij*trans(rData.A1), 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*trans(rData.A1), 3*i, 3*j);
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            MathUtils::AddMatrix(rMatrix, Weight*l*g2_ij*trans(rData.A2), 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*trans(rData.A2), 3*i, 3*j);
         }
     }
 }

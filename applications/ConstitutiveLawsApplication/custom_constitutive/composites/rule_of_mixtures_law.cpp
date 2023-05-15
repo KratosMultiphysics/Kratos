@@ -1100,9 +1100,9 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
         if (rValues.IsSetDeterminantF()) {
             // we push forward the stress
             Matrix stress_matrix(Dimension, Dimension);
-            noalias(stress_matrix) = MathUtils::StressVectorToTensor(r_stress_vector);
+            noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_stress_vector);
             ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
-            noalias(r_stress_vector) = MathUtils::StressTensorToVector( stress_matrix, r_stress_vector.size() );
+            noalias(r_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_stress_vector.size() );
         }
 
         if (flag_const_tensor) {

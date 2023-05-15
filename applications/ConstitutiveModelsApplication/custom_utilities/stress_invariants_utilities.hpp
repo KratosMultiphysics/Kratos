@@ -77,12 +77,12 @@ namespace Kratos
          static inline void CalculateStressInvariants( const Vector& rStress, double& I1, double& J2, double& Lode)
          {
             CalculateStressInvariants( rStress, I1, J2);
-            Matrix StressTensor  = MathUtils::StressVectorToTensor( rStress);
+            Matrix StressTensor  = MathUtils<double>::StressVectorToTensor( rStress);
 
             for (unsigned int i = 0; i < 3; ++i)
                StressTensor(i,i) -= I1;
 
-            Lode = MathUtils::Det(StressTensor);
+            Lode = MathUtils<double>::Det(StressTensor);
             Lode = 3.0 * sqrt(3.0) / 2.0 * Lode / pow( J2, 3);
 
             double epsi = 1.0e-9;
@@ -177,13 +177,13 @@ namespace Kratos
                C3(i) += pow(J2, 2) / 3.0;
 
             Matrix Aux, ShearStressM;
-            ShearStressM = MathUtils::StressVectorToTensor( ShearStress);
+            ShearStressM = MathUtils<double>::StressVectorToTensor( ShearStress);
             Aux = prod(  ShearStressM, ShearStressM);
 
             for (unsigned int i = 0; i < 3; i++)
                Aux(i,i) -= 1.0/3.0 * 2.0 * pow( J2 , 2);
 
-            C3 = MathUtils::StrainTensorToVector( Aux, 6);
+            C3 = MathUtils<double>::StrainTensorToVector( Aux, 6);
 
 
          }

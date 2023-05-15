@@ -412,7 +412,7 @@ namespace Kratos {
             }
         }
 
-        //mod_angular_velocity = MathUtils::Norm3(angular_velocity);
+        //mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
 
         new_axes1[0] = 1.0;
         new_axes1[1] = 0.0;
@@ -428,7 +428,7 @@ namespace Kratos {
 
         if (mod_angular_velocity > 0.0) {
 
-            double ang = sign_angle * MathUtils::Norm3(angle);
+            double ang = sign_angle * MathUtils<double>::Norm3(angle);
             array_1d<double, 3> rotation_axis;
             noalias(rotation_axis) = angular_velocity / mod_angular_velocity;
             array_1d<double, 3> e1;
@@ -451,7 +451,7 @@ namespace Kratos {
                                                               array_1d<double, 3>& linear_velocity_changed, array_1d<double, 3>& center_position,
                                                               const bool fixed_mesh, const double dt, ModelPart::NodesContainerType& pNodes)
     {
-        if (mod_angular_velocity > std::numeric_limits<double>::epsilon() || MathUtils::Norm3(linear_velocity) > std::numeric_limits<double>::epsilon()) {
+        if (mod_angular_velocity > std::numeric_limits<double>::epsilon() || MathUtils<double>::Norm3(linear_velocity) > std::numeric_limits<double>::epsilon()) {
 
             #pragma omp parallel for
             for (int k = 0; k < (int)pNodes.size(); k++) {

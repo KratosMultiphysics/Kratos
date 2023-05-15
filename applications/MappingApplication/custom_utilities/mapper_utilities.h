@@ -219,9 +219,9 @@ bool PointsAreCollinear(
     const T3& rP3)
 {
     // TODO this can probably be optimized
-    const double a = MathUtils::Norm3(rP1-rP2);
-    const double b = MathUtils::Norm3(rP2-rP3);
-    const double c = MathUtils::Norm3(rP3-rP1);
+    const double a = MathUtils<double>::Norm3(rP1-rP2);
+    const double b = MathUtils<double>::Norm3(rP2-rP3);
+    const double c = MathUtils<double>::Norm3(rP3-rP1);
 
     const double s = (a+b+c) / 2.0;
 

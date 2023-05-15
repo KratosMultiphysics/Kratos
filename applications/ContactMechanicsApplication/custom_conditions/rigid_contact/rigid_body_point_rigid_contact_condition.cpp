@@ -592,7 +592,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddNormalContactForce(Vect
 
   VectorType ContactTorque = ZeroVector(3);
 
-  //ContactTorque = MathUtils::CrossProduct( rVariables.CentroidPosition, ContactForceVector);
+  //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);
   //std::cout<<" [ContactTorqueA]: "<<ContactTorque;
 
   ContactTorque = prod(rVariables.SkewSymDistance,ContactForceVector); //  = (D x F)
@@ -653,7 +653,7 @@ void RigidBodyPointRigidContactCondition::CalculateAndAddTangentContactForce(Vec
 
   VectorType ContactTorque = ZeroVector(3);
 
-  //ContactTorque = MathUtils::CrossProduct( rVariables.CentroidPosition, ContactForceVector);
+  //ContactTorque = MathUtils<double>::CrossProduct( rVariables.CentroidPosition, ContactForceVector);
   ContactTorque = prod(rVariables.SkewSymDistance,ContactForceVector); //  = (D x F)
 
   // std::cout<<" [ContactTorque]: "<<ContactTorque;

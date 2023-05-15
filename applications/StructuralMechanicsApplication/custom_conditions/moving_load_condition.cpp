@@ -313,10 +313,10 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateRotationMatrix(BoundedMatri
 
     // Unitary vector in local y direction
     if (std::fabs(vx[0]) < tolerance && std::fabs(vx[1]) < tolerance) {
-        MathUtils::CrossProduct(vy, vy_tmp, vx);
+        MathUtils<double>::CrossProduct(vy, vy_tmp, vx);
     }
     else {
-        MathUtils::CrossProduct(vy, vz_tmp, vx);
+        MathUtils<double>::CrossProduct(vy, vz_tmp, vx);
     }
 
     // set 3d part of Rotation Matrix
@@ -330,7 +330,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateRotationMatrix(BoundedMatri
         vy[2] *= inv_norm_y;
 
         // Unitary vector in local z direction
-        MathUtils::CrossProduct(vz, vx, vy);
+        MathUtils<double>::CrossProduct(vz, vx, vy);
         const double inv_norm_z = 1.0 / norm_2(vz);
         if (inv_norm_z > tolerance) {
             vz[0] *= inv_norm_z;

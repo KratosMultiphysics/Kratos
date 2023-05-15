@@ -354,7 +354,7 @@ void GeometryUtilities::CalculateNodalAreasFromConditions()
     block_for_each(mrModelPart.Nodes(), [&](Node& rNode)
     {
         const array_1d<double,3> normal = rNode.FastGetSolutionStepValue(NORMAL);
-        rNode.FastGetSolutionStepValue(NODAL_AREA) = MathUtils::Norm3(normal);
+        rNode.FastGetSolutionStepValue(NODAL_AREA) = MathUtils<double>::Norm3(normal);
 
     });
 
@@ -503,7 +503,7 @@ double GeometryUtilities::GaussianCurvatureForNodeFromTensor(const NodeType &rNo
         }
     }
     b_total /= counter;
-    double gaussian_curvature = MathUtils::Det2(b_total);
+    double gaussian_curvature = MathUtils<double>::Det2(b_total);
 
     return gaussian_curvature;
 }
@@ -538,7 +538,7 @@ double GeometryUtilities::GaussianCurvatureForNodeTaubin(const NodeType &rNode) 
     Vector A3_p = rNode.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
     Vector A1_p = ZeroVector(3);
     Vector A2_p = ZeroVector(3);
-    MathUtils::OrthonormalBasis(A3_p, A1_p, A2_p);
+    MathUtils<double>::OrthonormalBasis(A3_p, A1_p, A2_p);
     Vector curvature_tensor = ZeroVector(3);
     double area_sum = 0;
     for (const auto& r_condition_neighbour : r_condition_neighbours) {
@@ -551,18 +551,18 @@ double GeometryUtilities::GaussianCurvatureForNodeTaubin(const NodeType &rNode) 
         for (const auto& r_element_node : r_condition_neighbour->GetGeometry()) {
             if (r_element_node.Id() == rNode.Id()) continue;
             Vector r_i = r_element_node - rNode.Coordinates();
-            Vector t_i = r_i - A3_p * (MathUtils::Dot3(A3_p, r_i));
-            t_i /= MathUtils::Norm3(t_i);
-            kappa_Qi(i) = 2 * MathUtils::Dot3(A3_p, r_i) / (MathUtils::Norm3(r_i)*MathUtils::Norm3(r_i));
-            a_i(i) = MathUtils::Dot3(t_i, A1_p);
-            b_i(i) = MathUtils::Dot3(t_i, A2_p);
+            Vector t_i = r_i - A3_p * (MathUtils<double>::Dot3(A3_p, r_i));
+            t_i /= MathUtils<double>::Norm3(t_i);
+            kappa_Qi(i) = 2 * MathUtils<double>::Dot3(A3_p, r_i) / (MathUtils<double>::Norm3(r_i)*MathUtils<double>::Norm3(r_i));
+            a_i(i) = MathUtils<double>::Dot3(t_i, A1_p);
+            b_i(i) = MathUtils<double>::Dot3(t_i, A2_p);
             A(i, 0) = a_i(i) * a_i(i);
             A(i, 1) = 2 * a_i(i) * b_i(i);
             A(i, 2) = b_i(i) * b_i(i);
             ++i;
         }
         Vector curvature_tensor_element = ZeroVector(3);
-        MathUtils::Solve(A, curvature_tensor_element, kappa_Qi);
+        MathUtils<double>::Solve(A, curvature_tensor_element, kappa_Qi);
         area_sum += r_condition_neighbour->GetGeometry().Area();
         curvature_tensor += r_condition_neighbour->GetGeometry().Area() * curvature_tensor_element;
     }
@@ -651,9 +651,9 @@ void GeometryUtilities::CartesianBaseVectors(const NodeType& rNode, const Kratos
     GeometryUtilities::BaseVectors(rNode, pElement, g_1, g_2);
 
     // local cartesian basis e_i
-    Vector e_1 = g_1 / MathUtils::Norm3(g_1);
-    Vector e_2 = g_2 - MathUtils::Dot3(g_2, e_1) * e_1;
-    e_2 /= MathUtils::Norm3(e_2);
+    Vector e_1 = g_1 / MathUtils<double>::Norm3(g_1);
+    Vector e_2 = g_2 - MathUtils<double>::Dot3(g_2, e_1) * e_1;
+    e_2 /= MathUtils<double>::Norm3(e_2);
 
     rE1 = e_1;
     rE2 = e_2;
@@ -683,15 +683,15 @@ Matrix GeometryUtilities::CurvatureTensor(const NodeType& rNode, const Kratos::G
     }
 
     Vector g_3 = ZeroVector(3);
-    g_3 = MathUtils::CrossProduct(g_1, g_2);
-    g_3 *=  1 / MathUtils::Norm3(g_3);
+    g_3 = MathUtils<double>::CrossProduct(g_1, g_2);
+    g_3 *=  1 / MathUtils<double>::Norm3(g_3);
 
     // curvature tensor coefficients
     Matrix b(2,2);
-    b(0, 0) = MathUtils::Dot3(dg_1_du, g_3);
-    b(1, 0) = MathUtils::Dot3(dg_2_du, g_3);
-    b(0, 1) = MathUtils::Dot3(dg_1_dv, g_3);
-    b(1, 1) = MathUtils::Dot3(dg_2_dv, g_3);
+    b(0, 0) = MathUtils<double>::Dot3(dg_1_du, g_3);
+    b(1, 0) = MathUtils<double>::Dot3(dg_2_du, g_3);
+    b(0, 1) = MathUtils<double>::Dot3(dg_1_dv, g_3);
+    b(1, 1) = MathUtils<double>::Dot3(dg_2_dv, g_3);
 
     return b;
 }
@@ -701,35 +701,35 @@ void GeometryUtilities::TransformTensorCoefficients(Matrix& rTensor, Matrix& rRe
     Vector contra_G1 = ZeroVector(3);
     Vector contra_G2 = ZeroVector(3);
     Matrix covariant_metric(2,2);
-    covariant_metric(0,0) = MathUtils::Dot3(rG1, rG1);
-    covariant_metric(1,0) = MathUtils::Dot3(rG2, rG1);
-    covariant_metric(0,1) = MathUtils::Dot3(rG1, rG2);
-    covariant_metric(1,1) = MathUtils::Dot3(rG2, rG2);
+    covariant_metric(0,0) = MathUtils<double>::Dot3(rG1, rG1);
+    covariant_metric(1,0) = MathUtils<double>::Dot3(rG2, rG1);
+    covariant_metric(0,1) = MathUtils<double>::Dot3(rG1, rG2);
+    covariant_metric(1,1) = MathUtils<double>::Dot3(rG2, rG2);
     Matrix contravariant_metric(2,2);
     double det;
-    MathUtils::InvertMatrix2(covariant_metric, contravariant_metric, det);
+    MathUtils<double>::InvertMatrix2(covariant_metric, contravariant_metric, det);
     contra_G1 = contravariant_metric(0,0) * rG1 + contravariant_metric(1,0) * rG2;
     contra_G2 = contravariant_metric(0,1) * rG1 + contravariant_metric(1,1) * rG2;
 
-    rResultTensor(0,0) = rTensor(0, 0) * MathUtils::Dot3(rE1, contra_G1) * MathUtils::Dot3(contra_G1, rE1);
-    rResultTensor(0,0) += rTensor(1, 0) * MathUtils::Dot3(rE1, contra_G2) * MathUtils::Dot3(contra_G1, rE1);
-    rResultTensor(0,0) += rTensor(0, 1) * MathUtils::Dot3(rE1, contra_G1) * MathUtils::Dot3(contra_G2, rE1);
-    rResultTensor(0,0) += rTensor(1, 1) * MathUtils::Dot3(rE1, contra_G2) * MathUtils::Dot3(contra_G2, rE1);
+    rResultTensor(0,0) = rTensor(0, 0) * MathUtils<double>::Dot3(rE1, contra_G1) * MathUtils<double>::Dot3(contra_G1, rE1);
+    rResultTensor(0,0) += rTensor(1, 0) * MathUtils<double>::Dot3(rE1, contra_G2) * MathUtils<double>::Dot3(contra_G1, rE1);
+    rResultTensor(0,0) += rTensor(0, 1) * MathUtils<double>::Dot3(rE1, contra_G1) * MathUtils<double>::Dot3(contra_G2, rE1);
+    rResultTensor(0,0) += rTensor(1, 1) * MathUtils<double>::Dot3(rE1, contra_G2) * MathUtils<double>::Dot3(contra_G2, rE1);
 
-    rResultTensor(1,0) = rTensor(0, 0) * MathUtils::Dot3(rE2, contra_G1) * MathUtils::Dot3(contra_G1, rE1);
-    rResultTensor(1,0) += rTensor(1, 0) * MathUtils::Dot3(rE2, contra_G2) * MathUtils::Dot3(contra_G1, rE1);
-    rResultTensor(1,0) += rTensor(0, 1) * MathUtils::Dot3(rE2, contra_G1) * MathUtils::Dot3(contra_G2, rE1);
-    rResultTensor(1,0) += rTensor(1, 1) * MathUtils::Dot3(rE2, contra_G2) * MathUtils::Dot3(contra_G2, rE1);
+    rResultTensor(1,0) = rTensor(0, 0) * MathUtils<double>::Dot3(rE2, contra_G1) * MathUtils<double>::Dot3(contra_G1, rE1);
+    rResultTensor(1,0) += rTensor(1, 0) * MathUtils<double>::Dot3(rE2, contra_G2) * MathUtils<double>::Dot3(contra_G1, rE1);
+    rResultTensor(1,0) += rTensor(0, 1) * MathUtils<double>::Dot3(rE2, contra_G1) * MathUtils<double>::Dot3(contra_G2, rE1);
+    rResultTensor(1,0) += rTensor(1, 1) * MathUtils<double>::Dot3(rE2, contra_G2) * MathUtils<double>::Dot3(contra_G2, rE1);
 
-    rResultTensor(0,1) = rTensor(0, 0) * MathUtils::Dot3(rE1, contra_G1) * MathUtils::Dot3(contra_G1, rE2);
-    rResultTensor(0,1) += rTensor(1, 0) * MathUtils::Dot3(rE1, contra_G2) * MathUtils::Dot3(contra_G1, rE2);
-    rResultTensor(0,1) += rTensor(0, 1) * MathUtils::Dot3(rE1, contra_G1) * MathUtils::Dot3(contra_G2, rE2);
-    rResultTensor(0,1) += rTensor(1, 1) * MathUtils::Dot3(rE1, contra_G2) * MathUtils::Dot3(contra_G2, rE2);
+    rResultTensor(0,1) = rTensor(0, 0) * MathUtils<double>::Dot3(rE1, contra_G1) * MathUtils<double>::Dot3(contra_G1, rE2);
+    rResultTensor(0,1) += rTensor(1, 0) * MathUtils<double>::Dot3(rE1, contra_G2) * MathUtils<double>::Dot3(contra_G1, rE2);
+    rResultTensor(0,1) += rTensor(0, 1) * MathUtils<double>::Dot3(rE1, contra_G1) * MathUtils<double>::Dot3(contra_G2, rE2);
+    rResultTensor(0,1) += rTensor(1, 1) * MathUtils<double>::Dot3(rE1, contra_G2) * MathUtils<double>::Dot3(contra_G2, rE2);
 
-    rResultTensor(1,1) = rTensor(0, 0) * MathUtils::Dot3(rE2, contra_G1) * MathUtils::Dot3(contra_G1, rE2);
-    rResultTensor(1,1) += rTensor(1, 0) * MathUtils::Dot3(rE2, contra_G2) * MathUtils::Dot3(contra_G1, rE2);
-    rResultTensor(1,1) += rTensor(0, 1) * MathUtils::Dot3(rE2, contra_G1) * MathUtils::Dot3(contra_G2, rE2);
-    rResultTensor(1,1) += rTensor(1, 1) * MathUtils::Dot3(rE2, contra_G2) * MathUtils::Dot3(contra_G2, rE2);
+    rResultTensor(1,1) = rTensor(0, 0) * MathUtils<double>::Dot3(rE2, contra_G1) * MathUtils<double>::Dot3(contra_G1, rE2);
+    rResultTensor(1,1) += rTensor(1, 0) * MathUtils<double>::Dot3(rE2, contra_G2) * MathUtils<double>::Dot3(contra_G1, rE2);
+    rResultTensor(1,1) += rTensor(0, 1) * MathUtils<double>::Dot3(rE2, contra_G1) * MathUtils<double>::Dot3(contra_G2, rE2);
+    rResultTensor(1,1) += rTensor(1, 1) * MathUtils<double>::Dot3(rE2, contra_G2) * MathUtils<double>::Dot3(contra_G2, rE2);
 }
 
 void GeometryUtilities::InnerAngleAndMixedAreaOf3D3NTriangletAtNode(const NodeType& rNode, const Kratos::GlobalPointer<Kratos::Condition> pElement, double& rInnerAngle, double& rMixedArea) {

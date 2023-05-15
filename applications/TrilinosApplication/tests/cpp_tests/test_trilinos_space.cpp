@@ -294,7 +294,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperation, KratosTrilin
 
     // Check
     TrilinosLocalMatrixType multiply_reference;
-    MathUtils::BtDBProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
+    MathUtils<double>::BtDBProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
 
     // Non zero matrix
@@ -333,7 +333,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilin
 
     // Check
     TrilinosLocalMatrixType multiply_reference;
-    MathUtils::BDBtProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
+    MathUtils<double>::BDBtProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
 
     // Non zero matrix

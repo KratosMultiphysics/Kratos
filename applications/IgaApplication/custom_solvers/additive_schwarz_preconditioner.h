@@ -291,7 +291,7 @@ private:
         DenseMatrixType M_invert = ZeroMatrix(local_size, local_size);
         M_invert = omega * M_invert;
         //@TODO Replace this by dense solver.
-        MathUtils::InvertMatrix(M, M_invert, M_det, -1e-6);
+        MathUtils<double>::InvertMatrix(M, M_invert, M_det, -1e-6);
 
         for (IndexType i_local = 0; i_local < local_size; ++i_local) {
             const IndexType i_global = rEquationId[i_local];

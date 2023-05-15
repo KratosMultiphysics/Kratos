@@ -118,7 +118,7 @@ void SymmetryRevolution::TransformationMatrix(const size_t DestinationMappingId,
     else if (dot_prod <= -1.0) dot_prod = -1.0;
 
     double angle = acos(dot_prod);
-    if (inner_prod(mAxis, MathUtils::CrossProduct(origin_ortho, destination_ortho)) < 0) { // Or > 0
+    if (inner_prod(mAxis, MathUtils<double>::CrossProduct(origin_ortho, destination_ortho)) < 0) { // Or > 0
         angle = -angle;
     }
 

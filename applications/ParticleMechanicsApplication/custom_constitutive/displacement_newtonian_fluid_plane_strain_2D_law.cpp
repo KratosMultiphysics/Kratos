@@ -69,7 +69,7 @@ void DispNewtonianFluidPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & 
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen = ZeroMatrix( 2, 2 );
     double det_b=0;
-    MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
     rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );

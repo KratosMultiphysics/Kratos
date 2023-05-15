@@ -439,7 +439,7 @@ void HelmholtzSurfThicknessElement::CalculateAvgSurfUnitNormal(VectorType & rNor
         rNormal += r_geom.UnitNormal(point_number,integration_method);
 
     rNormal /= integration_points.size();
-    rNormal /= MathUtils::Norm3(rNormal); 
+    rNormal /= MathUtils<double>::Norm3(rNormal); 
 }
 
 } // Namespace Kratos

@@ -46,7 +46,7 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
         const array_1d<double, 3> x31cell = x3cell - x1cell;
 
         array_1d<double, 3> aux_cross_product;
-        MathUtils::CrossProduct(aux_cross_product, x21cell, x31cell);
+        MathUtils<double>::CrossProduct(aux_cross_product, x21cell, x31cell);
         aux_cross_product /= rVariables.DetjSlave;
 //             aux_cross_product /= norm_2(aux_cross_product);
 
@@ -55,8 +55,8 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
             for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                 const auto& r_local_delta_vertex = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof];
 
-                MathUtils::CrossProduct(aux_delta_cross_product1, row(r_local_delta_vertex, 1) - row(r_local_delta_vertex, 0), x31cell);
-                MathUtils::CrossProduct(aux_delta_cross_product2, x21cell, row(r_local_delta_vertex, 2) - row(r_local_delta_vertex, 0));
+                MathUtils<double>::CrossProduct(aux_delta_cross_product1, row(r_local_delta_vertex, 1) - row(r_local_delta_vertex, 0), x31cell);
+                MathUtils<double>::CrossProduct(aux_delta_cross_product2, x21cell, row(r_local_delta_vertex, 2) - row(r_local_delta_vertex, 0));
 
                 rDerivativeData.DeltaDetjSlave[i_node * TDim + i_dof] = inner_prod(aux_cross_product, aux_delta_cross_product1) + inner_prod(aux_cross_product, aux_delta_cross_product2);
             }
@@ -93,7 +93,7 @@ inline array_1d<array_1d<double, 3>, TDim * TNumNodes> DerivativesUtilities<TDim
     }
 
     array_1d<double, 3> normal;;
-    MathUtils::CrossProduct(normal, j0, j1);
+    MathUtils<double>::CrossProduct(normal, j0, j1);
     const double area_normal_norm = norm_2(normal);
 
     KRATOS_DEBUG_ERROR_IF(area_normal_norm < ZeroTolerance) << "ZERO NORMAL: " << area_normal_norm << std::endl;
@@ -115,8 +115,8 @@ inline array_1d<array_1d<double, 3>, TDim * TNumNodes> DerivativesUtilities<TDim
             if constexpr (TDim == 3)
                 delta_j1[i_dim] += rDNDe(i_node, 1);
 
-            MathUtils::CrossProduct(aux_delta_normal0, j0, delta_j1);
-            MathUtils::CrossProduct(aux_delta_normal1, delta_j0, j1);
+            MathUtils<double>::CrossProduct(aux_delta_normal0, j0, delta_j1);
+            MathUtils<double>::CrossProduct(aux_delta_normal1, delta_j0, j1);
             const array_1d<double, 3> r_aux_delta_normal = aux_delta_normal0 + aux_delta_normal1;
             const double delta_norm = inner_prod(r_aux_delta_normal, normal);
 
@@ -156,7 +156,7 @@ inline array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> DerivativesUtilitie
     }
 
     array_1d<double, 3> normal;;
-    MathUtils::CrossProduct(normal, j0, j1);
+    MathUtils<double>::CrossProduct(normal, j0, j1);
     const double area_normal_norm = norm_2(normal);
 
     KRATOS_DEBUG_ERROR_IF(area_normal_norm < ZeroTolerance) << "ZERO NORMAL: " << area_normal_norm << std::endl;
@@ -178,8 +178,8 @@ inline array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> DerivativesUtilitie
             if constexpr (TDim == 3)
                 delta_j1[i_dim] += rDNDe(i_node, 1);
 
-            MathUtils::CrossProduct(aux_delta_normal0, j0, delta_j1);
-            MathUtils::CrossProduct(aux_delta_normal1, delta_j0, j1);
+            MathUtils<double>::CrossProduct(aux_delta_normal0, j0, delta_j1);
+            MathUtils<double>::CrossProduct(aux_delta_normal1, delta_j0, j1);
             noalias(r_aux_delta_normal) = aux_delta_normal0 + aux_delta_normal1;
             const double delta_norm = inner_prod(r_aux_delta_normal, normal);
 
@@ -459,8 +459,8 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
             noalias(diff3) = xe1 - xs1;
 
             // We compute the denominator and numerator of the clipping
-            MathUtils::CrossProduct(aux_num,   diff1, diff2);
-            MathUtils::CrossProduct(aux_denom, diff3, diff2);
+            MathUtils<double>::CrossProduct(aux_num,   diff1, diff2);
+            MathUtils<double>::CrossProduct(aux_denom, diff3, diff2);
             const double num   = inner_prod(aux_num,   rNormal);
             const double denom = inner_prod(aux_denom, rNormal);
 
@@ -500,14 +500,14 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                     noalias(delta_diff3) = (i_belong == 1) ? LocalDeltaVertex(rNormal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, 1.0) : (i_belong == 0) ? LocalDeltaVertex(rNormal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, - 1.0) : zero_array;
 
                     // We compute now the delta num and denom
-                    MathUtils::CrossProduct(aux_cross_product, delta_diff1, diff2);
+                    MathUtils<double>::CrossProduct(aux_cross_product, delta_diff1, diff2);
                     double delta_num = inner_prod(aux_cross_product, rNormal);
-                    MathUtils::CrossProduct(aux_cross_product, diff1, delta_diff2);
+                    MathUtils<double>::CrossProduct(aux_cross_product, diff1, delta_diff2);
                     delta_num += inner_prod(aux_cross_product, rNormal);
 
-                    MathUtils::CrossProduct(aux_cross_product, delta_diff3, diff2);
+                    MathUtils<double>::CrossProduct(aux_cross_product, delta_diff3, diff2);
                     double delta_denom = inner_prod(aux_cross_product, rNormal);
-                    MathUtils::CrossProduct(aux_cross_product, diff3, delta_diff2);
+                    MathUtils<double>::CrossProduct(aux_cross_product, diff3, delta_diff2);
                     delta_denom += inner_prod(aux_cross_product, rNormal);
 
                     // Finally we add the contributions of delta num and denom
@@ -1164,7 +1164,7 @@ inline array_1d<double, 3> DerivativesUtilities<TDim, TNumNodes, TFrictional, TN
     }
 
     array_1d<double, 3> previous_normal;
-    MathUtils::CrossProduct(previous_normal, tangent_xi, tangent_eta);
+    MathUtils<double>::CrossProduct(previous_normal, tangent_xi, tangent_eta);
     const double norm_normal = norm_2(previous_normal);
     previous_normal /= norm_normal;
     KRATOS_ERROR_IF(norm_normal < ZeroTolerance) << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
@@ -1227,8 +1227,8 @@ inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation,
     const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
     double det_j;
     BoundedMatrix<double, 2, 2> invJ;
-    MathUtils::InvertMatrix(J, invJ, det_j, -1.0);
-    const bool good_condition_number = MathUtils::CheckConditionNumber(J, invJ, std::numeric_limits<double>::epsilon(), false);
+    MathUtils<double>::InvertMatrix(J, invJ, det_j, -1.0);
+    const bool good_condition_number = MathUtils<double>::CheckConditionNumber(J, invJ, std::numeric_limits<double>::epsilon(), false);
     if (!good_condition_number) // Reset in case of bad condition number
         noalias(invJ) = ZeroMatrix(2,2);
 
@@ -1248,8 +1248,8 @@ inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation,
 //
 //     double det_L;
 //     BoundedMatrix<double, 3, 3> invL;
-//     MathUtils::InvertMatrix(L, invL, det_L, -1.0);
-//     const bool good_condition_number = MathUtils::CheckConditionNumber(L, invL, std::numeric_limits<double>::epsilon(), false);
+//     MathUtils<double>::InvertMatrix(L, invL, det_L, -1.0);
+//     const bool good_condition_number = MathUtils<double>::CheckConditionNumber(L, invL, std::numeric_limits<double>::epsilon(), false);
 //     if (!good_condition_number) // Reset in case of bad condition number
 //         noalias(invL) = ZeroMatrix(3,3);
 //     array_1d<double, 3> aux = prod(invL, DeltaPoint);
@@ -1288,8 +1288,8 @@ inline void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation,
     const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
     double det_j;
     BoundedMatrix<double, 2, 2> invJ;
-    MathUtils::InvertMatrix(J, invJ, det_j, -1.0);
-    const bool good_condition_number = MathUtils::CheckConditionNumber(J, invJ, std::numeric_limits<double>::epsilon(), false);
+    MathUtils<double>::InvertMatrix(J, invJ, det_j, -1.0);
+    const bool good_condition_number = MathUtils<double>::CheckConditionNumber(J, invJ, std::numeric_limits<double>::epsilon(), false);
     if (!good_condition_number) // Reset in case of bad condition number
         noalias(invJ) = ZeroMatrix(2,2);
 

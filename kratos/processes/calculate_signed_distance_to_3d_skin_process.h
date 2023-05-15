@@ -625,7 +625,7 @@ public:
             n /= norm_2(n);
 
             array_1d<double,3> v2;
-            MathUtils::CrossProduct(v2,v1,n); // v2 = v1 x n
+            MathUtils<double>::CrossProduct(v2,v1,n); // v2 = v1 x n
 
             array_1d<double,3> angles;
             angles[0] = 0.0; //angle between x21 and v1
@@ -1140,7 +1140,7 @@ public:
         array_1d<double,3> v1 = Point2 - Point1;
         array_1d<double,3> v2 = Point3 - Point1;
 
-        MathUtils::CrossProduct(rResultNormal,v1,v2);
+        MathUtils<double>::CrossProduct(rResultNormal,v1,v2);
         rResultNormal *= 0.5;
     }
 
@@ -1615,7 +1615,7 @@ public:
                     n /= norm_2(n);
 
                     array_1d<double,3> v2;
-                    MathUtils::CrossProduct(v2,v1,n); // v2 = v1 x n
+                    MathUtils<double>::CrossProduct(v2,v1,n); // v2 = v1 x n
 
                     array_1d<double,3> angles;
                     angles[0] = 0.0; //angle between x21 and v1
@@ -2391,7 +2391,7 @@ public:
         u = rGeometry[1] - rGeometry[0];
         v = rGeometry[2] - rGeometry[0];
 
-        MathUtils::CrossProduct(n, u, v);             // cross product
+        MathUtils<double>::CrossProduct(n, u, v);             // cross product
 
         if (norm_2(n) == 0)            // triangle is degenerate
             return -1;                 // do not deal with this case
