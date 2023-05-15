@@ -57,7 +57,7 @@ public:
 
     typedef unsigned int SizeType;
 
-    typedef MathUtils<TDataType> MathUtilsType;
+    typedef MathUtils MathUtilsType;
 
 	typedef Node NodeType;
 
