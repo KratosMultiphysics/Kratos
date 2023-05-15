@@ -245,7 +245,7 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_entities != 0){
         if (n_loc_entities != 0){
-            Geometry< Node<3> >& rReferenceGeometry = rEntitiesContainer.begin()->GetGeometry();
+            Geometry< Node >& rReferenceGeometry = rEntitiesContainer.begin()->GetGeometry();
             const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
             const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
 
@@ -295,7 +295,7 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
     // If there is conditions, this function dispatches the call to the correct specialization
     if (n_tot_entities != 0){
         if (n_loc_entities != 0){
-            Geometry< Node<3> >& rReferenceGeometry = rEntitiesContainer.begin()->GetGeometry();
+            Geometry< Node >& rReferenceGeometry = rEntitiesContainer.begin()->GetGeometry();
             const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
             const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
 

@@ -695,7 +695,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("ComputeEquivalentForceAndTorque", &ForceAndTorqueUtils::ComputeEquivalentForceAndTorque)
         ;
 
-    AddSubModelPartEntitiesBooleanOperationToPython<Node<3>,ModelPart::NodesContainerType>(
+    AddSubModelPartEntitiesBooleanOperationToPython<Node,ModelPart::NodesContainerType>(
         m, "SubModelPartNodesBooleanOperationUtility");
 
     AddSubModelPartEntitiesBooleanOperationToPython<Element,ModelPart::ElementsContainerType>(

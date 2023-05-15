@@ -54,7 +54,7 @@ namespace Kratos
     };
 
     // Returns a pointer to the splitting utility
-    const DivideGeometry<Node<3>>::Pointer ModifiedShapeFunctions::pGetSplittingUtil() const {
+    const DivideGeometry<Node>::Pointer ModifiedShapeFunctions::pGetSplittingUtil() const {
         KRATOS_ERROR << "Trying to retrieve the splitting utility from the modified shape functions base class. \n" <<
                          "Implement the pGetSplittingUtil according to the input geometry in the proper modified shape functions derived class.";
     };
