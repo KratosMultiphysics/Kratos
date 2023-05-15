@@ -96,9 +96,17 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         scheme_type = self.settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters
+        rayleigh_alpha = self.settings["rayleigh_alpha"].GetDouble()
+        rayleigh_beta = self.settings["rayleigh_beta"].GetDouble()
+        for prop in self.main_model_part.Properties:
+            prop.SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA], rayleigh_alpha)
+            prop.SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA], rayleigh_alpha)
+
+        # Setting the Rayleigh damping parameters (legacy on ProcessInfo)
+        KratosMultiphysics.Logger.PrintWarning("ExplicitMechanicalSolver", "RAYLEIGH_ALPHA and RAYLEIGH_BETA are set in explicit simulation, this support is legacy and will be removed at some point")
         process_info = self.main_model_part.ProcessInfo
-        process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
-        process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.settings["rayleigh_beta"].GetDouble()
+        process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = rayleigh_alpha
+        process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = rayleigh_alpha
 
         # Setting the time integration schemes
         if scheme_type == "central_differences":
