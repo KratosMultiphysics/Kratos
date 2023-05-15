@@ -27,12 +27,12 @@ namespace Kratos {
 	KRATOS_TEST_CASE_IN_SUITE(RayCastingProcessQuadrilateral2D, KratosCoreFastSuite)
 	{
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.00, 0.00, 0.00);
+		Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+		Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
+		Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+		Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
 
-		Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+		Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
 		Parameters mesher_parameters(R"(
 		{
@@ -91,12 +91,12 @@ namespace Kratos {
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.00, 0.00, 0.00);
+		Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+		Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
+		Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+		Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
 
-		Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+		Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
 		Parameters mesher_parameters(R"(
 		{
@@ -149,16 +149,16 @@ namespace Kratos {
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point2 = Kratos::make_intrusive<Node<3>>(2, 10.00, 0.00, 0.00);
-		Node<3>::Pointer p_point3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point4 = Kratos::make_intrusive<Node<3>>(4, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point5 = Kratos::make_intrusive<Node<3>>(5, 0.00, 0.00, 10.00);
-		Node<3>::Pointer p_point6 = Kratos::make_intrusive<Node<3>>(6, 10.00, 0.00, 10.00);
-		Node<3>::Pointer p_point7 = Kratos::make_intrusive<Node<3>>(7, 10.00, 10.00, 10.00);
-		Node<3>::Pointer p_point8 = Kratos::make_intrusive<Node<3>>(8, 0.00, 10.00, 10.00);
+		Node::Pointer p_point1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+		Node::Pointer p_point2 = Kratos::make_intrusive<Node>(2, 10.00, 0.00, 0.00);
+		Node::Pointer p_point3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+		Node::Pointer p_point4 = Kratos::make_intrusive<Node>(4, 0.00, 10.00, 0.00);
+		Node::Pointer p_point5 = Kratos::make_intrusive<Node>(5, 0.00, 0.00, 10.00);
+		Node::Pointer p_point6 = Kratos::make_intrusive<Node>(6, 10.00, 0.00, 10.00);
+		Node::Pointer p_point7 = Kratos::make_intrusive<Node>(7, 10.00, 10.00, 10.00);
+		Node::Pointer p_point8 = Kratos::make_intrusive<Node>(8, 0.00, 10.00, 10.00);
 
-		Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+		Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
 		Parameters mesher_parameters(R"(
 		{
@@ -194,7 +194,7 @@ namespace Kratos {
 		ApplyRayCastingProcess<3>(volume_part, skin_part).Execute();
 
 
-		Tetrahedra3D4<Node<3>> tetrahedra(skin_part.pGetNode(901), skin_part.pGetNode(902), skin_part.pGetNode(903), skin_part.pGetNode(904));
+		Tetrahedra3D4<Node> tetrahedra(skin_part.pGetNode(901), skin_part.pGetNode(902), skin_part.pGetNode(903), skin_part.pGetNode(904));
 
 	Point dummy(0.00,0.00,0.00);
 	for(auto& node : volume_part.Nodes()){

@@ -88,7 +88,7 @@ public:
     /**
      * Node type
      */
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /**
      * Type of edge geometry

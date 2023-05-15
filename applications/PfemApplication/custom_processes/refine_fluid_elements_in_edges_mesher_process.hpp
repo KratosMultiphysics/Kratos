@@ -44,7 +44,7 @@ class RefineFluidElementsInEdgesMesherProcess
 
   typedef RefineElementsInEdgesMesherProcess    BaseType;
 
-  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -144,7 +144,7 @@ class RefineFluidElementsInEdgesMesherProcess
     for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin();
         i_elem != rModelPart.ElementsEnd(); ++i_elem)
     {
-      Geometry< Node<3> >& rGeometry = i_elem->GetGeometry();
+      Geometry< Node >& rGeometry = i_elem->GetGeometry();
 
       is_full_rigid_boundary = true;
       for(unsigned int i=0; i<rGeometry.size(); ++i)

@@ -59,7 +59,7 @@ public:
     ///@{
 
     /// The type used for the node
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     // General containers type definitions
     typedef ModelPart::NodesContainerType                                 NodesArrayType;

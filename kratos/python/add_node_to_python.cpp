@@ -30,7 +30,7 @@ namespace Python
 {
 namespace py = pybind11;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 template<class TVariableType> inline
 void NodeFix(NodeType& rThisNode, TVariableType const& rThisVariable)

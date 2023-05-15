@@ -24,7 +24,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     NurbsVolumeGeometry<PointerVector<NodeType>> GenerateTruncatedPyramid() {
         // Construct Truncated Pyramid with: lower_base = 2x2; uper_base = 1.8x1.8; heigth = 4
