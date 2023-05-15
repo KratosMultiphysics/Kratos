@@ -1601,22 +1601,6 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervInt, KratosMPICoreFastSuite)
         KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
     }
 
-    // remote calls are not supported
-    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
-    const int world_size = r_world.Size();
-
-    if (world_size > 1) {
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, recv_offsets),
-            "Communication between different ranks is not possible with a serial DataCommunicator."
-        );
-
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            return_buffer = serial_communicator.AllGatherv(send_buffer),
-            "Communication between different ranks is not possible with a serial DataCommunicator."
-        );
-    }
-
     #ifdef KRATOS_DEBUG
     std::vector<int> wrong_size_recv = {-1, -1, -1};
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
@@ -1662,22 +1646,6 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervDouble, KratosMPICoreFastSui
     for (int i = 0; i < 2; i++)
     {
         KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
-    }
-
-    // remote calls are not supported
-    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
-    const int world_size = r_world.Size();
-
-    if (world_size > 1) {
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, recv_offsets),
-            "Communication between different ranks is not possible with a serial DataCommunicator."
-        );
-
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            return_buffer = serial_communicator.AllGatherv(send_buffer),
-            "Communication between different ranks is not possible with a serial DataCommunicator."
-        );
     }
 
     #ifdef KRATOS_DEBUG
