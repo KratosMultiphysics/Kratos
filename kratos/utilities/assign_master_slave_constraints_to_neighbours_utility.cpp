@@ -46,7 +46,7 @@ AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToN
     KRATOS_CATCH(""); 
 } 
 
-//Search for the neighbouring nodes (in rMasterStructureNodes) of the given rNode
+// Search for neighboring nodes (in rMasterStructureNodes) of the given slave node
 void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNode(
     NodeType::Pointer pSlaveNode,
     double const Radius,
@@ -83,7 +83,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForSl
     }
 
     if (has_all_dofs) {
-        // Get Dofs for each variable in the list
+        // Get DOFs for each variable in the list
         rSlaveDofs.resize(rVariableList.size());
         for (std::size_t i = 0; i < rVariableList.size(); ++i) {
             const auto& variable = rVariableList[i];
@@ -106,7 +106,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForSl
     KRATOS_CATCH("");
 }
 
-// Get Dofs and Coordinates arrays for a given variable list. (For nodes)
+// Get DOFs and Coordinates arrays for a given variable list for a cloud of nodes
 void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCloudOfNodes(
     const ResultNodesContainerType& CloudOfNodesArray,
     const std::vector<std::reference_wrapper<const Kratos::Variable<double>>>& rVariableList,
@@ -115,25 +115,33 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCl
 )
 {
     KRATOS_TRY;
-    rCloudOfDofs.resize(rVariableList.size());
-    rCloudOfNodesCoordinates.resize(CloudOfNodesArray.size(), 3);
 
-    // Resize rCloudOfDofs
+    // Resize rCloudOfDofs to match the size of the variable list
+    rCloudOfDofs.resize(rVariableList.size());
+
+    // Resize rCloudOfDofs vectors to match the size of the cloud of nodes
     for (auto& dofs : rCloudOfDofs)
     {
         dofs.resize(CloudOfNodesArray.size());
     }
 
+    // Resize rCloudOfNodesCoordinates to match the size of the cloud of nodes
+    rCloudOfNodesCoordinates.resize(CloudOfNodesArray.size(), 3);
+
+    // Loop over the cloud of nodes
     for (int i = 0; i < static_cast<int>(CloudOfNodesArray.size()); i++)
     {
         NodeType::Pointer pSlaveNode = CloudOfNodesArray[i];
 
+        // Loop over the variable list
         for (int j = 0; j < static_cast<int>(rVariableList.size()); j++)
         {
             const auto& rVariable = rVariableList[j];
 
+            // Check if the slave node has the required DOF for the current variable
             if (pSlaveNode->HasDofFor(rVariable.get()))
             {
+                // Assign the DOF pointer to the corresponding position in rCloudOfDofs
                 rCloudOfDofs[j][i] = pSlaveNode->pGetDof(rVariable.get());
             }
             else
@@ -144,8 +152,10 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCl
             }
         }
 
+        // Assign the coordinates of the slave node to the corresponding row in rCloudOfNodesCoordinates
         noalias(row(rCloudOfNodesCoordinates, i)) = pSlaveNode->Coordinates();
     }
+
     KRATOS_CATCH("");
 }
 
