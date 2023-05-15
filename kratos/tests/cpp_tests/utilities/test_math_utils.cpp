@@ -42,39 +42,6 @@ namespace Kratos
             KRATOS_CHECK_NEAR(area, 0.5, tolerance);
         }
 
-        /** Checks if it gives you the absolute value of a given value
-         * Checks if It gives you the absolute value of a given value
-         */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsAbs, KratosCoreFastSuite)
-        {
-            const double absolute = MathUtils<double>::Abs(-1.0);
-
-            KRATOS_CHECK_EQUAL(absolute, 1.0);
-        }
-
-        /** Checks if it gives you the minimum value of a given value
-         * Checks if It gives you the minimum value of a given value
-         */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMin, KratosCoreFastSuite)
-        {
-            const double min = MathUtils<double>::Min(0.0,1.0);
-
-            KRATOS_CHECK_EQUAL(min, 0.0);
-        }
-
-        /** Checks if it gives you the maximum value of a given value
-         * Checks if It gives you the maximum value of a given value
-         */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMax, KratosCoreFastSuite)
-        {
-            const double max = MathUtils<double>::Max(0.0,1.0);
-
-            KRATOS_CHECK_EQUAL(max, 1.0);
-        }
-
         /** Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix
          * Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix
          */
