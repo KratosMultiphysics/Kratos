@@ -139,15 +139,15 @@ namespace Kratos
 
 		void CollapseNodes();
 
-		void CollapseNode(Node<3>& rThisNode);
+		void CollapseNode(Node& rThisNode);
 
-		double CalculateQualityIfNodeCollapses(Node<3>& rThisNode, Node<3> const& rCoarseNode);
+		double CalculateQualityIfNodeCollapses(Node& rThisNode, Node const& rCoarseNode);
 
-		double CalculateMinQualityOfNeighbourElements(Node<3>& rThisNode, Node<3> const& rCoarseNode);
+		double CalculateMinQualityOfNeighbourElements(Node& rThisNode, Node const& rCoarseNode);
 
-		bool ElementHas(Element& rElement, Node<3> const& rCoarseNode);
+		bool ElementHas(Element& rElement, Node const& rCoarseNode);
 
-		void SwapElementNode(Element& rElement, Node<3> const& rThisNode, Node<3>::Pointer pCoarseNode);
+		void SwapElementNode(Element& rElement, Node const& rThisNode, Node::Pointer pCoarseNode);
 
       ///@}
 

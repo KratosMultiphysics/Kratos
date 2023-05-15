@@ -4,6 +4,7 @@
     "run_hrom": false,
     "rom_format":"numpy",
     "projection_strategy": "galerkin",
+    "assembling_strategy": "elemental",
     "train_petrov_galerkin": {
         "train": false,
         "basis_strategy": "residuals",

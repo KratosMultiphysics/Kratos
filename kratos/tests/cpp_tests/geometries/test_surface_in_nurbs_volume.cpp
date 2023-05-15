@@ -28,7 +28,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 

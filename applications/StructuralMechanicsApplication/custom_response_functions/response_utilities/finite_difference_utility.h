@@ -50,7 +50,7 @@ public:
     static void CalculateRightHandSideDerivative(TElementType& rElement,
                                                 const Vector& rRHS,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Vector& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
@@ -95,7 +95,7 @@ public:
     static void CalculateLeftHandSideDerivative(Element& rElement,
                                                 const Matrix& rLHS,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
@@ -103,7 +103,7 @@ public:
     static void CalculateMassMatrixDerivative(Element& rElement,
                                                 const Matrix& rMassMatrix,
                                                 const array_1d_component_type& rDesignVariable,
-                                                Node<3>& rNode,
+                                                Node& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);

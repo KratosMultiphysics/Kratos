@@ -517,7 +517,7 @@ void  HypoElasticSolid2D::Calculate(const Variable<Matrix >& rVariable, double& 
         				im != mr_model_part.ElementsEnd() ; ++im)
         			{
         				//get the geometry
-        				Geometry< Node<3> >& geom = im->GetGeometry();
+        				Geometry< Node >& geom = im->GetGeometry();
 
         				//calculate derivatives
         				double Area;

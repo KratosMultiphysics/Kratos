@@ -124,8 +124,8 @@ public:
     {
         KRATOS_TRY
 
-        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
-        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+        PointerVector< Node >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node >::iterator it_destination = mDestinationNodes.begin();
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
@@ -142,8 +142,8 @@ public:
     {
         KRATOS_TRY
 
-        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
-        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+        PointerVector< Node >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node >::iterator it_destination = mDestinationNodes.begin();
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
@@ -162,8 +162,8 @@ public:
     {
         KRATOS_TRY
 
-        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
-        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+        PointerVector< Node >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node >::iterator it_destination = mDestinationNodes.begin();
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
@@ -182,8 +182,8 @@ public:
     {
         KRATOS_TRY
 
-        PointerVector< Node<3> >::iterator it_origin = mOriginNodes.begin();
-        PointerVector< Node<3> >::iterator it_destination = mDestinationNodes.begin();
+        PointerVector< Node >::iterator it_origin = mOriginNodes.begin();
+        PointerVector< Node >::iterator it_destination = mDestinationNodes.begin();
 
         for(unsigned int i = 0 ; i < mOriginNodes.size() ; ++i)
         {
@@ -239,9 +239,9 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-    PointerVector< Node<3> > mOriginNodes;
+    PointerVector< Node > mOriginNodes;
 
-    PointerVector< Node<3> > mDestinationNodes;
+    PointerVector< Node > mDestinationNodes;
 
 
     ///@}

@@ -5,15 +5,13 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-
-#if !defined(KRATOS_PROPERTIES_H_INCLUDED )
-#define  KRATOS_PROPERTIES_H_INCLUDED
+# pragma once
 
 // System includes
 #include <string>
@@ -25,6 +23,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/accessor.h"
 #include "includes/node.h"
 #include "includes/indexed_object.h"
 #include "containers/data_value_container.h"
@@ -75,19 +74,25 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Properties);
 
 #ifdef  _WIN32 // work around for windows int64_t error
-    typedef __int64 int64_t;
+    using int64_t = __int64;
 #endif
-    typedef IndexedObject BaseType;
+    using BaseType = IndexedObject;
 
-    typedef DataValueContainer ContainerType;
+    using ContainerType = DataValueContainer;
 
-    typedef Node<3> NodeType;
+    using GeometryType = Geometry<Node> ;
 
-    typedef NodeType::IndexType IndexType;
+    using IndexType = std::size_t;
 
-    typedef Table<double> TableType;
+    using TableType = Table<double>;
 
-    typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implementation and should be changed to hash. Pooyan.
+    using KeyType = IndexType;
+
+    using AccessorPointerType = Accessor::UniquePointer;
+
+    using AccessorsContainerType = std::unordered_map<KeyType, AccessorPointerType>;
+
+    using TablesContainerType = std::unordered_map<std::size_t, TableType>; // This is a provisional implementation and should be changed to hash. Pooyan.
 
     /// Properties container. A vector set of properties with their Id's as key.
     typedef PointerVectorSet<Properties, IndexedObject> SubPropertiesContainerType;
@@ -109,13 +114,34 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList() {}
+    explicit Properties(IndexType NewId = 0)
+    : BaseType(NewId)
+    , mData()
+    , mTables()
+    , mSubPropertiesList()
+    , mAccessors() {}
 
     /// Default of properties with subproperties
-    explicit Properties(IndexType NewId, const SubPropertiesContainerType& SubPropertiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropertiesList) {}
+    explicit Properties(IndexType NewId, const SubPropertiesContainerType& SubPropertiesList)
+    : BaseType(NewId)
+    , mData()
+    , mTables()
+    , mSubPropertiesList(SubPropertiesList)
+    , mAccessors() {}
 
     /// Copy constructor.
-    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList) {}
+    Properties(const Properties& rOther)
+    : BaseType(rOther)
+    , mData(rOther.mData)
+    , mTables(rOther.mTables)
+    , mSubPropertiesList(rOther.mSubPropertiesList)
+    {
+        for (auto& r_item : rOther.mAccessors) {
+            const auto key = r_item.first;
+            const auto& rp_accessor = r_item.second;
+            mAccessors.emplace(key, rp_accessor->Clone());
+        }
+    }
 
     /// Destructor.
     ~Properties() override {}
@@ -132,6 +158,11 @@ public:
         mData = rOther.mData;
         mTables = rOther.mTables;
         mSubPropertiesList = rOther.mSubPropertiesList;
+        for (auto& r_item : rOther.mAccessors) {
+            const auto key = r_item.first;
+            const auto& rp_accessor = r_item.second;
+            mAccessors.emplace(key, rp_accessor->Clone());
+        }
         return *this;
     }
 
@@ -160,37 +191,37 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode)
+    typename TVariableType::Type& operator()(const TVariableType& rV, Node& rThisNode)
     {
         return GetValue(rV, rThisNode);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode) const
+    typename TVariableType::Type const& operator()(const TVariableType& rV, Node const& rThisNode) const
     {
         return GetValue(rV, rThisNode);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
+    typename TVariableType::Type& operator()(const TVariableType& rV, Node& rThisNode, IndexType SolutionStepIndex)
     {
         return GetValue(rV, rThisNode, SolutionStepIndex);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
+    typename TVariableType::Type const& operator()(const TVariableType& rV, Node const& rThisNode, IndexType SolutionStepIndex) const
     {
         return GetValue(rV, rThisNode, SolutionStepIndex);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode, ProcessInfo const& rCurrentProcessInfo)
+    typename TVariableType::Type& operator()(const TVariableType& rV, Node& rThisNode, ProcessInfo const& rCurrentProcessInfo)
     {
         return GetValue(rV, rThisNode, rCurrentProcessInfo.GetSolutionStepIndex());
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode, ProcessInfo const& rCurrentProcessInfo) const
+    typename TVariableType::Type const& operator()(const TVariableType& rV, Node const& rThisNode, ProcessInfo const& rCurrentProcessInfo) const
     {
         return GetValue(rV, rThisNode, rCurrentProcessInfo.GetSolutionStepIndex());
     }
@@ -206,51 +237,71 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& GetValue(const TVariableType& rV)
+    typename TVariableType::Type& GetValue(const TVariableType& rVariable)
     {
-        return mData.GetValue(rV);
+        return mData.GetValue(rVariable);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& GetValue(const TVariableType& rV) const
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable) const
     {
-        return mData.GetValue(rV);
+
+        return mData.GetValue(rVariable);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode)
+    typename TVariableType::Type& GetValue(const TVariableType& rVariable, Node& rThisNode)
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV);
+        if (mData.Has(rVariable))
+            return mData.GetValue(rVariable);
+        return rThisNode.GetValue(rVariable);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode) const
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, Node const& rThisNode) const
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV);
+        if (mData.Has(rVariable))
+            return mData.GetValue(rVariable);
+        return rThisNode.GetValue(rVariable);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
+    typename TVariableType::Type& GetValue(const TVariableType& rVariable, Node& rThisNode, IndexType SolutionStepIndex)
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
-
-        return rThisNode.GetValue(rV, SolutionStepIndex);
+        if (mData.Has(rVariable))
+            return mData.GetValue(rVariable);
+        return rThisNode.GetValue(rVariable, SolutionStepIndex);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, Node const& rThisNode, IndexType SolutionStepIndex) const
     {
-        if(mData.Has(rV))
-            return mData.GetValue(rV);
+        if (mData.Has(rVariable))
+            return mData.GetValue(rVariable);
+        return rThisNode.GetValue(rVariable, SolutionStepIndex);
+    }
 
-        return rThisNode.GetValue(rV, SolutionStepIndex);
+    /*
+    Custom GetValue in which we check the Accessor
+    */
+    template<class TVariableType>
+    typename TVariableType::Type GetValue(const TVariableType& rVariable, const GeometryType& rGeometry, const Vector& rShapeFunctionVector, const ProcessInfo& rProcessInfo) const
+    {
+        auto it_value = mAccessors.find(rVariable.Key());
+        if (it_value != mAccessors.end()) {
+            return (it_value->second)->GetValue(rVariable, *this, rGeometry, rShapeFunctionVector, rProcessInfo);
+        } else {
+            return mData.GetValue(rVariable);
+        }
+    }
+
+    /*
+    Method to add Accessors to properties
+    */
+    template<class TVariableType>
+    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
+    {
+        mAccessors.emplace(rVariable.Key(), std::move(pAccessor));
     }
 
     template<class TVariableType>
@@ -506,6 +557,12 @@ public:
                 r_subprop.PrintData(rOStream);
             }
         }
+        if (mAccessors.size() > 0) {
+            rOStream << "\nThis properties contains the following " << mAccessors.size() << " accessors" << std::endl;
+            for (auto& r_entry : mAccessors) {
+                (r_entry.second)->PrintData(rOStream);
+            }
+        }
     }
 
 
@@ -568,6 +625,8 @@ private:
 
     SubPropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
 
+    AccessorsContainerType mAccessors = {}; /// The map containing the variable and corresponding accessor pairs
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -588,6 +647,13 @@ private:
         rSerializer.save("Data", mData);
         rSerializer.save("Tables", mTables);
         rSerializer.save("SubPropertiesList", mSubPropertiesList);
+        std::vector<std::pair<const KeyType, Accessor*>> aux_accessors_container;
+        for (auto& r_item : mAccessors) {
+            const auto key = r_item.first;
+            const auto& rp_accessor = r_item.second;
+            aux_accessors_container.push_back(std::make_pair(key, &(*rp_accessor)));
+        }
+        rSerializer.save("Accessors", aux_accessors_container);
     }
 
     void load(Serializer& rSerializer) override
@@ -596,6 +662,13 @@ private:
         rSerializer.load("Data", mData);
         rSerializer.load("Tables", mTables);
         rSerializer.load("SubPropertiesList", mSubPropertiesList);
+        std::vector<std::pair<const KeyType, Accessor*>> aux_accessors_container;
+        rSerializer.load("Accessors", aux_accessors_container);
+        for (auto& r_item : aux_accessors_container) {
+            const auto key = r_item.first;
+            const auto& rp_accessor = r_item.second;
+            mAccessors.emplace(key, rp_accessor->Clone());
+        }
     }
 
     ///@}
@@ -645,5 +718,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_PROPERTIES_H_INCLUDED  defined

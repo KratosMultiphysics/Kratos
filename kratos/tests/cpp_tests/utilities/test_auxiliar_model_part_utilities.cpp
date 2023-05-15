@@ -312,7 +312,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     Properties::Pointer p_prop = r_origin_model_part.CreateNewProperties(0);
     p_prop->SetValue(DENSITY, 1.0);
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     // First we create the nodes
     auto p_node_1 = r_origin_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.00);

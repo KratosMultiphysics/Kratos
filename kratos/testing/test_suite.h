@@ -4,25 +4,25 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-#if !defined(KRATOS_TEST_SUITE_H_INCLUDED)
-#define KRATOS_TEST_SUITE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <vector>
+
+// External includes
 
 // Project includes
 #include "testing/test_case.h"
 #include "testing/distributed_test_case.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 namespace Internals {
 class AddThisTestToTestSuite {
    public:
@@ -41,9 +41,9 @@ class AddThisTestToTestSuite {
 
 /// This class holds an array of test cases and run them one by one in its Run method
 /** this class implements a composite pattern. Derived from TestCase and has an array pointers to the
-			TestCase to be run. The Run and Profile methods are overridden to call the corresponidng methods
-			of the TestCases.
-		*/
+    TestCase to be run. The Run and Profile methods are overridden to call the corresponidng methods
+    of the TestCases.
+*/
 class KRATOS_API(KRATOS_CORE) TestSuite : public TestCase {
    public:
     ///@name Type Definitions
@@ -259,7 +259,4 @@ inline std::ostream& operator<<(
 ///@}
 
 ///@} addtogroup block
-}  // namespace Testing
-}  // namespace Kratos.
-
-#endif  // KRATOS_TEST_SUITE_H_INCLUDED  defined
+}  // namespace Kratos::Testing
