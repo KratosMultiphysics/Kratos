@@ -80,7 +80,7 @@ namespace Kratos
          IdentityVector(i) = 1.0;
 
       double MeanStress; 
-      double VolumetricStrain = MathUtils<double>::Dot( trans(rHenckyStrainVector), IdentityVector);
+      double VolumetricStrain = MathUtils::Dot( trans(rHenckyStrainVector), IdentityVector);
 
       Vector DeviatoricStrainVector; 
       DeviatoricStrainVector = rHenckyStrainVector -  (VolumetricStrain/3.0)*IdentityVector;   

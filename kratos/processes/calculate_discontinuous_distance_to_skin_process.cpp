@@ -692,7 +692,7 @@ namespace Kratos
         const Element::GeometryType &rGeometry,
         array_1d<double,3> &rIntObjNormal)
     {
-        MathUtils<double>::CrossProduct(rIntObjNormal, rGeometry[1]-rGeometry[0], rGeometry[2]-rGeometry[0]);
+        MathUtils::CrossProduct(rIntObjNormal, rGeometry[1]-rGeometry[0], rGeometry[2]-rGeometry[0]);
     }
 
     template<std::size_t TDim>

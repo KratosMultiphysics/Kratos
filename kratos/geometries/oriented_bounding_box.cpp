@@ -100,7 +100,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
             mOrientationVectors[0] /= norm_mOrientationVectors;
         else
             KRATOS_ERROR << "Zero norm in OrientedBoundingBox direction" << std::endl;
-        MathUtils<double>::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
+        MathUtils::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
 
         // Compute center
         noalias(mPointCenter) = rGeometry.Center().Coordinates();// 0.5 * (geometry_low_node.Coordinates() + geometry_high_node.Coordinates());
@@ -110,7 +110,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
         GeometryType::CoordinatesArrayType aux_coords;
         rGeometry.PointLocalCoordinates(aux_coords, mPointCenter);
         noalias(mOrientationVectors[0]) = rGeometry.UnitNormal(aux_coords);
-        MathUtils<double>::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
+        MathUtils::OrthonormalBasis(mOrientationVectors[0], mOrientationVectors[1], mOrientationVectors[2]);
 
         // Getting the farest node
         double distance = 0.0;
@@ -132,7 +132,7 @@ OrientedBoundingBox<3>::OrientedBoundingBox(
         mOrientationVectors[1] /= norm_2(mOrientationVectors[1]);
 
         // Construct  mOrientationVectors[2]  using a cross  product
-        MathUtils<double>::UnitCrossProduct(mOrientationVectors[2], mOrientationVectors[1] , mOrientationVectors[0]);
+        MathUtils::UnitCrossProduct(mOrientationVectors[2], mOrientationVectors[1] , mOrientationVectors[0]);
     }
 
     double distance_0 = 0.0;
@@ -251,7 +251,7 @@ bool OrientedBoundingBox<3>::IsInside(const OrientedBoundingBox<3>& rOtherOrient
     rotation_matrix(3, 3) = 1.0;
 
     double det_rotation_matrix;
-    MathUtils<double>::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
+    MathUtils::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
 
     // Signs
     constexpr static std::array<double, 8> sign_components_X3D = {{-1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0}};
@@ -360,10 +360,10 @@ bool OrientedBoundingBox<2>::SeparatingAxisTheoremHasIntersection(const Oriented
 
     array_1d<double, 3> cross_product_1, cross_product_2, cross_product_3, cross_product_4;
 
-    MathUtils<double>::CrossProduct(cross_product_1, mOrientationVectors[0], r_orientation_vectors_2[0]);
-    MathUtils<double>::CrossProduct(cross_product_2, mOrientationVectors[0], r_orientation_vectors_2[1]);
-    MathUtils<double>::CrossProduct(cross_product_3, mOrientationVectors[1], r_orientation_vectors_2[0]);
-    MathUtils<double>::CrossProduct(cross_product_4, mOrientationVectors[1], r_orientation_vectors_2[1]);
+    MathUtils::CrossProduct(cross_product_1, mOrientationVectors[0], r_orientation_vectors_2[0]);
+    MathUtils::CrossProduct(cross_product_2, mOrientationVectors[0], r_orientation_vectors_2[1]);
+    MathUtils::CrossProduct(cross_product_3, mOrientationVectors[1], r_orientation_vectors_2[0]);
+    MathUtils::CrossProduct(cross_product_4, mOrientationVectors[1], r_orientation_vectors_2[1]);
 
     return !(GetSeparatingPlane2D(relative_position, mOrientationVectors[0], rOtherOrientedBoundingBox) ||
         GetSeparatingPlane2D(relative_position, mOrientationVectors[1], rOtherOrientedBoundingBox) ||
@@ -388,15 +388,15 @@ bool OrientedBoundingBox<3>::SeparatingAxisTheoremHasIntersection(const Oriented
 
     array_1d<double, 3> cross_product_1, cross_product_2, cross_product_3, cross_product_4, cross_product_5, cross_product_6, cross_product_7, cross_product_8, cross_product_9;
 
-    MathUtils<double>::CrossProduct(cross_product_1, mOrientationVectors[0], r_orientation_vectors_2[0]);
-    MathUtils<double>::CrossProduct(cross_product_2, mOrientationVectors[0], r_orientation_vectors_2[1]);
-    MathUtils<double>::CrossProduct(cross_product_3, mOrientationVectors[0], r_orientation_vectors_2[2]);
-    MathUtils<double>::CrossProduct(cross_product_4, mOrientationVectors[1], r_orientation_vectors_2[0]);
-    MathUtils<double>::CrossProduct(cross_product_5, mOrientationVectors[1], r_orientation_vectors_2[1]);
-    MathUtils<double>::CrossProduct(cross_product_6, mOrientationVectors[1], r_orientation_vectors_2[2]);
-    MathUtils<double>::CrossProduct(cross_product_7, mOrientationVectors[2], r_orientation_vectors_2[0]);
-    MathUtils<double>::CrossProduct(cross_product_8, mOrientationVectors[2], r_orientation_vectors_2[1]);
-    MathUtils<double>::CrossProduct(cross_product_9, mOrientationVectors[2], r_orientation_vectors_2[2]);
+    MathUtils::CrossProduct(cross_product_1, mOrientationVectors[0], r_orientation_vectors_2[0]);
+    MathUtils::CrossProduct(cross_product_2, mOrientationVectors[0], r_orientation_vectors_2[1]);
+    MathUtils::CrossProduct(cross_product_3, mOrientationVectors[0], r_orientation_vectors_2[2]);
+    MathUtils::CrossProduct(cross_product_4, mOrientationVectors[1], r_orientation_vectors_2[0]);
+    MathUtils::CrossProduct(cross_product_5, mOrientationVectors[1], r_orientation_vectors_2[1]);
+    MathUtils::CrossProduct(cross_product_6, mOrientationVectors[1], r_orientation_vectors_2[2]);
+    MathUtils::CrossProduct(cross_product_7, mOrientationVectors[2], r_orientation_vectors_2[0]);
+    MathUtils::CrossProduct(cross_product_8, mOrientationVectors[2], r_orientation_vectors_2[1]);
+    MathUtils::CrossProduct(cross_product_9, mOrientationVectors[2], r_orientation_vectors_2[2]);
 
     return !(GetSeparatingPlane3D(relative_position, mOrientationVectors[0], rOtherOrientedBoundingBox) ||
         GetSeparatingPlane3D(relative_position, mOrientationVectors[1], rOtherOrientedBoundingBox) ||
@@ -551,7 +551,7 @@ void OrientedBoundingBox<3>::GetEquivalentRotatedGeometry(OutputType& rGeometry)
     rotation_matrix(3, 3) = 1.0;
 
     double det_rotation_matrix;
-    MathUtils<double>::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
+    MathUtils::InvertMatrix(rotation_matrix, inverted_rotation_matrix, det_rotation_matrix);
 
     for (std::size_t i_point = 0; i_point < 8; ++i_point) {
         array_1d<double, 3>& r_coordinates = rGeometry[i_point].Coordinates();

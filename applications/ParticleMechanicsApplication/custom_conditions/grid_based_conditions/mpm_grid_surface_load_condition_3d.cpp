@@ -122,7 +122,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAndSubKp(
             noalias(Kij) -= coeff * Cross_gn;
 
             //TAKE CARE: the load correction matrix should be SUBTRACTED not added
-            MathUtils<double>::SubtractMatrix(rK, Kij, RowIndex, ColIndex);
+            MathUtils::SubtractMatrix(rK, Kij, RowIndex, ColIndex);
         }
     }
 
@@ -265,7 +265,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
 
     for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
     {
-        const double det_j = MathUtils<double>::GeneralizedDet(J[point_number]);
+        const double det_j = MathUtils::GeneralizedDet(J[point_number]);
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
         const auto& N = row(r_N, point_number);
 
@@ -277,7 +277,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
         gn[2] = J[point_number](2, 1);
 
         array_1d<double, 3 > normal;
-        MathUtils<double>::UnitCrossProduct(normal, gn, ge);
+        MathUtils::UnitCrossProduct(normal, gn, ge);
 
         // Calculating the pressure on the gauss point
         double pressure = 0.0;

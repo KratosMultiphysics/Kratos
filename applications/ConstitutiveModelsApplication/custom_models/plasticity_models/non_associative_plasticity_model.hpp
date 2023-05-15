@@ -487,7 +487,7 @@ namespace Kratos
                   double H = this->mYieldSurface.GetHardeningRule().CalculateDeltaHardening( rVariables, H);
 
                   double DeltaGamma = YieldSurface;
-                  DeltaGamma /= ( H + MathUtils<double>::Dot( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) ) );
+                  DeltaGamma /= ( H + MathUtils::Dot( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) ) );
 
                   MatrixType UpdateMatrix;
                   ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
@@ -624,14 +624,14 @@ namespace Kratos
                VectorType DeltaStress = prod( ElasticMatrix, DeltaStrain);
 
 
-               double Norm1 = MathUtils<double>::Norm(DeltaStress);
-               double Norm2 = MathUtils<double>::Norm(DeltaStressYieldCondition);
+               double Norm1 = MathUtils::Norm(DeltaStress);
+               double Norm2 = MathUtils::Norm(DeltaStressYieldCondition);
 
                Norm1 = Norm1*Norm2;
                if ( Norm1 < 1e-5)
                   return false;
 
-               Norm2 = MathUtils<double>::Dot( DeltaStressYieldCondition, DeltaStress);
+               Norm2 = MathUtils::Dot( DeltaStressYieldCondition, DeltaStress);
 
                if (Norm2 > 0) {
                   return false;
@@ -779,9 +779,9 @@ namespace Kratos
                VectorType AuxVector;
                AuxVector = prod( ElasticMatrix, StrainVector);
                double DeltaGamma;
-               DeltaGamma = MathUtils<double>::Dot( AuxVector, DeltaStressYieldCondition);
+               DeltaGamma = MathUtils::Dot( AuxVector, DeltaStressYieldCondition);
 
-               double Denominador = H + MathUtils<double>::Dot( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) );
+               double Denominador = H + MathUtils::Dot( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) );
 
                DeltaGamma /= Denominador;
 
@@ -841,7 +841,7 @@ namespace Kratos
                EigenVectors.clear();
 
                rStrainMatrix.clear();
-               MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(rHenckyTensor, EigenVectors, rStrainMatrix);
+               MathUtils::GaussSeidelEigenSystem<MatrixType, MatrixType>(rHenckyTensor, EigenVectors, rStrainMatrix);
 
                for (unsigned int i = 0; i < 3; i++)
                   rStrainMatrix(i,i) = std::exp( 2.0* rStrainMatrix(i,i));
@@ -861,7 +861,7 @@ namespace Kratos
                EigenVectors.clear();
 
                rHenckyStrain.clear();
-               MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(rStrainMatrix, EigenVectors, rHenckyStrain);
+               MathUtils::GaussSeidelEigenSystem<MatrixType, MatrixType>(rStrainMatrix, EigenVectors, rHenckyStrain);
 
                for (unsigned int i = 0; i < 3; i++)
                   rHenckyStrain(i,i) = std::log( rHenckyStrain(i,i))/2.0;

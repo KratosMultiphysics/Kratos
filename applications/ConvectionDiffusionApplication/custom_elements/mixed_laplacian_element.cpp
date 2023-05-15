@@ -140,7 +140,7 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
     const std::size_t n_gauss = r_integration_points.size();
     for(std::size_t g = 0; g < n_gauss; ++g) {
         // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J0[g], inv_J0, det_J0);
+        MathUtils::InvertMatrix(J0[g], inv_J0, det_J0);
 
         // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(r_DN_De[g], inv_J0);

@@ -136,7 +136,7 @@ void HyperElasticIsotropicKirchhoffPlaneStrain2D::CalculateAlmansiStrain(
     //Calculating the inverse of the jacobian
     Matrix inverse_B_tensor ( 2, 2 );
     double aux_det_b = 0;
-    MathUtils<double>::InvertMatrix( B_tensor, inverse_B_tensor, aux_det_b);
+    MathUtils::InvertMatrix( B_tensor, inverse_B_tensor, aux_det_b);
 
     rStrainVector[0] = 0.5 * ( 1.00 - inverse_B_tensor( 0, 0 ) );
     rStrainVector[1] = 0.5 * ( 1.00 - inverse_B_tensor( 1, 1 ) );

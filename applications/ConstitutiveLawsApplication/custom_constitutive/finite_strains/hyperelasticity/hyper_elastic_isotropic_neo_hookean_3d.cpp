@@ -106,17 +106,17 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     } else {
         // Calculate the Right Cauchy-Green deformation from the Green-Lagrange strain tensor in the constitutive law data container
         Matrix strain_tensor(dimension, dimension);
-        noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(strain_vector);
+        noalias(strain_tensor) = MathUtils::StrainVectorToTensor(strain_vector);
         noalias(C_tensor) = 2.0 * strain_tensor + IdentityMatrix(dimension);
         // Check if the Jacobian of the deformation has been provided. If not calculate it from the Right Cauchy-Green deformation
         if (determinant_f <= std::numeric_limits<double>::epsilon()) {
-            determinant_f = std::sqrt(MathUtils<double>::Det(C_tensor));
+            determinant_f = std::sqrt(MathUtils::Det(C_tensor));
         }
         KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
     }
 
     double aux_det;
-    MathUtils<double>::InvertMatrix(C_tensor, inverse_C_tensor, aux_det);
+    MathUtils::InvertMatrix(C_tensor, inverse_C_tensor, aux_det);
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
         Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
@@ -523,7 +523,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
     Matrix stress_matrix(dimension, dimension);
     const Matrix Id = IdentityMatrix(dimension);
     noalias(stress_matrix) = LameLambda * std::log(DeterminantF) * rInvCTensor + LameMu * ( Id - rInvCTensor );
-    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( stress_matrix, GetStrainSize());
+    noalias(rStressVector) = MathUtils::StressTensorToVector( stress_matrix, GetStrainSize());
 }
 
 /***********************************************************************************/
@@ -536,9 +536,9 @@ void HyperElasticIsotropicNeoHookean3D::CalculateKirchhoffStress(ConstitutiveLaw
 
     // Do the Kirchhoff stress transformation tau = FStrans(F)
     const Matrix& r_F = rValues.GetDeformationGradientF();
-    const Matrix pk2_tensor = MathUtils<double>::StressVectorToTensor(r_pk2_stress_vector);
+    const Matrix pk2_tensor = MathUtils::StressVectorToTensor(r_pk2_stress_vector);
     const Matrix tau_tensor = prod(r_F, Matrix(prod(pk2_tensor, trans(r_F))));
-    noalias(rValues.GetStressVector()) = MathUtils<double>::StressTensorToVector(tau_tensor, GetStrainSize());
+    noalias(rValues.GetStressVector()) = MathUtils::StressTensorToVector(tau_tensor, GetStrainSize());
 }
 
 /***********************************************************************************/

@@ -482,7 +482,7 @@ namespace Kratos
 
 	    DeltaDeformationMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]) += deltavalue;
 	    //TotalDeformationMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]) += deltavalue;
-	    //TotalDeterminant = MathUtils<double>::Det(TotalDeformationMatrix);
+	    //TotalDeterminant = MathUtils::Det(TotalDeformationMatrix);
 
 	    //std::cout<<" Det "<<TotalDeterminant<<" DeltaF "<<DeltaDeformationMatrix<<" TotalDet "<<TotalDeformationMatrix<<std::endl;
 
@@ -495,7 +495,7 @@ namespace Kratos
 
 	    DeltaDeformationMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]) -= deltavalue;
 	    //TotalDeformationMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]) -= deltavalue;
-	    //TotalDeterminant = MathUtils<double>::Det(TotalDeformationMatrix);
+	    //TotalDeterminant = MathUtils::Det(TotalDeformationMatrix);
 
 	    this->CalculateStressTensor(Values, StressMatrix);
 	    StressVectorII = ConstitutiveModelUtilities::StressTensorToVector(StressMatrix, StressVectorII);

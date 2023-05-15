@@ -870,7 +870,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
             if ( rOutput[PointNumber].size2() != cl_dimension )
                 rOutput[PointNumber].resize( cl_dimension, cl_dimension, false );
 
-            noalias(rOutput[PointNumber]) = MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
+            noalias(rOutput[PointNumber]) = MathUtils::StressVectorToTensor(StressVector[PointNumber]);
         }
     } else if ( rVariable == TOTAL_STRESS_TENSOR ) {
         std::vector<Vector> StressVector;
@@ -913,7 +913,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
             if ( rOutput[PointNumber].size2() != cl_dimension )
                 rOutput[PointNumber].resize( cl_dimension, cl_dimension, false );
 
-            noalias(rOutput[PointNumber]) = MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
+            noalias(rOutput[PointNumber]) = MathUtils::StressVectorToTensor(StressVector[PointNumber]);
         }
     } else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ) {
         std::vector<Vector> StrainVector;
@@ -926,7 +926,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
             if ( rOutput[PointNumber].size2() != cl_dimension )
                 rOutput[PointNumber].resize( cl_dimension, cl_dimension, false );
 
-            noalias(rOutput[PointNumber]) = MathUtils<double>::StrainVectorToTensor(StrainVector[PointNumber]);
+            noalias(rOutput[PointNumber]) = MathUtils::StrainVectorToTensor(StrainVector[PointNumber]);
         }
     } else if(rVariable == PERMEABILITY_MATRIX) {
         //loop integration points

@@ -122,7 +122,7 @@ void IsotropicDamageFlowRule::ComputeElastoPlasticTangentMatrix( const RadialRet
     const unsigned int VoigtSize = rElasticLeftCauchyGreen.size1();
 
     Vector EffectiveStressVector(VoigtSize);
-    noalias(EffectiveStressVector) = MathUtils<double>::StressTensorToVector( rReturnMappingVariables.TrialIsoStressMatrix, 0 );
+    noalias(EffectiveStressVector) = MathUtils::StressTensorToVector( rReturnMappingVariables.TrialIsoStressMatrix, 0 );
 
     Vector EquivalentStrainDerivative(VoigtSize);
     this->CalculateEquivalentStrainDerivative(EquivalentStrainDerivative, rReturnMappingVariables, rElasticLeftCauchyGreen);
@@ -232,7 +232,7 @@ void IsotropicDamageFlowRule::CalculateEquivalentStrainDerivative(Vector& rEquiv
 
     // Necessary variables
     Vector StrainVector(VoigtSize);
-    noalias(StrainVector) = MathUtils<double>::StrainTensorToVector( ReturnMappingVariables.StrainMatrix, 0 );
+    noalias(StrainVector) = MathUtils::StrainTensorToVector( ReturnMappingVariables.StrainMatrix, 0 );
     Vector StrainVector_p(VoigtSize);
     Vector StressVector_p(VoigtSize);
     Matrix StrainMatrix_p(Dim,Dim);
@@ -251,17 +251,17 @@ void IsotropicDamageFlowRule::CalculateEquivalentStrainDerivative(Vector& rEquiv
         //Forward perturbed equivalent strain
         noalias(StrainVector_p) = StrainVector;
         StrainVector_p[i] = StrainVector_p[i] + PerturbationStrainVector[i];
-        noalias(StrainMatrix_p) = MathUtils<double>::StrainVectorToTensor(StrainVector_p);
+        noalias(StrainMatrix_p) = MathUtils::StrainVectorToTensor(StrainVector_p);
         noalias(StressVector_p) = prod(LinearElasticMatrix, StrainVector_p);
-        noalias(StressMatrix_p) = MathUtils<double>::StressVectorToTensor(StressVector_p);
+        noalias(StressMatrix_p) = MathUtils::StressVectorToTensor(StressVector_p);
         mpYieldCriterion->CalculateYieldCondition(EquivalentStrain_f, YieldCriterionParameters);
 
         //Backward perturbed equivalent strain
         noalias(StrainVector_p) = StrainVector;
         StrainVector_p[i] = StrainVector_p[i] - PerturbationStrainVector[i];
-        noalias(StrainMatrix_p) = MathUtils<double>::StrainVectorToTensor(StrainVector_p);
+        noalias(StrainMatrix_p) = MathUtils::StrainVectorToTensor(StrainVector_p);
         noalias(StressVector_p) = prod(LinearElasticMatrix, StrainVector_p);
-        noalias(StressMatrix_p) = MathUtils<double>::StressVectorToTensor(StressVector_p);
+        noalias(StressMatrix_p) = MathUtils::StressVectorToTensor(StressVector_p);
         mpYieldCriterion->CalculateYieldCondition(EquivalentStrain_b, YieldCriterionParameters);
 
         rEquivalentStrainDerivative[i] = (EquivalentStrain_f - EquivalentStrain_b)/(2.0*PerturbationStrainVector[i]);

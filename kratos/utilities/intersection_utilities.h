@@ -113,10 +113,10 @@ public:
         const array_1d<double,3> u = rTriangleGeometry[1] - rTriangleGeometry[0];
         const array_1d<double,3> v = rTriangleGeometry[2] - rTriangleGeometry[0];
         array_1d<double,3> n;
-        MathUtils<double>::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(n,u,v);
+        MathUtils::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(n,u,v);
 
         // Check if the triangle is degenerate (do not deal with this case)
-        if (MathUtils<double>::Norm3(n) < epsilon){
+        if (MathUtils::Norm3(n) < epsilon){
             return -1;
         }
 

@@ -123,7 +123,7 @@ namespace Kratos
     rVariables.Tangent2[2] = rVariables.J[rPointNumber](2, 1);
 
     //Compute the  normal
-    MathUtils<double>::CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
+    MathUtils::CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
 
     //Jacobian to the last known configuration
     double Jacobian =  norm_2(rVariables.Normal);
@@ -141,7 +141,7 @@ namespace Kratos
     rVariables.Tangent2[2] = rVariables.j[rPointNumber](2, 1);
 
     //Compute the  normal
-    MathUtils<double>::CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
+    MathUtils::CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
 
     //Jacobian to the deformed configuration
     rVariables.Jacobian = norm_2(rVariables.Normal);

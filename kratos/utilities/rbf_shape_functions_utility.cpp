@@ -73,7 +73,7 @@ namespace Kratos
             pDenseQR->Compute(A);
             pDenseQR->Solve(Phi, rN);
         } else {
-            MathUtils<double>::Solve(A, rN, Phi);
+            MathUtils::Solve(A, rN, Phi);
         }
 
         // Partition of unity

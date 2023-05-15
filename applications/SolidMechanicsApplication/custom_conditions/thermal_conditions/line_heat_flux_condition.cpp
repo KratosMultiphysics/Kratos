@@ -202,7 +202,7 @@ void LineHeatFluxCondition::CalculateAndSubKheatflux( Matrix& rK,
       Kij = - DiscreteFlux * SkewSymmMatrix;
 
       //TAKE CARE: the load correction matrix should be SUBSTRACTED not added
-      MathUtils<double>::SubtractMatrix( rK, Kij, RowIndex, ColIndex );
+      MathUtils::SubtractMatrix( rK, Kij, RowIndex, ColIndex );
     }
   }
 

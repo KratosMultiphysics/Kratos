@@ -296,14 +296,14 @@ void FSWernerWengleWallCondition<2, 2>::CalculateWallParameters(
 	    M(0, 1) = Normal[0];
 	    M(1, 1) = Normal[1];
 
-	    if (fabs(MathUtils<double>::Det2(M)) < Small * pow(mMinEdgeLength, 2))
+	    if (fabs(MathUtils::Det2(M)) < Small * pow(mMinEdgeLength, 2))
 	      {
 		continue;
 	      }
 
 	    Rhs = center - rEdge[0].Coordinates();
 
-	    MathUtils<double>::InvertMatrix2(M, InvM, DetM);
+	    MathUtils::InvertMatrix2(M, InvM, DetM);
 	    w1 = InvM(0, 0) * Rhs[0] + InvM(0, 1) * Rhs[1];
 	    s  = InvM(1, 0) * Rhs[0] + InvM(1, 1) * Rhs[1];
 	    if (w1 >= -Small && w1 <= 1.0 + Small) // check if normal intersects this edge
@@ -373,12 +373,12 @@ void FSWernerWengleWallCondition<3, 3>::CalculateWallParameters(
 		M(1, 2) = Normal[1];
 		M(2, 2) = Normal[2];
 
-		if (fabs(MathUtils<double>::Det3(M)) < Small * pow(mMinEdgeLength, 4))
+		if (fabs(MathUtils::Det3(M)) < Small * pow(mMinEdgeLength, 4))
 			continue;
 
 		Rhs = center - rFace[0].Coordinates();
 
-		MathUtils<double>::InvertMatrix3(M, InvM, DetM);
+		MathUtils::InvertMatrix3(M, InvM, DetM);
 		w1 = InvM(0, 0) * Rhs[0] + InvM(0, 1) * Rhs[1] + InvM(0, 2) * Rhs[2];
 		w2 = InvM(1, 0) * Rhs[0] + InvM(1, 1) * Rhs[1] + InvM(1, 2) * Rhs[2];
 		s = InvM(2, 0) * Rhs[0] + InvM(2, 1) * Rhs[1] + InvM(2, 2) * Rhs[2];

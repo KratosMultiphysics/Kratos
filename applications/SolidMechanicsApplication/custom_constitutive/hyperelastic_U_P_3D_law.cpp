@@ -129,7 +129,7 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     //6.-Inverse of the Right Cauchy-Green tensor C: (stored in the CauchyGreenMatrix)
     ElasticVariables.traceCG = 0;
     ElasticVariables.CauchyGreenMatrix( 3, 3 );
-    MathUtils<double>::InvertMatrix( RightCauchyGreen, ElasticVariables.CauchyGreenMatrix, ElasticVariables.traceCG);
+    MathUtils::InvertMatrix( RightCauchyGreen, ElasticVariables.CauchyGreenMatrix, ElasticVariables.traceCG);
 
 
     //8.-Green-Lagrange Strain:
@@ -178,7 +178,7 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 	SplitConstitutiveMatrix.Isochoric  = ConstitutiveMatrix;
 	SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
 
-	Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( IsochoricStressVector );
+	Matrix IsoStressMatrix = MathUtils::StressVectorToTensor( IsochoricStressVector );
 
 	this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsoStressMatrix, SplitConstitutiveMatrix.Isochoric );
 
@@ -335,7 +335,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
         ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
 
-	Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( IsochoricStressVector );
+	Matrix IsoStressMatrix = MathUtils::StressVectorToTensor( IsochoricStressVector );
 
         this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsoStressMatrix, SplitConstitutiveMatrix.Isochoric );
 

@@ -81,7 +81,7 @@ public:
         // Compute the unit normal
         array_1d<double,3> v_1 = Point2 - Point1;
         array_1d<double,3> v_2 = Point3 - Point1;
-        MathUtils<double>::CrossProduct(mNormal, v_1, v_2);
+        MathUtils::CrossProduct(mNormal, v_1, v_2);
         auto normal_length = norm_2(mNormal);
         KRATOS_DEBUG_CHECK_GREATER(normal_length, std::numeric_limits<double>::epsilon());
         mNormal /= normal_length;

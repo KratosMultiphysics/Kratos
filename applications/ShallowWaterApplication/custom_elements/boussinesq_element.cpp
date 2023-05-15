@@ -143,34 +143,34 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
 
             /// Stabilization x-x
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*rData.nodal_Jh[j][0], 3*i);
+            MathUtils::AddVector(rVector, -Weight*l*d_ij*A1i3*rData.nodal_Jh[j][0], 3*i);
 
             /// Stabilization y-y
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*rData.nodal_Jh[j][1], 3*i);
+            MathUtils::AddVector(rVector, -Weight*l*d_ij*A2i3*rData.nodal_Jh[j][1], 3*i);
 
             /// Stabilization x-y
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*rData.nodal_Jh[j][1], 3*i);
+            MathUtils::AddVector(rVector, -Weight*l*d_ij*A1i3*rData.nodal_Jh[j][1], 3*i);
 
             /// Stabilization y-x
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*rData.nodal_Jh[j][0], 3*i);
+            MathUtils::AddVector(rVector, -Weight*l*d_ij*A2i3*rData.nodal_Jh[j][0], 3*i);
 
             // TODO: Check the intermediate projection, this should improve the stability properties
             // /// Dispersion contribution to momentum conservation
             // const double n_ij = BaseType::ShapeFunctionProduct(rN, i, j);
-            // MathUtils<double>::AddVector(rVector, -Weight*n_ij*rData.nodal_Ju[j], 3*i);
+            // MathUtils::AddVector(rVector, -Weight*n_ij*rData.nodal_Ju[j], 3*i);
 
             // /// Stabilization x
             // g1_ij = rDN_DX(i,0) * rN[j];
             // array_1d<double,3> A1Ju = prod(trans(rData.A1),rData.nodal_Ju[j]);
-            // MathUtils<double>::AddVector(rVector, -Weight*l*g1_ij*A1Ju, 3*i);
+            // MathUtils::AddVector(rVector, -Weight*l*g1_ij*A1Ju, 3*i);
 
             // /// Stabilization y
             // g2_ij = rDN_DX(i,1) * rN[j];
             // array_1d<double,3> A2Ju = prod(trans(rData.A2),rData.nodal_Ju[j]);
-            // MathUtils<double>::AddVector(rVector, -Weight*l*g2_ij*A2Ju, 3*i);
+            // MathUtils::AddVector(rVector, -Weight*l*g2_ij*A2Ju, 3*i);
         }
     }
 }
@@ -205,22 +205,22 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
         {
             /// Consistent mass matrix
             const double n_ij = BaseType::ShapeFunctionProduct(rN, i, j);
-            MathUtils<double>::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
+            MathUtils::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
 
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*trans(rData.A1), 3*i, 3*j);
+            MathUtils::AddMatrix(rMatrix, Weight*l*g1_ij*trans(rData.A1), 3*i, 3*j);
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*trans(rData.A2), 3*i, 3*j);
+            MathUtils::AddMatrix(rMatrix, Weight*l*g2_ij*trans(rData.A2), 3*i, 3*j);
 
             /// Dispersive term
             derivatives_j[0] = rDN_DX(j,0);
             derivatives_j[1] = rDN_DX(j,1);
             noalias(K) = -outer_prod(derivatives_i, derivatives_j);
             noalias(Ju) = C2 * H2 * K - C4 * H * rData.nodal_z[j] * K;
-            MathUtils<double>::AddMatrix(rMatrix, Weight*Ju, 3*i, 3*j);
+            MathUtils::AddMatrix(rMatrix, Weight*Ju, 3*i, 3*j);
         }
     }
 }
@@ -266,8 +266,8 @@ void BoussinesqElement<TNumNodes>::AddDispersionProjection(
             Jh = (C1*H3 + C3*H2*depth) * prod(K, rData.nodal_v[j]);
             Ju = (C2*H2 + C4*H*depth) * prod(K, rData.nodal_a[j]);
 
-            MathUtils<double>::AddVector(rDispersionH, Weight*Jh, 3*i);
-            MathUtils<double>::AddVector(rDispersionU, Weight*Ju, 3*i);
+            MathUtils::AddVector(rDispersionH, Weight*Jh, 3*i);
+            MathUtils::AddVector(rDispersionU, Weight*Ju, 3*i);
         }
     }
 }
@@ -361,7 +361,7 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
         {
             /// Lumped mass matrix
             const double n_ij = 1.0 / static_cast<double>(TNumNodes);
-            MathUtils<double>::AddMatrix(lhs, weight*(1.0-w)*n_ij*S, 3*i, 3*i);
+            MathUtils::AddMatrix(lhs, weight*(1.0-w)*n_ij*S, 3*i, 3*i);
         }
     }
     noalias(rRHS) -= prod(lhs, this->GetUnknownVector(rData));

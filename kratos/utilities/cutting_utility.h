@@ -751,7 +751,7 @@ public:
                 temp_vector2 -=temp_vector1; //second edge
 
 
-                MathUtils<double>::CrossProduct(temp_vector4, temp_vector2 , temp_vector3) ; //multiplying the 2 edges gives us a normal vector to the element
+                MathUtils::CrossProduct(temp_vector4, temp_vector2 , temp_vector3) ; //multiplying the 2 edges gives us a normal vector to the element
 
                 if (inner_prod(temp_vector4,versor)<0.0) //if the signs do not match then they have opposite directions
                 {
@@ -825,7 +825,7 @@ public:
                     noalias(temp_vector2) = it_node1->Coordinates(); //node2 (end)
                     noalias(temp_vector3) = temp_vector2 - temp_vector1; //segment 1-2
                     //now i have to create the new plane
-                    MathUtils<double>::CrossProduct(temp_vector4, versor , temp_vector3); //done. now temp_vector4 is the (normal to the) new plane, perpendicular to the one containing the triangles
+                    MathUtils::CrossProduct(temp_vector4, versor , temp_vector3); //done. now temp_vector4 is the (normal to the) new plane, perpendicular to the one containing the triangles
                     //the origin of the plane is temp_vector1 (temp_vector2 could also be used)
                     //now we need to check distances to the other nodes (i+2 (let's call them jjj and i+3=kkk since we can't go futher than i=3)
                     if (iii==1)
@@ -890,7 +890,7 @@ public:
 
                     temp_vector3 -=temp_vector1;
                     temp_vector2 -=temp_vector1;
-                    MathUtils<double>::CrossProduct(temp_vector4, temp_vector2 , temp_vector3) ;
+                    MathUtils::CrossProduct(temp_vector4, temp_vector2 , temp_vector3) ;
 
                     if (inner_prod(temp_vector4,versor)<0.0)
                     {

@@ -180,7 +180,7 @@ void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
     // Iterate over the Gauss points
     for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ ) {
         GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
-        const double detJ0 = MathUtils<double>::GeneralizedDet(J0);
+        const double detJ0 = MathUtils::GeneralizedDet(J0);
         const double integration_weight = this->GetIntegrationWeight(integration_points, point_number, detJ0);
 
         // Calculating the pressure on the gauss point
@@ -204,7 +204,7 @@ void SmallDisplacementLineLoadCondition<TDim>::CalculateAll(
                 this->GetLocalAxis2(tangent_eta);
 
                 // Computing normal
-                MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
+                MathUtils::UnitCrossProduct(normal, tangent_xi, tangent_eta);
 
                 this->CalculateAndAddPressureForce( rRightHandSideVector, row( rNcontainer, point_number ), normal, gauss_pressure, integration_weight );
             }

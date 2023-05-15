@@ -168,10 +168,10 @@ void ProjectVectorOnSurfaceUtility::PlanarProjection(
             Vector a_cross_b = ZeroVector(3);
             Vector projected_result = ZeroVector(3);
 
-            MathUtils<double>::CrossProduct(a_cross_b, vec_a, vec_b);
-            MathUtils<double>::CrossProduct(projected_result, vec_b, a_cross_b);
+            MathUtils::CrossProduct(a_cross_b, vec_a, vec_b);
+            MathUtils::CrossProduct(projected_result, vec_b, a_cross_b);
             //noramlize projected result
-            projected_result /= MathUtils<double>::Norm(projected_result);
+            projected_result /= MathUtils::Norm(projected_result);
 
             element.SetValue(rVariable, projected_result);
         }
@@ -228,10 +228,10 @@ void ProjectVectorOnSurfaceUtility::RadialProjection(
         } else {
             Vector projected_result = ZeroVector(3);
 
-            MathUtils<double>::CrossProduct(projected_result, rGlobalDirection, local_axis_3);
+            MathUtils::CrossProduct(projected_result, rGlobalDirection, local_axis_3);
 
             //noramlize projected result
-            projected_result /= MathUtils<double>::Norm(projected_result);
+            projected_result /= MathUtils::Norm(projected_result);
 
             element.SetValue(rVariable, projected_result);
         }

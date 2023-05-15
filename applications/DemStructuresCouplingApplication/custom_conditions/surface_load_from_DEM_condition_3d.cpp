@@ -157,7 +157,7 @@ namespace Kratos
 
         for (unsigned int point_number = 0; point_number < integration_points.size(); point_number++)
         {
-            const double det_j = MathUtils<double>::GeneralizedDet(J[point_number]);
+            const double det_j = MathUtils::GeneralizedDet(J[point_number]);
             const double integration_weight = GetIntegrationWeight(integration_points, point_number, det_j);
 
             //generic load on gauss point

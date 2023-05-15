@@ -348,7 +348,7 @@ void ComputeDarcyTerm()
             convective_velocity[j] += this->N[i] * (Velocity(i, j) - MeshVelocity(i, j));
         }
     }
-    const double convective_velocity_norm = MathUtils<double>::Norm(convective_velocity);
+    const double convective_velocity_norm = MathUtils::Norm(convective_velocity);
     DarcyTerm = this->EffectiveViscosity * LinearDarcyCoefficient + Density * NonLinearDarcyCoefficient * convective_velocity_norm;
 }
 ///@}

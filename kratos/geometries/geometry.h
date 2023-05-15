@@ -1568,7 +1568,7 @@ public:
         }
 
         array_1d<double, 3> normal;
-        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        MathUtils::CrossProduct(normal, tangent_xi, tangent_eta);
         return normal;
     }
 
@@ -1627,7 +1627,7 @@ public:
         }
 
         array_1d<double, 3> normal;
-        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+        MathUtils::CrossProduct(normal, tangent_xi, tangent_eta);
         return normal;
     }
 
@@ -3176,7 +3176,7 @@ public:
         Matrix J( this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) {
             this->Jacobian( J, pnt, ThisMethod);
-            rResult[pnt] = MathUtils<double>::GeneralizedDet(J);
+            rResult[pnt] = MathUtils::GeneralizedDet(J);
         }
         return rResult;
     }
@@ -3224,7 +3224,7 @@ public:
     {
         Matrix J( this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         this->Jacobian( J, IntegrationPointIndex, ThisMethod);
-        return MathUtils<double>::GeneralizedDet(J);
+        return MathUtils::GeneralizedDet(J);
     }
 
 
@@ -3244,7 +3244,7 @@ public:
     {
         Matrix J( this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         this->Jacobian( J, rPoint);
-        return MathUtils<double>::GeneralizedDet(J);
+        return MathUtils::GeneralizedDet(J);
     }
 
 
@@ -3286,7 +3286,7 @@ public:
         double detJ;
         Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) {
-            MathUtils<double>::GeneralizedInvertMatrix(rResult[pnt], Jinv, detJ);
+            MathUtils::GeneralizedInvertMatrix(rResult[pnt], Jinv, detJ);
             noalias(rResult[pnt]) = Jinv;
         }
         return rResult;
@@ -3336,7 +3336,7 @@ public:
         double detJ;
         Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
 
-        MathUtils<double>::GeneralizedInvertMatrix(rResult, Jinv, detJ);
+        MathUtils::GeneralizedInvertMatrix(rResult, Jinv, detJ);
         noalias(rResult) = Jinv;
 
         return rResult;
@@ -3360,7 +3360,7 @@ public:
         double detJ;
         Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
 
-        MathUtils<double>::GeneralizedInvertMatrix(rResult, Jinv, detJ);
+        MathUtils::GeneralizedInvertMatrix(rResult, Jinv, detJ);
         noalias(rResult) = Jinv;
 
         return rResult;
@@ -3769,7 +3769,7 @@ public:
             if (rResult[pnt].size1() != (*this).size() || rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
             this->Jacobian(J,pnt, ThisMethod);
-            MathUtils<double>::GeneralizedInvertMatrix(J, Jinv, DetJ);
+            MathUtils::GeneralizedInvertMatrix(J, Jinv, DetJ);
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
             rDeterminantsOfJacobian[pnt] = DetJ;
         }

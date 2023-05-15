@@ -430,7 +430,7 @@ public:
 			       }
 
 			     // (3) Solve the system:
-			     MathUtils<double>::InvertMatrix( LyapunovTangent, InverseTangent, determinant );
+			     MathUtils::InvertMatrix( LyapunovTangent, InverseTangent, determinant );
 
 			     Rotation += prod( InverseTangent, Residual );
 

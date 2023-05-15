@@ -323,7 +323,7 @@ namespace Kratos
                 g20[1] += (GetGeometry().GetGeometryPart(0).GetPoint( i ).Y0()) * rShapeFunctionGradientValues(i, 1);
                 g20[2] += (GetGeometry().GetGeometryPart(0).GetPoint( i ).Z0()) * rShapeFunctionGradientValues(i, 1);
 
-                MathUtils<double>::CrossProduct(g30, g10, g20);
+                MathUtils::CrossProduct(g30, g10, g20);
                 g30 = g30 / norm_2(g30);
             }
         }
@@ -338,7 +338,7 @@ namespace Kratos
                 g20[1] += (GetGeometry().GetGeometryPart(1).GetPoint( i ).Y0()) * rShapeFunctionGradientValues(i, 1);
                 g20[2] += (GetGeometry().GetGeometryPart(1).GetPoint( i ).Z0()) * rShapeFunctionGradientValues(i, 1);
 
-                MathUtils<double>::CrossProduct(g30, g10, g20);
+                MathUtils::CrossProduct(g30, g10, g20);
                 g30 = g30 / norm_2(g30);
             }
         }
@@ -359,21 +359,21 @@ namespace Kratos
         g1 = column(J, 0);
         g2 = column(J, 1);
 
-        MathUtils<double>::CrossProduct(g3, g1, g2);
+        MathUtils::CrossProduct(g3, g1, g2);
         g3 = g3 / norm_2(g3);
 
         // compute the tangent (T2) and the normal (T1) to the boundary vector
         array_1d<double, 3> T1, T2;
         T2 = local_tangent[0] * g10 + local_tangent[1] * g20;
         trim_tangent = T2;
-        MathUtils<double>::CrossProduct(T1, T2, g30);
+        MathUtils::CrossProduct(T1, T2, g30);
         T2 = T2 / norm_2(T2);
         T1 = T1 / norm_2(T1);
 
         // compute the a3 displacement
         array_1d<double, 3> w = g3 - g30;
         array_1d<double, 3> sinus_omega_vector;
-        MathUtils<double>::CrossProduct(sinus_omega_vector, g30, w);
+        MathUtils::CrossProduct(sinus_omega_vector, g30, w);
 
         array_1d<double, 2> sinus_omega;
         sinus_omega(0) = inner_prod(sinus_omega_vector, T2);
@@ -393,7 +393,7 @@ namespace Kratos
         // compute variation of the a3 
         array_1d<double, 3> t3 = g3;
         array_1d<double, 3> tilde_t3; 
-        MathUtils<double>::CrossProduct(tilde_t3, g1, g2);
+        MathUtils::CrossProduct(tilde_t3, g1, g2);
         double length_t3 = norm_2(tilde_t3);
 
         std::vector<array_1d<double, 3>> t3_r(number_of_points * 3);
@@ -415,15 +415,15 @@ namespace Kratos
                 a2_r(i) = rShapeFunctionGradientValues(n, 1);
                 
                 array_1d<double, 3> a1_r__g2, g1__a2_r = ZeroVector(3);
-                MathUtils<double>::CrossProduct(a1_r__g2, a1_r, g2);
-                MathUtils<double>::CrossProduct(g1__a2_r, g1, a2_r);
+                MathUtils::CrossProduct(a1_r__g2, a1_r, g2);
+                MathUtils::CrossProduct(g1__a2_r, g1, a2_r);
 
                 //variation of the non normalized local vector
                 tilde_3_r[nb_dof] = a1_r__g2 + g1__a2_r;
                 line_t3_r[nb_dof] = inner_prod(t3, tilde_3_r[nb_dof]);
                 t3_r[nb_dof] = tilde_3_r[nb_dof] / length_t3 - line_t3_r[nb_dof] * t3 / length_t3;
 
-                MathUtils<double>::CrossProduct(sinus_omega_r[nb_dof], g30, t3_r[nb_dof]);
+                MathUtils::CrossProduct(sinus_omega_r[nb_dof], g30, t3_r[nb_dof]);
                 phi_r(nb_dof) = 1.0 / sqrt(1.0 - pow(sinus_omega(0), 2))*inner_prod(sinus_omega_r[nb_dof], T2);
             }
         }
@@ -456,8 +456,8 @@ namespace Kratos
 
                         //variation of the non normalized local vector
                         array_1d<double, 3> a1_r_n__a2_r_m, a1_r_m__a2_r_n = ZeroVector(3);
-                        MathUtils<double>::CrossProduct(a1_r_n__a2_r_m, a1_r_n, a2_r_m);
-                        MathUtils<double>::CrossProduct(a1_r_m__a2_r_n, a1_r_m, a2_r_n);
+                        MathUtils::CrossProduct(a1_r_n__a2_r_m, a1_r_n, a2_r_m);
+                        MathUtils::CrossProduct(a1_r_m__a2_r_n, a1_r_m, a2_r_n);
 
                         array_1d<double, 3> tilde_t3_rs = a1_r_n__a2_r_m + a1_r_m__a2_r_n;
                         double line_t3_rs = inner_prod(t3_r[nb_dof_m], tilde_3_r[nb_dof_n]) + inner_prod(t3, tilde_t3_rs);
@@ -466,7 +466,7 @@ namespace Kratos
                             - line_t3_rs * t3 / length_t3 - line_t3_r[nb_dof_n] * (t3_r[nb_dof_m] * length_t3 - line_t3_r[nb_dof_m] * t3) / pow(length_t3, 2);
 
                         array_1d<double, 3> sinus_omega_rs = ZeroVector(3);
-                        MathUtils<double>::CrossProduct(sinus_omega_rs, g30, t3_rs);
+                        MathUtils::CrossProduct(sinus_omega_rs, g30, t3_rs);
 
                         phi_rs(n * 3 + i, m * 3 + j) = inner_prod(sinus_omega_rs, T2) / sqrt(1.0 - pow(sinus_omega(0), 2))
                             + inner_prod(sinus_omega_r[nb_dof_m], T2)*inner_prod(sinus_omega_r[nb_dof_n], T2)*sinus_omega(0) / pow(1.0

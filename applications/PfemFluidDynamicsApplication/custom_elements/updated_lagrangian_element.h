@@ -844,7 +844,7 @@ namespace Kratos
       const array_1d<double, 3> TangentXi = rGeom[idB].Coordinates() - rGeom[idA].Coordinates();
       const array_1d<double, 3> TangentEta = rGeom[idC].Coordinates() - rGeom[idA].Coordinates();
 
-      MathUtils<double>::CrossProduct(NormalVector, TangentXi, TangentEta);
+      MathUtils::CrossProduct(NormalVector, TangentXi, TangentEta);
       double normNormal = NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1] + NormalVector[2] * NormalVector[2];
       NormalVector *= 1.0 / sqrt(normNormal);
 
@@ -875,7 +875,7 @@ namespace Kratos
       const array_1d<double, 3> TangentXi = rGeom[idB].Coordinates() - rGeom[idA].Coordinates();
       const array_1d<double, 3> TangentEta = rGeom[idC].Coordinates() - rGeom[idA].Coordinates();
 
-      MathUtils<double>::CrossProduct(NormalVector, TangentXi, TangentEta);
+      MathUtils::CrossProduct(NormalVector, TangentXi, TangentEta);
       double normNormal = NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1] + NormalVector[2] * NormalVector[2];
       NormalVector *= 1.0 / sqrt(normNormal);
 
@@ -884,9 +884,9 @@ namespace Kratos
       double deltaY = rGeom[idB].Y() - rGeom[idA].Y();
       double deltaZ = rGeom[idB].Z() - rGeom[idA].Z();
 
-      const double a = MathUtils<double>::Norm3(rGeom.GetPoint(idA) - rGeom.GetPoint(idB));
-      const double b = MathUtils<double>::Norm3(rGeom.GetPoint(idB) - rGeom.GetPoint(idC));
-      const double c = MathUtils<double>::Norm3(rGeom.GetPoint(idC) - rGeom.GetPoint(idA));
+      const double a = MathUtils::Norm3(rGeom.GetPoint(idA) - rGeom.GetPoint(idB));
+      const double b = MathUtils::Norm3(rGeom.GetPoint(idB) - rGeom.GetPoint(idC));
+      const double c = MathUtils::Norm3(rGeom.GetPoint(idC) - rGeom.GetPoint(idA));
 
       const double s = (a + b + c) / 2.0;
 

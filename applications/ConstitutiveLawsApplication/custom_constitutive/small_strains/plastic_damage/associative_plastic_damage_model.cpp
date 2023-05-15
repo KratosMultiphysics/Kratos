@@ -96,7 +96,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
             double det = 0.0;
             BoundedMatrixType temp;
             noalias(temp) = tension_parameter * plastic_damage_parameters.ComplianceMatrix + compression_parameter * plastic_damage_parameters.ComplianceMatrixCompression;
-            MathUtils<double>::InvertMatrix(temp, plastic_damage_parameters.ConstitutiveMatrix, det);
+            MathUtils::InvertMatrix(temp, plastic_damage_parameters.ConstitutiveMatrix, det);
         } else {
             CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
         }
@@ -160,7 +160,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
             double det = 0.0;
             BoundedMatrixType temp;
             noalias(temp) = tension_parameter * plastic_damage_parameters.ComplianceMatrix + compression_parameter * plastic_damage_parameters.ComplianceMatrixCompression;
-            MathUtils<double>::InvertMatrix(temp, plastic_damage_parameters.ConstitutiveMatrix, det);
+            MathUtils::InvertMatrix(temp, plastic_damage_parameters.ConstitutiveMatrix, det);
         } else {
             CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
         }        
@@ -665,7 +665,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
                     noalias(rPDParameters.ComplianceMatrixCompression) += compression_parameter*rPDParameters.ComplianceMatrixIncrement;
                     BoundedMatrixType temp;
                     noalias(temp) = tension_parameter * rPDParameters.ComplianceMatrix + compression_parameter * rPDParameters.ComplianceMatrixCompression;
-                    MathUtils<double>::InvertMatrix(temp, rPDParameters.ConstitutiveMatrix, det);
+                    MathUtils::InvertMatrix(temp, rPDParameters.ConstitutiveMatrix, det);
 
                 } else {
                     noalias(rPDParameters.ComplianceMatrix) += rPDParameters.ComplianceMatrixIncrement;
@@ -704,7 +704,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateConstitutiveMatr
     )
 {
     double det = 0.0;
-    MathUtils<double>::InvertMatrix(rPDParameters.ComplianceMatrix, rPDParameters.ConstitutiveMatrix, det);
+    MathUtils::InvertMatrix(rPDParameters.ComplianceMatrix, rPDParameters.ConstitutiveMatrix, det);
 }
 
 /***********************************************************************************/
@@ -1111,7 +1111,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateTangentTensor(
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::Secant) {
         double det = 0.0;
-        MathUtils<double>::InvertMatrix(mComplianceMatrix, rValues.GetConstitutiveMatrix(), det);
+        MathUtils::InvertMatrix(mComplianceMatrix, rValues.GetConstitutiveMatrix(), det);
     }
 }
 

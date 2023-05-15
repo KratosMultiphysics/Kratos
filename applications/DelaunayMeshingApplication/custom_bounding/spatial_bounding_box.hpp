@@ -1417,7 +1417,7 @@ protected:
 
 
       // local x-axis (e1_local) is the beam axis  (in GID is e3_local)
-      double VectorNorm = MathUtils<double>::Norm(rDirectionVectorX);
+      double VectorNorm = MathUtils::Norm(rDirectionVectorX);
       if( VectorNorm != 0)
 	rDirectionVectorX /= VectorNorm;
 
@@ -1426,21 +1426,21 @@ protected:
 
       double tolerance = 1.0/64.0;
       if(fabs(rDirectionVectorX[0])< tolerance && fabs(rDirectionVectorX[1])< tolerance){
-	MathUtils<double>::CrossProduct(rDirectionVectorY, GlobalY, rDirectionVectorX);
+	MathUtils::CrossProduct(rDirectionVectorY, GlobalY, rDirectionVectorX);
       }
       else{
-	MathUtils<double>::CrossProduct(rDirectionVectorY, GlobalZ, rDirectionVectorX);
+	MathUtils::CrossProduct(rDirectionVectorY, GlobalZ, rDirectionVectorX);
       }
 
 
-      VectorNorm = MathUtils<double>::Norm(rDirectionVectorY);
+      VectorNorm = MathUtils::Norm(rDirectionVectorY);
       if( VectorNorm != 0)
 	rDirectionVectorY /= VectorNorm;
 
       // local z-axis (e3_local) (in GID is e2_local)
-      MathUtils<double>::CrossProduct(rDirectionVectorZ, rDirectionVectorX,rDirectionVectorY);
+      MathUtils::CrossProduct(rDirectionVectorZ, rDirectionVectorX,rDirectionVectorY);
 
-      VectorNorm = MathUtils<double>::Norm(rDirectionVectorZ);
+      VectorNorm = MathUtils::Norm(rDirectionVectorZ);
       if( VectorNorm != 0 )
 	rDirectionVectorZ /= VectorNorm;
 

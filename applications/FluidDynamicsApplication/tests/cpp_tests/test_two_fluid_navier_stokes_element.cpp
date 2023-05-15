@@ -692,7 +692,7 @@ namespace Kratos {
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
             double det;
-            MathUtils<double>::InvertMatrix(LHS, LHS, det);
+            MathUtils::InvertMatrix(LHS, LHS, det);
 
             const Vector solVec = prod(LHS, RHS);
 

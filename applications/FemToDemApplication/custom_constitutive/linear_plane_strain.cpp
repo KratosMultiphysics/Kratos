@@ -171,7 +171,7 @@ void LinearPlaneStrainFEMDEM::CalculateCauchyGreenStrain(Parameters& rValues, Ve
 
     E_tensor *= 0.5;
 
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    noalias(rStrainVector) = MathUtils::StrainTensorToVector(E_tensor);
 }
 
 } // Namespace Kratos

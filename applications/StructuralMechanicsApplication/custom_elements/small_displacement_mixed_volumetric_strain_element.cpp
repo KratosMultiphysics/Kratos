@@ -359,8 +359,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLocalSystem(
         }
         double det;
         Matrix tau_1_mat(dim, dim);
-        MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
-        const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
+        MathUtils::InvertMatrix(aux, tau_1_mat, det);
+        const Vector tau_1_vect = MathUtils::SymmetricTensorToVector(tau_1_mat);
         double m_T_tau_1 = inner_prod(m_T, tau_1_vect);
 
         // Calculate tau_2 stabilization constant
@@ -529,8 +529,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateLeftHandSide(
         }
         double det;
         Matrix tau_1_mat(dim, dim);
-        MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
-        const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
+        MathUtils::InvertMatrix(aux, tau_1_mat, det);
+        const Vector tau_1_vect = MathUtils::SymmetricTensorToVector(tau_1_mat);
         double m_T_tau_1 = inner_prod(m_T, tau_1_vect);
 
         // Calculate tau_2 stabilization constant
@@ -665,8 +665,8 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateRightHandSide(
         }
         double det;
         Matrix tau_1_mat(dim, dim);
-        MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
-        const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
+        MathUtils::InvertMatrix(aux, tau_1_mat, det);
+        const Vector tau_1_vect = MathUtils::SymmetricTensorToVector(tau_1_mat);
         double m_T_tau_1 = inner_prod(m_T, tau_1_vect);
 
         // Calculate tau_2 stabilization constant
@@ -839,7 +839,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateKinematicVariables(
         r_geometry,
         r_integration_points[PointNumber],
         rThisKinematicVariables.J0);
-    MathUtils<double>::InvertMatrix(
+    MathUtils::InvertMatrix(
         rThisKinematicVariables.J0,
         rThisKinematicVariables.InvJ0,
         rThisKinematicVariables.detJ0);
@@ -860,7 +860,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateKinematicVariables(
 
     // Compute equivalent F
     ComputeEquivalentF(rThisKinematicVariables.F, rThisKinematicVariables.EquivalentStrain);
-    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+    rThisKinematicVariables.detF = MathUtils::Det(rThisKinematicVariables.F);
 }
 
 /***********************************************************************************/
@@ -962,15 +962,15 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     Matrix b;
     const double tolerance = 1.0e-12;
     const unsigned int max_iterations = 100;
-    const bool is_converged_a = MathUtils<double>::MatrixSquareRoot(rC, a, tolerance, max_iterations);
+    const bool is_converged_a = MathUtils::MatrixSquareRoot(rC, a, tolerance, max_iterations);
     KRATOS_WARNING_IF("SmallDisplacementMixedVolumetricStrainElement", !is_converged_a) << "Element " << Id() << " anisotropic tensor square root did not converge.";
-    const bool is_converged_b = MathUtils<double>::MatrixSquareRoot(C_iso, b, tolerance, max_iterations);
+    const bool is_converged_b = MathUtils::MatrixSquareRoot(C_iso, b, tolerance, max_iterations);
     KRATOS_WARNING_IF("SmallDisplacementMixedVolumetricStrainElement", !is_converged_b) << "Element " << Id() << " isotropic tensor square root did not converge.";
 
     // Calculate the anisotropy tensor T as inv(b)*a
     Matrix inv_b;
     double det_b;
-    MathUtils<double>::InvertMatrix(b, inv_b, det_b);
+    MathUtils::InvertMatrix(b, inv_b, det_b);
     mAnisotropyTensor = prod(inv_b, a);
 }
 
@@ -982,7 +982,7 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateInverseAnisotropyTe
     const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     double aux_det;
     mInverseAnisotropyTensor = ZeroMatrix(strain_size, strain_size);
-    MathUtils<double>::InvertMatrix(mAnisotropyTensor, mInverseAnisotropyTensor, aux_det);
+    MathUtils::InvertMatrix(mAnisotropyTensor, mInverseAnisotropyTensor, aux_det);
 }
 
 /***********************************************************************************/

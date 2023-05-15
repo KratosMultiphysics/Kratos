@@ -205,9 +205,9 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(Constit
         if (rValues.IsSetDeterminantF()) {
             // we push forward the stress
             Matrix stress_matrix(3, 3);
-            noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_integrated_stress_vector);
+            noalias(stress_matrix) = MathUtils::StressVectorToTensor(r_integrated_stress_vector);
             ContraVariantPushForward (stress_matrix, rValues.GetDeformationGradientF()); //Kirchhoff
-            noalias(r_integrated_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_integrated_stress_vector.size() );
+            noalias(r_integrated_stress_vector) = MathUtils::StressTensorToVector( stress_matrix, r_integrated_stress_vector.size() );
         }
 
         if (flag_const_tensor) {
@@ -351,7 +351,7 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     Matrix inv_jacobian(num_serial_components, num_serial_components);
     double det_jacobian;
 
-    MathUtils<double>::InvertMatrix(jacobian_matrix, inv_jacobian, det_jacobian);
+    MathUtils::InvertMatrix(jacobian_matrix, inv_jacobian, det_jacobian);
 
     noalias(rSerialStrainMatrix) -= prod(inv_jacobian, rResidualStresses);
 
@@ -384,8 +384,8 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
     const Vector& serial_stress_matrix = prod(rSerialProjector, rMatrixStressVector);
     const Vector& serial_stress_fiber  = prod(rSerialProjector, rFiberStressVector);
 
-    const double norm_serial_stress_matrix = MathUtils<double>::Norm(serial_stress_matrix);
-    const double norm_serial_stress_fiber  = MathUtils<double>::Norm(serial_stress_fiber);
+    const double norm_serial_stress_matrix = MathUtils::Norm(serial_stress_matrix);
+    const double norm_serial_stress_fiber  = MathUtils::Norm(serial_stress_fiber);
     double ref = std::min(norm_serial_stress_matrix, norm_serial_stress_fiber);
 
     // Here we compute the tolerance
@@ -397,8 +397,8 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
             tolerance = r_props_fiber_cl[SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE];
     } else {
         if (ref <= machine_tolerance) {
-            const double norm_product_matrix = MathUtils<double>::Norm(prod(rConstitutiveTensorMatrixSS, serial_total_strain));
-            const double norm_product_fiber  = MathUtils<double>::Norm(prod(rConstitutiveTensorFiberSS, serial_total_strain));
+            const double norm_product_matrix = MathUtils::Norm(prod(rConstitutiveTensorMatrixSS, serial_total_strain));
+            const double norm_product_fiber  = MathUtils::Norm(prod(rConstitutiveTensorFiberSS, serial_total_strain));
             ref = std::min(norm_product_matrix, norm_product_fiber);
         }
         tolerance = std::max(1e-4 * ref, 1.0e-9);
@@ -409,7 +409,7 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
         rIsConverged = true;
         return;
     }
-    const double norm_residual =  MathUtils<double>::Norm(rStressSerialResidual);
+    const double norm_residual =  MathUtils::Norm(rStressSerialResidual);
     if (norm_residual < tolerance) rIsConverged = true;
 }
 
@@ -514,7 +514,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     Matrix A, aux;
     aux = k_m * rConstitutiveTensorFiberSS + k_f * rConstitutiveTensorMatrixSS;
     double det_aux = 0.0;
-    MathUtils<double>::InvertMatrix(aux, A, det_aux);
+    MathUtils::InvertMatrix(aux, A, det_aux);
 
     Vector auxiliary(rInitialApproximationSerialStrainMatrix.size());
     noalias(auxiliary) = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) + k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
@@ -1483,7 +1483,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 
         if (rValue.size1() != voigt_size)
             rValue.resize(voigt_size, voigt_size, false);
-        noalias(rValue) = MathUtils<double>::StressVectorToTensor(fiber_stress_vector);
+        noalias(rValue) = MathUtils::StressVectorToTensor(fiber_stress_vector);
         return rValue;
 
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR_MATRIX) {
@@ -1523,7 +1523,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
         if (rValue.size1() != voigt_size)
             rValue.resize(voigt_size, voigt_size, false);
-        noalias(rValue) = MathUtils<double>::StressVectorToTensor(matrix_stress_vector);
+        noalias(rValue) = MathUtils::StressVectorToTensor(matrix_stress_vector);
         return rValue;
 
     } else if (rThisVariable == CAUCHY_STRESS_TENSOR || rThisVariable == PK2_STRESS_TENSOR || rThisVariable == KIRCHHOFF_STRESS_TENSOR) {
@@ -1548,7 +1548,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 
         if (rValue.size1() != voigt_size)
             rValue.resize(voigt_size, voigt_size, false);
-        noalias(rValue) = MathUtils<double>::StressVectorToTensor(rParameterValues.GetStressVector());
+        noalias(rValue) = MathUtils::StressVectorToTensor(rParameterValues.GetStressVector());
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
@@ -1563,7 +1563,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
         if (rValue.size1() != voigt_size)
             rValue.resize(voigt_size, voigt_size, false);
-        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
+        noalias(rValue) = MathUtils::StrainVectorToTensor(matrix_strain_vector);
         return rValue;
     } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_TENSOR_FIBER) {
         const std::size_t voigt_size = this->GetStrainSize();
@@ -1575,7 +1575,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
         if (rValue.size1() != voigt_size)
             rValue.resize(voigt_size, voigt_size, false);
-        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(fiber_strain_vector);
+        noalias(rValue) = MathUtils::StrainVectorToTensor(fiber_strain_vector);
         return rValue;
     } else {
         Matrix aux_value;

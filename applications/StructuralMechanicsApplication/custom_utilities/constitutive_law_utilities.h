@@ -235,7 +235,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         TVector& rVector
         )
     {
-        const double norm = MathUtils<double>::Norm3(rVector);
+        const double norm = MathUtils::Norm3(rVector);
         if (norm > std::numeric_limits<double>::epsilon()) {
             rVector /= norm;
         } else {

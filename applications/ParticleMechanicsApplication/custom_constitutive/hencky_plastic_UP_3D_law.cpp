@@ -116,7 +116,7 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
         {
             aux_N[j] = rReturnMappingVariables.MainDirections(i,j);
         }
-        aux_M = MathUtils<double>::TensorProduct3(aux_N, aux_N);
+        aux_M = MathUtils::TensorProduct3(aux_N, aux_N);
         rStressMatrix += deviatoric_principal_stress[i]*aux_M;
     }
 
@@ -252,7 +252,7 @@ void HenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCa
     // Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen = ZeroMatrix( 3, 3 );
     double det_b=0;
-    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
     rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );

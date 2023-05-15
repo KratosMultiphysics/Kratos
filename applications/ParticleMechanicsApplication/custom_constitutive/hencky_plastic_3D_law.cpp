@@ -304,7 +304,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         this->CorrectDomainPressure( stress_matrix, ElasticVariables);
 
         // Stress vector updated
-        stress_vector = MathUtils<double>::StressTensorToVector(stress_matrix, stress_vector.size());
+        stress_vector = MathUtils::StressTensorToVector(stress_matrix, stress_vector.size());
 
         // Calculate Constitutive Matrix related to Total Kirchhoff stress -- Dep
         constitutive_matrix.clear();
@@ -332,7 +332,7 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
         mDeterminantF0 = determinant_F;
 
         // Compute Inverse
-        MathUtils<double>::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
+        MathUtils::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
     }
 
 }
@@ -419,9 +419,9 @@ Matrix HenckyElasticPlastic3DLaw::CalculateEigenbases(const ParticleFlowRule::Ra
     Matrix M1 = ZeroMatrix(3,3);
     Matrix M2 = ZeroMatrix(3,3);
     Matrix M3 = ZeroMatrix(3,3);
-    M1 = MathUtils<double>::TensorProduct3(N1, N1);
-    M2 = MathUtils<double>::TensorProduct3(N2, N2);
-    M3 = MathUtils<double>::TensorProduct3(N3, N3);
+    M1 = MathUtils::TensorProduct3(N1, N1);
+    M2 = MathUtils::TensorProduct3(N2, N2);
+    M3 = MathUtils::TensorProduct3(N3, N3);
 
     // EigenbasesMatrix[3x9]
     for(unsigned int i = 0; i<3; i++)

@@ -102,7 +102,7 @@ void AxisymmetricThermalElement::CalculateKinematics(GeneralVariables& rVariable
 
     Matrix InvJ;
     //Calculating the inverse of the jacobian and the parameters needed
-    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
@@ -115,7 +115,7 @@ void AxisymmetricThermalElement::CalculateKinematics(GeneralVariables& rVariable
 
     Matrix Invj;
     //Calculating the inverse of the jacobian and the parameters needed
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
+    MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
     //Compute cartesian derivatives
     rVariables.DN_DX = prod( DN_De[rPointNumber] , Invj ); //overwrites DX now is the current position

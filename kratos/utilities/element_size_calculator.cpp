@@ -1394,7 +1394,7 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(
         // Invert Matrix Q
         Matrix QInv;
         double det;
-        MathUtils<double>::InvertMatrix(Q,QInv,det);
+        MathUtils::InvertMatrix(Q,QInv,det);
 
         array_1d<double,3> Uq = ZeroVector(3);
         for (unsigned int i = 0; i < 3; i++)

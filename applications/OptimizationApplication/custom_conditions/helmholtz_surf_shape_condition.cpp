@@ -334,8 +334,8 @@ void HelmholtzSurfShapeCondition::CalculateNormal(VectorType & r_n) const
     v2[2] = r_cond_geom[2].Z0() - r_cond_geom[0].Z0();
 
     r_n.resize(3);
-    MathUtils<double>::CrossProduct(r_n,v1,v2);
-    double norm = MathUtils<double>::Norm3(r_n);
+    MathUtils::CrossProduct(r_n,v1,v2);
+    double norm = MathUtils::Norm3(r_n);
     r_n /= norm;
 }
 
@@ -366,7 +366,7 @@ void HelmholtzSurfShapeCondition::CalculateSurfaceMassMatrix(
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
         Matrix J0;
         GeometryUtils::JacobianOnInitialConfiguration(r_cond_geom, integration_points[point_number], J0);
-        double detJ0 = MathUtils<double>::GeneralizedDet(J0);     
+        double detJ0 = MathUtils::GeneralizedDet(J0);     
 
         const double integration_weight = integration_points[point_number].Weight() * detJ0;
         const Vector& rN = row(Ncontainer,point_number);
@@ -468,7 +468,7 @@ void HelmholtzSurfShapeCondition::CalculateSurfaceStiffnessMatrix(
 
         Matrix J0;
         GeometryUtils::JacobianOnInitialConfiguration(r_cond_geom, integration_points[point_number], J0);
-        double detJ0 = MathUtils<double>::GeneralizedDet(J0);
+        double detJ0 = MathUtils::GeneralizedDet(J0);
 
         const double integration_weight = integration_points[point_number].Weight() * detJ0;
         MatrixType DN_DX;
@@ -524,7 +524,7 @@ void HelmholtzSurfShapeCondition::GetParentElementShapeFunctionsGlobalGradients(
     Matrix J0,InvJ0;
     GeometryUtils::JacobianOnInitialConfiguration(r_elem_geom, elem_cond__gp_local_pt, J0);
     double detJ0;
-    MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+    MathUtils::InvertMatrix(J0, InvJ0, detJ0);
 
 
     MatrixType elem_DN_DX = prod(DN_De,InvJ0);

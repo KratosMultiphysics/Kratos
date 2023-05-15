@@ -735,7 +735,7 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidShapeDer
         GeometricalSensitivityUtility::ShapeFunctionsGradientType dNdX_derivative;
         const Matrix& rJ = J[g];
         const Matrix& rDN_De = DN_De[g];
-        const double inv_detJ = 1.0 / MathUtils<double>::Det(rJ);
+        const double inv_detJ = 1.0 / MathUtils::Det(rJ);
         GeometricalSensitivityUtility geom_sensitivity(rJ, rDN_De);
 
         ShapeParameter deriv;

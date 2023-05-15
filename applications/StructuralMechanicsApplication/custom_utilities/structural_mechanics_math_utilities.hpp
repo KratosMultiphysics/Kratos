@@ -62,15 +62,15 @@ public:
     {
         double n;
 
-        MathUtils<double>::CrossProduct(t3g, vxe, vye);
+        MathUtils::CrossProduct(t3g, vxe, vye);
         n = norm_2(t3g);
         t3g /= n;
 
-        MathUtils<double>::CrossProduct(t2g, t3g, vxe);
+        MathUtils::CrossProduct(t2g, t3g, vxe);
         n = norm_2(t2g);
         t2g /= n;
 
-        MathUtils<double>::CrossProduct(t1g, t2g, t3g);
+        MathUtils::CrossProduct(t1g, t2g, t3g);
         n = norm_2(t1g);
         t1g /= n;
     }
@@ -92,15 +92,15 @@ public:
     {
         double n;
 
-        MathUtils<double>::CrossProduct(t3g, Xdxi, Xdeta);
+        MathUtils::CrossProduct(t3g, Xdxi, Xdeta);
         n = norm_2(t3g);
         t3g /= n;
 
-        MathUtils<double>::CrossProduct(t2g, t3g, vxe);
+        MathUtils::CrossProduct(t2g, t3g, vxe);
         n = norm_2(t2g);
         t2g /= n;
 
-        MathUtils<double>::CrossProduct(t1g, t2g, t3g);
+        MathUtils::CrossProduct(t1g, t2g, t3g);
         n = norm_2(t1g);
         t1g /= n;
     }
@@ -116,16 +116,16 @@ public:
 
         array_1d<double, 3 > t1g, t2g, t3g;
 
-        MathUtils<double>::CrossProduct(t3g, Xdxi, Xdeta);
+        MathUtils::CrossProduct(t3g, Xdxi, Xdeta);
 
         n = norm_2(t3g);
         t3g /= n;
 
-        MathUtils<double>::CrossProduct(t2g, t3g, vxe);
+        MathUtils::CrossProduct(t2g, t3g, vxe);
         n = norm_2(t2g);
         t2g /= n;
 
-        MathUtils<double>::CrossProduct(t1g, t2g, t3g);
+        MathUtils::CrossProduct(t1g, t2g, t3g);
         n = norm_2(t1g);
         t1g /= n;
 
@@ -403,8 +403,8 @@ public:
         double det;
         Matrix inv_metric_left = Matrix(TDim,TDim);
         Matrix inv_metric_right = Matrix(TDim,TDim);
-        MathUtils<double>::InvertMatrix(Matrix(metric_left),inv_metric_left,det);
-        MathUtils<double>::InvertMatrix(metric_right,inv_metric_right,det);
+        MathUtils::InvertMatrix(Matrix(metric_left),inv_metric_left,det);
+        MathUtils::InvertMatrix(metric_right,inv_metric_right,det);
 
         // Compute dual target base vectors
         BoundedMatrix<double,TDim,TDim> target_left_dual = ZeroMatrix(TDim,TDim); // Anna noalias?

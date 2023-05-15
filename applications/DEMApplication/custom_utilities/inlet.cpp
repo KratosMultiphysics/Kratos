@@ -643,7 +643,7 @@ namespace Kratos {
                 }
 
                 const array_1d<double, 3> angular_velocity = mp[ANGULAR_VELOCITY];
-                const double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
+                const double mod_angular_velocity = MathUtils::Norm3(angular_velocity);
                 const double angular_velocity_start_time = mp[ANGULAR_VELOCITY_START_TIME];
                 const double angular_velocity_stop_time = mp[ANGULAR_VELOCITY_STOP_TIME];
                 const double angular_period = mp[ANGULAR_VELOCITY_PERIOD];

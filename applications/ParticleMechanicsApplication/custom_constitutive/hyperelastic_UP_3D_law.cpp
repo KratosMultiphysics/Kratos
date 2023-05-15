@@ -191,7 +191,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
         ElasticVariables.CauchyGreenMatrix = ElasticVariables.Identity;
 
-	    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( IsochoricStressVector );
+	    Matrix IsoStressMatrix = MathUtils::StressVectorToTensor( IsochoricStressVector );
 
         this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsoStressMatrix, SplitConstitutiveMatrix.Isochoric );
 

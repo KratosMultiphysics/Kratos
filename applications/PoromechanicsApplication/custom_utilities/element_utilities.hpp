@@ -473,7 +473,7 @@ class ElementUtilities
    */
   static inline double CalculateStressNorm(const Vector& rStressVector)
   {
-    Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
+    Matrix LocalStressTensor  = MathUtils::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
 
     Matrix StressTensor(3,3); //3D stress tensor
     noalias(StressTensor) = ZeroMatrix(3,3);
@@ -503,7 +503,7 @@ class ElementUtilities
    */
   static inline double CalculateVonMises(const Vector& rStressVector)
   {
-    Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
+    Matrix LocalStressTensor  = MathUtils::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
 
     Matrix StressTensor(3,3); //3D stress tensor
     noalias(StressTensor) = ZeroMatrix(3,3);
@@ -539,7 +539,7 @@ class ElementUtilities
 
     //in principal stresses:
 
-    Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
+    Matrix LocalStressTensor  = MathUtils::StressVectorToTensor(rStressVector); //reduced dimension stress tensor
 
     Matrix StressTensor(3,3); //3D stress tensor
     noalias(StressTensor) = ZeroMatrix(3,3);

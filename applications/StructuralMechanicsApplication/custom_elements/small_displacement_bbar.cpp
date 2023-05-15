@@ -213,7 +213,7 @@ void SmallDisplacementBbar::CalculateKinematicVariables(
     GetValuesVector(displacements);
     Vector strain_vector = prod(rThisKinematicVariables.B, displacements);
     rThisKinematicVariables.F = ComputeEquivalentF(strain_vector);
-    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+    rThisKinematicVariables.detF = MathUtils::Det(rThisKinematicVariables.F);
 }
 
 //************************************************************************************
@@ -254,7 +254,7 @@ void SmallDisplacementBbar::CalculateKinematicVariablesBbar(
     GetValuesVector(displacements);
     Vector strain_vector = prod(rThisKinematicVariables.B, displacements);
     rThisKinematicVariables.F = ComputeEquivalentF(strain_vector);
-    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+    rThisKinematicVariables.detF = MathUtils::Det(rThisKinematicVariables.F);
 }
 
 //************************************************************************************
@@ -279,7 +279,7 @@ void SmallDisplacementBbar::SetConstitutiveVariables(
     rThisKinematicVariables.F = ComputeEquivalentF(rThisConstitutiveVariables.StrainVector);
 
     // Here we essentially set the input parameters
-    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+    rThisKinematicVariables.detF = MathUtils::Det(rThisKinematicVariables.F);
     rValues.SetShapeFunctionsValues(rThisKinematicVariables.N); // shape functions
     rValues.SetDeterminantF(rThisKinematicVariables.detF); //assuming the determinant is computed somewhere else
     rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
@@ -588,7 +588,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
                                            Values, point_number, integration_points,
                                            GetStressMeasure(), false);
 
-            const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
+            const Matrix stress_tensor = MathUtils::StressVectorToTensor( this_constitutive_variables.StressVector );
 
             double sigma_equivalent = 0.0;
 
@@ -762,7 +762,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if ( rOutput[point_number].size2() != dimension )
                 rOutput[point_number].resize( dimension, dimension, false );
 
-            noalias(rOutput[point_number]) = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+            noalias(rOutput[point_number]) = MathUtils::StressVectorToTensor(stress_vector[point_number]);
         }
     }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
@@ -777,7 +777,7 @@ void SmallDisplacementBbar::CalculateOnIntegrationPoints(
             if ( rOutput[point_number].size2() != dimension )
                 rOutput[point_number].resize( dimension, dimension, false );
 
-            noalias(rOutput[point_number]) = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
+            noalias(rOutput[point_number]) = MathUtils::StrainVectorToTensor(strain_vector[point_number]);
         }
     }
     else if (rVariable == CONSTITUTIVE_MATRIX) {

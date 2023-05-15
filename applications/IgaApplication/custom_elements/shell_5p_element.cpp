@@ -202,7 +202,7 @@ namespace Kratos
         const array_1d<double, 3> a1 = column(J0, 0);
         const array_1d<double, 3> a2 = column(J0, 1);
 
-        m_dA_vector[iP] = norm_2(MathUtils<double>::CrossProduct(a1, a2));
+        m_dA_vector[iP] = norm_2(MathUtils::CrossProduct(a1, a2));
 
         column(J0Cart, 0) = a1 / norm_2(a1); //Gram-Schmidt-Orthonormalization
         column(J0Cart, 1) = a2 - inner_prod(column(J0Cart, 0), a2) * column(J0Cart, 0);
@@ -212,7 +212,7 @@ namespace Kratos
 
         double detJ;
         Matrix2d invJ;
-        MathUtils<double>::InvertMatrix2(J, invJ, detJ);
+        MathUtils::InvertMatrix2(J, invJ, detJ);
 
         return prod(invJ, trans(r_DN_De));
     }

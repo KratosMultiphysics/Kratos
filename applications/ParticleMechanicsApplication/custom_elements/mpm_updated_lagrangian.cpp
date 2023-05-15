@@ -207,7 +207,7 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     GeometryType& r_geometry = GetGeometry();
 
     // Variables.detF is the determinant of the incremental total deformation gradient
-    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+    rVariables.detF  = MathUtils::Det(rVariables.F);
 
     // Check if detF is negative (element is inverted)
     if(rVariables.detF<0)
@@ -357,7 +357,7 @@ void MPMUpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, con
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     double detJ;
-    MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
+    MathUtils::InvertMatrix( Jacobian, InvJ, detJ);
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
     Matrix jacobian;
@@ -365,7 +365,7 @@ void MPMUpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, con
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
+    MathUtils::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n+1]
     const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
@@ -557,7 +557,7 @@ void MPMUpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrent
     GetGeometry().Jacobian(Jacobian, 0);
     Matrix InvJ;
     double detJ;
-    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
+    MathUtils::InvertMatrix(Jacobian, InvJ, detJ);
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
     rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
@@ -571,9 +571,9 @@ void MPMUpdatedLagrangian::CalculateExplicitStresses(const ProcessInfo& rCurrent
     // Update gradient deformation
     rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment
     rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment
-    rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
-    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
-    rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
+    rVariables.detF = MathUtils::Det(rVariables.F); // det of current increment
+    rVariables.detF0 = MathUtils::Det(rVariables.F0); // det of def grad NOT including this increment
+    rVariables.detFT = MathUtils::Det(rVariables.FT); // det of total def grad including this increment
     mDeformationGradientF0 = rVariables.FT; // update member internal total grad def
     mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
 
@@ -680,9 +680,9 @@ void MPMUpdatedLagrangian::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
     else
     {
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(rVariables.StressVector);
+        Matrix stress_tensor = MathUtils::StressVectorToTensor(rVariables.StressVector);
         Matrix reduced_Kg = prod(rVariables.DN_DX, rIntegrationWeight * Matrix(prod(stress_tensor, trans(rVariables.DN_DX))));
-        MathUtils<double>::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, reduced_Kg, dimension);
+        MathUtils::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, reduced_Kg, dimension);
     }
 
 
@@ -1113,7 +1113,7 @@ void MPMUpdatedLagrangian::CalculateAlmansiStrain(const Matrix& rF,
     // Calculating the inverse of the jacobian
     Matrix inv_left_cauchy_green ( dimension, dimension );
     double det_b=0;
-    MathUtils<double>::InvertMatrix( left_cauchy_green, inv_left_cauchy_green, det_b);
+    MathUtils::InvertMatrix( left_cauchy_green, inv_left_cauchy_green, det_b);
 
     if( dimension == 2 )
     {

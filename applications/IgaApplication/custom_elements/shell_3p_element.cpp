@@ -523,7 +523,7 @@ namespace Kratos
         rKinematicVariables.a2 = column(J, 1);
 
         //not-normalized base vector 3
-        MathUtils<double>::CrossProduct(rKinematicVariables.a3_tilde, rKinematicVariables.a1, rKinematicVariables.a2);
+        MathUtils::CrossProduct(rKinematicVariables.a3_tilde, rKinematicVariables.a1, rKinematicVariables.a2);
 
         //differential area dA
         rKinematicVariables.dA = norm_2(rKinematicVariables.a3_tilde);
@@ -1181,7 +1181,7 @@ namespace Kratos
             a2[2] += GetGeometry().GetPoint( i ).Z0() * rDN_De(i, 1);
         }
 
-        MathUtils<double>::CrossProduct(a3_tilde, a1, a2);
+        MathUtils::CrossProduct(a3_tilde, a1, a2);
         noalias(a3) = a3_tilde / norm_2(a3_tilde);
 
         // second derivatives of the base vectors w.r.t. the curvilinear coords at initial config.
@@ -1218,12 +1218,12 @@ namespace Kratos
             Da1_D2[i] = rHessian(i, 2);
         }
 
-        MathUtils<double>::CrossProduct(cross1, Da1_D1, a2);
-        MathUtils<double>::CrossProduct(cross2, a1, Da1_D2);
+        MathUtils::CrossProduct(cross1, Da1_D1, a2);
+        MathUtils::CrossProduct(cross2, a1, Da1_D2);
         array_1d<double, 3> Da3_D1 = (m_dA_vector[IntegrationPointIndex] * (cross1 + cross2) - a3_tilde * inner_prod(a3,(cross1 + cross2))/m_dA_vector[IntegrationPointIndex]) 
             / pow(m_dA_vector[IntegrationPointIndex], 2);
-        MathUtils<double>::CrossProduct(cross1, Da1_D2, a2);
-        MathUtils<double>::CrossProduct(cross2, a1, Da2_D2);
+        MathUtils::CrossProduct(cross1, Da1_D2, a2);
+        MathUtils::CrossProduct(cross2, a1, Da2_D2);
         array_1d<double, 3> Da3_D2 = (m_dA_vector[IntegrationPointIndex] * (cross1 + cross2) - a3_tilde * inner_prod(a3,(cross1 + cross2))/m_dA_vector[IntegrationPointIndex])
             / pow(m_dA_vector[IntegrationPointIndex], 2);
         rDCurvature_D1[0] = inner_prod(DDa1_DD11, a3) + inner_prod(Da1_D1, Da3_D1);
@@ -1265,12 +1265,12 @@ namespace Kratos
             Da1_D2[i] = rHessian(i, 2);
         }
 
-        MathUtils<double>::CrossProduct(cross1, Da1_D1, rKinematicVariables.a2);
-        MathUtils<double>::CrossProduct(cross2, rKinematicVariables.a1, Da1_D2);
+        MathUtils::CrossProduct(cross1, Da1_D1, rKinematicVariables.a2);
+        MathUtils::CrossProduct(cross2, rKinematicVariables.a1, Da1_D2);
         array_1d<double, 3> Da3_D1 = (rKinematicVariables.dA * (cross1 + cross2) - rKinematicVariables.a3_tilde * inner_prod(rKinematicVariables.a3_tilde,(cross1 + cross2))/rKinematicVariables.dA) 
             / pow(rKinematicVariables.dA, 2);
-        MathUtils<double>::CrossProduct(cross1, Da1_D2, rKinematicVariables.a2);
-        MathUtils<double>::CrossProduct(cross2, rKinematicVariables.a1, Da2_D2);
+        MathUtils::CrossProduct(cross1, Da1_D2, rKinematicVariables.a2);
+        MathUtils::CrossProduct(cross2, rKinematicVariables.a1, Da2_D2);
         array_1d<double, 3> Da3_D2 = (rKinematicVariables.dA * (cross1 + cross2) - rKinematicVariables.a3_tilde * inner_prod(rKinematicVariables.a3_tilde,(cross1 + cross2))/rKinematicVariables.dA)
             / pow(rKinematicVariables.dA, 2);
         rDCurvature_D1[0] = inner_prod(DDa1_DD11, rKinematicVariables.a3) + inner_prod(Da1_D1, Da3_D1);
@@ -1307,7 +1307,7 @@ namespace Kratos
             a2[2] += GetGeometry().GetPoint( i ).Z0() * rDN_De(i, 1);
         }
 
-        MathUtils<double>::CrossProduct(a3_tilde, a1, a2);
+        MathUtils::CrossProduct(a3_tilde, a1, a2);
         noalias(a3) = a3_tilde / norm_2(a3_tilde);
 
         //Contravariant metric g_ab_con

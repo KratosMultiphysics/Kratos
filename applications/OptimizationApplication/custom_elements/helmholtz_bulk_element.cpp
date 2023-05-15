@@ -245,7 +245,7 @@ void HelmholtzBulkElement::CalculateBulkMassMatrix(
         Matrix J0,InvJ0;
         GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[point_number], J0);
         double detJ0;
-        MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+        MathUtils::InvertMatrix(J0, InvJ0, detJ0);
         const double integration_weight = integration_points[point_number].Weight() * detJ0;
         const Vector& rN = row(Ncontainer,point_number);
 
@@ -292,7 +292,7 @@ void HelmholtzBulkElement::CalculateBulkStiffnessMatrix(
         Matrix J0,InvJ0;
         GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[i_point], J0);
         double detJ0;
-        MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+        MathUtils::InvertMatrix(J0, InvJ0, detJ0);
         DN_DX = prod(DN_De[i_point], InvJ0);        
         const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0;
         noalias(rStiffnessMatrix) += IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX, trans(DN_DX));

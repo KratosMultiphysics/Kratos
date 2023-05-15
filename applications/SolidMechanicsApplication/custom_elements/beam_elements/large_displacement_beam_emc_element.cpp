@@ -463,7 +463,7 @@ namespace Kratos
     rAlphaRotationMatrix = (1-alpha) * (rPreviousRotationMatrix) + alpha * rCurrentRotationMatrix;
 
     double DetRotationMatrix = 0;
-    MathUtils<double>::InvertMatrix3( rAlphaRotationMatrix, rAlphaRotationMatrixAsterisk, DetRotationMatrix);
+    MathUtils::InvertMatrix3( rAlphaRotationMatrix, rAlphaRotationMatrixAsterisk, DetRotationMatrix);
     rAlphaRotationMatrixAsterisk = DetRotationMatrix *  trans(rAlphaRotationMatrixAsterisk);
 
     KRATOS_CATCH( "" )
@@ -647,7 +647,7 @@ namespace Kratos
     Vector AxisPositionDerivativesAlpha = (1-alpha) * rVariables.PreviousAxisPositionDerivatives + alpha * rVariables.CurrentAxisPositionDerivatives;
 
     Vector CurrentStepxAxisPosition;
-    MathUtils<double>::CrossProduct(CurrentStepxAxisPosition,CurrentStepRotationVector, AxisPositionDerivativesAlpha);
+    MathUtils::CrossProduct(CurrentStepxAxisPosition,CurrentStepRotationVector, AxisPositionDerivativesAlpha);
 
     Vector AxisDisplacementDerivatives = CurrentStepDisplacementDerivativesVector - CurrentStepxAxisPosition;
 

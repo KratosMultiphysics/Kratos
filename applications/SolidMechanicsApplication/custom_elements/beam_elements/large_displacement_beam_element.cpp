@@ -402,10 +402,10 @@ namespace Kratos
 
       // EquationVectorPartA = (CurrentStepRotationVectorSinusI) * CurrentStepRotationDerivativesVector;
       // EquationVectorPartB = ( 1.0 - CurrentStepRotationVectorSinusI ) * inner_prod( CurrentStepRotationVector, CurrentStepRotationDerivativesVector ) * ( 1.0 / ( CurrentStepRotationVectorModulus * CurrentStepRotationVectorModulus ) ) * CurrentStepRotationVector;
-      // EquationVectorPartC =  0.5 * ( CurrentStepRotationVectorSinusII * CurrentStepRotationVectorSinusII ) * MathUtils<double>::CrossProduct(CurrentStepRotationVector, CurrentStepRotationDerivativesVector);
+      // EquationVectorPartC =  0.5 * ( CurrentStepRotationVectorSinusII * CurrentStepRotationVectorSinusII ) * MathUtils::CrossProduct(CurrentStepRotationVector, CurrentStepRotationDerivativesVector);
 
       //------------------[j-c]:start
-      // EquationVectorPartC =  (1 - CurrentStepRotationVectorCosinusI) * ( 1.0 / ( CurrentStepRotationVectorModulus * CurrentStepRotationVectorModulus ) ) * MathUtils<double>::CrossProduct(CurrentStepRotationVector, CurrentStepRotationDerivativesVector);
+      // EquationVectorPartC =  (1 - CurrentStepRotationVectorCosinusI) * ( 1.0 / ( CurrentStepRotationVectorModulus * CurrentStepRotationVectorModulus ) ) * MathUtils::CrossProduct(CurrentStepRotationVector, CurrentStepRotationDerivativesVector);
       //------------------[j-c]:end
 
       //------------------[option 0]:end
@@ -2213,7 +2213,7 @@ namespace Kratos
     	LinearMomentumVector  += TotalMass * rVariables.N[i] * prod( DiagonalMatrix, CurrentLinearVelocityVector ) * rIntegrationWeight;
       }
 
-    MathUtils<double>::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
+    MathUtils::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
 
     for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
@@ -2222,7 +2222,7 @@ namespace Kratos
 
     //for only one integration point
     //LinearMomentumVector   = TotalMass * prod( DiagonalMatrix, CurrentLinearVelocityVector ) * rIntegrationWeight;
-    //MathUtils<double>::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
+    //MathUtils::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
     //AngularMomentumVector += prod( CurrentInertiaDyadic, CurrentAngularVelocityVector ) * rIntegrationWeight;
 
     // Note:

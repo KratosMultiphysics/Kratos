@@ -110,7 +110,7 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         BoundedMatrixVoigtType voigt_rotation_matrix;
 
         if (r_material_properties.Has(EULER_ANGLES)   &&
-            MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
+            MathUtils::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
                 const Vector& r_euler_angles = r_material_properties[EULER_ANGLES];
                 AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                     r_euler_angles(0), r_euler_angles(1),
@@ -262,7 +262,7 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     BoundedMatrixVoigtType voigt_rotation_matrix;
 
     if (r_material_properties.Has(EULER_ANGLES)   &&
-        MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
+        MathUtils::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
             const Vector& r_euler_angles = r_material_properties[EULER_ANGLES];
             AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                 r_euler_angles(0), r_euler_angles(1),
@@ -469,7 +469,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             BoundedMatrixVoigtType voigt_rotation_matrix, inv_voigt_rotation_matrix;
 
             if (r_material_properties.Has(EULER_ANGLES)   &&
-                MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
+                MathUtils::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
                     const Vector& r_euler_angles = r_material_properties[EULER_ANGLES];
                     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                         r_euler_angles(0), r_euler_angles(1),
@@ -478,7 +478,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
                         (rotation_matrix),
                         voigt_rotation_matrix);
                     double det = 0.0;
-                    MathUtils<double>::InvertMatrix(voigt_rotation_matrix, inv_voigt_rotation_matrix, det);
+                    MathUtils::InvertMatrix(voigt_rotation_matrix, inv_voigt_rotation_matrix, det);
             } else {
                 noalias(rotation_matrix)               = IdentityMatrix(Dimension, Dimension);
                 noalias(voigt_rotation_matrix)         = IdentityMatrix(VoigtSize, VoigtSize);
@@ -499,7 +499,7 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
                                                          strain_mapper);
             BoundedMatrixVoigtType invAe;
             double aux_det;
-            MathUtils<double>::InvertMatrix(strain_mapper, invAe, aux_det);
+            MathUtils::InvertMatrix(strain_mapper, invAe, aux_det);
 
             // We mapp to the local anisotropic space
             noalias(rValue) = prod(invAe, r_plastic_strain);
@@ -558,7 +558,7 @@ void GenericAnisotropic3DLaw::CalculateAnisotropicStrainMapperMatrix(
     Matrix inv_isotropic_elastic_matrix(VoigtSize, VoigtSize);
     noalias(inv_isotropic_elastic_matrix) = ZeroMatrix(VoigtSize, VoigtSize);
     double aux_det;
-    MathUtils<double>::InvertMatrix(rIsotropicElasticMatrix, inv_isotropic_elastic_matrix, aux_det);
+    MathUtils::InvertMatrix(rIsotropicElasticMatrix, inv_isotropic_elastic_matrix, aux_det);
     noalias(rAe) = prod(inv_isotropic_elastic_matrix, Matrix(prod(rAs, rAnisotropicElasticMatrix)));
 }
 
@@ -624,7 +624,7 @@ void GenericAnisotropic3DLaw::CalculateCauchyGreenStrain(
         E_tensor(i, i) -= 1.0;
     E_tensor *= 0.5;
 
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    noalias(rStrainVector) = MathUtils::StrainTensorToVector(E_tensor);
 }
 
 /***********************************************************************************/

@@ -82,34 +82,34 @@ public:
         const TensorArrayType& rMetric2
         )
     {
-        const MatrixType metric1_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(rMetric1);
-        const MatrixType metric2_matrix = MathUtils<double>::VectorToSymmetricTensor<TensorArrayType, MatrixType>(rMetric2);
+        const MatrixType metric1_matrix = MathUtils::VectorToSymmetricTensor<TensorArrayType, MatrixType>(rMetric1);
+        const MatrixType metric2_matrix = MathUtils::VectorToSymmetricTensor<TensorArrayType, MatrixType>(rMetric2);
 
         MatrixType auxmat, emat;
 
         double auxdet;
         MatrixType inv_metric1_matrix;
-        MathUtils<double>::InvertMatrix(metric1_matrix, inv_metric1_matrix, auxdet);
+        MathUtils::InvertMatrix(metric1_matrix, inv_metric1_matrix, auxdet);
         const MatrixType n_matrix = prod(inv_metric1_matrix, metric2_matrix);
 
-        MathUtils<double>::GaussSeidelEigenSystem(n_matrix, emat, auxmat, 1e-18, 20);
+        MathUtils::GaussSeidelEigenSystem(n_matrix, emat, auxmat, 1e-18, 20);
 
         MatrixType lambdamat;
-        MathUtils<double>::BDBtProductOperation(lambdamat, metric1_matrix, emat);
+        MathUtils::BDBtProductOperation(lambdamat, metric1_matrix, emat);
         MatrixType mumat;
-        MathUtils<double>::BDBtProductOperation(mumat, metric2_matrix, emat);
+        MathUtils::BDBtProductOperation(mumat, metric2_matrix, emat);
 
         for (std::size_t i = 0; i < TDim; ++i) {
-            auxmat(i, i) = MathUtils<double>::Max(lambdamat(i, i), mumat(i, i));
+            auxmat(i, i) = std::max(lambdamat(i, i), mumat(i, i));
         }
 
         MatrixType invemat;
-        MathUtils<double>::InvertMatrix(emat, invemat, auxdet);
+        MathUtils::InvertMatrix(emat, invemat, auxdet);
 
         MatrixType intersection_matrix;
-        MathUtils<double>::BDBtProductOperation(intersection_matrix, auxmat, invemat);
+        MathUtils::BDBtProductOperation(intersection_matrix, auxmat, invemat);
 
-        const TensorArrayType intersection = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(intersection_matrix);
+        const TensorArrayType intersection = MathUtils::StressTensorToVector<MatrixType, TensorArrayType>(intersection_matrix);
 
         return intersection;
     }

@@ -113,7 +113,7 @@ namespace Kratos
             // Differential Volume
             array_1d<double, 3> G1(3, 0.0), G2(3, 0.0), G1_con(3, 0.0), G2_con(3, 0.0);
             CalculateInitialBaseVectorsLinearised(G1, G2, G1_con, G2_con);
-            double dV = inner_prod(MathUtils<double>::CrossProduct(G1, G2), mInitialMetric.a3_kirchhoff_love);   // mInitialMetric.a3_kirchhoff_love = G3
+            double dV = inner_prod(MathUtils::CrossProduct(G1, G2), mInitialMetric.a3_kirchhoff_love);   // mInitialMetric.a3_kirchhoff_love = G3
 
             // Transformation Matrix
             CalculateTransformationMatrixInitialTransConToCar(G1_con, G2_con);
@@ -216,7 +216,7 @@ namespace Kratos
         rMetric.a2[2] = rMetric.J(2, 1);
 
         // base vector a3_kirchhoff_love_tilde
-        MathUtils<double>::CrossProduct(rMetric.a3_kirchhoff_love_tilde, rMetric.a1, rMetric.a2);
+        MathUtils::CrossProduct(rMetric.a3_kirchhoff_love_tilde, rMetric.a1, rMetric.a2);
         // differential area dA
         rMetric.dA = norm_2(rMetric.a3_kirchhoff_love_tilde);
         // normalized base vector a3_kirchhoff_love
@@ -383,10 +383,10 @@ namespace Kratos
         array_1d<double, 3> DA3_D1(3, 0.0), DA3_D2(3, 0.0), DA1_D1xA2(3, 0.0), A1xDA2_D1(3, 0.0), DA1_D2xA2(3, 0.0), A1xDA2_D2(3, 0.0), 
             G1xG2(3, 0.0), G_ab(3, 0.0), G_ab_con(3, 0.0);
 
-        MathUtils<double>::CrossProduct(DA1_D1xA2, mInitialMetric.Da1_D1, mInitialMetric.a2);
-        MathUtils<double>::CrossProduct(A1xDA2_D1, mInitialMetric.a1, mInitialMetric.Da1_D2); // DA1_D2 = DA2_D1
-        MathUtils<double>::CrossProduct(DA1_D2xA2, mInitialMetric.Da1_D2, mInitialMetric.a2);
-        MathUtils<double>::CrossProduct(A1xDA2_D2, mInitialMetric.a1, mInitialMetric.Da2_D2);
+        MathUtils::CrossProduct(DA1_D1xA2, mInitialMetric.Da1_D1, mInitialMetric.a2);
+        MathUtils::CrossProduct(A1xDA2_D1, mInitialMetric.a1, mInitialMetric.Da1_D2); // DA1_D2 = DA2_D1
+        MathUtils::CrossProduct(DA1_D2xA2, mInitialMetric.Da1_D2, mInitialMetric.a2);
+        MathUtils::CrossProduct(A1xDA2_D2, mInitialMetric.a1, mInitialMetric.Da2_D2);
         DA3_D1 = ((DA1_D1xA2 + A1xDA2_D1) * mInitialMetric.dA - mInitialMetric.a3_kirchhoff_love_tilde * norm_2(DA1_D1xA2 + A1xDA2_D1)) 
             / (mInitialMetric.dA * mInitialMetric.dA);
         DA3_D2 = ((DA1_D2xA2 + A1xDA2_D2) * mInitialMetric.dA - mInitialMetric.a3_kirchhoff_love_tilde * norm_2(DA1_D2xA2 + A1xDA2_D2))
@@ -433,12 +433,12 @@ namespace Kratos
 
         // derivatives of a3_kirchhoff_love w.r.t. theta_alpha
         // derivative of a3_kirchhoff_love w.r.t. theta1: (a1xa2)'= a1'xa2 + a1xa2'
-        Da1xa2_D1 = MathUtils<double>::CrossProduct(rActualMetric.Da1_D1, rActualMetric.a2) + MathUtils<double>::CrossProduct(rActualMetric.a1, rActualMetric.Da1_D2);
+        Da1xa2_D1 = MathUtils::CrossProduct(rActualMetric.Da1_D1, rActualMetric.a2) + MathUtils::CrossProduct(rActualMetric.a1, rActualMetric.Da1_D2);
 
         // derivative of a3_kirchhoff_love w.r.t. theta2: (a1xa2)'= a1'xa2 + a1xa2'
         array_1d<double, 3> Da1_D2xa2, a1xDa2_D2;
-        MathUtils<double>::CrossProduct(Da1_D2xa2, rActualMetric.Da1_D2, rActualMetric.a2);
-        MathUtils<double>::CrossProduct(a1xDa2_D2, rActualMetric.a1, rActualMetric.Da2_D2);
+        MathUtils::CrossProduct(Da1_D2xa2, rActualMetric.Da1_D2, rActualMetric.a2);
+        MathUtils::CrossProduct(a1xDa2_D2, rActualMetric.a1, rActualMetric.Da2_D2);
         Da1xa2_D2 = Da1_D2xa2 + a1xDa2_D2;
 
         /* Ableitung des Nenners von a3_kirchhoff_love nach 1 */

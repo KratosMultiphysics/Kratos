@@ -123,7 +123,7 @@ namespace Kratos
       {
          std::cout << " STUPID FUNCTION TO EVALUATE THE YIELD FUNCTION DERIVATIVE NUMERICALLY AND ANALOGICALLY " << std::endl;
          Vector StressVector;
-         StressVector = MathUtils<double>::StressTensorToVector( rStressMatrix, 6);
+         StressVector = MathUtils::StressTensorToVector( rStressMatrix, 6);
 
          // GET ALPHA
          InternalVariables PlasticVariables = mInternalVariables; 
@@ -603,7 +603,7 @@ namespace Kratos
             std::cout << " " << iter << "  " << ResidualNorm ;
 
             this->CalculateKirchhoffStressVector( HenckyElastic , rStressVector);
-            Matrix SM = MathUtils<double>::StressVectorToTensor( rStressVector);
+            Matrix SM = MathUtils::StressVectorToTensor( rStressVector);
             double mP = 0;
             for (int i = 0; i < 3; i++)
                mP += SM(i,i) / 3.0;
@@ -617,7 +617,7 @@ namespace Kratos
             }
             J2 = sqrt(J2);
 
-            double Lode = MathUtils<double>::Det(SM);
+            double Lode = MathUtils::Det(SM);
             Lode *= -3.0*sqrt(3.0) / 2.0 / pow( J2, 3);
             Lode = std::asin(Lode) / 3.0;
             Lode *= 180.0 / 3.141593;
@@ -811,7 +811,7 @@ namespace Kratos
          this->ReturnStressToYieldSurface4( rReturnMappingVariables, rNewElasticLeftCauchyGreen, StressVector, ElasticTrialStateFunction, Tolerance);
       }
 
-      rStressMatrix = MathUtils<double>::StressVectorToTensor(StressVector);
+      rStressMatrix = MathUtils::StressVectorToTensor(StressVector);
 
       rReturnMappingVariables.Options.Set(PLASTIC_REGION,PlasticityActive);
       rReturnMappingVariables.Options.Set(RETURN_MAPPING_COMPUTED, true);
@@ -920,7 +920,7 @@ namespace Kratos
 
       }
 
-      rStressMatrix = MathUtils<double>::StressVectorToTensor(NewStressVector);
+      rStressMatrix = MathUtils::StressVectorToTensor(NewStressVector);
 
       rReturnMappingVariables.Options.Set(PLASTIC_REGION,PlasticityActive);
       rReturnMappingVariables.Options.Set(RETURN_MAPPING_COMPUTED, true);
@@ -1003,7 +1003,7 @@ namespace Kratos
          this->ComputePlasticHardeningParameter(ActualElasticHenckyStrain, Alpha, H);
 
          DeltaGamma = rDrift;
-         DeltaGamma /= ( H + MathUtils<double>::Dot(AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD)));
+         DeltaGamma /= ( H + MathUtils::Dot(AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD)));
 
 
 
@@ -1050,7 +1050,7 @@ namespace Kratos
          // COMPTUING THE LODE ANGLE TO SEE WHAT HAPPENS
        Matrix SM = ZeroMatrix(3,3);
 
-         SM = MathUtils<double>::StressVectorToTensor( rStressVector);
+         SM = MathUtils::StressVectorToTensor( rStressVector);
 
          double p = 0.0;
          for (unsigned int i = 0; i < 3; ++i)
@@ -1064,7 +1064,7 @@ namespace Kratos
             J2 += 2.0*pow( rStressVector(i), 2);
          J2 = sqrt(J2 / 2.0);
 
-         double Lode = MathUtils<double>::Det( SM);
+         double Lode = MathUtils::Det( SM);
          Lode *= 3.0*sqrt(3.0) / 2.0;
          Lode /= pow( J2, 3);
 
@@ -1105,7 +1105,7 @@ namespace Kratos
          DeltaGamma += auxVector(i)*AuxiliarDerivatives.YieldFunctionD(i);
 
 
-      double auxDenominador = H + MathUtils<double>::Dot( AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD));
+      double auxDenominador = H + MathUtils::Dot( AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD));
 
       DeltaGamma /= auxDenominador;
 
@@ -1428,7 +1428,7 @@ namespace Kratos
 
       Vector StressVector;
       this->CalculateKirchhoffStressVector( rElasticLeftCauchyGreen, StressVector);
-      Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( StressVector);
+      Matrix StressMatrix = MathUtils::StressVectorToTensor( StressVector);
       return StressMatrix;
 
    }
@@ -1451,7 +1451,7 @@ namespace Kratos
       DeformationGradientFinal     =     rFinalConfiguration*rIncrementalDeformationGradient  + (1.0 -     rFinalConfiguration)*IdentityMatrix;
 
       double Det; 
-      MathUtils<double>::InvertMatrix(DeformationGradientReference, rSubstepIncrementalDeformationGradient, Det);
+      MathUtils::InvertMatrix(DeformationGradientReference, rSubstepIncrementalDeformationGradient, Det);
       rSubstepIncrementalDeformationGradient = prod( DeformationGradientFinal, rSubstepIncrementalDeformationGradient);
 
    }
@@ -1482,7 +1482,7 @@ namespace Kratos
 
       Aux = prod(Aux, (EigenVectors));
       Aux = prod(trans(EigenVectors), Aux);
-      Vector Result = MathUtils<double>::StrainTensorToVector(Aux, 6);
+      Vector Result = MathUtils::StrainTensorToVector(Aux, 6);
       return Result;
    }
 
@@ -1490,7 +1490,7 @@ namespace Kratos
    Matrix NonAssociativeExplicitPlasticFlowRule::ConvertHenckyStrainToCauchyGreenTensor(const Vector& rElasticHenckyStrain)
    {
 
-      Matrix HenckyStrainMatrix = MathUtils<double>::StrainVectorToTensor(rElasticHenckyStrain);
+      Matrix HenckyStrainMatrix = MathUtils::StrainVectorToTensor(rElasticHenckyStrain);
 
       Matrix EigenVectors = ZeroMatrix(3,3);
       Vector EigenValues = ZeroVector(3);
@@ -1593,7 +1593,7 @@ namespace Kratos
          Matrix PlasticUpdate;
          PlasticUpdate = MyCrossProduct(rElasticMatrix, AuxiliarDerivatives.PlasticPotentialD, AuxiliarDerivatives.YieldFunctionD);
 
-         rElasticMatrix -= 1.0*PlasticUpdate / ( H + MathUtils<double>::Dot(AuxVectorF, AuxiliarDerivatives.PlasticPotentialD));
+         rElasticMatrix -= 1.0*PlasticUpdate / ( H + MathUtils::Dot(AuxVectorF, AuxiliarDerivatives.PlasticPotentialD));
 
       }
 

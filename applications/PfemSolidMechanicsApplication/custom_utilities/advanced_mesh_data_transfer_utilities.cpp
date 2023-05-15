@@ -192,7 +192,7 @@ namespace Kratos
 
       }
 
-      double Area = MathUtils<double>::Det(Coords) /2.0; 
+      double Area = MathUtils::Det(Coords) /2.0; 
       return Area;
 
    }

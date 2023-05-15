@@ -615,7 +615,7 @@ void ShellCrossSection::CalculateSectionResponse(Parameters& rValues, const Cons
     else
     {
       double dummy_det;
-      MathUtils<double>::InvertMatrix3(H, Hinv, dummy_det);
+      MathUtils::InvertMatrix3(H, Hinv, dummy_det);
     }
 
     // check convergence
@@ -974,7 +974,7 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
     F(0, 0) = materialStrainVector(0) + 1.0;
     F(1, 1) = materialStrainVector(1) + 1.0;
     F(0, 1) = F(1, 0) = materialStrainVector(2) * 0.5;
-    rVariables.DeterminantF = MathUtils<double>::Det2(F);
+    rVariables.DeterminantF = MathUtils::Det2(F);
   }
   else // 6
   {
@@ -985,7 +985,7 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
     F(0, 1) = F(1, 0) = materialStrainVector(3) * 0.5; // xy - yx
     F(0, 2) = F(2, 0) = materialStrainVector(5) * 0.5; // xz - zx
     F(1, 2) = F(2, 1) = materialStrainVector(4) * 0.5; // yz - zy
-    rVariables.DeterminantF = MathUtils<double>::Det3(F);
+    rVariables.DeterminantF = MathUtils::Det3(F);
   }
   rVariables.DeterminantF0 = 1.0;
 

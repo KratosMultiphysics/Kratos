@@ -171,7 +171,7 @@ void TrussPlasticityConstitutiveLaw::CalculateMaterialResponsePK2Custom(Paramete
         current_stress = 1.00 - ((delta_gamma*youngs_modulus)/std::abs(temp_stress));
         current_stress = current_stress * temp_stress;
 
-        rCurrentAccumulatedPlasticStrain += delta_gamma*MathUtils<double>::Sign(temp_stress);
+        rCurrentAccumulatedPlasticStrain += delta_gamma*MathUtils::Sign(temp_stress);
         rCurrentPlasticAlpha += delta_gamma;
     }
 

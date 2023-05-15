@@ -344,7 +344,7 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& GradPressureC
     {
         noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
+        noalias(NodalStressTensor[i]) = MathUtils::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
@@ -422,7 +422,7 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& GradPressureC
     {
         noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
+        noalias(NodalStressTensor[i]) = MathUtils::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
@@ -489,7 +489,7 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& GradPressureC
     {
         noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
+        noalias(NodalStressTensor[i]) = MathUtils::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT)) += NodalGradPressure[i];
@@ -547,7 +547,7 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& GradPressureC
     {
         noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
-        noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
+        noalias(NodalStressTensor[i]) = MathUtils::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT)) += NodalGradPressure[i];
@@ -758,7 +758,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
             rOutput[GPoint].resize(cl_dimension,cl_dimension,false );
-            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector);
+            rOutput[GPoint] = MathUtils::StressVectorToTensor(StressVector);
         }
     }
     else if(rVariable == TOTAL_STRESS_TENSOR)
@@ -831,7 +831,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
             noalias(StressVector) += -BiotCoefficient*Pressure*VoigtVector;
 
             rOutput[GPoint].resize(cl_dimension,cl_dimension,false );
-            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector);
+            rOutput[GPoint] = MathUtils::StressVectorToTensor(StressVector);
         }
     }
     else if(rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
@@ -855,7 +855,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
             this->CalculateKinematics(GradNpT,B,StrainVector,DN_DXContainer,DisplacementVector,GPoint);
 
             rOutput[GPoint].resize(cl_dimension,cl_dimension,false );
-            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector);
+            rOutput[GPoint] = MathUtils::StrainVectorToTensor(StrainVector);
         }
     }
     else if(rVariable == PERMEABILITY_MATRIX)

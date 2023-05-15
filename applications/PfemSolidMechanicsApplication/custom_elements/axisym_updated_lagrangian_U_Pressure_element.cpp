@@ -893,7 +893,7 @@ namespace Kratos
       //Calculating the inverse of the jacobian
       Matrix InverseLeftCauchyGreen ( 3, 3 );
       double det_b=0;
-      MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+      MathUtils::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
       if( dimension == 2 )
       {
@@ -1024,7 +1024,7 @@ namespace Kratos
 
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
-      MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+      MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
       //std::cout<<" detJ "<<rVariables.detJ<<" Area "<<2*GetGeometry().DomainSize()<<std::endl;
 
@@ -1041,11 +1041,11 @@ namespace Kratos
       CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
 
       //Determinant of the deformation gradient F
-      rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+      rVariables.detF  = MathUtils::Det(rVariables.F);
 
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
       Matrix Invj;
-      MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
+      MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
       //Compute cartesian derivatives [dN/dx_n+1]
       rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx

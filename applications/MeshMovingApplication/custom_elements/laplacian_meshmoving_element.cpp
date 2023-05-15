@@ -116,7 +116,7 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
   for (unsigned int point_number = 0; point_number < integration_points.size();
        ++point_number) {
     J0 = GetGeometry().Jacobian(J0, this_integration_method);
-    MathUtils<double>::InvertMatrix(J0[point_number], invJ0[point_number],
+    MathUtils::InvertMatrix(J0[point_number], invJ0[point_number],
                                     detJ0[point_number]);
 
     GeometryType::ShapeFunctionsGradientsType DN_De =

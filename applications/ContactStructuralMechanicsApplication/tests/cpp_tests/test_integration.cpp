@@ -490,7 +490,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCheckRotation, KratosContactStructuralMechanicsFas
     triangle_0.PointLocalCoordinates(aux_coords, triangle_0.Center());
     const array_1d<double, 3> normal = triangle_0.UnitNormal(aux_coords);
     array_1d<double, 3> slave_tangent_eta;
-    MathUtils<double>::CrossProduct(slave_tangent_eta, normal, slave_tangent_xi);
+    MathUtils::CrossProduct(slave_tangent_eta, normal, slave_tangent_xi);
     
     // We define the auxiliary geometry
     std::vector<PointType::Pointer> points_array  (3);

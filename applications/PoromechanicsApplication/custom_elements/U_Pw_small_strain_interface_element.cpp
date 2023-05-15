@@ -1277,14 +1277,14 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateRotationMatrix(BoundedMatrix<
     array_1d<double, 3> Vy;
     noalias(Vy) = pmid2 - pmid0;
     array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
+    MathUtils::CrossProduct(Vz, Vx, Vy);
     inv_norm = 1.0/norm_2(Vz);
     Vz[0] *= inv_norm;
     Vz[1] *= inv_norm;
     Vz[2] *= inv_norm;
 
     //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct( Vy, Vz, Vx);
+    MathUtils::CrossProduct( Vy, Vz, Vx);
 
     //Rotation Matrix
     rRotationMatrix(0,0) = Vx[0];
@@ -1329,14 +1329,14 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateRotationMatrix(BoundedMatrix<
     array_1d<double, 3> Vy;
     noalias(Vy) = pmid2 - pmid0;
     array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
+    MathUtils::CrossProduct(Vz, Vx, Vy);
     inv_norm = 1.0/norm_2(Vz);
     Vz[0] *= inv_norm;
     Vz[1] *= inv_norm;
     Vz[2] *= inv_norm;
 
     //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct( Vy, Vz, Vx);
+    MathUtils::CrossProduct( Vy, Vz, Vx);
 
     //Rotation Matrix
     rRotationMatrix(0,0) = Vx[0];

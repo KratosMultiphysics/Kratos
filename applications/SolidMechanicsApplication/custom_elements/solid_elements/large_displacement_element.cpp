@@ -232,9 +232,9 @@ void LargeDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatr
     KRATOS_TRY
 
     const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    Matrix StressTensor = MathUtils::StressVectorToTensor( rVariables.StressVector );
     Matrix ReducedKg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
-    MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
+    MathUtils::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
 
     KRATOS_CATCH( "" )
 }
@@ -310,7 +310,7 @@ void LargeDisplacementElement::CalculateAlmansiStrain(const Matrix& rF, Vector& 
     //Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen ( dimension, dimension );
     double det_b=0;
-    MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     if( dimension == 2 )
     {

@@ -284,7 +284,7 @@ namespace Kratos
                StressVector(i) += ( NodalPressure - ElementalPressure);
 
 
-            rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(StressVector); 
+            rOutput[PointNumber] = MathUtils::StressVectorToTensor(StressVector); 
 
          }
 
@@ -711,12 +711,12 @@ namespace Kratos
 
       int size = number_of_nodes * dimension;
 
-      Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rElementVariables.StressVector );
+      Matrix StressTensor = MathUtils::StressVectorToTensor( rElementVariables.StressVector );
 
       Matrix ReducedKg = prod( rVariables.DN_DX,  rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
 
       Matrix Kuu = zero_matrix<double> (size);
-      MathUtils<double>::ExpandAndAddReducedMatrix( Kuu, ReducedKg, dimension );
+      MathUtils::ExpandAndAddReducedMatrix( Kuu, ReducedKg, dimension );
 
       // MatrixType Kh=rLeftHandSideMatrix;
 

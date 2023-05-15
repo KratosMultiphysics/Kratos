@@ -289,7 +289,7 @@ void UpdatedLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
@@ -300,11 +300,11 @@ void UpdatedLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
     //Determinant of the deformation gradient F
-    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+    rVariables.detF  = MathUtils::Det(rVariables.F);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
+    MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
     noalias(rVariables.DN_DX) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
@@ -348,7 +348,7 @@ void UpdatedLagrangianElement::CalculateKinetics(ElementDataType& rVariables, co
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils::InvertMatrix( rVariables.j[rPointNumber], InvJ, rVariables.detJ);
 
     //Calculating the cartesian derivatives [dN/dx_n] = [dN/d£][d£/dx_0]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
@@ -357,7 +357,7 @@ void UpdatedLagrangianElement::CalculateKinetics(ElementDataType& rVariables, co
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
     //Determinant of the deformation gradient F
-    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+    rVariables.detF  = MathUtils::Det(rVariables.F);
 
     //Determinant of the Deformation Gradient F0
     // (in this element F = F0, then F0 is set to the identity for coherence in the constitutive law)

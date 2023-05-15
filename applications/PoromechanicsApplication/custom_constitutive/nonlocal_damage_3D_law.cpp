@@ -91,7 +91,7 @@ void NonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     // Strain and Stress matrices
     const unsigned int Dim = this->WorkingSpaceDimension();
     Matrix AuxMatrix(Dim,Dim);
-    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    noalias(AuxMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
     noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
@@ -195,7 +195,7 @@ void NonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
     // Strain and Stress matrices
     const unsigned int Dim = this->WorkingSpaceDimension();
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
-    noalias(ReturnMappingVariables.StrainMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    noalias(ReturnMappingVariables.StrainMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
     // CharacteristicSize
     ReturnMappingVariables.CharacteristicSize = 1.0;
@@ -261,14 +261,14 @@ void NonlocalDamage3DLaw::CalculateLocalReturnMapping( FlowRule::RadialReturnVar
                                                         Vector& rStressVector, const Matrix& LinearElasticMatrix, const Vector& StrainVector )
 {    
     noalias(rStressVector) = prod(LinearElasticMatrix, StrainVector);
-    noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils<double>::StressVectorToTensor(rStressVector);
+    noalias(rReturnMappingVariables.TrialIsoStressMatrix) = MathUtils::StressVectorToTensor(rStressVector);
     
     Matrix Aux1 = Matrix();
     Matrix Aux2 = Matrix();
     
     mpFlowRule->CalculateReturnMapping( rReturnMappingVariables, Aux1, rStressMatrix, Aux2 );
     
-    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( rStressMatrix, StrainVector.size() );
+    noalias(rStressVector) = MathUtils::StressTensorToVector( rStressMatrix, StrainVector.size() );
 }
 
 } // Namespace Kratos

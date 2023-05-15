@@ -143,9 +143,9 @@ void SolidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
     v2[1] = n2.Y() - n0.Y();
     v2[2] = n2.Z() - n0.Z();
 
-    MathUtils<double>::CrossProduct(rnormal, v1, v2);
+    MathUtils::CrossProduct(rnormal, v1, v2);
 
-    rnormal /= MathUtils<double>::Norm3(rnormal);
+    rnormal /= MathUtils::Norm3(rnormal);
 }
 
 

@@ -48,7 +48,7 @@ namespace
         // Calculate the input strain from the deformation field
         const std::size_t strain_size = pConstitutiveLaw->GetStrainSize();
         Vector E_vector(strain_size);
-        const double det_F = MathUtils<double>::Det(rDeformationGradient);
+        const double det_F = MathUtils::Det(rDeformationGradient);
         Matrix C_matrix = prod(trans(rDeformationGradient), rDeformationGradient);
         if (strain_size == 3) {
             ConstitutiveLawUtilities<3>::CalculateGreenLagrangianStrain(C_matrix, E_vector);

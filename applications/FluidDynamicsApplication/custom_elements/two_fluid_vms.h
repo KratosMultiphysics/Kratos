@@ -382,7 +382,7 @@ KRATOS_WATCH(Ngauss);  */
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
-            const double VelNorm = MathUtils<double>::Norm3(AdvVel);
+            const double VelNorm = MathUtils::Norm3(AdvVel);
 
             const double DarcyTerm = this->CalculateDarcyTerm(Density, Viscosity, c1, c2, N);
             // Calculate stabilization parameters
@@ -498,7 +498,7 @@ KRATOS_WATCH(Ngauss);  */
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
-            const double VelNorm = MathUtils<double>::Norm3(AdvVel);
+            const double VelNorm = MathUtils::Norm3(AdvVel);
 
             const double DarcyTerm = this->CalculateDarcyTerm(Density, Viscosity, c1, c2, N);
 
@@ -593,7 +593,7 @@ KRATOS_WATCH(Ngauss);  */
 
                 Matrix inverse_diag(nenrichments, nenrichments);
                 double det;
-                MathUtils<double>::InvertMatrix(enrichment_diagonal, inverse_diag, det);
+                MathUtils::InvertMatrix(enrichment_diagonal, inverse_diag, det);
 
                 Matrix tmp = prod(inverse_diag, enrichment_terms_horizontal);
                 noalias(rLeftHandSideMatrix) -= prod(enrichment_terms_vertical, tmp);
@@ -1011,7 +1011,7 @@ protected:
 
         array_1d<double,3> velocity;
         this->GetAdvectiveVel(velocity, rShapefunctions);
-        const double velocity_norm = MathUtils<double>::Norm3(velocity);
+        const double velocity_norm = MathUtils::Norm3(velocity);
 
         return DynamicViscosity * LinearCoefficient + Density * NonlinearCoefficient*velocity_norm;
     }

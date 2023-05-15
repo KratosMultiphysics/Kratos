@@ -232,8 +232,8 @@ void DVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils::Det(permeability);
+    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
 
@@ -263,8 +263,8 @@ void DVMSDEMCoupled<TElementData>::MomentumProjTerm(
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils::Det(permeability);
+    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
 
@@ -324,8 +324,8 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils::Det(permeability);
+    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
     // Multiplying convective operator by density to have correct units
@@ -490,8 +490,8 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils::Det(permeability);
+    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     double W = rData.Weight * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
     sigma *= viscosity;
@@ -607,8 +607,8 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils::Det(permeability);
+    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     double velocity_norm = 0.0;
     double sigma_term = 0.0;
@@ -802,8 +802,8 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    double det_permeability = MathUtils::Det(permeability);
+    MathUtils::InvertMatrix(permeability, sigma, det_permeability, -1.0);
     while ( (!converged) && (iter++ < subscale_prediction_maximum_iterations) ) {
 
         double sigma_term = 0.0;

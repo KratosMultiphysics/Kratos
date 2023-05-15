@@ -79,7 +79,7 @@ void StationaryStokes<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
     for ( unsigned int g = 0; g < IntegrationPoints.size(); g++ )
     {
         //calculating and storing inverse of the jacobian and the parameters needed
-        MathUtils<double>::InvertMatrix( J[g], InvJ, DetJ );
+        MathUtils::InvertMatrix( J[g], InvJ, DetJ );
 
         //calculating the shape function derivatives in global coordinates
         mDN_DX[g].resize(NumNodes,TDim, false);

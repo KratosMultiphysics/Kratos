@@ -521,7 +521,7 @@ void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix( BoundedMatrix<d
 
     // Vector in global z direction (first option)
     array_1d<double, 3> v_z;
-    MathUtils<double>::CrossProduct(v_z, v_x_3d, v_y_3d);
+    MathUtils::CrossProduct(v_z, v_x_3d, v_y_3d);
 
     // v_z must have the same sign as vector (0,0,1)
     if (v_z[2] > 0.0)
@@ -570,7 +570,7 @@ void UPwLysmerAbsorbingCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<do
 
     // Vector in global z direction (first option)
     array_1d<double, 3> v_z;
-    MathUtils<double>::CrossProduct(v_z, v_x_3d, v_y_3d);
+    MathUtils::CrossProduct(v_z, v_x_3d, v_y_3d);
 
     // v_z must have the same sign as vector (0,0,1)
     if (v_z[2] > 0.0)
@@ -608,7 +608,7 @@ void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<do
     noalias(v_y) = rGeom.GetPoint(2) - rGeom.GetPoint(0);
 
     array_1d<double, 3> v_z;
-    MathUtils<double>::CrossProduct(v_z, v_x, v_y);
+    MathUtils::CrossProduct(v_z, v_x, v_y);
     const double norm_z = norm_2(v_z);
 
     v_z[0] *= 1.0 / norm_z;
@@ -616,7 +616,7 @@ void UPwLysmerAbsorbingCondition<3, 3>::CalculateRotationMatrix(BoundedMatrix<do
     v_z[2] *= 1.0 / norm_z;
 
     //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct(v_y, v_z, v_x);
+    MathUtils::CrossProduct(v_y, v_z, v_x);
 
     //Rotation Matrix
     rRotationMatrix(0, 0) = v_x[0];
@@ -655,7 +655,7 @@ void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix( BoundedMatrix<d
     array_1d<double, 3> v_y;
     noalias(v_y) = r_p_2 - p_mid_0;
     array_1d<double, 3> v_z;
-    MathUtils<double>::CrossProduct(v_z, v_x, v_y);
+    MathUtils::CrossProduct(v_z, v_x, v_y);
     const double norm_z = norm_2(v_z);
 
     v_z[0] *= 1.0 / norm_z;
@@ -663,7 +663,7 @@ void UPwLysmerAbsorbingCondition<3, 4>::CalculateRotationMatrix( BoundedMatrix<d
     v_z[2] *= 1.0 / norm_z;
 
     //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct(v_y, v_z, v_x);
+    MathUtils::CrossProduct(v_y, v_z, v_x);
 
     //Rotation Matrix
     rRotationMatrix(0, 0) = v_x[0];

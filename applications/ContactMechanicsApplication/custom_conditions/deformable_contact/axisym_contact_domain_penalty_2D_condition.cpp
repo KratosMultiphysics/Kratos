@@ -214,7 +214,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
    // UL
     // //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     // Matrix Invj;
-    // MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    // MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     // //Compute cartesian derivatives [dN/dx_n]
     // noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
@@ -222,7 +222,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     // SL
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
+    MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
 
     //Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
@@ -233,7 +233,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     MasterElement.CalculateOnIntegrationPoints(DEFORMATION_GRADIENT,DeformationGradientVector,rCurrentProcessInfo);
     rVariables.F = DeformationGradientVector[rPointNumber];
 
-    rVariables.detF = MathUtils<double>::Det(rVariables.F);
+    rVariables.detF = MathUtils::Det(rVariables.F);
 
     //Get Current Stress
     std::vector<Vector> StressVector ( integration_points_number );
@@ -259,7 +259,7 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( ConditionVariab
     std::vector<Vector> StrainVector ( integration_points_number );
     for(unsigned int i=1; i<integration_points_number; i++)
     {
-	    StrainVector[i] = MathUtils<double>::StrainTensorToVector( StrainTensor[i], voigtsize );
+	    StrainVector[i] = MathUtils::StrainTensorToVector( StrainTensor[i], voigtsize );
     }
 
     SetContactIntegrationVariable( rVariables.StrainVector, StrainVector, rPointNumber );

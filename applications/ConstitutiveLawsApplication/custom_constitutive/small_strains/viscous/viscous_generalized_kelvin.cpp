@@ -132,7 +132,7 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ComputeViscoElasticity(Cons
         Matrix constitutive_matrix, inverse_constitutive_matrix;
         double detC = 0.0;
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
-        MathUtils<double>::InvertMatrix(constitutive_matrix, inverse_constitutive_matrix, detC);
+        MathUtils::InvertMatrix(constitutive_matrix, inverse_constitutive_matrix, detC);
 
         // Ineslastic terms
         Vector inelastic_strain = this->GetPreviousInelasticStrainVector();
@@ -219,7 +219,7 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCau
     Matrix constitutive_matrix, inverse_constitutive_matrix;
     double detC = 0.0;
     this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
-    MathUtils<double>::InvertMatrix(constitutive_matrix, inverse_constitutive_matrix, detC);
+    MathUtils::InvertMatrix(constitutive_matrix, inverse_constitutive_matrix, detC);
 
     // Ineslastic terms
     Vector inelastic_strain = this->GetPreviousInelasticStrainVector();
@@ -269,7 +269,7 @@ Matrix& ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateValue(
     )
 {
     if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-        rValue = MathUtils<double>::StressVectorToTensor(this->GetPreviousStressVector());
+        rValue = MathUtils::StressVectorToTensor(this->GetPreviousStressVector());
     } else {
         rValue = BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }

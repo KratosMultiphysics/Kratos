@@ -217,7 +217,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
             if ( rOutput[GPoint].size2() != TDim )
                 rOutput[GPoint].resize(TDim,TDim,false );
 
-            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(Variables.StrainVector);
+            rOutput[GPoint] = MathUtils::StrainVectorToTensor(Variables.StrainVector);
         }
     } else {
         UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable,

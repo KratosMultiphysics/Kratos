@@ -1730,7 +1730,7 @@ void UPwSmallStrainInterfaceElement<2,4>::
 
     // Vector in global z direction (first option)
     array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx3D, Vy3D);
+    MathUtils::CrossProduct(Vz, Vx3D, Vy3D);
 
     // Vz must have the same sign as vector (0,0,1)
     if (Vz[2] > 0.0) {
@@ -1773,14 +1773,14 @@ void UPwSmallStrainInterfaceElement<3,6>::
     array_1d<double, 3> Vy;
     noalias(Vy) = pmid2 - pmid0;
     array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
+    MathUtils::CrossProduct(Vz, Vx, Vy);
     inv_norm = 1.0/norm_2(Vz);
     Vz[0] *= inv_norm;
     Vz[1] *= inv_norm;
     Vz[2] *= inv_norm;
 
     //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct( Vy, Vz, Vx);
+    MathUtils::CrossProduct( Vy, Vz, Vx);
 
     //Rotation Matrix
     rRotationMatrix(0,0) = Vx[0];
@@ -1827,14 +1827,14 @@ void UPwSmallStrainInterfaceElement<3,8>::
     array_1d<double, 3> Vy;
     noalias(Vy) = pmid2 - pmid0;
     array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
+    MathUtils::CrossProduct(Vz, Vx, Vy);
     inv_norm = 1.0/norm_2(Vz);
     Vz[0] *= inv_norm;
     Vz[1] *= inv_norm;
     Vz[2] *= inv_norm;
 
     //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct( Vy, Vz, Vx);
+    MathUtils::CrossProduct( Vy, Vz, Vx);
 
     //Rotation Matrix
     rRotationMatrix(0,0) = Vx[0];

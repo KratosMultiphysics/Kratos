@@ -2305,7 +2305,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichmentWithContinuity(
         // Enrichment condensation (add to LHS and RHS the enrichment contributions)
         double det;
         MatrixType inverse_diag(NumNodes, NumNodes);
-        MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
+        MathUtils::InvertMatrix(rKeeTot, inverse_diag, det);
 
         const Matrix tmp = prod(inverse_diag, rHtot);
         noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
@@ -2327,7 +2327,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
     // Enrichment condensation (add to LHS and RHS the enrichment contributions)
     double det;
     MatrixType inverse_diag(NumNodes, NumNodes);
-    MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
+    MathUtils::InvertMatrix(rKeeTot, inverse_diag, det);
 
     const Matrix tmp = prod(inverse_diag, rHtot);
     noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);

@@ -619,11 +619,11 @@ namespace Kratos
 
     if constexpr (TDim == 2)
     {
-      MathUtils<double>::InvertMatrix2(Fgrad, invFgrad, FJacobian);
+      MathUtils::InvertMatrix2(Fgrad, invFgrad, FJacobian);
     }
     else if constexpr (TDim == 3)
     {
-      MathUtils<double>::InvertMatrix3(Fgrad, invFgrad, FJacobian);
+      MathUtils::InvertMatrix3(Fgrad, invFgrad, FJacobian);
     }
 
     // Fgrad.resize(2,2);
@@ -726,11 +726,11 @@ namespace Kratos
 
     if constexpr (TDim == 2)
     {
-      MathUtils<double>::InvertMatrix2(FgradVel, invFgradVel, FVelJacobian);
+      MathUtils::InvertMatrix2(FgradVel, invFgradVel, FVelJacobian);
     }
     else if constexpr (TDim == 3)
     {
-      MathUtils<double>::InvertMatrix3(FgradVel, invFgradVel, FVelJacobian);
+      MathUtils::InvertMatrix3(FgradVel, invFgradVel, FVelJacobian);
     }
   }
 
@@ -1151,13 +1151,13 @@ namespace Kratos
     // Inverse
     rElementalVariables.InvFgrad = ZeroMatrix(dimension, dimension);
     rElementalVariables.DetFgrad = 1;
-    MathUtils<double>::InvertMatrix2(rElementalVariables.Fgrad,
+    MathUtils::InvertMatrix2(rElementalVariables.Fgrad,
                                      rElementalVariables.InvFgrad,
                                      rElementalVariables.DetFgrad);
 
     // rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
     // rElementalVariables.DetFgradVel=1;
-    // MathUtils<double>::InvertMatrix2(rElementalVariables.FgradVel,
+    // MathUtils::InvertMatrix2(rElementalVariables.FgradVel,
     // 		    rElementalVariables.InvFgradVel,
     // 		    rElementalVariables.DetFgradVel);
 
@@ -1260,13 +1260,13 @@ namespace Kratos
     // Inverse
     rElementalVariables.InvFgrad = ZeroMatrix(dimension, dimension);
     rElementalVariables.DetFgrad = 1;
-    MathUtils<double>::InvertMatrix3(rElementalVariables.Fgrad,
+    MathUtils::InvertMatrix3(rElementalVariables.Fgrad,
                                      rElementalVariables.InvFgrad,
                                      rElementalVariables.DetFgrad);
 
     // rElementalVariables.InvFgradVel=ZeroMatrix(dimension,dimension);
     // rElementalVariables.DetFgradVel=1;
-    // MathUtils<double>::InvertMatrix3(rElementalVariables.FgradVel,
+    // MathUtils::InvertMatrix3(rElementalVariables.FgradVel,
     // 		    rElementalVariables.InvFgradVel,
     // 		    rElementalVariables.DetFgradVel);
 

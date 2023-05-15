@@ -175,7 +175,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bo
     array_1d<double,3> Vy;
     noalias(Vy) = P2 - pmid0;
     array_1d<double,3> Vz;
-    MathUtils<double>::CrossProduct(Vz,Vx,Vy);
+    MathUtils::CrossProduct(Vz,Vx,Vy);
     double norm_z = norm_2(Vz);
     if(norm_z > 1.0e-8)
     {
@@ -184,7 +184,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bo
         Vz[2] *= 1.0/norm_z;
         
         //Unitary vector in local y direction
-        MathUtils<double>::CrossProduct(Vy, Vz, Vx);
+        MathUtils::CrossProduct(Vy, Vz, Vx);
         
         //Rotation Matrix
         rRotationMatrix(0,0) = Vx[0];

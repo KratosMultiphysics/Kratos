@@ -253,7 +253,7 @@ void MPMUpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, c
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     double detJ;
-    MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
+    MathUtils::InvertMatrix( Jacobian, InvJ, detJ);
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
     Matrix jacobian;
@@ -261,7 +261,7 @@ void MPMUpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, c
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
+    MathUtils::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n+1]
     Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
@@ -725,10 +725,10 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKuugUP(MatrixType& rLeftHandSideMatr
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const int size = number_of_nodes * dimension;
 
-    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    Matrix stress_tensor = MathUtils::StressVectorToTensor( rVariables.StressVector );
     Matrix reduced_Kg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( stress_tensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
     Matrix Kuug = ZeroMatrix(size, size);
-    MathUtils<double>::ExpandAndAddReducedMatrix( Kuug, reduced_Kg, dimension );
+    MathUtils::ExpandAndAddReducedMatrix( Kuug, reduced_Kg, dimension );
 
     // Assemble components considering added DOF matrix system
     unsigned int indexi = 0;

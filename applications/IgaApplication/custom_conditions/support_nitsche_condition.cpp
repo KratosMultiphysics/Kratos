@@ -55,7 +55,7 @@ namespace Kratos
         rKinematicVariables.a2 = g2;
 
         //not-normalized base vector 3
-        MathUtils<double>::CrossProduct(rKinematicVariables.a3_tilde, rKinematicVariables.a1, rKinematicVariables.a2);
+        MathUtils::CrossProduct(rKinematicVariables.a3_tilde, rKinematicVariables.a1, rKinematicVariables.a2);
 
         //differential area dA
         rKinematicVariables.dA = norm_2(rKinematicVariables.a3_tilde);
@@ -73,7 +73,7 @@ namespace Kratos
         GetGeometry().Calculate(LOCAL_TANGENT, local_tangent);
 
         rKinematicVariables.t = local_tangent[0]*g1 + local_tangent[1]*g2;
-        MathUtils<double>::CrossProduct(rKinematicVariables.n, rKinematicVariables.t/norm_2(rKinematicVariables.t), rKinematicVariables.a3);
+        MathUtils::CrossProduct(rKinematicVariables.n, rKinematicVariables.t/norm_2(rKinematicVariables.t), rKinematicVariables.a3);
 
         // transform the normal into the contavariant basis
         rKinematicVariables.n_contravariant[0] = rKinematicVariables.a1[0]*rKinematicVariables.n[0] + rKinematicVariables.a1[1]*rKinematicVariables.n[1] + rKinematicVariables.a1[2]*rKinematicVariables.n[2];
@@ -203,7 +203,7 @@ namespace Kratos
         if (Has(LOCAL_PRESTRESS_AXIS_1))
         {
             t1 = GetValue(LOCAL_PRESTRESS_AXIS_1);
-            MathUtils<double>::CrossProduct(t2, rActualKinematic.a3, t1);
+            MathUtils::CrossProduct(t2, rActualKinematic.a3, t1);
         }
         else if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2))
         {

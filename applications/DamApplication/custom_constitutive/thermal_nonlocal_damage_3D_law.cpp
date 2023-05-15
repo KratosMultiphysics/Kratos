@@ -102,7 +102,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
     this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
     // Mechanical strain
     noalias(rStrainVector) -= ThermalStrainVector;
-    noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    noalias(AuxMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
     noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
     if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) // Compute constitutive tensor and total stress
@@ -147,7 +147,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
       this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
       // Mechanical strain
       noalias(rStrainVector) -= ThermalStrainVector;
-      noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+      noalias(AuxMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
       noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
       if(Options.IsNot(ConstitutiveLaw::COMPUTE_STRESS))
@@ -179,7 +179,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         Vector& rStressVector = rValues.GetStressVector();
 
         // Total Strain
-        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+        noalias(AuxMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
         this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
@@ -191,7 +191,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
 
         // Thermal strain
         this->CalculateThermalStrain(rStrainVector,ElasticVariables,NodalReferenceTemperature);
-        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+        noalias(AuxMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
         this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
@@ -206,7 +206,7 @@ void ThermalNonlocalDamage3DLaw::CalculateMaterialResponseCauchy (Parameters& rV
         this->CalculateThermalStrain(ThermalStrainVector,ElasticVariables,NodalReferenceTemperature);
         // Mechanical strain
         noalias(rStrainVector) -= ThermalStrainVector;
-        noalias(AuxMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+        noalias(AuxMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
         noalias(ReturnMappingVariables.StrainMatrix) = AuxMatrix;
 
         this->CalculateReturnMapping(ReturnMappingVariables,AuxMatrix,rStressVector,LinearElasticMatrix,rStrainVector);
@@ -269,7 +269,7 @@ void ThermalNonlocalDamage3DLaw::FinalizeMaterialResponseCauchy (Parameters& rVa
     // Strain and Stress matrices
     const unsigned int Dim = this->WorkingSpaceDimension();
     ReturnMappingVariables.StrainMatrix.resize(Dim,Dim,false);
-    noalias(ReturnMappingVariables.StrainMatrix) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    noalias(ReturnMappingVariables.StrainMatrix) = MathUtils::StrainVectorToTensor(rStrainVector);
     ReturnMappingVariables.TrialIsoStressMatrix.resize(Dim,Dim,false);
     // CharacteristicSize
     ReturnMappingVariables.CharacteristicSize = 1.0;

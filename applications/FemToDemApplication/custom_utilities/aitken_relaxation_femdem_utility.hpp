@@ -169,7 +169,7 @@ public:
      */
     double ComputeNorm(const Vector& rVector)
     {
-        return MathUtils<double>::Norm(rVector);
+        return MathUtils::Norm(rVector);
     }
 
     /**
@@ -311,7 +311,7 @@ public:
             for (unsigned int jj = 0; jj < Dimension; ++jj)
                 rInterfaceResidualVector[base_i + jj] = r_interface_residual[jj];
         }
-        return MathUtils<double>::Norm(rInterfaceResidualVector);
+        return MathUtils::Norm(rInterfaceResidualVector);
     }
 
     /**

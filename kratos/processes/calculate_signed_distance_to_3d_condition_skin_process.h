@@ -760,7 +760,7 @@ private:
           v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
           v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
 
-          MathUtils<double>::CrossProduct(rResultNormal,v1,v2);
+          MathUtils::CrossProduct(rResultNormal,v1,v2);
           rResultNormal *= 0.5;
       }
 
@@ -1897,7 +1897,7 @@ private:
     u = rGeometry[1] - rGeometry[0];
     v = rGeometry[2] - rGeometry[0];
 
-    MathUtils<double>::CrossProduct(n, u, v);             // cross product
+    MathUtils::CrossProduct(n, u, v);             // cross product
 
     if (norm_2(n) == 0)            // triangle is degenerate
         return -1;                 // do not deal with this case

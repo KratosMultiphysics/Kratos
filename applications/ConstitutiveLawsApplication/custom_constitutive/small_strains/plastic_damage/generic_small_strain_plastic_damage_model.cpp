@@ -587,7 +587,7 @@ Matrix& GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageI
     )
 {
     if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
-        rValue = MathUtils<double>::StrainVectorToTensor(mPlasticStrain);
+        rValue = MathUtils::StrainVectorToTensor(mPlasticStrain);
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }

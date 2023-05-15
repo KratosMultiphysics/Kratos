@@ -105,9 +105,9 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
         noalias(C_tensor) = prod(trans(r_deformation_gradient_f), r_deformation_gradient_f);
     } else {
         Matrix strain_tensor(dimension, dimension);
-        noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(r_strain_vector);
+        noalias(strain_tensor) = MathUtils::StrainVectorToTensor(r_strain_vector);
         noalias(C_tensor) = 2.0 * strain_tensor + IdentityMatrix(dimension);
-        determinant_f = std::sqrt(MathUtils<double>::Det(C_tensor));
+        determinant_f = std::sqrt(MathUtils::Det(C_tensor));
     }
 
     if (r_flags.Is(COMPUTE_CONSTITUTIVE_TENSOR) || r_flags.Is(COMPUTE_STRESS))
@@ -129,9 +129,9 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
     if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         Vector &r_integrated_stress_vector = rValues.GetStressVector();
         Matrix stress_matrix(3, 3);
-        noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_integrated_stress_vector);
+        noalias(stress_matrix) = MathUtils::StressVectorToTensor(r_integrated_stress_vector);
         ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
-        noalias(r_integrated_stress_vector) = MathUtils<double>::StressTensorToVector(stress_matrix, r_integrated_stress_vector.size());
+        noalias(r_integrated_stress_vector) = MathUtils::StressTensorToVector(stress_matrix, r_integrated_stress_vector.size());
     }
     if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());

@@ -107,7 +107,7 @@ namespace Kratos
         t /= norm_2(t);
 
        array_1d<double, 3> momentloadtranformed;
-       MathUtils<double>::CrossProduct(momentloadtranformed, momentload, t);
+       MathUtils::CrossProduct(momentloadtranformed, momentload, t);
        return  momentloadtranformed;
     }
 
@@ -139,7 +139,7 @@ namespace Kratos
                 }
             }
 
-            rDeterminantOfJacobian[pnt] = MathUtils<double>::GeneralizedDet(J);
+            rDeterminantOfJacobian[pnt] = MathUtils::GeneralizedDet(J);
         }
     }
 

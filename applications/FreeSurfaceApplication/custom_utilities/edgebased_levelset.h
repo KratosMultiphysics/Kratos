@@ -2313,7 +2313,7 @@ namespace Kratos
             v2[1] = face_geometry[2].Y() - face_geometry[0].Y();
             v2[2] = face_geometry[2].Z() - face_geometry[0].Z();
 
-            MathUtils<double>::CrossProduct(area_normal, v1, v2);
+            MathUtils::CrossProduct(area_normal, v1, v2);
             area_normal *= -0.5;
 
             noalias((cond_it)->GetValue(NORMAL)) = area_normal;

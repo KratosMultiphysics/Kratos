@@ -89,7 +89,7 @@ void SettingBasicCase(
         rF(equivalent_i, equivalent_j) = 0.5 * rStrainVector[i];
         rF(equivalent_j, equivalent_i) = 0.5 * rStrainVector[i];
     }
-    rDetF = MathUtils<double>::Det(rF);
+    rDetF = MathUtils::Det(rF);
 
     rTangentModuli = ZeroMatrix(6, 6);
 
@@ -237,7 +237,7 @@ void ComputingConvergenceRate(
         noalias(rStrainVector) =  initial_strain_vector + delta_strain_vector;
         if (!use_element_provided_strain) {
             noalias(rF) = prod(delta_deformation_gradient_F, initial_deformation_gradient_F);
-            rDetF = MathUtils<double>::Det(rF);
+            rDetF = MathUtils::Det(rF);
             rCLConfigurationValues.SetDeformationGradientF(rF);
             rCLConfigurationValues.SetDeterminantF(rDetF);
         }

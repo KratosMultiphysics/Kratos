@@ -612,7 +612,7 @@ namespace Kratos
                   ( rOutput[PointNumber].size2() != 3 ) )
                rOutput[PointNumber].resize( 3, 3, false );
 
-            rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor( Variables.StressVector );
+            rOutput[PointNumber] = MathUtils::StressVectorToTensor( Variables.StressVector );
 
 
          }
@@ -1002,7 +1002,7 @@ namespace Kratos
 
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
-      MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+      MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
       //Compute cartesian derivatives [dN/dx_n]
       noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
@@ -1014,11 +1014,11 @@ namespace Kratos
       noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
       //Determinant of the deformation gradient F
-      rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+      rVariables.detF  = MathUtils::Det(rVariables.F);
 
       //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
       Matrix Invj;
-      MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
+      MathUtils::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
       //Compute cartesian derivatives [dN/dx_n+1]
       noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
@@ -1465,12 +1465,12 @@ namespace Kratos
       int size = number_of_nodes * dimension;
 
 
-      Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+      Matrix StressTensor = MathUtils::StressVectorToTensor( rVariables.StressVector );
 
       Matrix ReducedKg = prod( rVariables.DN_DX,  rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
 
       Matrix Kuu = zero_matrix<double> (size);
-      MathUtils<double>::ExpandAndAddReducedMatrix( Kuu, ReducedKg, dimension );
+      MathUtils::ExpandAndAddReducedMatrix( Kuu, ReducedKg, dimension );
 
       // MatrixType Kh=rLeftHandSideMatrix;
 
@@ -2008,7 +2008,7 @@ namespace Kratos
 
       double det;
       Matrix EECCDefGrad;
-      MathUtils<double>::InvertMatrix( EECCDefGradInverse, EECCDefGrad, det);
+      MathUtils::InvertMatrix( EECCDefGradInverse, EECCDefGrad, det);
 
       double detF0 = 0;
       unsigned int step = 1;
@@ -2021,7 +2021,7 @@ namespace Kratos
       F0 *= pow( detF0 / rVariables.detF0, 1.0/double(dimension) );
 
       Matrix F0Inverse;
-      MathUtils<double>::InvertMatrix( F0, F0Inverse, det);
+      MathUtils::InvertMatrix( F0, F0Inverse, det);
 
       Matrix Update = prod( F0Inverse, EECCDefGrad);
 

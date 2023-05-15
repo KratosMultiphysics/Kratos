@@ -211,7 +211,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     if (Is(CONTACT))
     {
         // Apply only in the normal direction
-        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
+        const double normal_force = MathUtils::Dot(mpc_force, m_unit_normal);
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)

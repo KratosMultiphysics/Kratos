@@ -188,7 +188,7 @@ namespace Kratos
       if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
       {
          //Kirchhoff Stress:
-         StressVector = MathUtils<double>::StressTensorToVector(StressMatrix, StressVector.size());
+         StressVector = MathUtils::StressTensorToVector(StressMatrix, StressVector.size());
 
       }
 
@@ -226,7 +226,7 @@ namespace Kratos
          // moved to HyperElastic3DLaw::UpdateInvernalVariables that is called at FinalizeMaterialResponse just after it arribes here.
          /*ElasticVariables.DeformationGradientF = DeformationGradientF;
            ElasticVariables.DeformationGradientF = Transform2DTo3D(ElasticVariables.DeformationGradientF);
-           MathUtils<double>::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
+           MathUtils::InvertMatrix( ElasticVariables.DeformationGradientF, mInverseDeformationGradientF0, mDeterminantF0);
            mDeterminantF0 = DeterminantF; //special treatment of the determinant     */
          /*std::cout << " F " << DeformationGradientF << " STRESS " << StressMatrix << " PLASTIC " << ReturnMappingVariables.DeltaGamma << " det " << DeterminantF <<  " correction " << NanCorrection << std::endl;
          for (unsigned int i = 0; i < 3; i++) {
@@ -361,7 +361,7 @@ namespace Kratos
 
             double ThirdInvariant = 0.0;
 
-            ThirdInvariant = MathUtils<double>::Det( StressMatrix );
+            ThirdInvariant = MathUtils::Det( StressMatrix );
 
              ThirdInvariant *= 3.0*pow( 3.0, 0.5) / 2.0;
             ThirdInvariant /= pow( StressQ, 1.5);

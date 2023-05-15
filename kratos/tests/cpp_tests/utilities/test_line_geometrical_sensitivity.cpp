@@ -102,7 +102,7 @@ double IntegrationPointWeight(
 {
     auto jacobian = GetJacobian(rGeometry, Quadrature, GaussPointIndex);
     DenseMatrix<double> aux = prod(trans(jacobian), jacobian);
-    double determinant = MathUtils<double>::Det(aux);
+    double determinant = MathUtils::Det(aux);
     return rGeometry.IntegrationPoints(Quadrature)[GaussPointIndex].Weight() * std::sqrt(determinant);
 }
 

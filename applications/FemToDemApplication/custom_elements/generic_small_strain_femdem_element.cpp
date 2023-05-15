@@ -450,7 +450,7 @@ void GenericSmallStrainFemDemElement<TDim,TyieldSurf>::CalculateKinematicVariabl
     this->GetValuesVector(rThisKinematicVariables.Displacements);
     Vector strain_vector = prod(rThisKinematicVariables.B, rThisKinematicVariables.Displacements);
     ComputeEquivalentF(rThisKinematicVariables.F, strain_vector);
-    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+    rThisKinematicVariables.detF = MathUtils::Det(rThisKinematicVariables.F);
 }
 
 /***********************************************************************************/

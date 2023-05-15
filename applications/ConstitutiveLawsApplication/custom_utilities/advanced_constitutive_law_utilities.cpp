@@ -270,13 +270,13 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
     // Calculating the inverse of the left Cauchy tensor
     MatrixType inverse_B_tensor ( Dimension, Dimension );
     double aux_det_b = 0;
-    MathUtils<double>::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
+    MathUtils::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
 
     // Calculate E matrix
     const BoundedMatrixType E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
 
     // Almansi Strain Calculation
-    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+    rStrainVector = MathUtils::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
@@ -296,7 +296,7 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
     // Decompose matrix
-    MathUtils<double>::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+    MathUtils::GaussSeidelEigenSystem(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     // Calculate the eigenvalues of the E matrix
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -305,10 +305,10 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
 
     // Calculate E matrix
     BoundedMatrixType E_matrix;
-    MathUtils<double>::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
+    MathUtils::BDBtProductOperation(E_matrix, eigen_values_matrix, eigen_vectors_matrix);
 
     // Hencky Strain Calculation
-    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+    rStrainVector = MathUtils::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
@@ -326,10 +326,10 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
 
     // Compute square root matrix
     BoundedMatrixType E_matrix;
-    MathUtils<double>::MatrixSquareRoot(rCauchyTensor, E_matrix, 1.0e-16, 20);
+    MathUtils::MatrixSquareRoot(rCauchyTensor, E_matrix, 1.0e-16, 20);
 
     // Biot Strain Calculation
-    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+    rStrainVector = MathUtils::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
@@ -342,7 +342,7 @@ void AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStresses(
     )
 {
     double I1, I2, I3;
-    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
     double norm = norm_frobenius(tensor);
     if (norm < tolerance) norm = 1.0;
     const BoundedVectorType norm_stress_vector = rStressVector/norm;
@@ -406,7 +406,7 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWit
     )
 {
     double a, b, c;
-    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
     double norm = norm_frobenius(tensor);
     if (norm < tolerance) norm = 1.0;
     const BoundedVectorType norm_stress_vector = rStressVector/norm;
@@ -454,11 +454,11 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::SpectralDecomposition(
     rStressVectorCompression = ZeroVector(TVoigtSize);
 
     BoundedMatrix<double, Dimension, Dimension> stress_tensor;
-    stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
+    stress_tensor = MathUtils::StressVectorToTensor(rStressVector);
     BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
     BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
 
-    MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+    MathUtils::GaussSeidelEigenSystem(stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     std::vector<Vector> eigen_vectors_container;
     Vector auxiliary_vector = ZeroVector(Dimension);
@@ -474,7 +474,7 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::SpectralDecomposition(
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = eigen_values_matrix(i, i) * outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
-            rStressVectorTension += MathUtils<double>::StressTensorToVector(sigma_tension_tensor);
+            rStressVectorTension += MathUtils::StressTensorToVector(sigma_tension_tensor);
         }
     }
     rStressVectorCompression = rStressVector - rStressVectorTension;
@@ -489,7 +489,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateLinearPlasticDefor
     const double PlasticConsistencyFactorIncrement
     )
 {
-    const MatrixType plastic_deformation_gradient_increment  = IdentityMatrix(Dimension) + PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    const MatrixType plastic_deformation_gradient_increment  = IdentityMatrix(Dimension) + PlasticConsistencyFactorIncrement * MathUtils::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
     return plastic_deformation_gradient_increment;
 }
@@ -505,7 +505,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateElasticDeformation
 {
     MatrixType invFp(Dimension, Dimension);
     double aux_det = 0.0;
-    MathUtils<double>::InvertMatrix(rFp, invFp, aux_det);
+    MathUtils::InvertMatrix(rFp, invFp, aux_det);
     return prod(rF, invFp);
 }
 
@@ -520,7 +520,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticDeformation
 {
     MatrixType invFe(Dimension, Dimension);
     double aux_det = 0.0;
-    MathUtils<double>::InvertMatrix(rFe, invFe, aux_det);
+    MathUtils::InvertMatrix(rFe, invFe, aux_det);
     return prod(invFe, rF);
 }
 
@@ -545,7 +545,7 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticStrainFromFp(
     const BoundedMatrixType Ep_matrix = 0.5 * (prod(trans(rFp), rFp) - identity_matrix);
 
     // Green-Lagrangian plastic Strain Calculation
-    noalias(rPlasticStrainVector) = MathUtils<double>::StrainTensorToVector(Ep_matrix, TVoigtSize);
+    noalias(rPlasticStrainVector) = MathUtils::StrainTensorToVector(Ep_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
@@ -560,9 +560,9 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElastic
     )
 {
     const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement *
-        MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+        MathUtils::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
     BoundedMatrixType r_exponential_tensor;
-    MathUtils<double>::CalculateExponentialOfMatrix<BoundedMatrixType>(-plastic_flow, r_exponential_tensor, 1.0e-8, 2000);
+    MathUtils::CalculateExponentialOfMatrix<BoundedMatrixType>(-plastic_flow, r_exponential_tensor, 1.0e-8, 2000);
 
     MatrixType aux_1(Dimension, Dimension), aux_2(Dimension, Dimension);
     noalias(aux_1) = prod(rTrialFe, trans(rRe));
@@ -587,7 +587,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectElasticDefor
     MatrixType inverse_plastic_deformation_gradient_increment(Dimension, Dimension);
 
     // Define plastic flow
-    const BoundedMatrixType inverse_plastic_flow = - PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    const BoundedMatrixType inverse_plastic_flow = - PlasticConsistencyFactorIncrement * MathUtils::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
     // Pre and post multiply by Re
     noalias(auxiliary_deformation_gradient_increment) = prod(inverse_plastic_flow, rRe);
@@ -596,7 +596,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectElasticDefor
     auxiliary_deformation_gradient_increment = IdentityMatrix(Dimension) - auxiliary_deformation_gradient_increment;
 
     double aux_det;
-    MathUtils<double>::InvertMatrix(auxiliary_deformation_gradient_increment, inverse_plastic_deformation_gradient_increment, aux_det);
+    MathUtils::InvertMatrix(auxiliary_deformation_gradient_increment, inverse_plastic_deformation_gradient_increment, aux_det);
 
     // Pre and post multiply by Re
     noalias(elastic_deformation_gradient) = prod(rElasticTrial, inverse_plastic_deformation_gradient_increment);
@@ -618,14 +618,14 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlastic
     MatrixType plastic_deformation_gradient_increment(Dimension, Dimension);
 
     // Define plastic flow
-    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
     // Declare the different eigen decomposition matrices
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
     // We compute the exponential matrix
     // Decompose matrix
-    MathUtils<double>::GaussSeidelEigenSystem(plastic_flow, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+    MathUtils::GaussSeidelEigenSystem(plastic_flow, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     // Calculate the eigenvalues of the E matrix
     for (std::size_t i = 0; i < Dimension; ++i) {
@@ -633,7 +633,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlastic
     }
 
     // Calculate exponential matrix
-    MathUtils<double>::BDBtProductOperation(plastic_deformation_gradient_increment, eigen_values_matrix, eigen_vectors_matrix);
+    MathUtils::BDBtProductOperation(plastic_deformation_gradient_increment, eigen_values_matrix, eigen_vectors_matrix);
 
     // Pre and post multiply by Re
     plastic_deformation_gradient_increment = prod(plastic_deformation_gradient_increment, rRe);
@@ -657,7 +657,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDefor
     MatrixType plastic_deformation_gradient_increment(Dimension, Dimension);
 
     // Define plastic flow
-    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
     // Pre and post multiply by Re
     auxiliary_deformation_gradient_increment = prod(plastic_flow, rRe);
@@ -666,7 +666,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDefor
     auxiliary_deformation_gradient_increment = IdentityMatrix(Dimension) - auxiliary_deformation_gradient_increment;
 
     double aux_det;
-    MathUtils<double>::InvertMatrix(auxiliary_deformation_gradient_increment, plastic_deformation_gradient_increment, aux_det);
+    MathUtils::InvertMatrix(auxiliary_deformation_gradient_increment, plastic_deformation_gradient_increment, aux_det);
 
     return plastic_deformation_gradient_increment;
 }

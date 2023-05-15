@@ -356,7 +356,7 @@ double FluidAuxiliaryUtilities::CalculateConditionFlowRate(const GeometryType& r
     double condition_flow_rate = 0.0;
     if (norm_2(area_normal) > std::numeric_limits<double>::epsilon()) {
         for (auto& r_node : rGeometry) {
-            condition_flow_rate += MathUtils<double>::Dot(r_node.FastGetSolutionStepValue(VELOCITY), area_normal);
+            condition_flow_rate += MathUtils::Dot(r_node.FastGetSolutionStepValue(VELOCITY), area_normal);
         }
         condition_flow_rate /= static_cast<double>(rGeometry.PointsNumber());
     } else {

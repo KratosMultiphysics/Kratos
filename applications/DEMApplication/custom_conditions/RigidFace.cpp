@@ -80,32 +80,32 @@ void RigidFace3D::AddForcesDueToTorque(VectorType& rRightHandSideVector, Vector&
     noalias(normal_force) = dot_product_force_unit_normal * unit_normal;
     array_1d<double, 3> tangential_force;
     noalias(tangential_force) = force - normal_force;
-    const double modulus_of_tangential_force = MathUtils<double>::Norm3(tangential_force);
+    const double modulus_of_tangential_force = MathUtils::Norm3(tangential_force);
     array_1d<double, 3> torque;
     array_1d<double, 3> inner_to_ball = p_glued_scheme->GetDistanceSignedWithNormal() * unit_normal;
-    MathUtils<double>::CrossProduct(torque, inner_to_ball, tangential_force);
+    MathUtils::CrossProduct(torque, inner_to_ball, tangential_force);
     array_1d<double, 3> unit_tangential_force = tangential_force;
     double aux_inv_modulus = 1.0 / modulus_of_tangential_force;
     unit_tangential_force[0] *= aux_inv_modulus;
     unit_tangential_force[1] *= aux_inv_modulus;
     unit_tangential_force[2] *= aux_inv_modulus;
     array_1d<double, 3> unit_perpendicular_to_tangential_force;
-    MathUtils<double>::CrossProduct(unit_perpendicular_to_tangential_force, unit_normal, tangential_force);
-    aux_inv_modulus = 1.0 / MathUtils<double>::Norm3(unit_perpendicular_to_tangential_force);
+    MathUtils::CrossProduct(unit_perpendicular_to_tangential_force, unit_normal, tangential_force);
+    aux_inv_modulus = 1.0 / MathUtils::Norm3(unit_perpendicular_to_tangential_force);
     unit_perpendicular_to_tangential_force[0] *= aux_inv_modulus;
     unit_perpendicular_to_tangential_force[1] *= aux_inv_modulus;
     unit_perpendicular_to_tangential_force[2] *= aux_inv_modulus;
-    const double modulus_of_torque = MathUtils<double>::Norm3(torque);
+    const double modulus_of_torque = MathUtils::Norm3(torque);
     array_1d<double, 3> inner_to_node;
     noalias(inner_to_node) = GetGeometry()[0] - inner_point;
-    const double d1 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
-    const double dp1 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    const double d1 = MathUtils::Dot3(inner_to_node, unit_tangential_force);
+    const double dp1 = MathUtils::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
     noalias(inner_to_node) = GetGeometry()[1] - inner_point;
-    const double d2 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
-    const double dp2 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    const double d2 = MathUtils::Dot3(inner_to_node, unit_tangential_force);
+    const double dp2 = MathUtils::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
     noalias(inner_to_node) = GetGeometry()[2] - inner_point;
-    const double d3 = MathUtils<double>::Dot3(inner_to_node, unit_tangential_force);
-    const double dp3 = MathUtils<double>::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
+    const double d3 = MathUtils::Dot3(inner_to_node, unit_tangential_force);
+    const double dp3 = MathUtils::Dot3(inner_to_node, unit_perpendicular_to_tangential_force);
     const double aux = 1.0 / (dp2 - dp3);
     const double f1 = -1.0 * modulus_of_torque / (d1 - d2*dp1*aux + d2*dp3*aux - d3 + d3*dp1*aux - d3*dp3*aux);
     const double f2 = (dp3-dp1)*f1*aux;
@@ -138,9 +138,9 @@ void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
 //    v2[1] = geom[2][1] - geom[0][1];
 //    v2[2] = geom[2][2] - geom[0][2];
 
-//    MathUtils<double>::CrossProduct(rnormal, v1, v2);
+//    MathUtils::CrossProduct(rnormal, v1, v2);
 
-//    rnormal /= MathUtils<double>::Norm3(rnormal);
+//    rnormal /= MathUtils::Norm3(rnormal);
     Geometry<Node >& geom = GetGeometry();
     if (geom.size()>2){
         double v1[3];

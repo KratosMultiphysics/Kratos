@@ -194,9 +194,9 @@ public:
 
         vz *= 0.25;
 
-        double lx = MathUtils<double>::Norm3(vx);
-        double ly = MathUtils<double>::Norm3(vy);
-        double lz = MathUtils<double>::Norm3(vz);
+        double lx = MathUtils::Norm3(vx);
+        double ly = MathUtils::Norm3(vy);
+        double lz = MathUtils::Norm3(vz);
 		if(lz < lx)
 		{
 			if(lz < ly)
@@ -317,9 +317,9 @@ public:
         noalias(vz) += - *pPoint3 - *pPoint4;
         vz *= 0.25;
 
-        double lx = MathUtils<double>::Norm3(vx);
-        double ly = MathUtils<double>::Norm3(vy);
-        double lz = MathUtils<double>::Norm3(vz);
+        double lx = MathUtils::Norm3(vx);
+        double ly = MathUtils::Norm3(vy);
+        double lz = MathUtils::Norm3(vz);
 
 		if(lz < lx)
 		{
@@ -948,9 +948,9 @@ public:
             Tangent1[1] = J(1,1);
             Tangent1[2] = J(2,1);
 
-            MathUtils<double>::CrossProduct(Normal, Tangent0, Tangent1);
+            MathUtils::CrossProduct(Normal, Tangent0, Tangent1);
 
-            rResult[pnt] = MathUtils<double>::Norm3(Normal);
+            rResult[pnt] = MathUtils::Norm3(Normal);
         }
         return rResult;
     }
@@ -995,9 +995,9 @@ public:
         Tangent1[1] = J(1,1);
         Tangent1[2] = J(2,1);
 
-        MathUtils<double>::CrossProduct(Normal, Tangent0, Tangent1);
+        MathUtils::CrossProduct(Normal, Tangent0, Tangent1);
 
-        return MathUtils<double>::Norm3(Normal);
+        return MathUtils::Norm3(Normal);
     }
 
     /**
@@ -1426,7 +1426,7 @@ public:
             Matrix invJ = ZeroMatrix( 3, 3 );
             double DetJ;
 
-            MathUtils<double>::InvertMatrix3( J[pnt], invJ, DetJ );
+            MathUtils::InvertMatrix3( J[pnt], invJ, DetJ );
 
             determinants_of_jacobian[pnt] = DetJ;
 

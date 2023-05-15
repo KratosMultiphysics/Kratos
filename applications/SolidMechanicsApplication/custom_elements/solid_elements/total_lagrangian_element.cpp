@@ -169,7 +169,7 @@ void TotalLagrangianElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         double IntegrationWeight = integration_points[PointNumber].Weight();
 
         //calculating and storing inverse of the jacobian and the parameters needed
-        MathUtils<double>::InvertMatrix( J0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber] );
+        MathUtils::InvertMatrix( J0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber] );
 
         //calculating the total area
         mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
@@ -218,7 +218,7 @@ void TotalLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], mInvJ0[rPointNumber] );
 
     //Determinant of the deformation gradient F
-    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+    rVariables.detF  = MathUtils::Det(rVariables.F);
 
     //
     //
@@ -265,7 +265,7 @@ void TotalLagrangianElement::CalculateKinetics(ElementDataType& rVariables, cons
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], InvJ, rVariables.detJ);
+    MathUtils::InvertMatrix( rVariables.j[rPointNumber], InvJ, rVariables.detJ);
 
     //Calculating the cartesian derivatives [dN/dx_n] = [dN/d£][d£/dx_0]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
@@ -274,7 +274,7 @@ void TotalLagrangianElement::CalculateKinetics(ElementDataType& rVariables, cons
     noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
 
     //Determinant of the deformation gradient F
-    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+    rVariables.detF  = MathUtils::Det(rVariables.F);
 
     //Determinant of the Deformation Gradient F0
     // (in this element F = F0, then F0 is set to the identity for coherence in the constitutive law)

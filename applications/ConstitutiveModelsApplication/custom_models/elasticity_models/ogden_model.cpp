@@ -246,7 +246,7 @@ namespace Kratos
 	noalias(StrainMatrix) = rVariables.Strain.Matrix;
 	rVariables.Strain.Eigen.Vectors.clear();
 
-        MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(StrainMatrix, rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
+        MathUtils::GaussSeidelEigenSystem<MatrixType, MatrixType>(StrainMatrix, rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
 
 	for (unsigned int i = 0; i < 3; i++)
 	    rVariables.Strain.Eigen.Values[i] = std::sqrt(rVariables.Strain.Matrix(i,i));
@@ -272,7 +272,7 @@ namespace Kratos
       rVariables.Strain.Matrix.clear();
       rVariables.Strain.Eigen.Vectors.clear();
 
-        MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(rValues.StrainMatrix, rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
+        MathUtils::GaussSeidelEigenSystem<MatrixType, MatrixType>(rValues.StrainMatrix, rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
 
       for (unsigned int i = 0; i < 3; i++)
 	  rVariables.Strain.Eigen.Values[i] = std::sqrt(rVariables.Strain.Matrix(i,i));

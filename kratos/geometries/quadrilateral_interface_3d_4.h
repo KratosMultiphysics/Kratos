@@ -204,8 +204,8 @@ public:
 //         vy = ThirdPoint + FourthPoint - FirstPoint - SecondPoint;
 //         vy *= 0.5;
 //
-//         double lx = MathUtils<double>::Norm3(vx);
-//         double ly = MathUtils<double>::Norm3(vy);
+//         double lx = MathUtils::Norm3(vx);
+//         double ly = MathUtils::Norm3(vy);
 //
 // 		if(lx > ly)
 // 		{
@@ -235,8 +235,8 @@ public:
         array_1d< double , 3 > vy;
         noalias(vy) = (*pThirdPoint + *pFourthPoint - *pFirstPoint - *pSecondPoint)*0.5;
 
-        double lx = MathUtils<double>::Norm3(vx);
-        double ly = MathUtils<double>::Norm3(vy);
+        double lx = MathUtils::Norm3(vx);
+        double ly = MathUtils::Norm3(vy);
 
 		if(ly < lx)
 		{
@@ -404,7 +404,7 @@ public:
 
 		array_1d<double, 3> vx( p1 - p0 );
 
-		return MathUtils<double>::Norm3(vx);
+		return MathUtils::Norm3(vx);
     }
 
     /** This method calculates and returns area or surface area of

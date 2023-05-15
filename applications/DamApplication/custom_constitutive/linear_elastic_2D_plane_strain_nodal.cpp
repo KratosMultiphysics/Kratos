@@ -41,7 +41,7 @@ void LinearElastic2DPlaneStrainNodal::CalculateAlmansiStrain( const Matrix & rLe
     // e= 0.5*(1-invbT*invb)
     Matrix InverseLeftCauchyGreen ( 2 , 2 );
     double det_b=0;
-    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+    MathUtils::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
     rStrainVector.clear();
     rStrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );

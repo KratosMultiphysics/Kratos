@@ -237,12 +237,12 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     // std::cout<<" MC StressVector "<<StressVector<<std::endl;
     // std::cout<<" MC F "<<F<<std::endl;
 
-    StressMatrix = MathUtils<double>::StressVectorToTensor( StressVector );
+    StressMatrix = MathUtils::StressVectorToTensor( StressVector );
 
     //we are going to need F here from Cn-1 to Cn
     // F0 from C0 to Cn is need for the stress recovery on domain elements
 
-    double detF =MathUtils<double>::Det(F);
+    double detF =MathUtils::Det(F);
 
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=J*CauchyStress*F^-T)
     ConstitutiveLaw Constitutive;
@@ -473,7 +473,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rV
     Matrix StressMatrix(dimension,dimension);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    StressMatrix=MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    StressMatrix=MathUtils::StressVectorToTensor( rVariables.StressVector );
 
     // UL
     //b.- Compute the 1srt Piola Kirchhoff stress tensor

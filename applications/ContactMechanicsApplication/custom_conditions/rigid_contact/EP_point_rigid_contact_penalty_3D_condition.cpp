@@ -491,7 +491,7 @@ namespace Kratos
 
       if ( rVariables.ContactStressVector.size() > 1) {
          double ForceModulus = norm_2( TangentForceVector);
-         rVariables.ContactStressVector += MathUtils<double>::StressTensorToVector( ForceModulus * ( outer_prod(rVariables.Surface.Normal, ConstVariables.ForceDirection) + outer_prod( ConstVariables.ForceDirection, rVariables.Surface.Normal) ) , rVariables.ContactStressVector.size() );
+         rVariables.ContactStressVector += MathUtils::StressTensorToVector( ForceModulus * ( outer_prod(rVariables.Surface.Normal, ConstVariables.ForceDirection) + outer_prod( ConstVariables.ForceDirection, rVariables.Surface.Normal) ) , rVariables.ContactStressVector.size() );
       }
 
       GetGeometry()[0].UnSetLock();
@@ -518,7 +518,7 @@ namespace Kratos
       Vector Normal = rVariables.Surface.Normal;
       Vector T1 = rVariables.Surface.Tangent;
 
-      if ( MathUtils<double>::Dot(T1, PreviousT1) < 0)
+      if ( MathUtils::Dot(T1, PreviousT1) < 0)
          T1 *= (-1.0);
 
       Vector T2 = ZeroVector(3);
@@ -539,7 +539,7 @@ namespace Kratos
          }
       }
 
-      Matrix ForceMatrix = MathUtils<double>::StressVectorToTensor( mSavedInfo.PreviousStepForceVector );
+      Matrix ForceMatrix = MathUtils::StressVectorToTensor( mSavedInfo.PreviousStepForceVector );
 
       ForceMatrix = ConvertToTheAppropriateSize(ForceMatrix); // 2D and Axis are 2DMatrices
 
@@ -613,7 +613,7 @@ namespace Kratos
       rConstitutiveVariables.ForceDirection = ForceDirection;
 
       // 3. Save geometrical information
-      mCurrentInfo.PreviousStepForceVector = MathUtils<double>::StressTensorToVector( ForceModulus * (outer_prod( rVariables.Surface.Normal, ForceDirection) + outer_prod( ForceDirection, rVariables.Surface.Normal) ), mSavedInfo.PreviousStepForceVector.size() );
+      mCurrentInfo.PreviousStepForceVector = MathUtils::StressTensorToVector( ForceModulus * (outer_prod( rVariables.Surface.Normal, ForceDirection) + outer_prod( ForceDirection, rVariables.Surface.Normal) ), mSavedInfo.PreviousStepForceVector.size() );
 
       mCurrentInfo.n = rVariables.Surface.Normal;
       mCurrentInfo.t1 = T1;
@@ -671,9 +671,9 @@ namespace Kratos
           array_1d< double, 3 > Vector1 = rElemGeom[ BoundaryNodes[1] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
           array_1d< double, 3 > Vector2 = rElemGeom[ BoundaryNodes[2] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
           array_1d< double, 3 > Cross;
-          MathUtils<double>::CrossProduct( Cross, Vector1, Vector2 );
+          MathUtils::CrossProduct( Cross, Vector1, Vector2 );
           Cross /= 2.0;
-          double ThisArea = MathUtils<double>::Norm3( Cross);
+          double ThisArea = MathUtils::Norm3( Cross);
           AreaVector.push_back(ThisArea);
         }
 

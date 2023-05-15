@@ -136,7 +136,7 @@ void ShellRigid::CalculateLocalGlobalTransformation(
     temp[0]=GetGeometry()[2].X()-GetGeometry()[0].X();
     temp[1]=GetGeometry()[2].Y()-GetGeometry()[0].Y();
     temp[2]=GetGeometry()[2].Z()-GetGeometry()[0].Z();
-    MathUtils<double>::CrossProduct(v3,v1,temp);
+    MathUtils::CrossProduct(v3,v1,temp);
     area = 0.5 * norm_2(v3);
 
     //normalizing base vectors
@@ -144,7 +144,7 @@ void ShellRigid::CalculateLocalGlobalTransformation(
     v3 /= (2.0*area);
 
     //forming the "second" base vector - it is already normalized
-    MathUtils<double>::CrossProduct(v2,v3,v1);
+    MathUtils::CrossProduct(v2,v3,v1);
     x31 = inner_prod(temp,v1);
     y31 = inner_prod(temp,v2);
 

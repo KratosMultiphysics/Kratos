@@ -1288,7 +1288,7 @@ namespace Kratos
 		  //unsigned int dimension = pGeom->WorkingSpaceDimension();
 		  const Vector& N=row(Ncontainer,PointNumber);
 
-		  MathUtils<double>::InvertMatrix(J0[PointNumber],mInvJ0[PointNumber],mDetJ0[PointNumber]);
+		  MathUtils::InvertMatrix(J0[PointNumber],mInvJ0[PointNumber],mDetJ0[PointNumber]);
 		  double Weight = integration_points[PointNumber].Weight()* mDetJ0[PointNumber];
 
 		  xp=0.0;
@@ -1955,7 +1955,7 @@ namespace Kratos
 		  //unsigned int dimension = pGeom->WorkingSpaceDimension();
 		  const Vector& N=row(Ncontainer,PointNumber);
 
-		  MathUtils<double>::InvertMatrix(J0[PointNumber],mInvJ0[PointNumber],mDetJ0[PointNumber]);
+		  MathUtils::InvertMatrix(J0[PointNumber],mInvJ0[PointNumber],mDetJ0[PointNumber]);
 		  double Weight = integration_points[PointNumber].Weight()* mDetJ0[PointNumber];
 
 		  xp=0.0;

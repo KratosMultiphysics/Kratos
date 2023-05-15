@@ -442,7 +442,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         //Unitary vector in local z direction
         array_1d<double, 3> V_normal;
-        MathUtils<double>::CrossProduct(V_normal, V_uplift, V_longitudinal);
+        MathUtils::CrossProduct(V_normal, V_uplift, V_longitudinal);
 
         //Rotation Matrix
         rRotationMatrix(0, 0) = V_uplift[0];

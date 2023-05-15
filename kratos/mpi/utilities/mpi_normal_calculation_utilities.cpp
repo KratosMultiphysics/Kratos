@@ -570,7 +570,7 @@ void MPINormalCalculationUtils::FaceNormal3D(array_1d<double,3> &An,
     v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
     v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
 
-    MathUtils<double>::CrossProduct(An,v1,v2);
+    MathUtils::CrossProduct(An,v1,v2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -352,7 +352,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateNormal(ar
         v2[1] = r_geom[2].Y() - r_geom[0].Y();
         v2[2] = r_geom[2].Z() - r_geom[0].Z();
 
-        MathUtils<double>::CrossProduct(rAreaNormal,v1,v2);
+        MathUtils::CrossProduct(rAreaNormal,v1,v2);
         rAreaNormal *= 0.5;
     } else {
         KRATOS_ERROR << "'CalculateNormal' is not implemented for current geometry." << std::endl;

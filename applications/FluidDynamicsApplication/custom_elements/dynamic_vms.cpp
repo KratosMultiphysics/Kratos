@@ -587,7 +587,7 @@ void DynamicVMS<TDim>::CalculateGeometryData()
     rGeom.Jacobian( J, GeometryData::IntegrationMethod::GI_GAUSS_1 );
 
     // calculate inverse of the jacobian and its determinant
-    MathUtils<double>::InvertMatrix( J[0], InvJ, mDetJ );
+    MathUtils::InvertMatrix( J[0], InvJ, mDetJ );
 
     // calculate the shape function derivatives in global coordinates
     mDN_DX.resize(NumNodes,TDim, false);
@@ -1392,7 +1392,7 @@ void DynamicVMS<2>::DenseSystemSolve(const Matrix &rA, const Vector &rB, Vector 
 {
     Matrix Inv = ZeroMatrix(2,2);
     double Det = 0.0;
-    MathUtils<double>::InvertMatrix2(rA,Inv,Det);
+    MathUtils::InvertMatrix2(rA,Inv,Det);
     noalias(rX) = prod(Inv,rB);
 }
 
@@ -1401,7 +1401,7 @@ void DynamicVMS<3>::DenseSystemSolve(const Matrix &rA, const Vector &rB, Vector 
 {
     Matrix Inv = ZeroMatrix(3,3);
     double Det = 0.0;
-    MathUtils<double>::InvertMatrix3(rA,Inv,Det);
+    MathUtils::InvertMatrix3(rA,Inv,Det);
     noalias(rX) = prod(Inv,rB);
 }
 

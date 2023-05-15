@@ -152,7 +152,7 @@ bool ExactMortarIntegrationUtility<3, 3, false>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_xi = rOriginalSlaveGeometry[1].Coordinates() - rOriginalSlaveGeometry[0].Coordinates();
     slave_tangent_xi = slave_tangent_xi/norm_2(slave_tangent_xi);
     array_1d<double, 3> slave_tangent_eta;
-    MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
+    MathUtils::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(3);
@@ -237,7 +237,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_xi = rOriginalSlaveGeometry[2].Coordinates() - rOriginalSlaveGeometry[0].Coordinates();
     slave_tangent_xi = slave_tangent_xi/norm_2(slave_tangent_xi);
     array_1d<double, 3> slave_tangent_eta;
-    MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
+    MathUtils::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(4);
@@ -319,7 +319,7 @@ bool ExactMortarIntegrationUtility<3, 3, false, 4>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_xi = rOriginalSlaveGeometry[1].Coordinates() - rOriginalSlaveGeometry[0].Coordinates();
     slave_tangent_xi = slave_tangent_xi/norm_2(slave_tangent_xi);
     array_1d<double, 3> slave_tangent_eta;
-    MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
+    MathUtils::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(3);
@@ -413,7 +413,7 @@ bool ExactMortarIntegrationUtility<3, 4, false, 3>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_xi = rOriginalSlaveGeometry[2].Coordinates() - rOriginalSlaveGeometry[0].Coordinates();
     slave_tangent_xi = slave_tangent_xi/norm_2(slave_tangent_xi);
     array_1d<double, 3> slave_tangent_eta;
-    MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
+    MathUtils::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
     // Auxiliar values
     PointType aux_point;
@@ -638,7 +638,7 @@ bool ExactMortarIntegrationUtility<3, 3, true>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_xi = rOriginalSlaveGeometry[1].Coordinates() - rOriginalSlaveGeometry[0].Coordinates();
     slave_tangent_xi = slave_tangent_xi/norm_2(slave_tangent_xi);
     array_1d<double, 3> slave_tangent_eta;
-    MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
+    MathUtils::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(3);
@@ -718,7 +718,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_xi = rOriginalSlaveGeometry[2].Coordinates() - rOriginalSlaveGeometry[0].Coordinates();
     slave_tangent_xi = slave_tangent_xi/norm_2(slave_tangent_xi);
     array_1d<double, 3> slave_tangent_eta;
-    MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
+    MathUtils::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(4);
@@ -800,7 +800,7 @@ bool ExactMortarIntegrationUtility<3, 3, true, 4>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_xi = rOriginalSlaveGeometry[1].Coordinates() - rOriginalSlaveGeometry[0].Coordinates();
     slave_tangent_xi = slave_tangent_xi/norm_2(slave_tangent_xi);
     array_1d<double, 3> slave_tangent_eta;
-    MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
+    MathUtils::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(3);
@@ -894,7 +894,7 @@ bool ExactMortarIntegrationUtility<3, 4, true, 3>::GetExactIntegration(
     array_1d<double, 3> slave_tangent_xi = rOriginalSlaveGeometry[2].Coordinates() - rOriginalSlaveGeometry[0].Coordinates();
     slave_tangent_xi = slave_tangent_xi/norm_2(slave_tangent_xi);
     array_1d<double, 3> slave_tangent_eta;
-    MathUtils<double>::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
+    MathUtils::CrossProduct( slave_tangent_eta, rSlaveNormal, slave_tangent_xi);
 
     // We define the auxiliar geometry
     PointerVector<PointType> points_array_slave(4);
@@ -1387,14 +1387,14 @@ inline std::vector<IndexType> ExactMortarIntegrationUtility<TDim, TNumNodes, TBe
 
     v /= norm_2(v);
     array_1d<double, 3> n;
-    MathUtils<double>::CrossProduct( n, rNormal, v);
+    MathUtils::CrossProduct( n, rNormal, v);
 
     for (IndexType elem = 1; elem < list_size; ++elem) {
         angles[elem - 1] = AnglePoints(rPointList[0], rPointList[elem], v, n);
         if (angles[elem - 1] < 0.0) {
             v = rPointList[elem].Coordinates() - ref_point_coordinates;
             v /= norm_2(v);
-            MathUtils<double>::CrossProduct( n, rNormal, v);
+            MathUtils::CrossProduct( n, rNormal, v);
             for (IndexType aux_elem = 0; aux_elem <= (elem - 1); ++aux_elem)
                 angles[aux_elem] -= angles[elem - 1];
         }

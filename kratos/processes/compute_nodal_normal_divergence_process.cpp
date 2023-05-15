@@ -86,7 +86,7 @@ void ComputeNodalNormalDivergenceProcess<THistorical>::Execute()
             // Getting the jacobians and local shape functions gradient
             double detJ0;
             GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_integration_points[point_number], rTls.J0);
-            MathUtils<double>::GeneralizedInvertMatrix(rTls.J0, rTls.InvJ0, detJ0);
+            MathUtils::GeneralizedInvertMatrix(rTls.J0, rTls.InvJ0, detJ0);
             const Matrix& rDN_De = rDN_DeContainer[point_number];
             GeometryUtils::ShapeFunctionsGradients(rDN_De, rTls.InvJ0, rTls.DN_DX);
 

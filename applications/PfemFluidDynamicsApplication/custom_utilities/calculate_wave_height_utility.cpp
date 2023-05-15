@@ -93,7 +93,7 @@ double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rC
 
         if (rNode.Is(FREE_SURFACE) && rNode.IsNot(RIGID) && rNode.IsNot(ISOLATED)) {
             const array_1d<double,3> relative_position = rNode.Coordinates() - rCoordinates;
-            const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
+            const array_1d<double,3> horizontal_position = MathUtils::CrossProduct(mDirection, relative_position);
             const double distance = norm_2(horizontal_position);
 
             if (distance < SearchRadius) {
@@ -131,7 +131,7 @@ double CalculateWaveHeightUtility::CalculateAverage(const array_1d<double,3>& rC
         for (auto& r_node : rElement.GetGeometry()) {
             if (r_node.Is(FREE_SURFACE) && r_node.IsNot(RIGID) && r_node.IsNot(ISOLATED)) {
                 const array_1d<double,3> relative_position = r_node.Coordinates() - rCoordinates;
-                const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(mDirection, relative_position);
+                const array_1d<double,3> horizontal_position = MathUtils::CrossProduct(mDirection, relative_position);
                 const double distance = norm_2(horizontal_position);
 
                 if (distance < radius) {
@@ -178,7 +178,7 @@ double CalculateWaveHeightUtility::CalculateNearest(const array_1d<double,3>& rC
             if (r_node.Is(FREE_SURFACE) && r_node.IsNot(RIGID) && r_node.IsNot(ISOLATED))
             {
                 const array_1d<double,3> relative_position = r_node.Coordinates() - coordinates;
-                const array_1d<double,3> horizontal_position = MathUtils<double>::CrossProduct(direction, relative_position);
+                const array_1d<double,3> horizontal_position = MathUtils::CrossProduct(direction, relative_position);
                 const double new_distance = norm_2(horizontal_position);
 
                 if (new_distance < search_radius && new_distance < this->distance) {

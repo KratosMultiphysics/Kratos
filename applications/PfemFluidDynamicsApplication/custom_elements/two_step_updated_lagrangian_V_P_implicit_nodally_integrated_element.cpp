@@ -449,9 +449,9 @@ namespace Kratos
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
     {
 
-      const double a = MathUtils<double>::Norm3(rGeom.GetPoint(0) - rGeom.GetPoint(1));
-      const double b = MathUtils<double>::Norm3(rGeom.GetPoint(1) - rGeom.GetPoint(2));
-      const double c = MathUtils<double>::Norm3(rGeom.GetPoint(2) - rGeom.GetPoint(0));
+      const double a = MathUtils::Norm3(rGeom.GetPoint(0) - rGeom.GetPoint(1));
+      const double b = MathUtils::Norm3(rGeom.GetPoint(1) - rGeom.GetPoint(2));
+      const double c = MathUtils::Norm3(rGeom.GetPoint(2) - rGeom.GetPoint(0));
 
       const double s = (a + b + c) / 2.0;
 
@@ -460,9 +460,9 @@ namespace Kratos
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
     {
 
-      const double a = MathUtils<double>::Norm3(rGeom.GetPoint(0) - rGeom.GetPoint(1));
-      const double b = MathUtils<double>::Norm3(rGeom.GetPoint(1) - rGeom.GetPoint(3));
-      const double c = MathUtils<double>::Norm3(rGeom.GetPoint(3) - rGeom.GetPoint(0));
+      const double a = MathUtils::Norm3(rGeom.GetPoint(0) - rGeom.GetPoint(1));
+      const double b = MathUtils::Norm3(rGeom.GetPoint(1) - rGeom.GetPoint(3));
+      const double c = MathUtils::Norm3(rGeom.GetPoint(3) - rGeom.GetPoint(0));
 
       const double s = (a + b + c) / 2.0;
 
@@ -471,9 +471,9 @@ namespace Kratos
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
     {
 
-      const double a = MathUtils<double>::Norm3(rGeom.GetPoint(0) - rGeom.GetPoint(2));
-      const double b = MathUtils<double>::Norm3(rGeom.GetPoint(2) - rGeom.GetPoint(3));
-      const double c = MathUtils<double>::Norm3(rGeom.GetPoint(3) - rGeom.GetPoint(0));
+      const double a = MathUtils::Norm3(rGeom.GetPoint(0) - rGeom.GetPoint(2));
+      const double b = MathUtils::Norm3(rGeom.GetPoint(2) - rGeom.GetPoint(3));
+      const double c = MathUtils::Norm3(rGeom.GetPoint(3) - rGeom.GetPoint(0));
 
       const double s = (a + b + c) / 2.0;
 
@@ -482,9 +482,9 @@ namespace Kratos
     if (rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE) && rGeom[3].Is(FREE_SURFACE))
     {
 
-      const double a = MathUtils<double>::Norm3(rGeom.GetPoint(1) - rGeom.GetPoint(2));
-      const double b = MathUtils<double>::Norm3(rGeom.GetPoint(2) - rGeom.GetPoint(3));
-      const double c = MathUtils<double>::Norm3(rGeom.GetPoint(3) - rGeom.GetPoint(1));
+      const double a = MathUtils::Norm3(rGeom.GetPoint(1) - rGeom.GetPoint(2));
+      const double b = MathUtils::Norm3(rGeom.GetPoint(2) - rGeom.GetPoint(3));
+      const double c = MathUtils::Norm3(rGeom.GetPoint(3) - rGeom.GetPoint(1));
 
       const double s = (a + b + c) / 2.0;
 
@@ -569,7 +569,7 @@ namespace Kratos
     //Inverse
     rElementalVariables.InvFgrad = ZeroMatrix(dimension, dimension);
     rElementalVariables.DetFgrad = 1;
-    MathUtils<double>::InvertMatrix2(rElementalVariables.Fgrad,
+    MathUtils::InvertMatrix2(rElementalVariables.Fgrad,
                                      rElementalVariables.InvFgrad,
                                      rElementalVariables.DetFgrad);
 
@@ -640,7 +640,7 @@ namespace Kratos
     //Inverse
     rElementalVariables.InvFgrad = ZeroMatrix(dimension, dimension);
     rElementalVariables.DetFgrad = 1;
-    MathUtils<double>::InvertMatrix3(rElementalVariables.Fgrad,
+    MathUtils::InvertMatrix3(rElementalVariables.Fgrad,
                                      rElementalVariables.InvFgrad,
                                      rElementalVariables.DetFgrad);
 

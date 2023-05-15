@@ -692,7 +692,7 @@ protected:
         RomSystemVectorType dxrom(GetNumberOfROMModes());
         
         const auto solving_timer = BuiltinTimer();
-        MathUtils<double>::Solve(rA, dxrom, rb);
+        MathUtils::Solve(rA, dxrom, rb);
         // KRATOS_WATCH(dxrom)
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 

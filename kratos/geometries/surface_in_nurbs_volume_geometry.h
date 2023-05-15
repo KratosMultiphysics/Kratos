@@ -235,7 +235,7 @@ public:
         column(global_tangents,0) = global_space_derivatives[1];
         column(global_tangents,1) = global_space_derivatives[2];
 
-        return MathUtils<double>::GeneralizedDet( global_tangents );
+        return MathUtils::GeneralizedDet( global_tangents );
     }
 
     ///@}

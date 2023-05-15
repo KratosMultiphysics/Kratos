@@ -500,8 +500,8 @@ bool MortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNod
 //     const array_1d<double, 3> normal_slave = this->GetValue(NORMAL);
 //     const array_1d<double, 3>& r_normal_master = this->GetPairedNormal();
 //
-//     const double angle_slave = MathUtils<double>::VectorsAngle(delta_disp_vect_slave, normal_slave);
-//     const double angle_master = MathUtils<double>::VectorsAngle(delta_disp_vect_master, normal_master);
+//     const double angle_slave = MathUtils::VectorsAngle(delta_disp_vect_slave, normal_slave);
+//     const double angle_master = MathUtils::VectorsAngle(delta_disp_vect_master, normal_master);
 //
 //     // In case the both angles are in absolute value minor to angle threshold is active
 //     const double angle_threshold = 1.025 * Globals::Pi/2; // We add some tolerance to the angle

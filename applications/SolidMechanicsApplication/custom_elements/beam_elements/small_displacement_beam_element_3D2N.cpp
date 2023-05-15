@@ -708,7 +708,7 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
     }
 
     // local x-axis (e1_local) is the beam axis  (in GID is e3_local)
-    double VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
+    double VectorNorm = MathUtils::Norm(DirectionVectorX);
     if( VectorNorm != 0)
       DirectionVectorX /= VectorNorm;
 
@@ -717,21 +717,21 @@ void SmallDisplacementBeamElement3D2N::CalculateTransformationMatrix(Matrix& rRo
 
     double tolerance = 1.0/64.0;
     if(fabs(DirectionVectorX[0])< tolerance && fabs(DirectionVectorX[1])< tolerance){
-      MathUtils<double>::CrossProduct(DirectionVectorY, GlobalY, DirectionVectorX);
+      MathUtils::CrossProduct(DirectionVectorY, GlobalY, DirectionVectorX);
     }
     else{
-      MathUtils<double>::CrossProduct(DirectionVectorY, GlobalZ, DirectionVectorX);
+      MathUtils::CrossProduct(DirectionVectorY, GlobalZ, DirectionVectorX);
     }
 
-    VectorNorm = MathUtils<double>::Norm(DirectionVectorY);
+    VectorNorm = MathUtils::Norm(DirectionVectorY);
     if( VectorNorm != 0)
       DirectionVectorY /= VectorNorm;
 
     // local z-axis (e3_local) (in GID is e2_local)
     Vector DirectionVectorZ;
-    MathUtils<double>::CrossProduct(DirectionVectorZ, DirectionVectorX,DirectionVectorY);
+    MathUtils::CrossProduct(DirectionVectorZ, DirectionVectorX,DirectionVectorY);
 
-    VectorNorm = MathUtils<double>::Norm(DirectionVectorZ);
+    VectorNorm = MathUtils::Norm(DirectionVectorZ);
     if( VectorNorm != 0 )
       DirectionVectorZ /= VectorNorm;
 

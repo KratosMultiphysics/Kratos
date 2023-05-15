@@ -197,7 +197,7 @@ double GeoStructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(cons
         rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
         rElement.GetGeometry()[0].GetInitialPosition().Coordinates();
 
-    return MathUtils<double>::Norm3(delta_pos);
+    return MathUtils::Norm3(delta_pos);
 
     KRATOS_CATCH("")
 }
@@ -215,7 +215,7 @@ double GeoStructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(const 
         rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
         rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
 
-    const double l = MathUtils<double>::Norm3(delta_pos);
+    const double l = MathUtils::Norm3(delta_pos);
 
     KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
             << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;

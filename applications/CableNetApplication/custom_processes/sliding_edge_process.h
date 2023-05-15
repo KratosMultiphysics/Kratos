@@ -426,7 +426,7 @@ class SlidingEdgeProcess
             node_j.FastGetSolutionStepValue(DISPLACEMENT) -
             node_i.FastGetSolutionStepValue(DISPLACEMENT);
 
-        const double l = MathUtils<double>::Norm3(delta_pos);
+        const double l = MathUtils::Norm3(delta_pos);
         return l;
     }
 

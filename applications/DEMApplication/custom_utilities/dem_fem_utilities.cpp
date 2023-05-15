@@ -58,7 +58,7 @@ namespace Kratos
                 array_1d<double, 3> center_position;
                 array_1d<double, 3> linear_velocity_changed;
                 array_1d<double, 3> angular_velocity_changed;
-                double mod_angular_velocity = MathUtils<double>::Norm3(angular_velocity);
+                double mod_angular_velocity = MathUtils::Norm3(angular_velocity);
                 array_1d<double, 3> new_axes1;
                 array_1d<double, 3> new_axes2;
                 array_1d<double, 3> new_axes3;

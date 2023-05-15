@@ -758,7 +758,7 @@ void GeoTrussElementBase<3,2>::
     // local x-axis (e1_local) is the beam axis  (in GID is e3_local)
     const double numeric_limit = std::numeric_limits<double>::epsilon();
     double VectorNorm;
-    VectorNorm = MathUtils<double>::Norm(direction_vector_x);
+    VectorNorm = MathUtils::Norm(direction_vector_x);
     if (VectorNorm > numeric_limit) {
         direction_vector_x /= VectorNorm;
     } else {
@@ -776,9 +776,9 @@ void GeoTrussElementBase<3,2>::
     }
 
     else {
-        MathUtils<double>::UnitCrossProduct(direction_vector_y, direction_vector_x,
+        MathUtils::UnitCrossProduct(direction_vector_y, direction_vector_x,
                                             global_z_vector);
-        MathUtils<double>::UnitCrossProduct(direction_vector_z, direction_vector_y,
+        MathUtils::UnitCrossProduct(direction_vector_z, direction_vector_y,
                                             direction_vector_x);
     }
 
@@ -827,7 +827,7 @@ void GeoTrussElementBase<2,2>::
 
     // local x-axis (e1_local) is the beam axis  (in GID is e3_local)
     double VectorNorm;
-    VectorNorm = MathUtils<double>::Norm(direction_vector_x_3D);
+    VectorNorm = MathUtils::Norm(direction_vector_x_3D);
     if (VectorNorm > std::numeric_limits<double>::epsilon()) {
         direction_vector_x_3D /= VectorNorm;
     } else {
@@ -839,7 +839,7 @@ void GeoTrussElementBase<2,2>::
     BoundedVector<double, DIM_3D> direction_vector_y_3D = ZeroVector(DIM_3D);
     BoundedVector<double, DIM_3D> global_z_vector_3D    = ZeroVector(DIM_3D);
     global_z_vector_3D[INDEX_Z] = 1.0;
-    MathUtils<double>::
+    MathUtils::
         UnitCrossProduct(direction_vector_y_3D, direction_vector_x_3D, global_z_vector_3D);
 
     // 2nd fill big rotation matrix

@@ -61,7 +61,7 @@ private:
         // Calculate mInvJ0 and mDetJ0.
         GeometryUtils::JacobianOnInitialConfiguration(
             mrGeom, mrGeom.IntegrationPoints(mThisIntegrationMethod)[IntegrationPoint], mJ);
-        MathUtils<double>::InvertMatrix(mJ, mInvJ0, mDetJ0);
+        MathUtils::InvertMatrix(mJ, mInvJ0, mDetJ0);
         // Calculate mJ.
         mrGeom.Jacobian(mJ, IntegrationPoint, mThisIntegrationMethod);
         // Update current integration point.
@@ -451,7 +451,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateKinematicVar
     this->CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F,
                      rThisKinematicVariables.DN_DX);
 
-    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+    rThisKinematicVariables.detF = MathUtils::Det(rThisKinematicVariables.F);
 }
 
 /***********************************************************************************/
@@ -729,7 +729,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateSensitivityM
                 CalculateShapeSensitivity(deriv, DN_DX0, DN_DX0_deriv, F_deriv, detJ0_deriv, g);
                 CalculateGreenLagrangeStrainSensitivity(F, F_deriv, strain_tensor_deriv);
                 noalias(strain_vector_deriv) =
-                    MathUtils<double>::StrainTensorToVector(strain_tensor_deriv);
+                    MathUtils::StrainTensorToVector(strain_tensor_deriv);
                 CalculateStress(strain_vector_deriv, g, stress_vector_deriv, rCurrentProcessInfo);
                 CalculateBSensitivity(DN_DX0, F, DN_DX0_deriv, F_deriv, B_deriv);
                 const double weight_deriv =
@@ -2039,7 +2039,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateGreenLagrang
 
     Matrix identity = identity_matrix<double>(TDim);
     noalias(strain_tensor) = 0.5 * (prod(trans(rF), rF) - identity);
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(strain_tensor, rStrainVector.size());
+    noalias(rStrainVector) = MathUtils::StrainTensorToVector(strain_tensor, rStrainVector.size());
 }
 
 /***********************************************************************************/
@@ -2137,7 +2137,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
             if (rOutput[point_number].size2() != dimension)
                 rOutput[point_number].resize( dimension, dimension, false);
 
-            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+            rOutput[point_number] = MathUtils::StressVectorToTensor(stress_vector[point_number]);
         }
     }
 

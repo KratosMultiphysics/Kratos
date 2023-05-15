@@ -434,7 +434,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 	Matrix InvJ(dimension, dimension);
 	noalias(InvJ) = ZeroMatrix(dimension, dimension);
 	double detJ = 0;
-	MathUtils<double>::InvertMatrix( J[PointNumber], InvJ, detJ);
+	MathUtils::InvertMatrix( J[PointNumber], InvJ, detJ);
 
 	if(detJ<0)
 	  KRATOS_THROW_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ )
@@ -946,7 +946,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  Matrix InvJ(dimension,dimension);
 	  noalias(InvJ) = ZeroMatrix(dimension,dimension);
 	  double detJ = 0;
-	  MathUtils<double>::InvertMatrix( J[PointNumber], InvJ, detJ);
+	  MathUtils::InvertMatrix( J[PointNumber], InvJ, detJ);
 
 	  if(detJ<0)
 	    KRATOS_THROW_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ )
@@ -994,7 +994,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  if ( rOutput[PointNumber].size2() != dimension )
 	    rOutput[PointNumber].resize( dimension, dimension, false );
 
-	  rOutput[PointNumber] =  MathUtils<double>::StressVectorToTensor(StressVector);
+	  rOutput[PointNumber] =  MathUtils::StressVectorToTensor(StressVector);
         }
 
     }
@@ -1034,7 +1034,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  Matrix InvJ(dimension, dimension);
 	  noalias(InvJ) = ZeroMatrix(dimension, dimension);
 	  double detJ = 0;
-	  MathUtils<double>::InvertMatrix( J[ PointNumber], InvJ, detJ);
+	  MathUtils::InvertMatrix( J[ PointNumber], InvJ, detJ);
 
 	  if(detJ<0)
 	    KRATOS_THROW_ERROR( std::invalid_argument," SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ )
@@ -1052,7 +1052,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  if ( rOutput[PointNumber].size2() != dimension )
 	    rOutput[PointNumber].resize( dimension, dimension, false );
 
-	  rOutput[PointNumber] = MathUtils<double>::StrainVectorToTensor(StrainVector);
+	  rOutput[PointNumber] = MathUtils::StrainVectorToTensor(StrainVector);
         }
     }
     else

@@ -729,7 +729,7 @@ namespace Kratos
         KRATOS_THROW_ERROR(std::logic_error, "2D check sliver not implemented", "")
       }
 
-      FaceNormals[i] = MathUtils<double>::CrossProduct(FirstVectorPlane, SecondVectorPlane);
+      FaceNormals[i] = MathUtils::CrossProduct(FirstVectorPlane, SecondVectorPlane);
 
       FaceArea = norm_2(FaceNormals[i]);
 
@@ -1512,7 +1512,7 @@ namespace Kratos
       Matrix InvJ;
       double detJ;
 
-      MathUtils<double>::InvertMatrix2(J[0], InvJ, detJ);
+      MathUtils::InvertMatrix2(J[0], InvJ, detJ);
 
       const Matrix &DN_De = Triangle.ShapeFunctionLocalGradient(0, GeometryData::IntegrationMethod::GI_GAUSS_1);
       DN_DX = prod(DN_De, InvJ);
@@ -1528,7 +1528,7 @@ namespace Kratos
       // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
       Matrix InvJ;
       double detJ;
-      MathUtils<double>::InvertMatrix3(J[0], InvJ, detJ);
+      MathUtils::InvertMatrix3(J[0], InvJ, detJ);
 
       const Matrix &DN_De = Tetrahedron.ShapeFunctionLocalGradient(0, GeometryData::IntegrationMethod::GI_GAUSS_1);
       DN_DX = prod(DN_De, InvJ);
@@ -1546,7 +1546,7 @@ namespace Kratos
         }
       }
     }
-    double detF = MathUtils<double>::Det(F);
+    double detF = MathUtils::Det(F);
 
     KRATOS_WARNING_IF("CheckDetF", detF < 0) << "NEGATIVE ELEMENT (DET_F:" << detF << ")" << std::endl;
 

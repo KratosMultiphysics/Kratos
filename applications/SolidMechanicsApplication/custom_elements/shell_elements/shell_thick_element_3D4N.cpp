@@ -302,7 +302,7 @@ ShellThickElement3D4N::EASOperator::EASOperator(
   F0(2, 2) = j11 * j22 + j12 * j21;
 
   double dummyDet;
-  MathUtils<double>::InvertMatrix3(F0, mF0inv, dummyDet);
+  MathUtils::InvertMatrix3(F0, mF0inv, dummyDet);
 
   // initialize these data to zero because they will
   // be integrated during the gauss loop
@@ -948,7 +948,7 @@ void ShellThickElement3D4N::SetupOrientationAngles() {
                // own triad! TODO
 
   Vector3Type dirX;
-  MathUtils<double>::CrossProduct(dirX, dZ, normal);
+  MathUtils::CrossProduct(dirX, dZ, normal);
 
   // try to normalize the x vector. if it is near zero it means that we need
   // to choose a default one.

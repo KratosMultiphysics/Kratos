@@ -562,7 +562,7 @@ namespace Kratos
 	      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 		{
 
-		  MathUtils<double>::InvertMatrix( J[PointNumber], mInvJ, mDetJ );
+		  MathUtils::InvertMatrix( J[PointNumber], mInvJ, mDetJ );
 
 		  double IntegrationWeight = mDetJ * integration_points[PointNumber].Weight() * Thickness;
 
@@ -761,7 +761,7 @@ namespace Kratos
 	      for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 		{
 
-		  MathUtils<double>::InvertMatrix( J[PointNumber], mInvJ, mDetJ );
+		  MathUtils::InvertMatrix( J[PointNumber], mInvJ, mDetJ );
 
 		  double IntegrationWeight = mDetJ * integration_points[PointNumber].Weight() * Thickness;
 

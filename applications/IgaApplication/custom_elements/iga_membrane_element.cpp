@@ -227,7 +227,7 @@ namespace Kratos
         rKinematicVariables.a2 = g2;
 
         //not-normalized base vector 3
-        MathUtils<double>::CrossProduct(rKinematicVariables.a3_tilde, rKinematicVariables.a1, rKinematicVariables.a2);
+        MathUtils::CrossProduct(rKinematicVariables.a3_tilde, rKinematicVariables.a1, rKinematicVariables.a2);
 
         //differential area dA
         rKinematicVariables.dA = norm_2(rKinematicVariables.a3_tilde);
@@ -340,7 +340,7 @@ namespace Kratos
         if (Has(LOCAL_PRESTRESS_AXIS_1))
         {
             t1 = GetValue(LOCAL_PRESTRESS_AXIS_1);
-            MathUtils<double>::CrossProduct(t2, rActualKinematic.a3, t1);
+            MathUtils::CrossProduct(t2, rActualKinematic.a3, t1);
         }
         else if (Has(LOCAL_PRESTRESS_AXIS_1) && Has(LOCAL_PRESTRESS_AXIS_2))
         {
@@ -803,12 +803,12 @@ namespace Kratos
 
         double det_deformation_gradient = deformation_gradient(0,0)*deformation_gradient(1,1) - deformation_gradient(0,1)*deformation_gradient(1,0);
 
-        Matrix stress_matrix = MathUtils<double>::StressVectorToTensor(pk2_stresses);
+        Matrix stress_matrix = MathUtils::StressVectorToTensor(pk2_stresses);
         Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
         Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
         Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
 
-        rCauchyStresses = MathUtils<double>::StressTensorToVector(cauchy_stress_matrix,3);
+        rCauchyStresses = MathUtils::StressTensorToVector(cauchy_stress_matrix,3);
     }
 
     void IgaMembraneElement::Calculate(
@@ -844,8 +844,8 @@ namespace Kratos
                 base_2 += kinematic_variables.a2*integration_weight_i;
             }
 
-            MathUtils<double>::CrossProduct(base_3, base_1, base_2);
-            base_3 /= MathUtils<double>::Norm(base_3);
+            MathUtils::CrossProduct(base_3, base_1, base_2);
+            base_3 /= MathUtils::Norm(base_3);
 
             column(rOutput,0) = base_1;
             column(rOutput,1) = base_2;

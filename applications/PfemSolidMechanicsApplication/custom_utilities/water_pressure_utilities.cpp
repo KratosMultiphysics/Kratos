@@ -1021,7 +1021,7 @@ namespace Kratos
       {
          double Permeability = rProperties.GetValue( PERMEABILITY );
          // vale, això no serveix pels elements mixtes -.
-         //double Jacobian = MathUtils<double>::Det( rF);
+         //double Jacobian = MathUtils::Det( rF);
          double Porosity = 1.0 - (1.0 - rInitialPorosity) / rVolumeChange;
          double voidRatio = Porosity / ( 1.0 - Porosity);
          double initialVoidRatio = rInitialPorosity / ( 1.0 - rInitialPorosity);
@@ -1045,7 +1045,7 @@ namespace Kratos
       // after I have the part of the Lagrangian constant
       rPermeabilityTensor = prod(rPermeabilityTensor, trans( rF) );
       rPermeabilityTensor = prod( rF, rPermeabilityTensor);
-      rPermeabilityTensor /= MathUtils<double>::Det(rF);
+      rPermeabilityTensor /= MathUtils::Det(rF);
 
    }
 
@@ -1068,7 +1068,7 @@ namespace Kratos
 
    double WaterPressureUtilities::CalculateVolumeChange(const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF)
    {
-      double VolumeChange = MathUtils<double>::Det( rTotalF);
+      double VolumeChange = MathUtils::Det( rTotalF);
       return VolumeChange; 
    }
    void WaterPressureUtilities::GetVoigtSize( const unsigned int & dimension, unsigned int & voigtsize, unsigned int & principal_dimension)

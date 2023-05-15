@@ -353,7 +353,7 @@ namespace Kratos
 
 
     double MetricDet;
-    MathUtils<double>::InvertMatrix2(Covariant.Metric,Contravariant.Metric, MetricDet);
+    MathUtils::InvertMatrix2(Covariant.Metric,Contravariant.Metric, MetricDet);
 
     //transform DirectionA to the contravariant base
     Contravariant.DirectionA = Covariant.DirectionA * Contravariant.Metric(0,0) + Covariant.DirectionB * Contravariant.Metric(0,1);
@@ -413,12 +413,12 @@ namespace Kratos
     F            = MasterCondition->GetValue(DEFORMATION_GRADIENT);  //it means that has been stored
 
 
-    StressMatrix = MathUtils<double>::StressVectorToTensor( StressVector );
+    StressMatrix = MathUtils::StressVectorToTensor( StressVector );
 
     //we are going to need F here from Cn-1 to Cn
     // F0 from C0 to Cn is need for the stress recovery on domain elements
 
-    double detF =MathUtils<double>::Det(F);
+    double detF =MathUtils::Det(F);
 
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=J*CauchyStress*F^-T)
     ConstitutiveLaw Constitutive;
@@ -600,12 +600,12 @@ namespace Kratos
     StressVector = MasterCondition->GetValue(CAUCHY_STRESS_VECTOR);  //it means that has been stored
     F            = MasterCondition->GetValue(DEFORMATION_GRADIENT);  //it means that has been stored
 
-    StressMatrix = MathUtils<double>::StressVectorToTensor( StressVector );
+    StressMatrix = MathUtils::StressVectorToTensor( StressVector );
 
     //we are going to need F here from Cn-1 to Cn
     // F0 from C0 to Cn is need for the stress recovery on domain elements
 
-    double detF =MathUtils<double>::Det(F);
+    double detF =MathUtils::Det(F);
 
     //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=J*CauchyStress*F^-T)
     Constitutive.TransformStresses(StressMatrix,F,detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK1);
@@ -661,7 +661,7 @@ namespace Kratos
     mContactUtilities.CalculateEdgeDistances(PreviousBase,P1,P2,PS1,PS2,mContactVariables.PreStepSurface.Normal);
 
     PointType NormalDirection;
-    MathUtils<double>::CrossProduct(NormalDirection, mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.Tangent.CovariantBase.DirectionB);
+    MathUtils::CrossProduct(NormalDirection, mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.Tangent.CovariantBase.DirectionB);
     double EquivalentArea = 0.5 * norm_2( NormalDirection );
     double FactorArea = 0.25 * (PreviousBase[0].L + PreviousBase[1].L) * (PreviousBase[0].L + PreviousBase[1].L);
 
@@ -910,7 +910,7 @@ namespace Kratos
     noalias(StressMatrix) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    StressMatrix=MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    StressMatrix=MathUtils::StressVectorToTensor( rVariables.StressVector );
 
     // UL
     //b.- Compute the 1srt Piola Kirchhoff stress tensor
@@ -1250,7 +1250,7 @@ namespace Kratos
     noalias(StressMatrix) = ZeroMatrix(3,3);
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
-    StressMatrix=MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    StressMatrix=MathUtils::StressVectorToTensor( rVariables.StressVector );
 
     // UL
     //b.- Compute the 1srt Piola Kirchhoff stress tensor
@@ -1311,7 +1311,7 @@ namespace Kratos
     //a, b, l:
     mContactUtilities.CalculateEdgeDistances(rVariables.Contact.CurrentBase,P1,P2,PS1,PS2,rVariables.Contact.CurrentSurface.Normal);
     PointType NormalDirection;
-    MathUtils<double>::CrossProduct( NormalDirection, rVariables.Contact.Tangent.CovariantBase.DirectionA,rVariables.Contact.Tangent.CovariantBase.DirectionB);
+    MathUtils::CrossProduct( NormalDirection, rVariables.Contact.Tangent.CovariantBase.DirectionA,rVariables.Contact.Tangent.CovariantBase.DirectionB);
     rVariables.Contact.Tangent.CurrentArea = 0.5 * norm_2(NormalDirection);
 
 
@@ -1330,7 +1330,7 @@ namespace Kratos
     PointType V2 = PS1 - PS2;
 
     PointType V3;
-    MathUtils<double>::CrossProduct(V3,V1,V2);
+    MathUtils::CrossProduct(V3,V1,V2);
     rVariables.Contact.Tangent.ReferenceArea = 0.5 * norm_2(V3);
 
 

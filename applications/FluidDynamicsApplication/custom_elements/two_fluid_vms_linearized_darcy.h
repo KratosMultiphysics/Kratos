@@ -153,7 +153,7 @@ protected:
 
         array_1d<double,3> old_velocity;
         this->GetAdvectiveVel(old_velocity, rShapefunctions,1);
-        const double old_velocity_norm = MathUtils<double>::Norm3(old_velocity);
+        const double old_velocity_norm = MathUtils::Norm3(old_velocity);
 
         return DynamicViscosity * LinearCoefficient + Density * NonlinearCoefficient*old_velocity_norm;
     }

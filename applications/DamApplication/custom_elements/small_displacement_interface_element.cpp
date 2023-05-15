@@ -1156,14 +1156,14 @@ void SmallDisplacementInterfaceElement<3,6>::CalculateRotationMatrix(BoundedMatr
     array_1d<double, 3> Vy;
     noalias(Vy) = pmid2 - pmid0;
     array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
+    MathUtils::CrossProduct(Vz, Vx, Vy);
     double inv_norm_z = 1.0/norm_2(Vz);
     Vz[0] *= inv_norm_z;
     Vz[1] *= inv_norm_z;
     Vz[2] *= inv_norm_z;
 
     //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct( Vy, Vz, Vx);
+    MathUtils::CrossProduct( Vy, Vz, Vx);
 
     //Rotation Matrix
     rRotationMatrix(0,0) = Vx[0];
@@ -1208,14 +1208,14 @@ void SmallDisplacementInterfaceElement<3,8>::CalculateRotationMatrix(BoundedMatr
     array_1d<double, 3> Vy;
     noalias(Vy) = pmid2 - pmid0;
     array_1d<double, 3> Vz;
-    MathUtils<double>::CrossProduct(Vz, Vx, Vy);
+    MathUtils::CrossProduct(Vz, Vx, Vy);
     double inv_norm_z = 1.0/norm_2(Vz);
     Vz[0] *= inv_norm_z;
     Vz[1] *= inv_norm_z;
     Vz[2] *= inv_norm_z;
 
     //Unitary vector in local y direction
-    MathUtils<double>::CrossProduct( Vy, Vz, Vx);
+    MathUtils::CrossProduct( Vy, Vz, Vx);
 
     //Rotation Matrix
     rRotationMatrix(0,0) = Vx[0];

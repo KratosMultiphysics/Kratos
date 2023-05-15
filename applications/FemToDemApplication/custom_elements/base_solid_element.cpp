@@ -554,7 +554,7 @@ void BaseSolidElement::CalculateMassMatrix(
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             GeometryUtils::JacobianOnInitialConfiguration(
                 r_geom, integration_points[point_number], J0);
-            const double detJ0 = MathUtils<double>::Det(J0);
+            const double detJ0 = MathUtils::Det(J0);
             const double integration_weight =
                 GetIntegrationWeight(integration_points, point_number, detJ0) * thickness;
             const Vector& rN = row(Ncontainer,point_number);
@@ -790,7 +790,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                     // Calculate inverse of material matrix
                     Matrix invD(strain_size,strain_size);
                     double detD;
-                    MathUtils<double>::InvertMatrix(this_constitutive_variables.D, invD,detD);
+                    MathUtils::InvertMatrix(this_constitutive_variables.D, invD,detD);
 
                     // Calculate error_energy
                     rOutput[point_number] = integration_weight * inner_prod(error_sigma, prod(invD, error_sigma));
@@ -826,7 +826,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
-                const Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( this_constitutive_variables.StressVector );
+                const Matrix stress_tensor = MathUtils::StressVectorToTensor( this_constitutive_variables.StressVector );
 
                 double sigma_equivalent = 0.0;
 
@@ -1051,7 +1051,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size2() != dimension )
                     rOutput[point_number].resize( dimension, dimension, false );
 
-                rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+                rOutput[point_number] = MathUtils::StressVectorToTensor(stress_vector[point_number]);
             }
         }
         else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR) {
@@ -1066,7 +1066,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 if ( rOutput[point_number].size2() != dimension )
                     rOutput[point_number].resize( dimension, dimension, false );
 
-                rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(strain_vector[point_number]);
+                rOutput[point_number] = MathUtils::StrainVectorToTensor(strain_vector[point_number]);
             }
         } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
             // Create and initialize element variables:
@@ -1518,7 +1518,7 @@ double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
         r_geom,
         r_geom.IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
     double detJ0;
-    MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
+    MathUtils::InvertMatrix(rJ0, rInvJ0, detJ0);
     const Matrix& rDN_De =
         GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
     GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
@@ -1539,7 +1539,7 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
     double detJ;
     rJ = GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
     const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-    MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
+    MathUtils::InvertMatrix( rJ, rInvJ, detJ );
     GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     return detJ;
 }
@@ -1605,9 +1605,9 @@ void BaseSolidElement::CalculateAndAddKg(
     KRATOS_TRY
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor( StressVector );
+    Matrix stress_tensor = MathUtils::StressVectorToTensor( StressVector );
     Matrix reduced_Kg = prod( DN_DX, IntegrationWeight * Matrix( prod( stress_tensor, trans( DN_DX ) ) ) ); //to be optimized
-    MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
+    MathUtils::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );
 
     KRATOS_CATCH( "" )
 }

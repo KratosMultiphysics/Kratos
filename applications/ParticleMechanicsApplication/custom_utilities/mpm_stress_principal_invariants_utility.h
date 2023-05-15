@@ -148,7 +148,7 @@ namespace Kratos
                   for (unsigned int i = 0; i < 3; ++i)
                         s_vector[i] -= rI1/3.0;
                   Matrix tensor = PrincipalVectorToMatrix( s_vector , rVector.size());
-                  rJ3 = MathUtils<double>::Det(tensor); // J_3 = det(tensor)
+                  rJ3 = MathUtils::Det(tensor); // J_3 = det(tensor)
             }
 
 
@@ -444,14 +444,14 @@ namespace Kratos
                               Matrix first_component = ZeroMatrix(3,3);
                               Vector aux_dAT = ZeroVector(3);
                               aux_dAT = AT * (-3.0/2.0/j_2 * dj_2 + 3.0 * std::tan(3*lode_angle) * dlode_angle);
-                              first_component = MathUtils<double>::TensorProduct3(aux_dAT, dj_3);
+                              first_component = MathUtils::TensorProduct3(aux_dAT, dj_3);
                               first_component += AT * d2j_3;
 
                               // 2. d(AS * J2')/dstress = dAS * J2' + AS * J2''
                               Matrix second_component = ZeroMatrix(3,3);
                               Vector aux_dAS = ZeroVector(3);
                               aux_dAS = AS * (-5.0/2.0/j_2 * dj_2 + 3.0 * std::tan(3*lode_angle) * dlode_angle + 1.0/j_3 * dj_3);
-                              second_component = MathUtils<double>::TensorProduct3(aux_dAS, dj_2);
+                              second_component = MathUtils::TensorProduct3(aux_dAS, dj_2);
                               second_component += AS * d2j_2;
 
                               // Sum the two components up
@@ -481,7 +481,7 @@ namespace Kratos
                   }
                   else if (rSize == 6)
                   {
-                        matrix = MathUtils<double>::StressVectorToTensor( rVector );
+                        matrix = MathUtils::StressVectorToTensor( rVector );
                   }
                   return matrix;
             }
@@ -503,7 +503,7 @@ namespace Kratos
                   }
                   else if (rSize == 6)
                   {
-                        vector = MathUtils<double>::StressTensorToVector( rMatrix, rSize );
+                        vector = MathUtils::StressTensorToVector( rMatrix, rSize );
                   }
                   return vector;
             }

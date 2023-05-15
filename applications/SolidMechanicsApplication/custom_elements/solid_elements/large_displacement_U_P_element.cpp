@@ -744,13 +744,13 @@ void LargeDisplacementUPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMa
 
     SizeType size = number_of_nodes * dimension;
 
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    Matrix StressTensor = MathUtils::StressVectorToTensor( rVariables.StressVector );
     Matrix ReducedKg = prod( rVariables.DN_DX,  rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
 
     Matrix Kuu(size,size);
     noalias(Kuu) = ZeroMatrix(size,size);
 
-    MathUtils<double>::ExpandAndAddReducedMatrix( Kuu, ReducedKg, dimension );
+    MathUtils::ExpandAndAddReducedMatrix( Kuu, ReducedKg, dimension );
 
     // MatrixType Kh=rLeftHandSideMatrix;
 

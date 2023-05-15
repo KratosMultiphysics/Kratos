@@ -315,7 +315,7 @@ void HelmholtzBulkShapeElement::CalculateBulkMassMatrix(
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
         GeometryUtils::JacobianOnInitialConfiguration(
             r_geom, integration_points[point_number], J0);
-        const double detJ0 = MathUtils<double>::Det(J0);
+        const double detJ0 = MathUtils::Det(J0);
         const double integration_weight = integration_points[point_number].Weight() * detJ0;
         const Vector& rN = row(Ncontainer,point_number);
 
@@ -370,7 +370,7 @@ void HelmholtzBulkShapeElement::CalculateBulkStiffnessMatrix(
         Matrix J0,InvJ0;
         GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[i_point], J0);
         double detJ0;
-        MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+        MathUtils::InvertMatrix(J0, InvJ0, detJ0);
 
         MatrixType B = CalculateBMatrix(dimension, i_point);
 
@@ -399,7 +399,7 @@ HelmholtzBulkShapeElement::SetAndModifyConstitutiveLaw(
   Matrix J0,InvJ0;
   GeometryUtils::JacobianOnInitialConfiguration(rgeom, r_integration_points[PointNumber], J0);
   double detJ0;
-  MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+  MathUtils::InvertMatrix(J0, InvJ0, detJ0);
 
   // Stiffening of elements using Jacobian determinants and exponent between
   // 0.0 and 2.0
@@ -468,7 +468,7 @@ HelmholtzBulkShapeElement::CalculateBMatrix(const int Dimension,
   Matrix J0,InvJ0;
   GeometryUtils::JacobianOnInitialConfiguration(rgeom, r_integration_points[PointNumber], J0);
   double detJ0;
-  MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+  MathUtils::InvertMatrix(J0, InvJ0, detJ0);
 
 
   Matrix DN_DX = prod(DN_De[PointNumber], InvJ0);

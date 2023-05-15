@@ -855,7 +855,7 @@ array_1d<double, 3> BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingPart
 
         const array_1d<double, 3>& vel = geom[n].FastGetSolutionStepValue(VELOCITY, index);
         array_1d<double, 3> aux;
-        MathUtils<double>::CrossProduct(aux, vel, derivatives);
+        MathUtils::CrossProduct(aux, vel, derivatives);
         noalias(vorticity) += aux;
     }
 

@@ -593,7 +593,7 @@ class RemoveFluidNodesMesherProcess
     array_1d<double,3> VectorB = rEdgeNodeB.Coordinates() - rEdgeNodeA.Coordinates();
     array_1d<double,3> VectorC = rEdgeNodeC.Coordinates() - rEdgeNodeA.Coordinates();
 
-    MathUtils<double>::CrossProduct(rDirection,VectorB,VectorC);
+    MathUtils::CrossProduct(rDirection,VectorB,VectorC);
 
     if( norm_2(rDirection) )
       rDirection /= norm_2(rDirection);

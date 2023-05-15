@@ -900,7 +900,7 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     Vector InertiaxAngularAcceleration = prod( InertiaDyadic, AngularAccelerationVector );
 
     // previous implementation
-    // Vector VectorTerm1 = MathUtils<double>::CrossProduct( AngularVelocityVector, InertiaxAngularVelocity);
+    // Vector VectorTerm1 = MathUtils::CrossProduct( AngularVelocityVector, InertiaxAngularVelocity);
     // VectorTerm1 += InertiaxAngularAcceleration;
 
     Matrix TensorAngularVelocity(3,3);

@@ -1295,7 +1295,7 @@ public:
         // We calculate the inverse of D operator
         double auxdet;
         GeometryMatrixSlaveType inv_D_operator;
-        MathUtils<double>::InvertMatrix(DOperator, inv_D_operator, auxdet);
+        MathUtils::InvertMatrix(DOperator, inv_D_operator, auxdet);
 
         // We calculate the P operator
         const GeometryMatrixMasterType POperator = prod(inv_D_operator, MOperator);
@@ -1769,8 +1769,8 @@ public:
             // We compute the normalized inverse
             double aux_det;
             GeometryMatrixType normalized_inv_Me;
-            MathUtils<double>::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
-            const bool good_condition_number = MathUtils<double>::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
+            MathUtils::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
+            const bool good_condition_number = MathUtils::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
             if (good_condition_number) {
                 noalias(Ae) = (1.0/norm_me) * prod(De, normalized_inv_Me);
                 return true;
@@ -2037,8 +2037,8 @@ public:
         // We compute the normalized inverse
         double aux_det;
         GeometryMatrixType normalized_inv_Me;
-        MathUtils<double>::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
-        const bool good_condition_number = MathUtils<double>::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
+        MathUtils::InvertMatrix(normalized_Me, normalized_inv_Me, aux_det, -1.0);
+        const bool good_condition_number = MathUtils::CheckConditionNumber(normalized_Me, normalized_inv_Me, tolerance, false);
         if (!good_condition_number) {
             return false;
         }

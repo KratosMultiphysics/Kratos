@@ -461,7 +461,7 @@ Matrix& DamageDPlusDMinusMasonry3DLaw::CalculateValue(
 
         Vector stress = prod(constitutive_matrix, strain_vector);
         //stress *= (1.0 - mDamage);
-        rValue =  MathUtils<double>::StressVectorToTensor(stress);
+        rValue =  MathUtils::StressVectorToTensor(stress);
         return rValue;
     } else if (this->Has(rThisVariable)) {
         return this->GetValue(rThisVariable, rValue);

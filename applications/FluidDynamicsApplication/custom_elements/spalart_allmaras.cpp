@@ -319,7 +319,7 @@ void SpalartAllmaras::InitializeElementData()
     for ( SizeType g = 0; g < IntegrationPoints.size(); g++ )
     {
         //calculating and storing inverse of the jacobian and the parameters needed
-        MathUtils<double>::InvertMatrix( J[g], InvJ, mDetJ );
+        MathUtils::InvertMatrix( J[g], InvJ, mDetJ );
 
         //calculating the shape function derivatives in global coordinates
         mDN_DX[g].resize(NumNodes,Dim);

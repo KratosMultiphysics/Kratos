@@ -965,11 +965,11 @@ void ShellThinElement3D4N<TKinematics>::InitializeCalculationData(CalculationDat
 
         for (int i = 0; i < 4; i++) {
             //eqn 5.2.29
-            const Vector vec1 = MathUtils<double>::CrossProduct(data.r_cartesian[i], s_xi);
+            const Vector vec1 = MathUtils::CrossProduct(data.r_cartesian[i], s_xi);
             d_xi_i[i] = std::sqrt(inner_prod(vec1, vec1));
             chi_xi_i[i] = d_xi_i[i] / l_xi;
 
-            const Vector vec2 = MathUtils<double>::CrossProduct(data.r_cartesian[i], s_eta);
+            const Vector vec2 = MathUtils::CrossProduct(data.r_cartesian[i], s_eta);
             d_eta_i[i] = std::sqrt(inner_prod(vec2, vec2));
             chi_eta_i[i] = d_eta_i[i] / l_eta;
         }
@@ -980,7 +980,7 @@ void ShellThinElement3D4N<TKinematics>::InitializeCalculationData(CalculationDat
         double l_13 = std::sqrt(inner_prod(r_13, r_13));
 
         Vector e_24 = Vector(r_24 / l_24);
-        const Vector vec1 = Vector(MathUtils<double>::CrossProduct(r_13, e_24));
+        const Vector vec1 = Vector(MathUtils::CrossProduct(r_13, e_24));
 
         const double d_24 = std::sqrt(inner_prod(vec1, vec1));
         const double d_13 = d_24;
@@ -1144,10 +1144,10 @@ void ShellThinElement3D4N<TKinematics>::InitializeCalculationData(CalculationDat
 
         Matrix T_13 = Matrix(3, 3, 0.0);
         Matrix T_24 = Matrix(3, 3, 0.0);
-        double t13invdet = MathUtils<double>::Det(T_13_inv);
-        MathUtils<double>::InvertMatrix(T_13_inv, T_13, t13invdet);
-        double t24invdet = MathUtils<double>::Det(T_24_inv);
-        MathUtils<double>::InvertMatrix(T_24_inv, T_24, t24invdet);
+        double t13invdet = MathUtils::Det(T_13_inv);
+        MathUtils::InvertMatrix(T_13_inv, T_13, t13invdet);
+        double t24invdet = MathUtils::Det(T_24_inv);
+        MathUtils::InvertMatrix(T_24_inv, T_24, t24invdet);
 
         data.B_h_1 = prod(T_13, Q1);
         data.B_h_2 = prod(T_24, Q2);
@@ -1273,7 +1273,7 @@ void ShellThinElement3D4N<TKinematics>::InitializeCalculationData(CalculationDat
         DKQ_temp(1, 0) = x32 + x41 + xi*(x12 + x34);
         DKQ_temp(1, 1) = y32 + y41 + xi*(y12 + y34);
         DKQ_temp = DKQ_temp / 4;
-        double det = MathUtils<double>::Det(DKQ_temp);
+        double det = MathUtils::Det(DKQ_temp);
         Matrix DKQ_temp_inv = Matrix(2, 2, 0.0);
         DKQ_temp_inv(0, 0) = DKQ_temp(1, 1);
         DKQ_temp_inv(1, 1) = DKQ_temp(0, 0);

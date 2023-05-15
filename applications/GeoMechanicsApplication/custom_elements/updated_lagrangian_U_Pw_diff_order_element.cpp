@@ -138,7 +138,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
 
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( mStressVector[GPoint] );
+    Matrix StressTensor = MathUtils::StressVectorToTensor( mStressVector[GPoint] );
 
     Matrix ReducedKgMatrix = prod( rVariables.DNu_DX,
                                    rVariables.IntegrationCoefficient *
@@ -146,7 +146,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
 
     Matrix UMatrix(NumUNodes*Dim, NumUNodes*Dim);
     noalias(UMatrix) = ZeroMatrix(NumUNodes*Dim, NumUNodes*Dim);
-    MathUtils<double>::ExpandAndAddReducedMatrix( UMatrix, ReducedKgMatrix, Dim );
+    MathUtils::ExpandAndAddReducedMatrix( UMatrix, ReducedKgMatrix, Dim );
 
     //Distribute stiffness block matrix into the elemental matrix
     this->AssembleUBlockMatrix(rLeftHandSideMatrix,UMatrix);

@@ -762,8 +762,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
 
     Matrix k_inverse(number_of_actuators, number_of_actuators);
     double k_det = 0.0;
-    MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
-    const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness,
+    MathUtils::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
+    const bool is_k_invertible = MathUtils::CheckConditionNumber(mStiffness,
                                                     k_inverse, std::numeric_limits<double>::epsilon(),
                                                     false);
     const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
@@ -858,8 +858,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
 
     Matrix k_inverse(number_of_actuators,number_of_actuators);
     double k_det = 0.0;
-    MathUtils<double>::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
-    const bool is_k_invertible = MathUtils<double>::CheckConditionNumber(mStiffness,
+    MathUtils::InvertMatrix(mStiffness, k_inverse, k_det, -1.0);
+    const bool is_k_invertible = MathUtils::CheckConditionNumber(mStiffness,
                                                     k_inverse, std::numeric_limits<double>::epsilon(),
                                                     false);
     const double k_condition_number = GetConditionNumber(mStiffness,k_inverse);
@@ -919,8 +919,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateStiffness() {
     if (mKStep > number_of_actuators-1) {
         Matrix delta_displacement_inverse(number_of_actuators, number_of_actuators);
         double delta_displacement_det = 0.0;
-        MathUtils<double>::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
-        const bool is_delta_displacement_invertible = MathUtils<double>::CheckConditionNumber(mDeltaDisplacement,
+        MathUtils::InvertMatrix(mDeltaDisplacement, delta_displacement_inverse, delta_displacement_det,-1.0);
+        const bool is_delta_displacement_invertible = MathUtils::CheckConditionNumber(mDeltaDisplacement,
                                                         delta_displacement_inverse, 1.0e-10,
                                                         false);
         const double delta_displacement_condition_number = GetConditionNumber(mDeltaDisplacement,delta_displacement_inverse);
