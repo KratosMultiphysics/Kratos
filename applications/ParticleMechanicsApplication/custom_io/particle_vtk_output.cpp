@@ -30,7 +30,6 @@ Parameters ParticleVtkOutput::GetDefaultParameters()
     Parameters default_parameters = Parameters(R"(
     {
         "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "background_grid_model_part_name"             : "",
         "output_entity"                               : "elements",
         "file_format"                                 : "binary",
         "output_precision"                            : 7,
@@ -50,12 +49,12 @@ Parameters ParticleVtkOutput::GetDefaultParameters()
 }
 
 ParticleVtkOutput::ParticleVtkOutput(
-    ModelPart& rMPMModelPart,
+    ModelPart& rModelPart,
     Parameters ThisParameters
-    ) : mrMPMModelPart(rMPMModelPart),
-        mOutputSettings(ThisParameters)
+    ) : VtkOutput(rModelPart)
 {
-    // The default parameters
+    mOutputSettings = ThisParameters;
+    // Validate and assign default parameters for current class
     Parameters default_parameters = GetDefaultParameters();
     mOutputSettings.ValidateAndAssignDefaults(default_parameters);
 
@@ -63,17 +62,16 @@ ParticleVtkOutput::ParticleVtkOutput(
     mDefaultPrecision = mOutputSettings["output_precision"].GetInt();
     const std::string file_format = mOutputSettings["file_format"].GetString();
     if (file_format == "ascii") {
-        mFileFormat = ParticleVtkOutput::FileFormat::VTK_ASCII;
+        mFileFormat = VtkOutput::FileFormat::VTK_ASCII;
     } else if (file_format == "binary") {
-        mFileFormat = ParticleVtkOutput::FileFormat::VTK_BINARY;
+        mFileFormat = VtkOutput::FileFormat::VTK_BINARY;
         // test for endian-format
         int num = 1;
         if (*(char *)&num == 1) {
             mShouldSwap = true;
         }
     } else {
-        KRATOS_ERROR << "Option for \"file_format\": " << file_format <<
-            " not recognised!\n Possible output formats options are: \"ascii\", \"binary\"" << std::endl;
+        KRATOS_ERROR << "Option for \"file_format\": " << file_format << " not recognised!\n Possible output formats options are: \"ascii\", \"binary\"" << std::endl;
     }
 
     const std::string output_entities = mOutputSettings["output_entity"].GetString();
@@ -82,7 +80,7 @@ ParticleVtkOutput::ParticleVtkOutput(
     } else if (output_entities == "conditions") {
         mOutputEntities = ParticleVtkOutput::OutputEntities::CONDITIONS;
     } else {
-        KRATOS_ERROR << "Option for \"output_entity\": " << output_entities <<
+        KRATOS_ERROR << "ParticleVtkOutput. Option for \"output_entity\": " << output_entities <<
             " not recognised!\n Admissible options are: \"elements\", \"conditions\"" << std::endl;
     }
 }
@@ -93,12 +91,12 @@ ParticleVtkOutput::ParticleVtkOutput(
 void ParticleVtkOutput::PrintOutput(const std::string& rOutputFilename)
 {
     // For whole model part
-    WriteMPMModelPartToFile(mrMPMModelPart, false, rOutputFilename);
+    WriteModelPartToFile(mrModelPart, false, rOutputFilename);
     // For sub model parts
     const bool print_sub_model_parts = mOutputSettings["output_sub_model_parts"].GetBool();
     if (print_sub_model_parts) {
-        for (auto& r_sub_model_part : mrMPMModelPart.SubModelParts()) {
-            WriteMPMModelPartToFile(r_sub_model_part, true, rOutputFilename);
+        for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {
+            WriteModelPartToFile(r_sub_model_part, true, rOutputFilename);
         }
     }
 }
@@ -106,14 +104,14 @@ void ParticleVtkOutput::PrintOutput(const std::string& rOutputFilename)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ParticleVtkOutput::WriteMPMModelPartToFile(
-    const ModelPart& rMPMModelPart,
+void ParticleVtkOutput::WriteModelPartToFile(
+    const ModelPart& rModelPart,
     const bool IsSubModelPart,
     const std::string& rOutputFilename
     )
 {
     // Make the file stream object
-    const std::string output_file_name = GetOutputFileName(rMPMModelPart, IsSubModelPart, rOutputFilename);
+    const std::string output_file_name = GetOutputFileName(rModelPart, IsSubModelPart, rOutputFilename);
     std::ofstream output_file;
     if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
         output_file.open(output_file_name, std::ios::out | std::ios::trunc);
@@ -125,9 +123,13 @@ void ParticleVtkOutput::WriteMPMModelPartToFile(
 
     KRATOS_ERROR_IF_NOT(output_file.is_open()) << "File \"" << output_file_name << "\" could not be opened!" << std::endl;
 
-    WriteHeaderToFile(rMPMModelPart, output_file);
-    WriteMPMMeshToFile(rMPMModelPart, output_file);
-    WriteMPMResultsToFile(rMPMModelPart, output_file);
+    WriteHeaderToFile(rModelPart, output_file);
+    WriteMeshToFile(rModelPart, output_file);
+    if (mOutputEntities == ParticleVtkOutput::OutputEntities::ELEMENTS) {
+        WriteElementResultsToFile(rModelPart, output_file);
+    } else if (mOutputEntities == ParticleVtkOutput::OutputEntities::CONDITIONS) {
+        WriteConditionResultsToFile(rModelPart, output_file);
+    }
 
     output_file.close();
 }
@@ -135,220 +137,85 @@ void ParticleVtkOutput::WriteMPMModelPartToFile(
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string ParticleVtkOutput::GetOutputFileName(
-    const ModelPart& rMPMModelPart,
-    const bool IsSubModelPart,
-    const std::string& rOutputFilename
-    )
+void ParticleVtkOutput::WriteMeshToFile(
+    const ModelPart& rModelPart,
+    std::ofstream& rFileStream
+    ) const
 {
-    std::string output_file_name = "";
-
-    if (rOutputFilename != "") { // user specified file name externally
-        output_file_name = rOutputFilename;
-    } else {
-        const int rank = rMPMModelPart.GetCommunicator().MyPID();
-        std::string model_part_name;
-
-        if (IsSubModelPart) {
-            model_part_name = rMPMModelPart.GetParentModelPart().Name() + "_" + rMPMModelPart.Name();
-        } else {
-            model_part_name = rMPMModelPart.Name();
-        }
-
-        std::string label;
-        std::stringstream ss;
-        const std::string output_control = mOutputSettings["output_control_type"].GetString();
-        if (output_control == "step") {
-            ss << std::fixed << std::setprecision(mDefaultPrecision)<< std::setfill('0')
-            << rMPMModelPart.GetProcessInfo()[STEP];
-            label = ss.str();
-        } else if(output_control == "time") {
-            ss << std::fixed << std::setprecision(mDefaultPrecision) << std::setfill('0')
-            << rMPMModelPart.GetProcessInfo()[TIME];
-            label = ss.str();
-        } else {
-            KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
-                <<" not recognised!\nPossible output_control_type options "
-                << "are: \"step\", \"time\"" << std::endl;
-        }
-
-        const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
-        const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
-        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label;
-    }
-
-    output_file_name += ".vtk";
-
-    if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        const std::filesystem::path output_path = mOutputSettings["output_path"].GetString();
-
-        // Create folder if it doesn't exist before
-        FilesystemExtensions::MPISafeCreateDirectories(output_path);
-
-        output_file_name = (output_path / output_file_name).string();
-    }
-
-    return output_file_name;
+    WriteConditionsAndElementsToFile(rModelPart, rFileStream);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ParticleVtkOutput::WriteHeaderToFile(
-    const ModelPart& rMPMModelPart,
+void ParticleVtkOutput::WriteConditionsAndElementsToFile(
+    const ModelPart& rModelPart,
     std::ofstream& rFileStream
     ) const
 {
-    rFileStream << "# vtk DataFile Version 4.0" << "\n"
-                << "vtk output" << "\n";
-    if(mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-        rFileStream << "ASCII" << "\n";
-    }
-    else if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_BINARY) {
-        rFileStream << "BINARY" << "\n";
-    }
-    rFileStream << "DATASET UNSTRUCTURED_GRID" << "\n";
-}
+    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ParticleVtkOutput::WriteMPMMeshToFile(
-    const ModelPart& rMPMModelPart,
-    std::ofstream& rFileStream
-    ) const
-{
     if (mOutputEntities == ParticleVtkOutput::OutputEntities::ELEMENTS) {
-        WriteMPMElementsToFile(rMPMModelPart, rFileStream);
+        const SizeType num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+        // Write points data
+        rFileStream << "POINTS " << num_elements << " float\n";
+        for (auto itr_element = r_local_mesh.ElementsBegin(); itr_element != r_local_mesh.ElementsEnd(); itr_element++) {
+            std::vector<array_1d<double, 3>> mp_coord = { ZeroVector(3) };
+            itr_element->CalculateOnIntegrationPoints(MP_COORD, mp_coord, rModelPart.GetProcessInfo());
+            WriteVectorDataToFile(mp_coord[0], rFileStream);
+            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        }
+        // Write cells data
+        rFileStream << "\nCELLS " << num_elements << " " << 2*num_elements << "\n";
+        for (IndexType itr_element = 0; itr_element < num_elements; ++itr_element) {
+            WriteScalarDataToFile((unsigned int)1, rFileStream);
+            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
+            WriteScalarDataToFile((int)itr_element, rFileStream);
+            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        }
+        // Write cell types data
+        rFileStream << "\nCELL_TYPES " << num_elements << "\n";
+        for (IndexType itr_element = 0; itr_element < num_elements; ++itr_element) {
+            WriteScalarDataToFile((unsigned int)1, rFileStream);
+            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        }
     } else if (mOutputEntities == ParticleVtkOutput::OutputEntities::CONDITIONS) {
-        WriteMPMConditionsToFile(rMPMModelPart, rFileStream);
+        const SizeType num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
+        // Write points data
+        rFileStream << "POINTS " << num_conditions << " float\n";
+        for (auto itr_condition = r_local_mesh.ConditionsBegin(); itr_condition != r_local_mesh.ConditionsEnd(); itr_condition++) {
+            std::vector<array_1d<double, 3>> mpc_coord = { ZeroVector(3) };
+            itr_condition->CalculateOnIntegrationPoints(MPC_COORD, mpc_coord, rModelPart.GetProcessInfo());
+            WriteVectorDataToFile(mpc_coord[0], rFileStream);
+            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        }
+        // Write cells data
+        rFileStream << "\nCELLS " << num_conditions << " " << 2*num_conditions << "\n";
+        for (IndexType itr_condition = 0; itr_condition < num_conditions; ++itr_condition) {
+            WriteScalarDataToFile((unsigned int)1, rFileStream);
+            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
+            WriteScalarDataToFile((int)itr_condition, rFileStream);
+            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        }
+        // Write cell types data
+        rFileStream << "\nCELL_TYPES " << num_conditions << "\n";
+        for (IndexType itr_condition = 0; itr_condition < num_conditions; ++itr_condition) {
+            WriteScalarDataToFile((unsigned int)1, rFileStream);
+            if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+        }
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ParticleVtkOutput::WriteMPMElementsToFile(
-    const ModelPart& rMPMModelPart,
-    std::ofstream& rFileStream
-    ) const
-{
-    const SizeType num_elements = rMPMModelPart.NumberOfElements();
-
-    // Write points data
-    rFileStream << "POINTS " << num_elements << " float\n";
-    for (auto itr_element = rMPMModelPart.ElementsBegin(); itr_element != rMPMModelPart.ElementsEnd(); itr_element++) {
-        std::vector<array_1d<double, 3>> mp_coord = { ZeroVector(3) };
-        itr_element->CalculateOnIntegrationPoints(MP_COORD, mp_coord, rMPMModelPart.GetProcessInfo());
-        WriteVectorDataToFile(mp_coord[0], rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-            rFileStream << "\n";
-        }
-    }
-
-    // Write cells data
-    rFileStream << "\nCELLS " << num_elements << " " << 2*num_elements << "\n";
-    for (IndexType itr_element = 0; itr_element < num_elements; ++itr_element) {
-        WriteScalarDataToFile((unsigned int)1, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-            rFileStream << " ";
-        }
-        WriteScalarDataToFile((int)itr_element, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-            rFileStream << "\n";
-        }
-    }
-
-    // Write cell types data
-    rFileStream << "\nCELL_TYPES " << num_elements << "\n";
-    for (IndexType itr_element = 0; itr_element < num_elements; ++itr_element) {
-        WriteScalarDataToFile((unsigned int)1, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ParticleVtkOutput::WriteMPMConditionsToFile(
-    const ModelPart& rMPMModelPart,
-    std::ofstream& rFileStream
-    ) const
-{
-    const SizeType num_conditions = rMPMModelPart.NumberOfConditions();
-
-    // Write points data
-    rFileStream << "POINTS " << num_conditions << " float\n";
-    for (auto itr_condition = rMPMModelPart.ConditionsBegin(); itr_condition != rMPMModelPart.ConditionsEnd(); itr_condition++) {
-        std::vector<array_1d<double, 3>> mpc_coord = { ZeroVector(3) };
-        itr_condition->CalculateOnIntegrationPoints(MPC_COORD, mpc_coord, rMPMModelPart.GetProcessInfo());
-        WriteVectorDataToFile(mpc_coord[0], rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-            rFileStream << "\n";
-        }
-    }
-
-    // Write cells data
-    rFileStream << "\nCELLS " << num_conditions << " " << 2*num_conditions << "\n";
-    for (IndexType itr_condition = 0; itr_condition < num_conditions; ++itr_condition) {
-        WriteScalarDataToFile((unsigned int)1, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-            rFileStream << " ";
-        }
-        WriteScalarDataToFile((int)itr_condition, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-            rFileStream << "\n";
-        }
-    }
-
-    // Write cell types data
-    rFileStream << "\nCELL_TYPES " << num_conditions << "\n";
-    for (IndexType itr_condition = 0; itr_condition < num_conditions; ++itr_condition) {
-        WriteScalarDataToFile((unsigned int)1, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ParticleVtkOutput::ForceBigEndian(unsigned char* pBytes) const
-{
-    if (mShouldSwap) {
-        unsigned char tmp = pBytes[0];
-        pBytes[0] = pBytes[3];
-        pBytes[3] = tmp;
-        tmp = pBytes[1];
-        pBytes[1] = pBytes[2];
-        pBytes[2] = tmp;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ParticleVtkOutput::WriteMPMResultsToFile(
-    const ModelPart& rMPMModelPart,
+void ParticleVtkOutput::WriteElementResultsToFile(
+    const ModelPart& rModelPart,
     std::ofstream& rFileStream
     )
 {
-    if (mOutputEntities == ParticleVtkOutput::OutputEntities::ELEMENTS) {
-        WriteMPMElementResultsToFile(rMPMModelPart, rFileStream);
-    } else if (mOutputEntities == ParticleVtkOutput::OutputEntities::CONDITIONS) {
-        WriteMPMConditionResultsToFile(rMPMModelPart, rFileStream);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ParticleVtkOutput::WriteMPMElementResultsToFile(
-    const ModelPart& rMPMModelPart,
-    std::ofstream& rFileStream
-    )
-{
-    const auto& r_local_mesh = rMPMModelPart.GetCommunicator().LocalMesh();
-    const int num_elements = rMPMModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
+    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    const int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
 
     Parameters element_data_value_variables = mOutputSettings["particle_data_value_variables"];
     Parameters element_flags = mOutputSettings["particle_flags"];
@@ -372,7 +239,7 @@ void ParticleVtkOutput::WriteMPMElementResultsToFile(
         }
 
         if (element_flags.size() > 0) {
-            mrMPMModelPart.GetCommunicator().SynchronizeElementalFlags();
+            mrModelPart.GetCommunicator().SynchronizeElementalFlags();
         }
 
         for (IndexType entry = 0; entry < element_flags.size(); ++entry) {
@@ -391,13 +258,13 @@ void ParticleVtkOutput::WriteMPMElementResultsToFile(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ParticleVtkOutput::WriteMPMConditionResultsToFile(
-    const ModelPart& rMPMModelPart,
+void ParticleVtkOutput::WriteConditionResultsToFile(
+    const ModelPart& rModelPart,
     std::ofstream& rFileStream
     )
 {
-    const auto& r_local_mesh = rMPMModelPart.GetCommunicator().LocalMesh();
-    const int num_conditions = rMPMModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
+    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    const int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
 
     Parameters condition_data_value_variables = mOutputSettings["particle_data_value_variables"];
     Parameters condition_flags = mOutputSettings["particle_flags"];
@@ -436,32 +303,6 @@ void ParticleVtkOutput::WriteMPMConditionResultsToFile(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool ParticleVtkOutput::IsCompatibleVariable(const std::string& rVariableName) const
-{
-    if (KratosComponents<Variable<double>>::Has(rVariableName)){
-        return true;
-    } else if (KratosComponents<Variable<bool>>::Has(rVariableName)){
-        return true;
-    } else if (KratosComponents<Variable<int>>::Has(rVariableName)){
-        return true;
-    } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
-        return true;
-    } else if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
-        return true;
-    } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
-        return true;
-    } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
-        return true;
-    } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<typename TContainerType>
 void ParticleVtkOutput::WriteGeometricalContainerResults(
     const std::string& rVariableName,
@@ -485,30 +326,9 @@ void ParticleVtkOutput::WriteGeometricalContainerResults(
         const Variable<Vector>& var_to_write = KratosComponents<Variable<Vector>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     } else {
-        KRATOS_WARNING_ONCE(rVariableName) << mrMPMModelPart.GetCommunicator().GetDataCommunicator()
+        KRATOS_WARNING_ONCE(rVariableName) << mrModelPart.GetCommunicator().GetDataCommunicator()
             << "Variable \"" << rVariableName << "\" is "
             << "not suitable for ParticleVtkOutput, skipping it" << std::endl;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<typename TContainerType>
-void ParticleVtkOutput::WriteFlagContainerVariable(
-    const TContainerType& rContainer,
-    const Flags Flag,
-    const std::string& rFlagName,
-    std::ofstream& rFileStream
-    ) const
-{
-    rFileStream << rFlagName << " 1 " << rContainer.size() << "  float\n";
-    for (const auto& r_entity : rContainer) {
-        const float result = r_entity.IsDefined(Flag) ? float(r_entity.Is(Flag)) : -1.0;
-        WriteScalarDataToFile(result, rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-            rFileStream <<"\n";
-        }
     }
 }
 
@@ -591,7 +411,7 @@ void ParticleVtkOutput::WriteVectorContainerVariable(
         return;
     }
 
-    const auto& r_process_info = mrMPMModelPart.GetProcessInfo();
+    const auto& r_process_info = mrModelPart.GetProcessInfo();
     std::vector<TVarType> result;
     rContainer.begin()->CalculateOnIntegrationPoints(rVariable, result, r_process_info);
     const int res_size = result[0].size();
