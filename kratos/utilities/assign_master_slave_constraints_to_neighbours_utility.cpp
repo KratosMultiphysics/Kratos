@@ -197,7 +197,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
-    block_for_each(p_nodes_array, [&](Node<3>::Pointer& p_slave_node) {
+    block_for_each(p_nodes_array, [&](Node::Pointer& p_slave_node) {
 
         double local_radius = Radius;
 
