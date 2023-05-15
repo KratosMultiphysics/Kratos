@@ -136,18 +136,18 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCl
         // Loop over the variable list
         for (int j = 0; j < static_cast<int>(rVariableList.size()); j++)
         {
-            const auto& rVariable = rVariableList[j];
+            const auto& r_variable = rVariableList[j];
 
             // Check if the slave node has the required DOF for the current variable
-            if (pSlaveNode->HasDofFor(rVariable.get()))
+            if (pSlaveNode->HasDofFor(r_variable.get()))
             {
                 // Assign the DOF pointer to the corresponding position in rCloudOfDofs
-                rCloudOfDofs[j][i] = pSlaveNode->pGetDof(rVariable.get());
+                rCloudOfDofs[j][i] = pSlaveNode->pGetDof(r_variable.get());
             }
             else
             {
                 std::stringstream variable_str;
-                variable_str << rVariable.get();
+                variable_str << r_variable.get();
                 KRATOS_ERROR << "The node with ID " << pSlaveNode->Id() << " does not have the required DOF for the variable " << variable_str.str() << std::endl;
             }
         }
