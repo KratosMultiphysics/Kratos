@@ -2562,7 +2562,7 @@ class TestProcesses(KratosUnittest.TestCase):
         # Obtain constraint weights from the model
         obtained_constraints_weights = []
         contraints_to_validate = [1, 2, 3]
-        for i, id in enumerate(contraints_to_validate):
+        for id in contraints_to_validate:
             const = model_part.GetMasterSlaveConstraint(id)
             output_contraints_weights = KratosMultiphysics.Matrix()
             constants = KratosMultiphysics.Vector()
@@ -2581,8 +2581,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
             for obtained_weights in obtained_constraints_weights:
                 if check_matching_weights(expected_weights, obtained_weights):
-                    for ew, ow in zip(expected_weights, obtained_weights):
-                        self.assertAlmostEqual(ew, ow, delta=1e-6)  # Assert the weights are equal within the specified tolerance
+                    self.assertVectorAlmostEqual(expected_weights, obtained_weights, delta=1e-6)  # Assert the vectors are equal within the specified tolerance
                     matching_found = True
                     break
 
