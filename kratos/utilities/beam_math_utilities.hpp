@@ -37,7 +37,7 @@ public:
   typedef Vector                          VectorType;
 
   typedef Quaternion<double>          QuaternionType;   
-  typedef MathUtils         MathUtilsType;
+  typedef MathUtils<TDataType>         MathUtilsType;
   typedef BeamMathUtils<TDataType> BeamMathUtilsType; 
 
   ///@}

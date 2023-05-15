@@ -311,7 +311,7 @@ public:
             const TDataType y = InputMatrix(1, 0);
             const TDataType z = InputMatrix(1, 1);
             const TDataType ro = (z - w)/(2.0 * y);
-            const TDataType t = MathUtils::Sign(ro)/(std::abs(ro) + std::sqrt(1 + ro * ro));
+            const TDataType t = MathUtils<TDataType>::Sign(ro)/(std::abs(ro) + std::sqrt(1 + ro * ro));
             const TDataType c = 1.0/(std::sqrt(1.0 + t*t));
             const TDataType s = t*c;
 
@@ -325,10 +325,10 @@ public:
         }
 
         MatrixType z_matrix(2, 2);
-        z_matrix(0, 0) = MathUtils::Sign(SMatrix(0, 0));
+        z_matrix(0, 0) = MathUtils<TDataType>::Sign(SMatrix(0, 0));
         z_matrix(0, 1) = 0.0;
         z_matrix(1, 0) = 0.0;
-        z_matrix(1, 1) = MathUtils::Sign(SMatrix(1, 1));
+        z_matrix(1, 1) = MathUtils<TDataType>::Sign(SMatrix(1, 1));
 
         // Auxiliar matrix for alias operations
         MatrixType aux_2_2_matrix(2, 2);

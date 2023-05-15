@@ -50,7 +50,7 @@ public:
 
     typedef unsigned int SizeType;
 
-    typedef MathUtils MathUtilsType;
+    typedef MathUtils<TDataType> MathUtilsType;
 
     typedef DenseVector<Vector> Second_Order_Tensor;
 
