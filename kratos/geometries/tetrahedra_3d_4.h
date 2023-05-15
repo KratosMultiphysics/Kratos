@@ -2001,8 +2001,7 @@ GeometryData Tetrahedra3D4<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Tetrahedra3D4<TPointType>::msGeometryDimension(
-    3, 3, 3);
+const GeometryDimension Tetrahedra3D4<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.
 

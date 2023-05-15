@@ -57,7 +57,7 @@ namespace Kratos
         /// Tests
         // NOTE: The strategies test many things simulataneously
         // TODO: Create test for the other components
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

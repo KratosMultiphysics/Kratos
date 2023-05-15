@@ -864,7 +864,6 @@ GeometryData Pyramid3D5<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Pyramid3D5<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Pyramid3D5<TPointType>::msGeometryDimension(3, 3);
 
 }  // namespace Kratos.

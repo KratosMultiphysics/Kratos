@@ -23,36 +23,32 @@
 
 namespace Kratos::Testing {
 
-using PointType = Node<3>;
-using PointTypePointer = Node<3>::Pointer;
-using PointVector = std::vector<PointType::Pointer>;
-using PointIterator = std::vector<PointType::Pointer>::iterator;
-using DistanceVector = std::vector<double>;
-using DistanceIterator = std::vector<double>::iterator;
+using PointType = Node;
+using PointPointerType = typename PointType::Pointer;
+using PointVectorType = std::vector<PointType::Pointer>;
+using PointIteratorType = std::vector<PointType::Pointer>::iterator;
+using DistanceVectorType = std::vector<double>;
+using DistanceIteratorType = std::vector<double>::iterator;
 
 /// KDtree definitions
-using BucketType = Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
+using BucketType = Bucket< 3ul, PointType, PointVectorType, PointPointerType, PointIteratorType, DistanceIteratorType>;
 using KDTree = Tree<KDTreePartition<BucketType>>;
-
-using CoordinateType = KDTree::CoordinateType;
-using PointerType = KDTree::PointerType;
-using SearchStructureType = KDTree::SearchStructureType;
 
 /**
  * @brief Test that ExistPoint works correctly
  */
 KRATOS_TEST_CASE_IN_SUITE(KDTreeExistPoint, KratosCoreFastSuite)
 {
-    PointVector points;
+    PointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(PointTypePointer(new PointType(i, i, i, i)));
+        points.push_back(PointPointerType(new PointType(i, i, i, i)));
     }
 
     KDTree testKDTree(points.begin(), points.end(), 100);
 
-    KRATOS_CHECK_EQUAL(testKDTree.ExistPoint(PointTypePointer(new PointType(10, 10.0, 10.0, 10.0))), nullptr);
-    KRATOS_CHECK_EQUAL(testKDTree.ExistPoint(PointTypePointer(new PointType(9, 9.0, 9.0, 9.0))), points[9]);
+    KRATOS_CHECK_EQUAL(testKDTree.ExistPoint(PointPointerType(new PointType(10, 10.0, 10.0, 10.0))), nullptr);
+    KRATOS_CHECK_EQUAL(testKDTree.ExistPoint(PointPointerType(new PointType(9, 9.0, 9.0, 9.0))), points[9]);
 }
 
 /**
@@ -60,10 +56,10 @@ KRATOS_TEST_CASE_IN_SUITE(KDTreeExistPoint, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchNearestPoint, KratosCoreFastSuite)
 {
-    PointVector points;
+    PointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(PointTypePointer(new PointType(i, i, i, i)));
+        points.push_back(PointPointerType(new PointType(i, i, i, i)));
     }
 
     KDTree testKDTree(points.begin(), points.end(), 100);
@@ -80,17 +76,17 @@ KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchNearestPoint, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchInRadius, KratosCoreFastSuite)
 {
-    PointVector points;
+    PointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(PointTypePointer(new PointType(i, i, i, i)));
+        points.push_back(PointPointerType(new PointType(i, i, i, i)));
     }
 
     KDTree testKDTree(points.begin(), points.end(), 100);
 
     const std::size_t max_number_results = 10;
-    PointVector result_points(max_number_results);
-    DistanceVector distances(max_number_results);
+    PointVectorType result_points(max_number_results);
+    DistanceVectorType distances(max_number_results);
     auto point_10 = PointType(10, 10.0, 10.0, 10.0);
     KRATOS_CHECK_EQUAL(testKDTree.SearchInRadius(point_10, 1.0, result_points.begin(), distances.begin(), max_number_results), 0);
 
@@ -107,17 +103,17 @@ KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchInRadius, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchInBox, KratosCoreFastSuite)
 {
-    PointVector points;
+    PointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(PointTypePointer(new PointType(i, i, i, i)));
+        points.push_back(PointPointerType(new PointType(i, i, i, i)));
     }
 
     KDTree testKDTree(points.begin(), points.end(), 100);
 
     const std::size_t max_number_results = 10;
-    PointVector result_points(max_number_results);
-    DistanceVector distances(max_number_results);
+    PointVectorType result_points(max_number_results);
+    DistanceVectorType distances(max_number_results);
     auto point_10 = PointType(10, 10.0, 10.0, 10.0);
     auto point_11 = PointType(11, 9.1, 9.1, 9.1);
     KRATOS_CHECK_EQUAL(testKDTree.SearchInBox(point_11, point_10, result_points.begin(), max_number_results), 0);
@@ -131,10 +127,10 @@ KRATOS_TEST_CASE_IN_SUITE(KDTreeSearchInBox, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(KDTreeBB, KratosCoreFastSuite)
 {
-    PointVector points;
+    PointVectorType points;
 
     for(std::size_t i = 0; i < 10; i++) {
-        points.push_back(PointTypePointer(new PointType(i, i, i, i)));
+        points.push_back(PointPointerType(new PointType(i, i, i, i)));
     }
 
     KDTree testKDTree(points.begin(), points.end(), 100);

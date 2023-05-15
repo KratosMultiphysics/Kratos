@@ -1154,7 +1154,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
         DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
         DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
 
-        Node<3>::Pointer other_particle_node = this->GetGeometry()[0].Clone();
+        Node::Pointer other_particle_node = this->GetGeometry()[0].Clone();
         other_particle_node->GetSolutionStepValue(DELTA_DISPLACEMENT) = wall_delta_disp_at_contact_point;
         data_buffer.mpOtherParticleNode = &*other_particle_node;
         DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherToMeVector, cond_to_me_vect)
@@ -1698,7 +1698,7 @@ void SphericParticle::ComputeReactions() {
 
     KRATOS_TRY
 
-    Node<3>& node = GetGeometry()[0];
+    Node& node = GetGeometry()[0];
     array_1d<double, 3>& reaction_force = node.FastGetSolutionStepValue(FORCE_REACTION);
     array_1d<double, 3>& r_total_forces = node.FastGetSolutionStepValue(TOTAL_FORCES);
     reaction_force[0] = node.Is(DEMFlags::FIXED_VEL_X) * (-r_total_forces[0]);

@@ -353,7 +353,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                     scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
               raise Exception("Undefined solution type", solution_type)
-        elif (scheme_type.lower() == "backward_euler"or solution_type.lower() == "backward-euler"):
+        elif (scheme_type.lower() == "backward_euler"or scheme_type.lower() == "backward-euler"):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
@@ -462,7 +462,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             self.strategy_params.AddValue("min_alpha",                  self.settings["min_alpha"])
             self.strategy_params.AddValue("max_alpha",                  self.settings["max_alpha"])
             self.strategy_params.AddValue("line_search_tolerance",      self.settings["line_search_tolerance"])
-            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
             self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
             self.strategy_params.AddValue("reform_dofs_at_each_step",   self.settings["reform_dofs_at_each_step"])
             self.strategy_params.AddValue("echo_level",                 self.settings["echo_level"])
