@@ -1093,13 +1093,18 @@ void MPIDataCommunicator::ValidateAllGathervInput(
     const TDataType& rSendValues, TDataType& rRecvValues,
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const
 {
-    // All ranks send a message of the correct size
-    const int expected_recv_size = rRecvCounts[Rank()];
+    // All ranks send a message of the expected size
     const int send_size = MPIMessageSize(rSendValues);
-    KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(send_size != expected_recv_size))
-    << "Input error in call to MPI_Allgatherv for rank " << Rank() << ": "
-    << "This rank will send " << send_size << " values but all ranks expect "
-    << expected_recv_size << " values from it." << std::endl;
+    const int comm_size = Size();
+    std::vector<int> effective_recv_sizes(comm_size);
+    const int ierr = MPI_Allgather(&send_size, 1, MPI_INT, effective_recv_sizes.data(), 1, MPI_INT, mComm);
+    CheckMPIErrorCode(ierr, "MPI_Allgather");
+    for (int i = 0; i < comm_size; i++) {
+        KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(rRecvCounts[i] != effective_recv_sizes[i]))
+        << "Input error in call to MPI_Allgatherv for rank " << Rank() << ": "
+        << "This rank will receive " << effective_recv_sizes[i] << " values from rank " << i
+        << " values but expects " << rRecvCounts[i] << " values from it." << std::endl;
+    }
 
     // Message size is not larger than total expected size (can only check for too large, since the recv message may be padded).
     const int message_size = MPIMessageSize(rSendValues);
