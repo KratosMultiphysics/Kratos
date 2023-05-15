@@ -59,6 +59,8 @@ void GeometricalObjectsBinsMPI::ImplSearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
+    // TODO: Check if the Global Bounding Box can be replaced with Local Bounding Box and avoid storage and communication
+
     // Clear vector
     rResults.clear();
 
@@ -78,10 +80,26 @@ void GeometricalObjectsBinsMPI::ImplSearchInRadius(
 
     // Now sync results between partitions
     for (int i_rank : ranks) {
-        if (i_rank == current_rank) {
-            rResults.push_back(local_results[i_rank]);
-        } else {
-            // TODO
+        int number_of_results = local_results.size();
+        mrDataCommunicator.Broadcast(number_of_results, i_rank);
+        // Only do something if there are results
+        if (number_of_results > 0) {
+            if (i_rank == current_rank) {
+                rResults.push_back(local_results[i_rank]);
+
+                // Stream to other partitions
+                for (auto& r_result : local_results) {
+                    GetResultFromGivenPartition(r_result, i_rank);
+                }
+            } else {
+                // Empty local result
+                ResultType local_result;
+                for (int i = 0; i < number_of_results; ++i) {
+                    // Stream from other partitions
+                    ResultType global_result = GetResultFromGivenPartition(local_result, i_rank);
+                    rResults.push_back(global_result);
+                }
+            }
         }
     }
 }
@@ -94,8 +112,10 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNeare
     const double Radius
     )
 {
+    // TODO: Check if the Global Bounding Box can be replaced with Local Bounding Box and avoid storage and communication
+
     // Result to return
-    ResultType current_result;
+    ResultType local_result;
 
     // Find the partitions were point is inside
     const int current_rank = GetRank();
@@ -107,16 +127,13 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNeare
     // Check if the point is inside the set
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
-        current_result = mLocalGeometricalObjectsBins.SearchNearestInRadius(rPoint, Radius);
-
-        // Remove current rank from the set
-        ranks_set.erase(current_rank);
+        local_result = mLocalGeometricalObjectsBins.SearchNearestInRadius(rPoint, Radius);
     }
 
     /* Now sync results between partitions */
 
     // Get the distance
-    const double local_distance = (current_result.IsObjectFound() && current_result.IsDistanceCalculated()) ? current_result.GetDistance() : std::numeric_limits<double>::max();
+    const double local_distance = (local_result.IsObjectFound() && local_result.IsDistanceCalculated()) ? local_result.GetDistance() : std::numeric_limits<double>::max();
 
     // Find the minimum value and the rank that holds it
     struct {
@@ -128,9 +145,8 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNeare
     local_min.rank = GetRank();
     MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPIDataCommunicator::GetMPICommunicator(mrDataCommunicator));
 
-    // TODO: Get the solution from the global min
-
-    return current_result;
+    // Get the solution from the computed_rank
+    return GetResultFromGivenPartition(local_result, global_min.rank);
 }
 
 /***********************************************************************************/
@@ -150,12 +166,13 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNeare
 
 GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsInside(const Point& rPoint)
 {
+    // TODO: Check if the Global Bounding Box can be replaced with Local Bounding Box and avoid storage and communication
+
     // Result to return
-    ResultType current_result;
+    ResultType local_result;
 
     // Find the partitions were point is inside
     const int current_rank = GetRank();
-    const int world_size = GetWorldSize();
     std::vector<int> ranks = RansksPointIsInsideBoundingBox(rPoint.Coordinates());
 
     // Generate a unorderded_set from the ranks
@@ -165,10 +182,7 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsIns
     int computed_rank = std::numeric_limits<int>::max();
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
-        current_result = mLocalGeometricalObjectsBins.SearchIsInside(rPoint);
-
-        // Remove current rank from the set
-        ranks_set.erase(current_rank);
+        local_result = mLocalGeometricalObjectsBins.SearchIsInside(rPoint);
 
         // Set current rank
         computed_rank = current_rank;
@@ -181,7 +195,7 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsIns
     computed_rank = mrDataCommunicator.MinAll(computed_rank);
 
     // Get the solution from the computed_rank
-    return GetResultFromGivenPartition(current_result, computed_rank);
+    return GetResultFromGivenPartition(local_result, computed_rank);
 }
 
 /***********************************************************************************/
