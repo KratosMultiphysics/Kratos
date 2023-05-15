@@ -177,7 +177,7 @@ void ExponentialCohesive3DLaw::ComputeCriticalDisplacement(ConstitutiveLawVariab
         ModeMixingRatio = ShearStrain2 / TotalStrain2;
     else
         ModeMixingRatio = 1.0;
-    const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,MaterialProperties[TANGENT_ETA]);
+    const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,MaterialProperties[CURVE_FITTING_ETA]);
 
     // TODO Should CriticalDisplacement be calculated with FractureEnergy ?
     rVariables.CriticalDisplacement = FractureThoughness / (std::exp(1.0) * MaterialProperties[YIELD_STRESS]);
