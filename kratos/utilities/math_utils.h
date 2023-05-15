@@ -173,7 +173,6 @@ public:
     template<class TMatrixType>
     static MatrixType CofactorMatrix(const TMatrixType& rMat)
     {
-        static_assert(std::is_same<double, double>::value, "Bad value type.");
         static_assert(std::is_same<typename TMatrixType::value_type, double>::value, "Bad value type.");
 
         MatrixType cofactor_matrix(rMat.size1(), rMat.size2());
