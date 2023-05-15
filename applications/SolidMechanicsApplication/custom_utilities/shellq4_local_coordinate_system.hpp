@@ -85,20 +85,20 @@ class ShellQ4_LocalCoordinateSystem
     // Note: the norm should be divided by 2 because its computed from the
     // cross product of the diagonals, which gives twice the area!
     Vector3Type e3;
-    MathUtils<RealType>::CrossProduct(e3,        d13, d24);
+    MathUtils::CrossProduct(e3,        d13, d24);
     mArea = NormalizeVector3( e3 );
     mArea /= 2.0;
 
     // compute the local X direction parallel to the projection of the side 1-2 onto
     // the local xy plane.
     Vector3Type e1( P2global - P1global );
-    RealType e1_dot_e3 = MathUtils<RealType>::Dot(e1, e3);
+    RealType e1_dot_e3 = MathUtils::Dot(e1, e3);
     noalias( e1 ) -= e1_dot_e3 * e3;
     NormalizeVector3( e1 );
 
     // finally compute the local Y direction to be orthogonal to both X and Z local directions
     Vector3Type e2;
-    MathUtils<RealType>::CrossProduct(e2,    e3, e1);
+    MathUtils::CrossProduct(e2,    e3, e1);
     NormalizeVector3( e2 );
 
     // form the 3x3 transformation matrix
@@ -147,21 +147,21 @@ class ShellQ4_LocalCoordinateSystem
     // Note: the norm should be divided by 2 because it's computed from the
     // cross product of the diagonals, which gives twice the area!
     Vector3Type e3;
-    MathUtils<RealType>::CrossProduct(e3,        d13, d24);
+    MathUtils::CrossProduct(e3,        d13, d24);
     mArea = NormalizeVector3( e3 );
     mArea /= 2.0;
 
     // compute the local X direction parallel to the projection of the side 1-2 onto
     // the local xy plane.
     Vector3Type e1( P2global - P1global );
-    RealType e1_dot_e3 = MathUtils<RealType>::Dot(e1, e3);
+    RealType e1_dot_e3 = MathUtils::Dot(e1, e3);
     noalias( e1 ) -= e1_dot_e3 * e3;
     Quaternion<RealType>::FromAxisAngle(e3(0), e3(1), e3(2), alpha).RotateVector3(e1);
     NormalizeVector3( e1 );
 
     // finally compute the local Y direction to be orthogonal to both X and Z local directions
     Vector3Type e2;
-    MathUtils<RealType>::CrossProduct(e2,    e3, e1);
+    MathUtils::CrossProduct(e2,    e3, e1);
     NormalizeVector3( e2 );
 
     // form the 3x3 transformation matrix

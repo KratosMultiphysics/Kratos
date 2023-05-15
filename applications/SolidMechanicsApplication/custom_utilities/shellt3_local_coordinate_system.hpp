@@ -83,12 +83,12 @@ class ShellT3_LocalCoordinateSystem
     // compute the Normal vector at the element center
     // While normalizing the normal vector save its norm to compute the area.
     Vector3Type e3;
-    MathUtils<RealType>::CrossProduct(e3,    e1, e2);
+    MathUtils::CrossProduct(e3,    e1, e2);
     mArea = NormalizeVector3( e3 );
     mArea /= 2.0;
 
     // finally compute the local Y direction to be orthogonal to both X and Z local directions
-    MathUtils<RealType>::CrossProduct(e2,    e3, e1);
+    MathUtils::CrossProduct(e2,    e3, e1);
 
     // normalize the X and Y directions
     NormalizeVector3( e1 );
@@ -136,7 +136,7 @@ class ShellT3_LocalCoordinateSystem
     // compute the Normal vector at the element center
     // While normalizing the normal vector save its norm to compute the area.
     Vector3Type e3;
-    MathUtils<RealType>::CrossProduct(e3,    e1, e2);
+    MathUtils::CrossProduct(e3,    e1, e2);
     mArea = NormalizeVector3( e3 );
     mArea /= 2.0;
 
@@ -144,7 +144,7 @@ class ShellT3_LocalCoordinateSystem
     Quaternion<RealType>::FromAxisAngle(e3(0), e3(1), e3(2), alpha).RotateVector3(e1);
 
     // finally compute the local Y direction to be orthogonal to both X and Z local directions
-    MathUtils<RealType>::CrossProduct(e2,    e3, e1);
+    MathUtils::CrossProduct(e2,    e3, e1);
 
     // normalize the X and Y directions
     NormalizeVector3( e1 );
