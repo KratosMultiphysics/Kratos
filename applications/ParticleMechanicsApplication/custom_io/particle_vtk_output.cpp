@@ -53,10 +53,10 @@ ParticleVtkOutput::ParticleVtkOutput(
     Parameters ThisParameters
     ) : VtkOutput(rModelPart)
 {
-    mOutputSettings = ThisParameters;
     // Validate and assign default parameters for current class
     Parameters default_parameters = GetDefaultParameters();
-    mOutputSettings.ValidateAndAssignDefaults(default_parameters);
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    mOutputSettings = ThisParameters;
 
     // Initialize other variables
     mDefaultPrecision = mOutputSettings["output_precision"].GetInt();
