@@ -17,8 +17,8 @@ namespace Kratos
 
     void BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints,
-        const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>::Pointer>>& rOuterLoops,
-        const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>::Pointer>>& rInnerLoops,
+        const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rOuterLoops,
+        const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rInnerLoops,
         const std::vector<double>& rSpansU,
         const std::vector<double>& rSpansV,
         IntegrationInfo& rIntegrationInfo)
@@ -32,7 +32,7 @@ namespace Kratos
             int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
             int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
             for (IndexType j = 0; j < rOuterLoops[i_outer_loops].size(); ++j) {
-                CurveTessellation<PointerVector<Node<3>>> curve_tesselation;
+                CurveTessellation<PointerVector<Node>> curve_tesselation;
                 auto geometry_outer = *(rOuterLoops[i_outer_loops][j].get());
                 curve_tesselation.Tessellate(
                     geometry_outer, 0.001, 1, true);
@@ -52,7 +52,7 @@ namespace Kratos
                 int_point.x = static_cast<cInt>(std::numeric_limits<int>::min());
                 int_point.y = static_cast<cInt>(std::numeric_limits<int>::min());
                 for (IndexType j = 0; j < rInnerLoops[i_inner_loops].size(); ++j) {
-                    CurveTessellation<PointerVector<Node<3>>> curve_tesselation;
+                    CurveTessellation<PointerVector<Node>> curve_tesselation;
                     auto geometry_inner = *(rInnerLoops[i_inner_loops][j].get());
                     curve_tesselation.Tessellate(
                         geometry_inner, 0.001, 1, true);
@@ -144,10 +144,10 @@ namespace Kratos
     ///@} // Kratos Classes
 
     //template void BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints<
-    //    DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>::Pointer>>, Node<3>>(
+    //    DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>, Node>(
     //    BrepTrimmingUtilities::IntegrationPointsArrayType& rIntegrationPoints,
-    //    const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>::Pointer>>& rOuterLoops,
-    //    const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>::Pointer>>& rInnerLoops,
+    //    const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rOuterLoops,
+    //    const DenseVector<DenseVector<typename BrepCurveOnSurface<PointerVector<Node>, PointerVector<Point>>::Pointer>>& rInnerLoops,
     //    const std::vector<double>& rSpansU,
     //    const std::vector<double>& rSpansV,
     //    IntegrationInfo& rIntegrationInfo);

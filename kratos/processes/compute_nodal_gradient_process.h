@@ -74,7 +74,7 @@ struct AuxiliarVariableVectorRetriever
      * @param rVector The vector to fill
      */
     virtual void GetVariableVector(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const Variable<double>& rVariable,
         Vector& rVector
         )
@@ -102,7 +102,7 @@ struct VariableVectorRetriever
      * @param rVector The vector to fill
      */
     void GetVariableVector(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const Variable<double>& rVariable,
         Vector& rVector
         ) override;
@@ -126,7 +126,7 @@ public:
     ///@{
 
     /// The definition of the node
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Pointer definition of ComputeNodalGradientProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeNodalGradientProcess);

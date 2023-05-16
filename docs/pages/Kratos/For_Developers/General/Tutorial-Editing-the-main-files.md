@@ -103,8 +103,8 @@ namespace Kratos {
 
 KratosMyLaplacianApplication::KratosMyLaplacianApplication():
     KratosApplication("MyLaplacianApplication"),
-    mMyLaplacianElement( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
-    mPointSourceCondition( 0, Element::GeometryType::Pointer( new Point2D  <Node<3>>( Element::GeometryType::PointsArrayType (1) ) ) )
+    mMyLaplacianElement( 0, Element::GeometryType::Pointer( new Triangle2D3<Node>( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mPointSourceCondition( 0, Element::GeometryType::Pointer( new Point2D  <Node>( Element::GeometryType::PointsArrayType (1) ) ) )
     {}
 
 void KratosMyLaplacianApplication::Register() {

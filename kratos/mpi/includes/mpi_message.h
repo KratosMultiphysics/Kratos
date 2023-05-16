@@ -141,20 +141,12 @@ template<class TDataType, std::size_t Dimension> class ArrayMessage
 public:
     static inline void* Buffer(array_1d<TDataType,Dimension>& rValues)
     {
-        #ifdef KRATOS_USE_AMATRIX
-        return rValues.data();
-        #else
         return rValues.data().data();
-        #endif
     }
 
     static inline const void* Buffer(const array_1d<TDataType,Dimension>& rValues)
     {
-        #ifdef KRATOS_USE_AMATRIX
-        return rValues.data();
-        #else
         return rValues.data().data();
-        #endif
     }
 
     static inline int Size(const array_1d<TDataType,Dimension>& rValues)

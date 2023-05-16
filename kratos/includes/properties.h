@@ -80,9 +80,7 @@ public:
 
     using ContainerType = DataValueContainer;
 
-    using NodeType = Node<3>;
-
-    using GeometryType = Geometry<NodeType> ;
+    using GeometryType = Geometry<Node> ;
 
     using IndexType = std::size_t;
 
@@ -193,37 +191,37 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode)
+    typename TVariableType::Type& operator()(const TVariableType& rV, Node& rThisNode)
     {
         return GetValue(rV, rThisNode);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode) const
+    typename TVariableType::Type const& operator()(const TVariableType& rV, Node const& rThisNode) const
     {
         return GetValue(rV, rThisNode);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
+    typename TVariableType::Type& operator()(const TVariableType& rV, Node& rThisNode, IndexType SolutionStepIndex)
     {
         return GetValue(rV, rThisNode, SolutionStepIndex);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
+    typename TVariableType::Type const& operator()(const TVariableType& rV, Node const& rThisNode, IndexType SolutionStepIndex) const
     {
         return GetValue(rV, rThisNode, SolutionStepIndex);
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode, ProcessInfo const& rCurrentProcessInfo)
+    typename TVariableType::Type& operator()(const TVariableType& rV, Node& rThisNode, ProcessInfo const& rCurrentProcessInfo)
     {
         return GetValue(rV, rThisNode, rCurrentProcessInfo.GetSolutionStepIndex());
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode, ProcessInfo const& rCurrentProcessInfo) const
+    typename TVariableType::Type const& operator()(const TVariableType& rV, Node const& rThisNode, ProcessInfo const& rCurrentProcessInfo) const
     {
         return GetValue(rV, rThisNode, rCurrentProcessInfo.GetSolutionStepIndex());
     }
@@ -252,7 +250,7 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& GetValue(const TVariableType& rVariable, NodeType& rThisNode)
+    typename TVariableType::Type& GetValue(const TVariableType& rVariable, Node& rThisNode)
     {
         if (mData.Has(rVariable))
             return mData.GetValue(rVariable);
@@ -260,7 +258,7 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, NodeType const& rThisNode) const
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, Node const& rThisNode) const
     {
         if (mData.Has(rVariable))
             return mData.GetValue(rVariable);
@@ -268,7 +266,7 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type& GetValue(const TVariableType& rVariable, NodeType& rThisNode, IndexType SolutionStepIndex)
+    typename TVariableType::Type& GetValue(const TVariableType& rVariable, Node& rThisNode, IndexType SolutionStepIndex)
     {
         if (mData.Has(rVariable))
             return mData.GetValue(rVariable);
@@ -276,7 +274,7 @@ public:
     }
 
     template<class TVariableType>
-    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, NodeType const& rThisNode, IndexType SolutionStepIndex) const
+    typename TVariableType::Type const& GetValue(const TVariableType& rVariable, Node const& rThisNode, IndexType SolutionStepIndex) const
     {
         if (mData.Has(rVariable))
             return mData.GetValue(rVariable);
