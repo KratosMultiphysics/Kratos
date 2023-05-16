@@ -168,7 +168,7 @@ public:
 
         auto& r_smoothing_model_part = mrModel.GetModelPart( mAuxModelPartName );
 
-        block_for_each(r_smoothing_model_part.Nodes(), [&](Node<3>& rNode){
+        block_for_each(r_smoothing_model_part.Nodes(), [&](Node& rNode){
                 rNode.Free(DISTANCE);
                 const double distance = rNode.FastGetSolutionStepValue(DISTANCE);
                 rNode.FastGetSolutionStepValue(DISTANCE, 1) = distance;
@@ -176,13 +176,13 @@ public:
 
         mp_solving_strategy->Solve();
 
-        block_for_each(r_smoothing_model_part.Nodes(), [&](Node<3>& rNode){
+        block_for_each(r_smoothing_model_part.Nodes(), [&](Node& rNode){
                 rNode.SetValue( DISTANCE, rNode.FastGetSolutionStepValue(DISTANCE)
                     - rNode.FastGetSolutionStepValue(DISTANCE, 1) ); // Corrected distance difference
             });
 
         auto& r_data_comm = r_smoothing_model_part.GetCommunicator().GetDataCommunicator();
-        GlobalPointersVector< Node<3 > > gp_list;
+        GlobalPointersVector< Node > gp_list;
 
         const unsigned int num_nodes = r_smoothing_model_part.NumberOfNodes();
 
@@ -197,17 +197,17 @@ public:
             }
         }
 
-        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_data_comm, gp_list);
+        GlobalPointerCommunicator< Node > pointer_comm(r_data_comm, gp_list);
 
         auto combined_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3>> &global_pointer) -> std::pair<double, array_1d<double,3>> {
+            [&](GlobalPointer<Node> &global_pointer) -> std::pair<double, array_1d<double,3>> {
                 return std::make_pair(
                     global_pointer->GetValue(DISTANCE),
                     global_pointer->Coordinates());
             });
 
         auto contact_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3> >& global_pointer) -> bool
+            [&](GlobalPointer<Node >& global_pointer) -> bool
             {
                 return global_pointer->Is(CONTACT);
             }
@@ -216,13 +216,13 @@ public:
         auto &r_communicator = r_smoothing_model_part.GetCommunicator();
         r_communicator.GetDataCommunicator().Barrier();
 
-        block_for_each(r_smoothing_model_part.Nodes(), [&](Node<3>& rNode){
+        block_for_each(r_smoothing_model_part.Nodes(), [&](Node& rNode){
             const array_1d<double,3>& x_i = rNode.Coordinates();
 
             double weight = 0.0;
             double dist_diff_avg = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = rNode.GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = rNode.GetValue(NEIGHBOUR_NODES);
             array_1d<double,3> dx;
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)

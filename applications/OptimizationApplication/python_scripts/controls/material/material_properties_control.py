@@ -48,7 +48,7 @@ class MaterialPropertiesControl(Control):
     def Initialize(self) -> None:
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
         root_model_part = model_parts_list[0].GetRootModelPart()
-        is_new_model_part, self.model_part = ModelPartUtilities.MergeModelParts(root_model_part, model_parts_list, False)
+        is_new_model_part, self.model_part = ModelPartUtilities.UnionModelParts(root_model_part, model_parts_list, False)
 
         if is_new_model_part:
             # now create entity specific properties for the merged model part which is used for the control.

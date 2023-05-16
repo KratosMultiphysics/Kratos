@@ -36,7 +36,7 @@ class OmegaKBasedWallConditionData : public ScalarWallFluxConditionData
 {
 public:
     using BaseType = ScalarWallFluxConditionData;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = BaseType::GeometryType;
 
     static const Variable<double>& GetScalarVariable();

@@ -145,7 +145,7 @@ public:
             for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
             {
                 //face nodes
-                Geometry<Node<3> >& geom = (ic)->GetGeometry();
+                Geometry<Node >& geom = (ic)->GetGeometry();
                 //vector of the 3 faces around the given face
                 (ic->GetValue(NEIGHBOUR_CONDITIONS)).resize(3);
                 GlobalPointersVector< Condition >& neighb_faces = ic->GetValue(NEIGHBOUR_CONDITIONS);
@@ -296,7 +296,7 @@ private:
         for( GlobalPointersVector< Condition >::iterator i =neighbour_face.begin(); i != neighbour_face.end(); i++)
         {
             //look for the nodes of the neighbour faces
-            Geometry<Node<3> >& neigh_face_geometry = (i)->GetGeometry();
+            Geometry<Node >& neigh_face_geometry = (i)->GetGeometry();
             for( unsigned int node_i = 0 ; node_i < neigh_face_geometry.size(); node_i++)
             {
                 if (neigh_face_geometry[node_i].Id() == Id_2)
