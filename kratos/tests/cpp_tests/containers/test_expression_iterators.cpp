@@ -59,25 +59,25 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorFlatChar, KratosCoreFastSuite) {
     auto p_literal_scalar_expression = LiteralFlatExpression<char>::Create(10, {});
     auto p_literal_array_3_expression = LiteralFlatExpression<char>::Create(10, {3});
 
+    ExpressionIterator<LiteralFlatExpression<char>> scalar_itr(p_literal_scalar_expression);
     char value = 0.0;
-    std::for_each(p_literal_scalar_expression->begin(),
-                  p_literal_scalar_expression->end(), [&value](auto& rValue) {
-                      rValue = value;
-                      value += 1;
-                  });
+    std::for_each(scalar_itr.begin(), scalar_itr.end(), [&value](auto& rValue) {
+        rValue = value;
+        value += 1;
+    });
 
-    auto scalar_begin = p_literal_scalar_expression->cbegin();
+    auto scalar_begin = scalar_itr.cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
         KRATOS_CHECK_EQUAL(*(scalar_begin + i), static_cast<char>(i));
     }
 
-    std::for_each(p_literal_array_3_expression->begin(),
-                  p_literal_array_3_expression->end(), [&value](auto& rValue) {
-                      rValue = value;
-                      value += 1;
-                  });
+    ExpressionIterator<LiteralFlatExpression<char>> array_3_itr(p_literal_array_3_expression);
+    std::for_each(array_3_itr.begin(), array_3_itr.end(), [&value](auto& rValue) {
+        rValue = value;
+        value += 1;
+    });
 
-    auto vector_begin = p_literal_array_3_expression->cbegin();
+    auto vector_begin = array_3_itr.cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
         KRATOS_CHECK_EQUAL(*(vector_begin + i), static_cast<char>(i + 10));
     }
@@ -87,25 +87,25 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorFlatInt, KratosCoreFastSuite) {
     auto p_literal_scalar_expression = LiteralFlatExpression<int>::Create(10, {});
     auto p_literal_array_3_expression = LiteralFlatExpression<int>::Create(10, {3});
 
+    ExpressionIterator<LiteralFlatExpression<int>> scalar_itr(p_literal_scalar_expression);
     int value = 0.0;
-    std::for_each(p_literal_scalar_expression->begin(),
-                  p_literal_scalar_expression->end(), [&value](auto& rValue) {
-                      rValue = value;
-                      value += 1;
-                  });
+    std::for_each(scalar_itr.begin(), scalar_itr.end(), [&value](auto& rValue) {
+        rValue = value;
+        value += 1;
+    });
 
-    auto scalar_begin = p_literal_scalar_expression->cbegin();
+    auto scalar_begin = scalar_itr.cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
         KRATOS_CHECK_EQUAL(*(scalar_begin + i), static_cast<int>(i));
     }
 
-    std::for_each(p_literal_array_3_expression->begin(),
-                  p_literal_array_3_expression->end(), [&value](auto& rValue) {
-                      rValue = value;
-                      value += 1;
-                  });
+    ExpressionIterator<LiteralFlatExpression<int>> array_3_itr(p_literal_array_3_expression);
+    std::for_each(array_3_itr.begin(), array_3_itr.end(), [&value](auto& rValue) {
+        rValue = value;
+        value += 1;
+    });
 
-    auto vector_begin = p_literal_array_3_expression->cbegin();
+    auto vector_begin = array_3_itr.cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
         KRATOS_CHECK_EQUAL(*(vector_begin + i), static_cast<int>(i + 10));
     }
@@ -115,25 +115,25 @@ KRATOS_TEST_CASE_IN_SUITE(ExpressionIteratorFlatDouble, KratosCoreFastSuite) {
     auto p_literal_scalar_expression = LiteralFlatExpression<double>::Create(10, {});
     auto p_literal_array_3_expression = LiteralFlatExpression<double>::Create(10, {3});
 
+    ExpressionIterator<LiteralFlatExpression<double>> scalar_itr(p_literal_scalar_expression);
     double value = 0.0;
-    std::for_each(p_literal_scalar_expression->begin(),
-                  p_literal_scalar_expression->end(), [&value](auto& rValue) {
-                      rValue = value;
-                      value += 1;
-                  });
+    std::for_each(scalar_itr.begin(), scalar_itr.end(), [&value](auto& rValue) {
+        rValue = value;
+        value += 1;
+    });
 
-    auto scalar_begin = p_literal_scalar_expression->cbegin();
+    auto scalar_begin = scalar_itr.cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
         KRATOS_CHECK_EQUAL(*(scalar_begin + i), static_cast<double>(i));
     }
 
-    std::for_each(p_literal_array_3_expression->begin(),
-                  p_literal_array_3_expression->end(), [&value](auto& rValue) {
-                      rValue = value;
-                      value += 1;
-                  });
+    ExpressionIterator<LiteralFlatExpression<double>> array_3_itr(p_literal_array_3_expression);
+    std::for_each(array_3_itr.begin(), array_3_itr.end(), [&value](auto& rValue) {
+        rValue = value;
+        value += 1;
+    });
 
-    auto vector_begin = p_literal_array_3_expression->cbegin();
+    auto vector_begin = array_3_itr.cbegin();
     for (std::size_t i = 0; i < 10; ++i) {
         KRATOS_CHECK_EQUAL(*(vector_begin + i), static_cast<double>(i + 10));
     }
