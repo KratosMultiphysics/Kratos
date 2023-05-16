@@ -29,6 +29,7 @@
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"
+#include "utilities/string_utilities.h"
 
 namespace Kratos
 {
@@ -550,7 +551,7 @@ public:
             rOStream << "This properties contains " << mTables.size() << " tables\n";
             for (auto& r_table : mTables) {
                 rOStream << "Table key: " << r_table.first << "\n";
-                PrintDataWithIdentation(rOStream, r_table.second);
+                StringUtilities::PrintDataWithIdentation(rOStream, r_table.second);
             }
         }
 
@@ -559,7 +560,7 @@ public:
             // Print the subproperties
             rOStream << "\nThis properties contains " << mSubPropertiesList.size() << " subproperties\n";
             for (auto& r_subprop : mSubPropertiesList) {
-                PrintDataWithIdentation(rOStream, r_subprop);
+                StringUtilities::PrintDataWithIdentation(rOStream, r_subprop);
             }
         }
 
@@ -569,7 +570,7 @@ public:
             rOStream << "\nThis properties contains " << mAccessors.size() << " accessors\n";
             for (auto& r_entry : mAccessors) {
                 rOStream << "Accessor for variable key: " << r_entry.first << "\n";
-                PrintDataWithIdentation(rOStream, *r_entry.second);
+                StringUtilities::PrintDataWithIdentation(rOStream, *r_entry.second);
             }
         }
     }
@@ -631,35 +632,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@
-
-    /**
-     * @brief Prints the data of an object of type TClass to the given output stream with indentation.
-     * @param rOStream The output stream where the data will be printed.
-     * @param rThisClass The object of type TClass whose data will be printed.
-     * @param Identation (optional) The string used for the indentation. Default is four spaces.
-     */
-    template<class TClass>
-    static void PrintDataWithIdentation(
-        std::ostream& rOStream,
-        const TClass& rThisClass,
-        const std::string Identation = "\t"
-        )
-    {
-        // Auxiliary stream and line
-        std::stringstream ss;
-        std::string line;
-        rThisClass.PrintData(ss);
-
-        // Get the output string from the stringstream.
-        const std::string& r_output = ss.str();
-
-        // Split the output string into lines.
-        std::istringstream iss(r_output);
-        while (std::getline(iss, line)) {
-            // Here, 'line' is a single line from the output.
-            rOStream << Identation << line << "\n";
-        }
-    }
 
     ///@}
     ///@name Serialization
