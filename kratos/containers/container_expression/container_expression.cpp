@@ -296,7 +296,7 @@ void ContainerExpression<TContainerType, TMeshType>::SetExpression(Expression::P
 }
 
 template <class TContainerType, class TMeshType>
-const bool ContainerExpression<TContainerType, TMeshType>::HasExpression() const
+bool ContainerExpression<TContainerType, TMeshType>::HasExpression() const
 {
     return mpExpression.has_value();
 }

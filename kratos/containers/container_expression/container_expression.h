@@ -269,7 +269,7 @@ public:
      * @return true             If an expression is initialized.
      * @return false            If an expression is not initialized.
      */
-    const bool HasExpression() const;
+    bool HasExpression() const;
 
     /**
      * @brief Get the Expression
