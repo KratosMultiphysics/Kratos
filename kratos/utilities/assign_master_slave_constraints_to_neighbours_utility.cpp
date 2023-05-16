@@ -96,9 +96,8 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForSl
     } else {
         std::stringstream variables_str;
         variables_str << "[";
-        for (const auto& variable : rVariableList) {
+        for (const auto& variable : rVariableList) 
             variables_str << variable.get() << ", ";
-        }
         variables_str.seekp(-2, std::ios_base::end); // Remove the last ", "
         variables_str << "]";
         KRATOS_ERROR << "The node with ID " << pSlaveNode->Id() << " does not have the required DOFs for one of the variables " << variables_str.str() << std::endl;
@@ -124,9 +123,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCl
 
     // Resize rCloudOfDofs vectors to match the size of the cloud of nodes
     for (auto& dofs : rCloudOfDofs)
-    {
         dofs.resize(CloudOfNodesArray.size());
-    }
 
     // Resize rCloudOfNodesCoordinates to match the size of the cloud of nodes
     rCloudOfNodesCoordinates.resize(CloudOfNodesArray.size(), 3);
@@ -143,10 +140,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCl
 
             // Check if the slave node has the required DOF for the current variable
             if (pSlaveNode->HasDofFor(r_variable.get()))
-            {
-                // Assign the DOF pointer to the corresponding position in rCloudOfDofs
-                rCloudOfDofs[j][i] = pSlaveNode->pGetDof(r_variable.get());
-            }
+                rCloudOfDofs[j][i] = pSlaveNode->pGetDof(r_variable.get()); // Assign the DOF pointer to the corresponding position in rCloudOfDofs
             else
             {
                 std::stringstream variable_str;
@@ -185,9 +179,8 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
 
     int prev_num_mscs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
-    if (prev_num_mscs > 0) {
+    if (prev_num_mscs > 0)
         KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
-    }
 
     auto& p_nodes_array = pSlaveNodes.GetContainer();  // Get the container of slave nodes
 
@@ -236,9 +229,8 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     ModelPart::MasterSlaveConstraintType::Pointer p_constraint;
 
     // Dequeue the constraints from the concurrent queue and add them to the temporary container
-    while (concurrent_constraints.try_dequeue(p_constraint)) {
+    while (concurrent_constraints.try_dequeue(p_constraint))
         temp_constraints.push_back(p_constraint);
-    }
 
     // Add the constraints to the rComputingModelPart in a single call
     rComputingModelPart.AddMasterSlaveConstraints(temp_constraints.begin(), temp_constraints.end());
