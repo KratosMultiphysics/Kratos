@@ -566,7 +566,7 @@ public:
         // Accessors
         if (mAccessors.size() > 0) {
             // Print the accessors
-            rOStream << "\nThis properties contains the following " << mAccessors.size() << " accessors\n";
+            rOStream << "\nThis properties contains " << mAccessors.size() << " accessors\n";
             for (auto& r_entry : mAccessors) {
                 rOStream << "Accessor for variable key: " << r_entry.first << "\n";
                 PrintDataWithIdentation(rOStream, *r_entry.second);
