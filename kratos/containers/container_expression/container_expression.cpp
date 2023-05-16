@@ -137,15 +137,13 @@ void Read(
 
     auto p_expression = LiteralFlatExpression<TRawDataType>::Create(number_of_entities, shape);
     rContainerExpression.SetExpression(p_expression);
+    TRawDataType* data_itr = p_expression->DataBegin();
 
     const IndexType flattened_size = rContainerExpression.GetExpression().GetFlattenedShapeSize();
+    const IndexType total_size = number_of_entities * flattened_size;
 
-    IndexPartition<IndexType>(number_of_entities).for_each([pBegin, flattened_size, &p_expression](const IndexType EntityIndex) {
-        const IndexType entity_data_begin_index = EntityIndex * flattened_size;
-        double const* p_input_data_begin = pBegin + entity_data_begin_index;
-        for (IndexType i = 0; i < flattened_size; ++i) {
-            p_expression->SetData(entity_data_begin_index, i, *(p_input_data_begin+i));
-        }
+    IndexPartition<IndexType>(total_size).for_each([pBegin, data_itr](const IndexType Index) {
+        *(data_itr + Index) = *(pBegin + Index);
     });
 
     KRATOS_CATCH("");
