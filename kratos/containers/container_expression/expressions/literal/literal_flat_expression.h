@@ -91,11 +91,11 @@ public:
 
     inline IndexType DataSize() const noexcept { return mData.DataSize(); }
 
-    inline TRawDataType* data_begin() noexcept { return mData.data_begin(); }
+    inline TRawDataType* DataBegin() noexcept { return mData.DataBegin(); }
 
-    inline TRawDataType const* data_begin() const noexcept { return mData.data_begin(); }
+    inline TRawDataType const* DataBegin() const noexcept { return mData.DataBegin(); }
 
-    inline TRawDataType const* data_end() const noexcept { return mData.data_end(); }
+    inline TRawDataType const* DataEnd() const noexcept { return mData.DataEnd(); }
 
     std::string Info() const override;
 
@@ -148,9 +148,9 @@ protected:
 
         inline TRawDataType* DataBegin() noexcept { return mpBegin; }
 
-        inline TRawDataType const* data_begin() const noexcept { return mpBegin; }
+        inline TRawDataType const* DataBegin() const noexcept { return mpBegin; }
 
-        inline TRawDataType const* data_end() const noexcept { return mpBegin + mSize; }
+        inline TRawDataType const* DataEnd() const noexcept { return mpBegin + mSize; }
 
         inline IndexType DataSize() const noexcept { return mSize; }
 
