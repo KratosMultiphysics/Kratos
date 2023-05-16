@@ -992,8 +992,8 @@ protected:
     double mScaleFactor = 1.0;         /// The manually set scale factor
 
     /* Flags */
-    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL;; /// We identify the scaling considered for the dirichlet dofs
-    Flags mOptions;                    /// Some flags used internally
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL; /// We identify the scaling considered for the dirichlet dofs
+    Flags mOptions;                                                              /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
