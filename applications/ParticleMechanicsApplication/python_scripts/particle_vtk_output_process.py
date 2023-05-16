@@ -39,6 +39,8 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
             grid_settings = KratosMultiphysics.Parameters()
             grid_settings.AddString("model_part_name","Background_Grid")
             grid_settings.AddString("file_format",settings["file_format"].GetString())
+            grid_settings.AddDouble("output_precision",settings["output_precision"].GetDouble())
+            grid_settings.AddBool("output_sub_model_parts",settings["output_sub_model_parts"].GetBool())
             grid_settings.AddString("output_path",settings["output_path"].GetString())
             grid_settings.AddBool("save_output_files_in_folder",settings["save_output_files_in_folder"].GetBool())
             background_grid = model["Background_Grid"]
