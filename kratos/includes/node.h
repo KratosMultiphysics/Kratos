@@ -192,7 +192,7 @@ public:
 
     //*********************************************
     //public API of intrusive_ptr
-    unsigned int use_count() const noexcept
+    inline unsigned int use_count() const noexcept
     {
         return mReferenceCounter;
     }
@@ -203,25 +203,37 @@ public:
      * @brief This method returns the current Id of the node.
      * @return The Id of the node.
      */
-    IndexType Id() const;
+    inline IndexType Id() const
+    {
+        return mNodalData.Id();
+    }
 
     /**
      * @brief This method returns the current Id of the node.
      * @return The Id of the node.
      */
-    IndexType GetId() const;
+    inline IndexType GetId() const
+    {
+        return mNodalData.Id();
+    }
 
     /**
      * @brief This method sets the Id of the node.
      * @param NewId The new Id of the node.
      */
-    void SetId(const IndexType NewId);
+    inline void SetId(const IndexType NewId)
+    {
+        mNodalData.SetId(NewId);
+    }
 
     /**
      * @brief This method returns the lock of the node.
      * @return The lock of the node.
     */
-    LockObject& GetLock();
+    inline LockObject& GetLock()
+    {
+        return mNodeLock;
+    }
 
     /**
      * @brief Locks the node lock for thread-safe access. This function is inline to reduce function call overhead.
@@ -335,28 +347,43 @@ public:
     void OverwriteSolutionStepData(
         const IndexType SourceSolutionStepIndex,
         const IndexType DestinationSourceSolutionStepIndex
-        );
+        )
+    {
+        SolutionStepData().AssignData(SolutionStepData().Data(SourceSolutionStepIndex), DestinationSourceSolutionStepIndex);
+    }
 
     /**
      * @brief This method clears the solution step data for the node.
     */
-    void ClearSolutionStepsData();
+    void ClearSolutionStepsData()
+    {
+        SolutionStepData().Clear();
+    }
 
     /**
      * @brief This method sets the solution step data for the node.
     */
-    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList);
+    void SetSolutionStepVariablesList(VariablesList::Pointer pVariablesList)
+    {
+        SolutionStepData().SetVariablesList(pVariablesList);
+    }
 
     /**
      * @brief This method returns the solution step data for the node.
     */
-    VariablesListDataValueContainer& SolutionStepData();
+    VariablesListDataValueContainer& SolutionStepData()
+    {
+        return mNodalData.GetSolutionStepData();
+    }
 
     /**
      * @brief This method returns the solution step data for the node.
      * @details This method is const and should be used only when the data is not going to be modified.
     */
-    const VariablesListDataValueContainer& SolutionStepData() const;
+    const VariablesListDataValueContainer& SolutionStepData() const
+    {
+        return mNodalData.GetSolutionStepData();
+    }
 
     /**
      * @brief Returns a reference to the value of the given variable from the current solution step.
@@ -672,66 +699,99 @@ public:
      * @return The non-historical data container
      */
     KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
-    DataValueContainer& Data();
+    inline DataValueContainer& Data()
+    {
+        return mData;
+    }
 
     /**
      * @brief Get the non-historical data container
      * @return The non-historical data container
      */
-    DataValueContainer& GetData();
+    inline DataValueContainer& GetData()
+    {
+        return mData;
+    }
 
     /**
      * @brief Get the non-historical data container
      * @details const version
      * @return The non-historical data container
      */
-    const DataValueContainer& GetData() const;
+    inline const DataValueContainer& GetData() const
+    {
+        return mData;
+    }
 
     /**
      * @brief Get the initial coordinates as a point
      * @return The initial position as a point
      * @details const version
      */
-    const PointType& GetInitialPosition() const;
+    inline const PointType& GetInitialPosition() const
+    {
+        return mInitialPosition;
+    }
 
     /**
      * @brief Get the initial coordinates as a point
      * @return The initial position as a point
      */
-    PointType& GetInitialPosition();
+    inline PointType& GetInitialPosition()
+    {
+        return mInitialPosition;
+    }
 
     /**
      * @brief Get the initial X coordinate
      */
-    double& X0();
+    inline double& X0()
+    {
+        return mInitialPosition.X();
+    }
 
     /**
      * @brief Get the initial Y coordinate
      */
-    double& Y0();
+    inline double& Y0()
+    {
+        return mInitialPosition.Y();
+    }
 
     /**
      * @brief Get the initial Z coordinate
      */
-    double& Z0();
+    inline double& Z0()
+    {
+        return mInitialPosition.Z();
+    }
 
     /**
      * @brief Get the initial X coordinate
      * @details const version
      */
-    double X0() const;
+    inline double X0() const
+    {
+        return mInitialPosition.X();
+    }
 
     /**
      * @brief Get the initial Y coordinate
      * @details const version
      */
-    double Y0() const;
+    inline double Y0() const
+    {
+        return mInitialPosition.Y();
+    }
 
     /**
      * @brief Get the initial Z coordinate
      * @details const version
      */
-    double Z0() const;
+    inline double Z0() const
+    {
+        return mInitialPosition.Z();
+    }
 
     /**
      * @brief Set the initial coordinates
