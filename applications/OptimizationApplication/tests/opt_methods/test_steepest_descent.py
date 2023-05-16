@@ -10,7 +10,6 @@ from KratosMultiphysics.OptimizationApplication.responses.mass_response_function
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control import MaterialPropertiesControl
 
-
 class TestKratosSteepestDescent(kratos_unittest.TestCase, ABC):
     @classmethod
     def setUpClass(cls):
@@ -58,8 +57,8 @@ class TestKratosSteepestDescent(kratos_unittest.TestCase, ABC):
             "settings"          : {
                 "gradient_scaling": "inf_norm",
                 "echo_level"      : 0,
-                "step_size"       : 0.1, 
-                "max_iter"        : 1
+                "step_size"       : 0.01, 
+                "max_iter"        : 2
             }
         }""")
 

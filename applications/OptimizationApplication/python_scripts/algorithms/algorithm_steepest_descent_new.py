@@ -1,9 +1,11 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics import Parameters, Logger
 
 
@@ -69,22 +71,24 @@ class KratosSteepestDescent(Algorithm):
         self.__obj_val = None
         self.opt_iter = 1
 
+        CallOnAll(self.master_control.GetListOfControls(), Control.Initialize)
+        self.master_control.Initialize()
+        self.__objective.GetReponse().Initialize()
         self.__objective.Initialize()
-
-        for control_param in self.__control_param_list.values():
-            control_name = control_param.GetString()
-            control = self._optimization_problem.GetControl(control_name)
-            control.Initialize()
-        self.__control_field = self.master_control.GetEmptyField() # GetInitialControlFields() later
+        self.__objective.Check()
+        self.__control_field = self.master_control.GetControlField() # GetInitialControlFields() later
 
     def Finalize(self):
         pass
     
-    def ComputeSearchDirection(obj_grad) -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def ComputeSearchDirection(self, obj_grad) -> KratosOA.ContainerExpression.CollectiveExpressions:
         return obj_grad * -1.0
     
     def LineSearch(self, search_direction) -> float:
-        return self.step_size / KratosOA.ContainerExpressionUtils.NormInf(search_direction)
+        if KratosOA.ContainerExpressionUtils.NormInf(search_direction):
+            return self.step_size / KratosOA.ContainerExpressionUtils.NormInf(search_direction)
+        else:
+            return self.step_size
     
     def GetCurrentObjValue(self) -> float:
         return self.__obj_val
@@ -98,6 +102,7 @@ class KratosSteepestDescent(Algorithm):
         while not self.converged:
 
             self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) # __obj_val is typically not used. It is needed if we use Line Search Technique and for output
+            Logger.Print(self.__obj_val)
             obj_grad = self.__objective.CalculateStandardizedGradient()
             search_direction = self.ComputeSearchDirection(obj_grad)
             alpha = self.LineSearch(search_direction)
