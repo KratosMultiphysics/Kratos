@@ -904,14 +904,22 @@ public:
 
     /**
      * @brief Returns all of the Dofs
+     * @return The Degrees of Freedom of the node
      */
-    DofsContainerType& GetDofs();
+    DofsContainerType& GetDofs()
+    {
+        return mDofs;
+    }
 
     /**
      * @brief Returns all of the Dofs
      * @details const version
+     * @return The Degrees of Freedom of the node
      */
-    const DofsContainerType& GetDofs() const;
+    const DofsContainerType& GetDofs() const
+    {
+        return mDofs;
+    }
 
     /**
      * @brief Get DoF counted pointer for a given variable
