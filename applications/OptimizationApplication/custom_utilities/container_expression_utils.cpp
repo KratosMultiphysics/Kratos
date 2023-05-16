@@ -124,12 +124,12 @@ void ComputeMatrixExpressionProduct(
 template<class TContainerType>
 double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<TContainerType>& rContainer)
 {
-    if (rContainer.GetFlattenedSize() == 0) {
+    if (rContainer.GetFlattenedShapeSize() == 0) {
         return 0.0;
     }
 
     const auto& r_expression = rContainer.GetExpression();
-    const IndexType local_size = rContainer.GetFlattenedSize();
+    const IndexType local_size = rContainer.GetFlattenedShapeSize();
     const IndexType number_of_entities = rContainer.GetContainer().size();
 
     return std::sqrt(rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&r_expression, local_size](const IndexType EntityIndex) {
@@ -146,7 +146,7 @@ template<class TContainerType>
 double ContainerExpressionUtils::NormInf(const ContainerExpression<TContainerType>& rContainer)
 {
     const auto& r_expression = rContainer.GetExpression();
-    const IndexType local_size = rContainer.GetFlattenedSize();
+    const IndexType local_size = rContainer.GetFlattenedShapeSize();
     const IndexType number_of_entities = rContainer.GetContainer().size();
 
     return rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&r_expression, local_size](const IndexType EntityIndex) {
@@ -174,7 +174,7 @@ double ContainerExpressionUtils::NormL2(
     const ContainerExpression<TContainerType>& rContainer)
 {
     const auto& r_expression = rContainer.GetExpression();
-    const IndexType local_size = rContainer.GetFlattenedSize();
+    const IndexType local_size = rContainer.GetFlattenedShapeSize();
     const IndexType number_of_entities = rContainer.GetContainer().size();
 
     const double local_l2_norm_square = IndexPartition<IndexType>(number_of_entities).for_each<SumReduction<double>>([&r_expression, local_size](const IndexType EntityIndex) {
@@ -205,11 +205,11 @@ double ContainerExpressionUtils::InnerProduct(
     const ContainerExpression<TContainerType>& rContainer2)
 {
     const auto& r_expression_1 = rContainer1.GetExpression();
-    const IndexType local_size_1 = rContainer1.GetFlattenedSize();
+    const IndexType local_size_1 = rContainer1.GetFlattenedShapeSize();
     const IndexType number_of_entities_1 = rContainer1.GetContainer().size();
 
     const auto& r_expression_2 = rContainer2.GetExpression();
-    const IndexType local_size_2 = rContainer2.GetFlattenedSize();
+    const IndexType local_size_2 = rContainer2.GetFlattenedShapeSize();
     const IndexType number_of_entities_2 = rContainer2.GetContainer().size();
 
     KRATOS_ERROR_IF(local_size_1 != local_size_2)
@@ -289,7 +289,7 @@ void ContainerExpressionUtils::ProductWithEntityMatrix(
     auto p_flat_data_expression = LiteralFlatExpression::Create(number_of_output_entities, rInput.GetShape());
     rOutput.SetExpression(p_flat_data_expression);
 
-    const IndexType local_size = rInput.GetFlattenedSize();
+    const IndexType local_size = rInput.GetFlattenedShapeSize();
     const auto& r_input_expression = rInput.GetExpression();
     auto& r_output_expression = *p_flat_data_expression;
 
@@ -343,7 +343,7 @@ void ContainerExpressionUtils::ProductWithEntityMatrix(
     rOutput.SetExpression(p_flat_data_expression);
 
     const auto& r_input_expression = rInput.GetExpression();
-    const IndexType local_size = rInput.GetFlattenedSize();
+    const IndexType local_size = rInput.GetFlattenedShapeSize();
     auto& r_output_expression = *p_flat_data_expression;
 
     IndexPartition<IndexType>(rMatrix.size1()).for_each([&rMatrix, &r_input_expression, &r_output_expression, local_size](const IndexType i) {
@@ -445,7 +445,7 @@ void ContainerExpressionUtils::MapContainerVariableToNodalVariable(
         << "\n\tOutput container            : " << rOutput
         << "\n\tNeighbour entities container: " << rNeighbourEntities << "\n";
 
-    KRATOS_ERROR_IF(rNeighbourEntities.GetFlattenedSize() != 1)
+    KRATOS_ERROR_IF(rNeighbourEntities.GetFlattenedShapeSize() != 1)
         << "Neighbour entities container can only have data with dimensionality = 1"
         << "\n\tNeighbour entities container:" << rNeighbourEntities << "\n";
 
@@ -576,7 +576,7 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
         << "[ Provided entities size = " << rEntities.size()
         << ", output data container entities size = " << rOutput.GetContainer().size() << " ].\n";
 
-    const IndexType local_size = rNodalValues.GetFlattenedSize();
+    const IndexType local_size = rNodalValues.GetFlattenedShapeSize();
 
     std::visit([&rOutput, &rNodalValues, &rMatrixVariable, &rEntities, &dummy_container, local_size](auto&& p_variable_pair) {
         const auto& r_input_variable = *std::get<0>(p_variable_pair);

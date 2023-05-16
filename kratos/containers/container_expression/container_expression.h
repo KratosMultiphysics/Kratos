@@ -252,7 +252,7 @@ public:
      *
      * @return IndexType
      */
-    IndexType GetFlattenedSize() const;
+    IndexType GetFlattenedShapeSize() const;
 
     /**
      * @brief Get the Model Part used in the container data

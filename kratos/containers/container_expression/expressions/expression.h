@@ -76,7 +76,7 @@ public:
      *
      * @return IndexType
      */
-    IndexType GetFlattenedSize() const;
+    IndexType GetFlattenedShapeSize() const;
 
     ///@}
     ///@name Input and output
