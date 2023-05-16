@@ -66,7 +66,7 @@ public:
     /// Pointer definition of EstimateTimeStepUtility
     KRATOS_CLASS_POINTER_DEFINITION(EstimateTimeStepUtility);
 
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 

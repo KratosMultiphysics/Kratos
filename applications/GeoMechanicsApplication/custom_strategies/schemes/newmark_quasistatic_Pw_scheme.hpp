@@ -129,7 +129,7 @@ protected:
         KRATOS_TRY
 
         //Update DtPressure
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
             const auto &PreviousDtPressure = rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);

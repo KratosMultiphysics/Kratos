@@ -101,7 +101,7 @@ public:
     typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
 
     /// Node definition
-    typedef Node <3>                                                   NodeType;
+    typedef Node                                                   NodeType;
     // Geometry definition
     typedef Geometry<NodeType>                                     GeometryType;
 

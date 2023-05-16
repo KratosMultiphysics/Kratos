@@ -26,7 +26,7 @@
 namespace Kratos {
 namespace Testing {
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef NurbsVolumeGeometry<PointerVector<NodeType>> NurbsVolumeGeometryType;
 typedef typename NurbsVolumeGeometry<PointerVector<NodeType>>::Pointer NurbsVolumeGeometryPointerType;
 
