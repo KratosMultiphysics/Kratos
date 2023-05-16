@@ -66,7 +66,7 @@ protected:
 
         //Update DtTemperature
 
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             const double DeltaTemperature =  rNode.FastGetSolutionStepValue(TEMPERATURE)
                                            - rNode.FastGetSolutionStepValue(TEMPERATURE, 1);
             rNode.FastGetSolutionStepValue(DT_TEMPERATURE) = DeltaTemperature / mDeltaTime;

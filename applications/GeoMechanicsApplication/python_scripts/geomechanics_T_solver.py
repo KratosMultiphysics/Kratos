@@ -6,19 +6,23 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructure
 
 # Import base class file
-from KratosMultiphysics.GeoMechanicsApplication.geomechanics_U_Pw_solver import UPwSolver
+from KratosMultiphysics.GeoMechanicsApplication.geomechanics_solver import GeoMechanicalSolver as GeoSolver
 
 def CreateSolver(model, custom_settings):
     return TSolver(model, custom_settings)
 
-class TSolver(UPwSolver):
+class TSolver(GeoSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
+    # =============================================================================================
+    # =============================================================================================
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "Construction of Solver finished.")
 
+    # =============================================================================================
+    # =============================================================================================
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
@@ -99,15 +103,25 @@ class TSolver(UPwSolver):
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
+    # =============================================================================================
+    # =============================================================================================
+    def PrepareModelPart(self):
+        super().PrepareModelPart()
+        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "Model reading finished.")
+
+    # =============================================================================================
+    # =============================================================================================
     def AddDofs(self):
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "DOFs added correctly.")
 
-
+    # =============================================================================================
+    # =============================================================================================
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_T_Solver]:: ", "Initialisation ...")
+        
         super().Initialize()
 
         self.find_neighbour_elements_of_conditions_process = KratosGeo.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
@@ -123,9 +137,11 @@ class TSolver(UPwSolver):
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "Solver initialization finished.")
 
+
     #### Specific internal functions ####
 
-
+    # =============================================================================================
+    # =============================================================================================
     def _ConstructScheme(self, scheme_type, solution_type):
 
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.DT_TEMPERATURE_COEFFICIENT, 1.0)
@@ -158,6 +174,8 @@ class TSolver(UPwSolver):
 
         return scheme
 
+    # =============================================================================================
+    # =============================================================================================
     def _ConstructConvergenceCriterion(self, convergence_criterion):
 
         D_RT = self.settings["temperature_relative_tolerance"].GetDouble()
@@ -190,4 +208,3 @@ class TSolver(UPwSolver):
             raise Exception(err_msg)
 
         return convergence_criterion
-
