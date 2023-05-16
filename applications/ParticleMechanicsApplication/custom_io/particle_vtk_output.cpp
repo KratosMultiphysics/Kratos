@@ -302,38 +302,6 @@ void ParticleVtkOutput::WriteConditionResultsToFile(
 /***********************************************************************************/
 
 template<typename TContainerType>
-void ParticleVtkOutput::WriteGeometricalContainerResults(
-    const std::string& rVariableName,
-    const TContainerType& rContainer,
-    std::ofstream& rFileStream
-    ) const
-{
-    if (KratosComponents<Variable<double>>::Has(rVariableName)){
-        const Variable<double>& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
-        WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
-    } else if (KratosComponents<Variable<bool>>::Has(rVariableName)){
-        const Variable<bool>& var_to_write = KratosComponents<Variable<bool>>::Get(rVariableName);
-        WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
-    } else if (KratosComponents<Variable<int>>::Has(rVariableName)){
-        const Variable<int>& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
-        WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
-    } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
-        const Variable<array_1d<double, 3>>& var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
-        WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
-    } else if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
-        const Variable<Vector>& var_to_write = KratosComponents<Variable<Vector>>::Get(rVariableName);
-        WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
-    } else {
-        KRATOS_WARNING_ONCE(rVariableName) << mrModelPart.GetCommunicator().GetDataCommunicator()
-            << "Variable \"" << rVariableName << "\" is "
-            << "not suitable for ParticleVtkOutput, skipping it" << std::endl;
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<typename TContainerType>
 void ParticleVtkOutput::WritePropertiesIdsToFile(
     const TContainerType& rContainer,
     std::ofstream& rFileStream

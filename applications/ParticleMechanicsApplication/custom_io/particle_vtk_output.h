@@ -161,20 +161,6 @@ protected:
         );
 
     /**
-     * @brief Write the variable results of rContainer (Elements or Conditions).
-     * @tparam TContainerType The type of container of the entity on which the results are to be written
-     * @param rVariableName name of the result to be written.
-     * @param rContainer the container which is beging output
-     * @param rFileStream the file stream to which data is to be written.
-     */
-    template<typename TContainerType>
-    void WriteGeometricalContainerResults(
-        const std::string& rVariableName,
-        const TContainerType& rContainer,
-        std::ofstream& rFileStream
-        ) const;
-
-    /**
      * @brief Write the scalar-nonhistorical variable results of rContainer.
      * @tparam TContainerType The type of container of the entity on which the results are to be written
      * @tparam TVarType The type of Variable of the entity on which the results are to be written
