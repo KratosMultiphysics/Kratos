@@ -135,7 +135,6 @@ public:
     /// Destructor.
     ~Properties() override {}
 
-
     ///@}
     ///@name Operators
     ///@{
