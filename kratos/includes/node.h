@@ -192,7 +192,10 @@ public:
 
     //*********************************************
     //public API of intrusive_ptr
-    unsigned int use_count() const noexcept;
+    unsigned int use_count() const noexcept
+    {
+        return mReferenceCounter;
+    }
 
     //*********************************************
 
