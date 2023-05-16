@@ -607,7 +607,7 @@ namespace Kratos::Testing
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 2, 3, 4, 4, 5};
         std::vector<int> column_indexes = {0, 1, 2, 4, 3, 2, 4, 5};
-        std::vector<double> values = {2069000000.0, 1.0, 4138000000.0, -2069000000.0, 1.0, -2069000000.0, 2069000000.0, 1.0};
+        std::vector<double> values = {2069000000.0, 4138000000.0, 4138000000.0, -2069000000.0, 4138000000.0, -2069000000.0, 2069000000.0, 4138000000.0};
 
         // Check assembly
         TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
@@ -678,7 +678,7 @@ namespace Kratos::Testing
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5};
         std::vector<int> column_indexes = {0, 1, 2, 3, 4, 5};
-        std::vector<double> values = {2069000000.0, 1.0, 2069000000.0, 1.0, 1.0, 1.0};
+        std::vector<double> values = {2069000000.0, 2069000000.0, 2069000000.0, 2069000000.0, 2069000000.0, 2069000000.0};
 
         // Check assembly
         TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
