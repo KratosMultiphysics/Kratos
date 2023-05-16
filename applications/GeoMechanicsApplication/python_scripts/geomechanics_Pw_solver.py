@@ -14,15 +14,11 @@ def CreateSolver(model, custom_settings):
 class PwSolver(GeoSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
-    # =============================================================================================
-    # =============================================================================================
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "Construction of Solver finished.")
 
-    # =============================================================================================
-    # =============================================================================================
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
@@ -102,22 +98,16 @@ class PwSolver(GeoSolver):
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
-    # =============================================================================================
-    # =============================================================================================
     def PrepareModelPart(self):
         super().PrepareModelPart()
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "Model reading finished.")
 
-    # =============================================================================================
-    # =============================================================================================
     def AddDofs(self):
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "DOFs added correctly.")
 
-    # =============================================================================================
-    # =============================================================================================
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_Pw_Solver]:: ", "Initialisation ...")
         
@@ -136,11 +126,9 @@ class PwSolver(GeoSolver):
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "Solver initialization finished.")
 
-
     #### Specific internal functions ####
 
-    # =============================================================================================
-    # =============================================================================================
+
     def _ConstructScheme(self, scheme_type, solution_type):
 
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT, 1.0)
@@ -174,8 +162,6 @@ class PwSolver(GeoSolver):
 
         return scheme
 
-    # =============================================================================================
-    # =============================================================================================
     def _ConstructConvergenceCriterion(self, convergence_criterion):
 
         D_RT = self.settings["water_pressure_relative_tolerance"].GetDouble()

@@ -15,15 +15,11 @@ def CreateSolver(model, custom_settings):
 class UPwSolver(GeoSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
-    # =============================================================================================
-    # =============================================================================================
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Construction of Solver finished.")
-        
-    # =============================================================================================
-    # =============================================================================================
+
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
@@ -108,14 +104,10 @@ class UPwSolver(GeoSolver):
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
-    # =============================================================================================
-    # =============================================================================================
     def PrepareModelPart(self):
         super().PrepareModelPart()
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Model reading finished.")
 
-    # =============================================================================================
-    # =============================================================================================
     def AddDofs(self):
         ## displacement dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
@@ -160,8 +152,6 @@ class UPwSolver(GeoSolver):
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "DOFs added correctly.")
 
-    # =============================================================================================
-    # =============================================================================================
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_U_Pw_Solver]:: ", "Initialisation ...")
 
@@ -180,11 +170,8 @@ class UPwSolver(GeoSolver):
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Solver initialization finished.")
 
-
     #### Specific internal functions ####
-    
-    # =============================================================================================
-    # =============================================================================================
+
     def _ConstructScheme(self, scheme_type, solution_type):
 
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT, 1.0)
@@ -231,9 +218,7 @@ class UPwSolver(GeoSolver):
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 
         return scheme
-        
-    # =============================================================================================
-    # =============================================================================================
+
     def _ConstructConvergenceCriterion(self, convergence_criterion):
 
         D_RT = self.settings["displacement_relative_tolerance"].GetDouble()
@@ -279,13 +264,9 @@ class UPwSolver(GeoSolver):
 
         return convergence_criterion
 
-    # =============================================================================================
-    # =============================================================================================
     def _CheckConvergence(self):
         IsConverged = self.solver.IsConverged()
         return IsConverged
 
-    # =============================================================================================
-    # =============================================================================================
     def _UpdateLoads(self):
         self.solver.UpdateLoads()
