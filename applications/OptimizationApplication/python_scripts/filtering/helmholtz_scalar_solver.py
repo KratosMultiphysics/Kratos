@@ -13,11 +13,6 @@ def CreateSolver(model, custom_settings):
 
 
 class HelmholtzScalarSolver(HelmholtzSolverBase):
-    def __init__(self, model, custom_settings):
-        super().__init__(model, custom_settings)
-        self.filter_radius = self.settings["filter_radius"].GetDouble()
-        KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: Construction finished")
-
     def AddVariables(self):
         # Add variables required for the helmholtz filtering
         self.original_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)

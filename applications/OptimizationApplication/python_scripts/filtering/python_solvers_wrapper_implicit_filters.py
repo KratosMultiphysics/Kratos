@@ -8,18 +8,14 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
 
-        if (filter_type == "general_vector"):
-            solver_module_name = "helmholtz_vector_solver"
-
-        elif (filter_type == "general_scalar" ):
+        if (filter_type == "general_scalar" ):
             solver_module_name = "helmholtz_scalar_solver"
 
-        elif (filter_type == "shape"):
-            solver_module_name = "helmholtz_shape_solver"
-
+        elif (filter_type == "bulk_surface_shape"):
+            solver_module_name = "helmholtz_bulk_surface_solver"
         else:
             err_msg =  'The requested solver type "' + filter_type + '" is not in the python solvers wrapper\n'
-            err_msg += 'Available options are: "general_vector", "general_scalar", "shape"'
+            err_msg += 'Available options are: "general_scalar", "bulk_surface_shape"'
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism

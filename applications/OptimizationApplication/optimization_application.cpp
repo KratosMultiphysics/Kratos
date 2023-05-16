@@ -42,8 +42,12 @@ namespace Kratos
         mHelmholtzSurfaceElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzSolidElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzSolidElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(Element::GeometryType::PointsArrayType(8)))),
+        mHelmholtzSolidShapeElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzSolidShapeElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(Element::GeometryType::PointsArrayType(8)))),
         /* CONDITIONS */
-        mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))
+        mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+        mHelmholtzSurfaceShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+        mHelmholtzSurfaceShapeCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Condition::GeometryType::PointsArrayType(4))))
     {}
 
  	void KratosOptimizationApplication::Register()
@@ -204,7 +208,12 @@ namespace Kratos
 		KRATOS_REGISTER_ELEMENT("HelmholtzSurfaceElement3D4N", mHelmholtzSurfaceElement3D4N);
 		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D4N", mHelmholtzSolidElement3D4N);
 		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D8N", mHelmholtzSolidElement3D8N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSolidShapeElement3D4N", mHelmholtzSolidShapeElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSolidShapeElement3D8N", mHelmholtzSolidShapeElement3D8N);
 
+        // Register the helmholtz conditions
+		KRATOS_REGISTER_CONDITION("HelmholtzSurfaceShapeCondition3D3N", mHelmholtzSurfaceShapeCondition3D3N);
+		KRATOS_REGISTER_CONDITION("HelmholtzSurfaceShapeCondition3D4N", mHelmholtzSurfaceShapeCondition3D4N);
 
         // Adjoint elements
         KRATOS_REGISTER_ELEMENT("AdjointSmallDisplacementElement3D4N", mAdjointSmallDisplacementElement3D4N);

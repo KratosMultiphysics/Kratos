@@ -35,6 +35,7 @@
 #include "custom_elements/helmholtz_bulk_shape_element.h"
 #include "custom_elements/helmholtz_bulk_element.h"
 #include "custom_elements/helmholtz_solid_element.h"
+#include "custom_elements/helmholtz_solid_shape_element.h"
 #include "custom_elements/helmholtz_surface_element.h"
 
 /* ADJOINT ELEMENTS */
@@ -42,6 +43,7 @@
 
 /* CONDITIONS */
 #include "custom_conditions/helmholtz_surf_shape_condition.h"
+#include "custom_conditions/helmholtz_surface_shape_condition.h"
 
 // ==============================================================================
 
@@ -214,6 +216,8 @@ namespace Kratos
 		const HelmholtzSurfaceElement mHelmholtzSurfaceElement3D4N;
 		const HelmholtzSolidElement mHelmholtzSolidElement3D4N;
 		const HelmholtzSolidElement mHelmholtzSolidElement3D8N;
+		const HelmholtzSolidShapeElement mHelmholtzSolidShapeElement3D4N;
+		const HelmholtzSolidShapeElement mHelmholtzSolidShapeElement3D8N;
 
 		/* ADJ ELEMENTS */
 		const AdjointSmallDisplacementElement mAdjointSmallDisplacementElement3D4N;
@@ -221,6 +225,8 @@ namespace Kratos
 		/* CONDITIONS*/
 		// Surface conditions
 		const HelmholtzSurfShapeCondition mHelmholtzSurfShapeCondition3D3N;
+		const HelmholtzSurfaceShapeCondition mHelmholtzSurfaceShapeCondition3D3N;
+		const HelmholtzSurfaceShapeCondition mHelmholtzSurfaceShapeCondition3D4N;
 
 		///@}
 		///@name Private Operators

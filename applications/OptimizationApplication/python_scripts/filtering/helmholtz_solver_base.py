@@ -36,6 +36,9 @@ class HelmholtzSolverBase(PythonSolver):
         # Create Helmholtz model part
         self.helmholtz_model_part = self.model.CreateModelPart(self.original_model_part.Name+"_helmholtz_filter_mdp")
 
+        # Get the filter radius
+        self.filter_radius = self.settings["filter_radius"].GetDouble()
+
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
 
     @classmethod
