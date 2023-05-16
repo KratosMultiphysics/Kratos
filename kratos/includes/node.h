@@ -14,6 +14,11 @@
 #pragma once
 
 // System includes
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <cstddef>
+#include <atomic>
 
 // External includes
 
