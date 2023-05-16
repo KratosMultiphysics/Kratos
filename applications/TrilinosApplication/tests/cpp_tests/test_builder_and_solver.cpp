@@ -46,7 +46,7 @@
 namespace Kratos::Testing
 {
     /// Initial definitons
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using TrilinosSparseSpaceType = TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>;
     using TrilinosLocalSpaceType = UblasSpace<double, Matrix, Vector>;

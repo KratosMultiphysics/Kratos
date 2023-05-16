@@ -61,8 +61,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3>                             PointType;
-    typedef Node<3>::Pointer                    PointPtrType;
+    typedef Node                             PointType;
+    typedef Node::Pointer                    PointPtrType;
     typedef Geometry<PointType>                 GeometryType;
     typedef Pyramid3D5<PointType>               PyramidGeometryType;
     typedef Tetrahedra3D4<PointType>            TetrahedraGeometryType;      

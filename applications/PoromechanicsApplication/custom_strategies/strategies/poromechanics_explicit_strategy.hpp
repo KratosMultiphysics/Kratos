@@ -50,7 +50,7 @@ public:
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
     /// DoF types definition
-    typedef typename Node<3>::DofType DofType;
+    typedef typename Node::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
     using MotherType::mInitializeWasPerformed;

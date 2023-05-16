@@ -34,11 +34,11 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) RetentionLaw
 public:
     /**
      * Type definitions
-     * NOTE: geometries are assumed to be of type Node<3> for all problems
+     * NOTE: geometries are assumed to be of type Node for all problems
      */
     using ProcessInfoType = ProcessInfo;
     using SizeType = std::size_t;
-    using GeometryType = Geometry<Node<3>>;
+    using GeometryType = Geometry<Node>;
 
     /**
      * Counted pointer of RetentionLaw

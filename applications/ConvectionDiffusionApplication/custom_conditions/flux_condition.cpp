@@ -20,7 +20,7 @@ namespace Kratos
 // Public Life Cycle //////////////////////////////////////////////////////////
 
 template< unsigned int TNodeNumber >
-FluxCondition<TNodeNumber>::FluxCondition(IndexType NewId, Geometry< Node<3> >::Pointer pGeometry):
+FluxCondition<TNodeNumber>::FluxCondition(IndexType NewId, Geometry< Node >::Pointer pGeometry):
     Condition(NewId,pGeometry)
 {
 }
@@ -28,7 +28,7 @@ FluxCondition<TNodeNumber>::FluxCondition(IndexType NewId, Geometry< Node<3> >::
 template< unsigned int TNodeNumber >
 FluxCondition<TNodeNumber>::FluxCondition(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry,
+    Geometry< Node >::Pointer pGeometry,
     Properties::Pointer pProperties):
     Condition(NewId,pGeometry,pProperties)
 {
@@ -125,7 +125,7 @@ void FluxCondition<TNodeNumber>::EquationIdVector(
         rResult.resize(TNodeNumber,false);
     }
 
-    const Geometry< Node<3> >& rGeometry = this->GetGeometry();
+    const Geometry< Node >& rGeometry = this->GetGeometry();
 
     for (unsigned int i = 0; i < TNodeNumber; i++)
     {
@@ -152,7 +152,7 @@ void FluxCondition<TNodeNumber>::GetDofList(
         rConditionalDofList.resize(TNodeNumber);
     }
 
-    const Geometry< Node<3> >& rGeometry = this->GetGeometry();
+    const Geometry< Node >& rGeometry = this->GetGeometry();
 
     for (unsigned int i = 0; i < TNodeNumber; i++)
     {
@@ -304,7 +304,7 @@ void FluxCondition<TNodeNumber>::AddIntegrationPointRHSContribution(
 template <>
 void FluxCondition<2>::CalculateNormal(array_1d<double,3>& An)
 {
-    Geometry<Node<3> >& pGeometry = this->GetGeometry();
+    Geometry<Node >& pGeometry = this->GetGeometry();
 
     An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
     An[1] = - (pGeometry[1].X() - pGeometry[0].X());
@@ -315,7 +315,7 @@ void FluxCondition<2>::CalculateNormal(array_1d<double,3>& An)
 template <>
 void FluxCondition<3>::CalculateNormal(array_1d<double,3>& An )
 {
-    Geometry<Node<3> >& pGeometry = this->GetGeometry();
+    Geometry<Node >& pGeometry = this->GetGeometry();
 
     array_1d<double,3> v1,v2;
     v1[0] = pGeometry[1].X() - pGeometry[0].X();
