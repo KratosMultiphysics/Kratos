@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/container_expression/expressions/expression.h"
+#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 
 namespace Kratos {
 
@@ -24,60 +25,11 @@ namespace Kratos {
 ///@{
 
 /**
- * @brief Iterator class for expressions with concrete data arrays
- *
- */
-template<class TExpressionPointerType>
-class ExpressionIterator {
-public:
-    ///@name Type definitions
-    ///@{
-
-    using DataType = typename TExpressionPointerType::element_type::DataType;
-
-    using IteratorType = DataType*;
-
-    using ConstIteratorType = DataType const*;
-
-    KRATOS_CLASS_POINTER_DEFINITION(ExpressionIterator);
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    ExpressionIterator(TExpressionPointerType pExpression): mpExpression(pExpression) {}
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    inline TExpressionPointerType GetExpression() { return mpExpression; }
-
-    inline IteratorType DataBegin() { return mpExpression->DataBegin(); }
-
-    inline IteratorType DataEnd() { return mpExpression->DataEnd(); }
-
-    inline ConstIteratorType ConstDataBegin() { return mpExpression->ConstDataBegin(); }
-
-    inline ConstIteratorType ConstDataEnd() { return mpExpression->ConstDataEnd(); }
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    TExpressionPointerType mpExpression;
-
-    ///@}
-};
-
-/**
  * @brief Iterator class for expressions generic lazy expressions
  *
  */
-template<>
-class ExpressionIterator<Expression::Pointer> {
+template<class TExpressionType>
+class ExpressionIterator {
 public:
     ///@name Type definitions
     ///@{
@@ -86,7 +38,7 @@ public:
 
     using DataType = double;
 
-    using ConstIteratorType = ExpressionIterator<Expression::Pointer>;
+    using ConstIteratorType = ExpressionIterator<Expression>;
 
     KRATOS_CLASS_POINTER_DEFINITION(ExpressionIterator);
 
@@ -106,11 +58,11 @@ public:
     ///@name Public operations
     ///@{
 
-    inline Expression::Pointer GetExpression() { return mpExpression; }
+    Expression::Pointer GetExpression() { return mpExpression; }
 
-    inline ConstIteratorType ConstDataBegin() { return ConstIteratorType(mpExpression); }
+    ConstIteratorType cbegin() { return ConstIteratorType(mpExpression); }
 
-    inline ConstIteratorType ConstDataEnd()
+    ConstIteratorType cend()
     {
         ConstIteratorType result(mpExpression);
         result.mEntityIndex = mpExpression->NumberOfEntities();
@@ -179,6 +131,151 @@ private:
     IndexType mComponentIndex;
 
     IndexType mFlattenedShapeSize;
+
+    ///@}
+};
+
+/**
+ * @brief Iterator class for expressions with concrete data arrays
+ *
+ */
+template<>
+class ExpressionIterator<LiteralFlatExpression<char>> {
+public:
+    ///@name Type definitions
+    ///@{
+
+    using ExpressionType = LiteralFlatExpression<char>;
+
+    using DataType = typename ExpressionType::DataType;
+
+    using IteratorType = DataType*;
+
+    using ConstIteratorType = DataType const*;
+
+    KRATOS_CLASS_POINTER_DEFINITION(ExpressionIterator);
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    ExpressionIterator(typename ExpressionType::Pointer pExpression): mpExpression(pExpression) {}
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    typename ExpressionType::Pointer GetExpression() { return mpExpression; }
+
+    IteratorType begin() { return mpExpression->begin(); }
+
+    IteratorType end() { return mpExpression->end(); }
+
+    ConstIteratorType cbegin() { return mpExpression->cbegin(); }
+
+    ConstIteratorType cend() { return mpExpression->cend(); }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    typename ExpressionType::Pointer mpExpression;
+
+    ///@}
+};
+
+template<>
+class ExpressionIterator<LiteralFlatExpression<int>> {
+public:
+    ///@name Type definitions
+    ///@{
+
+    using ExpressionType = LiteralFlatExpression<int>;
+
+    using DataType = typename ExpressionType::DataType;
+
+    using IteratorType = DataType*;
+
+    using ConstIteratorType = DataType const*;
+
+    KRATOS_CLASS_POINTER_DEFINITION(ExpressionIterator);
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    ExpressionIterator(typename ExpressionType::Pointer pExpression): mpExpression(pExpression) {}
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    typename ExpressionType::Pointer GetExpression() { return mpExpression; }
+
+    IteratorType begin() { return mpExpression->begin(); }
+
+    IteratorType end() { return mpExpression->end(); }
+
+    ConstIteratorType cbegin() { return mpExpression->cbegin(); }
+
+    ConstIteratorType cend() { return mpExpression->cend(); }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    typename ExpressionType::Pointer mpExpression;
+
+    ///@}
+};
+
+template<>
+class ExpressionIterator<LiteralFlatExpression<double>> {
+public:
+    ///@name Type definitions
+    ///@{
+
+    using ExpressionType = LiteralFlatExpression<double>;
+
+    using DataType = typename ExpressionType::DataType;
+
+    using IteratorType = DataType*;
+
+    using ConstIteratorType = DataType const*;
+
+    KRATOS_CLASS_POINTER_DEFINITION(ExpressionIterator);
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    ExpressionIterator(typename ExpressionType::Pointer pExpression): mpExpression(pExpression) {}
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    typename ExpressionType::Pointer GetExpression() { return mpExpression; }
+
+    IteratorType begin() { return mpExpression->begin(); }
+
+    IteratorType end() { return mpExpression->end(); }
+
+    ConstIteratorType cbegin() { return mpExpression->cbegin(); }
+
+    ConstIteratorType cend() { return mpExpression->cend(); }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    typename ExpressionType::Pointer mpExpression;
 
     ///@}
 };
