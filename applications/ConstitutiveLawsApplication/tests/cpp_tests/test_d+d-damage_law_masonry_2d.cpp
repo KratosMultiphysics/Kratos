@@ -35,7 +35,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the d+ d- damage Constitutive Law (for masonry) 2D...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DInternalVariables, KratosConstitutiveLawsFastSuite)
 {

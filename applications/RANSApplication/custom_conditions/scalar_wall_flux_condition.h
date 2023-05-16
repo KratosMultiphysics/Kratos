@@ -37,8 +37,8 @@ public:
 
     using BaseType = Condition;
 
-    /// Node type (default is: Node<3>)
-    using NodeType = Node<3>;
+    /// Node type (default is: Node)
+    using NodeType = Node;
 
     /// Geometry type (using with given NodeType)
     using GeometryType = Geometry<NodeType>;

@@ -106,7 +106,7 @@ public:
     using EpetraCommunicatorType = Epetra_MpiComm;
 
     /// DoF types definition
-    using NodeType = Node<3>;
+    typedef Node NodeType;
 
     /// Defining the sparse matrices and vectors
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;

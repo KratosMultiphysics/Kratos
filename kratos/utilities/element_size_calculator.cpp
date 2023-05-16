@@ -19,7 +19,7 @@ ElementSizeCalculator<TDim,TNumNodes>::~ElementSizeCalculator() {};
 
 // Triangle2D3 version.
 template<>
-double ElementSizeCalculator<2,3>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<2,3>::MinimumElementSize(const Geometry<Node >& rGeometry)
 {
 
     /* Calculate node-edge distances */
@@ -55,7 +55,7 @@ template<>
 double ElementSizeCalculator<2,3>::MinimumElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -118,7 +118,7 @@ double ElementSizeCalculator<2,3>::MinimumElementSizeDerivative(
 
 // Triangle2D6 version.
 template<>
-double ElementSizeCalculator<2,6>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<2,6>::MinimumElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double minimum_element_size = ElementSizeCalculator<2,3>::MinimumElementSize(rGeometry);
@@ -132,7 +132,7 @@ template<>
 double ElementSizeCalculator<2,6>::MinimumElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
 
     double element_size_derivative = 0.0;
@@ -146,13 +146,13 @@ double ElementSizeCalculator<2,6>::MinimumElementSizeDerivative(
 
 // Quadrilateral2D4 version.
 template<>
-double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<2,4>::MinimumElementSize(const Geometry<Node >& rGeometry)
 {
 
-    const Node<3>& r_node_0 = rGeometry[0];
-    const Node<3>& r_node_1 = rGeometry[1];
-    const Node<3>& r_node_2 = rGeometry[2];
-    const Node<3>& r_node_3 = rGeometry[3];
+    const Node& r_node_0 = rGeometry[0];
+    const Node& r_node_1 = rGeometry[1];
+    const Node& r_node_2 = rGeometry[2];
+    const Node& r_node_3 = rGeometry[3];
 
     // Calculate face centers
     const double x10 = (r_node_1.X() + r_node_0.X())/2.;
@@ -188,7 +188,7 @@ template<>
 double ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -200,10 +200,10 @@ double ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(
         << "Invalid DerivativeDirectionIndex [ DerivativeDirectionIndex = " << DerivativeDirectionIndex
         << ", expected DerivativeDirectionIndex < 2 ].\n";
 
-    const Node<3>& r_node_0 = rGeometry[0];
-    const Node<3>& r_node_1 = rGeometry[1];
-    const Node<3>& r_node_2 = rGeometry[2];
-    const Node<3>& r_node_3 = rGeometry[3];
+    const Node& r_node_0 = rGeometry[0];
+    const Node& r_node_1 = rGeometry[1];
+    const Node& r_node_2 = rGeometry[2];
+    const Node& r_node_3 = rGeometry[3];
 
     // Calculate face centers
     const double x10 = (r_node_1.X() + r_node_0.X())/2.;
@@ -262,7 +262,7 @@ double ElementSizeCalculator<2,4>::MinimumElementSizeDerivative(
 
 // Quadrilateral2D9 version.
 template<>
-double ElementSizeCalculator<2,9>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<2,9>::MinimumElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double minimum_element_size = ElementSizeCalculator<2,4>::MinimumElementSize(rGeometry);
@@ -274,7 +274,7 @@ template<>
 double ElementSizeCalculator<2,9>::MinimumElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     double element_size_derivative = 0.0;
 
@@ -286,7 +286,7 @@ double ElementSizeCalculator<2,9>::MinimumElementSizeDerivative(
 
 // Tetrahedra3D4 version.
 template<>
-double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<3,4>::MinimumElementSize(const Geometry<Node >& rGeometry)
 {
 
     /* Calculate distances between each node and the opposite face */
@@ -339,7 +339,7 @@ template<>
 double ElementSizeCalculator<3,4>::MinimumElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -439,7 +439,7 @@ double ElementSizeCalculator<3,4>::MinimumElementSizeDerivative(
 
 // Tetrahedra3D4 version.
 template<>
-double ElementSizeCalculator<3,10>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<3,10>::MinimumElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double minimum_element_size = ElementSizeCalculator<3,4>::MinimumElementSize(rGeometry);
@@ -451,7 +451,7 @@ template<>
 double ElementSizeCalculator<3,10>::MinimumElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -467,15 +467,15 @@ double ElementSizeCalculator<3,10>::MinimumElementSizeDerivative(
 
 // Prism3D6 version.
 template<>
-double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node<3>> &rGeometry)
+double ElementSizeCalculator<3,6>::MinimumElementSize(const Geometry<Node> &rGeometry)
 {
     // Get nodes
-    const Node<3>& r_node_0 = rGeometry[0];
-    const Node<3>& r_node_1 = rGeometry[1];
-    const Node<3>& r_node_2 = rGeometry[2];
-    const Node<3>& r_node_3 = rGeometry[3];
-    const Node<3>& r_node_4 = rGeometry[4];
-    const Node<3>& r_node_5 = rGeometry[5];
+    const Node& r_node_0 = rGeometry[0];
+    const Node& r_node_1 = rGeometry[1];
+    const Node& r_node_2 = rGeometry[2];
+    const Node& r_node_3 = rGeometry[3];
+    const Node& r_node_4 = rGeometry[4];
+    const Node& r_node_5 = rGeometry[5];
 
     // Calculate face centers (top and bottom face)
     const double one_third = 1.0/3.0;
@@ -521,7 +521,7 @@ template<>
 double ElementSizeCalculator<3,6>::MinimumElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -534,12 +534,12 @@ double ElementSizeCalculator<3,6>::MinimumElementSizeDerivative(
         << ", expected DerivativeDirectionIndex < 3 ].\n";
 
     // Get nodes
-    const Node<3>& r_node_0 = rGeometry[0];
-    const Node<3>& r_node_1 = rGeometry[1];
-    const Node<3>& r_node_2 = rGeometry[2];
-    const Node<3>& r_node_3 = rGeometry[3];
-    const Node<3>& r_node_4 = rGeometry[4];
-    const Node<3>& r_node_5 = rGeometry[5];
+    const Node& r_node_0 = rGeometry[0];
+    const Node& r_node_1 = rGeometry[1];
+    const Node& r_node_2 = rGeometry[2];
+    const Node& r_node_3 = rGeometry[3];
+    const Node& r_node_4 = rGeometry[4];
+    const Node& r_node_5 = rGeometry[5];
 
     // Calculate face centers (top and bottom face)
     const double one_third = 1.0/3.0;
@@ -607,17 +607,17 @@ double ElementSizeCalculator<3,6>::MinimumElementSizeDerivative(
 
 // Hexahedra3D8 version. We use the distance between face centers to compute lengths.
 template<>
-double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node >& rGeometry)
 {
 
-    const Node<3>& r_node_0 = rGeometry[0];
-    const Node<3>& r_node_1 = rGeometry[1];
-    const Node<3>& r_node_2 = rGeometry[2];
-    const Node<3>& r_node_3 = rGeometry[3];
-    const Node<3>& r_node_4 = rGeometry[4];
-    const Node<3>& r_node_5 = rGeometry[5];
-    const Node<3>& r_node_6 = rGeometry[6];
-    const Node<3>& r_node_7 = rGeometry[7];
+    const Node& r_node_0 = rGeometry[0];
+    const Node& r_node_1 = rGeometry[1];
+    const Node& r_node_2 = rGeometry[2];
+    const Node& r_node_3 = rGeometry[3];
+    const Node& r_node_4 = rGeometry[4];
+    const Node& r_node_5 = rGeometry[5];
+    const Node& r_node_6 = rGeometry[6];
+    const Node& r_node_7 = rGeometry[7];
 
     // Calculate face centers
     const array_1d<double,3> low_xi  = 0.25 * (r_node_0.Coordinates() + r_node_4.Coordinates() + r_node_3.Coordinates() + r_node_7.Coordinates());
@@ -649,7 +649,7 @@ template<>
 double ElementSizeCalculator<3,8>::MinimumElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -661,14 +661,14 @@ double ElementSizeCalculator<3,8>::MinimumElementSizeDerivative(
         << "Invalid DerivativeDirectionIndex [ DerivativeDirectionIndex = " << DerivativeDirectionIndex
         << ", expected DerivativeDirectionIndex < 3 ].\n";
 
-    const Node<3>& r_node_0 = rGeometry[0];
-    const Node<3>& r_node_1 = rGeometry[1];
-    const Node<3>& r_node_2 = rGeometry[2];
-    const Node<3>& r_node_3 = rGeometry[3];
-    const Node<3>& r_node_4 = rGeometry[4];
-    const Node<3>& r_node_5 = rGeometry[5];
-    const Node<3>& r_node_6 = rGeometry[6];
-    const Node<3>& r_node_7 = rGeometry[7];
+    const Node& r_node_0 = rGeometry[0];
+    const Node& r_node_1 = rGeometry[1];
+    const Node& r_node_2 = rGeometry[2];
+    const Node& r_node_3 = rGeometry[3];
+    const Node& r_node_4 = rGeometry[4];
+    const Node& r_node_5 = rGeometry[5];
+    const Node& r_node_6 = rGeometry[6];
+    const Node& r_node_7 = rGeometry[7];
 
     const auto derivative_output = [&](const unsigned int A, const unsigned int B, const unsigned int C, const unsigned int D) -> array_1d<double, 3> {
         array_1d<double, 3> result = ZeroVector(3);
@@ -725,7 +725,7 @@ double ElementSizeCalculator<3,8>::MinimumElementSizeDerivative(
 
 // Hexahedra3D27 version. We use the distance between face centers to compute lengths.
 template<>
-double ElementSizeCalculator<3,27>::MinimumElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<3,27>::MinimumElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double minimum_element_size = ElementSizeCalculator<3,8>::MinimumElementSize(rGeometry);
@@ -737,7 +737,7 @@ template<>
 double ElementSizeCalculator<3,27>::MinimumElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -753,7 +753,7 @@ double ElementSizeCalculator<3,27>::MinimumElementSizeDerivative(
 
 // Triangle2D3 version.
 template<>
-double ElementSizeCalculator<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<2,3>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
@@ -769,7 +769,7 @@ template<>
 double ElementSizeCalculator<2,3>::AverageElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -800,7 +800,7 @@ double ElementSizeCalculator<2,3>::AverageElementSizeDerivative(
 
 // Triangle2D6 version.
 template<>
-double ElementSizeCalculator<2,6>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<2,6>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double average_element_size = ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);
@@ -812,7 +812,7 @@ template<>
 double ElementSizeCalculator<2,6>::AverageElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -828,7 +828,7 @@ double ElementSizeCalculator<2,6>::AverageElementSizeDerivative(
 
 // Quadrilateral2D4 version.
 template<>
-double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
@@ -844,7 +844,7 @@ template<>
 double ElementSizeCalculator<2,4>::AverageElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -875,7 +875,7 @@ double ElementSizeCalculator<2,4>::AverageElementSizeDerivative(
 
 // Quadrilateral2D9 version.
 template<>
-double ElementSizeCalculator<2,9>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<2,9>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double average_element_size = ElementSizeCalculator<2,4>::AverageElementSize(rGeometry);
@@ -887,7 +887,7 @@ template<>
 double ElementSizeCalculator<2,9>::AverageElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
 
     double element_size_derivative = 0.0;
@@ -901,7 +901,7 @@ double ElementSizeCalculator<2,9>::AverageElementSizeDerivative(
 
 // Tetrahedra3D4 version.
 template<>
-double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
@@ -925,7 +925,7 @@ template<>
 double ElementSizeCalculator<3,4>::AverageElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -993,7 +993,7 @@ double ElementSizeCalculator<3,4>::AverageElementSizeDerivative(
 
 // Tetrahedra3D10 version.
 template<>
-double ElementSizeCalculator<3,10>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<3,10>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double average_element_size = ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);
@@ -1005,7 +1005,7 @@ template<>
 double ElementSizeCalculator<3,10>::AverageElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -1022,7 +1022,7 @@ double ElementSizeCalculator<3,10>::AverageElementSizeDerivative(
 
 // Prism3D6 version
 template <>
-double ElementSizeCalculator<3,6>::AverageElementSize(const Geometry<Node<3>> &rGeometry)
+double ElementSizeCalculator<3,6>::AverageElementSize(const Geometry<Node> &rGeometry)
 {
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
     const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
@@ -1044,7 +1044,7 @@ template<>
 double ElementSizeCalculator<3,6>::AverageElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -1118,7 +1118,7 @@ double ElementSizeCalculator<3,6>::AverageElementSizeDerivative(
 
 // Hexahedra3D8 version.
 template<>
-double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double x10 = rGeometry[1].X() - rGeometry[0].X();
@@ -1141,7 +1141,7 @@ template<>
 double ElementSizeCalculator<3,8>::AverageElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
 
@@ -1208,7 +1208,7 @@ double ElementSizeCalculator<3,8>::AverageElementSizeDerivative(
 
 // Hexahedra3D27 version.
 template<>
-double ElementSizeCalculator<3,27>::AverageElementSize(const Geometry<Node<3> >& rGeometry)
+double ElementSizeCalculator<3,27>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
 
     const double average_element_size = ElementSizeCalculator<3,8>::AverageElementSize(rGeometry);
@@ -1220,7 +1220,7 @@ template<>
 double ElementSizeCalculator<3,27>::AverageElementSizeDerivative(
     const unsigned int DerivativeNodeIndex,
     const unsigned int DerivativeDirectionIndex,
-    const Geometry<Node<3> >& rGeometry)
+    const Geometry<Node >& rGeometry)
 {
     KRATOS_TRY
     double element_size_derivative = 0.0;
@@ -1236,7 +1236,7 @@ double ElementSizeCalculator<3,27>::AverageElementSizeDerivative(
 // Triangle2D3 version.
 template<>
 double ElementSizeCalculator<2,3>::ProjectedElementSize(
-    const Geometry<Node<3> >& rGeometry,
+    const Geometry<Node >& rGeometry,
     const array_1d<double,3>& rVelocity)
 {
 
@@ -1269,7 +1269,7 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(
 // Triangle2D6 version
 template<>
 double ElementSizeCalculator<2,6>::ProjectedElementSize(
-    const Geometry<Node<3> > &rGeometry,
+    const Geometry<Node > &rGeometry,
     const array_1d<double,3>& rVelocity)
 {
     KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
@@ -1279,7 +1279,7 @@ double ElementSizeCalculator<2,6>::ProjectedElementSize(
 // Quadrilateral2D4 version.
 template<>
 double ElementSizeCalculator<2,4>::ProjectedElementSize(
-    const Geometry<Node<3> >& rGeometry,
+    const Geometry<Node >& rGeometry,
     const array_1d<double,3>& rVelocity)
 {
 
@@ -1291,7 +1291,7 @@ double ElementSizeCalculator<2,4>::ProjectedElementSize(
 // Quadrilateral2D9 version
 template<>
 double ElementSizeCalculator<2,9>::ProjectedElementSize(
-    const Geometry<Node<3> > &rGeometry,
+    const Geometry<Node > &rGeometry,
     const array_1d<double,3>& rVelocity)
 {
     KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
@@ -1301,7 +1301,7 @@ double ElementSizeCalculator<2,9>::ProjectedElementSize(
 // Tetrahedra3D4 version.
 template<>
 double ElementSizeCalculator<3,4>::ProjectedElementSize(
-    const Geometry<Node<3> >& rGeometry,
+    const Geometry<Node >& rGeometry,
     const array_1d<double,3>& rVelocity)
 {
 
@@ -1336,7 +1336,7 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(
 // Tetrahedra3D10 version.
 template<>
 double ElementSizeCalculator<3,10>::ProjectedElementSize(
-    const Geometry<Node<3> > &rGeometry,
+    const Geometry<Node > &rGeometry,
     const array_1d<double,3>& rVelocity)
 {
     KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
@@ -1346,7 +1346,7 @@ double ElementSizeCalculator<3,10>::ProjectedElementSize(
 // Prism3D6 version
 template<>
 double ElementSizeCalculator<3,6>::ProjectedElementSize(
-    const Geometry<Node<3> > &rGeometry,
+    const Geometry<Node > &rGeometry,
     const array_1d<double,3>& rVelocity)
 {
     KRATOS_ERROR << "This function has not been implemented yet." << std::endl;
@@ -1356,7 +1356,7 @@ double ElementSizeCalculator<3,6>::ProjectedElementSize(
 // Hexahedra3D8 version.
 template<>
 double ElementSizeCalculator<3,8>::ProjectedElementSize(
-    const Geometry<Node<3> >& rGeometry,
+    const Geometry<Node >& rGeometry,
     const array_1d<double,3>& rVelocity)
 {
 
@@ -1442,7 +1442,7 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(
 // Hexahedra3D27 version.
 template<>
 double ElementSizeCalculator<3,27>::ProjectedElementSize(
-    const Geometry<Node<3> > &rGeometry,
+    const Geometry<Node > &rGeometry,
     const array_1d<double,3>& rVelocity)
 {
     KRATOS_ERROR << "This function has not been implemented yet." << std::endl;

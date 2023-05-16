@@ -197,7 +197,7 @@ public:
         const bool PrintValues = false,
         const double ThresholdIncludeHardZeros = -1
         );
-        
+
     /**
     * @brief This method generates a sparse matrix from a set of row, columns and values
     * @param rDataCommunicator The data communicator considered
@@ -216,7 +216,7 @@ public:
         const std::vector<double>& rValues,
         const Epetra_Map* pMap =  nullptr
         );
-        
+
     ///@}
 
 }; /// class TrilinosCPPTestUtilities

@@ -38,7 +38,7 @@ public:
 
     using BaseType = LaplaceElement<TDim, TNumNodes>;
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Geometry type (using with given NodeType)
     using GeometryType = Geometry<NodeType>;
