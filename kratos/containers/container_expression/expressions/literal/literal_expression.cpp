@@ -38,14 +38,19 @@ const std::vector<std::size_t> LiteralExpression<TDataType>::GetShape() const
 }
 
 template <class TDataType>
-Expression::Pointer LiteralExpression<TDataType>::Create(const TDataType& Value)
+Expression::Pointer LiteralExpression<TDataType>::Create(
+    const TDataType& Value,
+    const IndexType NumberOfEntities)
 {
-    return Kratos::make_intrusive<LiteralExpression<TDataType>>(Value);
+    return Kratos::make_intrusive<LiteralExpression<TDataType>>(Value, NumberOfEntities);
 }
 
 template <class TDataType>
-LiteralExpression<TDataType>::LiteralExpression(const TDataType& rValue)
-    : mValue(rValue),
+LiteralExpression<TDataType>::LiteralExpression(
+    const TDataType& rValue,
+    const IndexType NumberOfEntities)
+    : Expression(NumberOfEntities),
+      mValue(rValue),
       mShape({rValue.size()})
 {
 
@@ -61,15 +66,21 @@ double LiteralExpression<TDataType>::Evaluate(
 }
 
 template <>
-LiteralExpression<int>::LiteralExpression(const int& Value)
-    : mValue(Value),
+LiteralExpression<int>::LiteralExpression(
+    const int& Value,
+    const IndexType NumberOfEntities)
+    : Expression(NumberOfEntities),
+      mValue(Value),
       mShape({})
 {
 }
 
 template <>
-LiteralExpression<double>::LiteralExpression(const double& Value)
-    : mValue(Value),
+LiteralExpression<double>::LiteralExpression(
+    const double& Value,
+    const IndexType NumberOfEntities)
+    : Expression(NumberOfEntities),
+      mValue(Value),
       mShape({})
 {
 }
@@ -93,8 +104,11 @@ double LiteralExpression<double>::Evaluate(
 }
 
 template <>
-LiteralExpression<Matrix>::LiteralExpression(const Matrix& Value)
-    : mValue(Value),
+LiteralExpression<Matrix>::LiteralExpression(
+    const Matrix& Value,
+    const IndexType NumberOfEntities)
+    : Expression(NumberOfEntities),
+      mValue(Value),
       mShape({Value.size1(), Value.size2()})
 {
 }

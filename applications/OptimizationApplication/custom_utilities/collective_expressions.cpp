@@ -559,7 +559,7 @@ CollectiveExpressions CollectiveExpressions::Pow(const double Value) const
             v->SetExpression(
                 BinaryExpression<BinaryOperations::Power>::Create(
                     v->pGetExpression(),
-                    LiteralExpression<double>::Create(Value)));
+                    LiteralExpression<double>::Create(Value, v->GetExpression().NumberOfEntities())));
         }, result.mExpressionPointersList[i]);
     }
     return result;
