@@ -37,14 +37,14 @@ public:
     typedef Kratos::unique_ptr<TestAdjoint> UniquePointer;
 
 
-    static typename TestAdjoint::Pointer CreateElement(std::size_t NewId, const PointerVector<Node<3>>& rNodes)
+    static typename TestAdjoint::Pointer CreateElement(std::size_t NewId, const PointerVector<Node>& rNodes)
     {
-        Geometry<Node<3>>::Pointer p_geom =
-            Kratos::make_shared<Triangle2D3<Node<3>>>(rNodes);
+        Geometry<Node>::Pointer p_geom =
+            Kratos::make_shared<Triangle2D3<Node>>(rNodes);
         return Kratos::make_intrusive<TestAdjoint>(NewId, p_geom);
     }
 
-    TestAdjoint(std::size_t NewId, Geometry<Node<3>>::Pointer pGeom)
+    TestAdjoint(std::size_t NewId, Geometry<Node>::Pointer pGeom)
         : TElement(NewId, pGeom)
     {
     }
@@ -144,9 +144,9 @@ public:
     };
 };
 
-PointerVector<Node<3>> GetNodes(ModelPart& rModelPart, const std::vector<unsigned>& rIds)
+PointerVector<Node> GetNodes(ModelPart& rModelPart, const std::vector<unsigned>& rIds)
 {
-    PointerVector<Node<3>> nodes;
+    PointerVector<Node> nodes;
     for (auto id : rIds)
     {
         nodes.push_back(rModelPart.pGetNode(id));
@@ -249,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(SensitivityBuilder_CalculateNodalSolutionStepSensitivi
     TestResponseFunction response_function;
     SensitivityBuilder::CalculateNodalSolutionStepSensitivities(
         {"SHAPE_SENSITIVITY"}, model_part, response_function, 4.);
-    auto CheckNode = [](Node<3>& rNode, std::array<double, 2> RefValue) {
+    auto CheckNode = [](Node& rNode, std::array<double, 2> RefValue) {
         const double val_x = rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY_X);
         const double val_y = rNode.FastGetSolutionStepValue(SHAPE_SENSITIVITY_Y);
         KRATOS_CHECK_NEAR(val_x, RefValue[0], tolerance);

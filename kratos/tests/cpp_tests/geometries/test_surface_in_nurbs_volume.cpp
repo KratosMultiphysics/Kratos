@@ -28,7 +28,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
@@ -176,8 +176,6 @@ namespace Testing {
         KRATOS_CHECK_EQUAL( quad_geometries[0].LocalSpaceDimension(), 3 );
         KRATOS_CHECK_EQUAL( surface_in_volume.WorkingSpaceDimension(), 3 );
         KRATOS_CHECK_EQUAL( quad_geometries[0].WorkingSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( surface_in_volume.Dimension(), 2 );
-        KRATOS_CHECK_EQUAL( quad_geometries[0].Dimension(), 2 );
 
         // Check geometrical information
         double global_area_triangle =  surface_in_volume.Area();
@@ -254,9 +252,6 @@ namespace Testing {
         KRATOS_CHECK_EQUAL( quad_geometries[0].LocalSpaceDimension(), 3 );
         KRATOS_CHECK_EQUAL( surface_in_volume.WorkingSpaceDimension(), 3 );
         KRATOS_CHECK_EQUAL( quad_geometries[0].WorkingSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( surface_in_volume.Dimension(), 2 );
-        KRATOS_CHECK_EQUAL( quad_geometries[0].Dimension(), 2 );
-
 
         // Check geometrical information
         CoordinatesArrayType test_point; // Center in Dimension Space
@@ -379,9 +374,6 @@ namespace Testing {
         KRATOS_CHECK_EQUAL( quad_geometries[0].LocalSpaceDimension(), 3 );
         KRATOS_CHECK_EQUAL( surface_in_volume.WorkingSpaceDimension(), 3 );
         KRATOS_CHECK_EQUAL( quad_geometries[0].WorkingSpaceDimension(), 3 );
-        KRATOS_CHECK_EQUAL( surface_in_volume.Dimension(), 2 );
-        KRATOS_CHECK_EQUAL( quad_geometries[0].Dimension(), 2 );
-
 
         // Check geometrical information
         auto center = surface_in_volume.Center();

@@ -66,7 +66,7 @@ public:
     typedef Process BaseType;
 
     /// Type for the metric calculation function
-    typedef std::function<std::tuple<double, double, Matrix>(Geometry<Node<3>> &rGeometry)> ElementMetricFunctionType;
+    typedef std::function<std::tuple<double, double, Matrix>(Geometry<Node> &rGeometry)> ElementMetricFunctionType;
 
     /// Type for the 2D (linear triangle) TLS geometry data
     struct ShockCapturingTLSContainer2D3N
@@ -497,7 +497,7 @@ private:
      */
     template<std::size_t TDim, std::size_t TNumNodes>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateShockSensorValues(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         double& rMachNumber,
@@ -518,7 +518,7 @@ private:
      */
     template<std::size_t TDim, std::size_t TNumNodes>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateTemperatureGradients(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         const Matrix& rJacobianMatrix,
         array_1d<double,3>& rTemperatureGradient,
@@ -538,7 +538,7 @@ private:
      */
     template<std::size_t TDim, std::size_t TNumNodes>
     void KRATOS_API(FLUID_DYNAMICS_APPLICATION) CalculateShearSensorValues(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX,
         const Matrix& rJacobianMatrix,

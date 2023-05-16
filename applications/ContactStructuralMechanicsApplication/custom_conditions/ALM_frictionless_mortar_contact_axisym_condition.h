@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -30,7 +30,7 @@ namespace Kratos
 ///@{
 
     typedef Point                                     PointType;
-    typedef Node<3>                                    NodeType;
+    typedef Node                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
     typedef Geometry<PointType>               GeometryPointType;
     ///Type definition for integration methods

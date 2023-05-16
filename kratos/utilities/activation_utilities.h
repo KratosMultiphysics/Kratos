@@ -116,7 +116,7 @@ public:
         {
             ModelPart::ElementsContainerType::iterator it = el_begin + i;
             
-            const Geometry< Node<3> >& geom = it->GetGeometry();
+            const Geometry< Node >& geom = it->GetGeometry();
             it->Set(ACTIVE,false);
             
             for(unsigned int k=0; k<geom.size(); k++)
@@ -134,7 +134,7 @@ public:
         {
             ModelPart::ConditionsContainerType::iterator it = cond_begin + i;
             
-            const Geometry< Node<3> >& geom = it->GetGeometry();
+            const Geometry< Node >& geom = it->GetGeometry();
             it->Set(ACTIVE,false);
             for(unsigned int k=0; k<geom.size(); k++)
             {
