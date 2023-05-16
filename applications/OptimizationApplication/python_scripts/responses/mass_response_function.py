@@ -31,8 +31,8 @@ class MassResponseFunction(ResponseFunction):
         if len(self.model_part_names) == 0:
             raise RuntimeError("No model parts were provided for MassResponseFunction.")
 
-    def GetDependentPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
-        return [KratosOA.SHAPE, Kratos.DENSITY, Kratos.THICKNESS, KratosOA.CROSS_AREA]
+    def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        return [KratosOA.COORDS, Kratos.DENSITY, Kratos.THICKNESS, KratosOA.CROSS_AREA]
 
     def Initialize(self) -> None:
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]

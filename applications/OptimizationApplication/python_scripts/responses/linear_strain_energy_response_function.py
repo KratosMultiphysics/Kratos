@@ -37,8 +37,8 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         if len(self.model_part_names) == 0:
             raise RuntimeError("No model parts were provided for LinearStrainEnergyResponseFunction.")
 
-    def GetDependentPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
-        return [KratosOA.SHAPE, Kratos.YOUNG_MODULUS, Kratos.THICKNESS, Kratos.POISSON_RATIO]
+    def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        return [KratosOA.COORDS, Kratos.YOUNG_MODULUS, Kratos.THICKNESS, Kratos.POISSON_RATIO]
 
     def Initialize(self) -> None:
         model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]

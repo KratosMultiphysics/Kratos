@@ -48,7 +48,7 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def GetDependentPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
+    def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         """Returns all the dependent physical kratos variables of the response.
 
         This method should return all the dependent physical variables of the response to make sure

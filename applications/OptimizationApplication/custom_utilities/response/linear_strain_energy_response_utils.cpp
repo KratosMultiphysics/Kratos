@@ -105,7 +105,7 @@ void LinearStrainEnergyResponseUtils::CalculateGradient(
             } else if (*p_variable == POISSON_RATIO) {
                 block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(POISSON_RATIO_SENSITIVITY, 0.0); });
                 CalculateStrainEnergySemiAnalyticPropertyGradient(*rListOfGradientComputedModelParts[i], PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
-            } else if (*p_variable == SHAPE) {
+            } else if (*p_variable == COORDS) {
                 VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rListOfGradientRequiredModelParts[i]->Nodes());
                 CalculateStrainEnergySemiAnalyticShapeGradient(*rListOfGradientComputedModelParts[i], PerturbationSize, SHAPE_SENSITIVITY);
             } else {
@@ -115,7 +115,7 @@ void LinearStrainEnergyResponseUtils::CalculateGradient(
                     << "\n\t" << YOUNG_MODULUS.Name()
                     << "\n\t" << THICKNESS.Name()
                     << "\n\t" << POISSON_RATIO.Name()
-                    << "\n\t" << SHAPE.Name();
+                    << "\n\t" << COORDS.Name();
             }
         }, rListOfGradientVariables[i]);
     }
