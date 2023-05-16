@@ -557,7 +557,7 @@ public:
         // Subproperties
         if (mSubPropertiesList.size() > 0) {
             // Print the subproperties
-            rOStream << "\nThis properties contains the following subproperties " << mSubPropertiesList.size() << " subproperties\n";
+            rOStream << "\nThis properties contains " << mSubPropertiesList.size() << " subproperties\n";
             for (auto& r_subprop : mSubPropertiesList) {
                 PrintDataWithIdentation(rOStream, r_subprop);
             }
