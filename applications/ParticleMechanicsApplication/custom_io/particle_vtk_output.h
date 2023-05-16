@@ -160,37 +160,6 @@ protected:
         std::ofstream& rFileStream
         );
 
-    /**
-     * @brief Write the scalar-nonhistorical variable results of rContainer.
-     * @tparam TContainerType The type of container of the entity on which the results are to be written
-     * @tparam TVarType The type of Variable of the entity on which the results are to be written
-     * @param rContainer the container which is beging output
-     * @param rVariable Variable of the result to be written.
-     * @param rFileStream the file stream to which data is to be written.
-     */
-    template<typename TContainerType, class TVarType>
-    void WriteScalarContainerVariable(
-        const TContainerType& rContainer,
-        const Variable<TVarType>& rVariable,
-        std::ofstream& rFileStream
-        ) const;
-
-    /**
-     * @brief Write the vector-nonhistorical variable results of rContainer.
-     * @tparam TContainerType The type of container of the entity on which the results are to be written
-     * @tparam TVarType The type of Variable of the entity on which the results are to be written
-     * @param rContainer the container which is beging output
-     * @param rVariable Variable of the result to be written.
-     * @param VtkDataType type of vtk data
-     * @param rFileStream the file stream to which data is to be written.
-     */
-    template<typename TContainerType, class TVarType>
-    void WriteVectorContainerVariable(
-        const TContainerType& rContainer,
-        const Variable<TVarType>& rVariable,
-        std::ofstream& rFileStream
-        ) const;
-
     ///@}
 
 private:

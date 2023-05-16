@@ -233,7 +233,7 @@ void ParticleVtkOutput::WriteElementResultsToFile(
 
         for (IndexType entry = 0; entry < element_data_value_variables.size(); ++entry) {
             const std::string& r_element_result_name = element_data_value_variables[entry].GetString();
-            WriteGeometricalContainerResults(r_element_result_name,r_local_mesh.Elements(),rFileStream);
+            WriteGeometricalContainerIntegrationResults(r_element_result_name,r_local_mesh.Elements(),rFileStream);
         }
 
         if (element_flags.size() > 0) {
@@ -282,7 +282,7 @@ void ParticleVtkOutput::WriteConditionResultsToFile(
 
         for (IndexType entry = 0; entry < condition_data_value_variables.size(); ++entry) {
             const std::string& r_condition_result_name = condition_data_value_variables[entry].GetString();
-            WriteGeometricalContainerResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
+            WriteGeometricalContainerIntegrationResults(r_condition_result_name,r_local_mesh.Conditions(),rFileStream);
         }
 
         for (IndexType entry = 0; entry < condition_flags.size(); ++entry) {
@@ -329,64 +329,6 @@ void ParticleVtkOutput::WriteIdsToFile(
     rFileStream << DataName << " 1 " << rContainer.size() << "  int\n";
     for (const auto& r_entity : rContainer) {
         WriteScalarDataToFile((int)r_entity.Id(), rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-            rFileStream <<"\n";
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<typename TContainerType, class TVarType>
-void ParticleVtkOutput::WriteScalarContainerVariable(
-    const TContainerType& rContainer,
-    const Variable<TVarType>& rVariable,
-    std::ofstream& rFileStream
-    ) const
-{
-    if (rContainer.size() == 0) {
-        return;
-    }
-
-    rFileStream << rVariable.Name() << " 1 " << rContainer.size() << "  float\n";
-
-    std::vector<TVarType> result;
-    const ProcessInfo dummy_process_info = ProcessInfo();
-
-    for (auto& r_entity : rContainer) {
-        r_entity.CalculateOnIntegrationPoints(rVariable, result, dummy_process_info);
-        WriteScalarDataToFile((float)result[0], rFileStream);
-        if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
-            rFileStream <<"\n";
-        }
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<typename TContainerType, class TVarType>
-void ParticleVtkOutput::WriteVectorContainerVariable(
-    const TContainerType& rContainer,
-    const Variable<TVarType>& rVariable,
-    std::ofstream& rFileStream
-    ) const
-{
-    if (rContainer.size() == 0) {
-        return;
-    }
-
-    const auto& r_process_info = mrModelPart.GetProcessInfo();
-    std::vector<TVarType> result;
-    rContainer.begin()->CalculateOnIntegrationPoints(rVariable, result, r_process_info);
-    const int res_size = result[0].size();
-
-    rFileStream << rVariable.Name() << " " << res_size << " " << rContainer.size() << "  float\n";
-
-    for (auto& r_entity : rContainer) {
-        r_entity.CalculateOnIntegrationPoints(rVariable, result, r_process_info);
-        WriteVectorDataToFile(result[0], rFileStream);
         if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) {
             rFileStream <<"\n";
         }
