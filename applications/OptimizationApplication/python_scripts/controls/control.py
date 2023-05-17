@@ -103,7 +103,7 @@ class Control(ABC):
             physical_gradient_variable_container_expression_map = {
                 Kratos.YOUNG_MODULUS: Kratos.ContainerExpressions.NodalNonHistoricalContainer,
                 Kratos.DENSITY      : Kratos.ContainerExpressions.ElementNonHistoricalContainer,
-                Kratos.COORDS        : Kratos.ContainerExpressions.ElementNonHistoricalContainer
+                Kratos.SHAPE        : Kratos.ContainerExpressions.ElementNonHistoricalContainer
             }
 
         All the gradients w.r.t. @see GetPhysicalKratosVariables() variables will be given in @ref physical_gradient_variable_container_expression_map.

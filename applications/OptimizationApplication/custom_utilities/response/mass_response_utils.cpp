@@ -131,7 +131,7 @@ void MassResponseUtils::CalculateGradient(
             } else if (*p_variable == CROSS_AREA) {
                 block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(CROSS_AREA_SENSITIVITY, 0.0); });
                 CalculateMassCrossAreaGradient(*rListOfGradientComputedModelParts[i], CROSS_AREA_SENSITIVITY);
-            } else if (*p_variable == COORDS) {
+            } else if (*p_variable == SHAPE) {
                 VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rListOfGradientRequiredModelParts[i]->Nodes());
                 CalculateMassShapeGradient(*rListOfGradientComputedModelParts[i], SHAPE_SENSITIVITY);
             } else {
@@ -141,7 +141,7 @@ void MassResponseUtils::CalculateGradient(
                     << "\n\t" << DENSITY.Name()
                     << "\n\t" << THICKNESS.Name()
                     << "\n\t" << CROSS_AREA.Name()
-                    << "\n\t" << COORDS.Name();
+                    << "\n\t" << SHAPE.Name();
             }
         }, rListOfGradientVariables[i]);
     }

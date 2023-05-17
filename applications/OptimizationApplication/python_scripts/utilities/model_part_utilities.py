@@ -38,7 +38,7 @@ class ModelPartUtilities:
         result: 'dict[Any, Kratos.ModelPart]' = {}
         for k, v in input_dict.items():
             merging_model_parts = [container_expression.GetModelPart() for container_expression in v.GetContainerExpressions()]
-            _, merged_model_part = ModelPartUtilities.MergeModelParts(main_model_part, merging_model_parts, add_neghbours)
+            _, merged_model_part = ModelPartUtilities.UnionModelParts(main_model_part, merging_model_parts, add_neghbours)
             result[k] = merged_model_part
 
         return result
