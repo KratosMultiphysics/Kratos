@@ -56,7 +56,7 @@ namespace Kratos {
         const double mean_reynolds_particle = eps * norm_minus_slip_velocity * equivalent_diameter / fluid_kinematic_viscosity;
         array_1d<double, 3>& slip_vel =  r_geometry[0].FastGetSolutionStepValue(SLIP_VELOCITY);
         slip_vel = minus_slip_velocity;
-        const double beta = 2.65 * (eps + 1) - (5.3 - 3.5 * eps) * std::pow(eps, 2) * std::exp(-std::pow(1.5 - std::log(mean_reynolds_particle), 2) / 2);
+        const double beta = 2.65 * (eps + 1) - (5.3 - 3.5 * eps) * std::pow(eps, 2) * std::exp(-std::pow(1.5 - std::log10(mean_reynolds_particle), 2) / 2);
 
         drag_coeff = std::pow((2.654 / (1.0 + 3.213) + 4.8 / (std::sqrt(mean_reynolds_particle))),2);
         noalias(drag_force) = 1.0 / 8.0 * drag_coeff * Globals::Pi * fluid_density * y * weighting_parameter * std::pow(equivalent_diameter, 2) * norm_minus_slip_velocity * minus_slip_velocity * std::pow(eps, 2.0 - beta);
