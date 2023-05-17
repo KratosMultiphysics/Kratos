@@ -20,8 +20,8 @@ class ComponentDataView:
         self.__component_type = optimization_problem.GetComponentType(component)
         self.__component_name = optimization_problem.GetComponentName(component)
         self.__data_name = f"{self.__component_type.__name__}/{self.__component_name}"
-        self.__buffered_data_name = f"{self.__data_name}/buffered"
-        self.__unbuffered_data_name = f"{self.__data_name}/unbuffered"
+        self.__buffered_data_name = f"buffered/{self.__data_name}"
+        self.__unbuffered_data_name = f"unbuffered/{self.__data_name}"
         self.__component = component
 
         # if the component data container not found, then create it.

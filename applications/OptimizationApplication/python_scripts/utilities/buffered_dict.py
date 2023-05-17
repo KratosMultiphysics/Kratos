@@ -138,7 +138,7 @@ class BufferedDict:
             else:
                 raise RuntimeError(f"The key \"{current_key}\" not found in the buffered data which is a parent key for \"{key}\". BufferedDict:\n{self}")
 
-    def SetValue(self, key: str, value: Any, step_index: int = 0) -> None:
+    def SetValue(self, key: str, value: Any, step_index: int = 0, overwrite: bool = False) -> None:
         """Sets a value for specified key at specified step_index.
 
         This method sets the value at the key at the specified step_index.
@@ -172,7 +172,7 @@ class BufferedDict:
                 self.__AddSubItem(key, value)
             else:
                 # if not any of the above, it is a normal value. Then put it to buffer.
-                self.__AddBufferedValue(key, value, step_index)
+                self.__AddBufferedValue(key, value, step_index, overwrite)
         else:
             # if it is not a leaf key. then look for the sub_item, and recursively
             # call the Set method.
@@ -300,10 +300,10 @@ class BufferedDict:
             key_value_pair_map[f"{current_path}{k}"] = v
             v.__AddKeyValuePairsToMap(f"{current_path}{k}/", key_value_pair_map, step_index)
 
-    def __AddBufferedValue(self, key: str, value: Any, step_index: int) -> None:
+    def __AddBufferedValue(self, key: str, value: Any, step_index: int, overwrite: bool) -> None:
         # first check whether this key exists in the specified step_index
         buffer_data = self.__buffered_data[self.__GetBufferIndex(step_index)]
-        if key in buffer_data.keys():
+        if not overwrite and key in buffer_data.keys():
             raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when already value exists for the key [ Existing value = {buffer_data[key]}]. BufferedDict:\n{self}")
 
         # now check whether a sub item exists

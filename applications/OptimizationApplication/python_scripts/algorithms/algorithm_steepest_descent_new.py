@@ -6,6 +6,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics import Parameters, Logger
 
@@ -98,14 +99,29 @@ class KratosSteepestDescent(Algorithm):
 
     def SolveOptimizationProblem(self) -> bool:
         self.Initialize()
-
         while not self.converged:
+            print(self._optimization_problem.GetStep())
 
             self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) # __obj_val is typically not used. It is needed if we use Line Search Technique and for output
             obj_grad = self.__objective.CalculateStandardizedGradient()
             search_direction = self.ComputeSearchDirection(obj_grad)
+
+            for control in self.master_control.GetListOfControls():
+                control_data_storage = ComponentDataView(control, self._optimization_problem)
+                control_data_storage.GetUnBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
+
             alpha = self.LineSearch(search_direction)
-            self.__control_field += search_direction * alpha
+
+            update = search_direction * alpha
+            self.__control_field += update
+
+            for control in self.master_control.GetListOfControls():
+                control_data_storage = ComponentDataView(control, self._optimization_problem)
+                control_data_storage.GetUnBufferedData().SetValue("parameter_update", update.Clone(), overwrite=True)
+                control_data_storage.GetUnBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
+
+            print(self.__objective.GetInfo())
+
             self.converged = self.CheckConvergence()
             self._optimization_problem.AdvanceStep()
 

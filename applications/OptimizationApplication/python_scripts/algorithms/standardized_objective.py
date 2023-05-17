@@ -97,13 +97,13 @@ class StandardizedObjective(ResponseRoutine):
         return gradient_collective_expression * self.__scaling
 
     def GetRelativeChange(self) -> float:
-        if self.__optimization_problem.GetStep() > 1:
+        if self.__optimization_problem.GetStep() > 0:
             return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
         else:
             return 0.0
 
     def GetAbsoluteChange(self) -> float:
-        return self.GetStandardizedValue() / self.GetInitialValue() - 1.0 if abs(self.GetInitialValue()) > 1e-12 else self.GetStandardizedValue()
+        return self.GetStandardizedValue() - self.GetInitialValue()
 
     def GetInfo(self) -> str:
         msg = "\tObjective info:"
