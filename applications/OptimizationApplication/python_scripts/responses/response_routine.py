@@ -6,6 +6,9 @@ from KratosMultiphysics.OptimizationApplication.controls.master_control import M
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class ResponseRoutine:
+    """A class which adds optimization-specific utilities to simplify routines
+       and synchronization between the control field from algorithms and analysis models.
+    """
     def __init__(self, master_control: MasterControl, response: ResponseFunction) -> None:
         # set the master control
         self.__master_control = master_control
@@ -21,7 +24,7 @@ class ResponseRoutine:
         return self.__master_control
 
     def Initialize(self):
-        """Initializes the response routine and underlying response.
+        """Initializes the response routine.
 
         Raises:
             RuntimeError: If control domain and response domain does not have any intersection.
