@@ -70,7 +70,7 @@ class ResponseRoutine:
         """Calculates the value of the response.
 
         This method updates the design with the provided control field. If a control field is updated
-        which affects the this response value, then a new value is computed. Otherwise, the design
+        which affects the this response value, then a new value is computed. Otherwise, the previous
         used in this reponse has not changed, hence the old value is returned without new calculations.
 
         Args:
