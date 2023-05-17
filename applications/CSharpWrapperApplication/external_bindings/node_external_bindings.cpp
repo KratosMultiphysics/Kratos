@@ -3,7 +3,7 @@
 #include "includes/node.h"
 
 using namespace std;
-typedef Kratos::Node<3> NodeType;
+typedef Kratos::Node NodeType;
 
 extern "C" {
 #if defined(KRATOS_COMPILED_IN_WINDOWS)

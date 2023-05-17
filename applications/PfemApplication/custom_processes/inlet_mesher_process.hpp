@@ -191,9 +191,9 @@ class InletMesherProcess
             // release old inlet node
             i_node->Set(INLET,false);
 
-            Node<3>::DofsContainerType& Dofs = i_node->GetDofs();
+            Node::DofsContainerType& Dofs = i_node->GetDofs();
             //free dofs
-            for(Node<3>::DofsContainerType::iterator i_dof = Dofs.begin(); i_dof != Dofs.end(); ++i_dof)
+            for(Node::DofsContainerType::iterator i_dof = Dofs.begin(); i_dof != Dofs.end(); ++i_dof)
             {
               (*i_dof)->FreeDof();
             }
