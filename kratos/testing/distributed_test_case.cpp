@@ -52,6 +52,11 @@ bool DistributedTestCase::IsDisabled() const
     return !IsEnabled();
 }
 
+bool DistributedTestCase::IsDistributedTest() const
+{
+    return true;
+}
+
 std::string DistributedTestCase::Info() const
 {
     return "Distributed test case " + Name();
