@@ -414,13 +414,13 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA_scale(5,5), 2.26648e+10, tolerance);
 
         SparseSpaceType::MatrixType copy_A(rA);
-        const double condition_number_not_scale = ConditionNumberUtility().GetConditionNumber(copy_A);
+        const double condition_number_max_diagonal = ConditionNumberUtility().GetConditionNumber(copy_A);
         SparseSpaceType::MatrixType copy_A_scale(rA_scale);
-        const double condition_number_scale = ConditionNumberUtility().GetConditionNumber(copy_A_scale);
+        const double condition_number_manual_set = ConditionNumberUtility().GetConditionNumber(copy_A_scale);
 
-        KRATOS_CHECK_RELATIVE_NEAR(condition_number_not_scale, 5.41671e+09, 1.0e-5);
-        KRATOS_CHECK_RELATIVE_NEAR(condition_number_scale, 28.6791, 1.0e-5);
-        KRATOS_CHECK_LESS_EQUAL(condition_number_scale, condition_number_not_scale);
+        KRATOS_CHECK_RELATIVE_NEAR(condition_number_max_diagonal, 5.23607, 1.0e-5);
+        KRATOS_CHECK_RELATIVE_NEAR(condition_number_manual_set, 28.6791, 1.0e-5);
+        KRATOS_CHECK_LESS_EQUAL(condition_number_max_diagonal, condition_number_manual_set);
     }
 
     /**
