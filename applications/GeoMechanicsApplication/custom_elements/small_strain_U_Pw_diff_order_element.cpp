@@ -773,7 +773,7 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
+    KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
 
     //Definition of variables
     ElementVariables Variables;
@@ -801,7 +801,7 @@ void SmallStrainUPwDiffOrderElement::
          // retention law
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
         
-        KRATOS_INFO(" mRetentionLawVector[GPoint]->FinalizeSolutionStep()") << std::endl;
+        KRATOS_INFO(" mRetentionLawVector[GPoint]->FinalizeSolutionStep()") << inalizeSolutionStep() << std::endl;
         //compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
@@ -818,7 +818,7 @@ void SmallStrainUPwDiffOrderElement::
     //Assign pressure values to the intermediate nodes for post-processing
     if (!IgnoreUndrained) AssignPressureToIntermediateNodes();
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
+     KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
 
     KRATOS_CATCH( "" )
 
