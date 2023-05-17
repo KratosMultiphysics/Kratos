@@ -171,12 +171,12 @@ public:
      * @param node       Input node
      * @param rVariable  Variable to print
      */
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Vector>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Matrix>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<bool>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<int>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<double>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<array_1d<double,3>>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<Vector>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<Matrix>& rVariable);
 
     /**
      * @brief Get the id of the UNV variable name corresponding to rVariable. 1000+ if none found.

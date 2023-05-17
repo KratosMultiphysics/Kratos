@@ -146,6 +146,10 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     // AllGather
     .def("AllGatherInts",(std::vector<int> (DataCommunicator::*)(const std::vector<int>&) const) &DataCommunicator::AllGather)
     .def("AllGatherDoubles",(std::vector<double> (DataCommunicator::*)(const std::vector<double>&) const) &DataCommunicator::AllGather)
+    // AllGatherv
+    .def("AllGathervInts",(std::vector<std::vector<int>> (DataCommunicator::*)(const std::vector<int>&) const) &DataCommunicator::AllGatherv)
+    .def("AllGathervDoubles",(std::vector<std::vector<double>> (DataCommunicator::*)(const std::vector<double>&) const) &DataCommunicator::AllGatherv)
+    // Common MPI operations
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
     .def("IsDistributed", &DataCommunicator::IsDistributed)

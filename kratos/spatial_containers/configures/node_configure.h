@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //
 
-#if !defined(KRATOS_NODE_CONFIGURE_INCLUDED)
-#define  KRATOS_NODE_CONFIGURE_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -19,16 +18,15 @@
 #include <limits>
 #include <cmath>
 
+// External includes
 
-#include "spatial_containers/tree.h"
-#include "spatial_containers/cell.h"
-
-// Kratos includes
+// Project includes
 #include "includes/define.h"
 #include "geometries/point.h"
 #include "containers/pointer_vector_set.h"
 #include "includes/indexed_object.h"
-#include "utilities/contact_pair.h"
+#include "spatial_containers/tree.h"
+#include "spatial_containers/cell.h"
 
 namespace Kratos {
 
@@ -72,7 +70,7 @@ public:
     * @param PointerType Pointer to nodes of doubles with 3 coordinates (Dimension = 3)
     */
     typedef Point                   PointType;
-    typedef Node<3>                 ObjectType;
+    typedef Node                 ObjectType;
     typedef ObjectType::Pointer     PointerType;
 
     /** Additional types needed by the bins.
@@ -83,8 +81,6 @@ public:
     * @param IteratorType          Iterator of points.
     * @param ResultIteratorType    Iterator of results. For this configure should be the same as PointIteratorType.
     * @param DistanceIteratorType  Iterato of distances (doubles)
-    * @param ContainerContactType  Container type for contacts
-    * @param IteratorContactType   Iterator type for contacts
     */
 
     typedef PointerVectorSet<ObjectType,IndexedObject>  ObjectContainerType;
@@ -96,9 +92,6 @@ public:
     typedef ContainerType::iterator                     IteratorType;
     typedef ResultContainerType::iterator               ResultIteratorType;
     typedef std::vector<double>::iterator               DistanceIteratorType;
-
-    typedef std::vector<ContactPairType>                ContainerContactType;
-    typedef ContainerContactType::iterator              IteratorContactType;
 
     typedef double                                      CoordinateType;
     typedef Tvector<CoordinateType,Dimension>           CoordinateArray;
@@ -430,4 +423,3 @@ inline std::ostream& operator << (std::ostream& rOStream, const NodeConfigure& r
 ///@}
 
 } // namespace Kratos.
-#endif /* POINT_CONFIGURE */

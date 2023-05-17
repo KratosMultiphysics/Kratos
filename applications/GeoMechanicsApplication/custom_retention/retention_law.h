@@ -34,11 +34,11 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) RetentionLaw
 public:
     /**
      * Type definitions
-     * NOTE: geometries are assumed to be of type Node<3> for all problems
+     * NOTE: geometries are assumed to be of type Node for all problems
      */
-    typedef ProcessInfo ProcessInfoType;
-    typedef std::size_t SizeType;
-    typedef Geometry<Node<3>> GeometryType;
+    using ProcessInfoType = ProcessInfo;
+    using SizeType = std::size_t;
+    using GeometryType = Geometry<Node>;
 
     /**
      * Counted pointer of RetentionLaw
@@ -68,80 +68,59 @@ public:
         * @param mpConstitutiveMatrix pointer to the material tangent matrix (*OUTPUT with COMPUTE_CONSTITUTIVE_TENSOR flag)
 
         * GEOMETRIC PARAMETERS:
-        * @param mpElementGeometry pointer to the element's geometry (input data)
+        * @param mrElementGeometry reference to the element's geometry (input data)
 
         * MATERIAL PROPERTIES:
-        * @param mpMaterialProperties pointer to the material's Properties object (input data)
+        * @param mrMaterialProperties reference to the material's Properties object (input data)
 
         * PROCESS PROPERTIES:
-        * @param mpCurrentProcessInfo pointer to current ProcessInfo instance (input data)
+        * @param mrCurrentProcessInfo reference to current ProcessInfo instance (input data)
 
         */
 
     private:
-        /*** NOTE: Member Pointers are used only to point to a certain variable, 
-         * no "new" or "malloc" can be used for this Parameters ***/
 
-        double mFluidPressure;
-        double mMeanStress;
-        double mTemperature;
-        double mVolumetricStrain;
+        double mFluidPressure = 0.0;
+        double mMeanStress = 0.0;
+        double mTemperature = 0.0;
+        double mVolumetricStrain = 0.0;
 
-        const ProcessInfo *mpCurrentProcessInfo;
-        const Properties *mpMaterialProperties;
-        const GeometryType *mpElementGeometry;
+        const ProcessInfo &mrCurrentProcessInfo;
+        const Properties &mrMaterialProperties;
+        const GeometryType &mrElementGeometry;
 
     public:
         Parameters(const GeometryType &rElementGeometry,
                    const Properties &rMaterialProperties,
                    const ProcessInfo &rCurrentProcessInfo) 
-            : mFluidPressure(0)
-             ,mMeanStress(0)
-             ,mTemperature(0)
-             ,mVolumetricStrain(0)
-             ,mpCurrentProcessInfo(&rCurrentProcessInfo)
-             ,mpMaterialProperties(&rMaterialProperties)
-             ,mpElementGeometry(&rElementGeometry)
+            : mrCurrentProcessInfo(rCurrentProcessInfo)
+             ,mrMaterialProperties(rMaterialProperties)
+             ,mrElementGeometry(rElementGeometry)
         {};
 
         ~Parameters() = default;
-
-        /**
-         * sets the variable or the pointer of a specified variable: assigns the direction of the pointer for the mpvariables, only non const values can be modified
-         */
 
         void SetVolumetricStrain(const double rVolumetricStrain) { mVolumetricStrain = rVolumetricStrain; };
         void SetMeanStress      (const double rMeanStress)       { mMeanStress = rMeanStress; };
         void SetFluidPressure   (const double rFluidPressure)    { mFluidPressure = rFluidPressure; };
         void SetTemperature     (const double rTemperature)      { mTemperature = rTemperature; };
 
-        void SetProcessInfo(const ProcessInfo &rProcessInfo) { mpCurrentProcessInfo = &rProcessInfo; };
-        void SetMaterialProperties(const Properties &rMaterialProperties) { mpMaterialProperties = &rMaterialProperties; };
-        void SetElementGeometry(const GeometryType &rElementGeometry) { mpElementGeometry = &rElementGeometry; };
-
-        /**
-         * Returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
-         */
-
         double GetVolumetricStrain() const { return mVolumetricStrain; }
         double GetMeanStress()       const { return mMeanStress;       }
         double GetFluidPressure()    const { return mFluidPressure;    }
         double GetTemperature()      const { return mTemperature;      }
 
-        const ProcessInfo &GetProcessInfo()
+        const ProcessInfo &GetProcessInfo() const
         {
-            KRATOS_DEBUG_ERROR_IF(mpCurrentProcessInfo == nullptr) << "ProcessInfo is not set!" << std::endl;
-            return *mpCurrentProcessInfo;
+            return mrCurrentProcessInfo;
         }
-        const Properties &GetMaterialProperties()
+        const Properties &GetMaterialProperties() const
         {
-            KRATOS_DEBUG_ERROR_IF(mpMaterialProperties == nullptr) << "MaterialProperties is not set!" << std::endl;
-            return *mpMaterialProperties;
+            return mrMaterialProperties;
         }
-        const GeometryType &GetElementGeometry()
+        const GeometryType &GetElementGeometry() const
         {
-            KRATOS_DEBUG_ERROR_IF(mpElementGeometry == nullptr) << "ElementGeometry is not set!" << std::endl;
-            return *mpElementGeometry;
+            return mrElementGeometry;
         }
 
     }; // class Parameters end

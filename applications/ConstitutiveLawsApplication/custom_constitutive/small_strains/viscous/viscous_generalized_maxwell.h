@@ -12,8 +12,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_VISCOUS_GENERALIZED_MAXWELL_H_INCLUDED)
-#define KRATOS_VISCOUS_GENERALIZED_MAXWELL_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -87,7 +86,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ViscousGeneralizedMaxwell
     KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedMaxwell);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -359,4 +358,3 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ViscousGeneralizedMaxwell
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

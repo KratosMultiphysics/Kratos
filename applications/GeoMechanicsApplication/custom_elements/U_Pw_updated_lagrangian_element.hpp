@@ -61,19 +61,19 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianElement
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
 
     /// Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
@@ -81,7 +81,7 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
 
-    typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
+    using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
     using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
 
     /// Counted pointer of UPwUpdatedLagrangianElement

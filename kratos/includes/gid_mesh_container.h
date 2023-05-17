@@ -55,7 +55,7 @@ public:
         if ( pElemIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
             mMeshElements.push_back ( * (pElemIt.base() ) );
-            Geometry<Node<3> >&geom = pElemIt->GetGeometry();
+            Geometry<Node >&geom = pElemIt->GetGeometry();
             for ( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
             {
                 mMeshNodes.push_back ( * (it.base() ) );
@@ -72,7 +72,7 @@ public:
         if ( pCondIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
             mMeshConditions.push_back ( * (pCondIt.base() ) );
-            Geometry<Node<3> >&geom = pCondIt->GetGeometry();
+            Geometry<Node >&geom = pCondIt->GetGeometry();
             for ( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
             {
                 mMeshNodes.push_back ( * (it.base() ) );
@@ -130,7 +130,7 @@ public:
             {
                 if (elements_per_layer[current_layer] > 0)
                 {
-                    //create an appropiate name
+                    //create an appropriate name
                     std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
                     current_layer_name << mMeshTitle << "_" << current_layer ;
                     if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )

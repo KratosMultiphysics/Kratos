@@ -6,10 +6,10 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.multistage_analysis import MultistageAnalysis
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
 class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationInfo):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationProblem):
         super().__init__()
 
         self.model = model
@@ -31,6 +31,15 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
 
         self.analysis_full_module = f"{self.analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(self.analysis_type)}"
 
+    def ExecuteInitializeSolutionStep(self) -> None:
+        self.current_analysis = None
+
     def Execute(self):
-        current_analysis: Union[AnalysisStage, MultistageAnalysis] = getattr(import_module(self.analysis_full_module), self.analysis_type)(self.model, self.analysis_settings.Clone())
-        current_analysis.Run()
+        self.current_analysis: Union[AnalysisStage, MultistageAnalysis] = getattr(import_module(self.analysis_full_module), self.analysis_type)(self.model, self.analysis_settings.Clone())
+        self.current_analysis.Run()
+
+    def GetAnalysisModelPart(self):
+        if self.current_analysis is not None:
+            return self.current_analysis._GetSolver().GetComputingModelPart()
+        else:
+            raise RuntimeError("The analysis is not run for current iteration.")

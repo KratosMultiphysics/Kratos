@@ -56,13 +56,13 @@ public:
     ///@{
 
     /// The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw       CLBaseType;
+    using CLBaseType = ConstitutiveLaw;
 
     /// The base class ElasticIsotropicK03DLaw type definition
-    typedef ElasticIsotropicK03DLaw      BaseType;
+    using BaseType = ElasticIsotropicK03DLaw;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_2D;
@@ -236,11 +236,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropicK03DLaw)
     }
-
-    // stress vector indices
-    const int VOIGT_INDEX_XX = 0;
-    const int VOIGT_INDEX_YY = 1;
-
 }; // Class LinearPlaneStrainK0Law
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined

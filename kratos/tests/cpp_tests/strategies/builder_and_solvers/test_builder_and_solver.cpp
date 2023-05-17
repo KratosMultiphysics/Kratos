@@ -47,7 +47,7 @@ namespace Kratos::Testing
 {
     /// Tests
     // TODO: Create test for the other components
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -72,7 +72,12 @@ namespace Kratos::Testing
     /**
     * @brief It generates a truss structure with an expected solution
     */
-    static inline void BasicTestBuilderAndSolverDisplacement(ModelPart& rModelPart, const bool WithConstraint = false, const bool AdditionalNode = false)
+    static inline void BasicTestBuilderAndSolverDisplacement(
+        ModelPart& rModelPart,
+        const bool WithConstraint = false,
+        const bool AdditionalNode = false,
+        const bool InvertRoleAdditionalNode = false
+        )
     {
         rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
@@ -130,9 +135,15 @@ namespace Kratos::Testing
             rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode2, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
             if (AdditionalNode) {
                 auto pnode4 = rModelPart.pGetNode(4);
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode3, DISPLACEMENT_X, *pnode4, DISPLACEMENT_X, 1.0, 0.0);
                 auto pnode5 = rModelPart.pGetNode(5);
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode3, DISPLACEMENT_X, *pnode5, DISPLACEMENT_X, 1.0, 0.0);
+                // Existing node is the master
+                if (!InvertRoleAdditionalNode) {
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode3, DISPLACEMENT_X, *pnode4, DISPLACEMENT_X, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode3, DISPLACEMENT_X, *pnode5, DISPLACEMENT_X, 1.0, 0.0);
+                } else { // Free nodes are the master
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode4, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode5, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
+                }
             }
         }
     }
@@ -594,6 +605,67 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(7,7), 2069000000.0, tolerance);
+
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+        KRATOS_CHECK(r_T.size1() == 8);
+        KRATOS_CHECK(r_T.size2() == 8);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(0,0), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(2,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(4,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(5,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(6,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(7,4), 1.0, tolerance);
+    }
+
+    /**
+    * Checks if the block builder and solver with constraints performs correctly the assemble of the system
+    */
+    KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNodeInverted, KratosCoreFastSuite)
+    {
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        BasicTestBuilderAndSolverDisplacement(r_model_part, true, true, true);
+
+        SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+        LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+
+        const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA);
+
+        // The solution check
+        constexpr double tolerance = 1e-8;
+        KRATOS_CHECK(rA.size1() == 8);
+        KRATOS_CHECK(rA.size2() == 8);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(6,7), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(7,6), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(7,7), 2069000000.0, tolerance);
+
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+        KRATOS_CHECK(r_T.size1() == 8);
+        KRATOS_CHECK(r_T.size2() == 8);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(0,0), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(2,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(4,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(4,6), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(4,7), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(5,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(6,6), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(7,7), 1.0, tolerance);
     }
 
     /**

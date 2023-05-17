@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED )
-#define  KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -62,7 +61,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PrismNeighboursProcess);
 
     // General geometry type definitions
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
 
     // Containers definition
@@ -321,5 +320,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED  defined

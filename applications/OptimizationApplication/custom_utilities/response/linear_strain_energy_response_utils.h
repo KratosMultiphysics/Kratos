@@ -14,6 +14,7 @@
 #pragma once
 
 // System includes
+#include <variant>
 #include <vector>
 
 // Project includes
@@ -21,7 +22,6 @@
 #include "includes/model_part.h"
 
 // Application includes
-#include "custom_utilities/optimization_utils.h"
 
 namespace Kratos
 {
@@ -39,19 +39,18 @@ public:
 
     using GeometryType = ModelPart::ElementType::GeometryType;
 
-    using SensitivityFieldVariableTypes = OptimizationUtils::SensitivityFieldVariableTypes;
-
-    using SensitivityModelPartVariablesListMap = OptimizationUtils::SensitivityModelPartVariablesListMap;
+    using GradientFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
 
     ///@}
     ///@name Static operations
     ///@{
 
-    static double CalculateValue(const std::vector<ModelPart*>& rModelParts);
+    static double CalculateValue(ModelPart& rEvaluatedModelPart);
 
-    static void CalculateSensitivity(
-        const std::vector<ModelPart*>& rEvaluatedModelParts,
-        const SensitivityModelPartVariablesListMap& rSensitivityModelPartVariableInfo,
+    static void CalculateGradient(
+        const std::vector<GradientFieldVariableTypes>& rListOfGradientVariables,
+        const std::vector<ModelPart*>& rListOfGradientRequiredModelParts,
+        const std::vector<ModelPart*>& rListOfGradientComputedModelParts,
         const double PerturbationSize);
 
     ///@}
@@ -67,10 +66,8 @@ private:
         Vector& rX,
         const ProcessInfo& rProcessInfo);
 
-    static double CalculateModelPartValue(ModelPart& rModelPart);
-
     template<class TEntityType>
-    static void CalculateStrainEnergyEntitySemiAnalyticShapeSensitivity(
+    static void CalculateStrainEnergyEntitySemiAnalyticShapeGradient(
         TEntityType& rEntity,
         Vector& rX,
         Vector& rRefRHS,
@@ -80,23 +77,23 @@ private:
         std::vector<std::string>& rModelPartNames,
         const double Delta,
         const IndexType MaxNodeId,
-        const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
+        const Variable<array_1d<double, 3>>& rOutputGradientVariable);
 
-    static void CalculateStrainEnergySemiAnalyticShapeSensitivity(
+    static void CalculateStrainEnergySemiAnalyticShapeGradient(
         ModelPart& rModelPart,
         const double Delta,
-        const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
+        const Variable<array_1d<double, 3>>& rOutputGradientVariable);
 
-    static void CalculateStrainEnergyLinearlyDependentPropertySensitivity(
+    static void CalculateStrainEnergyLinearlyDependentPropertyGradient(
         ModelPart& rModelPart,
         const Variable<double>& rPrimalVariable,
-        const Variable<double>& rOutputSensitivityVariable);
+        const Variable<double>& rOutputGradientVariable);
 
-    static void CalculateStrainEnergySemiAnalyticPropertySensitivity(
+    static void CalculateStrainEnergySemiAnalyticPropertyGradient(
         ModelPart& rModelPart,
         const double Delta,
         const Variable<double>& rPrimalVariable,
-        const Variable<double>& rOutputSensitivityVariable);
+        const Variable<double>& rOutputGradientVariable);
 
     ///@}
 };

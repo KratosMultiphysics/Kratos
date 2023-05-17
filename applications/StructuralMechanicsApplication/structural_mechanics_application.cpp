@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //    Co-authors:    Vicente Mataix Ferrandiz
@@ -56,7 +56,7 @@
 namespace Kratos {
 
     // We define the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
 KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
     : KratosApplication("StructuralMechanicsApplication"),
@@ -185,7 +185,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAxisymUpdatedLagrangian2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<NodeType >(Element::GeometryType::PointsArrayType(8)))),
       mAxisymUpdatedLagrangian2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<NodeType >(Element::GeometryType::PointsArrayType(9)))),
       // Adding the spring damper element
-      mSpringDamperElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      mSpringDamperElement2D(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      mSpringDamperElement3D(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       // Adding the adjoint elements
       mAdjointFiniteDifferencingShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mAdjointFiniteDifferenceCrBeamElementLinear3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -312,6 +313,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(I22)
     KRATOS_REGISTER_VARIABLE(I33)
     KRATOS_REGISTER_VARIABLE(LUMPED_MASS_ROTATION_COEFFICIENT)
+    KRATOS_REGISTER_VARIABLE(BEAM_INITIAL_STRAIN_VECTOR)
 
     //  Shell generalized variables
     KRATOS_REGISTER_VARIABLE(STENBERG_SHEAR_STABILIZATION_SUITABLE)
@@ -626,7 +628,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D9N", mAxisymUpdatedLagrangian2D9N)
 
     // Register the spring damper element
-    KRATOS_REGISTER_ELEMENT("SpringDamperElement3D2N", mSpringDamperElement3D2N);
+    KRATOS_REGISTER_ELEMENT("SpringDamperElement2D", mSpringDamperElement2D);
+    KRATOS_REGISTER_ELEMENT("SpringDamperElement3D", mSpringDamperElement3D);
+    KRATOS_REGISTER_ELEMENT("SpringDamperElement3D2N", mSpringDamperElement3D); // DEPRECATED, only here for backward compatibility, should be removed after some time
 
     //Register the adjoint elements
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingShellThinElement3D3N", mAdjointFiniteDifferencingShellThinElement3D3N )
