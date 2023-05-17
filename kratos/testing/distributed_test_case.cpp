@@ -21,8 +21,7 @@
 #include "includes/parallel_environment.h"
 #include "testing/distributed_test_case.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 DistributedTestCase::DistributedTestCase(std::string const& Name):
     TestCase(Name)
@@ -64,19 +63,26 @@ std::string DistributedTestCase::Info() const
 
 void DistributedTestCase::CheckRemoteFailure()
 {
-    bool success_on_this_rank = GetResult().IsSucceed();
+    const bool success_on_this_rank = GetResult().IsSucceed();
     const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
-    bool global_success = r_comm.AndReduceAll(success_on_this_rank);
-    if (success_on_this_rank && !global_success)
-    {
-        TestCaseResult remote_failure(GetResult());
-        remote_failure.SetToFailed();
-        remote_failure.SetErrorMessage("Test was reported as successful on this rank, but failed on a different rank.");
-        SetResult(remote_failure);
+    const bool global_success = r_comm.AndReduceAll(success_on_this_rank);
+    // Test failed on at least one rank.
+    if (!global_success) {
+        if (success_on_this_rank) { // This rank succeeded, but another rank failed.
+            TestCaseResult remote_failure(GetResult());
+            remote_failure.SetToFailed();
+            remote_failure.SetErrorMessage("Test was reported as successful on this rank, but failed on a different rank.");
+            SetResult(remote_failure);
+        } // TODO: Decomment this when the tests are fixed.
+        // else { // Test failed on all ranks.
+        //     TestCaseResult all_ranks_failure(GetResult());
+        //     all_ranks_failure.SetToFailed();
+        //     all_ranks_failure.SetErrorMessage("Test failed on all ranks.");
+        //     SetResult(all_ranks_failure);
+        // }
     }
 }
 
 ///@}
 
-}
-}
+} // namespace Kratos::Testing.
