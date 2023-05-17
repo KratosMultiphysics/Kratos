@@ -75,7 +75,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
 
     def test_CalculateShapeSensitivity(self):
         sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)])
-        self.response_function.CalculateGradient({KratosOA.COORDS: sensitivity})
+        self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
         self._CheckSensitivity(
@@ -149,7 +149,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
 
     def test_CalculateShapeSensitivity(self):
         sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)])
-        self.response_function.CalculateGradient({KratosOA.COORDS: sensitivity})
+        self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
         self._CheckSensitivity(
@@ -225,7 +225,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
 
     def test_CalculateShapeSensitivity(self):
         sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)])
-        self.response_function.CalculateGradient({KratosOA.COORDS: sensitivity})
+        self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
         self._CheckSensitivity(
