@@ -114,7 +114,7 @@ class ResponseRoutine:
         """Returns Collective expression containing all the control space gradients for all control variable types (fields).
 
         Notes:
-            1. It expects that the CalcaulteValue is called.
+            1. It expects that the CalculateValue is called.
             2. The gradients are computed with respect to updates from master control.
 
         Returns:
