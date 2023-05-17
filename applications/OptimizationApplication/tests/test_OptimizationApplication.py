@@ -17,19 +17,19 @@ import symmetry_utilities_tests.symmetry_tests
 import test_execution_policies
 import test_optimization_info
 import test_optimization_utils
-import responses_tests.test_response_routine
-import responses_tests.test_overhang_response_function
-import responses_tests.test_mass_response_function
-import responses_tests.test_linear_strain_energy_response_function
+import responses.test_mass_response_function
+import responses.test_linear_strain_energy_response_function
+import responses.test_response_routine
+import responses.test_standardized_responses
 import test_model_part_utils
 import test_model_part_controllers
 import test_container_expression_utils
 import test_container_expression
 import test_collective_expressions
 import test_buffered_dict
-import test_standardized_responses
 import control.test_master_control
 import control.material.test_material_properties_control
+import test_component_data_view
 
 # Nightly tests
 
@@ -57,6 +57,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_execution_policies.TestExecutionPolicies]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([symmetry_utilities_tests.symmetry_tests.SymmetryUtilitiesTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_buffered_dict.TestBufferedDict]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_component_data_view.TestComponentDataView]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_info.TestOptimizationInfo]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_optimization_utils.TestOptimizationUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtils]))
@@ -69,9 +70,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_overhang_response_function.TestOverHangResponseFunction]))
 
-    # TODO: temporarily disabling them. To be turned on once these are ported to new design.
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedObjective]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedConstraint]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_standardized_responses.TestStandardizedObjective]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_standardized_responses.TestStandardizedConstraint]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
