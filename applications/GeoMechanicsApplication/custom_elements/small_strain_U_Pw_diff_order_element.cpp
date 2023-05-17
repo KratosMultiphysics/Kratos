@@ -690,6 +690,7 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector()") << std::endl;
+    
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -800,7 +801,7 @@ void SmallStrainUPwDiffOrderElement::
          // retention law
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
         
-        
+        KRATOS_INFO(" mRetentionLawVector[GPoint]->FinalizeSolutionStep()") << std::endl;
         //compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
         ConstitutiveParameters.SetStressVector(Variables.StressVector);
