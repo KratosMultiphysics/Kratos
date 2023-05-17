@@ -82,9 +82,6 @@ class TestResponseRoutine(kratos_unittest.TestCase):
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
-        value = self.response_routine.CalculateValue(control_field)
-        self.assertEqual(value, 84)
-
         # now change the control field where response does not depend on
         # changing a variable such as YOUNG_MODULUS
         control_field.GetContainerExpressions()[1].SetData(2.0)
