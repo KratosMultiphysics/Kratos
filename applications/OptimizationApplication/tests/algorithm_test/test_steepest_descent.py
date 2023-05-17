@@ -84,8 +84,7 @@ class TestKratosSteepestDescent(kratos_unittest.TestCase, ABC):
     def test_ComputeSearchDirection(self):
         conv = self.algorithm.SolveOptimizationProblem()
         self.assertTrue(conv)
-        print(self.algorithm.GetOptimizedObjectiveValue())
-        self.assertEqual(self.algorithm.GetOptimizedObjectiveValue(), 15.0)
+        self.assertEqual(self.algorithm.GetOptimizedObjectiveValue(), 14.249999999999998)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

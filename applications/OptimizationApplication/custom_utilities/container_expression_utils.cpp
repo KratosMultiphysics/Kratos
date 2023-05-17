@@ -167,7 +167,6 @@ double ContainerExpressionUtils::NormInf(
     for (const auto& p_variable_data_container : rContainer.GetContainerExpressions()) {
         std::visit([&max_norm](const auto& v) { max_norm = std::max(max_norm, NormInf(*v));}, p_variable_data_container);
     }
-    KRATOS_WATCH(max_norm)
     return max_norm;
 }
 
