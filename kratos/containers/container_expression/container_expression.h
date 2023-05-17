@@ -29,6 +29,12 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
+namespace MeshType {
+    struct Local     {};
+    struct Ghost     {};
+    struct Interface {};
+} // namespace MeshTypes
+
 /**
  * @brief Container variable data holder
  *
@@ -72,9 +78,10 @@ namespace Kratos {
  *
  * This class is optimized and compatible with OpenMP and MPI.
  *
- * @tparam TContainerType
+ * @tparam TContainerType       Container type, should be nodal, condition or elemental.
+ * @tparam TMeshType            Mesh type, should be Local, Ghost or Interface
  */
-template <class TContainerType>
+template <class TContainerType, class TMeshType = MeshType::Local>
 class KRATOS_API(KRATOS_CORE) ContainerExpression {
 public:
     ///@name Type definitions
@@ -104,7 +111,7 @@ public:
      *
      * @param rOther        Other container variable data
      */
-    void CopyFrom(const ContainerExpression<TContainerType>& rOther);
+    void CopyFrom(const ContainerExpression<TContainerType, TMeshType>& rOther);
 
     /**
      * @brief Reads data from c like interface
@@ -140,9 +147,9 @@ public:
     /**
      * @brief Move data from pBegin array to internal structure.
      *
-     * @warning This instance does not take the ownership of the passed array. 
+     * @warning This instance does not take the ownership of the passed array.
      *  The life time of the passed array is not managed by this instance
-     * @warning Seg faults if this is used when passed @ref pBegin was destroyed. 
+     * @warning Seg faults if this is used when passed @ref pBegin was destroyed.
      *
      * @param pBegin            Starting pointer to the data.
      * @param NumberOfEntities  Number of entities present in data.
@@ -206,6 +213,14 @@ public:
      * @param pExpression       Expression to be used in this container variable data
      */
     void SetExpression(Expression::Pointer pExpression);
+
+    /**
+     * @brief Checks whether an expression has been initialized.
+     *
+     * @return true             If an expression is initialized.
+     * @return false            If an expression is not initialized.
+     */
+    bool HasExpression() const;
 
     /**
      * @brief Get the Expression
