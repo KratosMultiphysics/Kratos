@@ -36,6 +36,7 @@
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
 #include "custom_utilities/fluid_test_utilities.h"
+#include "custom_utilities/rotating_frame_utility.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -198,6 +199,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<double>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, double>))
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
+        ;
+
+    // Rotating Frame Utility
+    py::class_<RotatingFrameUtility>(m, "RotatingFrameUtility")
+        .def_static("ApplyVelocityToRotatingObject", &RotatingFrameUtility::ApplyVelocityToRotatingObject)
+        .def_static("ApplyRotationAndMeshDisplacement", &RotatingFrameUtility::ApplyRotationAndMeshDisplacement)
         ;
 }
 
