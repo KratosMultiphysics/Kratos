@@ -291,21 +291,21 @@ std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBoxWithTo
     return ranks;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
+// /***********************************************************************************/
+// /***********************************************************************************/
 
-void GeometricalObjectsBinsMPI::PrepareBufferResultType(const ResultType& rLocalResult)
-{
-    // TODO
-}
+// void GeometricalObjectsBinsMPI::PrepareBufferResultType(const ResultType& rLocalResult)
+// {
+//     // TODO
+// }
 
-/***********************************************************************************/
-/***********************************************************************************/
+// /***********************************************************************************/
+// /***********************************************************************************/
 
-void GeometricalObjectsBinsMPI::DeserializeResultType(const ResultType& rGlobalResult)
-{
-    // TODO
-}
+// void GeometricalObjectsBinsMPI::DeserializeResultType(const ResultType& rGlobalResult)
+// {
+//     // TODO
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -315,23 +315,35 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::GetResultFromGi
     const int Rank
     )
 {
+    // Get the global result
+    GeometricalObject* global_result_object = Rank == GetRank() ? const_cast<GeometricalObject*>(rLocalResult.Get().get()) : nullptr;
+
     // Result to return
-    ResultType global_result;
+    ResultType global_result(global_result_object);
+    double distance = rLocalResult.GetDistance();
+    mrDataCommunicator.Broadcast(distance, Rank);
+    global_result.SetDistance(distance);
+    bool is_object_found = rLocalResult.GetIsObjectFound();
+    mrDataCommunicator.Broadcast(is_object_found, Rank);
+    global_result.SetIsObjectFound(is_object_found);
+    bool is_distance_calculated = rLocalResult.GetIsDistanceCalculated();
+    mrDataCommunicator.Broadcast(is_distance_calculated, Rank);
+    global_result.SetIsDistanceCalculated(is_distance_calculated);
 
-    // MPI partition data
-    const int current_rank = GetRank();
-    const int world_size = GetWorldSize();
+    // // MPI partition data
+    // const int current_rank = GetRank();
+    // const int world_size = GetWorldSize();
 
-    // Reset to zero
-    std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
-    std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
+    // // Reset to zero
+    // std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
+    // std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
 
-    //PrepareBufferResultType(current_result);
+    // //PrepareBufferResultType(rLocalResult);
 
-    const int err = MPISearchUtilities::ExchangeDataAsync(mSendBufferChar, mRecvBufferChar, current_rank, world_size, mSendSizes, mRecvSizes);
-    KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the serialized ResultType in MPI" << std::endl;
+    // const int err = MPISearchUtilities::ExchangeDataAsync(mSendBufferChar, mRecvBufferChar, current_rank, world_size, mSendSizes, mRecvSizes);
+    // KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the serialized ResultType in MPI" << std::endl;
 
-    //DeserializeResultType(global_result);
+    // //DeserializeResultType(rLocalResult);
 
     // Return the result
     return global_result;

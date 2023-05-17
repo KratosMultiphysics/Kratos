@@ -39,7 +39,6 @@ class GeometricalObject; // forward declaration, to be included in the cpp. This
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(KRATOS_CORE) GeometricalObjectsBinsMPI
-    : public GeometricalObjectsBins
 {
 public:
     ///@name Type Definitions
@@ -48,16 +47,13 @@ public:
     /// Pointer definition of GeometricalObjectsBinsMPI
     KRATOS_CLASS_POINTER_DEFINITION(GeometricalObjectsBinsMPI);
 
-    /// The base type
-    using BaseType = GeometricalObjectsBins;
-
     /// The buffer type definition
     using BufferTypeDouble = std::vector<std::vector<double>>;
     using BufferTypeChar = std::vector<std::vector<char>>;
 
     /// The type of geometrical object to be stored in the bins
-    using BaseType::CellType;
-    using BaseType::ResultType;
+    using CellType = GeometricalObjectsBins::CellType;
+    using ResultType = GeometricalObjectsBins::ResultType;
 
     /// Define zero tolerance as Epsilon
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -116,7 +112,7 @@ public:
     }
 
     /// Destructor.
-    ~GeometricalObjectsBinsMPI() override {}
+    ~GeometricalObjectsBinsMPI() = default;
 
     ///@}
     ///@name Operators
@@ -295,7 +291,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
+    virtual std::string Info() const
     {
         std::stringstream buffer;
         buffer << "GeometricalObjectsBinsMPI" ;
@@ -303,10 +299,17 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "GeometricalObjectsBinsMPI";}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "GeometricalObjectsBinsMPI";
+    }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override {}
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "Local Geometrical Objects Bins for Rank " << GetRank() + 1 << "/" << GetWorldSize() << "\n";
+        mLocalGeometricalObjectsBins.PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
@@ -323,6 +326,7 @@ private:
 
     std::vector<double> mGlobalBoundingBoxes; /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
 
+    /// TODO: Replace with a vector and serialize it to all partitions
     GeometricalObjectsBins mLocalGeometricalObjectsBins; /// The local bins
 
     const DataCommunicator& mrDataCommunicator; /// The data communicator
@@ -557,19 +561,19 @@ private:
         return true;
     }
 
-    /**
-     * @brief This method prepares the buffer for the result
-     * @details Values are set in member variables
-     * @param rLocalResult The local result
-     */
-    void PrepareBufferResultType(const ResultType& rLocalResult);
+    // /**
+    //  * @brief This method prepares the buffer for the result
+    //  * @details Values are set in member variables
+    //  * @param rLocalResult The local result
+    //  */
+    // void PrepareBufferResultType(const ResultType& rLocalResult);
 
-    /**
-     * @brief This method deserializes the buffer for the result
-     * @details Values are get from member variables
-     * @param rGlobalResult The global result
-     */
-    void DeserializeResultType(const ResultType& rGlobalResult);
+    // /**
+    //  * @brief This method deserializes the buffer for the result
+    //  * @details Values are get from member variables
+    //  * @param rGlobalResult The global result
+    //  */
+    // void DeserializeResultType(const ResultType& rGlobalResult);
 
     /**
      * @brief This method does the serialization/desiralization of the results and rerieves the result from a given partition
