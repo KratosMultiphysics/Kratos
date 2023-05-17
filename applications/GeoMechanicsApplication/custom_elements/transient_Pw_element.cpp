@@ -409,7 +409,8 @@ void TransientPwElement<TDim,TNumNodes>::
         rVariable == BISHOP_COEFFICIENT       ||
         rVariable == DERIVATIVE_OF_SATURATION ||
         rVariable == RELATIVE_PERMEABILITY    ||
-        rVariable == HYDRAULIC_HEAD)
+        rVariable == HYDRAULIC_HEAD           ||
+        rVariable ==  INCREMENT_OF_SUCTION )
     {
         BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }

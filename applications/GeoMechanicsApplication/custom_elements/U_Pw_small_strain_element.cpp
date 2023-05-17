@@ -514,7 +514,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                rVariable == EFFECTIVE_SATURATION ||
                rVariable == BISHOP_COEFFICIENT ||
                rVariable == DERIVATIVE_OF_SATURATION ||
-               rVariable == RELATIVE_PERMEABILITY ) {
+               rVariable == RELATIVE_PERMEABILITY ||
+               rVariable ==  INCREMENT_OF_SUCTION ) {
 
         //Element variables
         ElementVariables Variables;
@@ -537,6 +538,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             if (rVariable == BISHOP_COEFFICIENT)        rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
             if (rVariable == DERIVATIVE_OF_SATURATION) rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
             if (rVariable == RELATIVE_PERMEABILITY )   rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+            if (rVariable == INCREMENT_OF_SUCTION )   rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateIncrementOfSuction(RetentionParameters);
         }
     } else if (rVariable == HYDRAULIC_HEAD) {
         const double NumericalLimit = std::numeric_limits<double>::epsilon();

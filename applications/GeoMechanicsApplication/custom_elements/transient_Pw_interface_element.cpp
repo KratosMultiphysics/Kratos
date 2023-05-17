@@ -213,7 +213,8 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
              rVariable == EFFECTIVE_SATURATION ||
              rVariable == BISHOP_COEFFICIENT ||
              rVariable == DERIVATIVE_OF_SATURATION ||
-             rVariable == RELATIVE_PERMEABILITY )
+             rVariable == RELATIVE_PERMEABILITY ||   
+             rVariable ==  INCREMENT_OF_SUCTION )
     {
         UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             CalculateOnIntegrationPoints(rVariable,
