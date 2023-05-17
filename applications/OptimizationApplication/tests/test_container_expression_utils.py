@@ -37,14 +37,7 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(a), 30)
 
         a.Read(Kratos.THICKNESS)
-        self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(a), -1.0)
-
-        import numpy as np
-        
-        grad = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
-        local_grad = np.copy(grad.Evaluate())
-
-        c.SetData()
+        self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(a), 25.0)
 
     def test_ContainerVariableDataNormL2(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)

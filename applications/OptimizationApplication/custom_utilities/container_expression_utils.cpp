@@ -154,7 +154,7 @@ double ContainerExpressionUtils::NormInf(const ContainerExpression<TContainerTyp
         const IndexType local_data_begin_index = EntityIndex * local_size;
         double value = std::numeric_limits<double>::lowest();
         for (IndexType i = 0; i < local_size; ++i) {
-            value = std::max(value, r_expression.Evaluate(EntityIndex, local_data_begin_index, i));
+            value = std::max(value, std::abs(r_expression.Evaluate(EntityIndex, local_data_begin_index, i)));
         }
         return value;
     }));
