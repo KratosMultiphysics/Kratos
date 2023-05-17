@@ -20,7 +20,7 @@ class Algorithm(ABC):
         pass
 
     @abstractmethod
-    def SolveOptimizationProblem(self) -> None:
+    def SolveOptimizationProblem(self) -> bool:
         pass
 
     def GetProcessesOrder(self) -> 'list[str]':

@@ -36,7 +36,7 @@ class ResponseRoutine:
         # that variable
         list_of_independent_variables = []
         for required_physical_variable in self.__required_physical_gradients.keys():
-            if required_physical_variable not in self.__response.GetDependentPhysicalKratosVariables():
+            if required_physical_variable not in self.__response.GetImplementedPhysicalKratosVariables():
                 list_of_independent_variables.append(required_physical_variable)
 
         # now remove this independent collective expression from the require collective expressions map.
