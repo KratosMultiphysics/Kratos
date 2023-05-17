@@ -650,7 +650,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             if (rVariable == BISHOP_COEFFICIENT)        rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
             if (rVariable == DERIVATIVE_OF_SATURATION) rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
             if (rVariable == RELATIVE_PERMEABILITY)   rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
-            if (rVariable == INCREMENT_OF_SUCTION)   rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateIncrementOfSuction(RetentionParameters);
+            if (rVariable == INCREMENT_OF_SUCTION)   rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateIncrementOfSuction(RetentionParameters);
         }
     } else {
         //Variables computed on Lobatto points
