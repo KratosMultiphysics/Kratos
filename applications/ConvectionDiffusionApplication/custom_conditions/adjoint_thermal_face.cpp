@@ -64,7 +64,7 @@ void AdjointThermalFace::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    const Geometry<Node<3>>& r_geom = this->GetGeometry();
+    const Geometry<Node>& r_geom = this->GetGeometry();
     const unsigned int num_nodes = r_geom.PointsNumber();
 
     if (rRightHandSideVector.size() != num_nodes)
@@ -141,7 +141,7 @@ int AdjointThermalFace::Check(const ProcessInfo& rProcessInfo) const
     const unsigned int num_nodes = r_geom.PointsNumber();
     for (unsigned int i = 0; i < num_nodes; i++)
     {
-        const Node<3>& r_node = r_geom[i];
+        const Node& r_node = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_HEAT_TRANSFER, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_surface_source_variable, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_HEAT_TRANSFER, r_node);

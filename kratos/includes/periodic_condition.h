@@ -89,7 +89,7 @@ public:
 
     typedef Condition BaseType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 

@@ -102,7 +102,7 @@ namespace Kratos
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
@@ -111,7 +111,7 @@ namespace Kratos
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
     typedef Vector VectorType;
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 
     ///@}
     ///@name Life Cycle

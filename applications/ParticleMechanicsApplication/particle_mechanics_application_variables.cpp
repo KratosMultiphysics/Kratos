@@ -64,7 +64,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, MP_HARDENING_RATIO)
 
     // Mesh variables
-    KRATOS_CREATE_VARIABLE(std::vector<typename Geometry<Node<3>>::Pointer>, GEOMETRY_NEIGHBOURS)
+    KRATOS_CREATE_VARIABLE(std::vector<typename Geometry<Node>::Pointer>, GEOMETRY_NEIGHBOURS)
 
     // Conditions
     // Essential Boundary Conditions

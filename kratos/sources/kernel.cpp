@@ -87,7 +87,7 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     KratosComponents<VariableData>().PrintData(rOStream);
     rOStream << std::endl;
     rOStream << "Geometries:" << std::endl;
-    KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+    KratosComponents<Geometry<Node>>().PrintData(rOStream);
     rOStream << std::endl;
     rOStream << "Elements:" << std::endl;
     KratosComponents<Element>().PrintData(rOStream);

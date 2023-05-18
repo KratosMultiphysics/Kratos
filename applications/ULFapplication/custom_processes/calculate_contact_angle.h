@@ -129,7 +129,7 @@ namespace Kratos
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
 	      {
-		GlobalPointersVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
+		GlobalPointersVector< Node >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		double x0 = im->X();
 		double y0 = im->Y();
 		double x1 = 0.0;

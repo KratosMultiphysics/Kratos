@@ -66,7 +66,7 @@ public:
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
     typedef ModelPart::ElementType::GeometryType GeometryType;
     typedef std::size_t SizeType;
-    using NodeType = Node <3>;
+    using NodeType = Node;
 
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
