@@ -62,24 +62,26 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) RotatingFrameUtility
       ///@{
 
       /**
-       * @brief Apply velocity to rotating object.
-       * 
-       * This function applies velocity to a rotating object model part.
-       * The velocity is computed based on the angular velocity and the
-       * axis of rotation. The function calculates the radius of each node,
-       * and then applies the corresponding velocity component-wise. The
-       * velocity components are fixed to remain constant during the simulation,
-       * and the solution step values for the velocity components are set
-       * accordingly.
-       * 
-       * @param rRotatingObjectModelPart The rotating object model part.
-       * @param Omega The angular velocity.
+       * @brief Applies an angular velocity to nodes in a rotating frame.
+       *
+       * This function applies an angular velocity to each node in a provided model part. 
+       * The angular velocity vector is calculated from a provided rotation axis and rotation speed. 
+       * The position vector for each node is determined relative to a provided rotation center. 
+       * The velocity due to rotation is then computed as the cross product of the angular velocity vector and the position vector.
+       * The calculated velocity is set as the solution step value for each node. 
+       * Finally, the function fixes the velocity components to ensure they remain constant during the simulation.
+       *
+       * @param rModelPart The model part in which to apply the velocity.
        * @param rAxisOfRotation The axis of rotation.
+       * @param rOmega The rotation speed.
+       * @param rCenterOfRotation The center of rotation.
        */
       static void ApplyVelocityToRotatingObject(
-          ModelPart& rRotatingObjectModelPart,
-          const double Omega,
-          const array_1d<double, 3>& rAxisOfRotation);
+          ModelPart& rModelPart,
+          const array_1d<double, 3>& rAxisOfRotation, 
+          const double& rOmega, 
+          const array_1d<double, 3>& rCenterOfRotation);
+
 
       /**
        * @brief Apply rotation and mesh displacement to a rotating frame.

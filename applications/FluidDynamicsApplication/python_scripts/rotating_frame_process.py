@@ -137,63 +137,7 @@ class RotatingFrameProcess(KM.Process):
         KratosCFD.RotatingFrameUtility.ApplyRotationAndMeshDisplacement(self.rotating_frame_model_part, self.axis_of_rotation, self.theta, self.center_of_rotation)
 
         # Apply Velocity to object.
-        self.ApplyVelocityToRotatingObject(self.rotating_object_model_part, self.axis_of_rotation, self.omega, self.center_of_rotation)
-        # KratosCFD.RotatingFrameUtility.ApplyVelocityToRotatingObject(self.rotating_object_model_part, self.omega, self.axis_of_rotation)
-
-    def ApplyRotationAndMeshDisplacement(self, model_part, axis, theta, center):
-        # Normalizing the rotation axis
-        a = np.cos(theta / 2)
-        b, c, d = -axis * np.sin(theta / 2)
-
-        # Creating a quaternion rotation matrix
-        rot_matrix = np.array([[a*a+b*b-c*c-d*d, 2*(b*c-a*d), 2*(b*d+a*c)],
-                            [2*(b*c+a*d), a*a+c*c-b*b-d*d, 2*(c*d-a*b)],
-                            [2*(b*d-a*c), 2*(c*d+a*b), a*a+d*d-b*b-c*c]])
-
-        for node in model_part.Nodes:
-            # Getting the initial coordinates of the node
-            point = np.array([node.X0, node.Y0, node.Z0])
-
-            # Shifting the rotation center to the origin
-            point -= center
-
-            # Applying the rotation
-            rotated_point = np.dot(point, rot_matrix)
-
-            # Shifting the point back and updating the node coordinates
-            rotated_point += center
-            node.X, node.Y, node.Z = rotated_point
-            node.SetSolutionStepValue(KM.MESH_DISPLACEMENT_X, rotated_point[0] - node.X0)
-            node.SetSolutionStepValue(KM.MESH_DISPLACEMENT_Y, rotated_point[1] - node.Y0)
-            node.SetSolutionStepValue(KM.MESH_DISPLACEMENT_Z, rotated_point[2] - node.Z0)
-            node.Fix(KM.MESH_DISPLACEMENT_X)
-            node.Fix(KM.MESH_DISPLACEMENT_Y)
-            node.Fix(KM.MESH_DISPLACEMENT_Z)
-    
-    def ApplyVelocityToRotatingObject(self, model_part, axis, omega, center):
-        # Normalizing the rotation axis and creating the angular velocity vector
-        axis = axis / np.sqrt(np.dot(axis, axis))
-        angular_velocity_vector = omega * axis
-
-        for node in model_part.Nodes:
-            # Getting the current coordinates of the node
-            point = np.array([node.X, node.Y, node.Z])
-
-            # Calculating the position vector (relative to the rotation center)
-            position_vector = point - center
-
-            # Computing the velocity due to rotation (v = omega cross r)
-            velocity_vector = np.cross(angular_velocity_vector, position_vector)
-
-            # Setting the node's velocity
-            node.SetSolutionStepValue(KM.VELOCITY_X, velocity_vector[0])
-            node.SetSolutionStepValue(KM.VELOCITY_Y, velocity_vector[1])
-            node.SetSolutionStepValue(KM.VELOCITY_Z, velocity_vector[2])
-
-            # Fix the velocity components to ensure they remain constant during the simulation
-            node.Fix(KM.VELOCITY_X)
-            node.Fix(KM.VELOCITY_Y)
-            node.Fix(KM.VELOCITY_Z)
+        KratosCFD.RotatingFrameUtility.ApplyVelocityToRotatingObject(self.rotating_object_model_part, self.axis_of_rotation, self.omega, self.center_of_rotation)
 
     def __GetThetaAndOmega(self):
         # Calculate the angular acceleration (alpha)
