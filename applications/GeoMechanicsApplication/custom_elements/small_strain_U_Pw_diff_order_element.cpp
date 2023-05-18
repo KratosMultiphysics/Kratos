@@ -801,7 +801,7 @@ void SmallStrainUPwDiffOrderElement::
          // retention law
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
         
-        KRATOS_INFO(" mRetentionLawVector[GPoint]->FinalizeSolutionStep()") << LastSuction << std::endl; 
+        KRATOS_INFO(" mRetentionLawVector[GPoint]->FinalizeSolutionStep()") << RetentionParameters << std::endl; 
         
         //KRATOS_INFO(" mRetentionLawVector[GPoint]->FinalizeSolutionStep()") << FinalizeSolutionStep(mRetentionParameters) << std::endl;
         //compute constitutive tensor and/or stresses
