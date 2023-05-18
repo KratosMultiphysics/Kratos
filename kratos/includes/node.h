@@ -264,7 +264,21 @@ public:
     /// Assignment operator.
     Node& operator=(const Node& rOther)
     {
-        return PointType::operator ==(rOther);
+        BaseType::operator=(rOther);
+        Flags::operator =(rOther);
+
+        mNodalData = rOther.mNodalData;
+
+        // Deep copying the dofs
+        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
+        {
+            pAddDof(**it_dof);
+        }
+
+        mData = rOther.mData;
+        mInitialPosition = rOther.mInitialPosition;
+
+        return *this;
     }
 
     /// Comparison operator. 
@@ -341,7 +355,6 @@ public:
     {
         return BaseType::operator[](ThisIndex);
     }
-
 
     ///@}
     ///@name Nodal Data
