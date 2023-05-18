@@ -83,22 +83,24 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) RotatingFrameUtility
 
       /**
        * @brief Apply rotation and mesh displacement to a rotating frame.
-       * This function applies rotation and mesh displacement to a rotating frame model part based on the provided rotation axis, angle and rotation center. 
-       * It constructs a rotation matrix based on the rotation axis and angle. The rotation is applied to each node, which is then displaced 
+       * This function applies rotation and mesh displacement to a rotating frame model 
+       * part based on the provided rotation axis, angle and rotation center. 
+       * It constructs a rotation matrix based on the rotation axis and angle. 
+       * The rotation is applied to each node, which is then displaced 
        * by the difference between the rotated coordinates and the initial coordinates. 
-       * The solution step values for the mesh displacement components are set accordingly, and the mesh displacement components 
-       * are fixed to remain constant during the simulation. Finally, the node coordinates are updated with the rotated 
-       * coordinates.
+       * The solution step values for the mesh displacement components are set accordingly, 
+       * and the mesh displacement components are fixed to remain constant during the simulation. 
+       * Finally, the node coordinates are updated with the rotated coordinates.
        * @param rRotatingFrameModelPart The rotating frame model part to which the rotation and mesh displacement will be applied.
-       * @param rAxis The rotation axis vector.
+       * @param rAxisOfRotation The rotation axis vector.
        * @param rTheta The rotation angle.
-       * @param rCenter The center of rotation.
+       * @param rCenterOfRotation The center of rotation.
        */
       static void ApplyRotationAndMeshDisplacement(
           ModelPart& rRotatingFrameModelPart,
-          const array_1d<double, 3>& rAxis, 
+          const array_1d<double, 3>& rAxisOfRotation, 
           const double& rTheta, 
-          const array_1d<double, 3>& rCenter);
+          const array_1d<double, 3>& rCenterOfRotation);
           
 }; // Class RotatingFrameUtility
 

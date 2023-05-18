@@ -25,7 +25,7 @@ namespace Kratos
 void RotatingFrameUtility::ApplyVelocityToRotatingObject(
     ModelPart& rRotatingObjectModelPart,
     const double Omega,
-    const array_1d<double, 3>& rAxisOfRotation)
+    const array_1d<double, 3>& rAxisOfRotationOfRotation)
 {
     KRATOS_TRY;
 
@@ -45,7 +45,7 @@ void RotatingFrameUtility::ApplyVelocityToRotatingObject(
 
         // Apply component by component the corresponding velocity.
         velocity_magnitude = Omega * radius;
-        velocity_direction = MathUtils<double>::CrossProduct(rAxisOfRotation, rNode.Coordinates());
+        velocity_direction = MathUtils<double>::CrossProduct(rAxisOfRotationOfRotation, rNode.Coordinates());
         velocity_vector = velocity_direction / norm_2(velocity_direction);
         velocity = velocity_magnitude * velocity_vector;
 
@@ -65,17 +65,17 @@ void RotatingFrameUtility::ApplyVelocityToRotatingObject(
 
 void RotatingFrameUtility::ApplyRotationAndMeshDisplacement(
     ModelPart& rRotatingFrameModelPart,
-    const array_1d<double, 3>& rAxis, 
+    const array_1d<double, 3>& rAxisOfRotation, 
     const double& rTheta, 
-    const array_1d<double, 3>& rCenter)
+    const array_1d<double, 3>& rCenterOfRotation)
 {
     KRATOS_TRY;
 
     // Quaternion constants
     const double a = std::cos(rTheta / 2);
-    const double b = -rAxis[0] * std::sin(rTheta / 2);
-    const double c = -rAxis[1] * std::sin(rTheta / 2);
-    const double d = -rAxis[2] * std::sin(rTheta / 2);
+    const double b = -rAxisOfRotation[0] * std::sin(rTheta / 2);
+    const double c = -rAxisOfRotation[1] * std::sin(rTheta / 2);
+    const double d = -rAxisOfRotation[2] * std::sin(rTheta / 2);
 
     // Creating a quaternion rotation matrix
     BoundedMatrix<double, 3, 3> rot_matrix;
@@ -93,24 +93,21 @@ void RotatingFrameUtility::ApplyRotationAndMeshDisplacement(
     block_for_each(rRotatingFrameModelPart.Nodes(), [&](Node& rNode) {
         // Getting the initial coordinates of the node
         auto& point = rNode.GetInitialPosition().Coordinates();
-        // point[0] = node.X0();
-        // point[0] = node.X0();
-        // point[0] = node.X0();
 
         // Shifting the rotation center to the origin
-        point -= rCenter;
+        auto centered_point = point - rCenterOfRotation;
 
         // Applying the rotation
-        array_1d<double, 3> rotated_point = prod(rot_matrix, point);
+        array_1d<double, 3> rotated_point = prod(centered_point, rot_matrix);
 
         // Shifting the point back and updating the node coordinates
-        rotated_point += rCenter;
-        rNode.FastGetSolutionStepValue(DISPLACEMENT_X) = rotated_point[0] - rNode.X0();
-        rNode.FastGetSolutionStepValue(DISPLACEMENT_Y) = rotated_point[1] - rNode.Y0();
-        rNode.FastGetSolutionStepValue(DISPLACEMENT_Z) = rotated_point[2] - rNode.Z0();
-        rNode.Fix(DISPLACEMENT_X);
-        rNode.Fix(DISPLACEMENT_Y);
-        rNode.Fix(DISPLACEMENT_Z);
+        rotated_point += rCenterOfRotation;
+        rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_X) = rotated_point[0] - rNode.X0();
+        rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_Y) = rotated_point[1] - rNode.Y0();
+        rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_Z) = rotated_point[2] - rNode.Z0();
+        rNode.Fix(MESH_DISPLACEMENT_X);
+        rNode.Fix(MESH_DISPLACEMENT_Y);
+        rNode.Fix(MESH_DISPLACEMENT_Z);
         rNode.X() = rotated_point[0];
         rNode.Y() = rotated_point[1];
         rNode.Z() = rotated_point[2];
