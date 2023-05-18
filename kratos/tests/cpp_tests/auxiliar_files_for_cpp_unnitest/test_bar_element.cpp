@@ -383,7 +383,7 @@ namespace Kratos
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
-            const Node<3>& rnode = this->GetGeometry()[i];
+            const Node& rnode = this->GetGeometry()[i];
 
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)

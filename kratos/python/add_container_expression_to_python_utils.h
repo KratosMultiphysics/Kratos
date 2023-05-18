@@ -12,7 +12,6 @@
 
 // System includes
 #include <numeric>
-#include <cstdint>
 
 // External includes
 #include <pybind11/stl.h>
@@ -85,20 +84,6 @@ pybind11::array_t<TDataType> MakeNumpyArray(
     return array;
 }
 
-/**
- * @brief Forbids the casting by defining the forbidden type methods.
- *
- * pybind11 casts to the method arguments types which ever is passed from python side. If the types
- * are not matching, then a new object is made from copying and then casting. For large vectors this is
- * an expensive operation. Therefore, this macro is used to forbid the casting and throw an error
- * if an unsupported numpy array is passed to the function.
- *
- */
-#define KRATOS_FORBIDDEN_CAST(METHOD_NAME, SELF_TYPE, CONST, DATA_TYPE)                           \
-    .def(METHOD_NAME, [](SELF_TYPE& rSelf, CONST py::array_t<DATA_TYPE>& rData) {                 \
-        KRATOS_ERROR << "Unsupported numpy array is passed. Please change "                       \
-                     << "it to dtype = numpy.float64. [ data_type = " << #DATA_TYPE << " ].\n"; })
-
 template<class TContainerType>
 void AddContainerExpressionToPython(pybind11::module& m, const std::string& rName)
 {
@@ -121,17 +106,8 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
                            rData.shape()[0],
                            shape.data(),
                            shape.size());
-        })
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , float)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , long double)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int8_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int16_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int32_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , int64_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , uint8_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , uint16_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , uint32_t)
-        KRATOS_FORBIDDEN_CAST("MoveFrom", container_expression_holder_base, , uint64_t)
+        }, py::arg("numpy_array").noconvert())
+        .def("HasExpression", &container_expression_holder_base::HasExpression)
         .def("Read", &container_expression_holder_base::Read, py::arg("starting_value"), py::arg("number_of_entities"), py::arg("starting_value_of_shape"), py::arg("shape_size"))
         .def("GetModelPart", py::overload_cast<>(&container_expression_holder_base::GetModelPart), py::return_value_policy::reference)
         .def("GetContainer", py::overload_cast<>(&container_expression_holder_base::GetContainer), py::return_value_policy::reference)
@@ -182,17 +158,7 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
                        rData.shape()[0],
                        shape.data(),
                        shape.size());
-        }, py::arg("numpy_array"))
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, float)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, long double)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, int8_t)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, int16_t)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, int32_t)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, int64_t)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, uint8_t)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, uint16_t)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, uint32_t)
-        KRATOS_FORBIDDEN_CAST("Read", container_type, const, uint64_t)
+        }, py::arg("numpy_array").noconvert())
         .def("Read", &container_type::template Read<array_1d<double, 3>>, py::arg("Array3_variable"))
         .def("Read", &container_type::template Read<array_1d<double, 4>>, py::arg("Array4_variable"))
         .def("Read", &container_type::template Read<array_1d<double, 6>>, py::arg("Array6_variable"))
@@ -237,7 +203,5 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("__neg__", [](container_type& rSelf) { return rSelf.operator*(-1.0); })
         ;
 }
-
-#undef KRATOS_FORBIDDEN_CAST
 
 } // namespace Kratos::Python

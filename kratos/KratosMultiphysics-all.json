@@ -9,6 +9,7 @@
         "KratosConstitutiveLawsApplication==${KRATOS_VERSION}",
         "KratosCoSimulationApplication==${KRATOS_VERSION}",
         "KratosDEMApplication==${KRATOS_VERSION}",
+        "KratosDamApplication==${KRATOS_VERSION}",
         "KratosFluidDynamicsApplication==${KRATOS_VERSION}",
         "KratosFSIApplication==${KRATOS_VERSION}",
         "KratosLinearSolversApplication==${KRATOS_VERSION}",

@@ -186,6 +186,11 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   message(STATUS "Additional default options were set for GCC")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
 
+# Check for correct clang version
+if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12.0)
+    message( FATAL_ERROR "Please use Version 12.0 or greater")
+endif()
+
 message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message(STATUS "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -531,16 +536,6 @@ if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   include_directories( ${KRATOS_BINARY_DIR}/external_libraries/zlib )
   set( ZLIB_LIBRARIES zlib )
 endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
-
-# including the AMatrix
-if( AMATRIX_DIR )
-    message(STATUS "AMATRIX_DIR : ${AMATRIX_DIR}")
-    include_directories("${AMATRIX_DIR}/include")
-    add_definitions(-DAMATRIX_NO_IO_OPERATOR)
-    add_definitions(-DKRATOS_USE_AMATRIX)
-else()
-    message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
-endif()
 
 ## Echo user options
 message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")

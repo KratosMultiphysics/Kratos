@@ -163,12 +163,12 @@ public:
                         to_be_deleted++;
                         if (dimension == 2)
                         {
-                            Line2D2<Node < 3 > > newgeom1(
+                            Line2D2<Node > newgeom1(
                                 this_model_part.Nodes()(geom[0].Id()),
                                 this_model_part.Nodes()(new_id)
                             );
 
-                            Line2D2<Node < 3 > > newgeom2(
+                            Line2D2<Node > newgeom2(
                                 this_model_part.Nodes()(new_id),
                                 this_model_part.Nodes()(geom[1].Id())
                             );
@@ -184,12 +184,12 @@ public:
                         }
                         else
                         {
-                            Line3D2<Node < 3 > > newgeom1(
+                            Line3D2<Node > newgeom1(
                                 this_model_part.Nodes()(geom[0].Id()),
                                 this_model_part.Nodes()(new_id)
                             );
 
-                            Line3D2<Node < 3 > > newgeom2(
+                            Line3D2<Node > newgeom2(
                                 this_model_part.Nodes()(new_id),
                                 this_model_part.Nodes()(geom[1].Id())
                             );

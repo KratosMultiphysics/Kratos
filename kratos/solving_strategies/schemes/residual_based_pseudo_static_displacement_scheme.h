@@ -177,7 +177,7 @@ public:
 
         // Updating time derivatives (nodally for efficiency)
         array_1d<double, 3 > delta_displacement;
-        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
 
             noalias(rDeltaDisplacementTLS) = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
@@ -230,7 +230,7 @@ public:
         const int disppos_z = it_node_begin->HasDofFor(DISPLACEMENT_Z) ? static_cast<int>(it_node_begin->GetDofPosition(DISPLACEMENT_Z)) : -1;
         const int velpos_z = it_node_begin->HasDofFor(VELOCITY_Z) ? static_cast<int>(it_node_begin->GetDofPosition(VELOCITY_Z)) : -1;
 
-        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+        block_for_each(rModelPart.Nodes(), delta_displacement, [&](Node& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
 
             bool predicted_x = false;
             bool predicted_y = false;

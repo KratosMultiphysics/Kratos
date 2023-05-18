@@ -34,9 +34,9 @@
 
 namespace Kratos
 {
-    KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node<3> >, NEIGHBOUR_NODES)
-    KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node<3> >, NEIGHBOUR_CONDITION_NODES)
-    KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node<3> >, FATHER_NODES)
+    KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node >, NEIGHBOUR_NODES)
+    KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node >, NEIGHBOUR_CONDITION_NODES)
+    KRATOS_DEFINE_VARIABLE(GlobalPointersVector<Node >, FATHER_NODES)
 }  // namespace Kratos.
 
 #undef  KRATOS_EXPORT_MACRO

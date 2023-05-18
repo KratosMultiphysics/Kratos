@@ -55,7 +55,7 @@ namespace Kratos
     typedef ModelPart::NodesContainerType NodesContainerType;
     typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
 
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
     typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
     ///@}
@@ -198,7 +198,7 @@ namespace Kratos
           for (auto &i_nelem : nElements)
           {
 
-            Geometry<Node<3>> &rGeometry = i_nelem.GetGeometry();
+            Geometry<Node> &rGeometry = i_nelem.GetGeometry();
 
             Size = rGeometry.DomainSize(); //Area(); or Volume();
             Error = ElementVariable[elems_ids[i_nelem.Id()]] * Size;
