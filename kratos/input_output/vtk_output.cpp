@@ -164,9 +164,13 @@ VtkOutput::EntityType VtkOutput::GetEntityType(const ModelPart& rModelPart) cons
         return mEntityType;
     }
 
-    return (rModelPart.GetCommunicator().GlobalNumberOfElements() > 0) ?
-        EntityType::ELEMENT :
-        EntityType::CONDITION;
+    if (rModelPart.GetCommunicator().GlobalNumberOfElements() > 0) {
+        return EntityType::ELEMENT;
+    } else if(rModelPart.GetCommunicator().GlobalNumberOfConditions() > 0) {
+        return EntityType::CONDITION;
+    } else {
+        return EntityType::NONE;
+    }
 }
 
 /***********************************************************************************/
