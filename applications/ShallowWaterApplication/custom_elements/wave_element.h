@@ -59,7 +59,7 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef array_1d<double, 3*TNumNodes> LocalVectorType;
 

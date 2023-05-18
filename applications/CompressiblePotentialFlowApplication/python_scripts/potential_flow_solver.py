@@ -144,9 +144,14 @@ class PotentialFlowSolver(FluidSolver):
             "formulation": {
                 "element_type": "incompressible"
             },
+            "element_replace_settings": {       
+                "condition_name":  "",
+                "element_name": ""
+            },
             "maximum_iterations": 10,
             "echo_level": 0,
             "potential_application_echo_level": 0,
+            "convergence_criterion": "residual_criterion",
             "relative_tolerance": 1e-12,
             "absolute_tolerance": 1e-12,
             "compute_reactions": false,
@@ -247,9 +252,20 @@ class PotentialFlowSolver(FluidSolver):
         return scheme
 
     def _CreateConvergenceCriterion(self):
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(
-            self.settings["relative_tolerance"].GetDouble(),
-            self.settings["absolute_tolerance"].GetDouble())
+        criterion = self.settings["convergence_criterion"].GetString()
+        if criterion == "solution_criterion":
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        elif criterion == "residual_criterion":
+            convergence_criterion = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(),
+                self.settings["absolute_tolerance"].GetDouble())
+        else:
+            err_msg =  "The requested convergence criterion \"" + criterion + "\" is not available!\n"
+            err_msg += "Available options are: \"solution_criterion\", \"residual_criterion\""
+            raise Exception(err_msg)
+        convergence_criterion.SetEchoLevel(self.settings["echo_level"].GetInt())
         return convergence_criterion
 
     def _CreateSolutionStrategy(self):

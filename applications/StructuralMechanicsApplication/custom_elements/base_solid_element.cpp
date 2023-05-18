@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -64,7 +64,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             }
         }
 
-        const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints();
+        const auto& integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
         //Constitutive Law initialisation
         if ( mConstitutiveLawVector.size() != integration_points.size() )

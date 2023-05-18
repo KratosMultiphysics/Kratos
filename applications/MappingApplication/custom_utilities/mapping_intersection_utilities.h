@@ -32,7 +32,7 @@ namespace MappingIntersectionUtilities
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename NodeType::Pointer NodePointerType;
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointerType;

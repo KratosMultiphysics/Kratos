@@ -35,7 +35,7 @@ namespace Kratos
 {
 namespace Testing
 {
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef ParticleHardeningLaw HL;
 
@@ -88,7 +88,7 @@ namespace Testing
 
         // Compute trial elastic stresses
         FR::RadialReturnVariables rma_variables;
-        mcss_fr_pointer->CalculatePrincipalStressTrial(rma_variables, strain, stress);
+        mcss_fr_pointer->CalculatePrincipalStressTrial(rma_variables, strain, stress, material_properties);
 
         Vector stress_trial_analytic = ZeroVector(3);
         stress_trial_analytic[0] =  1.03076923077e+05;
@@ -101,7 +101,7 @@ namespace Testing
 
         // Compute new stresses after return mapping
         Matrix dummy_deformation_gradient = IdentityMatrix(3);
-        mcss_fr_pointer->CalculateReturnMapping( rma_variables, dummy_deformation_gradient, stress, strain);
+        mcss_fr_pointer->CalculateReturnMapping( rma_variables, dummy_deformation_gradient, stress, strain, material_properties);
 
         Vector stress_analytic = ZeroVector(3);
         stress_analytic[0] = -1.95819827945e+04;

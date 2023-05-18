@@ -70,7 +70,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DepthIntegrationProcess);
 
     /// Definition of the node type
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Definition of the geometry type
     using GeometryType = Geometry<NodeType>;

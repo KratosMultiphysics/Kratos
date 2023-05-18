@@ -33,28 +33,28 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SteadyStatePwInterfaceElement );
 
-    typedef TransientPwInterfaceElement<TDim, TNumNodes> BaseType;
+    using BaseType = TransientPwInterfaceElement<TDim, TNumNodes>;
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
 
-    typedef Element::DofsVectorType DofsVectorType;
-    typedef Element::EquationIdVectorType EquationIdVectorType;
+    using DofsVectorType = Element::DofsVectorType;
+    using EquationIdVectorType = Element::EquationIdVectorType;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     using BaseType::mRetentionLawVector;
     using BaseType::mThisIntegrationMethod;
     using BaseType::CalculateRetentionResponse;
 
-    typedef typename BaseType::InterfaceElementVariables InterfaceElementVariables;
-    typedef typename BaseType::SFGradAuxVariables SFGradAuxVariables;
+    using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
+    using SFGradAuxVariables = typename BaseType::SFGradAuxVariables;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -49,10 +49,10 @@ typename TVariableType::Type GetValueHelperFunction(TContainerType& el, const TV
     return el.GetValue(rVar);
 }
 
-typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+typedef Mesh<Node, Properties, Element, Condition> MeshType;
 typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
-typedef Geometry<Node<3> > GeometryType;
+typedef Geometry<Node > GeometryType;
 typedef GeometryType::PointsArrayType NodesArrayType;
 typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
@@ -257,6 +257,15 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
 }
 
 template<class TEntityType>
+void EntityCalculateRightHandSide(
+    TEntityType& dummy,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+template<class TEntityType>
 void EntityCalculateLocalSystem(
     TEntityType& dummy,
     Matrix& rLeftHandSideMatrix,
@@ -373,7 +382,7 @@ void EntityGetSecondDerivativesVector2(
 
 void  AddMeshToPython(pybind11::module& m)
 {
-//             typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+//             typedef Mesh<Node, Properties, Element, Condition> MeshType;
 //             typedef MeshType::NodeType NodeType;
 
     //     py::class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
@@ -494,6 +503,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Element>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Element>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Element>)
+    .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Element>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Element>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Element>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Element>)
@@ -519,6 +529,11 @@ void  AddMeshToPython(pybind11::module& m)
         Element::EquationIdVectorType ids;
         self.EquationIdVector(ids,rProcessInfo);
         return ids;
+    })
+    .def("GetDofList", [](const Element& self, const ProcessInfo& rProcessInfo){
+        std::vector<Dof<double>*> dofs_list;
+        self.GetDofList(dofs_list,rProcessInfo);
+        return dofs_list;
     })
     .def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("GetSpecifications", &Element::GetSpecifications)
@@ -636,9 +651,20 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Calculate", &EntityCalculateInterface<Condition, Matrix >)
 
     .def("Initialize", &EntityInitialize<Condition>)
+    .def("EquationIdVector", [](const Condition& self, const ProcessInfo& rProcessInfo){
+        Condition::EquationIdVectorType ids;
+        self.EquationIdVector(ids,rProcessInfo);
+        return ids;
+    })
+    .def("GetDofList", [](const Condition& self, const ProcessInfo& rProcessInfo){
+        std::vector<Dof<double>*> dofs_list;
+        self.GetDofList(dofs_list,rProcessInfo);
+        return dofs_list;
+    })
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Condition>)
+    .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Condition>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Condition>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Condition>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Condition>)
@@ -677,6 +703,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("HasProperties", &MeshType::HasProperties)
     .def("HasElement", &MeshType::HasElement)
     .def("HasCondition", &MeshType::HasCondition)
+    .def("HasMasterSlaveConstraint ", &MeshType::HasMasterSlaveConstraint )
     .def("__str__", PrintObject<MeshType>)
     ;
 }

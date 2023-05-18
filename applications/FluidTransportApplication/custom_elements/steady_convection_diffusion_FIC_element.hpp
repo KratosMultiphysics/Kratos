@@ -42,7 +42,7 @@ public:
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
@@ -217,7 +217,7 @@ protected:
 
     virtual void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node<3> >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
+    void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
                                                     const PropertiesType& Prop);
 
     void CalculateDifTerm(ElementVariables& rVariables);

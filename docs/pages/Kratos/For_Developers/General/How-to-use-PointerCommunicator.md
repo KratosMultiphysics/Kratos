@@ -43,7 +43,7 @@ In order to retrofit this problem, the former code should be modified to
 
 ```cpp
 // First of all collect all the neighbours into a list
-GlobalPointerVector< Node<3 > > gp_list;
+GlobalPointerVector< Node > gp_list;
 
 for(auto& node : model_part.Nodes)
     for(auto& gp : global_pointers_to_neighbours)
@@ -54,7 +54,7 @@ GlobalPointerCommunicator pointer_comm(DefaultDataCommunicator, gp_list); // Her
 
 // Define a function to access to the data
 result_proxy = pointer_comm.Apply<double>(
-            [](GlobalPointer<Node<3> >& gp) -> double
+            [](GlobalPointer<Node >& gp) -> double
             {
                   return gp->FastGetSolutionStepValue(TEMPERATURE);
             }
@@ -80,7 +80,7 @@ In the practice this means that we can further optimize the code to have no over
 // Now create the pointer communicator --> NOTHING IS ACTUALLY DONE IN THE SERIAL CASE!
 GlobalPointerCommunicator pointer_comm(DefaultDataCommunicator, 
     [&](){ //NOTE THAT THIS FUNCTOR WILL ONLY BE EXECUTED IN MPI MODE, it has no overhead in serial!!
-        GlobalPointerVector< Node<3 > > gp_list;        
+        GlobalPointerVector< Node > gp_list;        
         for(auto& node : model_part.Nodes())
             for(auto& gp : global_pointers_to_neighbours)
                 gp_list.push_back(gp);
@@ -89,7 +89,7 @@ GlobalPointerCommunicator pointer_comm(DefaultDataCommunicator,
 // Define a function to access to the data ----> NO COMMUNICATION HAPPENS IN THE SERIAL CASE
 // we only store the access function within result_proxy and we will use it on every "Get" call
 result_proxy = pointer_comm.Apply<double>(
-            [](GlobalPointer<Node<3> >& gp) -> double
+            [](GlobalPointer<Node >& gp) -> double
             {
                   return gp->FastGetSolutionStepValue(TEMPERATURE);
             }

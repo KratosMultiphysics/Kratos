@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -245,7 +245,7 @@ int DoubleAugmentedLagrangianMethodFrictionlessMortarContactCondition<TDim,TNumN
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
-        Node<3> &rnode = this->GetParentGeometry()[i];
+        Node &rnode = this->GetParentGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE,rnode)
 

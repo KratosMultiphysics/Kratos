@@ -120,7 +120,7 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     // Calculating Metric parameters (using equation from remark 4.2.2 on Metric-Based Anisotropic Mesh Adaptation)
     double interpolation_error = rAuxiliarHessianComputationVariables.mInterpolationError;
     if (rAuxiliarHessianComputationVariables.mEstimateInterpolationError) {
-        interpolation_error = rAuxiliarHessianComputationVariables.mMeshDependentConstant * MathUtils<double>::Max(rAuxiliarHessianComputationVariables.mNodalH, rAuxiliarHessianComputationVariables.mNodalH * norm_frobenius(hessian_matrix)); // NOTE: To compute it properly instead of iterating over the nodes you should iterate over the elements and instead of ElementMaxSize you should iterate over the edges, this is equivalent when using nodes and computing NodalH previously
+        interpolation_error = rAuxiliarHessianComputationVariables.mMeshDependentConstant * std::max(rAuxiliarHessianComputationVariables.mNodalH, rAuxiliarHessianComputationVariables.mNodalH * norm_frobenius(hessian_matrix)); // NOTE: To compute it properly instead of iterating over the nodes you should iterate over the elements and instead of ElementMaxSize you should iterate over the edges, this is equivalent when using nodes and computing NodalH previously
     }
 
     // Declaring the eigen system
@@ -142,7 +142,7 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
 
         // Recalculate the Metric eigen values
         for (IndexType i = 0; i < TDim; ++i) {
-            eigen_values_matrix(i, i) = MathUtils<double>::Min(MathUtils<double>::Max(c_epsilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
+            eigen_values_matrix(i, i) = std::min(std::max(c_epsilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
         }
     }
 
@@ -152,20 +152,20 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
             double eigen_max = eigen_values_matrix(0, 0);
             double eigen_min = eigen_values_matrix(0, 0);
             for (IndexType i = 1; i < TDim; ++i) {
-                eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
-                eigen_min = MathUtils<double>::Min(eigen_min, eigen_values_matrix(i, i));
+                eigen_max = std::max(eigen_max, eigen_values_matrix(i, i));
+                eigen_min = std::min(eigen_min, eigen_values_matrix(i, i));
             }
 
             const double eigen_radius = std::abs(eigen_max - eigen_min) * (1.0 - rAuxiliarHessianComputationVariables.mAnisotropicRatio);
             const double relative_eigen_radius = std::abs(eigen_max - eigen_radius);
 
             for (IndexType i = 0; i < TDim; ++i)
-                eigen_values_matrix(i, i) = MathUtils<double>::Max(MathUtils<double>::Min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
+                eigen_values_matrix(i, i) = std::max(std::min(eigen_values_matrix(i, i), eigen_max), relative_eigen_radius);
         }
     } else { // NOTE: For isotropic we should consider the maximum of the eigenvalues
         double eigen_max = eigen_values_matrix(0, 0);
         for (IndexType i = 1; i < TDim; ++i)
-            eigen_max = MathUtils<double>::Max(eigen_max, eigen_values_matrix(i, i));
+            eigen_max = std::max(eigen_max, eigen_values_matrix(i, i));
         for (IndexType i = 0; i < TDim; ++i)
             eigen_values_matrix(i, i) = eigen_max;
         eigen_vector_matrix = IdentityMatrix(TDim, TDim);

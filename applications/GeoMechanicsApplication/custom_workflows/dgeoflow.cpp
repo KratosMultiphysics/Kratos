@@ -20,6 +20,7 @@
 #include "input_output/logger.h"
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
+#include "includes/model_part_io.h"
 
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
 {
@@ -220,198 +221,6 @@ namespace Kratos
         return p_solving_strategy;
     }
 
-    void KratosExecute::parseMesh(ModelPart &model_part, std::string filepath)
-    {
-        // Parses MDPA file into model_part
-        std::ifstream input(filepath);
-        bool read_properties = false;
-        bool read_nodes = false;
-        bool read_elements = false;
-
-        bool read_subparts = false;
-        bool read_subparts_table = false;
-        bool read_subparts_nodes = false;
-        bool read_subparts_elements = false;
-        bool read_subparts_conditions = false;
-
-        std::string element_type;
-        std::string part_name;
-        std::string nodeStr;
-
-        for (std::string line; getline(input, line);)
-        {
-
-            //===================== Properties =========================
-            if (line.substr(0, 16) == "Begin Properties")
-            {
-                read_properties = true;
-                std::size_t found = line.find_last_of(" ");
-                int property_id = stoi(line.substr(found + 1));
-                model_part.CreateNewProperties(property_id);
-                continue;
-            }
-            if (line == "End Properties")
-            {
-                read_properties = false;
-                continue;
-            }
-            if (read_properties)
-            {
-                KRATOS_ERROR << "Reading Properties - Not Implemented " << std::endl;
-            }
-            //=====================   Nodes   =========================
-            if (line == "Begin Nodes")
-            {
-                read_nodes = true;
-                continue;
-            }
-            if (line == "End Nodes")
-            {
-                read_nodes = false;
-                continue;
-            }
-            if (read_nodes)
-            {
-                std::istringstream iss(line);
-                int nodeId;
-                double x, y, z;
-                iss >> nodeId >> x >> y >> z;
-                model_part.CreateNewNode(nodeId, x, y, z);
-            }
-            //====================   Element   ==========================
-            if (line.substr(0, 14) == "Begin Elements")
-            {
-                read_elements = true;
-                std::size_t found = line.find_last_of(" ");
-                element_type = line.substr(found + 1);
-
-                std::size_t posD = element_type.find_last_of("D");
-                nodeStr = element_type.substr(posD + 1);
-
-                continue;
-            }
-            if (line == "End Elements")
-            {
-                read_elements = false;
-                continue;
-            }
-
-            if (read_elements)
-            {
-                unsigned long elementId, propertyId, node1, node2, node3;
-                std::vector<ModelPart::IndexType> element_nodes;
-                std::istringstream iss(line);
-
-                if (nodeStr == "4N")
-                {
-                    unsigned long node4;
-                    iss >> elementId >> propertyId >> node1 >> node2 >> node3 >> node4;
-                    element_nodes = {node1, node2, node3, node4};
-                }
-                else if (nodeStr == "3N")
-                {
-                    iss >> elementId >> propertyId >> node1 >> node2 >> node3;
-                    element_nodes = {node1, node2, node3};
-                }
-                else
-                {
-                    KRATOS_ERROR << "Element Type Unknown / Not Implemented " << std::endl;
-                }
-                auto p_elem_prop = model_part.pGetProperties(propertyId);
-                model_part.CreateNewElement(element_type, elementId, element_nodes, p_elem_prop);
-            }
-
-            //===================== Properties =========================
-
-            if (line.substr(0, 18) == "Begin SubModelPart")
-            {
-                read_subparts = true;
-                std::size_t found = line.find_last_of(" ");
-                part_name = line.substr(found + 1);
-                model_part.CreateSubModelPart(part_name);
-                continue;
-            }
-            if (line == "End SubModelPart")
-            {
-                read_subparts = false;
-                continue;
-            }
-            if (read_subparts)
-            {
-                auto subpart = model_part.pGetSubModelPart(part_name);
-                //===========  Sub-Tables  ===============
-                if (line == "  Begin SubModelPartTables")
-                {
-                    read_subparts_table = true;
-                    continue;
-                }
-                if (line == "  End SubModelPartTables")
-                {
-                    read_subparts_table = false;
-                    continue;
-                }
-                if (read_subparts_table)
-                {
-                    KRATOS_ERROR << "Subpart Tables - Not Implemented " << std::endl;
-                }
-
-                //===========  Sub-Nodes  ===============
-
-                if (line == "  Begin SubModelPartNodes")
-                {
-                    read_subparts_nodes = true;
-                    continue;
-                }
-                if (line == "  End SubModelPartNodes")
-                {
-                    read_subparts_nodes = false;
-                    continue;
-                }
-                if (read_subparts_nodes)
-                {
-                    auto node = model_part.pGetNode(stoi(line));
-                    subpart->AddNode(node);
-                }
-
-                //===========  Sub-Elements  ===============
-
-                if (line == "  Begin SubModelPartElements")
-                {
-                    read_subparts_elements = true;
-                    continue;
-                }
-                if (line == "  End SubModelPartElements")
-                {
-                    read_subparts_elements = false;
-                    continue;
-                }
-                if (read_subparts_elements)
-                {
-                    auto element = model_part.pGetElement(stoi(line));
-                    subpart->AddElement(element);
-                }
-
-                //===========  Sub-Elements  ===============
-
-                if (line == "  Begin SubModelPartConditions")
-                {
-                    read_subparts_conditions = true;
-                    continue;
-                }
-                if (line == "  End SubModelPartConditions")
-                {
-                    read_subparts_conditions = false;
-                    continue;
-                }
-                if (read_subparts_conditions)
-                {
-                    KRATOS_ERROR << "Subpart Conditions - Not Implemented " << std::endl;
-                }
-            }
-        }
-        input.close();
-    }
-
     void KratosExecute::parseMaterial(Model &model, std::string filepath)
     {
         std::string parameters = "{ \"Parameters\" : { \"materials_filename\" :\"" + filepath + "\"}}";
@@ -564,38 +373,21 @@ namespace Kratos
     }
 
     void KratosExecute::calculateNodalHydraulicHead(GidIO<> &gid_io, ModelPart &model_part) {
-            auto element_var = &(KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD"));
+            const auto& element_var = KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD");
 
             for (Element element : model_part.Elements())
             {
-                auto rGeom = element.GetGeometry();
-                auto rProp = element.GetProperties();
+                auto& rGeom = element.GetGeometry();
+                const auto& rProp = element.GetProperties();
                 
-                for (unsigned int node = 0; node < 3; ++node)
+                const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<3>(rGeom, rProp);
+
+            	for (unsigned int node = 0; node < 3; ++node)
                 {
-                    array_1d<double, 3> NodeVolumeAcceleration;
-                    noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
-                    const double g = norm_2(NodeVolumeAcceleration);
-                    if (g > std::numeric_limits<double>::epsilon())
-                    {
-                        const double FluidWeight = g * rProp[DENSITY_WATER];
-
-                        array_1d<double, 3> NodeCoordinates;
-                        noalias(NodeCoordinates) = rGeom[node].Coordinates();
-                        array_1d<double, 3> NodeVolumeAccelerationUnitVector;
-                        noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
-
-                        const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
-                        rGeom[node].SetValue(*element_var, -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector) - PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight);
-                    }
-                    else
-                    {
-                        rGeom[node].SetValue(*element_var, 0.0);
-                    }
+                    rGeom[node].SetValue(element_var, NodalHydraulicHead[node]);
                 }
             }
-
-            gid_io.WriteNodalResultsNonHistorical(*element_var, model_part.Nodes(), 0);
+            gid_io.WriteNodalResultsNonHistorical(element_var, model_part.Nodes(), 0);
     }
 
     int KratosExecute::mainExecution(ModelPart &model_part,
@@ -668,10 +460,6 @@ namespace Kratos
             auto projectfile = openProjectParamsFile(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
-            auto meshname = projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString() + "." +
-                            projectfile["solver_settings"]["model_import_settings"]["input_type"].GetString();
-
-            std::string meshpath = workingDirectory + "/" + meshname;
             std::string materialpath = workingDirectory + "/" + materialname;
 
             auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
@@ -718,7 +506,12 @@ namespace Kratos
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Nodal Solution Variables Added" << std::endl;
 
-            parseMesh(model_part, meshpath);
+            // Don't include the file extension of the mesh file name, since that is automatically appended by the
+            // constructor of class ModelPartIO
+            const auto mesh_file_name = projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString();
+            const auto mesh_file_path = workingDirectory + "/" + mesh_file_name;
+            ModelPartIO reader{mesh_file_path};
+            reader.ReadModelPart(model_part);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Mesh" << std::endl;
 

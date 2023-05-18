@@ -34,12 +34,12 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesComputeVelocity, ShallowWaterAppl
 {
     Model model;
 
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
 
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"(
     {
@@ -105,12 +105,12 @@ KRATOS_TEST_CASE_IN_SUITE(ShallowWaterUtilitiesHydrostaticForce, ShallowWaterApp
 {
     Model model;
 
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.0, 0.0, 0.0);
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 1.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
 
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"(
     {

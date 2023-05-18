@@ -93,7 +93,6 @@ namespace Kratos
 
     double Viscosity = 0;
     double Density = 0;
-    double totalVolume = 0;
 
     MatrixType DynamicStabilizationMatrix = ZeroMatrix(NumNodes, NumNodes);
 
@@ -104,7 +103,6 @@ namespace Kratos
     for (unsigned int g = 0; g < NumGauss; ++g)
     {
       const double GaussWeight = GaussWeights[g];
-      totalVolume += GaussWeight;
       const ShapeFunctionsType &rN = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
 

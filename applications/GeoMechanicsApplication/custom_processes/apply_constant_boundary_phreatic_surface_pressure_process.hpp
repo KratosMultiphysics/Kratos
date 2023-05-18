@@ -75,7 +75,7 @@ public:
 
         mSpecificWeight = rParameters["specific_weight"].GetDouble();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ public:
             Vector3 direction=ZeroVector(3);
             direction[mGravityDirection] = 1.0;
 
-            block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node<3>& rNode){
+            block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node& rNode){
                 if (mIsFixed) rNode.Fix(var);
                 else if (mIsFixedProvided) rNode.Free(var);
 

@@ -897,7 +897,7 @@ namespace Kratos
      * @param rDomainGeomtry input ElementGeometry
      * @param rCharacteristicSize output Size of the Geometry
      */
-    static inline double& CalculateCharacteristicSize( const Geometry<Node<3> >& rDomainGeometry,
+    static inline double& CalculateCharacteristicSize( const Geometry<Node >& rDomainGeometry,
 						       double& rCharacteristicSize )
     {
 

@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
@@ -18,13 +18,12 @@
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(MapperInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
@@ -344,5 +343,4 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosM
     KRATOS_CHECK_EQUAL(destination_ids2[0], dest_id);
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

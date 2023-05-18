@@ -87,8 +87,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         base.Fix(KratosMultiphysics.DISPLACEMENT_X)
 
         #create elements and conditions
-        spring1 = mp.CreateNewElement("SpringDamperElement3D2N", 1, [3,1], mp.GetProperties()[1])
-        spring2 = mp.CreateNewElement("SpringDamperElement3D2N", 2, [2,1], mp.GetProperties()[1])
+        spring1 = mp.CreateNewElement("SpringDamperElement3D", 1, [3,1], mp.GetProperties()[1])
+        spring2 = mp.CreateNewElement("SpringDamperElement3D", 2, [2,1], mp.GetProperties()[1])
         mass1 = mp.CreateNewElement("NodalConcentratedElement3D1N", 3, [1], mp.GetProperties()[1])
         mass2 = mp.CreateNewElement("NodalConcentratedElement3D1N", 4, [2], mp.GetProperties()[1])
         mp.CreateNewCondition("PointLoadCondition3D1N",1,[1],mp.GetProperties()[1])

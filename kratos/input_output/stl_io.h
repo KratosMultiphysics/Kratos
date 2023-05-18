@@ -85,6 +85,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using GeometriesMapType = ModelPart::GeometriesMapType;
+    using NodesArrayType = Element::NodesArrayType;
+
     /// Pointer definition of StlIO
     KRATOS_CLASS_POINTER_DEFINITION(StlIO);
 
@@ -92,16 +95,18 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with filename.
-    StlIO(std::filesystem::path const& Filename);
+    /// Constructor with filename, and open option with default being read mode
+    StlIO(
+        std::filesystem::path const& Filename,
+        Parameters ThisParameters = Parameters());
 
     /// Constructor with stream.
-    StlIO(std::iostream* pInputStream);
+    StlIO(
+        Kratos::shared_ptr<std::iostream> pInputStream,
+        Parameters ThisParameters = Parameters());
 
     /// Destructor.
-    virtual ~StlIO(){
-        delete mpInputStream;
-    }
+    virtual ~StlIO(){}
 
     ///@}
     ///@name Operators
@@ -111,7 +116,11 @@ public:
     ///@name Operations
     ///@{
 
+    static Parameters GetDefaultParameters();
+
     void ReadModelPart(ModelPart & rThisModelPart) override;
+
+    void WriteModelPart(const ModelPart & rThisModelPart) override;
 
     ///@}
     ///@name Access
@@ -147,6 +156,12 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    Parameters mParameters;
+
+    std::size_t mNextNodeId = 0;
+    std::size_t mNextElementId = 0;
+    std::size_t mNextConditionId = 0;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -176,7 +191,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::iostream* mpInputStream;
+    Kratos::shared_ptr<std::iostream> mpInputStream;
+    Flags mOptions;
 
     ///@}
     ///@name Private Operators
@@ -186,15 +202,32 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ReadSolid(ModelPart & rThisModelPart);
-    
-    void ReadFacet(ModelPart & rThisModelPart);
+    void ReadSolid(
+        ModelPart & rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor );
 
-    void ReadLoop(ModelPart & rThisModelPart);
+    void ReadFacet(
+        ModelPart & rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor);
+
+    void ReadLoop(
+        ModelPart & rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor);
 
     Point ReadPoint();
 
     void ReadKeyword(std::string const& Keyword);
+
+    template<class TContainerType>
+    void WriteEntityBlock(const TContainerType& rThisEntities);
+
+    void WriteGeometryBlock(const GeometriesMapType& rThisGeometries);
+
+    void WriteFacet(const GeometryType & rGeom);
+
+    bool IsValidGeometry(
+        const Geometry<Node>& rGeometry,
+        std::size_t& rNumDegenerateGeos) const;
 
     ///@}
     ///@name Private  Access

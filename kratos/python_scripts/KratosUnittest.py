@@ -110,7 +110,7 @@ class TestCase(TestCase):
             def __init__(self, idx_1, idx_2, aux_message=None):
                 self.idx_1 = idx_1
                 self.idx_2 = idx_2
-                self.aux_msg = aux_message
+                self.aux_message = aux_message
 
             def __str__(self):
                 err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(self.idx_1, self.idx_2)

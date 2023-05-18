@@ -27,7 +27,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Factory functions
     NurbsSurfaceGeometry<3, PointerVector<Point>> GenerateReferencePointSurface()
@@ -274,7 +274,6 @@ namespace Testing {
         auto surface = GenerateReferencePointSurface();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(surface.Dimension(), 2);
         KRATOS_CHECK_EQUAL(surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(surface.LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL(surface.IsRational(), true);
@@ -305,7 +304,6 @@ namespace Testing {
         auto surface = GenerateReferencePieceOfCylinderNurbsSurface();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(surface.Dimension(), 2);
         KRATOS_CHECK_EQUAL(surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(surface.LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL(surface.IsRational(), true);
@@ -379,7 +377,6 @@ namespace Testing {
         auto surface = GenerateReferenceNodeSurface();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(surface.Dimension(), 2);
         KRATOS_CHECK_EQUAL(surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(surface.LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL(surface.IsRational(), false);
@@ -430,7 +427,7 @@ namespace Testing {
         auto surface = GenerateReferenceNodeSurface();
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info({3,2}, {IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS});
         surface.CreateIntegrationPoints(integration_points, integration_info);
 
@@ -447,11 +444,11 @@ namespace Testing {
         auto surface = GenerateReferenceNodeSurface();
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info({ 3,2 }, { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
         surface.CreateIntegrationPoints(integration_points, integration_info);
 
-        typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
+        typename Geometry<Node>::GeometriesArrayType quadrature_points;
         surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 6);
@@ -550,7 +547,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(surface.KnotsU()[5], 8.0, TOLERANCE);
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = surface.GetDefaultIntegrationInfo();
         surface.CreateIntegrationPoints(integration_points, integration_info);
 
@@ -594,7 +591,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(surface.KnotsV()[3], 4.8, TOLERANCE);
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = surface.GetDefaultIntegrationInfo();
         surface.CreateIntegrationPoints(integration_points, integration_info);
 
@@ -635,7 +632,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(surface.KnotsU()[5], 10.0, TOLERANCE);
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = surface.GetDefaultIntegrationInfo();
         surface.CreateIntegrationPoints(integration_points, integration_info);
 
@@ -676,7 +673,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(surface.KnotsV()[5], 5.0, TOLERANCE);
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = surface.GetDefaultIntegrationInfo();
         surface.CreateIntegrationPoints(integration_points, integration_info);
 
@@ -697,7 +694,6 @@ namespace Testing {
         auto surface = GenerateReferenceQuarterSphereGeometry();
 
         // Check general information, input to ouput
-        KRATOS_CHECK_EQUAL(surface.Dimension(), 2);
         KRATOS_CHECK_EQUAL(surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(surface.LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL(surface.IsRational(), true);

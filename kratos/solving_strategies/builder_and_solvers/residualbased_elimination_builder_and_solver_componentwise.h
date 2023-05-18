@@ -59,7 +59,7 @@ namespace Kratos
 
 Detail class definition.
 
-This is a specialization of the standard buliding strategy to the case in which a single variable is to be used in the
+This is a specialization of the standard building strategy to the case in which a single variable is to be used in the
 building.
 
 the creation of the DofList and the construction of the system matrix is in this case much faster
@@ -244,7 +244,7 @@ public:
                 //calculate elemental contribution
                 (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-                Geometry< Node<3> >& geom = (*it)->GetGeometry();
+                Geometry< Node >& geom = (*it)->GetGeometry();
                 if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
 
                 for(unsigned int i=0; i<geom.size(); i++)
@@ -285,7 +285,7 @@ public:
                 //calculate elemental contribution
                 (*it)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-                Geometry< Node<3> >& geom = (*it)->GetGeometry();
+                Geometry< Node >& geom = (*it)->GetGeometry();
                 if(EquationId.size() != geom.size()) EquationId.resize(geom.size(),false);
 
                 for(unsigned int i=0; i<geom.size(); i++)
@@ -342,12 +342,12 @@ public:
         BaseType::mDofSet.clear();
         BaseType::mDofSet.reserve(mActiveNodes.size() );
 
-        for(GlobalPointersVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
+        for(GlobalPointersVector< Node >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
         {
             BaseType::mDofSet.push_back( iii->pGetDof(rVar) );
         }
 
-        //throws an execption if there are no Degrees of freedom involved in the analysis
+        //throws an exception if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size()==0)
             KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
@@ -427,7 +427,7 @@ public:
             if(A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
             {
                 //KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
-                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
+                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize,BaseType::mEquationSystemSize,true);
 #ifdef _OPENMP
                 ParallelConstructGraph(A);
@@ -551,24 +551,24 @@ protected:
         unsigned int pos = (mActiveNodes.begin())->GetDofPosition(rVar);
         //constructing the system matrix row by row
         int index_i;
-        for(GlobalPointersVector< Node<3> >::iterator in = mActiveNodes.begin();
+        for(GlobalPointersVector< Node >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
-            const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
+            const Node::DofType& current_dof = in->GetDof(rVar,pos);
             if( current_dof.IsFixed() == false)
             {
                 index_i = (current_dof).EquationId();
-                GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                GlobalPointersVector< Node >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                 std::vector<int>& indices = index_list[index_i];
                 indices.reserve(neighb_nodes.size()+1);
 
                 //filling the first neighbours list
                 indices.push_back(index_i);
-                for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                for( GlobalPointersVector< Node >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
-                    const Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
+                    const Node::DofType& neighb_dof = i->GetDof(rVar,pos);
                     if(neighb_dof.IsFixed() == false )
                     {
                         int index_j = (neighb_dof).EquationId();
@@ -576,7 +576,7 @@ protected:
                     }
                 }
 
-                //sorting the indices and elminating the duplicates
+                //sorting the indices and eliminating the duplicates
                 std::sort(indices.begin(),indices.end());
                 typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
 
@@ -628,28 +628,28 @@ protected:
         #pragma omp parallel for firstprivate(number_of_threads,pos) schedule(static,1)
         for(int k=0; k<number_of_threads; k++)
         {
-            GlobalPointersVector< Node<3> >::iterator it_begin = mActiveNodes.begin()+partition[k];
-            GlobalPointersVector< Node<3> >::iterator it_end = mActiveNodes.begin()+partition[k+1];
+            GlobalPointersVector< Node >::iterator it_begin = mActiveNodes.begin()+partition[k];
+            GlobalPointersVector< Node >::iterator it_end = mActiveNodes.begin()+partition[k+1];
 
-            for(GlobalPointersVector< Node<3> >::iterator in = it_begin;
+            for(GlobalPointersVector< Node >::iterator in = it_begin;
                     in!=it_end; in++)
             {
-                const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
+                const Node::DofType& current_dof = in->GetDof(rVar,pos);
                 if( current_dof.IsFixed() == false)
                 {
                     int index_i = (current_dof).EquationId();
-                    GlobalPointersVector< Node<3> >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+                    GlobalPointersVector< Node >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 
                     std::vector<int>& indices = index_list[index_i];
                     indices.reserve(neighb_nodes.size()+1);
 
                     //filling the first neighbours list
                     indices.push_back(index_i);
-                    for( GlobalPointersVector< Node<3> >::iterator i =	neighb_nodes.begin();
+                    for( GlobalPointersVector< Node >::iterator i =	neighb_nodes.begin();
                             i != neighb_nodes.end(); i++)
                     {
 
-                        const Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
+                        const Node::DofType& neighb_dof = i->GetDof(rVar,pos);
                         if(neighb_dof.IsFixed() == false )
                         {
                             int index_j = (neighb_dof).EquationId();
@@ -657,7 +657,7 @@ protected:
                         }
                     }
 
-                    //sorting the indices and elminating the duplicates
+                    //sorting the indices and eliminating the duplicates
                     std::sort(indices.begin(),indices.end());
                     typename std::vector<int>::iterator new_end = std::unique(indices.begin(),indices.end());
                     indices.erase(new_end,indices.end());
@@ -723,7 +723,7 @@ private:
     /**@name Member Variables */
     /*@{ */
     TVariableType const & rVar;
-    GlobalPointersVector<Node<3> > mActiveNodes;
+    GlobalPointersVector<Node > mActiveNodes;
 
     /*@} */
     /**@name Private Operators*/

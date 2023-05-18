@@ -145,11 +145,8 @@ endif()
 # The built-in FindPython didn't always give the version numbers
 string(REGEX REPLACE "\\." ";" _PYTHON_VERSION_LIST ${_PYTHON_VERSION_LIST})
 list(GET _PYTHON_VERSION_LIST 0 PYTHON_VERSION_MAJOR)
-add_definitions(-DPYTHON_VERSION_MAJOR=${PYTHON_VERSION_MAJOR})
 list(GET _PYTHON_VERSION_LIST 1 PYTHON_VERSION_MINOR)
-add_definitions(-DPYTHON_VERSION_MINOR=${PYTHON_VERSION_MINOR})
 list(GET _PYTHON_VERSION_LIST 2 PYTHON_VERSION_PATCH)
-add_definitions(-DPYTHON_VERSION_PATCH=${PYTHON_VERSION_PATCH})
 
 # Make sure all directory separators are '/'
 string(REGEX REPLACE "\\\\" "/" PYTHON_PREFIX ${PYTHON_PREFIX})

@@ -131,44 +131,6 @@ public:
     }
 
     /**
-     * @brief It gives you the absolute value of a given value
-     * @param rData The value to compute the absolute value
-     * @return The absolute value of rData
-     */
-    static TDataType Abs(const TDataType& rData)
-    {
-        return rData > TDataType(0) ? rData : -rData;
-    }
-
-    /**
-     * @brief It gives you the minimum value between two values
-     * @param rValue1 The first value
-     * @param rValue2 The second value
-     * @return The minimum value
-     */
-    static TDataType Min(
-        const TDataType& rValue1,
-        const TDataType& rValue2
-        )
-    {
-        return rValue1 > rValue2 ? rValue2 : rValue1;
-    }
-
-    /**
-     * @brief It gives you the maximum value between two values
-     * @param rValue1 The first value
-     * @param rValue2 The second value
-     * @return The maximum value
-     */
-    static TDataType Max(
-        const TDataType& rValue1,
-        const TDataType& rValue2
-        )
-    {
-        return rValue1 > rValue2 ? rValue1 : rValue2;
-    }
-
-    /**
      * @brief Calculates the cofactor
      * @param rMat The matrix to calculate
      * @param i The index i
@@ -198,11 +160,7 @@ public:
             if (k != j)
                 ia2(j_sub++) = k;
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
-#else
         boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
-#endif // KRATOS_USE_AMATRIX
         const TDataType first_minor = Det(sub_mat);
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
@@ -358,12 +316,6 @@ public:
         const VectorType& rB
         )
     {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-        double determinant = lu_factorization.determinant();
-        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "Matrix is singular: " << A << std::endl;
-        rX = lu_factorization.solve(rB);
-#else
         const SizeType size1 = A.size1();
         rX = rB;
         typedef permutation_matrix<SizeType> pmatrix;
@@ -371,7 +323,6 @@ public:
         int singular = lu_factorize(A,pm);
         KRATOS_DEBUG_ERROR_IF(singular == 1) << "Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
-#endif // ifdef KRATOS_USE_AMATRIX
     }
 
     /**
@@ -415,12 +366,6 @@ public:
             }
 
             Matrix A(rInputMatrix);
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-            rInputMatrixDet = lu_factorization.determinant();
-            KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
-            rInvertedMatrix = lu_factorization.inverse();
-#else
             typedef permutation_matrix<SizeType> pmatrix;
             pmatrix pm(A.size1());
             const int singular = lu_factorize(A,pm);
@@ -435,7 +380,6 @@ public:
                 IndexType ki = pm[i] == i ? 0 : 1;
                 rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
- #endif // ifdef KRATOS_USE_AMATRIX
        } else { // Bounded-matrix case
             const SizeType size1 = rInputMatrix.size1();
             const SizeType size2 = rInputMatrix.size2();
@@ -443,12 +387,6 @@ public:
             Matrix A(rInputMatrix);
             Matrix invA(rInvertedMatrix);
 
- #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-            rInputMatrixDet = lu_factorization.determinant();
-            KRATOS_ERROR_IF(std::abs(rInputMatrixDet) <= ZeroTolerance) << "Matrix is singular: " << rInputMatrix << std::endl;
-            invA = lu_factorization.inverse();
- #else
             typedef permutation_matrix<SizeType> pmatrix;
             pmatrix pm(size1);
             const int singular = lu_factorize(A,pm);
@@ -463,7 +401,6 @@ public:
                 IndexType ki = pm[i] == i ? 0 : 1;
                 rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
- #endif // ifdef KRATOS_USE_AMATRIX
 
             for (IndexType i = 0; i < size1;++i) {
                 for (IndexType j = 0; j < size2;++j) {
@@ -679,11 +616,6 @@ public:
                 return Det4(rA);
             default:
                 TDataType det = 1.0;
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-                Matrix temp(rA);
-                AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
-                det = lu_factorization.determinant();
-#else
                 using namespace boost::numeric::ublas;
                 typedef permutation_matrix<SizeType> pmatrix;
                 Matrix Aux(rA);
@@ -698,7 +630,6 @@ public:
                     IndexType ki = pm[i] == i ? 0 : 1;
                     det *= std::pow(-1.0, ki) * Aux(i,i);
                 }
-#endif // ifdef KRATOS_USE_AMATRIX
                 return det;
        }
     }
@@ -1587,12 +1518,8 @@ public:
         const SizeType size1 = rB.size2();
         const SizeType size2 = rB.size2();
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("BtDBProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BtDBProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
-#else
         if (rA.size1() != size1 || rA.size2() != size2)
             rA.resize(size1, size2, false);
-#endif // KRATOS_USE_AMATRIX
 
         // Direct multiplication
         // noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
@@ -1632,12 +1559,8 @@ public:
         const SizeType size1 = rB.size1();
         const SizeType size2 = rB.size1();
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("BDBtProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BDBtProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
-#else
         if (rA.size1() != size1 || rA.size2() != size2)
             rA.resize(size1, size2, false);
-#endif // KRATOS_USE_AMATRIX
 
         // Direct multiplication
         // noalias(rA) = prod(rB, MatrixType(prod(rD, trans(rB))));
@@ -1682,15 +1605,10 @@ public:
 
         const SizeType size = rA.size1();
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("EigenSystem", rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenVectorsMatrix matrix. Please resize before compute" << std::endl;
-        KRATOS_WARNING_IF("EigenSystem", rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size) << "EigenSystem has detected an incorrect size of your EigenValuesMatrix matrix. Please resize before compute" << std::endl;
-#else
         if (rEigenVectorsMatrix.size1() != size || rEigenVectorsMatrix.size2() != size)
             rEigenVectorsMatrix.resize(size, size, false);
         if (rEigenValuesMatrix.size1() != size || rEigenValuesMatrix.size2() != size)
             rEigenValuesMatrix.resize(size, size, false);
-#endif // KRATOS_USE_AMATRIX
 
         const TMatrixType2 identity_matrix = IdentityMatrix(size);
         noalias(rEigenVectorsMatrix) = identity_matrix;
