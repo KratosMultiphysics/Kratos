@@ -855,28 +855,6 @@ namespace Kratos
 
             KRATOS_CHECK_NEAR(area, 0.5, TOLERANCE);
         }
-        
-        /** Checks if it gives you the absolute value of a given value
-         * Checks if It gives you the absolute value of a given value
-         */
-        
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsAbsTest, KratosCoreMathUtilsFastSuite) 
-        {
-            const double absolute = MathUtils<double>::Abs(-1.0);
-
-            KRATOS_CHECK_EQUAL(absolute, 1.0);
-        }
-        
-        /** Checks if it gives you the minimum value of a given value
-         * Checks if It gives you the minimum value of a given value
-         */
-        
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMinTest, KratosCoreMathUtilsFastSuite) 
-        {
-            const double min = MathUtils<double>::Min(0.0,1.0);
-
-            KRATOS_CHECK_EQUAL(min, 0.0);
-        }
     } // namespace Testing
 }  // namespace Kratos.
 ```

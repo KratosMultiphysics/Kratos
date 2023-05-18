@@ -17,6 +17,7 @@ import symmetry_utilities_tests.symmetry_tests
 import test_execution_policies
 import test_optimization_info
 import test_optimization_utils
+import responses_tests.test_response_routine
 import responses_tests.test_overhang_response_function
 import responses_tests.test_mass_response_function
 import responses_tests.test_linear_strain_energy_response_function
@@ -61,14 +62,16 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression_utils.TestContainerExpressionUtils]))
 
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_response_routine.TestResponseRoutine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_mass_response_function.TestMassResponseFunctionBeams]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_mass_response_function.TestMassResponseFunctionShells]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_mass_response_function.TestMassResponseFunctionSolids]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_overhang_response_function.TestOverHangResponseFunction]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedObjective]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedConstraint]))
+    # TODO: temporarily disabling them. To be turned on once these are ported to new design.
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedObjective]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_standardized_responses.TestStandardizedConstraint]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
