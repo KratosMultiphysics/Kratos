@@ -140,22 +140,33 @@ VtkOutput::VtkOutput(
     const int num_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions();
 
     if (entity_type == "element") {
-        mEntityType = (num_elements > 0) ? VtkOutput::EntityType::ELEMENT : VtkOutput::EntityType::NONE;
+        mEntityType = (num_elements > 0) ? EntityType::ELEMENT : EntityType::NONE;
     }
     else if (entity_type == "condition") {
-        mEntityType = (num_conditions > 0) ? VtkOutput::EntityType::CONDITION : VtkOutput::EntityType::NONE;
+        mEntityType = (num_conditions > 0) ? EntityType::CONDITION : EntityType::NONE;
     }
     else if (entity_type == "automatic") {
-        if (num_elements > 0) {
-            mEntityType = VtkOutput::EntityType::ELEMENT;
-        } else if (num_conditions > 0) {
-            mEntityType = VtkOutput::EntityType::CONDITION;
+        if (num_elements > 0 || num_conditions > 0) {
+            mEntityType = EntityType::AUTOMATIC;
         } else {
-            mEntityType = VtkOutput::EntityType::NONE;
+            mEntityType = EntityType::NONE;
         }
 
         KRATOS_WARNING_IF("VtkOutput", num_elements > 0 && num_conditions > 0) << "Modelpart \"" << rModelPart.Name() << "\" has both elements and conditions.\nGiving precedence to elements and writing only elements!" << std::endl;
+    } else {
+        KRATOS_ERROR << "Unknown entity_type \"" << entity_type << "\". Available options are \"element\", \"condition\", \"automatic\"" << std::endl;
     }
+}
+
+VtkOutput::EntityType VtkOutput::GetEntityType(const ModelPart& rModelPart) const
+{
+    if (mEntityType != EntityType::AUTOMATIC) {
+        return mEntityType;
+    }
+
+    return (rModelPart.GetCommunicator().GlobalNumberOfElements() > 0) ?
+        EntityType::ELEMENT :
+        EntityType::CONDITION;
 }
 
 /***********************************************************************************/
@@ -360,8 +371,9 @@ void VtkOutput::WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFi
 void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    const auto entity_type = GetEntityType(rModelPart);
 
-    if (mEntityType == EntityType::ELEMENT) {
+    if (entity_type == EntityType::ELEMENT) {
         // write cells header
         rFileStream << "\nCELLS " << r_local_mesh.NumberOfElements() << " "
             << DetermineVtkCellListSize(r_local_mesh.Elements()) << "\n";
@@ -369,7 +381,7 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
         // write cell types header
         rFileStream << "\nCELL_TYPES " << r_local_mesh.NumberOfElements() << "\n";
         WriteCellType(r_local_mesh.Elements(), rFileStream);
-    } else if (mEntityType == EntityType::CONDITION) {
+    } else if (entity_type == EntityType::CONDITION) {
         // write cells header
         rFileStream << "\nCELLS " << r_local_mesh.NumberOfConditions() << " "
             << DetermineVtkCellListSize(r_local_mesh.Conditions()) << "\n";
@@ -565,7 +577,7 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
         if (IsCompatibleVariable(r_element_result_name)) ++counter_gauss_point_variables_in_elements;
     }
 
-    if (mEntityType == EntityType::ELEMENT) {
+    if (GetEntityType(rModelPart) == EntityType::ELEMENT) {
         // write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfElements() << "\n";
         const bool write_ids = mOutputSettings["write_ids"].GetBool();
@@ -626,7 +638,7 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
         if (IsCompatibleVariable(r_element_result_name)) ++counter_gauss_point_variables_in_elements;
     }
 
-    if (mEntityType == EntityType::CONDITION) {
+    if (GetEntityType(rModelPart) == EntityType::CONDITION) {
         // Write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfConditions() << "\n";
         const bool write_ids = mOutputSettings["write_ids"].GetBool();

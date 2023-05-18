@@ -107,20 +107,25 @@ public:
         VTK_BINARY
     };
 
+protected:
+    ///@name  Enum's
+    ///@{
+
     enum class EntityType {
         ELEMENT,
         CONDITION,
-        NONE // used internally to skip some writing checks
+        AUTOMATIC,
+        NONE
         // GEOMETRY // TODO PBucher
     };
 
-protected:
+    ///@}
+
     ///@name Member Variables
     ///@{
 
     ModelPart& mrModelPart;                        /// The main model part to post process
     VtkOutput::FileFormat mFileFormat;             /// The file format considered
-    VtkOutput::EntityType mEntityType;             /// The entities to be written
 
     Parameters mOutputSettings;                    /// The configuration parameters
     unsigned int mDefaultPrecision;                /// The default precision
@@ -133,6 +138,12 @@ protected:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Helper to determine which entities to write
+     * @param rModelPart The ModelPart that is currently outputted (can be a SubModelPart)
+     */
+    EntityType GetEntityType(const ModelPart& rModelPart) const;
 
     /**
      * @brief Interpolates the gauss point results on to the node using IntegrationValuesExtrapolationToNodesProcess
@@ -465,6 +476,10 @@ protected:
     ///@}
 
 private:
+    ///@name Member Variables
+    ///@{
+    VtkOutput::EntityType mEntityType;             /// The entities to be written
+
     ///@name Operations
     ///@{
 
