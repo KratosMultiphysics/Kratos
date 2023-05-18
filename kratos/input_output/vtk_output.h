@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala, Philipp Bucher
+//  Main authors:    Aditya Ghantasala
+//                   Philipp Bucher (https://github.com/philbucher)
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
@@ -106,17 +107,25 @@ public:
         VTK_BINARY
     };
 
+    enum class EntityType {
+        ELEMENT,
+        CONDITION,
+        NONE // used internally to skip some writing checks
+        // GEOMETRY // TODO PBucher
+    };
+
 protected:
     ///@name Member Variables
     ///@{
 
     ModelPart& mrModelPart;                        /// The main model part to post process
     VtkOutput::FileFormat mFileFormat;             /// The file format considered
+    VtkOutput::EntityType mEntityType;             /// The entities to be written
 
     Parameters mOutputSettings;                    /// The configuration parameters
     unsigned int mDefaultPrecision;                /// The default precision
     std::unordered_map<int, int> mKratosIdToVtkId; /// The map storing the relationship between the Kratos ID and VTK ID
-    bool mShouldSwap = false;                      /// If it should swap
+    bool mShouldSwap = false;                      /// If the bytes need to be swapped (endianness)
 
     // pointer to object of the extrapolation from gauss point to nodes process
     IntegrationValuesExtrapolationToNodesProcess::UniquePointer mpGaussToNodesProcess;
@@ -175,7 +184,7 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
+    virtual void WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the elements and conditions in rModelPart.
