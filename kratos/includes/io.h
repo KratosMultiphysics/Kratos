@@ -72,7 +72,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( MESH_ONLY );
     KRATOS_DEFINE_LOCAL_FLAG( SCIENTIFIC_PRECISION );
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 

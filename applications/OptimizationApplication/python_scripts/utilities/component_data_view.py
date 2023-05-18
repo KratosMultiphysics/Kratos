@@ -35,7 +35,7 @@ class ComponentDataView:
 
         self.__problem_data[self.__data_name] = BufferedDict(1)
         # create the unbuffered data container
-        self.__problem_data[self.__unbuffered_data_name] = BufferedDict(1)
+        self.__problem_data[self.__unbuffered_data_name] = BufferedDict(1, False)
 
     def SetDataBuffer(self, buffer_size: int):
         if not self.__problem_data.HasValue(self.__buffered_data_name):

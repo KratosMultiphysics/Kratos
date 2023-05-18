@@ -6,6 +6,9 @@ from KratosMultiphysics.OptimizationApplication.controls.master_control import M
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class ResponseRoutine:
+    """A class which adds optimization-specific utilities to simplify routines
+       and synchronization between the control field from algorithms and analysis models.
+    """
     def __init__(self, master_control: MasterControl, response: ResponseFunction) -> None:
         # set the master control
         self.__master_control = master_control
@@ -21,7 +24,7 @@ class ResponseRoutine:
         return self.__master_control
 
     def Initialize(self):
-        """Initializes the response routine and underlying response.
+        """Initializes the response routine.
 
         Raises:
             RuntimeError: If control domain and response domain does not have any intersection.
@@ -33,7 +36,7 @@ class ResponseRoutine:
         # that variable
         list_of_independent_variables = []
         for required_physical_variable in self.__required_physical_gradients.keys():
-            if required_physical_variable not in self.__response.GetDependentPhysicalKratosVariables():
+            if required_physical_variable not in self.__response.GetImplementedPhysicalKratosVariables():
                 list_of_independent_variables.append(required_physical_variable)
 
         # now remove this independent collective expression from the require collective expressions map.
@@ -70,8 +73,8 @@ class ResponseRoutine:
         """Calculates the value of the response.
 
         This method updates the design with the provided control field. If a control field is updated
-        which affects the this response value, then a new value is computed. Otherwise, the design
-        used in this reponse has not changed, hence the old value is returned without new calculations.
+        which affects the this response value, then a new value is computed. Otherwise, the previous
+        value is returned.
 
         Args:
             control_field (KratosOA.ContainerExpression.CollectiveExpressions): Control field of the new design.
@@ -111,7 +114,7 @@ class ResponseRoutine:
         """Returns Collective expression containing all the control space gradients for all control variable types (fields).
 
         Notes:
-            1. It expects that the CalcaulteValue is called.
+            1. It expects that the CalculateValue is called.
             2. The gradients are computed with respect to updates from master control.
 
         Returns:

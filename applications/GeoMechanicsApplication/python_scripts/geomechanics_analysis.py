@@ -188,10 +188,10 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                         new_time = self.end_time
                         self.delta_time = new_time - t
 
-            if (not converged):
+            if not converged:
                 raise Exception('The maximum number of cycles is reached without convergence!')
 
-            if self._GetSolver().settings["reset_displacements"].GetBool() and converged:
+            if self._GetSolver().settings["reset_displacements"].GetBool():
                 for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
                     self._CalculateTotalDisplacement(node, old_total_displacements[idx])
 

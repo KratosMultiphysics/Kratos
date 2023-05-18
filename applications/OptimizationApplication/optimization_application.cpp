@@ -34,9 +34,9 @@ namespace Kratos
         /* ELEMENTS */
         mHelmholtzSurfShape3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
         mHelmholtzSurfThickness3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-        mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-        mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-        mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
+        mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+        mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
         /* CONDITIONS */
         mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))
     {}
@@ -102,6 +102,10 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(D_MASS_D_PD);
         KRATOS_REGISTER_VARIABLE(D_MASS_D_FD);
         KRATOS_REGISTER_VARIABLE(D_MASS_D_CD);
+
+        //max overhang angle
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_MAX_OVERHANG_ANGLE_D_X);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_MAX_OVERHANG_ANGLE_D_CX);
 
         //stress
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_STRESS_D_X);

@@ -19,7 +19,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
         cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
 
        # create the primal analysis execution policy wrapper
-        with kratos_unittest.WorkFolderScope("../linear_strain_energy_test", __file__):
+        with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             # creating the execution policy wrapper
             execution_policy_wrapper_settings = Kratos.Parameters("""{
                 "name"    : "primal",
@@ -63,7 +63,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        with kratos_unittest.WorkFolderScope("../linear_strain_energy_test", __file__):
+        with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             DeleteFileIfExisting("Structure.time")
 
     def _CheckSensitivity(self, response_function, entities, sensitivity_method, update_method, delta, rel_tol, abs_tol):
