@@ -331,12 +331,16 @@ double BrooksCoreyLaw::
      const auto &rMaterialProperties = rParameters.GetMaterialProperties();
      const double &pb     = rMaterialProperties[AIR_ENTRY_PRESSURE];
 
-    if (p > 0.0 && p > pb )
+    if (p >= 0.0 )
     
     {
-        double IncSuction=p-Lastp;
-      
+        double Suction = std::max(p, 0.0);
+        double LastSuction= std::max(Lastp, 0.0);
+        double IncSuction=Suction-LastSuction;
         return IncSuction;
+        KRATOS_INFO("Suction") << Suction << std::endl;
+        KRATOS_INFO("LastSuction") << LastSuction << std::endl;
+        KRATOS_INFO("IncSuction") << IncSuction << std::endl;
     }
     else
     {
