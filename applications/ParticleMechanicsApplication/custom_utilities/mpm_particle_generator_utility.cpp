@@ -454,10 +454,10 @@ namespace MPMParticleGeneratorUtility
                                 if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::MPC search failed." << std::endl;
                                 
                                 pelem->Set(ACTIVE);
-                                    pelem->pGetGeometry(),
-                                    xg,
-                                auto p_quadrature_point_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                                auto p_quadrature_point_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
+                                    pelem->pGetGeometry(), xg,
                                     mpc_area[0]);
+                                
 
 
                                 // Particle condition are not created twice
