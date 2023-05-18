@@ -736,7 +736,13 @@ namespace Kratos::Testing
         // Create the solvers and things required
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
         auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
-        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "guess_row_size"                     : 15,
+            "silent_warnings"                    : false
+        })" );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
 
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -801,7 +807,13 @@ namespace Kratos::Testing
         // Create the solvers and things required
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
         auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
-        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "guess_row_size"                     : 15,
+            "silent_warnings"                    : false
+        })" );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
 
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -863,7 +875,13 @@ namespace Kratos::Testing
         // Create the solvers and things required
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
         auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
-        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "guess_row_size"                     : 15,
+            "silent_warnings"                    : false
+        })" );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
 
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -925,7 +943,13 @@ namespace Kratos::Testing
         // Create the solvers and things required
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
         auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
-        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "guess_row_size"                     : 15,
+            "silent_warnings"                    : false
+        })" );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
 
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -1127,7 +1151,13 @@ namespace Kratos::Testing
         // Create the solvers and things required
         auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
         auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
-        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, 15, p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "guess_row_size"                     : 15,
+            "silent_warnings"                    : false
+        })" );
+        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
 
         const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
