@@ -1,0 +1,34 @@
+# Importing the Kratos Library
+import KratosMultiphysics as KM
+
+from KratosMultiphysics.DEMApplication import *
+
+# Importing the base class
+from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
+
+
+def Create(*args):
+    return ComputeDemMomentum(*args)
+
+class ComputeDemMomentum(CoSimulationCouplingOperation):
+
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
+        self.model = solver_wrappers[self.settings["solver"].GetString()].model
+        self.model_part_name = self.settings["model_part_name"].GetString()
+        self.model_part = self.model[self.model_part_name]
+  
+
+    def InitializeCouplingIteration(self):
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(KM.LINEAR_MOMENTUM, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.VELOCITY))
+
+
+    @classmethod
+    def _GetDefaultParameters(cls):
+        this_defaults = KM.Parameters("""{
+            "solver"                : "UNSPECIFIED",
+            "model_part_name"       : ""
+        }""")
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
+        return this_defaults

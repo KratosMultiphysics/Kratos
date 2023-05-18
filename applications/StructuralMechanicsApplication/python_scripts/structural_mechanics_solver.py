@@ -164,6 +164,13 @@ class MechanicalSolver(PythonSolver):
         self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
 
     def AddVariables(self):
+
+        ################################################# for volume coupling
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MAUX)# for nodal mass of dem particles
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LINEAR_MOMENTUM) # for momentum of dem particles
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LAGRANGE_DISPLACEMENT) # for storing the displacement at each timestep
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN)# for velocity of dem particles
+        ################################################
         # this can safely be called also for restarts, it is internally checked if the variables exist already
         # Add displacements.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
