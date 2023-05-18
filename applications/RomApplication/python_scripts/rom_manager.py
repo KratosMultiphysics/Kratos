@@ -9,6 +9,21 @@ import os
 
 
 
+def changeMaterialParameters(mu):
+    angle_x = mu[0]
+    angle_y = mu[1]
+    with open("StructuralMaterials.json", mode="r+") as f:
+        data = json.load(f)
+        #change the angles of 1st and 2nd layer
+        data["properties"][0]["Material"]["Variables"]["EULER_ANGLES"][0] = angle_x
+        data["properties"][1]["Material"]["Variables"]["EULER_ANGLES"][0] = angle_y
+        #write to file and save file
+        f.seek(0)
+        json.dump(data, f, indent=4)
+        f.truncate()
+
+
+
 class RomManager(object):
 
     def __init__(self,project_parameters_name, general_rom_manager_parameters, CustomizeSimulation, UpdateProjectParameters):
@@ -26,18 +41,19 @@ class RomManager(object):
 
 
 
-    def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
-        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
+    def Fit(self, mu_train=None, store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
+        if mu_train is None:
+            mu_train = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         #######################
         ######  Galerkin ######
-        if chosen_projection_strategy == "galerkin":
+        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
+            training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.__LaunchTrainROM(mu_train)
+                fom_snapshots = self.LaunchTrainROM(mu_train)
                 if store_all_snapshots or store_fom_snapshots:
                     self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                rom_snapshots = self.__LaunchROM(mu_train)
+                rom_snapshots = self.LaunchROM(mu_train)
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
@@ -45,23 +61,30 @@ class RomManager(object):
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
-                self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                self.LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                hrom_snapshots = self.__LaunchHROM(mu_train)
+                hrom_snapshots = self.LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+            if True:
+                hhrom_snapshots = self.LaunchHHROM(mu_train)
+                debug = True
+
+
         #######################
+
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
-        elif chosen_projection_strategy == "lspg":
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
+            training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.__LaunchTrainROM(mu_train)
+                fom_snapshots = self.LaunchTrainROM(mu_train)
                 if store_all_snapshots or store_fom_snapshots:
                     self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                rom_snapshots = self.__LaunchROM(mu_train)
+                rom_snapshots = self.LaunchROM(mu_train)
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
@@ -69,62 +92,63 @@ class RomManager(object):
                 raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
         #######################################
 
+
         ##########################
         ###  Petrov Galerkin   ###
-        elif chosen_projection_strategy == "petrov_galerkin":
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
+            training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.__LaunchTrainROM(mu_train)
+                fom_snapshots = self.LaunchTrainROM(mu_train)
                 if store_all_snapshots or store_fom_snapshots:
                     self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "TrainPG")
-                self.__LaunchTrainPG(mu_train)
+                self.TrainPG(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                rom_snapshots = self.__LaunchROM(mu_train)
+                rom_snapshots = self.LaunchROM(mu_train)
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in training_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
-                self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                self.LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                hrom_snapshots = self.__LaunchHROM(mu_train)
+                hrom_snapshots = self.LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
-        else:
-            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
-            raise Exception(err_msg)
 
 
 
-    def Test(self, mu_test=[None]):
-        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
+    def Test(self, mu_test=None):
+        if mu_test is None:
+            mu_test = ['single case with parameters already contained in the ProjectParameters.json and CustomSimulation']
         #######################
         ######  Galerkin ######
-        if chosen_projection_strategy == "galerkin":
+        if self.general_rom_manager_parameters["projection_strategy"].GetString() == "galerkin":
+            testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
             if any(item == "ROM" for item in testing_stages):
-                fom_snapshots = self.__LaunchTestFOM(mu_test)
+                fom_snapshots = self.LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                rom_snapshots = self.__LaunchTestROM(mu_test)
+                rom_snapshots = self.LaunchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
 
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only test HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                hrom_snapshots = self.__LaunchTestHROM(mu_test)
+                hrom_snapshots = self.LaunchTestHROM(mu_test)
                 self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
 
 
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
-        elif chosen_projection_strategy == "lspg":
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg":
+            testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
             if any(item == "ROM" for item in testing_stages):
-                fom_snapshots = self.__LaunchTestFOM(mu_test)
+                fom_snapshots = self.LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                rom_snapshots = self.__LaunchTestROM(mu_test)
+                rom_snapshots = self.LaunchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in testing_stages):
                 raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
@@ -133,83 +157,37 @@ class RomManager(object):
 
         ##########################
         ###  Petrov Galerkin   ###
-        elif chosen_projection_strategy == "petrov_galerkin":
+        elif self.general_rom_manager_parameters["projection_strategy"].GetString() == "petrov_galerkin":
+            testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
             if any(item == "ROM" for item in testing_stages):
-                fom_snapshots = self.__LaunchTestFOM(mu_test)
+                fom_snapshots = self.LaunchTestFOM(mu_test)
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                rom_snapshots = self.__LaunchTestROM(mu_test)
+                rom_snapshots = self.LaunchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in testing_stages):
                 #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                hrom_snapshots = self.__LaunchTestHROM(mu_test)
+                hrom_snapshots = self.LaunchTestHROM(mu_test)
                 self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
-        else:
-            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
-            raise Exception(err_msg)
 
-
-
-
-    def RunFOM(self, mu_run=[None]):
-        self.__LaunchRunFOM(mu_run)
-
-    def RunROM(self, mu_run=[None]):
-        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        #######################
-        ######  Galerkin ######
-        if chosen_projection_strategy == "galerkin":
-            self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-        #######################################
-        ##  Least-Squares Petrov Galerkin   ###
-        elif chosen_projection_strategy == "lspg":
-            self._ChangeRomFlags(simulation_to_run = "lspg")
-        ##########################
-        ###  Petrov Galerkin   ###
-        elif chosen_projection_strategy == "petrov_galerkin":
-            self._ChangeRomFlags(simulation_to_run = "PG")
-        else:
-            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
-            raise Exception(err_msg)
-        self.__LaunchRunROM(mu_run)
-
-    def RunHROM(self, mu_run=[None]):
-        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
-        #######################
-        ######  Galerkin ######
-        if chosen_projection_strategy == "galerkin":
-            self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-        #######################################
-        ##  Least-Squares Petrov Galerkin   ###
-        elif chosen_projection_strategy == "lspg":
-            raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
-        ##########################
-        ###  Petrov Galerkin   ###
-        elif chosen_projection_strategy == "petrov_galerkin":
-            self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-        else:
-            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
-            raise Exception(err_msg)
-        self.__LaunchRunHROM(mu_run)
 
 
 
     def PrintErrors(self):
-        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         if any(item == "ROM" for item in training_stages):
             print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_train)
-        if any(item == "HROM" for item in training_stages) and not(chosen_projection_strategy == "lspg"):
+        if any(item == "HROM" for item in training_stages) and not(self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg"):
             print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
         if any(item == "ROM" for item in testing_stages):
             print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
-        if any(item == "HROM" for item in testing_stages) and not(chosen_projection_strategy == "lspg"):
+        if any(item == "HROM" for item in testing_stages) and not(self.general_rom_manager_parameters["projection_strategy"].GetString() == "lspg"):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
-    def __LaunchTrainROM(self, mu_train):
+    def LaunchTrainROM(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -218,8 +196,9 @@ class RomManager(object):
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            changeMaterialParameters(mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'FOM_Fit',mu,Id)
+            parameters = self._StoreResultsByName(parameters,'FOM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
@@ -234,7 +213,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def __LaunchROM(self, mu_train):
+    def LaunchROM(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -244,8 +223,9 @@ class RomManager(object):
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            changeMaterialParameters(mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'ROM_Fit',mu,Id)
+            parameters = self._StoreResultsByName(parameters,'ROM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
@@ -259,7 +239,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def __LaunchTrainPG(self, mu_train):
+    def TrainPG(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -269,7 +249,7 @@ class RomManager(object):
         PetrovGalerkinTrainMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreNoResults(parameters)
+            parameters = self._StoreResultsByName(parameters,'ROM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
@@ -278,7 +258,7 @@ class RomManager(object):
         simulation.GetPetrovGalerkinTrainUtility().CalculateAndSaveBasis(np.block(PetrovGalerkinTrainMatrix))
 
 
-    def __LaunchTrainHROM(self, mu_train, store_residuals_projected=False):
+    def LaunchTrainHROM(self, mu_train, store_residuals_projected=False):
         """
         This method should be parallel capable
         """
@@ -288,6 +268,7 @@ class RomManager(object):
         RedidualsSnapshotsMatrix = []
         for mu in mu_train:
             parameters = self.UpdateProjectParameters(parameters, mu)
+            changeMaterialParameters(mu)
             parameters = self._StoreNoResults(parameters)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
@@ -305,7 +286,7 @@ class RomManager(object):
         simulation.GetHROM_utility().CreateHRomModelParts()
 
 
-    def __LaunchHROM(self, mu_train):
+    def LaunchHROM(self, mu_train):
         """
         This method should be parallel capable
         """
@@ -315,8 +296,9 @@ class RomManager(object):
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            changeMaterialParameters(mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)
-            parameters = self._StoreResultsByName(parameters,'HROM_Fit',mu,Id)
+            parameters = self._StoreResultsByName(parameters,'HROM',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
@@ -330,7 +312,39 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def __LaunchTestFOM(self, mu_test):
+    def LaunchHHROM(self, mu_train):
+        """
+        This method should be parallel capable
+        """
+
+
+        SnapshotsMatrix = []
+        for Id, mu in enumerate(mu_train):
+            with open(self.project_parameters_name,'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            parameters = self.UpdateProjectParameters(parameters.Clone(), mu)
+            changeMaterialParameters(mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
+            parameters = self._StoreResultsByName(parameters,'HHROM',mu,Id)
+            model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
+            model = KratosMultiphysics.Model()
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation.Run()
+            for process in simulation._GetListOfOutputProcesses():
+                if isinstance(process, CalculateRomBasisOutputProcess):
+                    BasisOutputProcess = process
+            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+        SnapshotsMatrix = np.block(SnapshotsMatrix)
+
+        return SnapshotsMatrix
+
+
+
+
+
+    def LaunchTestFOM(self, mu_test):
         """
         This method should be parallel capable
         """
@@ -340,6 +354,7 @@ class RomManager(object):
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_test):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            changeMaterialParameters(mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
             parameters = self._StoreResultsByName(parameters,'FOM_Test',mu,Id)
             model = KratosMultiphysics.Model()
@@ -356,7 +371,7 @@ class RomManager(object):
         return SnapshotsMatrix
 
 
-    def __LaunchTestROM(self, mu_test):
+    def LaunchTestROM(self, mu_test):
         """
         This method should be parallel capable
         """
@@ -366,6 +381,7 @@ class RomManager(object):
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_test):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            changeMaterialParameters(mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
             parameters = self._StoreResultsByName(parameters,'ROM_Test',mu,Id)
             model = KratosMultiphysics.Model()
@@ -382,7 +398,7 @@ class RomManager(object):
 
 
 
-    def __LaunchTestHROM(self, mu_test):
+    def LaunchTestHROM(self, mu_test):
         """
         This method should be parallel capable
         """
@@ -392,6 +408,7 @@ class RomManager(object):
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_test):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            changeMaterialParameters(mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreResultsByName(parameters,'HROM_Test',mu,Id)
             model = KratosMultiphysics.Model()
@@ -405,54 +422,6 @@ class RomManager(object):
         SnapshotsMatrix = np.block(SnapshotsMatrix)
 
         return SnapshotsMatrix
-
-
-    def __LaunchRunFOM(self, mu_run):
-        """
-        This method should be parallel capable
-        """
-        with open(self.project_parameters_name,'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        for Id, mu in enumerate(mu_run):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreResultsByName(parameters,'FOM_Run',mu,Id)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = self._GetAnalysisStageClass(parameters)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
-            simulation.Run()
-
-
-    def __LaunchRunROM(self, mu_run):
-        """
-        This method should be parallel capable
-        """
-        with open(self.project_parameters_name,'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        for Id, mu in enumerate(mu_run):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreResultsByName(parameters,'ROM_Run',mu,Id)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
-            simulation.Run()
-
-
-    def __LaunchRunHROM(self, mu_run):
-        """
-        This method should be parallel capable
-        """
-        with open(self.project_parameters_name,'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        for Id, mu in enumerate(mu_run):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreResultsByName(parameters,'HROM_Run',mu,Id)
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
-            simulation.Run()
 
 
 
