@@ -39,6 +39,7 @@
 #include "add_controllers_to_python.h"
 #include "add_operations_to_python.h"
 #include "add_processes_to_python.h"
+#include "add_properties_to_python.h"
 #include "add_model_to_python.h"
 #include "add_io_to_python.h"
 #include "add_mesh_to_python.h"

@@ -14,7 +14,6 @@
 // System includes
 
 // External includes
-#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define_python.h"
@@ -23,13 +22,16 @@
 #include "includes/condition.h"
 #include "includes/properties.h"
 #include "includes/constitutive_law.h"
-#include "python/add_mesh_to_python.h"
+#include "python/add_properties_to_python.h"
 #include "python/containers_interface.h"
 
-namespace Kratos
+using AcccessorBindType = std::unique_ptr<Kratos::Accessor>;
+
+PYBIND11_MAKE_OPAQUE(AcccessorBindType);
+
+namespace Kratos::Python
 {
-namespace Python
-{
+
 namespace py = pybind11;
 
 using NodeType = Node<3>;
@@ -147,10 +149,40 @@ bool HasTableHelperFunction1( TContainerType& rContainer,
     return rContainer.HasTable(XVar, YVar);
 }
 
+template<typename TVariableType>
+void AddInterfaceToAccessorFold(pybind11::class_<Properties, Properties::Pointer, Properties::BaseType>& pyProperties) {
+
+    pyProperties
+    .def("GetAccessor", [](Properties &rProperties, Variable<TVariableType> &rVariable) { 
+            auto accessor = &rProperties.pGetAccessor(rVariable);
+            
+            if (*accessor == nullptr)
+                KRATOS_ERROR << "Trying to get a consumed or invalid Accessor." << std::endl;
+                
+            return accessor; 
+        }, py::return_value_policy::reference_internal)
+    .def("SetAccessor", [](Properties &rProperties, Variable<TVariableType> &rVariable, std::unique_ptr<Accessor> & rpAccessor) {
+            if (rpAccessor == nullptr)
+                KRATOS_ERROR << "Trying to set a consumed or invalid Accessor. Accessors are unique. Please create a different one." << std::endl;
+
+            rProperties.SetAccessor(rVariable, std::move(rpAccessor));
+            return &rProperties.pGetAccessor(rVariable);
+        }, py::return_value_policy::reference_internal)
+    .def("HasAccessor", [](Properties &rProperties, Variable<TVariableType> &rVariable) { 
+            return rProperties.HasAccessor(rVariable);
+        })
+    ;
+        
+}
+
+template<typename... TArgs>
+void AddInterfaceToAccessor(pybind11::class_<Properties, Properties::Pointer, Properties::BaseType>& pyProperties) {
+    (AddInterfaceToAccessorFold<TArgs>(pyProperties), ...);
+}
 
 void  AddPropertiesToPython(pybind11::module& m)
 {
-    py::class_<Properties, Properties::Pointer, Properties::BaseType>(m, "Properties")
+    auto properties_module = py::class_<Properties, Properties::Pointer, Properties::BaseType>(m, "Properties")
         .def(py::init<Kratos::Properties::IndexType>())
         .def(py::init<const Properties &>())
         .def("__setitem__", SetValueHelperFunction1<Properties, Variable<array_1d<double, 6>>>)
@@ -254,70 +286,22 @@ void  AddPropertiesToPython(pybind11::module& m)
              { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
         .def("GetValue", [](Properties &rProperties, const Variable<std::string> &rVariable, const GeometryType &rGeometry, const Vector &rShapeFunctionVector, const ProcessInfo &rProcessInfo)
              { return rProperties.GetValue(rVariable, rGeometry, rShapeFunctionVector, rProcessInfo); })
+        ;
 
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<bool> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<int> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<double> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<Vector> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<Matrix> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<array_1d<double, 3>> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<array_1d<double, 6>> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<array_1d<double, 9>> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<array_1d<double, 4>> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-        .def(
-            "GetAccessor", [](Properties &rProperties, const Variable<std::string> &rVariable) -> auto&
-            { return rProperties.GetAccessor(rVariable); },
-            py::return_value_policy::reference_internal)
-
-        .def("HasAccessor", [](Properties &rProperties, const Variable<bool> &rVariable)
-             { return rProperties.HasAccessor(rVariable); })
-        .def("HasAccessor", [](Properties &rProperties, const Variable<int> &rVariable)
-             { return rProperties.HasAccessor(rVariable); })
-        .def("HasAccessor", [](Properties &rProperties, const Variable<double> &rVariable)
-             { return rProperties.HasAccessor(rVariable); })
-        .def("HasAccessor", [](Properties &rProperties, const Variable<Vector> &rVariable)
-             { return rProperties.HasAccessor(rVariable); })
-        .def("HasAccessor", [](Properties &rProperties, const Variable<Matrix> &rVariable)
-             { return rProperties.HasAccessor(rVariable); })
-        .def("HasAccessor", [](Properties &rProperties, const Variable<array_1d<double, 3>> &rVariable)
-             { return rProperties.HasAccessor(rVariable); })
-        .def("HasAccessor", [](Properties &rProperties, const Variable<array_1d<double, 6>> &rVariable)
-             { return rProperties.HasAccessor(rVariable); })
-        .def("HasAccessor", [](Properties &rProperties, const Variable<array_1d<double, 9>> &rVariable)
-             { return rProperties.HasAccessor(rVariable); })
-        .def("HasAccessor", [](Properties &rProperties, const Variable<array_1d<double, 4>> &rVariable)
-             { return rProperties.HasAccessor(rVariable); })
-        .def("HasAccessor", [](Properties &rProperties, const Variable<std::string> &rVariable)
-             { return rProperties.HasAccessor(rVariable); });
+        AddInterfaceToAccessor<
+            bool,
+            int,
+            double,
+            Vector,
+            Matrix,
+            array_1d<double, 3>,
+            array_1d<double, 6>,
+            array_1d<double, 9>,
+            array_1d<double, 4>,
+            std::string
+        >(properties_module);
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
 }
-}  // namespace Python.
-} // Namespace Kratos
+
+} // Namespace Kratos::Python

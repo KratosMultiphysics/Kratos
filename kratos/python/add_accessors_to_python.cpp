@@ -22,28 +22,21 @@
 #include "includes/accessor.h"
 #include "includes/properties.h"
 
+using AcccessorBindType = std::unique_ptr<Kratos::Accessor>;
+
+PYBIND11_MAKE_OPAQUE(AcccessorBindType);
+
 namespace Kratos::Python
 {
 
-template<class TDataType, class TAccessorType, class... TAccessorArgs>
-auto& InternalCreateAndSetAccessorToProperties(
-    Properties& rProperties,
-    const Variable<TDataType>& rVariable,
-    TAccessorArgs... rAccessorArgs)
-{
-    auto p_new = Kratos::make_unique<TAccessorType>(std::forward<TAccessorArgs>(rAccessorArgs)...);
-    rProperties.SetAccessor(rVariable, std::move(p_new));
-    return rProperties.GetAccessor(rVariable);
-}
+namespace py = pybind11;
 
-void AddAccessorsToPython(pybind11::module& m)
+void AddAccessorsToPython(py::module& m)
 {
-    namespace py = pybind11;
-
-    py::class_<Accessor, Accessor::UniquePointer>(m, "Accessor")
-        .def("Create", [](Properties& rProp, Variable<double>& rVariable) -> auto& 
-        { return InternalCreateAndSetAccessorToProperties<double, Accessor>(rProp,rVariable); },
-        py::return_value_policy::reference_internal)
+    py::class_<AcccessorBindType>(m, "Accessor")
+        .def_static("Create", []() { 
+            return std::unique_ptr<Accessor>(new Accessor());
+        })
         ;
 }
 

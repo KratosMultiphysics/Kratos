@@ -356,6 +356,23 @@ public:
     }
 
     /**
+     * @brief Get the Accessor object
+     * If exists, this method returns a pointer to the requested variable accessor
+     * If doesn't exist, the method throws an error
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which the accessor refers to
+     * @return AccessorPointerType& Pointer to the requested variable accessor
+     */
+    template <class TVariableType>
+    AccessorPointerType& pGetAccessor(const TVariableType& rVariable)
+    {
+        const auto it_value = mAccessors.find(rVariable.Key());
+        KRATOS_ERROR_IF(it_value == mAccessors.end())
+            << "Trying to retrieve inexisting accessor for '" << rVariable.Name() << "' in properties " << Id() << "." << std::endl;
+        return it_value->second;
+    }
+
+    /**
      * @brief Check if current properties have an accessor
      * This method checks if current properties have an accessor for the requested variable
      * @tparam TVariableType The variable type
