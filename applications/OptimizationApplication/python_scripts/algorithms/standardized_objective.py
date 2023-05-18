@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 class StandardizedObjective(ResponseRoutine):
     """Standardized objective response function
 
-    This class creates instances to standardize any response function (make it a minimization problem).
+    This class transformed a user-given optimization problem into the standard format.
     Supported objective types:
         "minimization",
         "maximization"
