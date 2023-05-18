@@ -59,7 +59,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     ///@{
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;

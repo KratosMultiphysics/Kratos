@@ -25,7 +25,7 @@
 
 namespace Kratos::Testing
 {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 // void GiDIOSearchDebug(ModelPart& rModelPart)
 // {

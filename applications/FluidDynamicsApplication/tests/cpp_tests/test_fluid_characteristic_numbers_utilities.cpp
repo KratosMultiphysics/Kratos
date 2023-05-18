@@ -164,7 +164,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPecletNumber
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
+    std::function<double(const Geometry<Node>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
     const auto peclet_numbers = FluidCharacteristicNumbersUtilities::CalculateElementPecletNumbers<true, false>(
         r_model_part.GetElement(1),
         avg_elem_function);
@@ -183,7 +183,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalPecle
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
+    std::function<double(const Geometry<Node>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
     const double k_peclet_number = FluidCharacteristicNumbersUtilities::CalculateElementThermalPecletNumber<true, false>(
         r_model_part.GetElement(1),
         avg_elem_function);
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousPecle
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
+    std::function<double(const Geometry<Node>&)> avg_elem_function = ElementSizeCalculator<2,3>::AverageElementSize;
     const double mu_peclet_number = FluidCharacteristicNumbersUtilities::CalculateElementViscousPecletNumber<true, false>(
         r_model_part.GetElement(1),
         avg_elem_function);
@@ -222,7 +222,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementFourierNumbe
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
+    std::function<double(const Geometry<Node>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
     const auto fourier_numbers = FluidCharacteristicNumbersUtilities::CalculateElementFourierNumbers<true, false>(
         r_model_part.GetElement(1),
         min_elem_function,
@@ -245,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementThermalFouri
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
+    std::function<double(const Geometry<Node>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
     const double thermal_fourier_number = FluidCharacteristicNumbersUtilities::CalculateElementThermalFourierNumber<true, false>(
         r_model_part.GetElement(1),
         min_elem_function,
@@ -267,7 +267,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementViscousFouri
     TestFluidCharacteristicNumberElementSet(r_model_part);
 
     // Calculate the element Peclet numbers
-    std::function<double(const Geometry<Node<3>>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
+    std::function<double(const Geometry<Node>&)> min_elem_function = ElementSizeCalculator<2,3>::MinimumElementSize;
     const double viscous_fourier_number = FluidCharacteristicNumbersUtilities::CalculateElementViscousFourierNumber<true, false>(
         r_model_part.GetElement(1),
         min_elem_function,

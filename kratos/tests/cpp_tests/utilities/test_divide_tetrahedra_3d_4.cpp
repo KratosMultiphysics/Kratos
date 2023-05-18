@@ -45,7 +45,7 @@ namespace Kratos
 			base_model_part.Nodes()[4].FastGetSolutionStepValue(DISTANCE) =  1.0;
 
 			// Set the elemental distances vector
-			Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
+			Geometry < Node >& r_geometry = base_model_part.Elements()[1].GetGeometry();
 
 			array_1d<double, 4> distances_vector;
 			for (unsigned int i = 0; i < r_geometry.size(); ++i) {
@@ -57,7 +57,7 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
 			// Build the tetrahedra splitting utility
-			DivideTetrahedra3D4<Node<3>> tetrahedra_splitter(r_geometry, r_elemental_distances);
+			DivideTetrahedra3D4<Node> tetrahedra_splitter(r_geometry, r_elemental_distances);
 
 			// Call the divide geometry method
 			tetrahedra_splitter.GenerateDivision();
@@ -67,7 +67,7 @@ namespace Kratos
 
 			// Call the positive exterior faces generation method
 			std::vector < unsigned int > pos_ext_faces_parent_ids;
-			std::vector < DivideTetrahedra3D4<Node<3>>::IndexedPointGeometryPointerType > pos_ext_faces;
+			std::vector < DivideTetrahedra3D4<Node>::IndexedPointGeometryPointerType > pos_ext_faces;
 			tetrahedra_splitter.GenerateExteriorFaces(
 				pos_ext_faces,
 				pos_ext_faces_parent_ids,
@@ -75,7 +75,7 @@ namespace Kratos
 
 			// Call the negative exterior faces generation method
 			std::vector < unsigned int > neg_ext_faces_parent_ids;
-			std::vector < DivideTetrahedra3D4<Node<3>>::IndexedPointGeometryPointerType > neg_ext_faces;
+			std::vector < DivideTetrahedra3D4<Node>::IndexedPointGeometryPointerType > neg_ext_faces;
 			tetrahedra_splitter.GenerateExteriorFaces(
 				neg_ext_faces,
 				neg_ext_faces_parent_ids,
@@ -217,7 +217,7 @@ namespace Kratos
 			base_model_part.Nodes()[4].FastGetSolutionStepValue(DISTANCE) =  1.0;
 
 			// Set the elemental distances vector
-			Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
+			Geometry < Node >& r_geometry = base_model_part.Elements()[1].GetGeometry();
 
 			array_1d<double, 4> distances_vector;
 			for (unsigned int i = 0; i < r_geometry.size(); ++i) {
@@ -229,7 +229,7 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
 			// Build the tetrahedra splitting utility
-			DivideTetrahedra3D4<Node<3>> tetrahedra_splitter(r_geometry, r_elemental_distances);
+			DivideTetrahedra3D4<Node> tetrahedra_splitter(r_geometry, r_elemental_distances);
 
 			// Call the divide geometry method
 			tetrahedra_splitter.GenerateDivision();
@@ -239,7 +239,7 @@ namespace Kratos
 
 			// Call the positive exterior faces generation method
 			std::vector < unsigned int > pos_ext_faces_parent_ids;
-			std::vector < DivideTetrahedra3D4<Node<3>>::IndexedPointGeometryPointerType > pos_ext_faces;
+			std::vector < DivideTetrahedra3D4<Node>::IndexedPointGeometryPointerType > pos_ext_faces;
 			tetrahedra_splitter.GenerateExteriorFaces(
 				pos_ext_faces,
 				pos_ext_faces_parent_ids,
@@ -247,7 +247,7 @@ namespace Kratos
 
 			// Call the negative exterior faces generation method
 			std::vector < unsigned int > neg_ext_faces_parent_ids;
-			std::vector < DivideTetrahedra3D4<Node<3>>::IndexedPointGeometryPointerType > neg_ext_faces;
+			std::vector < DivideTetrahedra3D4<Node>::IndexedPointGeometryPointerType > neg_ext_faces;
 			tetrahedra_splitter.GenerateExteriorFaces(
 				neg_ext_faces,
 				neg_ext_faces_parent_ids,
@@ -414,7 +414,7 @@ namespace Kratos
 			base_model_part.Nodes()[4].FastGetSolutionStepValue(DISTANCE) = 1.0;
 
 			// Set the elemental distances vector
-			Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
+			Geometry < Node >& r_geometry = base_model_part.Elements()[1].GetGeometry();
 
 			array_1d<double, 4> distances_vector;
 			for (unsigned int i = 0; i < r_geometry.size(); ++i) {
@@ -426,7 +426,7 @@ namespace Kratos
 			Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
 			// Build the tetrahedra splitting utility
-			DivideTetrahedra3D4<Node<3>> tetrahedra_splitter(r_geometry, r_elemental_distances);
+			DivideTetrahedra3D4<Node> tetrahedra_splitter(r_geometry, r_elemental_distances);
 
 			// Call the divide geometry method
 			tetrahedra_splitter.GenerateDivision();
@@ -477,8 +477,8 @@ namespace Kratos
 			auto p_elem_471 = base_model_part.pGetElement(471);
 			auto p_elem_526 = base_model_part.pGetElement(526);
 
-			DivideTetrahedra3D4<Node<3>> tetra_split_471(p_elem_471->GetGeometry(), p_elem_471->GetValue(ELEMENTAL_DISTANCES));
-			DivideTetrahedra3D4<Node<3>> tetra_split_526(p_elem_526->GetGeometry(), p_elem_526->GetValue(ELEMENTAL_DISTANCES));
+			DivideTetrahedra3D4<Node> tetra_split_471(p_elem_471->GetGeometry(), p_elem_471->GetValue(ELEMENTAL_DISTANCES));
+			DivideTetrahedra3D4<Node> tetra_split_526(p_elem_526->GetGeometry(), p_elem_526->GetValue(ELEMENTAL_DISTANCES));
 
 			// Call the divide geometry method
 			tetra_split_471.GenerateDivision();
@@ -487,8 +487,8 @@ namespace Kratos
 			// Call the positive exterior faces generation method
 			std::vector<unsigned int> pos_ext_faces_parent_ids_471;
 			std::vector<unsigned int> pos_ext_faces_parent_ids_526;
-			std::vector<DivideTetrahedra3D4<Node<3>>::IndexedPointGeometryPointerType> pos_ext_faces_471;
-			std::vector<DivideTetrahedra3D4<Node<3>>::IndexedPointGeometryPointerType> pos_ext_faces_526;
+			std::vector<DivideTetrahedra3D4<Node>::IndexedPointGeometryPointerType> pos_ext_faces_471;
+			std::vector<DivideTetrahedra3D4<Node>::IndexedPointGeometryPointerType> pos_ext_faces_526;
 			tetra_split_471.GenerateExteriorFaces(pos_ext_faces_471, pos_ext_faces_parent_ids_471, tetra_split_471.GetPositiveSubdivisions());
 			tetra_split_526.GenerateExteriorFaces(pos_ext_faces_526, pos_ext_faces_parent_ids_526, tetra_split_526.GetPositiveSubdivisions());
 

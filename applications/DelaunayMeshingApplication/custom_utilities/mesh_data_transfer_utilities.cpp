@@ -30,7 +30,7 @@ namespace Kratos
   void MeshDataTransferUtilities::TransferData(ModelPart &rModelPart,
                                                const Element &rReferenceElement,
                                                PointPointerVector &list_of_new_centers,
-                                               std::vector<Geometry<Node<3>>> &list_of_new_vertices,
+                                               std::vector<Geometry<Node>> &list_of_new_vertices,
                                                Flags Options)
 
   {
@@ -335,7 +335,7 @@ namespace Kratos
 
     double alpha = 0.25; //[0,1] //smoothing level of the Jacobian
 
-    Geometry<Node<3>> &rGeom = rModelPart.ElementsBegin()->GetGeometry();
+    Geometry<Node> &rGeom = rModelPart.ElementsBegin()->GetGeometry();
     GeometryData::IntegrationMethod IntegrationMethod = rGeom.GetDefaultIntegrationMethod();
     unsigned int integration_points_number = rGeom.IntegrationPointsNumber(IntegrationMethod);
 
@@ -354,7 +354,7 @@ namespace Kratos
     for (auto &i_elem : rModelPart.Elements())
     {
 
-      Geometry<Node<3>> &rGeometry = i_elem.GetGeometry();
+      Geometry<Node> &rGeometry = i_elem.GetGeometry();
       IntegrationMethod = rGeometry.GetDefaultIntegrationMethod();
       integration_points_number = rGeometry.IntegrationPointsNumber(IntegrationMethod);
 
@@ -504,7 +504,7 @@ namespace Kratos
     // std::cout<<" [ Data Transfer NODE to ELEMENT ] : based on critical values of "<<rCriticalVariable<<std::endl;
     double alpha = 0.25; //[0,1] //smoothing level of the Jacobian
 
-    Geometry<Node<3>> &rGeom = rModelPart.ElementsBegin()->GetGeometry();
+    Geometry<Node> &rGeom = rModelPart.ElementsBegin()->GetGeometry();
     GeometryData::IntegrationMethod IntegrationMethod = rGeom.GetDefaultIntegrationMethod();
     unsigned int integration_points_number = rGeom.IntegrationPointsNumber(IntegrationMethod);
 
@@ -553,7 +553,7 @@ namespace Kratos
     for (auto &i_elem : rModelPart.Elements())
     {
 
-      Geometry<Node<3>> &rGeometry = i_elem.GetGeometry();
+      Geometry<Node> &rGeometry = i_elem.GetGeometry();
       IntegrationMethod = rGeometry.GetDefaultIntegrationMethod();
       integration_points_number = rGeometry.IntegrationPointsNumber(IntegrationMethod);
       const Matrix &Ncontainer = rGeometry.ShapeFunctionsValues(IntegrationMethod);
@@ -718,7 +718,7 @@ namespace Kratos
     ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
     NodesContainerType &rNodes = rModelPart.Nodes();
 
-    Geometry<Node<3>> &rGeom = rModelPart.ElementsBegin()->GetGeometry();
+    Geometry<Node> &rGeom = rModelPart.ElementsBegin()->GetGeometry();
     GeometryData::IntegrationMethod IntegrationMethod = rGeom.GetDefaultIntegrationMethod();
     unsigned int integration_points_number = rGeom.IntegrationPointsNumber(IntegrationMethod);
 
@@ -784,7 +784,7 @@ namespace Kratos
         for (auto &i_nelem : nElements)
         {
 
-          Geometry<Node<3>> &rGeometry = i_nelem.GetGeometry();
+          Geometry<Node> &rGeometry = i_nelem.GetGeometry();
           ElementArea = rGeometry.Area();
           Area += ElementArea;
 
@@ -928,7 +928,7 @@ namespace Kratos
   void MeshDataTransferUtilities::TransferNodalValuesToElements(ModelPart &rModelPart,
                                                                 const Element &rReferenceElement,
                                                                 PointPointerVector &list_of_new_centers,
-                                                                std::vector<Geometry<Node<3>>> &list_of_new_vertices)
+                                                                std::vector<Geometry<Node>> &list_of_new_vertices)
   {
 
     KRATOS_TRY
@@ -943,7 +943,7 @@ namespace Kratos
   void MeshDataTransferUtilities::TransferElementalValuesToNodes(ModelPart &rModelPart,
                                                                  const Element &rReferenceElement,
                                                                  PointPointerVector &list_of_new_centers,
-                                                                 std::vector<Geometry<Node<3>>> &list_of_new_vertices)
+                                                                 std::vector<Geometry<Node>> &list_of_new_vertices)
   {
 
     KRATOS_TRY
@@ -958,14 +958,14 @@ namespace Kratos
   void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart &rModelPart,
                                                                     const Element &rReferenceElement,
                                                                     PointPointerVector &list_of_new_centers,
-                                                                    std::vector<Geometry<Node<3>>> &list_of_new_vertices)
+                                                                    std::vector<Geometry<Node>> &list_of_new_vertices)
   {
 
     KRATOS_TRY
 
     // definitions for spatial search
-    typedef Node<3> PointType;
-    typedef Node<3>::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node::Pointer PointPointerType;
     typedef std::vector<PointPointerType> PointPointerVector;
     // typedef std::vector<PointType>             PointTypeVector;
     typedef PointPointerVector::iterator PointIterator;
@@ -1261,7 +1261,7 @@ namespace Kratos
       unsigned int numberOfProperties = rModelPart.NumberOfProperties();
       if (numberOfProperties > 1)
       {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         GeometryType &r_geometry = new_element->GetGeometry();
         unsigned int property_id = 0;
@@ -1371,10 +1371,10 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
-  VariablesListDataValueContainer MeshDataTransferUtilities::InterpolateVariables(Geometry<Node<3>> &geom,
+  VariablesListDataValueContainer MeshDataTransferUtilities::InterpolateVariables(Geometry<Node> &geom,
                                                                                   const std::vector<double> &N,
                                                                                   VariablesList &rVariablesList,
-                                                                                  Node<3>::Pointer pnode,
+                                                                                  Node::Pointer pnode,
                                                                                   double alpha)
   {
 
@@ -1402,7 +1402,7 @@ namespace Kratos
   }
 
   void MeshDataTransferUtilities::FillVectorData(VariablesList &rVariablesList,
-                                                 Node<3> &rNode)
+                                                 Node &rNode)
   {
 
     KRATOS_TRY
@@ -1432,10 +1432,10 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
-  void MeshDataTransferUtilities::Interpolate(Geometry<Node<3>> &geom,
+  void MeshDataTransferUtilities::Interpolate(Geometry<Node> &geom,
                                               const std::vector<double> &N,
                                               VariablesList &rVariablesList,
-                                              Node<3>::Pointer pnode,
+                                              Node::Pointer pnode,
                                               double alpha)
   {
 
@@ -1648,10 +1648,10 @@ namespace Kratos
   }
 
   // doubles only
-  void MeshDataTransferUtilities::InterpolateData(Geometry<Node<3>> &geom,
+  void MeshDataTransferUtilities::InterpolateData(Geometry<Node> &geom,
                                                   const std::vector<double> &N,
                                                   unsigned int step_data_size,
-                                                  Node<3>::Pointer pnode,
+                                                  Node::Pointer pnode,
                                                   double alpha)
   {
 
@@ -1685,10 +1685,10 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
-  VariablesListDataValueContainer MeshDataTransferUtilities::InterpolateVariablesData(Geometry<Node<3>> &geom,
+  VariablesListDataValueContainer MeshDataTransferUtilities::InterpolateVariablesData(Geometry<Node> &geom,
                                                                                       const std::vector<double> &N,
                                                                                       unsigned int step_data_size,
-                                                                                      Node<3>::Pointer pnode,
+                                                                                      Node::Pointer pnode,
                                                                                       double alpha)
 
   {

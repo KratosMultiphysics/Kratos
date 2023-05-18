@@ -53,9 +53,9 @@ namespace Kratos
       /// Pointer definition of MeshLocalSmoothingProcess
       KRATOS_CLASS_POINTER_DEFINITION(MeshLocalSmoothingProcess);
 
-	  typedef Node<3> NodeType;
+	  typedef Node NodeType;
 
-	  typedef GlobalPointersVector< Node<3> > NeighboursVectorType;
+	  typedef GlobalPointersVector< Node > NeighboursVectorType;
 
 	  typedef std::vector<Point > PointsVectorType;
   

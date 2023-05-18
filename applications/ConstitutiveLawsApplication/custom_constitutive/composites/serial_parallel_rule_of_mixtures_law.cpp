@@ -1170,20 +1170,42 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
     double& rValue)
 {
     if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
+        const SizeType voigt_size = GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        const Vector strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
+
         const auto &props = rParameterValues.GetMaterialProperties();
         const auto it_cl_begin = props.GetSubProperties().begin();
         const auto r_props_matrix_cl = *(it_cl_begin);
         rParameterValues.SetMaterialProperties(r_props_matrix_cl);
+        noalias(rParameterValues.GetStrainVector()) = matrix_strain_vector;
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+
+        // We reset the values
         rParameterValues.SetMaterialProperties(props);
+        noalias(rParameterValues.GetStrainVector()) = strain_vector;
         return rValue;
     } else if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
+        const SizeType voigt_size = GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        const Vector strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
+
         const auto &props = rParameterValues.GetMaterialProperties();
         const auto it_cl_begin = props.GetSubProperties().begin();
-        const auto r_props_fiber_cl  = *(it_cl_begin + 1);
+        const auto r_props_fiber_cl = *(it_cl_begin + 1);
         rParameterValues.SetMaterialProperties(r_props_fiber_cl);
+        noalias(rParameterValues.GetStrainVector()) = fiber_strain_vector;
         mpFiberConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+
+        // We reset the values
         rParameterValues.SetMaterialProperties(props);
+        noalias(rParameterValues.GetStrainVector()) = strain_vector;
         return rValue;
     }
     return rValue;

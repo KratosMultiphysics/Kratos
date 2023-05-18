@@ -12,8 +12,7 @@
 //
 //
 
-#if !defined (KRATOS_DAM_JOINT_2D_LAW_H_INCLUDED)
-#define  KRATOS_DAM_JOINT_2D_LAW_H_INCLUDED
+#pragma once
 
 // Application includes
 #include "custom_constitutive/dam_joint_3D_law.hpp"
@@ -21,75 +20,75 @@
 namespace Kratos
 {
 
-class KRATOS_API(DAM_APPLICATION) DamJoint2DLaw : public DamJoint3DLaw
-{
-
-public:
-
-    KRATOS_CLASS_POINTER_DEFINITION(DamJoint2DLaw);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    // Default Constructor
-    DamJoint2DLaw()
+    class KRATOS_API(DAM_APPLICATION) DamJoint2DLaw : public DamJoint3DLaw
     {
-    }
 
-    ConstitutiveLaw::Pointer Clone() const override
-    {
-        return Kratos::make_shared<DamJoint2DLaw>(DamJoint2DLaw(*this));
-    }
+    public:
 
-    // Copy Constructor
-    DamJoint2DLaw (const DamJoint2DLaw& rOther) : DamJoint3DLaw(rOther)
-    {
-    }
+        KRATOS_CLASS_POINTER_DEFINITION(DamJoint2DLaw);
 
-    // Destructor
-    ~DamJoint2DLaw() override
-    {
-    }
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        // Default Constructor
+        DamJoint2DLaw()
+        {
+        }
 
-    void GetLawFeatures(Features& rFeatures) override;
+        ConstitutiveLaw::Pointer Clone() const override
+        {
+            return Kratos::make_shared<DamJoint2DLaw>(DamJoint2DLaw(*this));
+        }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        // Copy Constructor
+        DamJoint2DLaw (const DamJoint2DLaw& rOther) : DamJoint3DLaw(rOther)
+        {
+        }
 
-protected:
+        // Destructor
+        ~DamJoint2DLaw() override
+        {
+        }
 
-    // Member Variables
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        void GetLawFeatures(Features& rFeatures) override;
 
-    void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                    ConstitutiveLawVariables& rVariables,
-                                    Parameters& rValues) override;
+    protected:
 
-    void ComputeStressVector(Vector& rStressVector,
-                                ConstitutiveLawVariables& rVariables,
-                                Parameters& rValues) override;
+        // Member Variables
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-private:
+        void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
+                                     Parameters& rValues) override;
 
-    // Serialization
+        void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+                                       ConstitutiveLawVariables& rVariables,
+                                       Parameters& rValues) override;
 
-    friend class Serializer;
+        void ComputeStressVector(Vector& rStressVector,
+                                 ConstitutiveLawVariables& rVariables,
+                                 Parameters& rValues) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    private:
 
-}; // Class DamJoint2DLaw
+        // Serialization
+
+        friend class Serializer;
+
+        void save(Serializer& rSerializer) const override
+        {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        }
+
+        void load(Serializer& rSerializer) override
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        }
+
+    }; // Class DamJoint2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_DAM_JOINT_2D_LAW_H_INCLUDED  defined
