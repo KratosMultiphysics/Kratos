@@ -22,7 +22,7 @@
 
 namespace Kratos::Testing {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosCoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFastSuite)
 {
     using IndexType = std::size_t;
     auto& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
