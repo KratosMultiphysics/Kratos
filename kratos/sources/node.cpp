@@ -191,65 +191,11 @@ Node& Node::operator=(const Node& rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool Node::operator==(const Node& rOther)
-{
-    return PointType::operator ==(rOther);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-double& Node::operator[](const IndexType ThisIndex)
-{
-    return BaseType::operator[](ThisIndex);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-double Node::operator[](const IndexType ThisIndex) const
-{
-    return BaseType::operator[](ThisIndex);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void Node::SetInitialPosition(const PointType& NewInitialPosition)
 {
     mInitialPosition.X() = NewInitialPosition.X();
     mInitialPosition.Y() = NewInitialPosition.Y();
     mInitialPosition.Z() = NewInitialPosition.Z();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void Node::SetInitialPosition(
-    const double X,
-    const double Y,
-    const double Z
-    )
-{
-    mInitialPosition.X() = X;
-    mInitialPosition.Y() = Y;
-    mInitialPosition.Z() = Z;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-VariablesList::Pointer Node::pGetVariablesList()
-{
-    return SolutionStepData().pGetVariablesList();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-const VariablesList::Pointer Node::pGetVariablesList() const
-{
-    return SolutionStepData().pGetVariablesList();
 }
 
 /***********************************************************************************/
@@ -266,22 +212,6 @@ void Node::CreateSolutionStepData()
 void Node::CloneSolutionStepData()
 {
     SolutionStepData().CloneFront();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Node::IndexType Node::GetBufferSize() const
-{
-    return SolutionStepData().QueueSize();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void Node::SetBufferSize(IndexType NewBufferSize)
-{
-    SolutionStepData().Resize(NewBufferSize);
 }
 
 /***********************************************************************************/

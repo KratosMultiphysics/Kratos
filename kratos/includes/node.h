@@ -262,10 +262,16 @@ public:
     ///@{
 
     /// Assignment operator.
-    Node& operator=(const Node& rOther);
+    Node& operator=(const Node& rOther)
+    {
+        return PointType::operator ==(rOther);
+    }
 
     /// Comparison operator. 
-    bool operator==(const Node& rOther);
+    bool operator==(const Node& rOther)
+    {
+        return BaseType::operator[](ThisIndex);
+    }
 
     /**
      * @brief Overloads the function call operator to return the value of the given variable at the specified solution step index.
@@ -321,14 +327,21 @@ public:
      * @param ThisIndex The index of the value.
      * @return double& A reference to the value at the index.
      */
-    double& operator[](const IndexType ThisIndex);
+    double& operator[](const IndexType ThisIndex)
+    {
+        return BaseType::operator[](ThisIndex);
+    }
 
     /**
      * @brief Overloads the subscript operator to return a const reference to the value at the specified index.
      * @param ThisIndex The index of the value.
      * @return double A const reference to the value at the index.
      */
-    double operator[](const IndexType ThisIndex) const;
+    double operator[](const IndexType ThisIndex) const
+    {
+        return BaseType::operator[](ThisIndex);
+    }
+
 
     ///@}
     ///@name Nodal Data
@@ -686,13 +699,19 @@ public:
      * @brief Get the buffer size
      * @return The buffer size
      */
-    IndexType GetBufferSize() const;
+    IndexType GetBufferSize() const
+    {
+        return SolutionStepData().QueueSize();
+    }
 
     /**
      * @brief Set the buffer size
      * @param NewBufferSize The new buffer size
      */
-    void SetBufferSize(const IndexType NewBufferSize);
+    void SetBufferSize(const IndexType NewBufferSize)
+    {
+        SolutionStepData().Resize(NewBufferSize);
+    }
 
     ///@}
     ///@name Access
@@ -814,20 +833,31 @@ public:
         const double X,
         const double Y,
         const double Z
-        );
+        )
+    {
+        mInitialPosition.X() = X;
+        mInitialPosition.Y() = Y;
+        mInitialPosition.Z() = Z;
+    }
 
     /**
      * @brief Get the list of variables
      * @return The list of variables
      */
-    VariablesList::Pointer pGetVariablesList();
+    VariablesList::Pointer pGetVariablesList()
+    {
+        return SolutionStepData().pGetVariablesList();
+    }
 
     /**
      * @brief Get the list of variables
      * @details const version
      * @return The list of variables
      */
-    const VariablesList::Pointer pGetVariablesList() const;
+    const VariablesList::Pointer pGetVariablesList() const
+    {
+        return SolutionStepData().pGetVariablesList();
+    }
 
     ///@}
     ///@name Dofs
