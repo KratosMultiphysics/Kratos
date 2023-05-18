@@ -786,7 +786,7 @@ void SmallStrainUPwDiffOrderElement::
 
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
+    
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
         //compute element kinematics (Np, gradNpT, |J|, B, strains)
@@ -800,7 +800,7 @@ void SmallStrainUPwDiffOrderElement::
 
          // retention law
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
-        BrooksCoreyLaw:: FinalizeSolutionStep(Parameters &rParameters);
+        BrooksCoreyLaw:: FinalizeSolutionStep(RetentionParameters);
      
         //compute constitutive tensor and/or stresses
         noalias(Variables.StressVector) = mStressVector[GPoint];
