@@ -379,13 +379,13 @@ namespace Kratos::Testing
         KRATOS_CHECK(rA.size1() == 6);
         KRATOS_CHECK(rA.size2() == 6);
         KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 4138000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 4138000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,4), -2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 4138000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,2), -2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 4138000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
 
         // Testing scale
         Parameters parameters = Parameters(R"(
@@ -447,11 +447,11 @@ namespace Kratos::Testing
         KRATOS_CHECK(rA.size1() == 6);
         KRATOS_CHECK(rA.size2() == 6);
         KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
         for (unsigned int i = 0; i < 6; ++i) { // Checking non-zero entries in diagonal
             KRATOS_CHECK_GREATER_EQUAL(std::abs(rA(i,i)), tolerance);
         }
@@ -508,11 +508,11 @@ namespace Kratos::Testing
         KRATOS_CHECK(rA.size1() == 6);
         KRATOS_CHECK(rA.size2() == 6);
         KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
 
         const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
         KRATOS_CHECK(r_T.size1() == 6);
@@ -553,13 +553,13 @@ namespace Kratos::Testing
         KRATOS_CHECK(rA.size1() == 6);
         KRATOS_CHECK(rA.size2() == 6);
         KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 4138000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 4138000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,4), -2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 4138000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,2), -2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 4138000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
 
         // Check the T matrix
         const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
@@ -578,7 +578,7 @@ namespace Kratos::Testing
     /**
     * Checks if the block builder and solver with constraints performs correctly the assemble of the system
     */
-    KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliaryNode, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverWithConstraintsAuxiliarNode, KratosCoreFastSuite)
     {
         Model current_model;
         ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
@@ -598,9 +598,13 @@ namespace Kratos::Testing
         constexpr double tolerance = 1e-8;
         KRATOS_CHECK(rA.size1() == 8);
         KRATOS_CHECK(rA.size2() == 8);
-        for (int i = 0; i < 8; ++i) {
-            KRATOS_CHECK_RELATIVE_NEAR(rA(i,i), 2069000000.0, tolerance);
-        }
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(7,7), 2069000000.0, tolerance);
 
         const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
         KRATOS_CHECK(r_T.size1() == 8);
@@ -639,11 +643,11 @@ namespace Kratos::Testing
         KRATOS_CHECK(rA.size1() == 8);
         KRATOS_CHECK(rA.size2() == 8);
         KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(6,7), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(7,6), 2069000000.0, tolerance);
