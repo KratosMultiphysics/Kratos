@@ -244,12 +244,12 @@ class HRomTrainingUtility(object):
 
     def __CreateDictionaryWithRomElementsAndWeights(self, weights = None, indexes=None, number_of_elements = None):
 
+        if number_of_elements is None:
+            number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
         if weights is None:
             weights = np.r_[np.load('HROM_ElementWeights.npy'),np.load('HROM_ConditionWeights.npy')]
         if indexes is None:
-            indexes = np.r_[np.load('HROM_ElementIds.npy'),np.load('HROM_ConditionIds.npy')]
-        if number_of_elements is None:
-            number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+            indexes = np.r_[np.load('HROM_ElementIds.npy'),np.load('HROM_ConditionIds.npy')+number_of_elements]
 
         hrom_weights = {}
         hrom_weights["Elements"] = {}
