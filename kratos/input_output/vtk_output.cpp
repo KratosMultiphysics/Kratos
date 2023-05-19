@@ -136,21 +136,17 @@ VtkOutput::VtkOutput(
 
     const std::string entity_type = mOutputSettings["entity_type"].GetString();
 
-    const int num_elements = rModelPart.GetCommunicator().GlobalNumberOfElements();
-    const int num_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions();
-
     if (entity_type == "element") {
-        mEntityType = (num_elements > 0) ? EntityType::ELEMENT : EntityType::NONE;
+        mEntityType = EntityType::ELEMENT;
     }
     else if (entity_type == "condition") {
-        mEntityType = (num_conditions > 0) ? EntityType::CONDITION : EntityType::NONE;
+        mEntityType = EntityType::CONDITION;
     }
     else if (entity_type == "automatic") {
-        if (num_elements > 0 || num_conditions > 0) {
-            mEntityType = EntityType::AUTOMATIC;
-        } else {
-            mEntityType = EntityType::NONE;
-        }
+        mEntityType = EntityType::AUTOMATIC;
+
+        const std::size_t num_elements = rModelPart.GetCommunicator().GlobalNumberOfElements();
+        const std::size_t num_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions();
 
         KRATOS_WARNING_IF("VtkOutput", num_elements > 0 && num_conditions > 0) << "Modelpart \"" << rModelPart.Name() << "\" has both elements and conditions.\nGiving precedence to elements and writing only elements!" << std::endl;
     } else {
@@ -160,13 +156,21 @@ VtkOutput::VtkOutput(
 
 VtkOutput::EntityType VtkOutput::GetEntityType(const ModelPart& rModelPart) const
 {
-    if (mEntityType != EntityType::AUTOMATIC) {
-        return mEntityType;
+
+    const std::size_t num_elements = rModelPart.GetCommunicator().GlobalNumberOfElements();
+    const std::size_t num_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions();
+
+    if (mEntityType == EntityType::ELEMENT) {
+        return (num_elements > 0) ? EntityType::ELEMENT : EntityType::NONE;
+    }
+    else if (mEntityType == EntityType::CONDITION) {
+        return (num_conditions > 0) ? EntityType::CONDITION : EntityType::NONE;
     }
 
-    if (rModelPart.GetCommunicator().GlobalNumberOfElements() > 0) {
+    // automatic: elements take precedence over conditions
+    if (num_elements > 0) {
         return EntityType::ELEMENT;
-    } else if(rModelPart.GetCommunicator().GlobalNumberOfConditions() > 0) {
+    } else if(num_conditions > 0) {
         return EntityType::CONDITION;
     } else {
         return EntityType::NONE;
