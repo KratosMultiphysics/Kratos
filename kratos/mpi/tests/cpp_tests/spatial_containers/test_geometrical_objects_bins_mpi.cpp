@@ -184,10 +184,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
     KRATOS_CHECK_EQUAL(results.size(), 1);
     KRATOS_CHECK_EQUAL(results[0].size(), 0);
 
-    // // 0.3 radius
-    // bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 4);
+    // 0.3 radius
+    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
+    KRATOS_CHECK_EQUAL(results.size(), 1);
+    KRATOS_CHECK_EQUAL(results[0].size(), 4);
 
     // // 0.4 radius
     // bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
