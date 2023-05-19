@@ -160,7 +160,7 @@ public:
             std::vector<ResultType> result;
             ImplSearchInRadius(point, Radius, result);
             // Added only in the corresponding partition
-            if (i_node > lower_limit && i_node < upper_limit) {
+            if (i_node >= lower_limit && i_node < upper_limit) {
                 rResults[i_node - lower_limit] = result;
             }
         }
@@ -198,7 +198,7 @@ public:
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             const auto result = ImplSearchNearestInRadius(point, Radius);
             // Added only in the corresponding partition
-            if (i_node > lower_limit && i_node < upper_limit) {
+            if (i_node >= lower_limit && i_node < upper_limit) {
                 results[i_node - lower_limit] = result;
             }
         }
@@ -233,7 +233,7 @@ public:
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             const auto result = ImplSearchNearest(point);
             // Added only in the corresponding partition
-            if (i_node > lower_limit && i_node < upper_limit) {
+            if (i_node >= lower_limit && i_node < upper_limit) {
                 results[i_node - lower_limit] = result;
             }
         }
@@ -271,7 +271,7 @@ public:
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             const auto result = ImplSearchIsInside(point);
             // Added only in the corresponding partition
-            if (i_node > lower_limit && i_node < upper_limit) {
+            if (i_node >= lower_limit && i_node < upper_limit) {
                 results[i_node - lower_limit] = result;
             }
         }
