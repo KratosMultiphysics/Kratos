@@ -16,6 +16,8 @@
 
 // Project includes
 
+/* This is only valid for C++20. Uploaded here as a prof of concept */
+
 namespace Kratos {
 
     template<typename TDataType, typename TInterfaceType, typename TInterfaceFunctor>
