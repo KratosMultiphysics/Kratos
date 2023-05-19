@@ -322,7 +322,7 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::GetResultFromGi
     GeometricalObject* global_result_object = Rank == GetRank() ? const_cast<GeometricalObject*>(rLocalResult.Get().get()) : nullptr;
 
     // Result to return
-    ResultType global_result(global_result_object);
+    ResultType global_result(global_result_object, Rank);
     double distance = rLocalResult.GetDistance();
     mrDataCommunicator.Broadcast(distance, Rank);
     global_result.SetDistance(distance);
