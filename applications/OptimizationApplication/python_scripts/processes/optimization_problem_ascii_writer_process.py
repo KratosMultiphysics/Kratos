@@ -10,8 +10,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ExecutionPolicy:
     if not parameters.Has("settings"):
-        raise RuntimeError(f"IndependentAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return OptimizationProblemAsciiWriter(parameters["settings"], optimization_problem)
+        raise RuntimeError(f"OptimizationProblemAsciiWriterProcess instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return OptimizationProblemAsciiWriterProcess(parameters["settings"], optimization_problem)
 
 class Header:
     def __init__(self, header_name: str, value: Any, format_info: dict, is_right_aligned: bool):
@@ -159,7 +159,11 @@ class OptimizationProblemAsciiWriterProcess(Kratos.OutputProcess):
                 file_output.write("# End of file")
 
     def _IsWritingProcess(self):
-        return True
+        if Kratos.IsDistributedRun():
+            data_communicator: Kratos.DataCommunicator = Kratos.ParallelEnvironment.GetDefaultDataCommunicator()
+            return data_communicator.Rank() == 0
+        else:
+            return True
 
     def _WriteHeaders(self):
         if (self._IsWritingProcess()):
