@@ -284,7 +284,7 @@ public:
     /// Comparison operator. 
     bool operator==(const Node& rOther)
     {
-        return BaseType::operator[](ThisIndex);
+        return PointType::operator ==(rOther);
     }
 
     /**
