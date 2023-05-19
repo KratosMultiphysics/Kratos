@@ -224,7 +224,7 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
                 component_name = component.GetName()
             for k, v in values_map.items():
                 if isinstance(v, (bool, int, float, str)):
-                    header_name = component_name + "_" + k[k.rfind("/") + 1:]
+                    header_name = component_name + ":" + k[k.rfind("/") + 1:]
                     if header_name in [header.GetHeaderName().strip() for header in header_info_dict.values()]:
                         Kratos.Logger.PrintWarning(self.__class__.__name__, "Second value with same header name = \"" + header_name + "\" found.")
                     header_info_dict[k] = Header(header_name, v, self.format_info, is_right_aligned)
