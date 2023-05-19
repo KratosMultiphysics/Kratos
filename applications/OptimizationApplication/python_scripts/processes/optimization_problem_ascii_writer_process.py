@@ -130,6 +130,9 @@ class OptimizationProblemAsciiWriterProcess(Kratos.OutputProcess):
         self.list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         self.initialized_headers = False
 
+    def IsOutputStep(self) -> bool:
+        return True
+
     def PrintOutput(self) -> None:
         if not self.initialized_headers:
             # now get the buffered data headers
