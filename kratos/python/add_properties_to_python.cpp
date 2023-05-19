@@ -156,8 +156,7 @@ void AddInterfaceToAccessorFold(pybind11::class_<Properties, Properties::Pointer
     .def("GetAccessor", [](Properties &rProperties, Variable<TVariableType> &rVariable) { 
             auto accessor = &rProperties.pGetAccessor(rVariable);
             
-            if (*accessor == nullptr)
-                KRATOS_ERROR << "Trying to get a consumed or invalid Accessor." << std::endl;
+            KRATOS_ERROR_IF(*accessor == nullptr) << "Trying to get a consumed or invalid Accessor." << std::endl;
                 
             return accessor; 
         }, py::return_value_policy::reference_internal)
