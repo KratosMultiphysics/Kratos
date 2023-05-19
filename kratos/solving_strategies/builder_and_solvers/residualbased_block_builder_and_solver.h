@@ -961,8 +961,7 @@ public:
         });
 
         // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
-        mScaleFactor = mScaleFactorInitialized ? mScaleFactor : TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
-        mScaleFactorInitialized = true;
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
@@ -1061,8 +1060,7 @@ public:
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
             // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
-            mScaleFactor = mScaleFactorInitialized ? mScaleFactor : TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
-            mScaleFactorInitialized = true;
+            mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
@@ -1175,27 +1173,6 @@ public:
     void SetScaleFactor(const double ScaleFactor)
     {
         mScaleFactor = ScaleFactor;
-    }
-
-    /**
-    * @brief Checks if the scale factor has been initialized.
-    * This function returns the current state of the scale factor initialization.
-    * @return Returns true if the scale factor is initialized, false otherwise.
-    */
-    bool GetScaleFactorInitialized()
-    {
-        return mScaleFactorInitialized;
-    }
-
-    /**
-    * @brief Sets the initialization status of the scale factor.
-    * This function sets the state of scale factor initialization.
-    * @param ScaleFactorInitialized The new state for the scale factor initialization. 
-    *                               True if the scale factor is initialized, false otherwise.
-    */
-    void SetScaleFactorInitialized(const bool ScaleFactorInitialized)
-    {
-        mScaleFactorInitialized = ScaleFactorInitialized;
     }
 
     ///@}
