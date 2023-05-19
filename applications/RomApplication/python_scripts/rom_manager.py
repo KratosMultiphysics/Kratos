@@ -214,26 +214,6 @@ class RomManager(object):
         self.__LaunchRunHHROM(mu_run)
 
 
-    def __LaunchRunHHROM(self, mu_run):
-        """
-        This method should be parallel capable
-        """
-
-        for Id, mu in enumerate(mu_run):
-            with open(self.project_parameters_name,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            parameters = self.UpdateProjectParameters(parameters.Clone(), mu)
-            parameters = self._AddBasisCreationToProjectParameters(parameters)
-            parameters = self._StoreResultsByName(parameters,'HHROM',mu,Id)
-            model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
-            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
-            model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
-            simulation.Run()
-
-
-
     def PrintErrors(self):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
@@ -493,6 +473,23 @@ class RomManager(object):
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
 
+
+    def __LaunchRunHHROM(self, mu_run):
+        """
+        This method should be parallel capable
+        """
+        with open(self.project_parameters_name,'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+        parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
+
+        for Id, mu in enumerate(mu_run):
+            parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._StoreResultsByName(parameters,'HHROM',mu,Id)
+            model = KratosMultiphysics.Model()
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation.Run()
 
 
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
