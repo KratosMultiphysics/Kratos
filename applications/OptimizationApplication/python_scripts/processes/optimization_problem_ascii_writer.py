@@ -11,7 +11,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ExecutionPolicy:
     if not parameters.Has("settings"):
         raise RuntimeError(f"IndependentAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-
     return OptimizationProblemAsciiWriter(parameters["settings"], optimization_problem)
 
 class Header:
@@ -69,7 +68,7 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         Kratos.OutputProcess.__init__(self)
 
-        self.__optimization_problem = optimization_problem
+        self.optimization_problem = optimization_problem
         parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.output_file_name = parameters["output_file_name"].GetString()
@@ -79,43 +78,43 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
         self.write_kratos_version = parameters["write_kratos_version"].GetBool()
         self.write_time_stamp = parameters["write_time_stamp"].GetBool()
 
-        self.__format_info = {
-            int: parameters["format_info"]["int_length"].GetInt(),
+        self.format_info = {
+            int  : parameters["format_info"]["int_length"].GetInt(),
             float: parameters["format_info"]["float_precision"].GetInt()
         }
 
-        self.__list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]'
+        self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]'
         list_of_component_names = parameters["list_of_output_components"].GetStringArray()
         if len(list_of_component_names) == 1 and list_of_component_names[0] == "all":
             # write all the data components
             # first add the responses
-            for response_function in self.__optimization_problem.GetListOfResponses():
-                self.__list_of_components.append(response_function)
+            for response_function in self.optimization_problem.GetListOfResponses():
+                self.list_of_components.append(response_function)
 
             # then add controls
-            for control in self.__optimization_problem.GetListOfControls():
-                self.__list_of_components.append(control)
+            for control in self.optimization_problem.GetListOfControls():
+                self.list_of_components.append(control)
 
             # then add execution policies
-            for execution_policy in self.__optimization_problem.GetListOfExecutionPolicies():
-                self.__list_of_components.append(execution_policy)
+            for execution_policy in self.optimization_problem.GetListOfExecutionPolicies():
+                self.list_of_components.append(execution_policy)
 
             # now add the algorithm
-            self.__list_of_components.append("algorithm")
+            self.list_of_components.append("algorithm")
         else:
             for component_name in list_of_component_names:
                 if component_name == "algorithm":
-                    self.__list_of_components.append(component_name)
+                    self.list_of_components.append(component_name)
                 else:
                     component_data = component_name.split(".")
                     component_type = component_data[0]
                     component_name = component_data[1]
                     if component_type == "response_function":
-                        self.__list_of_components.append(self.__optimization_problem.GetResponse(component_name))
+                        self.list_of_components.append(self.optimization_problem.GetResponse(component_name))
                     elif component_type == "control":
-                        self.__list_of_components.append(self.__optimization_problem.GetControl(component_name))
+                        self.list_of_components.append(self.optimization_problem.GetControl(component_name))
                     elif component_type == "execution_policy":
-                        self.__list_of_components.append(self.__optimization_problem.GetExecutionPolicy(component_name))
+                        self.list_of_components.append(self.optimization_problem.GetExecutionPolicy(component_name))
                     else:
                         raise RuntimeError(f"Unsupported component type provided with component name string = \"{component_name}\". Supported component types are:\n\tresponse_function\n\tcontrol\n\texecution_policy\n\talgorithm")
 
@@ -130,11 +129,11 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
         if self._IsWritingProcess():
             with open(self.output_file_name, "a") as file_output:
                 # write the step
-                file_output.write("{:>7d}".format(self.__optimization_problem.GetStep()))
+                file_output.write("{:>7d}".format(self.optimization_problem.GetStep()))
 
                 # wrtie the values
                 for component, header_info_dict in self.list_of_headers:
-                    componend_data_view = ComponentDataView(component, self.__optimization_problem)
+                    componend_data_view = ComponentDataView(component, self.optimization_problem)
                     buffered_dict = componend_data_view.GetUnBufferedData().GetParent()
                     for k, header in header_info_dict.items():
                         file_output.write(", " + header.GetValueStr(buffered_dict[k]))
@@ -179,8 +178,8 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
                 file_output.write(msg_header)
 
     def _InitializeHeaders(self):
-        for component in self.__list_of_components:
-            componend_data_view = ComponentDataView(component, self.__optimization_problem)
+        for component in self.list_of_components:
+            componend_data_view = ComponentDataView(component, self.optimization_problem)
             values_map = componend_data_view.GetUnBufferedData().GetParent().GetMap()
             header_info_dict: 'dict[str, Header]' = {}
             if isinstance(component, str):
@@ -192,7 +191,7 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
                     header_name = component_name + "_" + k[k.rfind("/") + 1:]
                     if header_name in [header.GetHeaderName().strip() for header in header_info_dict.values()]:
                         Kratos.Logger.PrintWarning(self.__class__.__name__, "Second value with same header name = \"" + header_name + "\" found.")
-                    header_info_dict[k] = Header(header_name, v, self.__format_info)
+                    header_info_dict[k] = Header(header_name, v, self.format_info)
             self.list_of_headers.append([component, header_info_dict])
 
         self.initialized_headers = True
