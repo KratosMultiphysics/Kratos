@@ -35,7 +35,7 @@ void AddAccessorsToPython(py::module& m)
 {
     py::class_<AcccessorBindType>(m, "Accessor")
         .def_static("Create", []() { 
-            return std::unique_ptr<Accessor>(new Accessor());
+            return std::make_unique<Accessor>();
         })
         ;
 }
