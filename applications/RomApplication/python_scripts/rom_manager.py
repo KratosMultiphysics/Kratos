@@ -218,7 +218,7 @@ class RomManager(object):
         """
         This method should be parallel capable
         """
-        SnapshotsMatrix = []
+
         for Id, mu in enumerate(mu_run):
             with open(self.project_parameters_name,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -231,13 +231,6 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
-            for process in simulation._GetListOfOutputProcesses():
-                if isinstance(process, CalculateRomBasisOutputProcess):
-                    BasisOutputProcess = process
-            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
-        SnapshotsMatrix = np.block(SnapshotsMatrix)
-
-        return SnapshotsMatrix
 
 
 
