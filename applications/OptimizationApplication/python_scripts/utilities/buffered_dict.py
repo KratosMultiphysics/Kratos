@@ -19,18 +19,20 @@ class BufferedDict:
 
     The buffered data is stored in a cyclic buffer.
     """
-    def __init__(self, buffer_size: int = 1):
+    def __init__(self, buffer_size: int = 1, clear_buffer_when_advancing: bool = True):
         """Creates an instance of BufferedDict with specified buffer size
 
         This creates an instance of buffered data with given buffer size.
 
         Args:
             buffer_size (int, optional): Cyclic buffer size. Defaults to 1.
+            clear_buffer_when_advancing (bool): Clears the buffer and sub item buffers when advancing.
         """
         self.__parent = None
         self.__buffer_index = 0
         self.__buffered_data: 'list[dict[str, Any]]' = []
         self.__sub_items: 'dict[str, BufferedDict]' = {}
+        self.__clear_buffer_when_advancing = clear_buffer_when_advancing
 
         # sets the buffer
         self.__SetBufferSize(buffer_size)
@@ -56,7 +58,8 @@ class BufferedDict:
         """
         # first advance the current instance
         self.__buffer_index = (self.__buffer_index + 1) % self.GetBufferSize()
-        self.__buffered_data[self.__GetBufferIndex(0)] = {}
+        if self.__clear_buffer_when_advancing:
+            self.__buffered_data[self.__GetBufferIndex(0)] = {}
 
         if recursive:
             # now advance the sub items
@@ -150,6 +153,7 @@ class BufferedDict:
             key (str): Relative path to the value.
             value (Any): value to be set
             step_index (int, optional): Step index the value should be set. Defaults to 0.
+            overwrite (bool): Overwrites if existing key is found with the new value, otherwise creates a key with the value.
 
         Raises:
             RuntimeError: If a value is overwritten.
@@ -160,7 +164,7 @@ class BufferedDict:
             if isinstance(value, dict):
                 # if the given value is a dict, then convert the structure
                 # to BufferedDict while keeping the sub_item structure.
-                sub_item = BufferedDict(self.GetBufferSize())
+                sub_item = BufferedDict(self.GetBufferSize(), self.__clear_buffer_when_advancing)
                 self.__AddSubItem(key, sub_item)
 
                 # now iterate through all the sub_keys and values of the dictionary and
@@ -181,7 +185,7 @@ class BufferedDict:
                 # no existing key found then create it.
                 self.__AddSubItem(current_key, BufferedDict(self.GetBufferSize()))
 
-            self.__sub_items[current_key].SetValue(key[pos+1:], value, step_index)
+            self.__sub_items[current_key].SetValue(key[pos+1:], value, step_index, overwrite)
 
     def RemoveValue(self, key: str, step_index: int = 0) -> None:
         """Remove value at the key in the specified step_index
