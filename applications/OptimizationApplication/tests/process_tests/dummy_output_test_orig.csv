@@ -1,0 +1,61 @@
+# Optimization probelm ascii output
+# Kratos version: not_given
+# Timestamp     : not_specified
+# -----------------------------------------------
+# --------------- Initial values ----------------
+# 	resp_1:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# 	resp_2:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# 	resp_3:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# 	control_1:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# 	control_2:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# 	control_3:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# 	policy_1:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# 	policy_2:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# 	policy_3:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# 	algorithm:
+# 		v_float_False: 2.300000000e+00
+# 		v_int_False: 2
+# 		v_bool_False: yes
+# ------------ End of initial values ------------
+# -----------------------------------------------
+# ------------ Start of step values -------------
+# Headers:
+#  STEP, resp_1:v_float_True, resp_1:v_int_True, resp_1:v_bool_True, resp_2:v_float_True, resp_2:v_int_True, resp_2:v_bool_True, resp_3:v_float_True, resp_3:v_int_True, resp_3:v_bool_True, control_1:v_float_True, control_1:v_int_True, control_1:v_bool_True, control_2:v_float_True, control_2:v_int_True, control_2:v_bool_True, control_3:v_float_True, control_3:v_int_True, control_3:v_bool_True, policy_1:v_float_True, policy_1:v_int_True, policy_1:v_bool_True, policy_2:v_float_True, policy_2:v_int_True, policy_2:v_bool_True, policy_3:v_float_True, policy_3:v_int_True, policy_3:v_bool_True, algorithm:v_float_True, algorithm:v_int_True, algorithm:v_bool_True
+      0,     2.300000000e+00,                 2,                yes,     2.300000000e+00,                 2,                yes,     2.300000000e+00,                 2,                yes,        2.300000000e+00,                    2,                   yes,        2.300000000e+00,                    2,                   yes,        2.300000000e+00,                    2,                   yes,       2.300000000e+00,                   2,                  yes,       2.300000000e+00,                   2,                  yes,       2.300000000e+00,                   2,                  yes,        2.300000000e+00,                    2,                   yes
+      1,     4.600000000e+00,                 4,                 no,     4.600000000e+00,                 4,                 no,     4.600000000e+00,                 4,                 no,        4.600000000e+00,                    4,                    no,        4.600000000e+00,                    4,                    no,        4.600000000e+00,                    4,                    no,       4.600000000e+00,                   4,                   no,       4.600000000e+00,                   4,                   no,       4.600000000e+00,                   4,                   no,        4.600000000e+00,                    4,                    no
+      2,     6.900000000e+00,                 6,                yes,     6.900000000e+00,                 6,                yes,     6.900000000e+00,                 6,                yes,        6.900000000e+00,                    6,                   yes,        6.900000000e+00,                    6,                   yes,        6.900000000e+00,                    6,                   yes,       6.900000000e+00,                   6,                  yes,       6.900000000e+00,                   6,                  yes,       6.900000000e+00,                   6,                  yes,        6.900000000e+00,                    6,                   yes
+      3,     9.200000000e+00,                 8,                 no,     9.200000000e+00,                 8,                 no,     9.200000000e+00,                 8,                 no,        9.200000000e+00,                    8,                    no,        9.200000000e+00,                    8,                    no,        9.200000000e+00,                    8,                    no,       9.200000000e+00,                   8,                   no,       9.200000000e+00,                   8,                   no,       9.200000000e+00,                   8,                   no,        9.200000000e+00,                    8,                    no
+      4,     1.150000000e+01,                10,                yes,     1.150000000e+01,                10,                yes,     1.150000000e+01,                10,                yes,        1.150000000e+01,                   10,                   yes,        1.150000000e+01,                   10,                   yes,        1.150000000e+01,                   10,                   yes,       1.150000000e+01,                  10,                  yes,       1.150000000e+01,                  10,                  yes,       1.150000000e+01,                  10,                  yes,        1.150000000e+01,                   10,                   yes
+      5,     1.380000000e+01,                12,                 no,     1.380000000e+01,                12,                 no,     1.380000000e+01,                12,                 no,        1.380000000e+01,                   12,                    no,        1.380000000e+01,                   12,                    no,        1.380000000e+01,                   12,                    no,       1.380000000e+01,                  12,                   no,       1.380000000e+01,                  12,                   no,       1.380000000e+01,                  12,                   no,        1.380000000e+01,                   12,                    no
+      6,     1.610000000e+01,                14,                yes,     1.610000000e+01,                14,                yes,     1.610000000e+01,                14,                yes,        1.610000000e+01,                   14,                   yes,        1.610000000e+01,                   14,                   yes,        1.610000000e+01,                   14,                   yes,       1.610000000e+01,                  14,                  yes,       1.610000000e+01,                  14,                  yes,       1.610000000e+01,                  14,                  yes,        1.610000000e+01,                   14,                   yes
+      7,     1.840000000e+01,                16,                 no,     1.840000000e+01,                16,                 no,     1.840000000e+01,                16,                 no,        1.840000000e+01,                   16,                    no,        1.840000000e+01,                   16,                    no,        1.840000000e+01,                   16,                    no,       1.840000000e+01,                  16,                   no,       1.840000000e+01,                  16,                   no,       1.840000000e+01,                  16,                   no,        1.840000000e+01,                   16,                    no
+      8,     2.070000000e+01,                18,                yes,     2.070000000e+01,                18,                yes,     2.070000000e+01,                18,                yes,        2.070000000e+01,                   18,                   yes,        2.070000000e+01,                   18,                   yes,        2.070000000e+01,                   18,                   yes,       2.070000000e+01,                  18,                  yes,       2.070000000e+01,                  18,                  yes,       2.070000000e+01,                  18,                  yes,        2.070000000e+01,                   18,                   yes
+      9,     2.300000000e+01,                20,                 no,     2.300000000e+01,                20,                 no,     2.300000000e+01,                20,                 no,        2.300000000e+01,                   20,                    no,        2.300000000e+01,                   20,                    no,        2.300000000e+01,                   20,                    no,       2.300000000e+01,                  20,                   no,       2.300000000e+01,                  20,                   no,       2.300000000e+01,                  20,                   no,        2.300000000e+01,                   20,                    no
+# End of file
