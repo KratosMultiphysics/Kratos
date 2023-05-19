@@ -103,10 +103,8 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
             self.list_of_components.append("algorithm")
         else:
             for component_name in list_of_component_names:
-                if component_name == "algorithm":
-                    self.list_of_components.append(component_name)
-                else:
-                    component_data = component_name.split(".")
+                component_data = component_name.split(".")
+                if len(component_data) == 2:
                     component_type = component_data[0]
                     component_name = component_data[1]
                     if component_type == "response_function":
@@ -117,6 +115,10 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
                         self.list_of_components.append(self.optimization_problem.GetExecutionPolicy(component_name))
                     else:
                         raise RuntimeError(f"Unsupported component type provided with component name string = \"{component_name}\". Supported component types are:\n\tresponse_function\n\tcontrol\n\texecution_policy\n\talgorithm")
+                elif len(component_data) == 1:
+                    self.list_of_components.append(component_name)
+                else:
+                    raise RuntimeError(f"Unsupported component type provided with component name string = \"{component_name}\". Supported component types are:\n\tresponse_function\n\tcontrol\n\texecution_policy\n\talgorithm")
 
         self.list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         self.initialized_headers = False
