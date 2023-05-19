@@ -16,9 +16,13 @@ class ComponentDataView:
     def __init__(self, component: Any, optimization_problem: OptimizationProblem):
         self.__problem_data = optimization_problem.GetProblemDataContainer()
 
-        # get data name
-        self.__component_type = optimization_problem.GetComponentType(component)
-        self.__component_name = optimization_problem.GetComponentName(component)
+        if isinstance(component, str):
+            self.__component_type = object
+            self.__component_name = component
+        else:
+            self.__component_type = optimization_problem.GetComponentType(component)
+            self.__component_name = optimization_problem.GetComponentName(component)
+
         self.__data_name = f"{self.__component_type.__name__}/{self.__component_name}"
         self.__buffered_data_name = f"{self.__data_name}/buffered"
         self.__unbuffered_data_name = f"{self.__data_name}/unbuffered"
