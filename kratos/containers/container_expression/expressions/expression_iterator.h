@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <iterator>
 
 // Project includes
 #include "includes/define.h"
@@ -34,9 +35,9 @@ public:
     ///@name Type definitions
     ///@{
 
-    using IndexType = std::size_t;
+    using value_type = double;
 
-    using DataType = double;
+    using IndexType = std::size_t;
 
     using ConstIteratorType = ExpressionIterator<Expression>;
 
@@ -52,6 +53,19 @@ public:
           mEntityDataBeginIndex(0),
           mComponentIndex(0),
           mFlattenedShapeSize(pExpression->GetFlattenedShapeSize())
+    {}
+
+    /**
+     * @brief Copy constructor
+     *
+     * @param rOther
+     */
+    ExpressionIterator(const ExpressionIterator& rOther)
+        : mpExpression(rOther.mpExpression),
+          mEntityIndex(rOther.mEntityIndex),
+          mEntityDataBeginIndex(rOther.mEntityDataBeginIndex),
+          mComponentIndex(rOther.mComponentIndex),
+          mFlattenedShapeSize(rOther.mFlattenedShapeSize)
     {}
 
     ///@}
@@ -87,6 +101,16 @@ public:
     bool operator!=(const ConstIteratorType& rOther) const
     {
         return !this->operator==(rOther);
+    }
+
+    ConstIteratorType& operator=(const ExpressionIterator& rOther)
+    {
+        mpExpression = rOther.mpExpression;
+        mEntityIndex = rOther.mEntityIndex;
+        mEntityDataBeginIndex = rOther.mEntityDataBeginIndex;
+        mComponentIndex = rOther.mComponentIndex;
+        mFlattenedShapeSize = rOther.mFlattenedShapeSize;
+        return *this;
     }
 
     ConstIteratorType& operator++()
@@ -133,11 +157,11 @@ public:                                                             \
                                                                     \
     using ExpressionType = LiteralFlatExpression<DATA_TYPE>;        \
                                                                     \
-    using DataType = typename ExpressionType::DataType;             \
+    using value_type = typename ExpressionType::DataType;           \
                                                                     \
-    using IteratorType = DataType*;                                 \
+    using IteratorType = value_type*;                               \
                                                                     \
-    using ConstIteratorType = DataType const*;                      \
+    using ConstIteratorType = value_type const*;                    \
                                                                     \
     KRATOS_CLASS_POINTER_DEFINITION(ExpressionIterator);            \
                                                                     \
