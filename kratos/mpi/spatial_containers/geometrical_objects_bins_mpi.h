@@ -431,7 +431,7 @@ private:
             rLimits[1] = std::reduce(it_point_begin, it_point_begin + rank + 2);
         }
 
-        return number_of_points;
+        return total_number_of_points;
     }
 
     /**
