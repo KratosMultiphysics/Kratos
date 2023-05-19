@@ -16,14 +16,12 @@ def main():
 
     args = parser.parse_args()
 
-    Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)
-    #Tester.SetVerbosity(Tester.Verbosity.TESTS_LIST)
     if args.match_string:
+        Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)
         Tester.RunTestCases(args.match_string)
     else:
+        Tester.SetVerbosity(Tester.Verbosity.TESTS_LIST)
         Tester.RunTestSuite("KratosMPICoreFastSuite")
-
-
 
 if __name__ == '__main__':
     main()
