@@ -960,8 +960,9 @@ public:
             }
         });
 
-        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
+        mScaleFactor = mScaleFactorInitialized ? mScaleFactor : TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+        mScaleFactorInitialized = true;
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
@@ -1059,6 +1060,10 @@ public:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
+            // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
+            mScaleFactor = mScaleFactorInitialized ? mScaleFactor : TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+            mScaleFactorInitialized = true;
+
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
@@ -1152,6 +1157,47 @@ public:
         return mConstantVector;
     }
 
+    /**
+    * @brief Retrieves the current scale factor.
+    * This function returns the current scale factor value.
+    * @return Returns the current scale factor.
+    */
+    double GetScaleFactor()
+    {
+        return mScaleFactor;
+    }
+
+    /**
+    * @brief Sets the scale factor.
+    * This function sets a new value for the scale factor.
+    * @param ScaleFactor The new value for the scale factor.
+    */
+    void SetScaleFactor(const double ScaleFactor)
+    {
+        mScaleFactor = ScaleFactor;
+    }
+
+    /**
+    * @brief Checks if the scale factor has been initialized.
+    * This function returns the current state of the scale factor initialization.
+    * @return Returns true if the scale factor is initialized, false otherwise.
+    */
+    bool GetScaleFactorInitialized()
+    {
+        return mScaleFactorInitialized;
+    }
+
+    /**
+    * @brief Sets the initialization status of the scale factor.
+    * This function sets the state of scale factor initialization.
+    * @param ScaleFactorInitialized The new state for the scale factor initialization. 
+    *                               True if the scale factor is initialized, false otherwise.
+    */
+    void SetScaleFactorInitialized(const bool ScaleFactorInitialized)
+    {
+        mScaleFactorInitialized = ScaleFactorInitialized;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -1198,6 +1244,7 @@ protected:
     std::vector<IndexType> mMasterIds;                /// The equation ids of the master
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
     double mScaleFactor = 1.0;                        /// The manually set scale factor
+    bool mScaleFactorInitialized = false;             /// If the value has been initialized
 
     SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL; /// We identify the scaling considered for the dirichlet dofs
     Flags mOptions;                                                              /// Some flags used internally
