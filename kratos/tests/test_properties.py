@@ -68,14 +68,12 @@ class TestProperties(KratosUnittest.TestCase):
 
     def test_accessor(self):
         current_model = KM.Model()
-        model_part= current_model.CreateModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         properties = model_part.CreateNewProperties(1)
         self.assertFalse(properties.HasAccessor(KM.TEMPERATURE))
-        accessor_from_set = properties.SetAccessor(KM.TEMPERATURE, KM.Accessor.Create())
+        properties.SetAccessor(KM.TEMPERATURE, KM.Accessor.Create())
         self.assertTrue(properties.HasAccessor(KM.TEMPERATURE))
         accessor_from_get = properties.GetAccessor(KM.TEMPERATURE)
-
-        self.assertEqual(id(accessor_from_set), id(accessor_from_get))
 
     def test_accessor_invalid(self):
         current_model = KM.Model()
@@ -86,7 +84,7 @@ class TestProperties(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, "Error: Trying to retrieve inexisting accessor for 'TEMPERATURE' in properties 1."):
             accessor_from_get = properties.GetAccessor(KM.TEMPERATURE)
 
-    def test_accessor_consume_assigned(self):
+    def test_accessor_get_consumed(self):
         current_model = KM.Model()
         model_part= current_model.CreateModelPart("Main")
 
@@ -95,8 +93,9 @@ class TestProperties(KratosUnittest.TestCase):
 
         accessor_binding = KM.Accessor.Create()
         
-        accessor_from_set = properties_1.SetAccessor(KM.TEMPERATURE, accessor_binding)
-        accessor_from_set = properties_2.SetAccessor(KM.TEMPERATURE, accessor_from_set)
+        properties_1.SetAccessor(KM.TEMPERATURE, accessor_binding)
+        accessor_from_get = properties_1.GetAccessor(KM.TEMPERATURE)
+        properties_2.SetAccessor(KM.TEMPERATURE, accessor_from_get)
 
         with self.assertRaisesRegex(Exception, "Trying to get a consumed or invalid Accessor."):
             accessor_from_get = properties_1.GetAccessor(KM.TEMPERATURE)
