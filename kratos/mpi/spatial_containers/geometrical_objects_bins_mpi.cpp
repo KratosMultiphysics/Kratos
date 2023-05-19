@@ -82,13 +82,16 @@ void GeometricalObjectsBinsMPI::ImplSearchInRadius(
     for (int i_rank : ranks) {
         int number_of_results = local_results.size();
         mrDataCommunicator.Broadcast(number_of_results, i_rank);
+
         // Only do something if there are results
         if (number_of_results > 0) {
             if (i_rank == current_rank) {
-                rResults.push_back(local_results[i_rank]);
-
-                // Stream to other partitions
+                // Iterate over local results
                 for (auto& r_result : local_results) {
+                    // Push-back the result
+                    rResults.push_back(r_result);
+
+                    // Stream to other partitions
                     GetResultFromGivenPartition(r_result, i_rank);
                 }
             } else {
