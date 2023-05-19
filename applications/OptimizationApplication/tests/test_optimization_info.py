@@ -13,7 +13,7 @@ class TestOptimizationInfo(kratos_unittest.TestCase):
         cls.model_part = cls.model.CreateModelPart("test")
         cls.optimization_info = OptimizationProblem()
 
-        cls.response_function = MassResponseFunction(cls.model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""), cls.optimization_info)
+        cls.response_function = MassResponseFunction("mass", cls.model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""))
         cls.optimization_info.AddResponse("mass", cls.response_function)
 
     def test_GetReponseData(self):
