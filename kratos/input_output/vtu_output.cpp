@@ -181,7 +181,7 @@ private:
             auto data_begin = expression_iterator.cbegin();
             auto data_end   = expression_iterator.cend();
             for (data_itr_type itr = data_begin; itr != data_end; ++itr) {
-                if constexpr(std::is_same_v<typename exp_itr_type::DataType, char>) {
+                if constexpr(std::is_same_v<typename exp_itr_type::value_type, char>) {
                     mrOStream << "  " << static_cast<int>(*(itr));
                 } else {
                     mrOStream << "  " << *itr;
@@ -202,7 +202,7 @@ private:
     {
         using exp_itr_type = ExpressionIterator<TExpressionType>;
 
-        using data_type = typename exp_itr_type::DataType;
+        using value_type = typename exp_itr_type::value_type;
 
         using data_itr_type = typename exp_itr_type::ConstIteratorType;
 
@@ -218,31 +218,15 @@ private:
             mrOStream << " format=\"binary\"/>\n";
             return;
         } else {
-            data_type min_value{std::numeric_limits<data_type>::max()}, max_value{std::numeric_limits<data_type>::lowest()};
-            for (const auto& p_expression : transformed_expressions) {
-                data_itr_type data_itr = exp_itr_type(p_expression).cbegin();
-                const auto values = IndexPartition<IndexType>(p_expression->GetFlattenedShapeSize() * p_expression->NumberOfEntities()).for_each<CombinedReduction<MinReduction<data_type>, MaxReduction<data_type>>>([&data_itr](const IndexType Index) {
-                    const data_type value = *(data_itr + Index);
-                    return std::make_tuple(value, value);
-                });
-                min_value = std::min(std::get<0>(values), min_value);
-                max_value = std::max(std::get<1>(values), max_value);
-            }
-
             const std::string& tabbing = XmlOStreamWriter::GetTabbing(Level);
-            if constexpr(std::is_same_v<data_type, char>) {
-                mrOStream << " format=\"binary\" RangeMin=\"" << static_cast<int>(min_value) << "\" RangeMax=\"" << static_cast<int>(max_value) << "\">\n" << tabbing << "  ";
-            } else {
-                mrOStream << " format=\"binary\" RangeMin=\"" << min_value << "\" RangeMax=\"" << max_value << "\">\n" << tabbing << "  ";
-            }
-
+            mrOStream << " format=\"binary\">\n" << tabbing << "  ";
         }
 
         constexpr char base64_map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
         const IndexType total_entities = std::accumulate(rExpressions.begin(), rExpressions.end(), 0U, [](const IndexType LHS, const auto& pExpression) { return LHS + pExpression->NumberOfEntities();});
 
-        using writing_data_type = data_type;
+        using writing_data_type = value_type;
         constexpr IndexType data_type_size = sizeof(writing_data_type);
         constexpr IndexType size_type_size = sizeof(unsigned int);
         const IndexType total_number_of_values = total_entities * rExpressions[0]->GetFlattenedShapeSize();
