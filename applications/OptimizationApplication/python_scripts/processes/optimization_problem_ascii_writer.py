@@ -191,7 +191,7 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
                         component_name = component.GetName()
                     msg_header += "# \t" + component_name + ":\n"
                     for k, header in header_info_dict.items():
-                        component_name_header = header.GetHeaderName()[len(component_name)+2:]
+                        component_name_header = header.GetHeaderName()[len(component_name)+1:]
                         msg_header += "# \t\t" + component_name_header + ": " + header.GetValueStr(buffered_dict[k]) + "\n"
 
                 msg_header += "# ------------ End of initial values ------------\n"
