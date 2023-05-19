@@ -44,22 +44,23 @@ def IsSameContainerExpression(container_expression_1: ContainerExpressionTypes, 
 def HasContainerExpression(container_expression: ContainerExpressionTypes, list_of_container_expressions: 'list[ContainerExpressionTypes]') -> bool:
     return any([IsSameContainerExpression(container_expression, list_container_expression) for list_container_expression in list_of_container_expressions])
 
-def OptimizationProcessFactory(
-    module_name: str,
-    class_name: str,
-    model: Kratos.Model,
-    parameters: Kratos.Parameters,
-    optimization_info: OptimizationProblem,
-    required_object_type = Kratos.Process):
+def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    if not parameters.Has("type"):
+        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided paramters = {parameters}].")
 
-    python_file_name = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(class_name)
-    full_module_name = f"{module_name}.{python_file_name}"
+    python_type = parameters["type"].GetString()
+
+    if not parameters.Has("module") or parameters["module"].GetString() == "":
+        # in the case python type comes without a module
+        # as in the case python_type is in the sys path or the current working directory.
+        full_module_name = python_type
+    else:
+        # in the case python type comes witha a module.
+        module = parameters["module"].GetString()
+        full_module_name = f"{module}.{python_type}"
 
     module = import_module(full_module_name)
-    retrieved_object = getattr(module, class_name)(model, parameters, optimization_info)
+    if not hasattr(module, "Factory"):
+        raise RuntimeError(f"Python module {full_module_name} does not have a Factory method.")
 
-    # check retrieved object is of the required type
-    if not isinstance(retrieved_object, required_object_type):
-        raise RuntimeError(f"The retrieved object is of type \"{retrieved_object.__class__.__name__}\" which is not derived from the \"{required_object_type.__name__}\".")
-    else:
-        return retrieved_object
+    return getattr(module, "Factory")(model, parameters, optimization_problem)

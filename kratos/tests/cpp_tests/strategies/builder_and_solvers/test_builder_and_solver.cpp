@@ -367,7 +367,12 @@ namespace Kratos::Testing
 
         SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
         LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
         const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -388,11 +393,7 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
 
         // Testing scale
-        Parameters parameters = Parameters(R"(
-        {
-            "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info",
-            "silent_warnings"                    : false
-        })" );
+        parameters["diagonal_values_for_dirichlet_dofs"].SetString("defined_in_process_info");
         r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
         BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
@@ -435,7 +436,12 @@ namespace Kratos::Testing
 
         SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
         LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
         const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -457,11 +463,7 @@ namespace Kratos::Testing
         }
 
         // Testing scale
-        Parameters parameters = Parameters(R"(
-        {
-            "diagonal_values_for_dirichlet_dofs" : "defined_in_process_info",
-            "silent_warnings"                    : false
-        })" );
+        parameters["diagonal_values_for_dirichlet_dofs"].SetString("defined_in_process_info");
         r_model_part.GetProcessInfo().SetValue(BUILD_SCALE_FACTOR, 2.26648e+10);
         BuilderAndSolverType::Pointer p_builder_and_solver_scale = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
@@ -496,7 +498,12 @@ namespace Kratos::Testing
 
         SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
         LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
         const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -542,7 +549,12 @@ namespace Kratos::Testing
 
         SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
         LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
         const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -587,7 +599,12 @@ namespace Kratos::Testing
 
         SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
         LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
         const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -631,7 +648,12 @@ namespace Kratos::Testing
 
         SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
         LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
         const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -879,7 +901,12 @@ namespace Kratos::Testing
 
         SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
         LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
         const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -1018,7 +1045,12 @@ namespace Kratos::Testing
 
         SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
         LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver) );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
 
         const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
