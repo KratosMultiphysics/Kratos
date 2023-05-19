@@ -8,6 +8,12 @@ from KratosMultiphysics.OptimizationApplication.execution_policies.execution_pol
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
+def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ExecutionPolicy:
+    if not parameters.Has("settings"):
+        raise RuntimeError(f"IndependentAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+
+    return OptimizationProblemAsciiWriter(parameters["settings"], optimization_problem)
+
 class Header:
     def __init__(self, header_name: str, value: Any, format_info: dict):
         header_name = header_name.strip()
@@ -190,35 +196,3 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
             self.list_of_headers.append([component, header_info_dict])
 
         self.initialized_headers = True
-
-if __name__ == "__main__":
-    # data = BufferedDict(2)
-    # data["hello/there/double"] = 1.0
-    # data["hello/there/int"] = 1
-    # data["hello/there/str"] = "hi"
-    # data["hello/there/bool"] = True
-    # data["hello/double"] = 10.0
-
-    v = "{:>20b}".format(True)
-    print(v)
-    v = "{:}".format(False)
-    print(v)
-    print(len(v))
-    v = "{:>20.9e}".format(1.2)
-    print(len(v))
-
-    format_info = {
-        int: 10,
-        float: 9
-    }
-
-    h1 = Header("suneth", 10.0, format_info)
-    h2 = Header("suneth_is_best_hello_there", 100.0, format_info)
-    h3 = Header("suneth_is_best_hello_there", 100, format_info)
-    h4 = Header("suneth_is_best_hello_there", True, format_info)
-
-    print(h1.GetHeaderName() + ", " + h2.GetHeaderName() + ", " + h3.GetHeaderName() + ", " + h4.GetHeaderName())
-    for i in range(10):
-        print(h1.GetValueStr(i) + ", " + h2.GetValueStr(i) + ", " + h3.GetValueStr(i) + ", " + h4.GetValueStr(i))
-
-    # OptimizationProblemAsciiWriter.GetAsciiData(data)
