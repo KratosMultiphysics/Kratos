@@ -41,7 +41,7 @@ class TestRotatingFrameProcess(KratosUnittest.TestCase):
 
         parameters = KratosMultiphysics.Parameters("""
         {
-            "rotating_frame_model_part_name": "Main.FluidParts_RotatingFrame",
+            "rotating_frame_model_part_name": "Main.GENERIC_RotatingFrame",
             "rotating_object_model_part_name": "Main.GENERIC_RotatingObject",
             "center_of_rotation": [0.0,0.0,0.0],
             "axis_of_rotation": [0.0,0.0,1.0],
