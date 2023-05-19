@@ -93,11 +93,11 @@ class TestOptimizationProblemAsciiWriter(kratos_unittest.TestCase):
         ComponentDataView("algorithm", cls.optimization_problem).SetDataBuffer(2)
 
 
-    def __AddData(self, buffered_dict: BufferedDict, is_buffered: bool):
+    def __AddData(self, buffered_dict: BufferedDict):
         step_v = self.optimization_problem.GetStep() + 1
-        buffered_dict[f"v_float_{is_buffered}"] = 2.3 * step_v
-        buffered_dict[f"v_int_{is_buffered}"] = 2 * step_v
-        buffered_dict[f"v_bool_{is_buffered}"] = bool(step_v % 2)
+        buffered_dict[f"v_float"] = 2.3 * step_v
+        buffered_dict[f"v_int"] = 2 * step_v
+        buffered_dict[f"v_bool"] = bool(step_v % 2)
 
     def test_OptimizationProblemAsciiWriter(self):
         parameters = Kratos.Parameters(
@@ -119,14 +119,14 @@ class TestOptimizationProblemAsciiWriter(kratos_unittest.TestCase):
 
         # initialize unbuffered data
         for component in self.components_list:
-            self.__AddData(ComponentDataView(component, self.optimization_problem).GetUnBufferedData(), False)
+            self.__AddData(ComponentDataView(component, self.optimization_problem).GetUnBufferedData())
 
         with kratos_unittest.WorkFolderScope(".", __file__):
             number_of_steps = 10
             for _ in range(number_of_steps):
                 # initialize the buffered data
                 for component in self.components_list:
-                    self.__AddData(ComponentDataView(component, self.optimization_problem).GetBufferedData(), True)
+                    self.__AddData(ComponentDataView(component, self.optimization_problem).GetBufferedData())
 
                 process.PrintOutput()
                 self.optimization_problem.AdvanceStep()
