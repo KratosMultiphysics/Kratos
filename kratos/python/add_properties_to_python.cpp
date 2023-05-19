@@ -23,218 +23,58 @@
 #include "includes/condition.h"
 #include "includes/properties.h"
 #include "includes/constitutive_law.h"
-#include "python/add_mesh_to_python.h"
 #include "python/containers_interface.h"
+#include "utilities/interface_folder.h"
 
-namespace Kratos
-{
-namespace Python
-{
+namespace Kratos::Python {
+
 namespace py = pybind11;
 
-typedef Node NodeType;
-typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
-typedef ConstitutiveLaw ConstitutiveLawBaseType;
-typedef std::size_t IndexType;
-typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
-
-template< class TContainerType, class TVariableType >
-bool PropertiesHasHelperFunction(TContainerType& rProperties, const TVariableType& rVar)
-{
-    return rProperties.Has(rVar);
-}
-
-template< class TContainerType, class TVariableType >
-void SetValueHelperFunction1(
-    TContainerType& rProperties,
-    const TVariableType& rVar,
-    const typename TVariableType::Type& rData)
-{
-    rProperties.SetValue(rVar,rData);
-}
-
-PropertiesContainerType& GetSubPropertiesArray1(Properties& rProperties)
-{
-    return rProperties.GetSubProperties();
-}
-
-PropertiesContainerType const& GetSubPropertiesArray2(const Properties& rProperties)
-{
-    return rProperties.GetSubProperties();
-}
-
-bool HasSubProperties1(
-    Properties& rProperties,
-    IndexType Index
-    )
-{
-    return rProperties.HasSubProperties(Index);
-}
-
-Properties::Pointer GetSubProperties1(
-    Properties& rProperties,
-    IndexType Index
-    )
-{
-    return rProperties.pGetSubProperties(Index);
-}
-
-void SetArrayValue(
-    Properties& rProperties,
-    const Variable<array_1d<double,3>>& rVar,
-    const std::vector<double>& rData)
-{
-    if(rData.size() != 3)
-        KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << rData.size() << std::endl;
-
-    array_1d<double,3> tmp;
-    for(unsigned int i=0;i<3; ++i)
-        tmp[i] = rData[i];
-
-    rProperties.SetValue(rVar,tmp);
-}
-
-void SetVectorValue(
-    Properties& rProperties,
-    const Variable<Vector>& rVar,
-    const std::vector<double>& rData)
-{
-    Vector tmp(rData.size());
-    for(unsigned int i=0;i<tmp.size(); ++i)
-        tmp[i] = rData[i];
-
-    rProperties.SetValue(rVar,tmp);
-}
-
-template< class TContainerType, class TVariableType >
-typename TVariableType::Type GetValueHelperFunction1( TContainerType& rContainer,
-        const TVariableType& rVar )
-{
-    return rContainer.GetValue(rVar);
-}
-    
-template< class TContainerType, class TVariableType >
-void EraseHelperFunction1( TContainerType& rContainer,
-        const TVariableType& rVar )
-{
-    rContainer.Erase(rVar);
-}
-
-template< class TContainerType, class XVariableType, class YVariableType>
-void SetTableHelperFunction1(
-    TContainerType& rContainer,
-    const XVariableType& XVar,
-    const YVariableType& YVar,
-    const typename Properties::TableType& rData)
-{
-    rContainer.SetTable(XVar, YVar, rData);
-}
-
-template< class TContainerType, class XVariableType, class YVariableType>
-typename Properties::TableType& GetTableHelperFunction1( TContainerType& rContainer,
-        const XVariableType& XVar,
-    const YVariableType& YVar )
-{
-    return rContainer.GetTable(XVar, YVar);
-}
-
-template< class TContainerType, class XVariableType, class YVariableType>
-bool HasTableHelperFunction1( TContainerType& rContainer,
-        const XVariableType& XVar,
-    const YVariableType& YVar )
-{
-    return rContainer.HasTable(XVar, YVar);
-}
-
+using MeshType = Mesh<Node, Properties, Element, Condition>;
+using IndexType = std::size_t;
+using PropertiesContainerType = PointerVectorSet<Properties, IndexedObject>;
 
 void  AddPropertiesToPython(pybind11::module& m)
 {
-    py::class_<Properties, Properties::Pointer, Properties::BaseType >(m,"Properties")
+    auto binding = py::class_<Properties, Properties::Pointer, Properties::BaseType >(m,"Properties")
     .def(py::init<Kratos::Properties::IndexType>())
     .def(py::init<const Properties&>())
-    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
-    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
-    .def("Has", PropertiesHasHelperFunction< Properties, Variable< array_1d<double, 6> > >)
-    .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
-    .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
-    .def("Erase", EraseHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
 
-    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
-    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
-    .def("Has", PropertiesHasHelperFunction< Properties, Variable< array_1d<double, 3> > >)
-    .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
-    .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
-    .def("Erase", EraseHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
-//     .def("SetValue", SetArrayValue)
-
-    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Vector > >)
-    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Vector > >)
-    .def("Has", PropertiesHasHelperFunction< Properties, Variable< Vector > >)
-    .def("SetValue", SetValueHelperFunction1< Properties, Variable< Vector > >)
-//     .def("SetValue", SetVectorValue)
-    .def("GetValue", GetValueHelperFunction1< Properties, Variable< Vector > >)
-    .def("Erase", EraseHelperFunction1< Properties, Variable< Vector > >)
-
-    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Matrix > >)
-    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Matrix > >)
-    .def("Has", PropertiesHasHelperFunction< Properties, Variable< Matrix > >)
-    .def("SetValue", SetValueHelperFunction1< Properties, Variable< Matrix > >)
-    .def("GetValue", GetValueHelperFunction1< Properties, Variable< Matrix > >)
-    .def("Erase", EraseHelperFunction1< Properties, Variable< Matrix > >)
-
-    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< std::string > >)
-    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< std::string > >)
-    .def("Has", PropertiesHasHelperFunction< Properties, Variable< std::string > >)
-    .def("SetValue", SetValueHelperFunction1< Properties, Variable< std::string > >)
-    .def("GetValue", GetValueHelperFunction1< Properties, Variable< std::string > >)
-    .def("Erase", EraseHelperFunction1< Properties, Variable< std::string > >)
-
-    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< bool > >)
-    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< bool > >)
-    .def("Has", PropertiesHasHelperFunction< Properties, Variable< bool > >)
-    .def("SetValue", SetValueHelperFunction1< Properties, Variable< bool > >)
-    .def("GetValue", GetValueHelperFunction1< Properties, Variable< bool > >)
-    .def("Erase", EraseHelperFunction1< Properties, Variable< bool > >)
-
-    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< int > >)
-    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< int > >)
-    .def("Has", PropertiesHasHelperFunction< Properties, Variable< int > >)
-    .def("SetValue", SetValueHelperFunction1< Properties, Variable< int > >)
-    .def("GetValue", GetValueHelperFunction1< Properties, Variable< int > >)
-    .def("Erase", EraseHelperFunction1< Properties, Variable< int > >)
-
-    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< double > >)
-    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< double > >)
-    .def("Has", PropertiesHasHelperFunction< Properties, Variable< double > >)
-    .def("SetValue", SetValueHelperFunction1< Properties, Variable< double > >)
-    .def("GetValue", GetValueHelperFunction1< Properties, Variable< double > >)
-    .def("Erase", EraseHelperFunction1< Properties, Variable< double > >)
-
-    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-    .def("Has", PropertiesHasHelperFunction< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-    .def("SetValue", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-    .def("GetValue", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-    .def("Erase", EraseHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-
-    .def("GetTable", GetTableHelperFunction1< Properties, Variable< double > , Variable<double> >, py::return_value_policy::reference_internal)
-    .def("SetTable", SetTableHelperFunction1< Properties, Variable< double > , Variable<double> >)
-    .def("HasTable", HasTableHelperFunction1< Properties, Variable< double > , Variable<double> >)
-
-    .def("HasVariables", &Properties::HasVariables)
-    .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
-    .def("NumberOfSubproperties", &Properties::NumberOfSubproperties)
+    .def("HasTables", &Properties::HasTables)
+    .def("HasVariables", &Properties::HasVariables)
     .def("AddSubProperties", &Properties::AddSubProperties)
-    .def("HasSubProperties", HasSubProperties1)
-    .def("GetSubProperties", GetSubProperties1)
-    .def("GetSubProperties", GetSubPropertiesArray1)
-    .def("GetSubProperties", GetSubPropertiesArray2)
     .def("SetSubProperties", &Properties::SetSubProperties)
+    .def("NumberOfSubproperties", &Properties::NumberOfSubproperties)
+
+    .def("HasSubProperties", [](Properties& rProp, IndexType Index){return rProp.HasSubProperties(Index);})
+    .def("GetSubProperties", [](Properties& rProp, IndexType Index){return rProp.pGetSubProperties(Index);})
+    .def("GetSubProperties", [](Properties& rProp){return rProp.GetSubProperties();})
+    .def("GetSubProperties", [](const Properties& rProp){return rProp.GetSubProperties();})
+
+    .def("GetTable", [](Properties& rProp, Variable<double>& rXVar, Variable<double>& rYVar){return rProp.GetTable(rXVar, rYVar);}, py::return_value_policy::reference_internal)
+    .def("SetTable", [](Properties& rProp, Variable<double>& rXVar, Variable<double>& rYVar, typename Properties::TableType& rData){rProp.SetTable(rXVar, rYVar, rData);})
+    .def("HasTable", [](Properties& rProp, Variable<double>& rXVar, Variable<double>& rYVar){return rProp.HasTable(rXVar, rYVar);})
+
     .def("__str__", PrintObject<Properties>)
     ;
 
+    AddToInterface<int, double, bool, std::string, Matrix, Vector, array_1d<double,3>, array_1d<double,6>, ConstitutiveLaw::Pointer>(
+        binding, []<typename TDataType>(auto binding) {
+
+        using TVariableType = Variable<TDataType>;
+
+        binding
+            .def("Has", [](Properties &rProp, TVariableType &rVar){return rProp.Has(rVar);})
+            .def("Erase", [](Properties &rProp, TVariableType &rVar){rProp.Erase(rVar);})
+            .def("SetValue", [](Properties &rProp, TVariableType &rVar, TDataType &rData){rProp.SetValue(rVar,rData);})
+            .def("GetValue", [](Properties &rProp, TVariableType &rVar){return rProp.GetValue(rVar);})
+            .def("__setitem__", [](Properties &rProp, TVariableType &rVar, TDataType &rData){rProp.SetValue(rVar,rData);})
+            .def("__getitem__", [](Properties &rProp, TVariableType &rVar){return rProp.GetValue(rVar);})
+            ;
+    });
+
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
 }
-}  // namespace Python.
-} // Namespace Kratos
+
+}  // namespace Kratos::Python.
