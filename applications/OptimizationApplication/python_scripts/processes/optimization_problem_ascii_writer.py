@@ -172,7 +172,7 @@ class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
                 time_stamp = str(datetime.now())
 
             msg_header = ""
-            msg_header += "# Optimization probelm ascii output\n"
+            msg_header += "# Optimization problem ascii output\n"
             msg_header += f"# Kratos version: {kratos_version}\n"
             msg_header += f"# Timestamp     : {time_stamp}\n"
             msg_header += "# -----------------------------------------------\n"
