@@ -170,27 +170,6 @@ Node::~Node()
 /***********************************************************************************/
 /***********************************************************************************/
 
-Node& Node::operator=(const Node& rOther)
-{
-    BaseType::operator=(rOther);
-    Flags::operator =(rOther);
-
-    mNodalData = rOther.mNodalData;
-
-    // Deep copying the dofs
-    for(auto it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++) {
-        pAddDof(**it_dof);
-    }
-
-    mData = rOther.mData;
-    mInitialPosition = rOther.mInitialPosition;
-
-    return *this;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void Node::SetInitialPosition(const PointType& NewInitialPosition)
 {
     mInitialPosition.X() = NewInitialPosition.X();
