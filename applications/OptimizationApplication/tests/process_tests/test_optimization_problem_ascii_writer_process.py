@@ -99,7 +99,7 @@ class TestOptimizationProblemAsciiWriterProcess(kratos_unittest.TestCase):
         buffered_dict[f"v_int"] = 2 * step_v
         buffered_dict[f"v_bool"] = bool(step_v % 2)
 
-    def test_OptimizationProblemAsciiWriter(self):
+    def test_OptimizationProblemAsciiWriterProcess(self):
         parameters = Kratos.Parameters(
             """
             {
