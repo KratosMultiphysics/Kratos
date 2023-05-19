@@ -194,6 +194,52 @@ class RomManager(object):
         self.__LaunchRunHROM(mu_run)
 
 
+    def RunHHROM(self, mu_run=[None]):
+        chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        #######################
+        ######  Galerkin ######
+        if chosen_projection_strategy == "galerkin":
+            self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
+        #######################################
+        ##  Least-Squares Petrov Galerkin   ###
+        elif chosen_projection_strategy == "lspg":
+            raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
+        ##########################
+        ###  Petrov Galerkin   ###
+        elif chosen_projection_strategy == "petrov_galerkin":
+            self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
+        else:
+            err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
+            raise Exception(err_msg)
+        self.__LaunchRunHHROM(mu_run)
+
+
+    def __LaunchRunHHROM(self, mu_run):
+        """
+        This method should be parallel capable
+        """
+        SnapshotsMatrix = []
+        for Id, mu in enumerate(mu_run):
+            with open(self.project_parameters_name,'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            parameters = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
+            parameters = self._StoreResultsByName(parameters,'HHROM',mu,Id)
+            model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
+            model = KratosMultiphysics.Model()
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation.Run()
+            for process in simulation._GetListOfOutputProcesses():
+                if isinstance(process, CalculateRomBasisOutputProcess):
+                    BasisOutputProcess = process
+            SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+        SnapshotsMatrix = np.block(SnapshotsMatrix)
+
+        return SnapshotsMatrix
+
+
 
     def PrintErrors(self):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
