@@ -97,30 +97,6 @@ class RotatingFrameProcess(KM.Process):
         else:
             raise Exception("The acceleration_time parameter is missing from the settings.")
 
-    def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
-
-    def Check(self):
-        """ This method verifies that the input is correct
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
-
-    def ExecuteBeforeSolutionLoop(self):
-        """ This method is executed just before the solution-loop
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
-
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
 
