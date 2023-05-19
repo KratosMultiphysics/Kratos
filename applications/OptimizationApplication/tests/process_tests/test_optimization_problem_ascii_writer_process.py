@@ -8,14 +8,14 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
-from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_ascii_writer import OptimizationProblemAsciiWriter
+from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_ascii_writer_process import OptimizationProblemAsciiWriterProcess
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes, SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
-class TestOptimizationProblemAsciiWriter(kratos_unittest.TestCase):
+class TestOptimizationProblemAsciiWriterProcess(kratos_unittest.TestCase):
     class DummyResponseFunction(ResponseFunction):
         def __init__(self, response_name: str) -> None:
             super().__init__(response_name)
@@ -75,15 +75,15 @@ class TestOptimizationProblemAsciiWriter(kratos_unittest.TestCase):
         cls.optimization_problem = OptimizationProblem()
         cls.components_list = []
 
-        cls.components_list.append(TestOptimizationProblemAsciiWriter.DummyResponseFunction("resp_1"))
-        cls.components_list.append(TestOptimizationProblemAsciiWriter.DummyResponseFunction("resp_2"))
-        cls.components_list.append(TestOptimizationProblemAsciiWriter.DummyResponseFunction("resp_3"))
-        cls.components_list.append(TestOptimizationProblemAsciiWriter.DummyControl("control_1"))
-        cls.components_list.append(TestOptimizationProblemAsciiWriter.DummyControl("control_2"))
-        cls.components_list.append(TestOptimizationProblemAsciiWriter.DummyControl("control_3"))
-        cls.components_list.append(TestOptimizationProblemAsciiWriter.DummyExecutionPolicy("policy_1"))
-        cls.components_list.append(TestOptimizationProblemAsciiWriter.DummyExecutionPolicy("policy_2"))
-        cls.components_list.append(TestOptimizationProblemAsciiWriter.DummyExecutionPolicy("policy_3"))
+        cls.components_list.append(TestOptimizationProblemAsciiWriterProcess.DummyResponseFunction("resp_1"))
+        cls.components_list.append(TestOptimizationProblemAsciiWriterProcess.DummyResponseFunction("resp_2"))
+        cls.components_list.append(TestOptimizationProblemAsciiWriterProcess.DummyResponseFunction("resp_3"))
+        cls.components_list.append(TestOptimizationProblemAsciiWriterProcess.DummyControl("control_1"))
+        cls.components_list.append(TestOptimizationProblemAsciiWriterProcess.DummyControl("control_2"))
+        cls.components_list.append(TestOptimizationProblemAsciiWriterProcess.DummyControl("control_3"))
+        cls.components_list.append(TestOptimizationProblemAsciiWriterProcess.DummyExecutionPolicy("policy_1"))
+        cls.components_list.append(TestOptimizationProblemAsciiWriterProcess.DummyExecutionPolicy("policy_2"))
+        cls.components_list.append(TestOptimizationProblemAsciiWriterProcess.DummyExecutionPolicy("policy_3"))
 
         for component in cls.components_list:
             cls.optimization_problem.AddComponent(component)
@@ -115,7 +115,7 @@ class TestOptimizationProblemAsciiWriter(kratos_unittest.TestCase):
             """
         )
 
-        process = OptimizationProblemAsciiWriter(parameters, self.optimization_problem)
+        process = OptimizationProblemAsciiWriterProcess(parameters, self.optimization_problem)
 
         # initialize unbuffered data
         for component in self.components_list:

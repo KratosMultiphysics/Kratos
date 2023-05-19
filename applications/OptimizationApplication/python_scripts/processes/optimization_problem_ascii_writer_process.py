@@ -53,7 +53,7 @@ class Header:
     def GetValueStr(self, value: Any) -> str:
         return self.__value_format.format(self.__value_converter(value))
 
-class OptimizationProblemAsciiWriter(Kratos.OutputProcess):
+class OptimizationProblemAsciiWriterProcess(Kratos.OutputProcess):
     def GetDefaultParameters(self):
         return Kratos.Parameters(
             """
