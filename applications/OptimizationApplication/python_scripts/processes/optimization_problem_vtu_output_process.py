@@ -47,11 +47,19 @@ class ExpressionVtuOutput:
 
         # now add back the new container expressions
         for container_expression_path in self.list_of_container_expression_paths:
-            self.vtu_output.AddContainerExpression(container_expression_path[container_expression_path.rfind("/")+1:], data_container[container_expression_path])
+            container_expression = data_container[container_expression_path]
+            if not isinstance(container_expression, ContainerExpressionTypes):
+                raise RuntimeError(f"No container expression exists at \"{container_expression_path}\". The data container is not consistent within steps [ current data = {container_expression} ].")
+
+            self.vtu_output.AddContainerExpression(container_expression_path[container_expression_path.rfind("/")+1:], container_expression)
 
         # now add the collective expressions
         for collective_expression_path, index in self.list_of_collective_expression_paths:
-             self.vtu_output.AddContainerExpression(container_expression_path[container_expression_path.rfind("/")+1:], data_container[collective_expression_path][index])
+            collective_expression = data_container[collective_expression_path]
+            if not isinstance(collective_expression, KratosOA.ContainerExpression.CollectiveExpressions):
+                raise RuntimeError(f"No collective expression exists at \"{collective_expression_path}\". The data container is not consistent within steps [ current data = {collective_expression} ].")
+
+            self.vtu_output.AddContainerExpression(container_expression_path[container_expression_path.rfind("/")+1:], collective_expression.GetContainerExpressions()[index])
 
         self.vtu_output.PrintOutput(self.output_file_name_prefix + "_".join(self.list_of_component_names))
 
