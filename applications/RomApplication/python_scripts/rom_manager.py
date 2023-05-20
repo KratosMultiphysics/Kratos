@@ -65,8 +65,17 @@ class RomManager(object):
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
-            if any(item == "HROM" for item in training_stages):
-                raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
+            
+             #FIXME there will be an error if we only train HROM, but not ROM
+                self._ChangeRomFlags(simulation_to_run = "trainHROMLeastSquaresPetrovGalerkin")
+                self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+                self._ChangeRomFlags(simulation_to_run = "runHROMLeastSquaresPetrovGalerkin")
+                hrom_snapshots = self.__LaunchHROM(mu_train)
+                if store_all_snapshots or store_hrom_snapshots:
+                    self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
+                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+            # if any(item == "HROM" for item in training_stages):
+            #     raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
         #######################################
 
         ##########################
@@ -481,6 +490,14 @@ class RomManager(object):
             elif simulation_to_run=='lspg':
                 f['train_hrom']=False
                 f['run_hrom']=False
+                f['projection_strategy']="lspg"
+            elif simulation_to_run=='trainHROMLeastSquaresPetrovGalerkin':
+                f['train_hrom']=True
+                f['run_hrom']=False
+                f['projection_strategy']="lspg"
+            elif simulation_to_run=='runHROMLeastSquaresPetrovGalerkin':
+                f['train_hrom']=False
+                f['run_hrom']=True
                 f['projection_strategy']="lspg"
             elif simulation_to_run=='TrainPG':
                 f['train_hrom']=False
