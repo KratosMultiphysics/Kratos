@@ -60,3 +60,12 @@ class ComponentDataView:
 
     def GetUnBufferedData(self) -> BufferedDict:
         return self.__problem_data[self.__unbuffered_data_name]
+
+    def GetDataPath(self) -> str:
+        return self.__data_name
+
+    def GetComponentName(self):
+        if isinstance(self.__component, str):
+            return self.__component
+        else:
+            return self.__component.GetName()

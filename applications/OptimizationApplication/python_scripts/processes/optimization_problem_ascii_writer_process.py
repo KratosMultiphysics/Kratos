@@ -192,10 +192,7 @@ class OptimizationProblemAsciiWriterProcess(Kratos.OutputProcess):
                 for component, header_info_dict in initial_headers:
                     componend_data_view = ComponentDataView(component, self.optimization_problem)
                     buffered_dict = componend_data_view.GetUnBufferedData()
-                    if isinstance(component, str):
-                        component_name = component
-                    else:
-                        component_name = component.GetName()
+                    component_name = componend_data_view.GetComponentName()
                     msg_header += "# \t" + component_name + ":\n"
                     for k, header in header_info_dict.items():
                         component_name_header = header.GetHeaderName()[len(component_name)+1:]
@@ -225,10 +222,7 @@ class OptimizationProblemAsciiWriterProcess(Kratos.OutputProcess):
             componend_data_view = ComponentDataView(component, self.optimization_problem)
             values_map = dict_getter_method(componend_data_view).GetMap()
             header_info_dict: 'dict[str, Header]' = {}
-            if isinstance(component, str):
-                component_name = component
-            else:
-                component_name = component.GetName()
+            component_name = componend_data_view.GetComponentName()
             for k, v in values_map.items():
                 if isinstance(v, (bool, int, float, str)):
                     header_name = component_name + ":" + k[k.rfind("/") + 1:]
