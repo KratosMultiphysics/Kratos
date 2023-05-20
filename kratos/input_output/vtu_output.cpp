@@ -1095,6 +1095,11 @@ void VtuOutput::AddContainerExpression(
             << mrModelPart.FullName() << "\" ].\n";
     }
 
+    KRATOS_ERROR_IF_NOT(&pContainerExpression->GetModelPart() == &mrModelPart)
+        << "Model part mismatch in container expression addition. [ Vtu output model part name = \""
+        << mrModelPart.FullName() << "\", container expression model part name = \""
+        << pContainerExpression->GetModelPart().FullName() << "\" ].\n";
+
     if constexpr (std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
         VtuOutputHelperUtilities::CheckDataArrayName(
             rExpressionName, mHistoricalVariablesMap,
