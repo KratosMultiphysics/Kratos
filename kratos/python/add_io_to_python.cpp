@@ -230,6 +230,7 @@ void  AddIOToPython(pybind11::module& m)
         .def("ClearNodalFlags", &VtuOutput::ClearNodalFlags)
         .def("ClearCellNonHistoricalVariables", &VtuOutput::ClearCellNonHistoricalVariables)
         .def("ClearCellFlags", &VtuOutput::ClearCellFlags)
+        .def("ClearNodalContainerExpressions", &VtuOutput::ClearNodalContainerExpressions)
         .def("ClearCellContainerExpressions", &VtuOutput::ClearCellContainerExpressions)
         .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_file_name_prefix"))
         ;
