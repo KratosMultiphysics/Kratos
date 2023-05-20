@@ -64,7 +64,7 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             }
         }
 
-        const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints();
+        const auto& integration_points = this->IntegrationPoints(mThisIntegrationMethod);
 
         //Constitutive Law initialisation
         if ( mConstitutiveLawVector.size() != integration_points.size() )

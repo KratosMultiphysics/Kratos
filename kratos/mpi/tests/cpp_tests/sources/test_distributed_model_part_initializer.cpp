@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
@@ -20,8 +20,7 @@
 #include "includes/variables.h"
 #include "mpi/utilities/distributed_model_part_initializer.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_NoSubModelParts_Empty, KratosMPICoreFastSuite)
 {
@@ -168,5 +167,4 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedModelPartInitializer_2_SubSubMo
     KRATOS_CHECK_EQUAL(main_model_part.GetCommunicator().GlobalNumberOfNodes(), 0);
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

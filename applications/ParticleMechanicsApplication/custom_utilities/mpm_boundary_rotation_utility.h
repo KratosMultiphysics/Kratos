@@ -62,9 +62,9 @@ public:
 
 	using CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>::Rotate;
 
-	typedef Node<3> NodeType;
+	typedef Node NodeType;
 
-	typedef Geometry< Node<3> > GeometryType;
+	typedef Geometry< Node > GeometryType;
 
 	///@}
 	///@name Life Cycle

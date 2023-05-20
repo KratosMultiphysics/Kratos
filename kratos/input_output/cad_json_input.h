@@ -42,7 +42,7 @@ namespace Kratos
 /// Input for CAD-files.
 /** Gives IO capabilities for Nurbs based Brep models in the JSON format defined in
 https://amses-journal.springeropen.com/articles/10.1186/s40323-018-0109-4. */
-template<class TNodeType = Node<3>, class TEmbeddedNodeType = Point>
+template<class TNodeType = Node, class TEmbeddedNodeType = Point>
 class CadJsonInput : public IO
 {
     public:
@@ -785,9 +785,9 @@ private:
         return control_point_weights;
     }
 
-    /// Reads a Node<3>::Pointer-vector of control points.
+    /// Reads a Node::Pointer-vector of control points.
     static void ReadControlPointVector(
-        PointerVector<Node<3>>& rControlPoints,
+        PointerVector<Node>& rControlPoints,
         const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
@@ -796,7 +796,7 @@ private:
             << "\"control_points\" section needs to be an array." << std::endl;
 
         KRATOS_INFO_IF("ReadControlPointVector", EchoLevel > 4)
-            << "Reading " << rParameters.size() << " control points of type Node<3>." << std::endl;
+            << "Reading " << rParameters.size() << " control points of type Node." << std::endl;
 
         for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
         {
@@ -827,18 +827,18 @@ private:
     ///@name Read in Nodes/ Points
     ///@{
 
-    /* Reads, and returns a Pointer to Node<3>.
+    /* Reads, and returns a Pointer to Node.
     * Input needs to be a Parameter object:
     * [id, [x, y, z, weight]]
     */
-    static Node<3>::Pointer ReadAndCreateNode(
+    static Node::Pointer ReadAndCreateNode(
         const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)
     {
         SizeType number_of_entries = rParameters.size();
         KRATOS_ERROR_IF((number_of_entries != 2))
-            << "Control points as Node<3> need to be provided in following structure: [id, [x, y, z, weight]]"
+            << "Control points as Node need to be provided in following structure: [id, [x, y, z, weight]]"
             << std::endl;
 
         IndexType id = rParameters[0].GetInt();

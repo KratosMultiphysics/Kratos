@@ -58,7 +58,7 @@ public:
     typedef std::size_t IndexType;
 
     /// General type definitions
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;

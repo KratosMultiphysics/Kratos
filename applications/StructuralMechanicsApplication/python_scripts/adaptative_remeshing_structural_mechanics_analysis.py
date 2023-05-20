@@ -33,10 +33,10 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         else:
             project_parameters["solver_settings"].AddValue("analysis_type", default_params["analysis_type"])
         self.process_remesh = False
-        if project_parameters.Has("recursive_remeshing_process"):
+        if project_parameters.Has("mesh_adaptivity_processes"):
             self.process_remesh = True
         if project_parameters.Has("processes"):
-            if project_parameters["processes"].Has("recursive_remeshing_process"):
+            if project_parameters["processes"].Has("mesh_adaptivity_processes"):
                 self.process_remesh = True
         super().__init__(model, project_parameters)
 
@@ -159,7 +159,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
         list_of_processes = super()._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
-            processes_block_names = ["recursive_remeshing_process"]
+            processes_block_names = ["mesh_adaptivity_processes"]
             if len(list_of_processes) == 0: # Processes are given in the old format
                 KM.Logger.PrintWarning("AdaptativeRemeshingStructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
