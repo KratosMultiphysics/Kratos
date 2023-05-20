@@ -32,6 +32,7 @@
 #include "custom_strategies/lspg_rom_builder_and_solver.h"
 #include "custom_strategies/petrov_galerkin_rom_builder_and_solver.h"
 #include "custom_strategies/global_rom_builder_and_solver.h"
+#include "custom_strategies/global_lspg_rom_builder_and_solver.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -75,6 +76,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
     
     py::class_<GlobalROMBuilderAndSolverType, typename GlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "GlobalROMBuilderAndSolver")
+        .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        ;
+    
+    typedef GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
+
+    py::class_<GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ROMBuilderAndSolverType, BuilderAndSolverType>(m, "GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
 
