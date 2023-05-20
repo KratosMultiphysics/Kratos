@@ -66,7 +66,8 @@ class RomManager(object):
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             
-             #FIXME there will be an error if we only train HROM, but not ROM
+            if any(item == "HROM" for item in training_stages):
+                #FIXME there will be an error if we only train HROM, but not ROM
                 self._ChangeRomFlags(simulation_to_run = "trainHROMLeastSquaresPetrovGalerkin")
                 self.__LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMLeastSquaresPetrovGalerkin")
