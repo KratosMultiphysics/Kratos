@@ -26,11 +26,13 @@ class ExpressionVtuOutput:
         self.list_of_component_names: 'list[str]' = []
 
     def AddContainerExpressionPath(self, component_name: str, data_path: str):
+        self._CheckIfExists(data_path)
         self.list_of_container_expression_paths.append(data_path)
         if component_name not in self.list_of_component_names:
             self.list_of_component_names.append(component_name)
 
     def AddCollectiveExpressionPath(self, component_name: str, data_path: str, index: int):
+        self._CheckIfExists(data_path)
         self.list_of_collective_expression_paths.append([data_path, index])
         if component_name not in self.list_of_component_names:
             self.list_of_component_names.append(component_name)
@@ -40,10 +42,6 @@ class ExpressionVtuOutput:
 
     def WriteOutput(self):
         if len(self.list_of_component_names) > 0:
-            # first clear everything
-            self.vtu_output.ClearCellContainerExpressions()
-            self.vtu_output.ClearNodalContainerExpressions()
-
             data_container = self.optimization_problem.GetProblemDataContainer()
 
             # now add back the new container expressions
@@ -52,7 +50,7 @@ class ExpressionVtuOutput:
                 if not isinstance(container_expression, ContainerExpressionTypes):
                     raise RuntimeError(f"No container expression exists at \"{container_expression_path}\". The data container is not consistent between steps [ current data = {container_expression} ].")
 
-                self.vtu_output.AddContainerExpression(container_expression_path[container_expression_path.rfind("/")+1:], container_expression)
+                self.vtu_output.AddContainerExpression(self._GetContainerExpressionName(container_expression_path), container_expression)
 
             # now add the collective expressions
             for collective_expression_path, index in self.list_of_collective_expression_paths:
@@ -60,9 +58,22 @@ class ExpressionVtuOutput:
                 if not isinstance(collective_expression, KratosOA.ContainerExpression.CollectiveExpressions):
                     raise RuntimeError(f"No collective expression exists at \"{collective_expression_path}\". The data container is not consistent between steps [ current data = {collective_expression} ].")
 
-                self.vtu_output.AddContainerExpression(container_expression_path[container_expression_path.rfind("/")+1:], collective_expression.GetContainerExpressions()[index])
+                self.vtu_output.AddContainerExpression(self._GetContainerExpressionName(container_expression_path), collective_expression.GetContainerExpressions()[index])
 
             self.vtu_output.PrintOutput(self.output_file_name_prefix + "_".join(self.list_of_component_names))
+
+    def _CheckIfExists(self, data_path: str) -> None:
+        container_expression_name = ExpressionVtuOutput._GetContainerExpressionName(data_path)
+
+        if container_expression_name in [ExpressionVtuOutput._GetContainerExpressionName(c_path) for c_path in self.list_of_container_expression_paths]:
+            raise RuntimeError(f"Failed to add the container expression. There exists already a container expression with name \"{container_expression_name}\" [ expression path = \"{data_path}\" ].")
+
+        if container_expression_name in [ExpressionVtuOutput._GetContainerExpressionName(c_path) for c_path in self.list_of_collective_expression_paths]:
+            raise RuntimeError(f"Failed to add the container expression. There exists already a collective expression with name \"{container_expression_name}\" [ expression path = \"{data_path}\" ].")
+
+    @staticmethod
+    def _GetContainerExpressionName(container_expression_path: str) -> str:
+        return container_expression_path[container_expression_path.rfind("/")+1:]
 
 class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
     def GetDefaultParameters(self):
