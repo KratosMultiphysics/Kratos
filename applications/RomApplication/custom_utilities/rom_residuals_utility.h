@@ -80,7 +80,9 @@ namespace Kratos
         struct AssemblyTLS
         {
             Matrix phiE = {};                // Elemental Phi
+            Matrix phiJE = {};                // Elemental PhiJ
             Matrix lhs = {};  // Elemental LHS
+            Vector rhs = {};  // Elemental RHS
             Element::EquationIdVectorType eq_id = {}; // Elemental equation ID vector
             Element::DofsVectorType dofs = {};        // Elemental dof vector
             Matrix romA;        // reduced LHS
@@ -235,23 +237,78 @@ namespace Kratos
         return matrix_residuals;
         }
 
+        Matrix GetProjectedResidualsOntoPhiJ()
+        {
+            // Getting the number of elements and conditions from the model
+            const int n_elements = static_cast<int>(mrModelPart.Elements().size());
+            const int n_conditions = static_cast<int>(mrModelPart.Conditions().size());
 
+            Matrix rPhiJ;
+            GetProjectedGlobalLHSOntoPhi(rPhiJ);
 
-        void GetProjectedGlobalLHSOntoPhi(Matrix& rA)
+            // Get ProcessInfo from main model part
+            const auto& r_current_process_info = mrModelPart.GetProcessInfo();
+
+            // Assemble all entities
+            RomResidualsUtility::AssemblyTLS assembly_tls_container;
+
+            const auto& r_elements = mrModelPart.Elements();
+            const auto& r_conditions = mrModelPart.Conditions();
+
+            Matrix matrix_residuals( (n_elements + n_conditions), mRomDofs); // Matrix of reduced residuals.
+
+            // Declare a counter variable outside the loop as std::atomic<int>
+            std::atomic<int> i(0);
+
+            block_for_each(r_elements, assembly_tls_container, [&](Element& r_element, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
+            {
+                if (r_element.IsDefined(ACTIVE) && r_element.IsNot(ACTIVE)) return;
+
+                // Calculate elemental contribution
+                mpScheme->CalculateRHSContribution(r_element, r_thread_prealloc.rhs, r_thread_prealloc.eq_id, r_current_process_info);
+                r_element.GetDofList(r_thread_prealloc.dofs, r_current_process_info);
+
+                const std::size_t ndofs = r_thread_prealloc.dofs.size();
+                ResizeIfNeeded(r_thread_prealloc.phiJE, ndofs, mRomDofs);
+                RomAuxiliaryUtilities::GetPhiJElemental(r_thread_prealloc.phiJE, r_thread_prealloc.dofs, rPhiJ);
+                noalias(row(matrix_residuals, i)) = prod(trans(r_thread_prealloc.phiJE), r_thread_prealloc.rhs); // The size of the residual will vary only when using more ROM modes, one row per condition
+            });
+
+            // Declare a counter variable outside the loop as std::atomic<int>
+            std::atomic<int> j(0);
+
+            block_for_each(r_conditions, assembly_tls_container, [&](Condition& r_condition, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
+            {
+                if (r_condition.IsDefined(ACTIVE) && r_condition.IsNot(ACTIVE)) return;
+
+                // Calculate elemental contribution
+                mpScheme->CalculateRHSContribution(r_condition, r_thread_prealloc.rhs, r_thread_prealloc.eq_id, r_current_process_info);
+                r_condition.GetDofList(r_thread_prealloc.dofs, r_current_process_info);
+
+                const std::size_t ndofs = r_thread_prealloc.dofs.size();
+                ResizeIfNeeded(r_thread_prealloc.phiJE, ndofs, mRomDofs);
+                RomAuxiliaryUtilities::GetPhiJElemental(r_thread_prealloc.phiJE, r_thread_prealloc.dofs, rPhiJ);
+                noalias(row(matrix_residuals, n_elements + j)) = prod(trans(r_thread_prealloc.phiJE), r_thread_prealloc.rhs); // The size of the residual will vary only when using more ROM modes, one row per condition
+            });
+
+            return matrix_residuals;
+        }
+
+        void GetProjectedGlobalLHSOntoPhi(Matrix& rPhiJ)
         {
             const auto& n_nodes = mrModelPart.NumberOfNodes();
             const int system_size = n_nodes*mNodalDofs;
-            rA.resize(system_size, mRomDofs);
-            BuildGlobalLHS(mpScheme, mrModelPart, rA);
+            rPhiJ.resize(system_size, mRomDofs);
+            BuildGlobalLHSProjectedOntoPhi(mpScheme, mrModelPart, rPhiJ);
         }
 
         /**
          * Builds the reduced system of equations on rank 0 
          */
-        void BuildGlobalLHS(
+        void BuildGlobalLHSProjectedOntoPhi(
             BaseSchemeType::Pointer pScheme,
             ModelPart &rModelPart,
-            Matrix &rA) 
+            Matrix &rPhiJ) 
         {
             KRATOS_TRY
 
@@ -272,7 +329,7 @@ namespace Kratos
                 block_for_each(r_elements, assembly_tls_container, 
                     [&](Element& r_element, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
                 {
-                    CalculateLocalLHSContributionLSPG(r_element, rA, r_thread_prealloc, *pScheme, r_current_process_info);
+                    CalculateLocalLHSContributionLSPG(r_element, rPhiJ, r_thread_prealloc, *pScheme, r_current_process_info);
                 });
             }
 
@@ -284,7 +341,7 @@ namespace Kratos
                 block_for_each(r_conditions, assembly_tls_container, 
                     [&](Condition& r_condition, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
                 {
-                    CalculateLocalLHSContributionLSPG(r_condition, rA, r_thread_prealloc, *pScheme, r_current_process_info);
+                    CalculateLocalLHSContributionLSPG(r_condition, rPhiJ, r_thread_prealloc, *pScheme, r_current_process_info);
                 });
             }
             KRATOS_CATCH("")
@@ -293,7 +350,7 @@ namespace Kratos
         template<typename TEntity>
         void CalculateLocalLHSContributionLSPG(
             TEntity& rEntity,
-            Matrix& rAglobal,
+            Matrix& rPhiJglobal,
             RomResidualsUtility::AssemblyTLS& rPreAlloc,
             BaseSchemeType& rScheme,
             const ProcessInfo& rCurrentProcessInfo)
@@ -319,8 +376,8 @@ namespace Kratos
             {
                 const std::size_t global_row = rPreAlloc.eq_id[row];
 
-                double& r_bi = rBglobal(global_row);
-                AtomicAdd(r_bi, rPreAlloc.romB[row]);
+                // double& r_bi = rBglobal(global_row);
+                // AtomicAdd(r_bi, rPreAlloc.romB[row]);
 
                 if(rPreAlloc.dofs[row]->IsFree())
                 {
@@ -328,7 +385,7 @@ namespace Kratos
                     {
                         // const std::size_t global_col = rPreAlloc.eq_id[col];
                         const std::size_t global_col = col;
-                        double& r_aij = rAglobal(global_row, global_col);
+                        double& r_aij = rPhiJglobal(global_row, global_col);
                         AtomicAdd(r_aij, rPreAlloc.romA(row, col));
                     }
                 }
