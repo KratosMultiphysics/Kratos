@@ -38,7 +38,8 @@ def CreateSolver(cls, model, custom_settings):
                 "global_galerkin": KratosROM.GlobalROMBuilderAndSolver, 
                 "elemental_lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "global_lspg": KratosROM.GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver,
-                "petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver
+                "elemental_petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver,
+                "global_petrov_galerkin": KratosROM.GlobalPetrovGalerkinROMBuilderAndSolver
             }
             if solving_strategy in available_solving_strategies:
                 return available_solving_strategies[solving_strategy](linear_solver, rom_parameters)
@@ -67,7 +68,7 @@ def CreateSolver(cls, model, custom_settings):
             projection_strategy = self.settings["projection_strategy"].GetString()
             assembling_strategy = self.settings["assembling_strategy"].GetString()
             # For now, only Galerkin projection has the elemental or global approach option
-            if projection_strategy=="galerkin" or projection_strategy=="lspg": #TODO: Possibility of doing elemental lspg and petrov_galerkin
+            if projection_strategy=="galerkin" or projection_strategy=="lspg" or projection_strategy=="petrov_galerkin": #TODO: Possibility of doing elemental lspg and petrov_galerkin
                 available_assembling_strategies = {
                     "global",
                     "elemental"
