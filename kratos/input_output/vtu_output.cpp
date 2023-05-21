@@ -43,6 +43,8 @@ namespace Kratos {
 
 namespace VtuOutputHelperUtilities {
 
+constexpr char base64Map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
 class KRATOS_API(KRATOS_CORE) XmlOStreamWriter
 {
 public:
@@ -129,6 +131,104 @@ public:
     ///@}
 
 private:
+    ///@name Private classes
+    ///@{
+
+    class Base64EncodedOutput
+    {
+    public:
+        template<typename TIteratorType>
+        void WriteOutputData(
+            std::ostream& rOutput,
+            TIteratorType Begin,
+            IndexType N)
+        {
+            constexpr IndexType size = sizeof(decltype(*Begin));
+            const IndexType rawBytes = N * size;
+
+            auto it = Begin;
+            auto value = *it;
+            IndexType byteIndex = 0;
+
+            auto next = [&]() {
+                char byte = *(reinterpret_cast<const char*>(&value) + byteIndex++);
+
+                if(byteIndex == size) {
+                    ++it;
+                    value = *it;
+                    byteIndex = 0;
+                }
+
+                return byte;
+            };
+
+            // first fill the existing mByteTriplet
+            IndexType numberOfWrittenBytes = 0;
+            for (; mByteTripletIndex < std::min(rawBytes, IndexType{3}); ++mByteTripletIndex) {
+                mByteTriplet[mByteTripletIndex] = next();
+                ++numberOfWrittenBytes;
+            }
+
+            // check if the triplets are filled otherwise don't write, wait for the closeOutputData call
+            // to write remaining bytes in mByteTriplet
+            if (mByteTripletIndex == 3) {
+                mByteTripletIndex = 0;
+                // write the last byte triplet
+                EncodeTriplet(rOutput, mByteTriplet, 0);
+
+                // in steps of 3
+                const IndexType numberOfTriplets = (rawBytes - numberOfWrittenBytes) / 3;
+
+                for(IndexType i = 0; i < numberOfTriplets; ++i) {
+                    EncodeTriplet(rOutput, {next(), next(), next()}, 0);
+                }
+
+                numberOfWrittenBytes += numberOfTriplets * 3;
+
+                // now fill the mByteTriplet with the remaining bytes of the data
+                const IndexType remaining_bytes = rawBytes - numberOfWrittenBytes;
+                for (; mByteTripletIndex < remaining_bytes; ++mByteTripletIndex) {
+                    mByteTriplet[mByteTripletIndex] = next();
+                }
+            }
+        }
+
+        void CloseOutputData(std::ostream& rOutput)
+        {
+            const IndexType padding = 3 - mByteTripletIndex;
+            if (padding != 0 && mByteTripletIndex != 0) {
+                for(; mByteTripletIndex < 3; ++mByteTripletIndex) {
+                    mByteTriplet[mByteTripletIndex] = '\0';
+                }
+
+                EncodeTriplet(rOutput, mByteTriplet, padding );
+            }
+            mByteTripletIndex = 0;
+        }
+
+    private:
+        static void EncodeTriplet(
+            std::ostream& rOutput,
+            const std::array<char, 3>& rBytes,
+            IndexType Padding )
+        {
+            char tmp[5] = { base64Map[(   rBytes[0] & 0xfc ) >> 2],
+                            base64Map[( ( rBytes[0] & 0x03 ) << 4 ) + ( ( rBytes[1] & 0xf0 ) >> 4 )],
+                            base64Map[( ( rBytes[1] & 0x0f ) << 2 ) + ( ( rBytes[2] & 0xc0 ) >> 6 )],
+                            base64Map[rBytes[2] & 0x3f],
+                            '\0' };
+
+            std::fill( tmp + 4 - Padding, tmp + 4, '=' );
+
+            rOutput << tmp;
+        }
+
+        IndexType mByteTripletIndex = 0;
+
+        std::array<char, 3> mByteTriplet;
+    };
+
+    ///@}
     ///@name Private member variables
     ///@{
 
@@ -204,8 +304,6 @@ private:
 
         using value_type = typename exp_itr_type::value_type;
 
-        using data_itr_type = typename exp_itr_type::ConstIteratorType;
-
         WriteAttributes(rTagName, rAttributes, Level);
 
         std::vector<TExpressionType*> transformed_expressions(rExpressions.size());
@@ -222,100 +320,20 @@ private:
             mrOStream << " format=\"binary\">\n" << tabbing << "  ";
         }
 
-        constexpr char base64_map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-        const IndexType total_entities = std::accumulate(rExpressions.begin(), rExpressions.end(), 0U, [](const IndexType LHS, const auto& pExpression) { return LHS + pExpression->NumberOfEntities();});
-
         using writing_data_type = value_type;
         constexpr IndexType data_type_size = sizeof(writing_data_type);
-        constexpr IndexType size_type_size = sizeof(unsigned int);
-        const IndexType total_number_of_values = total_entities * rExpressions[0]->GetFlattenedShapeSize();
-        const IndexType size_type_triplets = size_type_size / 3;
+        const IndexType total_entities = std::accumulate(rExpressions.begin(), rExpressions.end(), 0U, [](const IndexType LHS, const auto& pExpression) { return LHS + pExpression->NumberOfEntities();});
+        const IndexType flattened_shape_size = rExpressions[0]->GetFlattenedShapeSize();
+        const IndexType total_number_of_values = total_entities * flattened_shape_size;
         const unsigned int total_data_size = total_number_of_values * data_type_size;
-        const IndexType total_number_of_triplets = (total_data_size + size_type_size)  / 3;
 
-        IndexType byte_index = 0;
-        auto p_expression = transformed_expressions.data();
-        data_itr_type data_itr = exp_itr_type(*p_expression).cbegin();
-        data_itr_type data_end = exp_itr_type(*p_expression).cend();
-        writing_data_type current_value =  *data_itr;
+        Base64EncodedOutput base64_encoder;
 
-        auto get_next_byte = [&]() -> char {
-            if (byte_index == data_type_size) {
-                byte_index = 0;
-                ++data_itr;
-
-                if (data_itr == data_end) {
-                    ++p_expression;
-                    data_itr = exp_itr_type(*p_expression).cbegin();
-                    data_end = exp_itr_type(*p_expression).cend();
-                }
-
-                current_value = *data_itr;
-            }
-
-            const char byte = *(reinterpret_cast<const char*>(&current_value) + byte_index++);
-
-            return byte;
-        };
-
-        auto write_encoded_triplet = [&](const std::array<char, 3>& bytes, size_t padding) {
-            char tmp[5] = {
-                base64_map[(bytes[0] & 0xfc) >> 2],
-                base64_map[((bytes[0] & 0x03) << 4) + ((bytes[1] & 0xf0) >> 4)],
-                base64_map[((bytes[1] & 0x0f) << 2) + ((bytes[2] & 0xc0) >> 6)],
-                base64_map[bytes[2] & 0x3f], '\0'};
-
-            std::fill(tmp + 4 - padding, tmp + 4, '=');
-
-            mrOStream << tmp;
-        };
-
-        // first write the total number of bytes in the array this will be of 8 bytes
-        auto total_data_size_begin = reinterpret_cast<const char*>(&total_data_size);
-        IndexType local_index = 0;
-        IndexType initial_number_of_triplets = 0;
-        for (IndexType i = 0; i < size_type_triplets; ++i) {
-            write_encoded_triplet({*(total_data_size_begin + local_index++),
-                                   *(total_data_size_begin + local_index++),
-                                   *(total_data_size_begin + local_index++)},
-                                  0);
-            ++initial_number_of_triplets;
+        base64_encoder.WriteOutputData(mrOStream, &total_data_size, 1);
+        for (const auto p_expression : transformed_expressions) {
+            base64_encoder.WriteOutputData(mrOStream, exp_itr_type(p_expression).cbegin(), p_expression->NumberOfEntities() * flattened_shape_size);
         }
-
-        std::array<char, 3> data;
-        switch (size_type_size % 3) {
-            case 1:
-                data[0] = *(total_data_size_begin + local_index++);
-                data[1] = get_next_byte();
-                data[2] = get_next_byte();
-                ++initial_number_of_triplets;
-                write_encoded_triplet(data, 0);
-                break;
-            case 2:
-                data[0] = *(total_data_size_begin + local_index++);
-                data[1] = *(total_data_size_begin + local_index++);
-                data[2] = get_next_byte();
-                ++initial_number_of_triplets;
-                write_encoded_triplet(data, 0);
-                break;
-            default:
-                break;
-        }
-
-        for (IndexType i = initial_number_of_triplets; i < total_number_of_triplets; ++i) {
-            write_encoded_triplet({get_next_byte(), get_next_byte(), get_next_byte()}, 0);
-        }
-
-        const IndexType number_of_bytes_remaining = (total_data_size + size_type_size) % 3;
-        if (number_of_bytes_remaining != 0) {
-            std::array<char, 3> bytes{'\0', '\0', '\0'};
-
-            for (IndexType i = 0; i < number_of_bytes_remaining; ++i) {
-                bytes[i] = get_next_byte();
-            }
-            write_encoded_triplet(bytes, 3 - number_of_bytes_remaining);
-        }
+        base64_encoder.CloseOutputData(mrOStream);
 
         mrOStream << "\n";
         CloseElement(rTagName, Level);
