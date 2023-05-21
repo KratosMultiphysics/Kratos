@@ -217,10 +217,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     m.def_submodule("ContainerExpressionUtils")
+        .def("EvaluateComponent", &ContainerExpressionUtils::EvaluateComponent)
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_expression"))
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ElementsContainerType>, py::arg("container_expression"))
         .def("NormInf", [](const CollectiveExpressions& rData){ return ContainerExpressionUtils::NormInf(rData); }, py::arg("collective_expressions"))
+        .def("GetFlattenedSize", &ContainerExpressionUtils::GetFlattenedSize<ModelPart::NodesContainerType>, py::arg("container_expression"))
+        .def("GetFlattenedSize", &ContainerExpressionUtils::GetFlattenedSize<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
+        .def("GetFlattenedSize", &ContainerExpressionUtils::GetFlattenedSize<ModelPart::ElementsContainerType>, py::arg("container_expression"))
         .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::NodesContainerType>, py::arg("container_expression"))
         .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
         .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::ElementsContainerType>, py::arg("container_expression"))
@@ -252,6 +256,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     m.def_submodule("ImplicitFilterUtils")
         .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount)
+        .def("SetBulkRadiusForShapeFiltering", &ImplicitFilterUtils::SetBulkRadiusForShapeFiltering)
         ;
 
 }

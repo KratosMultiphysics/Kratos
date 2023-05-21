@@ -19,6 +19,7 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
+#include "optimization_application.h"
 
 // Include base h
 #include "implicit_filter_utils.h"
@@ -40,6 +41,31 @@ void ImplicitFilterUtils::CalculateNodeNeighbourCount(
         }
     });
     rModelPart.GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+}
+
+void ImplicitFilterUtils::SetBulkRadiusForShapeFiltering(
+    ModelPart& rModelPart)
+{
+    ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+    rCurrentProcessInfo.SetValue(HELMHOLTZ_BULK_RADIUS_SHAPE,1.0);
+
+    const double local_volume_strain_energy = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](auto& rElement) {
+        double elem_val;
+        rElement.Calculate(ELEMENT_STRAIN_ENERGY,elem_val,rCurrentProcessInfo);
+        return elem_val;
+    });
+
+    const double local_surface_strain_energy = block_for_each<SumReduction<double>>(rModelPart.Conditions(), [&](auto& rCondition) {
+        double cond_val;
+        rCondition.Calculate(ELEMENT_STRAIN_ENERGY,cond_val,rCurrentProcessInfo);
+        return cond_val;
+    });
+
+    double bulk_filter_size = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_surface_strain_energy);
+    bulk_filter_size /= rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_volume_strain_energy);
+
+    rCurrentProcessInfo.SetValue(HELMHOLTZ_BULK_RADIUS_SHAPE,bulk_filter_size);
+
 }
 
 }

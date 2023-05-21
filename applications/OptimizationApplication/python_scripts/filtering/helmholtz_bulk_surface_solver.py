@@ -30,32 +30,40 @@ class HelmholtzBulkSurfaceSolver(HelmholtzSolverBase):
         KM.Logger.PrintInfo("::[HelmholtzBulkSurfaceSolver]:: DOFs ADDED.")
 
     def PrepareModelPart(self):
-        pass
 
-        # #check elements types
-        # is_surface = False
-        # num_nodes = None
-        # for elem in self.original_model_part.Elements:
-        #     geom = elem.GetGeometry()
-        #     if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
-        #         is_surface = True
-        #     num_nodes = len(elem.GetNodes())
-        #     break
+        #check original model part has both conditions and elements
+        if self.original_model_part.NumberOfConditions()<1:
+            raise Exception('::[HelmholtzBulkSurfaceSolver]:: given model part must have surface conditions')
 
-        # if is_surface:
-        #     if num_nodes == 3:
-        #         KM.ConnectivityPreserveModeler().GenerateModelPart(
-        #                 self.original_model_part, self.helmholtz_model_part, "HelmholtzSurfaceElement3D3N")
-        #     elif num_nodes == 4:
-        #         KM.ConnectivityPreserveModeler().GenerateModelPart(
-        #                 self.original_model_part, self.helmholtz_model_part, "HelmholtzSurfaceElement3D4N")
-        # else:
-        #     if num_nodes == 4:
-        #         KM.ConnectivityPreserveModeler().GenerateModelPart(
-        #                 self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidElement3D4N")
-        #     elif num_nodes == 8:
-        #         KM.ConnectivityPreserveModeler().GenerateModelPart(
-        #                 self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidElement3D8N")
+        num_elems_nodes = None
+        is_surface = False
+        for elem in self.original_model_part.Elements:
+            geom = elem.GetGeometry()
+            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
+                is_surface = True
+            num_elems_nodes = len(elem.GetNodes())
+            break
+
+        num_conds_nodes = None
+        for cond in self.original_model_part.Conditions:
+            geom = cond.GetGeometry()
+            num_conds_nodes = len(cond.GetNodes())
+            break
+
+        if num_elems_nodes != 4:
+            raise Exception('::[HelmholtzBulkSurfaceSolver]:: given model part must have only tetrahedral elemenst')
+        if num_conds_nodes != 3:
+            raise Exception('::[HelmholtzBulkSurfaceSolver]:: given model part must have only triangular conditions')
+        if is_surface:
+            raise Exception('::[HelmholtzBulkSurfaceSolver]:: given model part must have only solid elemenst')
+
+        KM.ConnectivityPreserveModeler().GenerateModelPart(
+            self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidShapeElement3D4N","HelmholtzSurfaceShapeCondition3D3N")
+
+        tmoc = KM.TetrahedralMeshOrientationCheck
+        flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+        KM.TetrahedralMeshOrientationCheck(self.helmholtz_model_part, False, flags).Execute()
+
 
 
 

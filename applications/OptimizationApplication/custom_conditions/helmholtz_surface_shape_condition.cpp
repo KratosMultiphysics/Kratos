@@ -134,7 +134,6 @@ void HelmholtzSurfaceShapeCondition::CalculateLocalSystem(MatrixType& rLeftHandS
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
         const auto &source = r_geometry[node_element].GetValue(HELMHOLTZ_VECTOR_SOURCE);
-        auto node_weight = r_geometry[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
         nodal_vals[3 * node_element + 0] = source[0];
         nodal_vals[3 * node_element + 1] = source[1];
         nodal_vals[3 * node_element + 2] = source[2];

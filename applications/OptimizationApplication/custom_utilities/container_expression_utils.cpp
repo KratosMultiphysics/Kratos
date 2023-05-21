@@ -122,6 +122,43 @@ void ComputeMatrixExpressionProduct(
 } // namespace ContainerVariableDataHolderUtilsHelper
 
 template<class TContainerType>
+int ContainerExpressionUtils::GetFlattenedSize(const ContainerExpression<TContainerType>& rContainer)
+{
+   return rContainer.GetFlattenedSize();
+}
+
+void ContainerExpressionUtils::EvaluateComponent(const Variable<double>& rVariable, const SpecializedContainerExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>& rNodalContainer, int cIndex)
+{
+    KRATOS_TRY
+
+    auto& r_container = rNodalContainer.GetContainer();
+    const IndexType number_of_entities = r_container.size();
+
+    if (number_of_entities > 0) {
+        const auto& r_expression = rNodalContainer.GetExpression();
+        auto shape = r_expression.GetShape();
+
+        KRATOS_ERROR_IF(shape.size()!=1 || shape[0] !=3)
+        << "EvaluateComponent: the given container is not vector container\n";
+
+        VariableExpressionDataIO<Vector> variable_flatten_data_io(shape);
+
+        //initialize the container variables first
+        VariableUtils().SetNonHistoricalVariableToZero(rVariable, rNodalContainer.GetModelPart().GetCommunicator().GhostMesh().Nodes());
+
+        IndexPartition<IndexType>(number_of_entities).for_each(Vector{}, [&r_container, &rVariable, &r_expression, &variable_flatten_data_io, &cIndex](const IndexType Index, Vector& rValue){
+            variable_flatten_data_io.Assign(rValue, r_expression, Index);
+            ContainerDataIO<ContainerDataIOTags::NonHistorical>::SetValue(*(r_container.begin() + Index), rVariable, rValue[cIndex]);
+        });
+
+        auto& r_communicator = rNodalContainer.GetModelPart().GetCommunicator();
+        // r_communicator.SynchronizeNonHistoricalVariable(rVariable);
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TContainerType>
 double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<TContainerType>& rContainer)
 {
     if (rContainer.GetFlattenedSize() == 0) {
@@ -637,6 +674,7 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
 
 // template instantiations
 #define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                      \
+    template int ContainerExpressionUtils::GetFlattenedSize(const ContainerExpression<ContainerType>&);                                                                                                                          \
     template double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
     template double ContainerExpressionUtils::NormInf(const ContainerExpression<ContainerType>&);                                                                                                                                \
     template double ContainerExpressionUtils::NormL2(const ContainerExpression<ContainerType>&);                                                                                                                                 \

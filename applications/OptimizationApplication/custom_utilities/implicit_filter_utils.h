@@ -41,6 +41,9 @@ public:
     static void CalculateNodeNeighbourCount(
         ModelPart& rModelPart);
 
+    static void SetBulkRadiusForShapeFiltering(
+        ModelPart& rModelPart);
+
     ///@}
 };
 

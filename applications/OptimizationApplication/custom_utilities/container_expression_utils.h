@@ -93,6 +93,17 @@ public:
     static double NormL2(const ContainerExpression<TContainerType>& rContainer);
 
     /**
+     * @brief Returns FlattenedSize of the given container expression.
+     * @tparam TContainerType
+     * @param rContainer                Container data
+     * @return int                   Flattened Size
+     */
+    template<class TContainerType>
+    static int GetFlattenedSize(const ContainerExpression<TContainerType>& rContainer);
+
+    static void EvaluateComponent(const Variable<double>& rVariable, const SpecializedContainerExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>& rContainer, int step);
+
+    /**
      * @brief Calculate L2 norm of the evaluated expressions for each entitiy.
      *
      * This method calculates the L2 norm of the expression by evaluating
