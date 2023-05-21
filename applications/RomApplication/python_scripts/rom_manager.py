@@ -214,11 +214,11 @@ class RomManager(object):
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         if any(item == "ROM" for item in training_stages):
             print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_train)
-        if any(item == "HROM" for item in training_stages) and not(chosen_projection_strategy == "lspg"):
+        if any(item == "HROM" for item in training_stages):
             print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
         if any(item == "ROM" for item in testing_stages):
             print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
-        if any(item == "HROM" for item in testing_stages) and not(chosen_projection_strategy == "lspg"):
+        if any(item == "HROM" for item in testing_stages):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
