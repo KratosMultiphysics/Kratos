@@ -239,56 +239,63 @@ namespace Kratos
 
         Matrix GetProjectedResidualsOntoPhiJ()
         {
-            // Getting the number of elements and conditions from the model
+            // Get the number of elements and conditions from the model.
             const int n_elements = static_cast<int>(mrModelPart.Elements().size());
             const int n_conditions = static_cast<int>(mrModelPart.Conditions().size());
 
+            // Assemble the left-hand side (LHS) of the equation projected onto the ROM_BASIS (Phi).
             Matrix rPhiJ;
             GetProjectedGlobalLHSOntoPhi(rPhiJ);
 
-            // Get ProcessInfo from main model part
+            // Retrieve the current process info.
             const auto& r_current_process_info = mrModelPart.GetProcessInfo();
 
-            // Assemble all entities
+            // Initialize a thread-local storage container for assembling entities.
             RomResidualsUtility::AssemblyTLS assembly_tls_container;
 
+            // Retrieve the elements and conditions from the model part.
             const auto& r_elements = mrModelPart.Elements();
             const auto& r_conditions = mrModelPart.Conditions();
 
-            Matrix matrix_residuals( (n_elements + n_conditions), mRomDofs); // Matrix of reduced residuals.
+            // Initialize the matrix of reduced residuals.
+            Matrix matrix_residuals( (n_elements + n_conditions), mRomDofs);
 
-            // Declare a counter variable outside the loop as std::atomic<int>
-            std::atomic<int> i(0);
-
+            std::atomic<int> i(0); // Declare a counter variable outside the loop as std::atomic<int>.
             block_for_each(r_elements, assembly_tls_container, [&](Element& r_element, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
             {
+                // Skip inactive elements.
                 if (r_element.IsDefined(ACTIVE) && r_element.IsNot(ACTIVE)) return;
 
-                // Calculate elemental contribution
+                // Calculate the elemental contribution to the RHS.
                 mpScheme->CalculateRHSContribution(r_element, r_thread_prealloc.rhs, r_thread_prealloc.eq_id, r_current_process_info);
                 r_element.GetDofList(r_thread_prealloc.dofs, r_current_process_info);
 
+                // Resize the phiJE matrix if necessary and retrieve the corresponding phiJ elemental matrix.
                 const std::size_t ndofs = r_thread_prealloc.dofs.size();
                 ResizeIfNeeded(r_thread_prealloc.phiJE, ndofs, mRomDofs);
                 RomAuxiliaryUtilities::GetPhiJElemental(r_thread_prealloc.phiJE, r_thread_prealloc.dofs, rPhiJ);
-                noalias(row(matrix_residuals, i)) = prod(trans(r_thread_prealloc.phiJE), r_thread_prealloc.rhs); // The size of the residual will vary only when using more ROM modes, one row per condition
+
+                // Calculate and store the reduced residual for this element.
+                noalias(row(matrix_residuals, i++)) = prod(trans(r_thread_prealloc.phiJE), r_thread_prealloc.rhs); 
             });
 
-            // Declare a counter variable outside the loop as std::atomic<int>
-            std::atomic<int> j(0);
-
+            std::atomic<int> j(0); // Declare a counter variable outside the loop as std::atomic<int>.
             block_for_each(r_conditions, assembly_tls_container, [&](Condition& r_condition, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
             {
+                // Skip inactive conditions.
                 if (r_condition.IsDefined(ACTIVE) && r_condition.IsNot(ACTIVE)) return;
 
-                // Calculate elemental contribution
+                // Calculate the elemental contribution to the RHS.
                 mpScheme->CalculateRHSContribution(r_condition, r_thread_prealloc.rhs, r_thread_prealloc.eq_id, r_current_process_info);
                 r_condition.GetDofList(r_thread_prealloc.dofs, r_current_process_info);
 
+                // Resize the phiJE matrix if necessary and retrieve the corresponding phiJ elemental matrix.
                 const std::size_t ndofs = r_thread_prealloc.dofs.size();
                 ResizeIfNeeded(r_thread_prealloc.phiJE, ndofs, mRomDofs);
                 RomAuxiliaryUtilities::GetPhiJElemental(r_thread_prealloc.phiJE, r_thread_prealloc.dofs, rPhiJ);
-                noalias(row(matrix_residuals, n_elements + j)) = prod(trans(r_thread_prealloc.phiJE), r_thread_prealloc.rhs); // The size of the residual will vary only when using more ROM modes, one row per condition
+
+                // Calculate and store the reduced residual for this condition.
+                noalias(row(matrix_residuals, n_elements + j++)) = prod(trans(r_thread_prealloc.phiJE), r_thread_prealloc.rhs); // The size of the residual will vary only when using more ROM modes, one row per condition
             });
 
             return matrix_residuals;
@@ -296,9 +303,16 @@ namespace Kratos
 
         void GetProjectedGlobalLHSOntoPhi(Matrix& rPhiJ)
         {
+            // Get the total number of nodes in the model part.
             const auto& n_nodes = mrModelPart.NumberOfNodes();
+            
+            // Calculate the total system size based on the number of nodes and nodal degrees of freedom (DOFs).
             const int system_size = n_nodes*mNodalDofs;
+
+            // Resize the output matrix to match the system size and the ROM basis size.
             rPhiJ.resize(system_size, mRomDofs);
+
+            // Call the function to build the projected global LHS.
             BuildGlobalLHSProjectedOntoPhi(mpScheme, mrModelPart, rPhiJ);
         }
 
