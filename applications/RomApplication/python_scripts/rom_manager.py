@@ -137,7 +137,10 @@ class RomManager(object):
                 rom_snapshots = self.__LaunchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in testing_stages):
-                raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
+                #FIXME there will be an error if we only train HROM, but not ROM
+                self._ChangeRomFlags(simulation_to_run = "runHROMLeastSquaresPetrovGalerkin")
+                hrom_snapshots = self.__LaunchHROM(mu_test)
+                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################################
 
 
