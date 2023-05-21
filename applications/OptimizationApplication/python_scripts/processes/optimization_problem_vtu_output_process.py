@@ -74,7 +74,8 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
                 "write_deformed_configuration": false,
                 "list_of_output_components"   : ["all"],
                 "output_precision"            : 7,
-                "output_interval"             : 1
+                "output_interval"             : 1,
+                "echo_level"                  : 0
             }
             """
         )
@@ -86,6 +87,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
 
         self.optimization_problem = optimization_problem
 
+        self.echo_level = parameters["echo_level"].GetInt()
         self.output_name_prefix = parameters["custom_name_prefix"].GetString()
         self.write_deformed_configuration = parameters["write_deformed_configuration"].GetBool()
         self.output_precision = parameters["output_precision"].GetInt()
@@ -170,6 +172,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         found_vtu_output = False
         for expression_vtu_output in self.list_of_expresson_vtu_outputs:
             if model_part == expression_vtu_output.GetModelPart():
+                found_vtu_output = True
                 if index == -1:
                     expression_vtu_output.AddContainerExpressionPath(component_data.GetComponentName(), data_path)
                 else:
@@ -182,4 +185,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
                 expression_vtu_output.AddContainerExpressionPath(component_data.GetComponentName(), data_path)
             else:
                 expression_vtu_output.AddCollectiveExpressionPath(component_data.GetComponentName(), data_path, index)
+
             self.list_of_expresson_vtu_outputs.append(expression_vtu_output)
+            if self.echo_level > 0:
+                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Created expression vtu output for {model_part.FullName()}.")
