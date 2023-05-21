@@ -60,7 +60,8 @@ class PetrovGalerkinTrainingUtility(object):
 
         # Generate the matrix of residuals or projected Jacobians.
         if self.basis_strategy=="jacobian":
-            snapshots_matrix = self.__rom_residuals_utility.GetProjectedGlobalLHSOntoPhi()
+            snapshots_matrix = KratosMultiphysics.Matrix()
+            self.__rom_residuals_utility.GetProjectedGlobalLHSOntoPhi(snapshots_matrix)
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generated matrix of projected Jacobian.")
         elif self.basis_strategy=="residuals":
             snapshots_matrix = []

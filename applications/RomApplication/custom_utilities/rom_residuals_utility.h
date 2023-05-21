@@ -315,24 +315,24 @@ namespace Kratos
 
 
             // Assembly
-            // for(std::size_t row=0; row < ndofs; ++row)
-            // {
-            //     const std::size_t global_row = rPreAlloc.eq_id[row];
+            for(std::size_t row=0; row < ndofs; ++row)
+            {
+                const std::size_t global_row = rPreAlloc.eq_id[row];
 
-            //     double& r_bi = rBglobal(global_row);
-            //     AtomicAdd(r_bi, rPreAlloc.romB[row]);
+                double& r_bi = rBglobal(global_row);
+                AtomicAdd(r_bi, rPreAlloc.romB[row]);
 
-            //     if(rPreAlloc.dofs[row]->IsFree())
-            //     {
-            //         for(std::size_t col=0; col < mRomDofs; ++col)
-            //         {
-            //             // const std::size_t global_col = rPreAlloc.eq_id[col];
-            //             const std::size_t global_col = col;
-            //             double& r_aij = rAglobal(global_row, global_col);
-            //             AtomicAdd(r_aij, rPreAlloc.romA(row, col));
-            //         }
-            //     }
-            // }
+                if(rPreAlloc.dofs[row]->IsFree())
+                {
+                    for(std::size_t col=0; col < mRomDofs; ++col)
+                    {
+                        // const std::size_t global_col = rPreAlloc.eq_id[col];
+                        const std::size_t global_col = col;
+                        double& r_aij = rAglobal(global_row, global_col);
+                        AtomicAdd(r_aij, rPreAlloc.romA(row, col));
+                    }
+                }
+            }
         }
 
     protected:
