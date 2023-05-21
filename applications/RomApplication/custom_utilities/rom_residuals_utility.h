@@ -235,14 +235,14 @@ namespace Kratos
         return matrix_residuals;
         }
 
-        Matrix GetProjectedGlobalLHSOntoPhi()
+
+
+        void GetProjectedGlobalLHSOntoPhi(Matrix& rA)
         {
             const auto& n_nodes = mrModelPart.NumberOfNodes();
             const int system_size = n_nodes*mNodalDofs;
-            Matrix r_a = ZeroMatrix(system_size, mRomDofs);
-            Vector r_b = ZeroVector(system_size);
-            BuildGlobalLHS(mpScheme, mrModelPart, r_a, r_b);
-            return r_a;
+            rA.resize(system_size, mRomDofs);
+            BuildGlobalLHS(mpScheme, mrModelPart, rA);
         }
 
         /**
@@ -251,8 +251,7 @@ namespace Kratos
         void BuildGlobalLHS(
             BaseSchemeType::Pointer pScheme,
             ModelPart &rModelPart,
-            Matrix &rA,
-            Vector &rb) 
+            Matrix &rA) 
         {
             KRATOS_TRY
 
@@ -273,7 +272,7 @@ namespace Kratos
                 block_for_each(r_elements, assembly_tls_container, 
                     [&](Element& r_element, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
                 {
-                    CalculateLocalContributionLSPG(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
+                    CalculateLocalLHSContributionLSPG(r_element, rA, r_thread_prealloc, *pScheme, r_current_process_info);
                 });
             }
 
@@ -285,17 +284,16 @@ namespace Kratos
                 block_for_each(r_conditions, assembly_tls_container, 
                     [&](Condition& r_condition, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
                 {
-                    CalculateLocalContributionLSPG(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
+                    CalculateLocalLHSContributionLSPG(r_condition, rA, r_thread_prealloc, *pScheme, r_current_process_info);
                 });
             }
             KRATOS_CATCH("")
         }
 
         template<typename TEntity>
-        void CalculateLocalContributionLSPG(
+        void CalculateLocalLHSContributionLSPG(
             TEntity& rEntity,
             Matrix& rAglobal,
-            Vector& rBglobal,
             RomResidualsUtility::AssemblyTLS& rPreAlloc,
             BaseSchemeType& rScheme,
             const ProcessInfo& rCurrentProcessInfo)
@@ -317,24 +315,24 @@ namespace Kratos
 
 
             // Assembly
-            for(std::size_t row=0; row < ndofs; ++row)
-            {
-                const std::size_t global_row = rPreAlloc.eq_id[row];
+            // for(std::size_t row=0; row < ndofs; ++row)
+            // {
+            //     const std::size_t global_row = rPreAlloc.eq_id[row];
 
-                double& r_bi = rBglobal(global_row);
-                AtomicAdd(r_bi, rPreAlloc.romB[row]);
+            //     double& r_bi = rBglobal(global_row);
+            //     AtomicAdd(r_bi, rPreAlloc.romB[row]);
 
-                if(rPreAlloc.dofs[row]->IsFree())
-                {
-                    for(std::size_t col=0; col < mRomDofs; ++col)
-                    {
-                        // const std::size_t global_col = rPreAlloc.eq_id[col];
-                        const std::size_t global_col = col;
-                        double& r_aij = rAglobal(global_row, global_col);
-                        AtomicAdd(r_aij, rPreAlloc.romA(row, col));
-                    }
-                }
-            }
+            //     if(rPreAlloc.dofs[row]->IsFree())
+            //     {
+            //         for(std::size_t col=0; col < mRomDofs; ++col)
+            //         {
+            //             // const std::size_t global_col = rPreAlloc.eq_id[col];
+            //             const std::size_t global_col = col;
+            //             double& r_aij = rAglobal(global_row, global_col);
+            //             AtomicAdd(r_aij, rPreAlloc.romA(row, col));
+            //         }
+            //     }
+            // }
         }
 
     protected:
