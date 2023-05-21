@@ -158,6 +158,20 @@ public:
         const Element::GeometryType& rGeom,
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
 
+    /**
+     * @brief Obtain the PhiJ elemental matrix for a particular element. 
+     * PhiJ represents the projection of the Jacobian onto the ROM_BASIS.
+     * @param rPhiJElemental The matrix to store the result in. Must have the appropriate size already.
+     * @param rDofs The set of degrees of freedom (DoFs) of the element.
+     * @param rPhiJ The PhiJ matrix, from which rows are extracted according to the equation ID of each DoF.
+     * 
+     * This function loops over all the DoFs for the given element. For each DoF, it uses its equation ID to extract a 
+     * corresponding row from the rPhiJ matrix, which is then stored in the corresponding row of rPhiJElemental.
+     */
+    static void GetPhiJElemental(
+        Matrix &rPhiJElemental,
+        const Element::DofsVectorType& rDofs,
+        const Matrix &rPhiJ);
     ///@}
 
     private:

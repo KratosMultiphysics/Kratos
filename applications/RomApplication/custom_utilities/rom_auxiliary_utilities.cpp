@@ -499,6 +499,19 @@ void RomAuxiliaryUtilities::GetPsiElemental(
                 noalias(row(rPsiElemental, i)) = row(r_nodal_rom_basis, row_id);
             }
         }
-    } 
+    }
+
+void RomAuxiliaryUtilities::GetPhiJElemental(
+    Matrix &rPhiJElemental,
+    const Element::DofsVectorType& rDofs,
+    const Matrix &rPhiJ)
+    {
+        for(std::size_t i = 0; i < rDofs.size(); ++i)
+        {
+            const Dof<double>& r_dof = *rDofs[i];
+            noalias(row(rPhiJElemental, i)) = row(rPhiJ, r_dof.EquationId());
+        }
+    }
+
 
 } // namespace Kratos
