@@ -64,6 +64,8 @@ class HRomTrainingUtility(object):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
         elif (self.projection_strategy=="petrov_galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
+        elif (self.projection_strategy=="lspg"):
+                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhiJ()
         else:
             err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
             raise Exception(err_msg)
