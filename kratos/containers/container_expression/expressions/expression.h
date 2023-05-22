@@ -34,6 +34,7 @@ namespace Kratos {
  */
 class KRATOS_API(KRATOS_CORE) Expression {
 public:
+
     ///@name Type definitions
     ///@{
 
@@ -55,6 +56,8 @@ public:
         ///@}
         ///@name Life cycle
         ///@{
+
+        ExpressionIterator();
 
         ExpressionIterator(Expression::Pointer pExpression);
 
@@ -99,9 +102,9 @@ public:
 
         IndexType mEntityDataBeginIndex;
 
-        IndexType mComponentIndex;
+        IndexType mItemComponentIndex;
 
-        IndexType mFlattenedShapeSize;
+        IndexType mItemComponentCount;
 
         ///@}
         ///@name Friend classes
@@ -111,6 +114,16 @@ public:
 
         ///@}
     };
+
+    ///@}
+    ///@name Iterator type definitions
+    ///@{
+
+    using value_type = double;
+
+    using size_type = IndexType;
+
+    using const_iterator = ExpressionIterator;
 
     ///@}
     ///@name Life cycle
@@ -142,7 +155,7 @@ public:
      *
      * @return const std::vector<IndexType>     Size of each dimension is in the vector elements.
      */
-    virtual const std::vector<IndexType> GetShape() const = 0;
+    virtual const std::vector<IndexType> GetItemShape() const = 0;
 
     /**
      * @brief Get the maximum number of entities allowed for this expression.
@@ -156,15 +169,21 @@ public:
      *
      * @return IndexType
      */
-    IndexType GetFlattenedShapeSize() const;
+    IndexType GetItemComponentCount() const;
 
     ///@}
     ///@name Input and output
     ///@{
 
-    ExpressionIterator cbegin() const;
+    IndexType size() const;
 
-    ExpressionIterator cend() const;
+    const_iterator begin() const;
+
+    const_iterator end() const;
+
+    const_iterator cbegin() const;
+
+    const_iterator cend() const;
 
     virtual std::string Info() const = 0;
 
