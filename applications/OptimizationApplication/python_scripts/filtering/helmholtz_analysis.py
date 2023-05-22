@@ -35,72 +35,38 @@ class HelmholtzAnalysis(AnalysisStage):
     def _SetHelmHoltzSourceMode(self, integrated_field=False):
         self._GetComputingModelPart().ProcessInfo.SetValue(KOA.HELMHOLTZ_INTEGRATED_FIELD, integrated_field)
 
-    def _MapDataExpressionToNodalSource(self, data_exp: ContainerExpressionTypes):
+    def _MapDataExpressionToNodalExpression(self, data_exp: ContainerExpressionTypes):
         if type(data_exp) == KM.ContainerExpression.NodalNonHistoricalExpression:
-            data_exp.Evaluate(KOA.HELMHOLTZ_SCALAR_SOURCE)
+            return data_exp
         elif type(data_exp) == KM.ContainerExpression.ElementNonHistoricalExpression:
             neighbour_elems = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
             KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourElements(neighbour_elems)
             mapped_values = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
             KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_elems)
-            mapped_values.Evaluate(KOA.HELMHOLTZ_SCALAR_SOURCE)
+            return mapped_values
         elif type(data_exp) == KM.ContainerExpression.ConditionNonHistoricalExpression:
             neighbour_conds = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
             KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourConditions(neighbour_conds)
             mapped_values = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
             KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_conds)
-            mapped_values.Evaluate(KOA.HELMHOLTZ_SCALAR_SOURCE)
-
-    def _MapVectorDataExpressionToNodalSource(self, data_exp: ContainerExpressionTypes):
-        if type(data_exp) == KM.ContainerExpression.NodalNonHistoricalExpression:
-            data_exp.Evaluate(KOA.HELMHOLTZ_VECTOR_SOURCE)
-        elif type(data_exp) == KM.ContainerExpression.ElementNonHistoricalExpression:
-            neighbour_elems = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
-            KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourElements(neighbour_elems)
-            mapped_values = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
-            KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_elems)
-            mapped_values.Evaluate(KOA.HELMHOLTZ_VECTOR_SOURCE)
-        elif type(data_exp) == KM.ContainerExpression.ConditionNonHistoricalExpression:
-            neighbour_conds = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
-            KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourConditions(neighbour_conds)
-            mapped_values = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
-            KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_conds)
-            mapped_values.Evaluate(KOA.HELMHOLTZ_VECTOR_SOURCE)
+            return mapped_values
 
     def _MapNodalSolutionToDataExpression(self, output_data_exp_type):
-        if output_data_exp_type == KM.ContainerExpression.NodalNonHistoricalExpression:
-            hist_nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
-            hist_nodal_solution_field.Read(KOA.HELMHOLTZ_SCALAR)
-            non_hist_nodal_solution_field = KM.ContainerExpression.NodalNonHistoricalExpression(hist_nodal_solution_field)
-            return non_hist_nodal_solution_field
-        elif output_data_exp_type == KM.ContainerExpression.ElementNonHistoricalExpression:
-            nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
-            nodal_solution_field.Read(KOA.HELMHOLTZ_SCALAR)
-            mapped_elemental_solution_field = KM.ContainerExpression.ElementNonHistoricalExpression(self._GetComputingModelPart())
-            KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_elemental_solution_field, nodal_solution_field)
-            return mapped_elemental_solution_field
-        elif output_data_exp_type == KM.ContainerExpression.ConditionNonHistoricalExpression:
-            nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
-            nodal_solution_field.Read(KOA.HELMHOLTZ_SCALAR)
-            mapped_condition_solution_field = KM.ContainerExpression.ConditionNonHistoricalExpression(self._GetComputingModelPart())
-            KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_condition_solution_field, nodal_solution_field)
-            return mapped_condition_solution_field
 
-    def _MapVectorNodalSolutionToDataExpression(self, output_data_exp_type):
+        nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
+        if type(self._GetSolver()) == HelmholtzBulkSurfaceSolver:
+            nodal_solution_field.Read(KOA.HELMHOLTZ_VECTOR)
+        else:
+            nodal_solution_field.Read(KOA.HELMHOLTZ_SCALAR)
+
         if output_data_exp_type == KM.ContainerExpression.NodalNonHistoricalExpression:
-            hist_nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
-            hist_nodal_solution_field.Read(KOA.HELMHOLTZ_VECTOR)
-            non_hist_nodal_solution_field = KM.ContainerExpression.NodalNonHistoricalExpression(hist_nodal_solution_field)
+            non_hist_nodal_solution_field = KM.ContainerExpression.NodalNonHistoricalExpression(nodal_solution_field)
             return non_hist_nodal_solution_field
         elif output_data_exp_type == KM.ContainerExpression.ElementNonHistoricalExpression:
-            nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
-            nodal_solution_field.Read(KOA.HELMHOLTZ_VECTOR)
             mapped_elemental_solution_field = KM.ContainerExpression.ElementNonHistoricalExpression(self._GetComputingModelPart())
             KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_elemental_solution_field, nodal_solution_field)
             return mapped_elemental_solution_field
         elif output_data_exp_type == KM.ContainerExpression.ConditionNonHistoricalExpression:
-            nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
-            nodal_solution_field.Read(KOA.HELMHOLTZ_VECTOR)
             mapped_condition_solution_field = KM.ContainerExpression.ConditionNonHistoricalExpression(self._GetComputingModelPart())
             KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_condition_solution_field, nodal_solution_field)
             return mapped_condition_solution_field
@@ -133,52 +99,46 @@ class HelmholtzAnalysis(AnalysisStage):
 
     def FilterField(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
 
-        size = KOA.ContainerExpressionUtils.GetFlattenedSize(unfiltered_field)
+        mapped_unfiltered_field = self._MapDataExpressionToNodalExpression(unfiltered_field)
+
+        size = KOA.ContainerExpressionUtils.GetFlattenedSize(mapped_unfiltered_field)
         if size==3 and type(self._GetSolver()) == HelmholtzBulkSurfaceSolver:
-            return self.BulkSurfaceFilterVectorField(unfiltered_field)
+            self.BulkSurfaceFilterVectorField(mapped_unfiltered_field)
         elif size==3:
-            return self.FilterVectorField(unfiltered_field)
+            self.FilterVectorField(mapped_unfiltered_field)
         elif size==1:
-            return self.FilterScalarField(unfiltered_field)
-
-    def FilterScalarField(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-
-        self._MapDataExpressionToNodalSource(unfiltered_field)
-
-        self.Initialize()
-        self._SetSolverMode(False)
-        self._SetHelmHoltzSourceMode(False)
-        self.RunSolver()
+            self.FilterScalarField(mapped_unfiltered_field)
 
         return self._MapNodalSolutionToDataExpression(type(unfiltered_field))
 
-    def BulkSurfaceFilterVectorField(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def FilterScalarField(self, mapped_unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
 
-        self._MapVectorDataExpressionToNodalSource(unfiltered_field)
-
+        mapped_unfiltered_field.Evaluate(KOA.HELMHOLTZ_SCALAR_SOURCE)
         self.Initialize()
         self._SetSolverMode(False)
         self._SetHelmHoltzSourceMode(False)
         self.RunSolver()
 
-        return self._MapVectorNodalSolutionToDataExpression(type(unfiltered_field))
+    def BulkSurfaceFilterVectorField(self, mapped_unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
 
-    def FilterVectorField(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-
-        size = KOA.ContainerExpressionUtils.GetFlattenedSize(unfiltered_field)
-
-        print("size: ",size)
-        KOA.ContainerExpressionUtils.EvaluateComponent(KOA.HELMHOLTZ_SCALAR,unfiltered_field,0)
-        sds
-
-        self._MapVectorDataExpressionToNodalSource(unfiltered_field)
-
+        mapped_unfiltered_field.Evaluate(KOA.HELMHOLTZ_VECTOR_SOURCE)
         self.Initialize()
         self._SetSolverMode(False)
         self._SetHelmHoltzSourceMode(False)
         self.RunSolver()
 
-        return self._MapVectorNodalSolutionToDataExpression(type(unfiltered_field))
+    def FilterVectorField(self, mapped_unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+
+        filtered_field = KM.ContainerExpression.NodalNonHistoricalExpression(self._GetComputingModelPart())
+        filtered_field.SetData(KM.Array3([0, 0, 0]))
+
+        for i in range(3):
+            KOA.ImplicitFilterUtils.AssignVectorNodalExpressionToScalarVariable(KOA.HELMHOLTZ_SCALAR_SOURCE,mapped_unfiltered_field,i)
+            self.Initialize()
+            self._SetSolverMode(False)
+            self._SetHelmHoltzSourceMode(False)
+            self.RunSolver()
+            KOA.ImplicitFilterUtils.AssignScalarVariableToVectorNodalExpression(KOA.HELMHOLTZ_SCALAR_SOURCE,filtered_field,i)
 
     def FilterIntegratedField(self, unfiltered_field: KM.ContainerExpression.NodalNonHistoricalExpression) -> KM.ContainerExpression.HistoricalExpression:
 
@@ -190,6 +150,8 @@ class HelmholtzAnalysis(AnalysisStage):
         self.RunSolver()
 
         return self._MapNodalSolutionToDataExpression(type(unfiltered_field))
+
+
 
     def UnFilterField(self, filtered_field: KM.ContainerExpression.NodalNonHistoricalExpression) -> KM.ContainerExpression.HistoricalExpression:
 

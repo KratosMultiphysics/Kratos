@@ -101,8 +101,6 @@ public:
     template<class TContainerType>
     static int GetFlattenedSize(const ContainerExpression<TContainerType>& rContainer);
 
-    static void EvaluateComponent(const Variable<double>& rVariable, const SpecializedContainerExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>& rContainer, int step);
-
     /**
      * @brief Calculate L2 norm of the evaluated expressions for each entitiy.
      *

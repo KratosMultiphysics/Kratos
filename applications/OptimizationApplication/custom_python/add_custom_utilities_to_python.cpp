@@ -217,7 +217,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     m.def_submodule("ContainerExpressionUtils")
-        .def("EvaluateComponent", &ContainerExpressionUtils::EvaluateComponent)
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_expression"))
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ElementsContainerType>, py::arg("container_expression"))
@@ -257,6 +256,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     m.def_submodule("ImplicitFilterUtils")
         .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount)
         .def("SetBulkRadiusForShapeFiltering", &ImplicitFilterUtils::SetBulkRadiusForShapeFiltering)
+        .def("AssignVectorNodalExpressionToScalarVariable", &ImplicitFilterUtils::AssignVectorNodalExpressionToScalarVariable)
+        .def("AssignScalarVariableToVectorNodalExpression", &ImplicitFilterUtils::AssignScalarVariableToVectorNodalExpression)
         ;
 
 }

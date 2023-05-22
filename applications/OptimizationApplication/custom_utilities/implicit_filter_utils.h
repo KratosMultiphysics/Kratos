@@ -17,6 +17,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "containers/container_expression/specialized_container_expression.h"
+#include "containers/container_expression/container_data_io.h"
+#include "containers/container_expression/container_expression.h"
 
 // Application includes
 
@@ -43,6 +46,14 @@ public:
 
     static void SetBulkRadiusForShapeFiltering(
         ModelPart& rModelPart);
+
+    static void AssignVectorNodalExpressionToScalarVariable(const Variable<double>& rVariable,
+        const SpecializedContainerExpression<ModelPart::NodesContainerType,
+        ContainerDataIO<ContainerDataIOTags::NonHistorical>>& rContainer, int step);
+
+    static void AssignScalarVariableToVectorNodalExpression(const Variable<double>& rVariable,
+        SpecializedContainerExpression<ModelPart::NodesContainerType,
+        ContainerDataIO<ContainerDataIOTags::NonHistorical>>& rContainer, int step);
 
     ///@}
 };
