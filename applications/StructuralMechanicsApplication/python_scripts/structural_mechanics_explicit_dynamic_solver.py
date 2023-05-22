@@ -1,9 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import sys
-import sys
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
@@ -99,14 +96,9 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         scheme_type = self.settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters
-        KratosMultiphysics.Logger.PrintWarning("ExplicitMechanicalSolver", "RAYLEIGH_ALPHA and RAYLEIGH_BETA are set in explicit simulation, this support is legacy and will be removed at some point")
         process_info = self.main_model_part.ProcessInfo
-        rayleigh_alpha = self.settings["rayleigh_alpha"].GetDouble()
-        if rayleigh_alpha > sys.float_info.epsilon:
-            process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = rayleigh_alpha
-        rayleigh_beta = self.settings["rayleigh_beta"].GetDouble()
-        if rayleigh_beta > sys.float_info.epsilon:
-            process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = rayleigh_beta
+        process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.settings["rayleigh_alpha"].GetDouble()
+        process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.settings["rayleigh_beta"].GetDouble()
 
         # Setting the time integration schemes
         if scheme_type == "central_differences":
