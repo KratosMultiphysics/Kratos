@@ -95,6 +95,7 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
         buffered_dict[f"v_float"] = 2.3 * step_v
         buffered_dict[f"v_int"] = 2 * step_v
         buffered_dict[f"v_bool"] = bool(step_v % 2)
+        buffered_dict[f"v_str"] = f"lengthy_str_{step_v}"
 
     def test_OptimizationProblemAsciiOutputProcess(self):
         parameters = Kratos.Parameters(
@@ -107,7 +108,8 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
                 "format_info": {
                     "int_length"     : 7,
                     "float_precision": 9,
-                    "bool_values"    : ["no", "yes"]
+                    "bool_values"    : ["no", "yes"],
+                    "string_length"  : 14
                 }
             }
             """

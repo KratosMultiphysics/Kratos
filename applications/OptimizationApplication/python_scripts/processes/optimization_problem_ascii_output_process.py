@@ -33,7 +33,7 @@ class Header:
             value_format_post_fix = f".{format_info[type(value)]}e"
             self.__value_converter = lambda x: float(x)
         else:
-            value_length = len(str(value))
+            value_length = format_info[str]
             value_format_post_fix = "s"
             self.__value_converter = lambda x: str(x)
 
@@ -63,7 +63,8 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                 "format_info": {
                     "int_length"     : 7,
                     "float_precision": 9,
-                    "bool_values"    : ["no", "yes"]
+                    "bool_values"    : ["no", "yes"],
+                    "string_length"  : 10
                 }
             }
             """
@@ -87,6 +88,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
             int  : parameters["format_info"]["int_length"].GetInt(),
             float: parameters["format_info"]["float_precision"].GetInt(),
             bool : parameters["format_info"]["bool_values"].GetStringArray(),
+            str  : parameters["format_info"]["string_length"].GetInt(),
         }
 
         if len(self.format_info[bool]) != 2:
