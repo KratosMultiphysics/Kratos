@@ -90,7 +90,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
         }
 
         if len(self.format_info[bool]) != 2:
-            raise RuntimeError("The \"bool_values\" should have only two strings corresponding to True and False values.")
+            raise RuntimeError("The \"bool_values\" should have only two strings corresponding to False and True values in the mentioned order.")
 
         self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         list_of_component_names = parameters["list_of_output_components"].GetStringArray()
