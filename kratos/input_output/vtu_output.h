@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "includes/io.h"
 #include "includes/model_part.h"
 #include "containers/variable.h"

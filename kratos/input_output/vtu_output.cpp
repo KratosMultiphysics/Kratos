@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <string>
 #include <vector>
 #include <iomanip>
 #include <numeric>
@@ -19,16 +18,12 @@
 // External includes
 
 // Project includes
-#include "containers/container_expression/expressions/expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/specialized_container_expression.h"
 #include "includes/data_communicator.h"
-#include "includes/define.h"
-#include "includes/io.h"
 #include "utilities/global_pointer_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
-#include "utilities/reduction_utilities.h"
 #include "utilities/string_utilities.h"
 
 // Include base h
@@ -312,7 +307,7 @@ private:
 
         constexpr IndexType data_type_size = sizeof(decltype(*(transformed_expressions[0]->cbegin())));
         const IndexType total_entities = std::accumulate(rExpressions.begin(), rExpressions.end(), 0U, [](const IndexType LHS, const auto& pExpression) { return LHS + pExpression->NumberOfEntities();});
-        const IndexType flattened_shape_size = rExpressions[0]->GetFlattenedShapeSize();
+        const IndexType flattened_shape_size = rExpressions[0]->GetItemComponentCount();
         const IndexType total_number_of_values = total_entities * flattened_shape_size;
         const unsigned int total_data_size = total_number_of_values * data_type_size;
 
@@ -371,9 +366,9 @@ public:
 
         for (const auto& p_expression : rExpressions) {
             if (number_of_components == 0) {
-                number_of_components = p_expression->GetFlattenedShapeSize();
+                number_of_components = p_expression->GetItemComponentCount();
             }
-            KRATOS_ERROR_IF(number_of_components != p_expression->GetFlattenedShapeSize())
+            KRATOS_ERROR_IF(number_of_components != p_expression->GetItemComponentCount())
                 << "Found expressions with mismatching shapes.";
         }
 
@@ -751,7 +746,7 @@ Expression::Pointer CreateGhostNodeExpression(
 
     GlobalPointerCommunicator<ModelPart::NodeType> pointer_comm(rDataCommunicator, gp_list.ptr_begin(), gp_list.ptr_end());
 
-    const IndexType number_of_components = rLocalNodesExpression.GetFlattenedShapeSize();
+    const IndexType number_of_components = rLocalNodesExpression.GetItemComponentCount();
 
     auto values_proxy = pointer_comm.Apply(
         [&rLocalNodesExpression, number_of_components, &rKratosVtuIndicesMap](GlobalPointer<ModelPart::NodeType>& rGP) -> std::vector<double> {
@@ -769,7 +764,7 @@ Expression::Pointer CreateGhostNodeExpression(
         }
     );
 
-    auto p_ghost_nodes_expression = LiteralFlatExpression<double>::Create(number_of_ghost_nodes, rLocalNodesExpression.GetShape());
+    auto p_ghost_nodes_expression = LiteralFlatExpression<double>::Create(number_of_ghost_nodes, rLocalNodesExpression.GetItemShape());
     auto data_itr = p_ghost_nodes_expression->begin();
 
     for(IndexType i = 0; i < number_of_ghost_nodes; ++i) {
