@@ -499,7 +499,7 @@ void BaseSolidElement::AddExplicitContribution(
     Vector damping_residual_contribution = ZeroVector(element_size);
 
     // Calculate damping contribution to residual -->
-    if (r_prop.Has(RAYLEIGH_ALPHA) || r_prop.Has(RAYLEIGH_BETA)) {
+    if (StructuralMechanicsElementUtilities::HasRayleighDamping(r_prop, rCurrentProcessInfo)) {
         Vector current_nodal_velocities = ZeroVector(element_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
