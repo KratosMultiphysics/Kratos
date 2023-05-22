@@ -64,20 +64,8 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS );
 
     ///@}
-    ///@name Public classes
+    ///@name Public enums
     ///@{
-
-    struct VariableComparator
-    {
-        bool operator()(
-            const SupportedVariables& rFirst,
-            const SupportedVariables& rSecond) const
-        {
-            return std::visit([](auto pFirst, auto pSecond) {
-                return pFirst->Key() < pSecond->Key();
-            }, rFirst, rSecond);
-        }
-    };
 
     enum WriterFormat
     {
