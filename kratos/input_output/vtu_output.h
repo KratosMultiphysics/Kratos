@@ -124,6 +124,8 @@ public:
 
     void ClearCellContainerExpressions();
 
+    const ModelPart& GetModelPart() const;
+
     void PrintOutput(const std::string& rOutputFilenamePrefix);
 
     ///@}

@@ -1245,6 +1245,11 @@ void VtuOutput::ClearCellContainerExpressions()
     mCellContainerExpressionsMap.clear();
 }
 
+const ModelPart& VtuOutput::GetModelPart() const
+{
+    return mrModelPart;
+}
+
 void VtuOutput::PrintOutput(const std::string& rOutputFilenamePrefix)
 {
     WriteModelPart(rOutputFilenamePrefix, mrModelPart);
