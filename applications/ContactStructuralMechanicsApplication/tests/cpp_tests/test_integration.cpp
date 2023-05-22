@@ -34,7 +34,7 @@
 namespace Kratos::Testing 
 {
 typedef Point                                                     PointType;
-typedef Node<3>                                                    NodeType;
+typedef Node                                                    NodeType;
 typedef Geometry<NodeType>                                 GeometryNodeType;
 typedef Geometry<PointType>                               GeometryPointType;
 typedef std::size_t                                               IndexType;

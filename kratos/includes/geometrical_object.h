@@ -65,7 +65,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeometricalObject);
 
     /// Definition of the node type
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry type definition
     typedef Geometry<NodeType> GeometryType;

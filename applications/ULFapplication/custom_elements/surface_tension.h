@@ -99,8 +99,8 @@ public:
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters
@@ -910,7 +910,7 @@ public:
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {
-            Node<3> &rNode = this->GetGeometry()[i];
+            Node &rNode = this->GetGeometry()[i];
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,rNode);
@@ -2384,7 +2384,7 @@ protected:
 	    fsign4 = fsign4/abs(fsign4);
 
 	    int num_neighs_l = 0;
-	    GlobalPointersVector< Node<3> >& neighb_l = this->GetGeometry()[ll].GetValue(NEIGHBOUR_NODES);
+	    GlobalPointersVector< Node >& neighb_l = this->GetGeometry()[ll].GetValue(NEIGHBOUR_NODES);
 	    for (unsigned int i = 0; i < neighb_l.size(); i++)
 	    {
 	      if (neighb_l[i].FastGetSolutionStepValue(IS_BOUNDARY) != 0.0)

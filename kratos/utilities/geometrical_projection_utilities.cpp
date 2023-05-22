@@ -23,7 +23,7 @@ namespace Kratos
 {
 GeometricalProjectionUtilities::DistanceComputed GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(
     double& rDistance,
-    const Geometry<Node<3>>& rSegment,
+    const Geometry<Node>& rSegment,
     const Point& rPoint,
     const double Radius,
     const double Tolerance
@@ -33,10 +33,10 @@ GeometricalProjectionUtilities::DistanceComputed GeometricalProjectionUtilities:
     if (Radius < std::numeric_limits<double>::epsilon()) {
         return DistanceComputed::NO_RADIUS;
     } else {
-        Line3D2<Node<3>> line(rSegment.Points()); // NOTE: TO ENSURE THAT IT IS 3D IN CASE IS DECLARED AS 2D
+        Line3D2<Node> line(rSegment.Points()); // NOTE: TO ENSURE THAT IT IS 3D IN CASE IS DECLARED AS 2D
         Point projected_point;
         const double projected_distance = GeometricalProjectionUtilities::FastProjectOnLine(line, rPoint, projected_point);
-        typename Geometry<Node<3>>::CoordinatesArrayType projected_local;
+        typename Geometry<Node>::CoordinatesArrayType projected_local;
         // If projection is inside, just remove the radius
         if (line.IsInside(projected_point.Coordinates(), projected_local, Tolerance)) {
             rDistance = projected_distance - Radius;

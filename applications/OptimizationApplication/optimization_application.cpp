@@ -34,9 +34,9 @@ namespace Kratos
         /* ELEMENTS */
         mHelmholtzSurfShape3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
         mHelmholtzSurfThickness3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-        mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-        mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-        mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
+        mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+        mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
         /* CONDITIONS */
         mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))
     {}
@@ -169,6 +169,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(HELMHOLTZ_RADIUS_DENSITY);
         KRATOS_REGISTER_VARIABLE(COMPUTE_CONTROL_DENSITIES);
 
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE);
         KRATOS_REGISTER_VARIABLE(CROSS_AREA);
         KRATOS_REGISTER_VARIABLE(DENSITY_SENSITIVITY);
         KRATOS_REGISTER_VARIABLE(THICKNESS_SENSITIVITY);

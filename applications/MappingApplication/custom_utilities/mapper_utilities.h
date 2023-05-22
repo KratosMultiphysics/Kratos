@@ -35,7 +35,7 @@ namespace MapperUtilities {
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointerType;
 
@@ -258,7 +258,7 @@ void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVaria
 {
     KRATOS_TRY;
 
-    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(rModelPart.Nodes(), [&](Node& rNode){
         rNode.GetData().Erase(rVariable);
     });
 

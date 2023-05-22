@@ -88,7 +88,7 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4EdgesNumber, KratosCoreGeometriesFastSuite)
     {
-        auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+        auto geom = GenerateRightQuadrilateral3D4<Node>();
 
         KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 4);
     }
@@ -98,7 +98,7 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4Edges, KratosCoreGeometriesFastSuite)
     {
-        auto p_geom = GenerateRightQuadrilateral3D4<Node<3>>();
+        auto p_geom = GenerateRightQuadrilateral3D4<Node>();
 
         const auto& r_edges = p_geom->GenerateEdges();
         KRATOS_CHECK_NEAR((r_edges[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
@@ -139,7 +139,7 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4FacesNumber, KratosCoreGeometriesFastSuite)
     {
-        auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+        auto geom = GenerateRightQuadrilateral3D4<Node>();
 
         // That for planar geometries it also return the number of edges.
         KRATOS_CHECK_EQUAL(geom->FacesNumber(), 1);
@@ -149,7 +149,7 @@ namespace Testing
     * Checks if the faces are correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4Faces, KratosCoreGeometriesFastSuite) {
-        auto p_geom = GenerateRightQuadrilateral3D4<Node<3>>();
+        auto p_geom = GenerateRightQuadrilateral3D4<Node>();
 
         const auto& r_faces = p_geom->GenerateFaces();
         KRATOS_CHECK_NEAR((r_faces[0])[0].X(), (p_geom->pGetPoint(0))->X(), TOLERANCE);
@@ -174,7 +174,7 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4Area, KratosCoreGeometriesFastSuite)
     {
-        auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+        auto geom = GenerateRightQuadrilateral3D4<Node>();
         KRATOS_CHECK_NEAR(geom->Area(), 1.06948, 1.0e-5);
     }
 
@@ -182,7 +182,7 @@ namespace Testing
      * Tests the PointLocalCoordinates for Quadrilateral2D4.
      */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateFlatQuadrilateral3D4<Node<3>>();
+        auto geom = GenerateFlatQuadrilateral3D4<Node>();
 
         Point TestPointA(1.0, 1.0, 0.0);
         Point TestPointB(0.5, 0.5, 0.0);
@@ -204,7 +204,7 @@ namespace Testing
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
-      auto geom = GenerateFlatQuadrilateral3D4<Node<3>>();
+      auto geom = GenerateFlatQuadrilateral3D4<Node>();
       array_1d<double, 3> coord(3);
       coord[0] = 1.0 / 2.0;
       coord[1] = 1.0 / 4.0;
@@ -217,7 +217,7 @@ namespace Testing
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateFlatQuadrilateral3D4<Node<3>>();
+        auto geom = GenerateFlatQuadrilateral3D4<Node>();
         TestAllShapeFunctionsLocalGradients(*geom);
     }
 
@@ -301,7 +301,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4Volume, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //
 //         KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
 //     }
@@ -316,7 +316,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4IsInside, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //
 //         Point<3> PointInside(1.0/3.0, 2.0/3.0, 1.0/6.0);
 //         Point<3> PointOutside(2.0/3.0, 2.0/3.0, 0.0);
@@ -337,7 +337,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
@@ -354,7 +354,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianArray2, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
@@ -371,7 +371,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianArray3, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
@@ -388,7 +388,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianArray4, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
@@ -405,7 +405,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianArray5, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         const double ExpectedJacobian = 1.0;
 //
 //         Vector JacobianDeterminants;
@@ -422,7 +422,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         const double ExpectedJacobian = 1.0;
 //
 //         double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::IntegrationMethod::GI_GAUSS_1 );
@@ -434,7 +434,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianIndex2, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         double JacobianDeterminant = 0.0;
 //         const double ExpectedJacobian = 1.0;
 //
@@ -450,7 +450,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianIndex3, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         double JacobianDeterminant = 0.0;
 //         const double ExpectedJacobian = 1.0;
 //
@@ -469,7 +469,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianIndex4, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         double JacobianDeterminant = 0.0;
 //         const double ExpectedJacobian = 1.0;
 //
@@ -491,7 +491,7 @@ namespace Testing
 //     */
 //     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4DeterminantOfJacobianIndex5, KratosCoreGeometriesFastSuite)
 //     {
-//         auto geom = GenerateRightQuadrilateral3D4<Node<3>>();
+//         auto geom = GenerateRightQuadrilateral3D4<Node>();
 //         double JacobianDeterminant = 0.0;
 //         const double ExpectedJacobian = 1.0;
 //
