@@ -13,6 +13,7 @@
 // System includes
 #include <cmath>
 #include <variant>
+#include <numeric>
 
 // Project includes
 #include "containers/container_expression/variable_expression_data_io.h"
@@ -151,9 +152,9 @@ double ContainerExpressionUtils::NormInf(const ContainerExpression<TContainerTyp
 
     return rContainer.GetModelPart().GetCommunicator().GetDataCommunicator().MaxAll(IndexPartition<IndexType>(number_of_entities).for_each<MaxReduction<double>>([&r_expression, local_size](const IndexType EntityIndex) {
         const IndexType local_data_begin_index = EntityIndex * local_size;
-        double value = 0.0;
+        double value = std::numeric_limits<double>::lowest();
         for (IndexType i = 0; i < local_size; ++i) {
-            value = std::max(value, r_expression.Evaluate(EntityIndex, local_data_begin_index, i));
+            value = std::max(value, std::abs(r_expression.Evaluate(EntityIndex, local_data_begin_index, i)));
         }
         return value;
     }));
@@ -162,7 +163,7 @@ double ContainerExpressionUtils::NormInf(const ContainerExpression<TContainerTyp
 double ContainerExpressionUtils::NormInf(
     const CollectiveExpressions& rContainer)
 {
-    double max_norm = 0.0;
+    double max_norm = std::numeric_limits<double>::lowest();
     for (const auto& p_variable_data_container : rContainer.GetContainerExpressions()) {
         std::visit([&max_norm](const auto& v) { max_norm = std::max(max_norm, NormInf(*v));}, p_variable_data_container);
     }
