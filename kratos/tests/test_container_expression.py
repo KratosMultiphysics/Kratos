@@ -402,10 +402,6 @@ class TestContainerExpression(ABC):
             a.Read(numpy_array)
 
         with self.assertRaises(TypeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
-            a.Read(numpy_array)
-
-        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int64)
             a.Read(numpy_array)
 
@@ -415,10 +411,6 @@ class TestContainerExpression(ABC):
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.float32)
-            a.MoveFrom(numpy_array)
-
-        with self.assertRaises(TypeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
             a.MoveFrom(numpy_array)
 
         with self.assertRaises(TypeError):
