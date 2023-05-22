@@ -20,15 +20,6 @@
 
 namespace Kratos {
 
-std::size_t Expression::GetFlattenedShapeSize() const
-{
-    const auto& r_shape = this->GetShape();
-    return std::accumulate(
-        r_shape.begin(),
-        r_shape.end(), 1UL,
-        [](const auto V1, const auto V2) { return V1 * V2; });
-}
-
 Expression::ExpressionIterator::ExpressionIterator(Expression::Pointer pExpression)
     : mpExpression(pExpression),
       mEntityIndex(0),
@@ -36,7 +27,6 @@ Expression::ExpressionIterator::ExpressionIterator(Expression::Pointer pExpressi
       mComponentIndex(0),
       mFlattenedShapeSize(pExpression->GetFlattenedShapeSize())
 {
-
 }
 
 Expression::ExpressionIterator::ExpressionIterator(const ExpressionIterator& rOther)
@@ -46,7 +36,6 @@ Expression::ExpressionIterator::ExpressionIterator(const ExpressionIterator& rOt
       mComponentIndex(rOther.mComponentIndex),
       mFlattenedShapeSize(rOther.mFlattenedShapeSize)
 {
-
 }
 
 Expression::Pointer Expression::ExpressionIterator::GetExpression() const
@@ -95,6 +84,15 @@ Expression::ExpressionIterator Expression::ExpressionIterator::operator++(int)
     ExpressionIterator temp = *this;
     ++*this;
     return temp;
+}
+
+std::size_t Expression::GetFlattenedShapeSize() const
+{
+    const auto& r_shape = this->GetShape();
+    return std::accumulate(
+        r_shape.begin(),
+        r_shape.end(), 1UL,
+        [](const auto V1, const auto V2) { return V1 * V2; });
 }
 
 Expression::ExpressionIterator Expression::cbegin() const
