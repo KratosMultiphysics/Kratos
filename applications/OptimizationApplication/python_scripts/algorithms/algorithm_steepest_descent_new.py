@@ -1,3 +1,4 @@
+import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
@@ -69,7 +70,6 @@ class KratosSteepestDescent(Algorithm):
     def Initialize(self):
         self.converged = False
         self.__obj_val = None
-        self.opt_iter = 1
 
         CallOnAll(self.master_control.GetListOfControls(), Control.Initialize)
         self.master_control.Initialize()
@@ -102,16 +102,15 @@ class KratosSteepestDescent(Algorithm):
         while not self.converged:
 
             self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) # __obj_val is typically not used. It is needed if we use Line Search Technique and for output
-            Logger.Print(self.__obj_val)
             obj_grad = self.__objective.CalculateStandardizedGradient()
             search_direction = self.ComputeSearchDirection(obj_grad)
             alpha = self.LineSearch(search_direction)
             self.__control_field += search_direction * alpha
-
             self.converged = self.CheckConvergence()
+            self._optimization_problem.AdvanceStep()
 
         self.Finalize()
         return self.converged
 
     def CheckConvergence(self) -> bool:
-        return True if self.opt_iter >= self.__max_iter else False
+        return True if self._optimization_problem.GetStep() >= self.__max_iter else False
