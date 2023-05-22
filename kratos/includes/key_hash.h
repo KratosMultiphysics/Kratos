@@ -474,9 +474,7 @@ namespace Kratos
         HashType operator()(const array_1d<double, 3>& rArray) const
         {
             HashType seed = 0;
-            HashCombine(seed, std::hash<double>{}(rArray[0]));
-            HashCombine(seed, std::hash<double>{}(rArray[1]));
-            HashCombine(seed, std::hash<double>{}(rArray[2]));
+            for (auto component : rArray) {HashCombine(seed, component);}
             return seed;
         }
     };
