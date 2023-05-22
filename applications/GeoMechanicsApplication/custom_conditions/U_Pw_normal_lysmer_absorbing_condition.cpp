@@ -84,13 +84,12 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateConditionStiffnessMa
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(absorbing_variables.IntegrationCoefficient,
-            jacobians[g_point],
-            r_integration_points[g_point].Weight());
+        double integration_coefficient = this->CalculateIntegrationCoefficient(jacobians[g_point],
+                                                                                           r_integration_points[g_point].Weight());
 
         // set stiffness part of absorbing matrix
         aux_abs_k_matrix = prod(absorbing_variables.KAbsMatrix, nu_matrix);
-        rStiffnessMatrix += prod(trans(nu_matrix), aux_abs_k_matrix) * absorbing_variables.IntegrationCoefficient;
+        rStiffnessMatrix += prod(trans(nu_matrix), aux_abs_k_matrix) * integration_coefficient;
     }
 }
 
@@ -160,13 +159,12 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateDampingMatrix(Matrix
         GeoElementUtilities::CalculateNuMatrix<TDim, TNumNodes>(nu_matrix, r_n_container, g_point);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(absorbing_variables.IntegrationCoefficient,
-            jacobians[g_point],
-            r_integration_points[g_point].Weight());
+        double integration_coefficient = this->CalculateIntegrationCoefficient(jacobians[g_point], 
+                                                                                           r_integration_points[g_point].Weight());
 
         // set damping part of absorbing matrix
         aux_abs_matrix = prod(absorbing_variables.CAbsMatrix, nu_matrix);
-        abs_matrix += prod(trans(nu_matrix), aux_abs_matrix) * absorbing_variables.IntegrationCoefficient;
+        abs_matrix += prod(trans(nu_matrix), aux_abs_matrix) * integration_coefficient;
     }
 
     // assemble left hand side vector
@@ -278,7 +276,7 @@ CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const El
     rVariables.CAbsMatrix = prod(trans(rotation_matrix), aux_local_c_matrix);
 
     for (unsigned int idim = 0; idim < TDim; ++idim) {
-            rVariables.CAbsMatrix(idim, idim) = abs(rVariables.CAbsMatrix(idim, idim));
+            rVariables.CAbsMatrix(idim, idim) = std::abs(rVariables.CAbsMatrix(idim, idim));
     }
 }
 
@@ -313,7 +311,7 @@ CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const 
     rVariables.KAbsMatrix = prod(trans(rotation_matrix), aux_local_k_matrix);
 
     for (unsigned int idim = 0; idim < TDim; ++idim) {
-        rVariables.KAbsMatrix(idim, idim) = abs(rVariables.KAbsMatrix(idim, idim));
+        rVariables.KAbsMatrix(idim, idim) = std::abs(rVariables.KAbsMatrix(idim, idim));
     }
 }
 
@@ -489,10 +487,10 @@ AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUMatrix)
             rUMatrix);
 }
 
-template< >
-void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix( BoundedMatrix<double, 2, 2>& rRotationMatrix, const Element::GeometryType& rGeom)
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::
+CalculateRotationMatrix2DLine( DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom)
 {
-    //Line_2d_2
     //Unitary vector in local x direction
     array_1d<double, 3> v_x;
     noalias(v_x) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
@@ -534,7 +532,13 @@ void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix( BoundedMatrix<d
         rRotationMatrix(1, 0) = v_x[1];
         rRotationMatrix(1, 1) = -v_x[0];
     }
+}
 
+template< >
+void UPwLysmerAbsorbingCondition<2, 2>::CalculateRotationMatrix( BoundedMatrix<double, 2, 2>& rRotationMatrix, const Element::GeometryType& rGeom)
+{
+    //Line_2d_2
+    CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
 }
 
 
@@ -542,47 +546,7 @@ template< >
 void UPwLysmerAbsorbingCondition<2, 3>::CalculateRotationMatrix(BoundedMatrix<double, 2, 2>& rRotationMatrix, const Element::GeometryType& rGeom)
 {
     //Line_2d_3
-    //Unitary vector in local x direction
-    array_1d<double, 3> v_x;
-    noalias(v_x) = rGeom.GetPoint(1) - rGeom.GetPoint(0);
-    const double norm_x = norm_2(v_x);
-
-    v_x[0] *= 1.0 / norm_x;
-    v_x[1] *= 1.0 / norm_x;
-
-    //Rotation Matrix
-    rRotationMatrix(0, 0) = v_x[0];
-    rRotationMatrix(0, 1) = v_x[1];
-
-    // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
-
-    // Unitary vector in local x direction (3D)
-    array_1d<double, 3> v_x_3d;
-    v_x_3d[0] = v_x[0];
-    v_x_3d[1] = v_x[1];
-    v_x_3d[2] = 0.0;
-
-    // Unitary vector in local y direction (first option)
-    array_1d<double, 3> v_y_3d;
-    v_y_3d[0] = -v_x[1];
-    v_y_3d[1] = v_x[0];
-    v_y_3d[2] = 0.0;
-
-    // Vector in global z direction (first option)
-    array_1d<double, 3> v_z;
-    MathUtils<double>::CrossProduct(v_z, v_x_3d, v_y_3d);
-
-    // v_z must have the same sign as vector (0,0,1)
-    if (v_z[2] > 0.0)
-    {
-        rRotationMatrix(1, 0) = -v_x[1];
-        rRotationMatrix(1, 1) = v_x[0];
-    }
-    else
-    {
-        rRotationMatrix(1, 0) = v_x[1];
-        rRotationMatrix(1, 1) = -v_x[0];
-    }
+    CalculateRotationMatrix2DLine(rRotationMatrix, rGeom);
 }
 
 template< >
