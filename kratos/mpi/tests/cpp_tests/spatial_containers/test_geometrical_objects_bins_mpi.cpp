@@ -172,7 +172,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
     // We generate only in first rank
-    if (r_data_comm.Rank() == 0) {
+    const int rank = r_data_comm.Rank();
+    if (rank == 0) {
         r_point_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
@@ -181,33 +182,63 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
 
     // 0.29 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
-    KRATOS_CHECK_EQUAL(results.size(), 1);
-    KRATOS_CHECK_EQUAL(results[0].size(), 0);
+    // Like the point is on the first rank the results should be empty in all partitions except the first one
+    if (rank == 0) {
+        KRATOS_CHECK_EQUAL(results.size(), 1);
+        KRATOS_CHECK_EQUAL(results[0].size(), 0);
+    } else {
+        KRATOS_CHECK_EQUAL(results.size(), 0);
+    }
 
-    // // 0.3 radius
-    // bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 4);
+    // 0.3 radius
+    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
+    // Like the point is on the first rank the results should be empty in all partitions except the first one
+    if (rank == 0) {
+        KRATOS_CHECK_EQUAL(results.size(), 1);
+        KRATOS_CHECK_EQUAL(results[0].size(), 4);
+    } else {
+        KRATOS_CHECK_EQUAL(results.size(), 0);
+    }
 
-    // // 0.4 radius
-    // bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 4);
+    // 0.4 radius
+    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
+    // Like the point is on the first rank the results should be empty in all partitions except the first one
+    if (rank == 0) {
+        KRATOS_CHECK_EQUAL(results.size(), 1);
+        KRATOS_CHECK_EQUAL(results[0].size(), 4);
+    } else {
+        KRATOS_CHECK_EQUAL(results.size(), 0);
+    }
 
-    // // 0.6 radius
-    // bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 8);
+    // 0.6 radius
+    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
+    // Like the point is on the first rank the results should be empty in all partitions except the first one
+    if (rank == 0) {
+        KRATOS_CHECK_EQUAL(results.size(), 1);
+        KRATOS_CHECK_EQUAL(results[0].size(), 8);
+    } else {
+        KRATOS_CHECK_EQUAL(results.size(), 0);
+    }
 
-    // // 0.7 radius
-    // bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 8);
+    // 0.7 radius
+    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
+    // Like the point is on the first rank the results should be empty in all partitions except the first one
+    if (rank == 0) {
+        KRATOS_CHECK_EQUAL(results.size(), 1);
+        KRATOS_CHECK_EQUAL(results[0].size(), 8);
+    } else {
+        KRATOS_CHECK_EQUAL(results.size(), 0);
+    }
 
-    // // 0.9 radius
-    // bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
-    // KRATOS_CHECK_EQUAL(results.size(), 1);
-    // KRATOS_CHECK_EQUAL(results[0].size(), 12);
+    // 0.9 radius
+    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
+    // Like the point is on the first rank the results should be empty in all partitions except the first one
+    if (rank == 0) {
+        KRATOS_CHECK_EQUAL(results.size(), 1);
+        KRATOS_CHECK_EQUAL(results[0].size(), 12);
+    } else {
+        KRATOS_CHECK_EQUAL(results.size(), 0);
+    }
 }
 
 // /** Checks bins search nearest
