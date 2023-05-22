@@ -425,6 +425,9 @@ private:
             // Invoque AllGatherv
             mrDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
 
+            // Insert 0 in the first position
+            points_per_partition.insert(points_per_partition.begin(), 0);
+
             // Define limits
             const auto it_point_begin = points_per_partition.begin();
             rLimits[0] = std::reduce(it_point_begin, it_point_begin + rank + 1);
