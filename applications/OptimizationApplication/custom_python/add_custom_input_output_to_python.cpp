@@ -55,6 +55,9 @@ namespace Kratos
             // .def("WriteContainerDataToFile", &ContainerVariableDataVtkOutput::WriteContainerDataToFile<ModelPart::NodesContainerType>)
             // .def("WriteContainerDataToFile", &ContainerVariableDataVtkOutput::WriteContainerDataToFile<ModelPart::ConditionsContainerType>)
             // .def("WriteContainerDataToFile", &ContainerVariableDataVtkOutput::WriteContainerDataToFile<ModelPart::ElementsContainerType>);
+            // py::class_<ContainerVariableDataVtkOutput>(m, "GenericVtkOutput")
+            //     .def(py::init<ModelPart &, Parameters>())
+            //     .def("outputStructuredGrid", &GenericVtkOutput::outputStructuredGrid);
         }
 
     } // namespace Python.

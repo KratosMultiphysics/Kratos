@@ -1,3 +1,5 @@
+import numpy as np
+
 import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.testing.utilities import ReadModelPart
@@ -65,3 +67,10 @@ vtk_output.TestFunction()
 
 vtk_output.printNumberType(int(20))
 vtk_output.printNumberType(float(10.5))
+
+generic_vtk_output = KOA.GenericVtkOutput()
+pos = np.linspace(0, 1, 10)
+cell = pos**2
+point = pos**0.5
+
+generic_vtk_output.outputStructuredGrid("./test_generic_output.vtk", pos, pos, pos, cell, point)
