@@ -354,42 +354,82 @@ template <class TReduction,
 }
 
 /** @brief simplified version of the basic loop (without reduction) to enable template type deduction
- * @param v - containers to be looped upon
- * @param func - must be a unary function accepting as input TContainerType::value_type&
+ *  @tparam TContainerType A standard-conforming container type.
+ *  @tparam TFunctionType Functor operating on @a TContainerType::value_type.
+ *  @param v - containers to be looped upon
+ *  @param func - must be a unary function accepting as input TContainerType::value_type&
  */
-template <class TContainerType, class TFunctionType>
+template <class TContainerType,
+          class TFunctionType,
+          std::enable_if_t<!std::is_same_v<
+            std::iterator_traits<typename decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())::value_type>,
+            void
+          >, bool> = true
+         >
 void block_for_each(TContainerType &&v, TFunctionType &&func)
 {
     block_for_each(v.begin(), v.end(), std::forward<TFunctionType>(func));
 }
 
 /** @brief simplified version of the basic loop with reduction to enable template type deduction
- * @param v - containers to be looped upon
- * @param func - must be a unary function accepting as input TContainerType::value_type&
+ *  @tparam TReducer Reduction type to apply. See @ref SumReduction as an example.
+ *  @tparam TContainerType A standard-conforming container type.
+ *  @tparam TFunctionType Functor operating on @a TContainerType::value_type.
+ *  @param v - containers to be looped upon
+ *  @param func - must be a unary function accepting as input TContainerType::value_type&
  */
-template <class TReducer, class TContainerType, class TFunctionType>
+template <class TReducer,
+          class TContainerType,
+          class TFunctionType,
+          std::enable_if_t<!std::is_same_v<
+            std::iterator_traits<typename decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())::value_type>,
+            void
+          >, bool> = true
+         >
 [[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func)
 {
     return block_for_each<TReducer>(v.begin(), v.end(), std::forward<TFunctionType>(func));
 }
 
 /** @brief simplified version of the basic loop with thread local storage (TLS) to enable template type deduction
- * @param v - containers to be looped upon
- * @param tls - thread local storage
- * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ *  @tparam TContainerType A standard-conforming container type.
+ *  @tparam TThreadLocalStorage Copy constructible thread-local type.
+ *  @tparam TFunctionType Functor operating on @a TContainerType::value_type.
+ *  @param v - containers to be looped upon
+ *  @param tls - thread local storage
+ *  @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
  */
-template <class TContainerType, class TThreadLocalStorage, class TFunctionType>
+template <class TContainerType,
+          class TThreadLocalStorage,
+          class TFunctionType,
+          std::enable_if_t<!std::is_same_v<
+            std::iterator_traits<typename decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())::value_type>,
+            void
+          >, bool> = true
+         >
 void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
     block_for_each(v.begin(), v.end(), tls, std::forward<TFunctionType>(func));
 }
 
 /** @brief simplified version of the basic loop with reduction and thread local storage (TLS) to enable template type deduction
- * @param v - containers to be looped upon
- * @param tls - thread local storage
- * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ *  @tparam TReducer Reduction type to apply. See @ref SumReduction as an example.
+ *  @tparam TContainerType A standard-conforming container type.
+ *  @tparam TThreadLocalStorage Copy constructible thread-local type.
+ *  @tparam TFunctionType Functor operating on @a TContainerType::value_type.
+ *  @param v - containers to be looped upon
+ *  @param tls - thread local storage
+ *  @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
  */
-template <class TReducer, class TContainerType, class TThreadLocalStorage, class TFunctionType>
+template <class TReducer,
+          class TContainerType,
+          class TThreadLocalStorage,
+          class TFunctionType,
+          std::enable_if_t<!std::is_same_v<
+            std::iterator_traits<typename decltype(std::declval<std::remove_cv_t<TContainerType>>().begin())::value_type>,
+            void
+          >, bool> = true
+         >
 [[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
 {
     return block_for_each<TReducer>(v.begin(), v.end(), tls, std::forward<TFunctionType>(func));
