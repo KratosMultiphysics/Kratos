@@ -20,7 +20,6 @@
 
 // Project includes
 #include "containers/container_expression/expressions/expression.h"
-#include "containers/container_expression/expressions/expression_iterator.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/specialized_container_expression.h"
 #include "includes/data_communicator.h"
@@ -104,22 +103,22 @@ public:
 
         switch (mOutputFormat){
             case VtuOutput::WriterFormat::ASCII:
-                if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<char>*>(&*pExpression); })) {
+                if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<char>*>(&*pExpression); })) {
                     WriteDataElementAscii<LiteralFlatExpression<char>>(rTagName, rAttributes, Level, rExpressions);
-                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<int>*>(&*pExpression); })) {
+                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<int>*>(&*pExpression); })) {
                     WriteDataElementAscii<LiteralFlatExpression<int>>(rTagName, rAttributes, Level, rExpressions);
-                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<double>*>(&*pExpression); })) {
+                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<double>*>(&*pExpression); })) {
                     WriteDataElementAscii<LiteralFlatExpression<double>>(rTagName, rAttributes, Level, rExpressions);
                 } else {
                     WriteDataElementAscii<Expression>(rTagName, rAttributes, Level, rExpressions);
                 }
                 break;
             case VtuOutput::WriterFormat::BINARY:
-                if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<char>*>(&*pExpression); })) {
+                if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<char>*>(&*pExpression); })) {
                     WriteDataElementBinary<LiteralFlatExpression<char>>(rTagName, rAttributes, Level, rExpressions);
-                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<int>*>(&*pExpression); })) {
+                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<int>*>(&*pExpression); })) {
                     WriteDataElementBinary<LiteralFlatExpression<int>>(rTagName, rAttributes, Level, rExpressions);
-                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<double>*>(&*pExpression); })) {
+                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<double>*>(&*pExpression); })) {
                     WriteDataElementBinary<LiteralFlatExpression<double>>(rTagName, rAttributes, Level, rExpressions);
                 } else {
                     WriteDataElementBinary<Expression>(rTagName, rAttributes, Level, rExpressions);
@@ -261,27 +260,22 @@ private:
         const IndexType Level,
         const std::vector<Expression::Pointer>& rExpressions)
     {
-        using exp_itr_type = ExpressionIterator<TExpressionType>;
-
-        using data_itr_type = typename exp_itr_type::ConstIteratorType;
-
         WriteAttributes(rTagName, rAttributes, Level);
         // add format
         const std::string& tabbing = XmlOStreamWriter::GetTabbing(Level);
         mrOStream << " format=\"ascii\">\n" << tabbing;
 
-        std::vector<TExpressionType*> transformed_expressions(rExpressions.size());
+        std::vector<const TExpressionType*> transformed_expressions(rExpressions.size());
         std::transform(rExpressions.begin(), rExpressions.end(),
                     transformed_expressions.begin(), [](auto& pExpression) {
-                        return dynamic_cast<TExpressionType*>(&*(pExpression));
+                        return dynamic_cast<const TExpressionType*>(&*(pExpression));
                     });
 
         for (const auto& p_expression : transformed_expressions) {
-            exp_itr_type expression_iterator(p_expression);
-            auto data_begin = expression_iterator.cbegin();
-            auto data_end   = expression_iterator.cend();
-            for (data_itr_type itr = data_begin; itr != data_end; ++itr) {
-                if constexpr(std::is_same_v<typename exp_itr_type::value_type, char>) {
+            auto itr = p_expression->cbegin();
+            auto data_end = p_expression->cend();
+            for (; itr != data_end; ++itr) {
+                if constexpr(std::is_same_v<std::remove_pointer_t<decltype(itr)>, const char>) {
                     mrOStream << "  " << static_cast<int>(*(itr));
                 } else {
                     mrOStream << "  " << *itr;
@@ -300,16 +294,12 @@ private:
         const IndexType Level,
         const std::vector<Expression::Pointer>& rExpressions)
     {
-        using exp_itr_type = ExpressionIterator<TExpressionType>;
-
-        using value_type = typename exp_itr_type::value_type;
-
         WriteAttributes(rTagName, rAttributes, Level);
 
-        std::vector<TExpressionType*> transformed_expressions(rExpressions.size());
+        std::vector<const TExpressionType*> transformed_expressions(rExpressions.size());
         std::transform(rExpressions.begin(), rExpressions.end(),
                     transformed_expressions.begin(), [](auto& pExpression) {
-                        return dynamic_cast<TExpressionType*>(&*(pExpression));
+                        return dynamic_cast<const TExpressionType*>(&*(pExpression));
                     });
 
         if (rExpressions.size() == 0) {
@@ -320,8 +310,7 @@ private:
             mrOStream << " format=\"binary\">\n" << tabbing << "  ";
         }
 
-        using writing_data_type = value_type;
-        constexpr IndexType data_type_size = sizeof(writing_data_type);
+        constexpr IndexType data_type_size = sizeof(decltype(*(transformed_expressions[0]->cbegin())));
         const IndexType total_entities = std::accumulate(rExpressions.begin(), rExpressions.end(), 0U, [](const IndexType LHS, const auto& pExpression) { return LHS + pExpression->NumberOfEntities();});
         const IndexType flattened_shape_size = rExpressions[0]->GetFlattenedShapeSize();
         const IndexType total_number_of_values = total_entities * flattened_shape_size;
@@ -331,7 +320,7 @@ private:
 
         base64_encoder.WriteOutputData(mrOStream, &total_data_size, 1);
         for (const auto p_expression : transformed_expressions) {
-            base64_encoder.WriteOutputData(mrOStream, exp_itr_type(p_expression).cbegin(), p_expression->NumberOfEntities() * flattened_shape_size);
+            base64_encoder.WriteOutputData(mrOStream, p_expression->cbegin(), p_expression->NumberOfEntities() * flattened_shape_size);
         }
         base64_encoder.CloseOutputData(mrOStream);
 
@@ -389,11 +378,11 @@ public:
         }
 
         if (std::all_of(mExpressions.begin(), mExpressions.end(), [](const auto& pExpression) {
-                return dynamic_cast<LiteralFlatExpression<char>*>(&*pExpression);
+                return dynamic_cast<const LiteralFlatExpression<char>*>(&*pExpression);
             })) {
             AddAttribute("type", "UInt8");
         } else if (std::all_of(mExpressions.begin(), mExpressions.end(), [](const auto& pExpression) {
-                return dynamic_cast<LiteralFlatExpression<int>*>(&*pExpression);
+                return dynamic_cast<const LiteralFlatExpression<int>*>(&*pExpression);
             })) {
             AddAttribute("type", "Int32");
         } else {
@@ -551,7 +540,7 @@ Expression::Pointer CreatePositionsExpression(
 
 XmlElement::Pointer CreateDataArrayElement(
     const std::string& rDataArrayName,
-    const std::vector<Expression*>& rExpressions)
+    const std::vector<const Expression*>& rExpressions)
 {
     std::vector<Expression::Pointer> expressions;
     for (const auto& p_expression : rExpressions) {
@@ -567,7 +556,7 @@ XmlElement::Pointer CreateDataArrayElement(
 }
 
 template<class TContainerType, class TMeshType>
-Expression* pGetExpression(const ContainerExpression<TContainerType, TMeshType>& rContainerExpression)
+const Expression* pGetExpression(const ContainerExpression<TContainerType, TMeshType>& rContainerExpression)
 {
     if (rContainerExpression.HasExpression()) {
         return &*rContainerExpression.pGetExpression();
