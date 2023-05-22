@@ -66,25 +66,27 @@ def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Paramet
 
     return getattr(module, "Factory")(model, parameters, optimization_problem)
 
-def GetAllComponents(optimization_problem: OptimizationProblem) -> 'list[Any]':
+def GetAllComponentFullNamesWithData(optimization_problem: OptimizationProblem) -> 'list[str]':
     data_container = optimization_problem.GetProblemDataContainer()
 
-    list_of_components: 'list[Any]' = []
-    for component_type, dict_of_components in optimization_problem.GetComponentContainer().items():
-        if component_type == object:
-            list_of_components.extend(list(data_container["object"].GetSubItems().keys()))
+    list_of_components_full_names_with_data: 'list[str]' = []
+    for component_type_str, components_dict in data_container.GetSubItems().items():
+        if component_type_str != "object":
+            component_type_str = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(component_type_str) + "."
         else:
-            list_of_components.extend(list(dict_of_components.values()))
+            component_type_str = ""
+        for component_name in components_dict.GetSubItems().keys():
+            list_of_components_full_names_with_data.append(f"{component_type_str}{component_name}")
 
-    return list_of_components
+    return list_of_components_full_names_with_data
 
-def GetComponentByFullName(component_full_name: str, optimization_problem: OptimizationProblem) -> Any:
+def GetComponentHavingDataByFullName(component_full_name: str, optimization_problem: OptimizationProblem) -> Any:
     data_container = optimization_problem.GetProblemDataContainer()
 
     name_data = component_full_name.split(".")
 
     if len(name_data) == 1:
-        if data_container.HasValue("object") and data_container["object"].HaseValue(name_data):
+        if data_container.HasValue("object") and data_container["object"].HasValue(component_full_name):
             return component_full_name
     else:
         component_type_str = Kratos.StringUtilities.ConvertSnakeCaseToCamelCase(name_data[0])
