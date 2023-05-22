@@ -16,7 +16,7 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return OptimizationProblemAsciiOutputProcess(parameters["settings"], optimization_problem)
 
 class Header:
-    def __init__(self, header_name: str, value: Any, format_info: dict, is_right_aligned: bool):
+    def __init__(self, header_name: str, value: Any, format_info: dict):
         header_name = header_name.strip()
         header_length = len(header_name)
 
@@ -37,17 +37,12 @@ class Header:
             value_format_post_fix = "s"
             self.__value_converter = lambda x: str(x)
 
-        if is_right_aligned:
-            alignement_text = ">"
-        else:
-            alignement_text = "<"
-
         if header_length > value_length:
             self.__header_name = header_name
-            self.__value_format = "{:" + alignement_text + str(header_length) + value_format_post_fix + "}"
+            self.__value_format = "{:>" + str(header_length) + value_format_post_fix + "}"
         else:
-            self.__header_name = ("{:" + alignement_text + str(value_length) + "s}").format(header_name)
-            self.__value_format = "{:" + alignement_text + str(value_length) + value_format_post_fix + "}"
+            self.__header_name = ("{:>" + str(value_length) + "s}").format(header_name)
+            self.__value_format = "{:>" + str(value_length) + value_format_post_fix + "}"
 
     def GetHeaderName(self) -> str:
         return self.__header_name
@@ -109,7 +104,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
     def PrintOutput(self) -> None:
         if not self.initialized_headers:
             # now get the buffered data headers
-            self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData(), True)
+            self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData())
             # write the ehader information
             self._WriteHeaders()
             self.initialized_headers = True
@@ -160,7 +155,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
             if self.write_initial_values:
                 msg_header += "# --------------- Initial values ----------------\n"
 
-                initial_headers = self._GetHeaders(lambda x: x.GetUnBufferedData(), False)
+                initial_headers = self._GetHeaders(lambda x: x.GetUnBufferedData())
                 # now write the initial value container data
                 for component, header_info_dict in initial_headers:
                     componend_data_view = ComponentDataView(component, self.optimization_problem)
@@ -168,7 +163,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                     component_name = componend_data_view.GetComponentName()
                     msg_header += "# \t" + component_name + ":\n"
                     for k, header in header_info_dict.items():
-                        component_name_header = header.GetHeaderName()[len(component_name)+1:]
+                        component_name_header = header.GetHeaderName().strip()[len(component_name)+1:]
                         msg_header += "# \t\t" + component_name_header + ": " + header.GetValueStr(buffered_dict[k]).strip() + "\n"
 
                 msg_header += "# ------------ End of initial values ------------\n"
@@ -189,7 +184,7 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
             with open(self.output_file_name, "w") as file_output:
                 file_output.write(msg_header)
 
-    def _GetHeaders(self, dict_getter_method, is_right_aligned: bool) ->  'list[tuple[Any, dict[str, Header]]]':
+    def _GetHeaders(self, dict_getter_method) ->  'list[tuple[Any, dict[str, Header]]]':
         list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         for component in self.list_of_components:
             componend_data_view = ComponentDataView(component, self.optimization_problem)
@@ -201,6 +196,6 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                     header_name = component_name + ":" + k[k.rfind("/") + 1:]
                     if header_name in [header.GetHeaderName().strip() for header in header_info_dict.values()]:
                         Kratos.Logger.PrintWarning(self.__class__.__name__, "Second value with same header name = \"" + header_name + "\" found.")
-                    header_info_dict[k] = Header(header_name, v, self.format_info, is_right_aligned)
+                    header_info_dict[k] = Header(header_name, v, self.format_info)
             list_of_headers.append([component, header_info_dict])
         return list_of_headers

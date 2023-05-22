@@ -4,15 +4,15 @@
 # -----------------------------------------------
 # --------------- Initial values ----------------
 # 	resp_1:
-# 		v_float : 2.300000000e+00
+# 		v_float: 2.300000000e+00
 # 		v_int: 2
 # 		v_bool: yes
 # 	resp_2:
-# 		v_float : 2.300000000e+00
+# 		v_float: 2.300000000e+00
 # 		v_int: 2
 # 		v_bool: yes
 # 	resp_3:
-# 		v_float : 2.300000000e+00
+# 		v_float: 2.300000000e+00
 # 		v_int: 2
 # 		v_bool: yes
 # 	control_1:
