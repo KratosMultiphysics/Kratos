@@ -147,15 +147,22 @@ public:
     {
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        const int total_number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
-        rResults.resize(total_number_of_points);
+        std::array<int, 2> limits;
+        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
+        rResults.resize(number_of_points);
 
         // Performa the corresponding searchs
+        const int lower_limit = limits[0];
+        const int upper_limit = limits[1];
+        const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             std::vector<ResultType> result;
             ImplSearchInRadius(point, Radius, result);
-            rResults[i_node] = result;
+            // Added only in the corresponding partition
+            if (i_node >= lower_limit && i_node < upper_limit) {
+                rResults[i_node - lower_limit] = result;
+            }
         }
     }
 
@@ -179,14 +186,21 @@ public:
     {
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        const int total_number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
-        std::vector<ResultType> results(total_number_of_points);
+        std::array<int, 2> limits;
+        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
+        std::vector<ResultType> results(number_of_points);
 
         // Performa the corresponding searchs
+        const int lower_limit = limits[0];
+        const int upper_limit = limits[1];
+        const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             const auto result = ImplSearchNearestInRadius(point, Radius);
-            results[i_node] = result;
+            // Added only in the corresponding partition
+            if (i_node >= lower_limit && i_node < upper_limit) {
+                results[i_node - lower_limit] = result;
+            }
         }
         return results;
     }
@@ -207,15 +221,21 @@ public:
     {
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        const int total_number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
-        std::vector<ResultType> results(total_number_of_points);
+        std::array<int, 2> limits;
+        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
+        std::vector<ResultType> results(number_of_points);
 
         // Performa the corresponding searchs
+        const int lower_limit = limits[0];
+        const int upper_limit = limits[1];
+        const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             const auto result = ImplSearchNearest(point);
             // Added only in the corresponding partition
-            results[i_node] = result;
+            if (i_node >= lower_limit && i_node < upper_limit) {
+                results[i_node - lower_limit] = result;
+            }
         }
         return results;
     }
@@ -239,15 +259,21 @@ public:
     {
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        const int total_number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
-        std::vector<ResultType> results(total_number_of_points);
+        std::array<int, 2> limits;
+        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
+        std::vector<ResultType> results(number_of_points);
 
         // Performa the corresponding searchs
+        const int lower_limit = limits[0];
+        const int upper_limit = limits[1];
+        const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             const auto result = ImplSearchIsInside(point);
             // Added only in the corresponding partition
-            results[i_node] = result;
+            if (i_node >= lower_limit && i_node < upper_limit) {
+                results[i_node - lower_limit] = result;
+            }
         }
         return results;
     }
@@ -328,6 +354,7 @@ private:
      * @param itPointBegin Iterator to the beginning of the points range
      * @param itPointEnd Iterator to the end of the points range
      * @param rAllPointsCoordinates vector where the computed coordinates will be stored
+     * @param rLimits array with the lower and upper limits of the current partition
      * @return The number of points in the range
      * @tparam TPointIteratorType The type of the point iterator
      */
@@ -335,7 +362,8 @@ private:
     int PreparePointsForMPISearch(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        std::vector<double>& rAllPointsCoordinates
+        std::vector<double>& rAllPointsCoordinates,
+        std::array<int, 2>& rLimits
         )
     {
         // First check that the points are the same in all processes
@@ -354,8 +382,13 @@ private:
                 rAllPointsCoordinates[3 * counter + 2] = coordinates[2];
                 ++counter;
             }
+
+            // Define limits
+            rLimits[0] = 0;
+            rLimits[1] = number_of_points;
         } else { // If not
             // MPI information
+            const int rank = GetRank();
             const int world_size = GetWorldSize();
 
             // Getting global number of points
@@ -391,6 +424,11 @@ private:
 
             // Invoque AllGatherv
             mrDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
+
+            // Define limits
+            const auto it_point_begin = points_per_partition.begin();
+            rLimits[0] = std::reduce(it_point_begin, it_point_begin + rank + 1);
+            rLimits[1] = std::reduce(it_point_begin, it_point_begin + rank + 2);
         }
 
         return total_number_of_points;
