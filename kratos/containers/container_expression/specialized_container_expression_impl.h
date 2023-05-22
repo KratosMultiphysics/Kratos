@@ -54,7 +54,13 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
     const auto& r_container = this->GetContainer();
     const IndexType number_of_entities = r_container.size();
 
-    using raw_data_type = std::conditional_t<std::is_same_v<TDataType, int>, int, double>;
+    using raw_data_type = std::conditional_t<
+                            std::is_same_v<TDataType, char>, char,
+                            std::conditional_t<
+                                std::is_same_v<TDataType, int>, int,
+                                double
+                            >
+                          >;
 
     if (number_of_entities != 0) {
         // initialize the shape with the first entity value

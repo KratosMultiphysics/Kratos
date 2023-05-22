@@ -91,11 +91,11 @@ public:
 
     inline IndexType DataSize() const noexcept { return mData.DataSize(); }
 
-    inline TRawDataType* DataBegin() noexcept { return mData.DataBegin(); }
+    inline TRawDataType* begin() noexcept { return mData.begin(); }
 
-    inline TRawDataType const* DataBegin() const noexcept { return mData.DataBegin(); }
+    inline TRawDataType const* begin() const noexcept { return mData.begin(); }
 
-    inline TRawDataType const* DataEnd() const noexcept { return mData.DataEnd(); }
+    inline TRawDataType const* end() const noexcept { return mData.end(); }
 
     std::string Info() const override;
 
@@ -111,8 +111,8 @@ protected:
      * This representation can be done in two ways:
      *
      *      1) If the data is moved, then this instance will hold a pointer
-     *         to the double flattened data array. In this case it is important to
-     *         make sure that the double flattened data array lives until this expression
+     *         to the TRawDataType flattened data array. In this case it is important to
+     *         make sure that the TRawDataType flattened data array lives until this expression
      *         is destructed. In this case mIsManaged will be false.
      *      2) If the data is copied, then a flattened array for the required size is
      *         created at the construction in the heap, and will be destructed when the
@@ -146,11 +146,11 @@ protected:
         ///@name Operators
         ///@{
 
-        inline TRawDataType* DataBegin() noexcept { return mpBegin; }
+        inline TRawDataType* begin() noexcept { return mpBegin; }
 
-        inline TRawDataType const* DataBegin() const noexcept { return mpBegin; }
+        inline TRawDataType const* begin() const noexcept { return mpBegin; }
 
-        inline TRawDataType const* DataEnd() const noexcept { return mpBegin + mSize; }
+        inline TRawDataType const* end() const noexcept { return mpBegin + mSize; }
 
         inline IndexType DataSize() const noexcept { return mSize; }
 
