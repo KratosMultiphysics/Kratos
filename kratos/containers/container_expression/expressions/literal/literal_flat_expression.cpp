@@ -24,7 +24,7 @@ LiteralFlatExpression::LiteralFlatExpression(
     const IndexType NumberOfEntities,
     const std::vector<IndexType>& rShape)
     : mShape(rShape),
-      mData(NumberOfEntities * this->GetFlattenedShapeSize())
+      mData(NumberOfEntities * this->GetItemComponentCount())
 {
 }
 
@@ -68,7 +68,7 @@ void LiteralFlatExpression::SetData(
     mData[EntityDataBeginIndex + ComponentIndex] = Value;
 }
 
-const std::vector<std::size_t> LiteralFlatExpression::GetShape() const
+const std::vector<std::size_t> LiteralFlatExpression::GetItemShape() const
 {
     return mShape;
 }
