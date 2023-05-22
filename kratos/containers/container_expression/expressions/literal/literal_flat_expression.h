@@ -41,8 +41,6 @@ public:
     ///@name Type definition
     ///@{
 
-    using DataType = TRawDataType;
-
     using Pointer = Kratos::intrusive_ptr<LiteralFlatExpression<TRawDataType>>;
 
     ///@}
