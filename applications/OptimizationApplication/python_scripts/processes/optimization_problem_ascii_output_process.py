@@ -21,9 +21,9 @@ class Header:
         header_length = len(header_name)
 
         if isinstance(value, bool):
-            value_length = 3
-            value_format_post_fix = ""
-            self.__value_converter = lambda x: "yes" if x else " no"
+            value_length = max(len(format_info[type(value)][0]), len(format_info[type(value)][1]))
+            value_format_post_fix = "s"
+            self.__value_converter = lambda x: format_info[type(value)][1] if x else format_info[type(value)][0]
         elif isinstance(value, int):
             value_length = len(("{:" + str(format_info[type(value)]) + "d}").format(value))
             value_format_post_fix = "d"
@@ -62,7 +62,8 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                 "list_of_output_components": ["all"],
                 "format_info": {
                     "int_length"     : 7,
-                    "float_precision": 9
+                    "float_precision": 9,
+                    "bool_values"    : ["no", "yes"]
                 }
             }
             """
@@ -84,8 +85,12 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
 
         self.format_info = {
             int  : parameters["format_info"]["int_length"].GetInt(),
-            float: parameters["format_info"]["float_precision"].GetInt()
+            float: parameters["format_info"]["float_precision"].GetInt(),
+            bool : parameters["format_info"]["bool_values"].GetStringArray(),
         }
+
+        if len(self.format_info[bool]) != 2:
+            raise RuntimeError("The \"bool_values\" should have only two strings corresponding to True and False values.")
 
         self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         list_of_component_names = parameters["list_of_output_components"].GetStringArray()

@@ -106,7 +106,8 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
                 "list_of_output_components": ["all"],
                 "format_info": {
                     "int_length"     : 7,
-                    "float_precision": 9
+                    "float_precision": 9,
+                    "bool_values"    : ["no", "yes"]
                 }
             }
             """
