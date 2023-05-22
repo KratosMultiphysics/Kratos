@@ -12,8 +12,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities impor
 
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ExecutionPolicy:
     if not parameters.Has("settings"):
-        raise RuntimeError(f"OptimizationProblemAsciiWriterProcess instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
-    return OptimizationProblemAsciiWriterProcess(parameters["settings"], optimization_problem)
+        raise RuntimeError(f"OptimizationProblemAsciiOutputProcess instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return OptimizationProblemAsciiOutputProcess(parameters["settings"], optimization_problem)
 
 class Header:
     def __init__(self, header_name: str, value: Any, format_info: dict, is_right_aligned: bool):
@@ -55,7 +55,7 @@ class Header:
     def GetValueStr(self, value: Any) -> str:
         return self.__value_format.format(self.__value_converter(value))
 
-class OptimizationProblemAsciiWriterProcess(Kratos.OutputProcess):
+class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
     def GetDefaultParameters(self):
         return Kratos.Parameters(
             """
