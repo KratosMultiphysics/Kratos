@@ -233,7 +233,6 @@ Parameters Object {
         ],
         "rayleigh_k": 0.0,
         "rayleigh_m": 0.0,
-        "realised_factor": 0.9999,
         "reduction_factor": 0.5,
         "reform_dofs_at_each_step": false,
         "residual_absolute_tolerance": 1e-09,

@@ -20,12 +20,22 @@
 
 namespace Kratos {
 
+Expression::ExpressionIterator::ExpressionIterator()
+    : mpExpression(nullptr),
+      mEntityIndex(0),
+      mEntityDataBeginIndex(0),
+      mItemComponentIndex(0),
+      mItemComponentCount(0)
+{
+    KRATOS_ERROR << "The default construction of ExpressionIterator is not allowed.\n";
+}
+
 Expression::ExpressionIterator::ExpressionIterator(Expression::Pointer pExpression)
     : mpExpression(pExpression),
       mEntityIndex(0),
       mEntityDataBeginIndex(0),
       mItemComponentIndex(0),
-      mItemComponentCount(pExpression->GetFlattenedShapeSize())
+      mItemComponentCount(pExpression->GetItemComponentCount())
 {
 }
 
@@ -90,26 +100,41 @@ Expression::ExpressionIterator Expression::ExpressionIterator::operator++(int)
     return temp;
 }
 
-std::size_t Expression::GetFlattenedShapeSize() const
+std::size_t Expression::GetItemComponentCount() const
 {
-    const auto& r_shape = this->GetShape();
+    const auto& r_shape = this->GetItemShape();
     return std::accumulate(
         r_shape.begin(),
         r_shape.end(), 1UL,
         [](const auto V1, const auto V2) { return V1 * V2; });
 }
 
-Expression::ExpressionIterator Expression::cbegin() const
+std::size_t Expression::size() const
+{
+    return this->NumberOfEntities() * this->GetItemComponentCount();
+}
+
+Expression::ExpressionIterator Expression::begin() const
 {
     return ExpressionIterator(this);
 }
 
-Expression::ExpressionIterator Expression::cend() const
+Expression::ExpressionIterator Expression::end() const
 {
     ExpressionIterator result(this);
     result.mEntityIndex = this->NumberOfEntities();
     result.mEntityDataBeginIndex = result.mEntityIndex * result.mItemComponentCount;
     return result;
+}
+
+Expression::ExpressionIterator Expression::cbegin() const
+{
+    return begin();
+}
+
+Expression::ExpressionIterator Expression::cend() const
+{
+    return end();
 }
 
 } // namespace Kratos

@@ -43,6 +43,14 @@ public:
 
     using Pointer = Kratos::intrusive_ptr<LiteralFlatExpression<TRawDataType>>;
 
+    using value_type = TRawDataType;
+
+    using size_type = std::size_t;
+
+    using iterator = TRawDataType*;
+
+    using const_iterator = TRawDataType const*;
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -85,17 +93,21 @@ public:
         const IndexType ComponentIndex,
         const TRawDataType Value);
 
-    const std::vector<IndexType> GetShape() const override;
+    const std::vector<IndexType> GetItemShape() const override;
 
-    IndexType DataSize() const noexcept { return mData.DataSize(); }
+    IndexType size() const noexcept { return mData.size(); }
 
-    TRawDataType* begin() noexcept { return mData.begin(); }
+    iterator begin() noexcept { return mData.begin(); }
 
-    TRawDataType* end() noexcept { return mData.end(); }
+    iterator end() noexcept { return mData.end(); }
 
-    TRawDataType const* cbegin() const noexcept { return mData.cbegin(); }
+    const_iterator begin() const noexcept { return mData.begin(); }
 
-    TRawDataType const* cend() const noexcept { return mData.cend(); }
+    const_iterator end() const noexcept { return mData.end(); }
+
+    const_iterator cbegin() const noexcept { return mData.begin(); }
+
+    const_iterator cend() const noexcept { return mData.end(); }
 
     std::string Info() const override;
 
@@ -111,8 +123,8 @@ protected:
      * This representation can be done in two ways:
      *
      *      1) If the data is moved, then this instance will hold a pointer
-     *         to the double flattened data array. In this case it is important to
-     *         make sure that the double flattened data array lives until this expression
+     *         to the TRawDataType flattened data array. In this case it is important to
+     *         make sure that the TRawDataType flattened data array lives until this expression
      *         is destructed. In this case mIsManaged will be false.
      *      2) If the data is copied, then a flattened array for the required size is
      *         created at the construction in the heap, and will be destructed when the
@@ -146,15 +158,19 @@ protected:
         ///@name Operators
         ///@{
 
-        TRawDataType* begin() noexcept { return mpBegin; }
+        inline iterator begin() noexcept { return mpBegin; }
 
-        TRawDataType* end() noexcept { return mpBegin + mSize; }
+        inline iterator end() noexcept { return mpBegin + mSize; }
 
-        TRawDataType const* cbegin() const noexcept { return mpBegin; }
+        inline const_iterator begin() const noexcept { return mpBegin; }
 
-        TRawDataType const* cend() const noexcept { return mpBegin + mSize; }
+        inline const_iterator end() const noexcept { return mpBegin + mSize; }
 
-        IndexType DataSize() const noexcept { return mSize; }
+        inline const_iterator cbegin() const noexcept { return mpBegin; }
+
+        inline const_iterator cend() const noexcept { return mpBegin + mSize; }
+
+        inline IndexType size() const noexcept { return mSize; }
 
         ///@}
     private:
