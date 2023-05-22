@@ -391,6 +391,7 @@ protected:
             });
         }
 
+        //////////
         //BUILD COMPLETE OPERATOR FOR HROM 
         AssemblyTLS assembly_tls_container_left;
         Matrix rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
@@ -411,7 +412,7 @@ protected:
         auto& r_conditions_left = rModelPart.Conditions();
         // auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
 
-        if(!r_conditions.empty())
+        if(!r_conditions_left.empty())
         {
             block_for_each(r_conditions_left, assembly_tls_container_left, 
                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc_left)
@@ -419,7 +420,20 @@ protected:
                 CalculateLocalContributionLSPG(r_condition, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
             });
         }
-        //
+        
+        // if (this->mHromSimulation){
+        //     // Initialize the mask vector with zeros
+        //     Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
+
+        //     // Build the mask vector for selected elements and conditions
+        //     BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
+        //     KRATOS_WATCH(hrom_dof_mask_vector)
+
+        //     // Zero out rows in the matrix that correspond to zero in the mask vector
+        //     ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
+        // }
+        //////////
+
 
         const auto projection_timer = BuiltinTimer();
 
@@ -446,6 +460,64 @@ protected:
 
         KRATOS_CATCH("")
     }
+
+    void ApplyMaskToMatrixRows(Matrix& rA_left, 
+        const Vector& hrom_dof_mask_vector)
+    {
+        if(rA_left.size1() != hrom_dof_mask_vector.size()) 
+        {
+            throw std::invalid_argument("Matrix and vector sizes do not match");
+        }
+        
+        for(std::size_t i = 0; i < hrom_dof_mask_vector.size(); ++i)
+        {
+            if(hrom_dof_mask_vector[i] == 0)
+            {
+                row(rA_left, i) = zero_vector<double>(rA_left.size2());
+            }
+        }
+    }
+
+
+    void BuildHromDofMaskVector(
+        Vector& rHromDofMaskVector,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        const auto& r_hrom_elements = this->mSelectedElements;
+        const auto& r_hrom_conditions = this->mSelectedConditions;
+
+        // Ensuring the vector has the correct type for atomic operations.
+        std::vector<std::atomic<int>> atomicHromDofMaskVector(rHromDofMaskVector.size());
+
+        block_for_each(r_hrom_elements, [&](Element& r_element)
+        {
+            Element::DofsVectorType hrom_dofs;
+            r_element.GetDofList(hrom_dofs, rCurrentProcessInfo);
+            for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
+            {
+                const Dof<double>& r_dof = *hrom_dofs[i];
+                std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
+            }
+        });
+
+        block_for_each(r_hrom_conditions, [&](Condition& r_condition)
+        {
+            Condition::DofsVectorType hrom_dofs;
+            r_condition.GetDofList(hrom_dofs, rCurrentProcessInfo);
+            for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
+            {
+                const Dof<double>& r_dof = *hrom_dofs[i];
+                std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
+            }
+        });
+
+        // Copy back the atomic vector to the original one after all threads have finished their work.
+        for(std::size_t i = 0; i < atomicHromDofMaskVector.size(); ++i)
+        {
+            rHromDofMaskVector[i] = atomicHromDofMaskVector[i].load();
+        }
+    }
+
 
     /**
      * Solves reduced system of equations and broadcasts it
