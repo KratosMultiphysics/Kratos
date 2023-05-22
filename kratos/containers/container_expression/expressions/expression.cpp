@@ -24,8 +24,8 @@ Expression::ExpressionIterator::ExpressionIterator(Expression::Pointer pExpressi
     : mpExpression(pExpression),
       mEntityIndex(0),
       mEntityDataBeginIndex(0),
-      mComponentIndex(0),
-      mFlattenedShapeSize(pExpression->GetFlattenedShapeSize())
+      mItemComponentIndex(0),
+      mItemComponentCount(pExpression->GetFlattenedShapeSize())
 {
 }
 
@@ -33,8 +33,8 @@ Expression::ExpressionIterator::ExpressionIterator(const ExpressionIterator& rOt
     : mpExpression(rOther.mpExpression),
       mEntityIndex(rOther.mEntityIndex),
       mEntityDataBeginIndex(rOther.mEntityDataBeginIndex),
-      mComponentIndex(rOther.mComponentIndex),
-      mFlattenedShapeSize(rOther.mFlattenedShapeSize)
+      mItemComponentIndex(rOther.mItemComponentIndex),
+      mItemComponentCount(rOther.mItemComponentCount)
 {
 }
 
@@ -45,12 +45,16 @@ Expression::Pointer Expression::ExpressionIterator::GetExpression() const
 
 double Expression::ExpressionIterator::operator*() const
 {
-    return mpExpression->Evaluate(mEntityIndex, mEntityDataBeginIndex, mComponentIndex);
+    return mpExpression->Evaluate(mEntityIndex, mEntityDataBeginIndex, mItemComponentIndex);
 }
 
 bool Expression::ExpressionIterator::operator==(const ExpressionIterator& rOther) const
 {
-    return (&*mpExpression == &*rOther.mpExpression) && (mEntityIndex == rOther.mEntityIndex) && (mComponentIndex == rOther.mComponentIndex);
+    return (
+        mpExpression.get() == rOther.mpExpression.get() &&
+        mpExpression.get() != nullptr &&
+        mEntityIndex == rOther.mEntityIndex &&
+        mItemComponentIndex == rOther.mItemComponentIndex);
 }
 
 bool Expression::ExpressionIterator::operator!=(const ExpressionIterator& rOther) const
@@ -63,18 +67,18 @@ Expression::ExpressionIterator& Expression::ExpressionIterator::operator=(const 
     mpExpression = rOther.mpExpression;
     mEntityIndex = rOther.mEntityIndex;
     mEntityDataBeginIndex = rOther.mEntityDataBeginIndex;
-    mComponentIndex = rOther.mComponentIndex;
-    mFlattenedShapeSize = rOther.mFlattenedShapeSize;
+    mItemComponentIndex = rOther.mItemComponentIndex;
+    mItemComponentCount = rOther.mItemComponentCount;
     return *this;
 }
 
 Expression::ExpressionIterator& Expression::ExpressionIterator::operator++()
 {
-    ++mComponentIndex;
-    if (mComponentIndex == mFlattenedShapeSize) {
-        mComponentIndex = 0;
+    ++mItemComponentIndex;
+    if (mItemComponentIndex == mItemComponentCount) {
+        mItemComponentIndex = 0;
         ++mEntityIndex;
-        mEntityDataBeginIndex = mEntityIndex * mFlattenedShapeSize;
+        mEntityDataBeginIndex = mEntityIndex * mItemComponentCount;
     }
     return *this;
 }
@@ -104,7 +108,7 @@ Expression::ExpressionIterator Expression::cend() const
 {
     ExpressionIterator result(this);
     result.mEntityIndex = this->NumberOfEntities();
-    result.mEntityDataBeginIndex = result.mEntityIndex * result.mFlattenedShapeSize;
+    result.mEntityDataBeginIndex = result.mEntityIndex * result.mItemComponentCount;
     return result;
 }
 

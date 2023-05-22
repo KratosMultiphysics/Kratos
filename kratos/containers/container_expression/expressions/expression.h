@@ -99,9 +99,9 @@ public:
 
         IndexType mEntityDataBeginIndex;
 
-        IndexType mComponentIndex;
+        IndexType mItemComponentIndex;
 
-        IndexType mFlattenedShapeSize;
+        IndexType mItemComponentCount;
 
         ///@}
         ///@name Friend classes
