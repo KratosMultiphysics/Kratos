@@ -83,15 +83,20 @@ class VtuOutputProcess(Kratos.OutputProcess):
         self.vtu_output_ios.append(Kratos.VtuOutput(self.model_part, not self.write_deformed_configuration, self.writer_format, self.output_precision))
 
         if self.output_sub_model_parts:
-            for sub_model_part in self.model_part.SubModelParts():
+            for sub_model_part in self.model_part.SubModelParts:
                 self.vtu_output_ios.append(Kratos.VtuOutput(sub_model_part, not self.write_deformed_configuration, self.writer_format, self.output_precision))
 
         for vtu_output_io in self.vtu_output_ios:
             self.__AddData(vtu_output_io)
 
     def PrintOutput(self) -> None:
+        if self.output_control == "time":
+            current_post_fix = str(self.__GetTime())
+        else:
+            current_post_fix = str(self.model_part.ProcessInfo[Kratos.STEP])
+
         for vtu_output in self.vtu_output_ios:
-            vtu_output.PrintOutput(str(self.output_path / vtu_output.GetModelPart().FullName()))
+            vtu_output.PrintOutput(str(self.output_path / vtu_output.GetModelPart().FullName()) + "_" + current_post_fix)
 
         self.__ScheduleNextOutput()
 
