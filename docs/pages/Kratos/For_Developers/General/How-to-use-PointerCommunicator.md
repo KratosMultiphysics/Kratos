@@ -11,7 +11,7 @@ To understand the mechanism, let's consider a local loop to take the average of 
 In serial it looks something like
 
 ```cpp
-for(auto& node : model_part.Nodes) {
+for(auto& node : model_part.Nodes()) {
     double Tavg = 0;
     const auto& neighbours = node.GetValue(NODAL_NEIGHBOURS);
     for(auto& neighb : neighbours)
@@ -26,7 +26,7 @@ this loop is obviously not possible in mpi. (we do not have all the neighbours o
 Let's now consider we use global pointers instead of weak_pointers for the neighbours. IN THE SERIAL CASE the previous loop would look very similar, something like
 
 ```cpp
-for(auto& node : model_part.Nodes) {
+for(auto& node : model_part.Nodes()) {
     double Tavg = 0;
     const auto& global_pointers_to_neighbours = node.GetValue(GP_NODAL_NEIGHBOURS);
     for(auto& gp : global_pointers_to_neighbours)
@@ -45,7 +45,7 @@ In order to retrofit this problem, the former code should be modified to
 // First of all collect all the neighbours into a list
 GlobalPointerVector< Node > gp_list;
 
-for(auto& node : model_part.Nodes)
+for(auto& node : model_part.Nodes())
     for(auto& gp : global_pointers_to_neighbours)
         gp_list.push_back(gp);
 
@@ -60,7 +60,7 @@ result_proxy = pointer_comm.Apply<double>(
             }
       );  // Here all communications happen !!
 
-for(auto& node : model_part.Nodes) {
+for(auto& node : model_part.Nodes()) {
     double Tavg = 0;
     const auto& global_pointers_to_neighbours = node.GetValue(GP_NODAL_NEIGHBOURS);
     for(auto& gp : global_pointers_to_neighbours)
@@ -95,7 +95,7 @@ result_proxy = pointer_comm.Apply<double>(
             }
       ); // Here all communications happen !!
 
-for(auto& node : model_part.Nodes) {
+for(auto& node : model_part.Nodes()) {
     double Tavg = 0;
     const auto& global_pointers_to_neighbours = node.GetValue(GP_NODAL_NEIGHBOURS);
     for(auto& gp : global_pointers_to_neighbours)
