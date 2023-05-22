@@ -40,7 +40,7 @@ In order to retrofit this problem, the former code should be modified to:
 
 ```cpp
 // First of all collect all the neighbours into a list
-GlobalPointerVector< Node > gp_list;
+GlobalPointersVector< Node > gp_list;
 
 for(auto& node : model_part.Nodes())
     for(auto& gp : global_pointers_to_neighbours)
@@ -77,7 +77,7 @@ In the practice this means that we can further optimize the code to have no over
 // Now create the pointer communicator --> NOTHING IS ACTUALLY DONE IN THE SERIAL CASE!
 GlobalPointerCommunicator pointer_comm(DefaultDataCommunicator, 
     [&](){ //NOTE THAT THIS FUNCTOR WILL ONLY BE EXECUTED IN MPI MODE, it has no overhead in serial!!
-        GlobalPointerVector< Node > gp_list;        
+        GlobalPointersVector< Node > gp_list;        
         for(auto& node : model_part.Nodes())
             for(auto& gp : global_pointers_to_neighbours)
                 gp_list.push_back(gp);
