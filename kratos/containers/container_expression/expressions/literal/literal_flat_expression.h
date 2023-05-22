@@ -87,7 +87,7 @@ public:
         const IndexType ComponentIndex,
         const TRawDataType Value);
 
-    const std::vector<IndexType> GetShape() const override;
+    const std::vector<IndexType> GetItemShape() const override;
 
     inline IndexType DataSize() const noexcept { return mData.DataSize(); }
 

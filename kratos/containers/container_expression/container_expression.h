@@ -292,7 +292,7 @@ public:
      *
      * @return const std::vector<IndexType>
      */
-    const std::vector<IndexType> GetShape() const;
+    const std::vector<IndexType> GetItemShape() const;
 
     /**
      * @brief Get the Local Size of the data
@@ -301,7 +301,7 @@ public:
      *
      * @return IndexType
      */
-    IndexType GetFlattenedShapeSize() const;
+    IndexType GetItemComponentCount() const;
 
     /**
      * @brief Get the Model Part used in the container data

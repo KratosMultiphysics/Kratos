@@ -20,9 +20,9 @@
 
 namespace Kratos {
 
-std::size_t Expression::GetFlattenedShapeSize() const
+std::size_t Expression::GetItemComponentCount() const
 {
-    const auto& r_shape = this->GetShape();
+    const auto& r_shape = this->GetItemShape();
     return std::accumulate(
         r_shape.begin(),
         r_shape.end(), 1UL,

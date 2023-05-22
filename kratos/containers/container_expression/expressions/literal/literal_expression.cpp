@@ -32,7 +32,7 @@ std::string LiteralExpression<TDataType>::Info() const
 }
 
 template <class TDataType>
-const std::vector<std::size_t> LiteralExpression<TDataType>::GetShape() const
+const std::vector<std::size_t> LiteralExpression<TDataType>::GetItemShape() const
 {
     return mShape;
 }

@@ -68,7 +68,7 @@ public:
         const IndexType EntityIndex,
         const TDataType& Value) const;
 
-    const std::vector<IndexType> GetShape() const { return mShape; }
+    const std::vector<IndexType> GetItemShape() const { return mShape; }
 
     ///@}
 private:
