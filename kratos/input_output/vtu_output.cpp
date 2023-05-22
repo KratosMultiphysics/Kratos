@@ -1005,7 +1005,7 @@ VtuOutput::VtuOutput(
 
     KRATOS_WARNING_IF("VtuOutput", mIsElementsConsidered && mIsConditionsConsidered)
         << "Conditions and Elements vtu output chosen for " << mrModelPart.FullName()
-        << " which is not supported. Giving priority to elements.";
+        << " which is not supported. Giving priority to elements.\n";
 
     mIsConditionsConsidered = mIsElementsConsidered ? false : mIsConditionsConsidered;
 
