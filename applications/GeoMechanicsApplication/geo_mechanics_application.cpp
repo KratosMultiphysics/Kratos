@@ -24,7 +24,7 @@
 
 namespace Kratos {
 // We define the node type
-using NodeType = Node<3>;
+using NodeType = Node;
 
 KratosGeoMechanicsApplication::KratosGeoMechanicsApplication() :
     KratosApplication("GeoMechanicsApplication") {}

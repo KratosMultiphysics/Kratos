@@ -49,7 +49,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FaceSelector);
     virtual ~FaceSelector() = default;
     virtual void Prepare(ModelPart& rMainModelPart) const = 0;
-    virtual bool IsSelected(const Geometry<Node<3>>::PointsArrayType&) const = 0;
+    virtual bool IsSelected(const Geometry<Node>::PointsArrayType&) const = 0;
 };
 
 /**
@@ -66,7 +66,7 @@ public:
 
     void Prepare(ModelPart& rMainModelPart) const override;
 
-    bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
+    bool IsSelected(const Geometry<Node>::PointsArrayType& rNodes) const override;
 };
 
 /**
@@ -84,7 +84,7 @@ public:
 
     void Prepare(ModelPart& rMainModelPart) const override;
 
-    bool IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const override;
+    bool IsSelected(const Geometry<Node>::PointsArrayType& rNodes) const override;
 };
 
 public:
@@ -98,7 +98,7 @@ using typename SkinDetectionProcess<TDim>::HashMapVectorIntType;
 using typename SkinDetectionProcess<TDim>::HashMapVectorIntIdsType;
 using typename SkinDetectionProcess<TDim>::VectorIndexType;
 
-using ConditionCheckType = bool(const Geometry<Node<3>>::PointsArrayType&);
+using ConditionCheckType = bool(const Geometry<Node>::PointsArrayType&);
 
 ///@}
 ///@name Life Cycle
@@ -182,7 +182,7 @@ typename FaceSelector::Pointer mpFaceSelector;
 ///@name Private Operations
 ///@{
 
-static bool FaceIsNeeded(const Geometry<Node<3>>::PointsArrayType&)
+static bool FaceIsNeeded(const Geometry<Node>::PointsArrayType&)
 {
     return true;
 }

@@ -8,8 +8,8 @@ class ResponseFunction(ABC):
     """Base response function.
 
     This reponse function is the base response function. This is assumed to have following responsibilities.
-        1. CalculateValue for a fresh design. (@see CalculateValue)
-        2. CalculateSensitivity for a fresh design (@see CalculateSensitivity)
+        1. CalculateValue for a new design. (@see CalculateValue)
+        2. CalculateSensitivity for a new design (@see CalculateSensitivity)
 
     This response should only work on one model part. Hence, if multiple model parts required then,
     a single model part should be created using Kratos.ModelPartOperationUtilities.
@@ -47,7 +47,7 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def GetDependentPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
+    def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         """Returns all the dependent physical kratos variables of the response.
 
         This method should return all the dependent physical variables of the response to make sure

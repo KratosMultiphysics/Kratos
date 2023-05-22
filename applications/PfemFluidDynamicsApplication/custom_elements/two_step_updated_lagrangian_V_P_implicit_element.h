@@ -72,8 +72,8 @@ namespace Kratos
     /// base type:
     typedef TwoStepUpdatedLagrangianElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -386,9 +386,15 @@ namespace Kratos
                                             const ShapeFunctionDerivativesType &rShapeDeriv,
                                             const double Weight){};
 
-    void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
-                                          const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                          double &DeviatoricCoeff, double &VolumetricCoeff) override{};
+    void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override
+    {};
 
     virtual void CalculateTauFIC(double &TauOne,
                                  double ElemSize,

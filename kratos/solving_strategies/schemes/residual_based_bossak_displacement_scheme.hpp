@@ -181,7 +181,7 @@ public:
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
         // Updating time derivatives (nodally for efficiency)
-        block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node<3>& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
+        block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [&](Node& rNode, array_1d<double,3>& rDeltaDisplacementTLS){
             noalias(rDeltaDisplacementTLS) = rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
 
             array_1d<double, 3>& r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY);
@@ -243,7 +243,7 @@ public:
         typedef std::tuple<array_1d<double,3>, std::array<bool,3>> TLSContainerType;
         TLSContainerType aux_TLS = std::make_tuple(delta_displacement, predicted);
 
-        block_for_each(rModelPart.Nodes(), aux_TLS, [&](Node<3>& rNode, TLSContainerType& rAuxTLS){
+        block_for_each(rModelPart.Nodes(), aux_TLS, [&](Node& rNode, TLSContainerType& rAuxTLS){
             auto& r_delta_displacement = std::get<0>(rAuxTLS);
             auto& r_predicted = std::get<1>(rAuxTLS);
 
@@ -340,7 +340,7 @@ public:
         const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
         const std::array<const Variable<ComponentType>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &ACCELERATION_Z};
 
-        block_for_each(rModelPart.Nodes(), fixed, [&](Node<3>& rNode, std::array<bool,3>& rFixedTLS){
+        block_for_each(rModelPart.Nodes(), fixed, [&](Node& rNode, std::array<bool,3>& rFixedTLS){
             for (std::size_t i_dim = 0; i_dim < dimension; ++i_dim) {
                 rFixedTLS[i_dim] = false;
             }

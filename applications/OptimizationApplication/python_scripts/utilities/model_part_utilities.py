@@ -10,12 +10,12 @@ class ModelPartUtilities:
         return (f"{prefix}_" + "_".join(sorted_names) + post_fix).replace(".", "#")
 
     @staticmethod
-    def MergeModelParts(main_model_part: Kratos.ModelPart, union_model_parts: 'list[Kratos.ModelPart]', add_neighbours: bool) -> 'tuple[bool, Kratos.ModelPart]':
-        unique_name = ModelPartUtilities.__GenerateUniqueModelPartName("Merge", [model_part.FullName() for model_part in union_model_parts], add_neighbours)
+    def UnionModelParts(main_model_part: Kratos.ModelPart, union_model_parts: 'list[Kratos.ModelPart]', add_neighbours: bool) -> 'tuple[bool, Kratos.ModelPart]':
+        unique_name = ModelPartUtilities.__GenerateUniqueModelPartName("Union", [model_part.FullName() for model_part in union_model_parts], add_neighbours)
         if main_model_part.HasSubModelPart(unique_name):
             return False, main_model_part.GetSubModelPart(unique_name)
         else:
-            return True, Kratos.ModelPartOperationUtilities.Merge(unique_name, main_model_part, union_model_parts, add_neighbours)
+            return True, Kratos.ModelPartOperationUtilities.Union(unique_name, main_model_part, union_model_parts, add_neighbours)
 
     @staticmethod
     def IntersectModelParts(main_model_part: Kratos.ModelPart, intersecting_model_parts: 'list[Kratos.ModelPart]', add_neighbours: bool) -> 'tuple[bool, Kratos.ModelPart]':
@@ -38,7 +38,7 @@ class ModelPartUtilities:
         result: 'dict[Any, Kratos.ModelPart]' = {}
         for k, v in input_dict.items():
             merging_model_parts = [container_expression.GetModelPart() for container_expression in v.GetContainerExpressions()]
-            _, merged_model_part = ModelPartUtilities.MergeModelParts(main_model_part, merging_model_parts, add_neghbours)
+            _, merged_model_part = ModelPartUtilities.UnionModelParts(main_model_part, merging_model_parts, add_neghbours)
             result[k] = merged_model_part
 
         return result

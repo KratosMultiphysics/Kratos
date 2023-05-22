@@ -44,10 +44,10 @@ void TestStatisticsUtilitiesInitializeModelPart(
 
     // Nodal data
     Element& r_element = *(rModelPart.ElementsBegin());
-    Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
+    Geometry< Node >& r_geometry = r_element.GetGeometry();
 
     for (unsigned int i = 0; i < 4; i++) {
-        Node<3>& r_node = r_geometry[i];
+        Node& r_node = r_geometry[i];
         r_node.FastGetSolutionStepValue(PRESSURE) = 10.0;
         r_node.FastGetSolutionStepValue(VELOCITY_X) = 1.0;
         r_node.FastGetSolutionStepValue(VELOCITY_Y) = 2.0;

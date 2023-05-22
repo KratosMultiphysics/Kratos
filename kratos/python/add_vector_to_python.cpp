@@ -149,29 +149,6 @@ py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string
         }
     });
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> AMatrix::SubVector<TVectorType>
-    {
-        size_t start, stop, step, slicelength;
-        if (!this_slice.compute(self.size(), &start, &stop, &step, &slicelength))
-            throw pybind11::error_already_set();
-        KRATOS_ERROR_IF(step != 1) << "The AMatrix only supports continuous slices with step == 1" << std::endl;
-        AMatrix::SubVector<TVectorType> sliced_self(self, start, slicelength);
-        return sliced_self;
-    });
-    binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value)
-    {
-        self.fill(value);
-    });
-    binder.def("norm_1", [](TVectorType& self)
-    {
-        return norm_1(self);
-    });
-    binder.def("norm_2", [](TVectorType& self)
-    {
-        return norm_2(self);
-    });
-#else
     binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> boost::numeric::ublas::vector_slice<TVectorType>
     {
         size_t start, stop, step, slicelength;
@@ -197,7 +174,6 @@ py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string
     {
         return boost::numeric::ublas::norm_inf(self);
     });
-#endif // KRATOS_USE_AMATRIX
     binder.def("__iter__", [](TVectorType& self)
     {
         return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal);
@@ -276,11 +252,7 @@ void CreateArray1DInterface(pybind11::module& m, const std::string& Name )
 
 void  AddVectorToPython(pybind11::module& m)
 {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    using VectorSlice = AMatrix::SubVector<Vector>;
-#else
     typedef boost::numeric::ublas::vector_slice<Vector> VectorSlice;
-#endif // KRATOS_USE_AMATRIX
     py::class_< VectorSlice >(m, "VectorSlice")
     .def("Size", [](const VectorSlice& self)
     {
@@ -351,17 +323,10 @@ void  AddVectorToPython(pybind11::module& m)
         aux -= vec2;
         return aux;
     }, py::is_operator())
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    .def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::data_type value)
-    {
-        self[i] = value;
-    })
-#else
     .def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::value_type value)
     {
         self[i] = value;
     })
-#endif // KRATOS_USE_AMATRIX
     .def("__getitem__", [](const VectorSlice& self, const unsigned int i)
     {
         return self[i];
@@ -392,17 +357,10 @@ void  AddVectorToPython(pybind11::module& m)
             start += step;
         }
     })
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    .def("__iter__", [](VectorSlice& self)
-    {
-        return py::make_iterator(self.data(), self.data() + self.size(), py::return_value_policy::reference_internal);
-    }, py::keep_alive<0,1>() )
-#else
     .def("__iter__", [](VectorSlice& self)
     {
         return py::make_iterator(self.begin(), self.end(), py::return_value_policy::reference_internal);
     }, py::keep_alive<0,1>() )
-#endif // ifdef KRATOS_USE_AMATRIX
     .def("__str__", PrintObject<VectorSlice>)
     ;
 
