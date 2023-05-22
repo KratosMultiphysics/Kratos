@@ -99,22 +99,12 @@ class ExplicitMechanicalSolver(MechanicalSolver):
         scheme_type = self.settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters
-        rayleigh_alpha = self.settings["rayleigh_alpha"].GetDouble()
-        if rayleigh_alpha > sys.float_info.epsilon:
-            for prop in self.main_model_part.Properties:
-                if prop.Has(StructuralMechanicsApplication.RAYLEIGH_ALPHA):
-                    prop.SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA, rayleigh_alpha)
-        rayleigh_beta = self.settings["rayleigh_beta"].GetDouble()
-        if rayleigh_beta > sys.float_info.epsilon:
-            for prop in self.main_model_part.Properties:
-                if prop.Has(StructuralMechanicsApplication.RAYLEIGH_BETA):
-                    prop.SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA, rayleigh_beta)
-
-        # Setting the Rayleigh damping parameters (legacy on ProcessInfo)
         KratosMultiphysics.Logger.PrintWarning("ExplicitMechanicalSolver", "RAYLEIGH_ALPHA and RAYLEIGH_BETA are set in explicit simulation, this support is legacy and will be removed at some point")
         process_info = self.main_model_part.ProcessInfo
+        rayleigh_alpha = self.settings["rayleigh_alpha"].GetDouble()
         if rayleigh_alpha > sys.float_info.epsilon:
             process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = rayleigh_alpha
+        rayleigh_beta = self.settings["rayleigh_beta"].GetDouble()
         if rayleigh_beta > sys.float_info.epsilon:
             process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = rayleigh_beta
 
