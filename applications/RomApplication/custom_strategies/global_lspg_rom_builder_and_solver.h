@@ -286,9 +286,6 @@ public:
     ///@}
 protected:
 
-    SizeType mNodalDofs;
-    bool mTrainPetrovGalerkinFlag = false;
-
     ///@}
     ///@name Protected static member variables
     ///@{
@@ -297,6 +294,9 @@ protected:
     ///@}
     ///@name Protected member variables
     ///@{
+
+    SizeType mNodalDofs;
+    bool mTrainPetrovGalerkinFlag = false;
 
     ///@}
     ///@name Protected operators
@@ -366,28 +366,60 @@ protected:
 
         AssemblyTLS assembly_tls_container;
 
-        const auto& r_elements = rModelPart.Elements();
+        // const auto& r_elements = rModelPart.Elements();
+        const auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
 
         if(!r_elements.empty())
         {
             block_for_each(r_elements, assembly_tls_container, 
                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
-                CalculateLocalContributionLSPG(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
+                CalculateLocalContributionLSPG(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info, true);
             });
         }
 
 
-        const auto& r_conditions = rModelPart.Conditions();
+        // const auto& r_conditions = rModelPart.Conditions();
+        const auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
 
         if(!r_conditions.empty())
         {
             block_for_each(r_conditions, assembly_tls_container, 
                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
-                CalculateLocalContributionLSPG(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
+                CalculateLocalContributionLSPG(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info, true);
             });
         }
+
+        //BUILD COMPLETE OPERATOR FOR HROM 
+        AssemblyTLS assembly_tls_container_left;
+        Matrix rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
+        Vector rb_left = ZeroVector(BaseType::GetEquationSystemSize());
+        const auto& r_elements_left = rModelPart.Elements();
+        // auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
+
+        if(!r_elements_left.empty())
+        {
+            block_for_each(r_elements_left, assembly_tls_container_left, 
+                [&](Element& r_element, AssemblyTLS& r_thread_prealloc_left)
+            {
+                CalculateLocalContributionLSPG(r_element, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
+            });
+        }
+
+
+        auto& r_conditions_left = rModelPart.Conditions();
+        // auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
+
+        if(!r_conditions.empty())
+        {
+            block_for_each(r_conditions_left, assembly_tls_container_left, 
+                [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc_left)
+            {
+                CalculateLocalContributionLSPG(r_condition, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
+            });
+        }
+        //
 
         const auto projection_timer = BuiltinTimer();
 
@@ -396,11 +428,12 @@ protected:
 
         // Create the Eigen matrix using the buffer
         Eigen::Map<EigenDynamicMatrix> eigen_matrix(rA.data().begin(), rA.size1(), rA.size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
         Eigen::Map<EigenDynamicVector> eigen_vector(rb.data().begin(), rb.size());
 
         // Compute the matrix multiplication
-        mA_eigen = eigen_matrix.transpose() * eigen_matrix;
-        mb_eigen = eigen_matrix.transpose() * eigen_vector;
+        mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
+        mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
         
         KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Projection time: " << projection_timer.ElapsedSeconds() << std::endl;
         double time = assembling_timer.ElapsedSeconds();
@@ -539,12 +572,19 @@ private:
         LSPGSystemVectorType& rBglobal,
         AssemblyTLS& rPreAlloc,
         TSchemeType& rScheme,
-        const ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo,
+        bool rHromWeightFlag)
     {
         if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE)) return;
 
         // Calculate elemental contribution
         rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.romB, rPreAlloc.eq_id, rCurrentProcessInfo);
+        if (rHromWeightFlag){
+            const double hrom_weight = this->mHromSimulation ? rEntity.GetValue(HROM_WEIGHT) : 1.0;
+            rPreAlloc.lhs *= hrom_weight;
+            rPreAlloc.romB *= hrom_weight;
+        }
+        
         rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
 
         const SizeType ndofs = rPreAlloc.dofs.size();
