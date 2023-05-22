@@ -64,11 +64,9 @@ public:
             const SupportedVariables& rFirst,
             const SupportedVariables& rSecond) const
         {
-            bool is_less = false;
-            std::visit([&is_less](auto pFirst, auto pSecond) {
-                is_less = pFirst->Key() < pSecond->Key();
+            return std::visit([](auto pFirst, auto pSecond) {
+                return pFirst->Key() < pSecond->Key();
             }, rFirst, rSecond);
-            return is_less;
         }
     };
 
