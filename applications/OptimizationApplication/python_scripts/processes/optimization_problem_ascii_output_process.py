@@ -154,13 +154,13 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                 time_stamp = str(datetime.now())
 
             msg_header = ""
-            msg_header += "# Optimization problem ascii output\n"
-            msg_header += f"# Kratos version: {kratos_version}\n"
-            msg_header += f"# Timestamp     : {time_stamp}\n"
-            msg_header += "# -----------------------------------------------\n"
+            msg_header = f"{msg_header}# Optimization problem ascii output\n"
+            msg_header = f"{msg_header}# Kratos version: {kratos_version}\n"
+            msg_header = f"{msg_header}# Timestamp     : {time_stamp}\n"
+            msg_header = f"{msg_header}# -----------------------------------------------\n"
 
             if self.write_initial_values:
-                msg_header += "# --------------- Initial values ----------------\n"
+                msg_header = f"{msg_header}# --------------- Initial values ----------------\n"
 
                 initial_headers = self._GetHeaders(lambda x: x.GetUnBufferedData())
                 # now write the initial value container data
@@ -168,24 +168,24 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                     componend_data_view = ComponentDataView(component, self.optimization_problem)
                     buffered_dict = componend_data_view.GetUnBufferedData()
                     component_name = componend_data_view.GetComponentName()
-                    msg_header += "# \t" + component_name + ":\n"
+                    msg_header = f"{msg_header}# \t" + component_name + ":\n"
                     for k, header in header_info_dict.items():
                         component_name_header = header.GetHeaderName().strip()[len(component_name)+1:]
-                        msg_header += "# \t\t" + component_name_header + ": " + header.GetValueStr(buffered_dict[k]).strip() + "\n"
+                        msg_header = f"{msg_header}# \t\t" + component_name_header + ": " + header.GetValueStr(buffered_dict[k]).strip() + "\n"
 
-                msg_header += "# ------------ End of initial values ------------\n"
-                msg_header += "# -----------------------------------------------\n"
+                msg_header = f"{msg_header}# ------------ End of initial values ------------\n"
+                msg_header = f"{msg_header}# -----------------------------------------------\n"
 
-            msg_header += "# ------------ Start of step values -------------\n"
-            msg_header += "# Headers:\n"
+            msg_header = f"{msg_header}# ------------ Start of step values -------------\n"
+            msg_header = f"{msg_header}# Headers:\n"
 
-            msg_header += "#  STEP"
+            msg_header = f"{msg_header}#  STEP"
 
             for _, header_info_dict in self.list_of_headers:
                 for header in header_info_dict.values():
-                    msg_header += ", " + header.GetHeaderName()
+                    msg_header = f"{msg_header}, " + header.GetHeaderName()
 
-            msg_header += "\n"
+            msg_header = f"{msg_header}\n"
 
             # write the header
             with open(self.output_file_name, "w") as file_output:
