@@ -37,9 +37,80 @@ public:
     ///@name Type definitions
     ///@{
 
-    using Pointer = Kratos::intrusive_ptr<Expression>;
+    using Pointer = Kratos::intrusive_ptr<const Expression>;
 
     using IndexType = std::size_t;
+
+    ///@}
+    ///@name Public classes
+    ///@{
+
+    class ExpressionIterator {
+    public:
+        ///@name Type definitions
+        ///@{
+
+        KRATOS_CLASS_POINTER_DEFINITION(ExpressionIterator);
+
+        ///@}
+        ///@name Life cycle
+        ///@{
+
+        ExpressionIterator(Expression::Pointer pExpression);
+
+        /**
+         * @brief Copy constructor
+         *
+         * @param rOther
+         */
+        ExpressionIterator(const ExpressionIterator& rOther);
+
+        ///@}
+        ///@name Public operations
+        ///@{
+
+        Expression::Pointer GetExpression() const;
+
+        ///@}
+        ///@name Public operators
+        ///@{
+
+        double operator*() const;
+
+        bool operator==(const ExpressionIterator& rOther) const;
+
+        bool operator!=(const ExpressionIterator& rOther) const;
+
+        ExpressionIterator& operator=(const ExpressionIterator& rOther);
+
+        ExpressionIterator& operator++();
+
+        ExpressionIterator operator++(int);
+
+        ///@}
+
+    private:
+        ///@name Private member variables
+        ///@{
+
+        Expression::Pointer mpExpression;
+
+        IndexType mEntityIndex;
+
+        IndexType mEntityDataBeginIndex;
+
+        IndexType mComponentIndex;
+
+        IndexType mFlattenedShapeSize;
+
+        ///@}
+        ///@name Friend classes
+        ///@{
+
+        friend class Expression;
+
+        ///@}
+    };
 
     ///@}
     ///@name Life cycle
@@ -90,6 +161,10 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    ExpressionIterator cbegin() const;
+
+    ExpressionIterator cend() const;
 
     virtual std::string Info() const = 0;
 
