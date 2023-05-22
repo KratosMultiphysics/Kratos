@@ -25,9 +25,9 @@
 namespace Kratos::Testing {
 
 ModelPart& CreateCubeSkinModelPart(
-    Model& rCurrentModel, 
-    const double HalfX, 
-    const double HalfY, 
+    Model& rCurrentModel,
+    const double HalfX,
+    const double HalfY,
     const double HalfZ
     )
 {
