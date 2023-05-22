@@ -7,6 +7,8 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetAllComponents
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetComponentByFullName
 
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ExecutionPolicy:
     if not parameters.Has("settings"):
@@ -93,39 +95,10 @@ class OptimizationProblemAsciiWriterProcess(Kratos.OutputProcess):
         self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         list_of_component_names = parameters["list_of_output_components"].GetStringArray()
         if len(list_of_component_names) == 1 and list_of_component_names[0] == "all":
-            # write all the data components
-            # first add the responses
-            for response_function in self.optimization_problem.GetListOfResponses():
-                self.list_of_components.append(response_function)
-
-            # then add controls
-            for control in self.optimization_problem.GetListOfControls():
-                self.list_of_components.append(control)
-
-            # then add execution policies
-            for execution_policy in self.optimization_problem.GetListOfExecutionPolicies():
-                self.list_of_components.append(execution_policy)
-
-            # now add the algorithm
-            self.list_of_components.append("algorithm")
+            self.list_of_components = GetAllComponents(optimization_problem)
         else:
             for component_name in list_of_component_names:
-                component_data = component_name.split(".")
-                if len(component_data) == 2:
-                    component_type = component_data[0]
-                    component_name = component_data[1]
-                    if component_type == "response_function":
-                        self.list_of_components.append(self.optimization_problem.GetResponse(component_name))
-                    elif component_type == "control":
-                        self.list_of_components.append(self.optimization_problem.GetControl(component_name))
-                    elif component_type == "execution_policy":
-                        self.list_of_components.append(self.optimization_problem.GetExecutionPolicy(component_name))
-                    else:
-                        raise RuntimeError(f"Unsupported component type provided with component name string = \"{component_name}\". Supported component types are:\n\tresponse_function\n\tcontrol\n\texecution_policy\n\talgorithm")
-                elif len(component_data) == 1:
-                    self.list_of_components.append(component_name)
-                else:
-                    raise RuntimeError(f"Unsupported component type provided with component name string = \"{component_name}\". Supported component types are:\n\tresponse_function\n\tcontrol\n\texecution_policy\n\talgorithm")
+                self.list_of_components.append(GetComponentByFullName(component_name, optimization_problem))
 
         self.list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         self.initialized_headers = False
