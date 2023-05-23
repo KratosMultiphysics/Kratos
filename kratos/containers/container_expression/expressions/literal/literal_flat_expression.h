@@ -83,7 +83,7 @@ public:
         const IndexType ComponentIndex,
         const double Value);
 
-    const std::vector<IndexType> GetShape() const override;
+    const std::vector<IndexType> GetItemShape() const override;
 
     std::string Info() const override;
 

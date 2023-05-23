@@ -127,7 +127,7 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def(py::init<const container_type&>(), py::arg("other_container_expression_to_copy_from"), py::doc("Creates a new same type container expression object by copying data from other_container_expression_to_copy_from."))
         .def(py::init<const typename container_type::BaseType&>(), py::arg("other_container_expression_to_copy_from"), py::doc("Creates a new destination type container expression object by copying data from compatible other_container_expression_to_copy_from."))
         .def("Evaluate", [](const container_type& rSelf){
-            const auto& r_shape = rSelf.GetShape();
+            const auto& r_shape = rSelf.GetItemShape();
             auto array = AllocateNumpyArray<double>(rSelf.GetContainer().size(), r_shape);
 
             std::vector<int> shape(r_shape.size());
