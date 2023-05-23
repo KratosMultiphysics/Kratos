@@ -9,9 +9,12 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    return AlgorithmSteepestDescent(model, parameters, optimization_problem)
 
-class KratosSteepestDescent(Algorithm):
+class AlgorithmSteepestDescent(Algorithm):
     """
         A classical steepest descent algorithm to solve unconstrainted optimization problems.
     """
@@ -92,33 +95,43 @@ class KratosSteepestDescent(Algorithm):
 
     def SolveOptimizationProblem(self) -> bool:
         self.Initialize()
-        while not self.converged:
-            print(f"Optimization Iteration {self._optimization_problem.GetStep()}")
-
-            self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) 
-            print(self.__objective.GetInfo())
-            obj_grad = self.__objective.CalculateStandardizedGradient()
-            search_direction = self.ComputeSearchDirection(obj_grad)
-
-            for control in self.master_control.GetListOfControls():
-                control_data_storage = ComponentDataView(control, self._optimization_problem)
-                control_data_storage.GetUnBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
-
-            alpha = self.__line_search_method.ComputeStep(search_direction)
-
-            update = search_direction * alpha
-            self.__control_field += update
-
-            for control in self.master_control.GetListOfControls():
-                control_data_storage = ComponentDataView(control, self._optimization_problem)
-                control_data_storage.GetUnBufferedData().SetValue("parameter_update", update.Clone(), overwrite=True)
-                control_data_storage.GetUnBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
-
-            self.converged = self.__convergence_criteria.CheckConvergence()
-            self._optimization_problem.AdvanceStep()
-
-        self.Finalize()
+        with TimeLogger("Solve Optimization problem", "Start", "End"):
+            self.Solve()
         return self.converged
+    
+    def Solve(self):
+        while not self.converged:
+            print("")
+            with TimeLogger("Optimization", f" Start Iteration {self._optimization_problem.GetStep()}", f"End Iteration {self._optimization_problem.GetStep()}"):
+
+                with TimeLogger("Calculate objective value", "Start", "End"):
+                    self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) 
+                    print(self.__objective.GetInfo())
+
+                with TimeLogger("Calculate gradient", "Start", "End"):
+                    obj_grad = self.__objective.CalculateStandardizedGradient() 
+                
+                with TimeLogger("Calculate design update", "Start", "End"):
+                    search_direction = self.ComputeSearchDirection(obj_grad)
+
+                    for control in self.master_control.GetListOfControls():
+                        control_data_storage = ComponentDataView(control, self._optimization_problem)
+                        control_data_storage.GetUnBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
+
+                    alpha = self.__line_search_method.ComputeStep(search_direction)
+
+                    update = search_direction * alpha
+                    self.__control_field += update
+
+                for control in self.master_control.GetListOfControls():
+                    control_data_storage = ComponentDataView(control, self._optimization_problem)
+                    control_data_storage.GetUnBufferedData().SetValue("parameter_update", update.Clone(), overwrite=True)
+                    control_data_storage.GetUnBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
+
+                self.converged = self.__convergence_criteria.CheckConvergence()
+                self._optimization_problem.AdvanceStep()
+
+            self.Finalize()
     
     def GetOptimizedObjectiveValue(self) -> float:
         if self.converged:

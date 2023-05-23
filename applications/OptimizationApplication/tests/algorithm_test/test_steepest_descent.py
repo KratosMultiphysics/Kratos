@@ -4,13 +4,13 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent_new import KratosSteepestDescent
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent_new import AlgorithmSteepestDescent
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control import MaterialPropertiesControl
 
-class TestKratosSteepestDescent(kratos_unittest.TestCase, ABC):
+class TestAlgorithmSteepestDescent(kratos_unittest.TestCase, ABC):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
@@ -68,7 +68,7 @@ class TestKratosSteepestDescent(kratos_unittest.TestCase, ABC):
             }
         }""")
 
-        cls.algorithm = KratosSteepestDescent(cls.model, cls.parameters, cls.optimization_problem)
+        cls.algorithm = AlgorithmSteepestDescent(cls.model, cls.parameters, cls.optimization_problem)
 
     @classmethod
     def CreateElements(cls):
