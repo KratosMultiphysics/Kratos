@@ -69,14 +69,14 @@ public:
      *
      * @return const std::vector<IndexType>     Size of each dimension is in the vector elements.
      */
-    virtual const std::vector<IndexType> GetShape() const = 0;
+    virtual const std::vector<IndexType> GetItemShape() const = 0;
 
     /**
      * @brief Get the Local Size of the expression
      *
      * @return IndexType
      */
-    IndexType GetFlattenedSize() const;
+    IndexType GetItemComponentCount() const;
 
     ///@}
     ///@name Input and output
