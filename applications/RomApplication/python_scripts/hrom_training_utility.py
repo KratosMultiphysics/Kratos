@@ -181,6 +181,10 @@ class HRomTrainingUtility(object):
         return residuals_snapshot_matrix
 
 
+    def SetImposedElements(self, imposed_elements):
+        self.imposed_elements = imposed_elements
+
+
 
     def AppendHRomWeightsToRomParameters(self):
         number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
@@ -219,6 +223,25 @@ class HRomTrainingUtility(object):
             for parent_id in missing_condition_parents:
                 hrom_weights["Elements"][parent_id] = 0.0
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
+
+        try:
+            self.imposed_elements = np.array(self.imposed_elements)
+            self.imposed_elements -= 1 #compensation for the fact that ids in numpy start from zero, while ids in Kratos start from 1 !!!
+
+            # Check for common elements among already selected by algorithm, and those imposed
+            common_elements = np.intersect1d(indexes, self.imposed_elements)
+
+            # Filter out common elements
+            real_imposed_indexes = np.setdiff1d(self.imposed_elements, common_elements)
+
+            #numpy uses this
+            weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, real_imposed_indexes)
+
+            # json uses this
+            for index in real_imposed_indexes:
+                hrom_weights["Elements"][index] = 0.0
+        except:
+            pass
 
         if self.hrom_output_format=="numpy":
             element_indexes = np.where( indexes < number_of_elements )[0]
