@@ -92,12 +92,10 @@ void DistributedTestCase::CheckRemoteFailure()
         if (!skipped_on_this_rank) { // This rank skipped, but another rank skipped.
             TestCaseResult remote_skip(GetResult());
             remote_skip.SetToSkipped();
-            remote_skip.SetErrorMessage("Test was reported as not skipped on this rank, but skipped on a different rank.");
             SetResult(remote_skip);
         } else { // Test failed at least on this rank
             TestCaseResult rank_result(GetResult());
             rank_result.SetToSkipped();
-            rank_result.SetErrorMessage("Test skipped at least on this rank.");
             SetResult(rank_result);
         }
 
