@@ -25,6 +25,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
 #include "utilities/string_utilities.h"
+#include "input_output/base_64_encoded_output.h"
 
 // Include base h
 #include "vtu_output.h"
@@ -36,8 +37,6 @@ namespace Kratos {
     KRATOS_CREATE_LOCAL_FLAG(VtuOutput, ELEMENTS, 3);
 
 namespace VtuOutputHelperUtilities {
-
-constexpr char base64Map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 class KRATOS_API(KRATOS_CORE) XmlOStreamWriter
 {
@@ -125,104 +124,6 @@ public:
     ///@}
 
 private:
-    ///@name Private classes
-    ///@{
-
-    class Base64EncodedOutput
-    {
-    public:
-        template<typename TIteratorType>
-        void WriteOutputData(
-            std::ostream& rOutput,
-            TIteratorType Begin,
-            IndexType N)
-        {
-            constexpr IndexType size = sizeof(decltype(*Begin));
-            const IndexType rawBytes = N * size;
-
-            auto it = Begin;
-            auto value = *it;
-            IndexType byteIndex = 0;
-
-            auto next = [&]() {
-                char byte = *(reinterpret_cast<const char*>(&value) + byteIndex++);
-
-                if(byteIndex == size) {
-                    ++it;
-                    value = *it;
-                    byteIndex = 0;
-                }
-
-                return byte;
-            };
-
-            // first fill the existing mByteTriplet
-            IndexType numberOfWrittenBytes = 0;
-            for (; mByteTripletIndex < std::min(rawBytes, IndexType{3}); ++mByteTripletIndex) {
-                mByteTriplet[mByteTripletIndex] = next();
-                ++numberOfWrittenBytes;
-            }
-
-            // check if the triplets are filled otherwise don't write, wait for the closeOutputData call
-            // to write remaining bytes in mByteTriplet
-            if (mByteTripletIndex == 3) {
-                mByteTripletIndex = 0;
-                // write the last byte triplet
-                EncodeTriplet(rOutput, mByteTriplet, 0);
-
-                // in steps of 3
-                const IndexType numberOfTriplets = (rawBytes - numberOfWrittenBytes) / 3;
-
-                for(IndexType i = 0; i < numberOfTriplets; ++i) {
-                    EncodeTriplet(rOutput, {next(), next(), next()}, 0);
-                }
-
-                numberOfWrittenBytes += numberOfTriplets * 3;
-
-                // now fill the mByteTriplet with the remaining bytes of the data
-                const IndexType remaining_bytes = rawBytes - numberOfWrittenBytes;
-                for (; mByteTripletIndex < remaining_bytes; ++mByteTripletIndex) {
-                    mByteTriplet[mByteTripletIndex] = next();
-                }
-            }
-        }
-
-        void CloseOutputData(std::ostream& rOutput)
-        {
-            const IndexType padding = 3 - mByteTripletIndex;
-            if (padding != 0 && mByteTripletIndex != 0) {
-                for(; mByteTripletIndex < 3; ++mByteTripletIndex) {
-                    mByteTriplet[mByteTripletIndex] = '\0';
-                }
-
-                EncodeTriplet(rOutput, mByteTriplet, padding );
-            }
-            mByteTripletIndex = 0;
-        }
-
-    private:
-        static void EncodeTriplet(
-            std::ostream& rOutput,
-            const std::array<char, 3>& rBytes,
-            IndexType Padding )
-        {
-            char tmp[5] = { base64Map[(   rBytes[0] & 0xfc ) >> 2],
-                            base64Map[( ( rBytes[0] & 0x03 ) << 4 ) + ( ( rBytes[1] & 0xf0 ) >> 4 )],
-                            base64Map[( ( rBytes[1] & 0x0f ) << 2 ) + ( ( rBytes[2] & 0xc0 ) >> 6 )],
-                            base64Map[rBytes[2] & 0x3f],
-                            '\0' };
-
-            std::fill( tmp + 4 - Padding, tmp + 4, '=' );
-
-            rOutput << tmp;
-        }
-
-        IndexType mByteTripletIndex = 0;
-
-        std::array<char, 3> mByteTriplet;
-    };
-
-    ///@}
     ///@name Private member variables
     ///@{
 
