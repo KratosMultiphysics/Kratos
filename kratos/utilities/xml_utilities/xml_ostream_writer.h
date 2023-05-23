@@ -37,10 +37,11 @@ public:
     ///@name Public enums
     ///@{
 
+    /// Enumerations for the output writer format.
     enum WriterFormat
     {
-        ASCII,
-        BINARY
+        ASCII,  /// ASCII format.
+        BINARY  /// Binary format.
     };
 
     ///@}

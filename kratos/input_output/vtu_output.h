@@ -28,15 +28,15 @@
 #include "containers/container_expression/container_expression.h"
 #include "utilities/xml_utilities/xml_ostream_writer.h"
 
-
 namespace Kratos {
 /**
+ * @class VtuOutput
  * @brief Class to output Kratos Flags, Variables and ContainerExpressions
  *        to vtu. Supports both shared and distributed memory architectures.
  *
- * This class does not create or destroy any folder structures, hence the output
+ * @details This class does not create or destroy any folder structures, hence the output
  * file name prefix should be have a valid parent directory.
- *
+ * @author Suneth Warnakulasuriya
  */
 class KRATOS_API(KRATOS_CORE) VtuOutput : public IO
 {
@@ -70,9 +70,7 @@ public:
 
     /**
      * @brief Construct a new Vtu Output IO
-     *
-     * Constructs a new VtuOuput IO instance with the given parameters.
-     *
+     * @details Constructs a new VtuOuput IO instance with the given parameters.
      * @param rModelPart                Model part to be used.
      * @param IsInitialConfiguration    If true, the initial configuration is written.
      * @param OutputFormat              Output format. Either ASCII or BINARY supported.
@@ -139,72 +137,98 @@ public:
         const std::string& rExpressionName,
         const typename ContainerExpression<TContainerType>::Pointer pContainerExpression);
 
+    /**
+    * @brief Clears the historical variables.
+    */
     void ClearHistoricalVariables();
 
+    /**
+    * @brief Clears the nodal non-historical variables.
+    */
     void ClearNodalNonHistoricalVariables();
 
+    /**
+    * @brief Clears the cell non-historical variables.
+    */
     void ClearCellNonHistoricalVariables();
 
+    /**
+    * @brief Clears the nodal flags.
+    */
     void ClearNodalFlags();
 
+    /**
+    * @brief Clears the cell flags.
+    */
     void ClearCellFlags();
 
+    /**
+    * @brief Clears the nodal container expressions.
+    */
     void ClearNodalContainerExpressions();
 
+    /**
+    * @brief Clears the cell container expressions.
+    */
     void ClearCellContainerExpressions();
 
+    /**
+    * @brief Returns the model part.
+    * @return The constant reference to the model part.
+    */
     const ModelPart& GetModelPart() const;
 
     /**
      * @brief Writes the Vtu file.
-     *
-     * This writes the final vtu file. If this is a transient output, then @ref rOutputFilenamePrefix
+     * @details This writes the final vtu file. If this is a transient output, then @ref rOutputFilenamePrefix
      * should have indication of the step, otherwise this will overwrite the same file.
-     *
      * In the MPI case, this will create one .vtu file per rank, and a .pvtu file to combine them.
-     *
      * @param rOutputFilenamePrefix         Output file name prefix.
      */
     void PrintOutput(const std::string& rOutputFilenamePrefix);
 
     ///@}
-
 private:
     ///@name Private member variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart& mrModelPart; /// Reference to the model part.
 
-    const bool mIsInitialConfiguration;
+    const bool mIsInitialConfiguration; /// Flag indicating if it is the initial configuration.
 
-    const XmlOStreamWriter::WriterFormat mOutputFormat;
+    const XmlOStreamWriter::WriterFormat mOutputFormat; /// The output format for writing the model part.
 
-    const IndexType mPrecision;
+    const IndexType mPrecision; /// The precision used for writing floating-point values.
 
-    bool mIsConditionsConsidered;
+    bool mIsConditionsConsidered; /// Flag indicating if conditions are considered.
 
-    bool mIsElementsConsidered;
+    bool mIsElementsConsidered; /// Flag indicating if elements are considered.
 
-    std::unordered_map<IndexType, IndexType> mKratosVtuIndicesMap;
+    std::unordered_map<IndexType, IndexType> mKratosVtuIndicesMap; /// Map to store Kratos VTU indices.
 
-    std::unordered_map<std::string, SupportedVariables> mHistoricalVariablesMap;
+    std::unordered_map<std::string, SupportedVariables> mHistoricalVariablesMap; /// Map to store supported historical variables.
 
-    std::unordered_map<std::string, SupportedVariables> mNonHistoricalNodalVariablesMap;
+    std::unordered_map<std::string, SupportedVariables> mNonHistoricalNodalVariablesMap; /// Map to store supported non-historical nodal variables.
 
-    std::unordered_map<std::string, SupportedVariables> mNonHistoricalCellVariablesMap;
+    std::unordered_map<std::string, SupportedVariables> mNonHistoricalCellVariablesMap; /// Map to store supported non-historical cell variables.
 
-    std::unordered_map<std::string, const Flags*> mNodalFlagsMap;
+    std::unordered_map<std::string, const Flags*> mNodalFlagsMap; /// Map to store nodal flags.
 
-    std::unordered_map<std::string, const Flags*> mCellFlagsMap;
+    std::unordered_map<std::string, const Flags*> mCellFlagsMap; /// Map to store cell flags.
 
-    std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mPointContainerExpressionsMap;
+    std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mPointContainerExpressionsMap; /// Map to store point container expressions.
 
-    std::unordered_map<std::string, SupportedCellContainerExpressions> mCellContainerExpressionsMap;
+    std::unordered_map<std::string, SupportedCellContainerExpressions> mCellContainerExpressionsMap; /// Map to store supported cell container expressions.
 
     ///@}
     ///@name Private operations
     ///@{
 
+    /**
+    * @brief Writes the model part to a file.
+    * @param rOutputFileNamePrefix The output file name prefix.
+    * @param rModelPart            The model part to write.
+    */
     void WriteModelPart(
         const std::string& rOutputFileNamePrefix,
         ModelPart& rModelPart) const;
