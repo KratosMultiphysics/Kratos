@@ -229,7 +229,7 @@ public:
     SizeType GetNumberOfROMModes() const noexcept
     {
         return mNumberOfRomModes;
-    } 
+    }
 
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
@@ -260,7 +260,7 @@ public:
         r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
     }
 
-    
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -369,6 +369,31 @@ public:
     ///@name Friends
     ///@{
 
+    double time_rom_system_contruction = 0;
+    double time_rom_system_solving = 0;
+    double time_rom_projection_back = 0;
+
+    void ResetTimeMeasures(){
+        time_rom_system_contruction = 0;
+        time_rom_system_solving = 0;
+        time_rom_projection_back = 0;
+    }
+
+    double Get_contruction_time(){
+        return  time_rom_system_contruction;
+    }
+
+    double Get_solving_time(){
+        return time_rom_system_solving;
+    }
+
+    double Get_projection_time(){
+        return time_rom_projection_back;
+    }
+
+
+
+
 
     ///@}
 protected:
@@ -472,7 +497,7 @@ protected:
 
         KRATOS_CATCH("")
     }
-    
+
     static DofQueue ExtractDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart)
@@ -562,7 +587,7 @@ protected:
         RomSystemMatrixType aux = {};    // Auxiliary: romA = phi.t * (LHS * phi) := phi.t * aux
     };
 
-    
+
     /**
      * Class to sum-reduce matrices and vectors.
      */
@@ -617,7 +642,7 @@ protected:
     }
 
     /**
-     * Builds the reduced system of equations on rank 0 
+     * Builds the reduced system of equations on rank 0
      */
     virtual void BuildROM(
         typename TSchemeType::Pointer pScheme,
@@ -648,7 +673,7 @@ protected:
         if(!elements.empty())
         {
             std::tie(rA, rb) =
-            block_for_each<SystemSumReducer>(elements, assembly_tls_container, 
+            block_for_each<SystemSumReducer>(elements, assembly_tls_container,
                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContribution(r_element, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -662,7 +687,7 @@ protected:
             RomSystemVectorType bconditions;
 
             std::tie(Aconditions, bconditions) =
-            block_for_each<SystemSumReducer>(conditions, assembly_tls_container, 
+            block_for_each<SystemSumReducer>(conditions, assembly_tls_container,
                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContribution(r_condition, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -671,6 +696,7 @@ protected:
             rA += Aconditions;
             rb += bconditions;
         }
+        time_rom_system_contruction += assembling_timer.ElapsedSeconds();
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
@@ -690,10 +716,11 @@ protected:
         KRATOS_TRY
 
         RomSystemVectorType dxrom(GetNumberOfROMModes());
-        
+
         const auto solving_timer = BuiltinTimer();
         MathUtils<double>::Solve(rA, dxrom, rb);
         // KRATOS_WATCH(dxrom)
+        time_rom_system_solving+= solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
@@ -703,6 +730,7 @@ protected:
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(dxrom, rModelPart, rDx);
+        time_rom_projection_back += backward_projection_timer.ElapsedSeconds();
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
@@ -727,7 +755,7 @@ private:
     SizeType mNumberOfRomModes;
 
     ///@}
-    ///@name Private operations 
+    ///@name Private operations
     ///@{
 
     /**
