@@ -625,7 +625,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
         }
     } else { // Otherwise regular inverse
         double det;
-        MathUtils<double>::InvertMatrix(r_DOperator, inverse_DOperator, det, -1.0);
+        MathUtils::InvertMatrix(r_DOperator, inverse_DOperator, det, -1.0);
     }
 
     // Multiplying in order to obtain the proper relation matrix
@@ -750,7 +750,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
         }
     } else { // Otherwise regular inverse
         double det;
-        MathUtils<double>::InvertMatrix(r_DOperator, inverse_DOperator, det, -1.0);
+        MathUtils::InvertMatrix(r_DOperator, inverse_DOperator, det, -1.0);
     }
 
     // Multiplying in order to obtain the proper relation matrix
@@ -868,7 +868,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
         }
     } else { // Otherwise regular inverse
         double det;
-        MathUtils<double>::InvertMatrix(r_DOperator, inverse_DOperator, det, -1.0);
+        MathUtils::InvertMatrix(r_DOperator, inverse_DOperator, det, -1.0);
     }
 
     // Multiplying in order to obtain the proper relation matrix
