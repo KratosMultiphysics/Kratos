@@ -78,9 +78,9 @@ typename VariableExpressionDataIO<TDataType>::Pointer GetVariableExpressionDataI
 }
 
 void ComputeMatrixExpressionProduct(
-    LiteralFlatExpression& rOutputExpression,
+    LiteralFlatExpression<double>& rOutputExpression,
     const Matrix& rMatrix,
-    const LiteralFlatExpression& rInputExpression,
+    const LiteralFlatExpression<double>& rInputExpression,
     const IndexType NumberOfEntities,
     const IndexType ExpressionLocalSize)
 {
@@ -287,7 +287,7 @@ void ContainerExpressionUtils::ProductWithEntityMatrix(
         << "\n\tInput data container : " << rInput
         << "\n\tOutput data container: " << rOutput << "\n\t";
 
-    auto p_flat_data_expression = LiteralFlatExpression::Create(number_of_output_entities, rInput.GetItemShape());
+    auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_output_entities, rInput.GetItemShape());
     rOutput.SetExpression(p_flat_data_expression);
 
     const IndexType local_size = rInput.GetItemComponentCount();
@@ -340,7 +340,7 @@ void ContainerExpressionUtils::ProductWithEntityMatrix(
         << "\n\tInput data container : " << rInput
         << "\n\tOutput data container: " << rOutput << "\n\t";
 
-    auto p_flat_data_expression = LiteralFlatExpression::Create(number_of_output_entities, rInput.GetItemShape());
+    auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_output_entities, rInput.GetItemShape());
     rOutput.SetExpression(p_flat_data_expression);
 
     const auto& r_input_expression = rInput.GetExpression();
@@ -528,7 +528,7 @@ void ContainerExpressionUtils::MapNodalVariableToContainerVariable(
         const IndexType number_of_entities = r_output_container.size();
 
         // create output expression
-        auto p_flat_data_expression = LiteralFlatExpression::Create(number_of_entities, rInput.GetItemShape());
+        auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_entities, rInput.GetItemShape());
         auto& r_flat_data_expression = *p_flat_data_expression;
         rOutput.SetExpression(p_flat_data_expression);
 
@@ -602,8 +602,8 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
 
             const IndexType number_of_nodes = r_geometry.size();
 
-            auto p_input_expression = LiteralFlatExpression::Create(number_of_nodes, rNodalValues.GetExpression().GetItemShape());
-            auto p_output_expression = LiteralFlatExpression::Create(number_of_nodes, rNodalValues.GetExpression().GetItemShape());
+            auto p_input_expression = LiteralFlatExpression<double>::Create(number_of_nodes, rNodalValues.GetExpression().GetItemShape());
+            auto p_output_expression = LiteralFlatExpression<double>::Create(number_of_nodes, rNodalValues.GetExpression().GetItemShape());
 
             for (IndexType i = 0; i < number_of_nodes; ++i) {
                 p_variable_expression_data_io->Read(*p_input_expression, i, r_geometry[i].GetValue(r_input_variable));
