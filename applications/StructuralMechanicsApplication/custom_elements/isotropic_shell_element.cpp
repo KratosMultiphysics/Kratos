@@ -104,7 +104,7 @@ void IsotropicShellElement::CalculateLocalGlobalTransformation(
     temp[0]=GetGeometry()[2].X()-GetGeometry()[0].X();
     temp[1]=GetGeometry()[2].Y()-GetGeometry()[0].Y();
     temp[2]=GetGeometry()[2].Z()-GetGeometry()[0].Z();
-    MathUtils<double>::CrossProduct(v3,v1,temp);
+    MathUtils::CrossProduct(v3,v1,temp);
     area = 0.5 * norm_2(v3);
 
     //normalizing base vectors
@@ -112,7 +112,7 @@ void IsotropicShellElement::CalculateLocalGlobalTransformation(
     v3 /= (2.0*area);
 
     //forming the "second" base vector - it is already normalized
-    MathUtils<double>::CrossProduct(v2,v3,v1);
+    MathUtils::CrossProduct(v2,v3,v1);
     x31 = inner_prod(temp,v1);
     y31 = inner_prod(temp,v2);
 
@@ -1035,7 +1035,7 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >
 
             for(unsigned int ii = 0; ii<rotated_stress.size(); ii++)
             	Output[0](0,ii) = rotated_stress[ii];*/
-            Output[0] = MathUtils<double>::StressVectorToTensor(rotated_stress);
+            Output[0] = MathUtils::StressVectorToTensor(rotated_stress);
         }
 
     }
@@ -1898,7 +1898,7 @@ void IsotropicShellElement::SetupOrientationAngles()
     dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
 
     array_1d<double,3> dirX;
-    MathUtils<double>::CrossProduct(dirX,   dZ, normal);
+    MathUtils::CrossProduct(dirX,   dZ, normal);
 
     // try to normalize the local x direction, otherwise chose the default one( global X )
     double dirX_norm( dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2) );

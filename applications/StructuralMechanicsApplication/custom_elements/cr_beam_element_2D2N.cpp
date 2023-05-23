@@ -345,7 +345,7 @@ void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
         GetGeometry()[1].Y() - GetGeometry()[0].Y();
     geometric_orientation[2] = 0.000;
 
-    const double vector_norm_a = MathUtils<double>::Norm(geometric_orientation);
+    const double vector_norm_a = MathUtils::Norm(geometric_orientation);
     if (vector_norm_a > numerical_limit) {
         geometric_orientation /= vector_norm_a;
     }
@@ -355,7 +355,7 @@ void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
         line_load_direction[i] = ForceInput[i];
     }
 
-    const double vector_norm_b = MathUtils<double>::Norm(line_load_direction);
+    const double vector_norm_b = MathUtils::Norm(line_load_direction);
     if (vector_norm_b > numerical_limit) {
         line_load_direction /= vector_norm_b;
     }
@@ -382,7 +382,7 @@ void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
     Vector load_orthogonal_direction = ZeroVector(3);
     load_orthogonal_direction = node_b - node_c;
     const double vector_norm_c =
-        MathUtils<double>::Norm(load_orthogonal_direction);
+        MathUtils::Norm(load_orthogonal_direction);
     if (vector_norm_c > numerical_limit) {
         load_orthogonal_direction /= vector_norm_c;
     }
@@ -393,7 +393,7 @@ void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
         norm_force_vector_orthogonal * GeometryLength * GeometryLength / 12.00;
 
     Vector moment_node_a = ZeroVector(3);
-    moment_node_a = MathUtils<double>::CrossProduct(geometric_orientation,
+    moment_node_a = MathUtils::CrossProduct(geometric_orientation,
                     load_orthogonal_direction);
     moment_node_a *= custom_moment;
 

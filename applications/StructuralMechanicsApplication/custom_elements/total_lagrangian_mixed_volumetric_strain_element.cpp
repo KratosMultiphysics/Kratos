@@ -6575,7 +6575,7 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateKinematicVariab
         r_geometry,
         r_integration_points[PointNumber],
         rThisKinematicVariables.J0);
-    MathUtils<double>::InvertMatrix(
+    MathUtils::InvertMatrix(
         rThisKinematicVariables.J0,
         rThisKinematicVariables.InvJ0,
         rThisKinematicVariables.detJ0);
@@ -7135,7 +7135,7 @@ void TotalLagrangianMixedVolumetricStrainElement<TDim>::CalculateOnIntegrationPo
                 // If asked for Almansi, calculate the transformation
                 double det_F;
                 BoundedMatrix<double, TDim, TDim> inv_F;
-                MathUtils<double>::InvertMatrix(kinematic_variables.F, inv_F, det_F);
+                MathUtils::InvertMatrix(kinematic_variables.F, inv_F, det_F);
                 auto& r_e_strain = rOutput[i_gauss];
                 const auto& r_E_strain_voigt = kinematic_variables.EquivalentStrain;
                 if constexpr (TDim == 2) {

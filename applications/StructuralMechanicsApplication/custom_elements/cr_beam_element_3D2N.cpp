@@ -241,7 +241,7 @@ void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
             GetGeometry()[1].Z() - GetGeometry()[0].Z();
     }
 
-    const double vector_norm_a = MathUtils<double>::Norm(geometric_orientation);
+    const double vector_norm_a = MathUtils::Norm(geometric_orientation);
     if (vector_norm_a > numerical_limit) {
         geometric_orientation /= vector_norm_a;
     }
@@ -251,7 +251,7 @@ void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
         line_load_direction[i] = ForceInput[i];
     }
 
-    const double vector_norm_b = MathUtils<double>::Norm(line_load_direction);
+    const double vector_norm_b = MathUtils::Norm(line_load_direction);
     if (vector_norm_b > numerical_limit) {
         line_load_direction /= vector_norm_b;
     }
@@ -280,7 +280,7 @@ void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
     Vector load_orthogonal_direction = ZeroVector(msDimension);
     load_orthogonal_direction = node_b - node_c;
     const double vector_norm_c =
-        MathUtils<double>::Norm(load_orthogonal_direction);
+        MathUtils::Norm(load_orthogonal_direction);
     if (vector_norm_c > numerical_limit) {
         load_orthogonal_direction /= vector_norm_c;
     }
@@ -291,7 +291,7 @@ void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
         norm_force_vector_orthogonal * GeometryLength * GeometryLength / 12.00;
 
     Vector moment_a = ZeroVector(msDimension);
-    moment_a = MathUtils<double>::CrossProduct(geometric_orientation,
+    moment_a = MathUtils::CrossProduct(geometric_orientation,
                load_orthogonal_direction);
     moment_a *= custom_moment;
 
@@ -614,7 +614,7 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
 
     // take user defined local axis 2 from GID input
     if (Has(LOCAL_AXIS_2)) {
-        double vector_norm = MathUtils<double>::Norm(direction_vector_x);
+        double vector_norm = MathUtils::Norm(direction_vector_x);
         if (vector_norm > numerical_limit) {
             direction_vector_x /= vector_norm;
         }
@@ -628,7 +628,7 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
         direction_vector_z[2] = direction_vector_x[0] * direction_vector_y[1] -
                                 direction_vector_x[1] * direction_vector_y[0];
 
-        vector_norm = MathUtils<double>::Norm(direction_vector_z);
+        vector_norm = MathUtils::Norm(direction_vector_z);
         if (vector_norm > numerical_limit) {
             direction_vector_z /= vector_norm;
         } else
@@ -658,7 +658,7 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
         arraydim v3 = ZeroVector(msDimension);
 
         double vector_norm;
-        vector_norm = MathUtils<double>::Norm(direction_vector_x);
+        vector_norm = MathUtils::Norm(direction_vector_x);
         if (vector_norm > numerical_limit) {
             direction_vector_x /= vector_norm;
         }
@@ -670,8 +670,8 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
             v2[1] = 1.0;
             v3[0] = 1.0;
         } else {
-            MathUtils<double>::UnitCrossProduct(v2, global_z, direction_vector_x);
-            MathUtils<double>::UnitCrossProduct(v3, direction_vector_x, v2);
+            MathUtils::UnitCrossProduct(v2, global_z, direction_vector_x);
+            MathUtils::UnitCrossProduct(v3, direction_vector_x, v2);
         }
 
         // manual rotation around the beam axis
@@ -682,13 +682,13 @@ CrBeamElement3D2N::CalculateInitialLocalCS() const
             const double sin_theta = std::sin(theta_custom);
 
             v2 = ny_temp * cos_theta + nz_temp * sin_theta;
-            vector_norm = MathUtils<double>::Norm(v2);
+            vector_norm = MathUtils::Norm(v2);
             if (vector_norm > numerical_limit) {
                 v2 /= vector_norm;
             }
 
             v3 = nz_temp * cos_theta - ny_temp * sin_theta;
-            vector_norm = MathUtils<double>::Norm(v3);
+            vector_norm = MathUtils::Norm(v3);
             if (vector_norm > numerical_limit) {
                 v3 /= vector_norm;
             }
@@ -766,7 +766,7 @@ void CrBeamElement3D2N::UpdateQuaternionParameters(
 
     rVecNodeA = drA_sca * temp_vector;
     rVecNodeA += temp_scalar * drA_vec;
-    rVecNodeA += MathUtils<double>::CrossProduct(drA_vec, temp_vector);
+    rVecNodeA += MathUtils::CrossProduct(drA_vec, temp_vector);
 
     // Node B
     temp_vector = mQuaternionVEC_B;
@@ -779,7 +779,7 @@ void CrBeamElement3D2N::UpdateQuaternionParameters(
 
     rVecNodeB = drB_sca * temp_vector;
     rVecNodeB += temp_scalar * drB_vec;
-    rVecNodeB += MathUtils<double>::CrossProduct(drB_vec, temp_vector);
+    rVecNodeB += MathUtils::CrossProduct(drB_vec, temp_vector);
     KRATOS_CATCH("");
 }
 
@@ -824,8 +824,8 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
                          (quaternion_sca_a + quaternion_sca_b);
 
     temp_vector = quaternion_vec_a + quaternion_vec_b;
-    scalar_diff += MathUtils<double>::Norm(temp_vector) *
-                   MathUtils<double>::Norm(temp_vector);
+    scalar_diff += MathUtils::Norm(temp_vector) *
+                   MathUtils::Norm(temp_vector);
 
     scalar_diff = 0.50 * std::sqrt(scalar_diff);
 
@@ -840,7 +840,7 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
     VectorDifference = ZeroVector(msDimension);
     VectorDifference = quaternion_sca_a * quaternion_vec_b;
     VectorDifference -= quaternion_sca_b * quaternion_vec_a;
-    VectorDifference += MathUtils<double>::CrossProduct(quaternion_vec_a,
+    VectorDifference += MathUtils::CrossProduct(quaternion_vec_a,
                         quaternion_vec_b);
 
     VectorDifference = 0.50 * VectorDifference / scalar_diff;
@@ -885,13 +885,13 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector& Bisectrix,
         delta_x[i] =
             current_nodal_position[msDimension + i] - current_nodal_position[i];
 
-    vector_norm = MathUtils<double>::Norm(delta_x);
+    vector_norm = MathUtils::Norm(delta_x);
     if (vector_norm > numerical_limit) {
         delta_x /= vector_norm;
     }
 
     Bisectrix = rotated_nx0 + delta_x;
-    vector_norm = MathUtils<double>::Norm(Bisectrix);
+    vector_norm = MathUtils::Norm(Bisectrix);
     if (vector_norm > numerical_limit) {
         Bisectrix /= vector_norm;
     }
@@ -941,7 +941,7 @@ Vector CrBeamElement3D2N::CalculateAntiSymmetricDeformationMode() const
         rotated_nx0[i] = rotation_matrix(i, 0);
     }
     Vector temp_vector = ZeroVector(msDimension);
-    MathUtils<double>::CrossProduct(temp_vector, rotated_nx0, bisectrix);
+    MathUtils::CrossProduct(temp_vector, rotated_nx0, bisectrix);
     phi_a = prod(Matrix(trans(rotation_matrix)), temp_vector);
     phi_a *= 4.00;
 
@@ -1701,18 +1701,18 @@ int CrBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
             direction_vector_x[i] = (reference_coordinates[i + msDimension] - reference_coordinates[i]);
         }
 
-        const double vector_norm = MathUtils<double>::Norm(direction_vector_x);
+        const double vector_norm = MathUtils::Norm(direction_vector_x);
         if (vector_norm > numerical_limit) {
             direction_vector_x /= vector_norm;
         }
 
         direction_vector_y = GetValue(LOCAL_AXIS_2);
-        const double norm_dir_y = MathUtils<double>::Norm(direction_vector_y);
+        const double norm_dir_y = MathUtils::Norm(direction_vector_y);
 
         KRATOS_ERROR_IF(norm_dir_y<numerical_limit) << "Given LOCAL_AXIS_2 has length 0 for element " << Id() << std::endl;
 
         // a tolerance of 1e-3 allows for a rough deviation of 0.06 degrees from 90.0 degrees
-        const double dot_prod = MathUtils<double>::Dot(direction_vector_x, direction_vector_y);
+        const double dot_prod = MathUtils::Dot(direction_vector_x, direction_vector_y);
         if (std::abs(dot_prod)>1e-3) {
             const double angle = (180.0 / Globals::Pi) * std::acos(dot_prod / (vector_norm*norm_dir_y));
             KRATOS_ERROR << "LOCAL_AXIS_1 is not perpendicular to LOCAL_AXIS_2 for element " << Id() << ", angle is " << angle << " degree" << std::endl;

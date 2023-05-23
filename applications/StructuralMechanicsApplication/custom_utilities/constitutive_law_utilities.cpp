@@ -48,7 +48,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
     const BoundedMatrixType E_matrix = 0.5 * (rCauchyTensor - identity_matrix);
 
     // Green-Lagrangian Strain Calculation
-    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+    rStrainVector = MathUtils::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
@@ -72,7 +72,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::PolarDecomposition(
 
     // Decompose matrix C
     BoundedMatrix<double, Dimension, Dimension> eigen_vector_matrix, eigen_values_matrix;
-    MathUtils<double>::GaussSeidelEigenSystem(C, eigen_vector_matrix, eigen_values_matrix, 1.0e-16, 200);
+    MathUtils::GaussSeidelEigenSystem(C, eigen_vector_matrix, eigen_values_matrix, 1.0e-16, 200);
 
     for (IndexType i = 0; i < Dimension; ++i)
         eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
@@ -81,7 +81,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::PolarDecomposition(
 
     double aux_det;
     MatrixType invU(Dimension, Dimension);
-    MathUtils<double>::InvertMatrix(rUMatrix, invU, aux_det);
+    MathUtils::InvertMatrix(rUMatrix, invU, aux_det);
     noalias(rRMatrix) = prod(rFDeformationGradient, invU);
 }
 
@@ -95,11 +95,11 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
     )
 {
     BoundedMatrix<double, Dimension, Dimension> strain_tensor;
-    strain_tensor = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    strain_tensor = MathUtils::StrainVectorToTensor(rStrainVector);
     BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
     BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
 
-    MathUtils<double>::GaussSeidelEigenSystem(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+    MathUtils::GaussSeidelEigenSystem(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     std::vector<Vector> eigen_vectors_container;
 
@@ -116,7 +116,7 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
-            sigma_tension_vector = MathUtils<double>::StressTensorToVector(sigma_tension_tensor);
+            sigma_tension_vector = MathUtils::StressTensorToVector(sigma_tension_tensor);
             rProjectionOperatorTensor += outer_prod(sigma_tension_vector, sigma_tension_vector);
         }
     }
@@ -146,7 +146,7 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
 
         cross_p_ij_tensor = 0.5 * (outer_prod(eigen_vectors_container[i], eigen_vectors_container[j]) +
                                    outer_prod(eigen_vectors_container[j], eigen_vectors_container[i]));
-        cross_p_ij_vector = MathUtils<double>::StressTensorToVector(cross_p_ij_tensor);
+        cross_p_ij_vector = MathUtils::StressTensorToVector(cross_p_ij_tensor);
         rProjectionOperatorTensor += (h_i + h_j) * (outer_prod(cross_p_ij_vector, cross_p_ij_vector));
 
         h_i = 0.0;
@@ -164,11 +164,11 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
     )
 {
     BoundedMatrix<double, Dimension, Dimension> strain_tensor;
-    strain_tensor = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    strain_tensor = MathUtils::StrainVectorToTensor(rStrainVector);
     BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
     BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
 
-    MathUtils<double>::GaussSeidelEigenSystem(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+    MathUtils::GaussSeidelEigenSystem(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     std::vector<Vector> eigen_vectors_container;
 
@@ -184,7 +184,7 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
-            sigma_tension_vector = MathUtils<double>::StressTensorToVector(sigma_tension_tensor);
+            sigma_tension_vector = MathUtils::StressTensorToVector(sigma_tension_tensor);
             rProjectionOperatorTensor += outer_prod(sigma_tension_vector, sigma_tension_vector);
         }
     }
@@ -200,7 +200,7 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 
     cross_p_ij_tensor = 0.5 * (outer_prod(eigen_vectors_container[0], eigen_vectors_container[1]) +
                                outer_prod(eigen_vectors_container[1], eigen_vectors_container[0]));
-    cross_p_ij_vector = MathUtils<double>::StressTensorToVector(cross_p_ij_tensor);
+    cross_p_ij_vector = MathUtils::StressTensorToVector(cross_p_ij_tensor);
 
     rProjectionOperatorTensor += (h_i + h_j) * (outer_prod(cross_p_ij_vector, cross_p_ij_vector));
 }

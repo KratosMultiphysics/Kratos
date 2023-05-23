@@ -717,7 +717,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy (Values);
 
-            const Matrix& stress_tensor = MathUtils<double>::StressVectorToTensor(general_variables.StressVector); //reduced dimension stress tensor
+            const Matrix& stress_tensor = MathUtils::StressVectorToTensor(general_variables.StressVector); //reduced dimension stress tensor
 
 
             // In general coordinates:
@@ -779,7 +779,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
             // Call the constitutive law to update material variables
             mConstitutiveLawVector[point_number]->CalculateMaterialResponseCauchy (Values);
 
-            const Matrix& stress_tensor  = MathUtils<double>::StressVectorToTensor(general_variables.StressVector); //reduced dimension stress tensor
+            const Matrix& stress_tensor  = MathUtils::StressVectorToTensor(general_variables.StressVector); //reduced dimension stress tensor
 
             double stress_norm =  ((stress_tensor(0,0)*stress_tensor(0,0))+(stress_tensor(1,1)*stress_tensor(1,1))+(stress_tensor(2,2)*stress_tensor(2,2))+
                                    (stress_tensor(0,1)*stress_tensor(0,1))+(stress_tensor(0,2)*stress_tensor(0,2))+(stress_tensor(1,2)*stress_tensor(1,2))+
@@ -1131,7 +1131,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
         for ( IndexType point_number = 0; point_number < rOutput.size(); ++point_number ) {
             if (rOutput[point_number].size2() != 3)
                 rOutput[point_number].resize(3, 3, false);
-            rOutput[point_number] = MathUtils<double>::StressVectorToTensor(stress_vector[point_number]);
+            rOutput[point_number] = MathUtils::StressVectorToTensor(stress_vector[point_number]);
         }
     }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR || rVariable == HENCKY_STRAIN_TENSOR) {
@@ -1151,7 +1151,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
             if (rOutput[point_number].size2() != 3)
                 rOutput[point_number].resize(3, 3, false);
 
-            rOutput[point_number] = MathUtils<double>::StrainVectorToTensor(StrainVector[point_number]);
+            rOutput[point_number] = MathUtils::StrainVectorToTensor(StrainVector[point_number]);
         }
     } else if ( rVariable == CONSTITUTIVE_MATRIX ) {
         // Create and initialize element variables:
@@ -1629,7 +1629,7 @@ void SolidShellElementSprism3D6N::Initialize(const ProcessInfo& rCurrentProcessI
             for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
                 // Calculating and storing inverse of the jacobian and the parameters needed
                 double aux_detJ;
-                MathUtils<double>::InvertMatrix( J0[point_number], mAuxContainer[point_number], aux_detJ );
+                MathUtils::InvertMatrix( J0[point_number], mAuxContainer[point_number], aux_detJ );
             }
         } else { // Historic deformation gradient
             for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
@@ -2108,7 +2108,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
         vye[2] = 0.5 * ((GetGeometry()[0].Z() + GetGeometry()[3].Z()) - (GetGeometry()[2].Z() + GetGeometry()[5].Z()));
     }
 
-    MathUtils<double>::CrossProduct(ThisOrthogonalBase.Vzeta, vxe, vye);
+    MathUtils::CrossProduct(ThisOrthogonalBase.Vzeta, vxe, vye);
     norm = norm_2(ThisOrthogonalBase.Vzeta);
     ThisOrthogonalBase.Vzeta /= norm;
 
@@ -2129,7 +2129,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
 
             norm = norm_2(ThisOrthogonalBase.Vxi);
             ThisOrthogonalBase.Vxi /= norm;
-            MathUtils<double>::CrossProduct(ThisOrthogonalBase.Vxi, ThisOrthogonalBase.Veta, ThisOrthogonalBase.Vzeta);
+            MathUtils::CrossProduct(ThisOrthogonalBase.Vxi, ThisOrthogonalBase.Veta, ThisOrthogonalBase.Vzeta);
         } else { // SELECT local y=ThisOrthogonalBase.Vxi in the global YZ plane
             ThisOrthogonalBase.Vxi[0] = 0.0;
             ThisOrthogonalBase.Vxi[1] = ThisOrthogonalBase.Vzeta[2];
@@ -2154,7 +2154,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
 
             norm = norm_2(ThisOrthogonalBase.Veta);
             ThisOrthogonalBase.Veta /= norm;
-            MathUtils<double>::CrossProduct(ThisOrthogonalBase.Vxi, ThisOrthogonalBase.Veta, ThisOrthogonalBase.Vzeta);
+            MathUtils::CrossProduct(ThisOrthogonalBase.Vxi, ThisOrthogonalBase.Veta, ThisOrthogonalBase.Vzeta);
         } else { // SELECT local z=ThisOrthogonalBase.Vxi in the global ZX plane
             ThisOrthogonalBase.Vxi[0] = - ThisOrthogonalBase.Vzeta[2]; // Choose ThisOrthogonalBase.Vxi orthogonal to global Y direction
             ThisOrthogonalBase.Vxi[1] = 0.0;
@@ -2179,7 +2179,7 @@ void SolidShellElementSprism3D6N::CalculateLocalCoordinateSystem(
 
             norm = norm_2(ThisOrthogonalBase.Veta);
             ThisOrthogonalBase.Veta /= norm;
-            MathUtils<double>::CrossProduct(ThisOrthogonalBase.Vxi, ThisOrthogonalBase.Veta, ThisOrthogonalBase.Vzeta);
+            MathUtils::CrossProduct(ThisOrthogonalBase.Vxi, ThisOrthogonalBase.Veta, ThisOrthogonalBase.Vzeta);
         } else { // SELECT local x=ThisOrthogonalBase.Vxi in the global XY plane
             ThisOrthogonalBase.Vxi[0] = - ThisOrthogonalBase.Vzeta[1];
             ThisOrthogonalBase.Vxi[1] = ThisOrthogonalBase.Vzeta[0];
@@ -2369,7 +2369,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianCenterGauss(
     noalias(J[rPointNumber]) = prod(nodes_coord, LocalDerivativePatch);
 
     /* Compute inverse of the Jaccobian */
-    MathUtils<double>::InvertMatrix( J[rPointNumber], Jinv[rPointNumber], detJ[rPointNumber] );
+    MathUtils::InvertMatrix( J[rPointNumber], Jinv[rPointNumber], detJ[rPointNumber] );
 }
 
 /***********************************************************************************/
@@ -2397,7 +2397,7 @@ void SolidShellElementSprism3D6N::CalculateJacobian(
     noalias(J) = prod(nodes_coord_aux, LocalDerivativePatch);
 
     /* Compute determinant */
-    detJ = MathUtils<double>::Det3(J);
+    detJ = MathUtils::Det3(J);
 }
 
 /***********************************************************************************/
@@ -2419,7 +2419,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
 
     /* Compute inverse of the Jaccobian */
     double detJ;
-    MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+    MathUtils::InvertMatrix(J, Jinv, detJ);
 }
 
 /***********************************************************************************/
@@ -2441,7 +2441,7 @@ void SolidShellElementSprism3D6N::CalculateJacobianAndInv(
 
     /* Compute inverse of the Jaccobian */
     double detJ;
-    MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+    MathUtils::InvertMatrix(J, Jinv, detJ);
 }
 
 /***********************************************************************************/
@@ -2476,15 +2476,15 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerivativesOnCenterPlane(
     }
 
     array_1d<double, 3 > t1g, t2g, t3g;
-    MathUtils<double>::CrossProduct(t3g, vxe, vye);
+    MathUtils::CrossProduct(t3g, vxe, vye);
     norm0 = norm_2(t3g);
     t3g /= norm0;
 
-    MathUtils<double>::CrossProduct(t2g, t3g, ThisOrthogonalBase.Vxi);
+    MathUtils::CrossProduct(t2g, t3g, ThisOrthogonalBase.Vxi);
     norm = norm_2(t2g);
     t2g /= norm;
 
-    MathUtils<double>::CrossProduct(t1g, t2g, t3g);
+    MathUtils::CrossProduct(t1g, t2g, t3g);
     norm = norm_2(t1g);
     t1g /= norm;
 
@@ -2559,7 +2559,7 @@ void SolidShellElementSprism3D6N::CalculateCartesianDerOnGaussPlane(
     /* Compute the inverse of the Jacobian */
     double aux_det;
     BoundedMatrix<double, 2, 2 > JinvPlane;
-    MathUtils<double>::InvertMatrix(jac, JinvPlane, aux_det);
+    MathUtils::InvertMatrix(jac, JinvPlane, aux_det);
 
     /* Compute the Cartesian derivatives */
     noalias(InPlaneCartesianDerivativesGauss) = prod(JinvPlane, trans(local_derivative_patch));
@@ -3753,13 +3753,13 @@ void SolidShellElementSprism3D6N::CalculateKinematics(
         // Jacobian Determinant for the isoparametric and numerical integration
         Matrix J0;
         GeometryUtils::JacobianOnInitialConfiguration(GetGeometry(), rIntegrationPoints[rPointNumber], J0);
-        rVariables.detJ = MathUtils<double>::Det(J0);
+        rVariables.detJ = MathUtils::Det(J0);
     } else {
         // Cauchy stress measure
         rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
         //Determinant of the Deformation Gradient F0
-        rVariables.detF0 = MathUtils<double>::Det3(mAuxContainer[rPointNumber]);
+        rVariables.detF0 = MathUtils::Det3(mAuxContainer[rPointNumber]);
         rVariables.F0    = mAuxContainer[rPointNumber];
     }
 
@@ -3806,11 +3806,11 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     /* We perform a polar decomposition of the CBar and F(regular) to obtain F_bar */
 
     // Assemble matrix C_bar
-    const Matrix C_bar = MathUtils<double>::VectorToSymmetricTensor(rVariables.C);
+    const Matrix C_bar = MathUtils::VectorToSymmetricTensor(rVariables.C);
 
     // Decompose matrix C_bar, get U_bar
     Matrix U_bar;
-    MathUtils<double>::MatrixSquareRoot(C_bar, U_bar, 1e-24, 100);
+    MathUtils::MatrixSquareRoot(C_bar, U_bar, 1e-24, 100);
 
     /* Decompose F */
     Matrix F = ZeroMatrix(3, 3);
@@ -3820,7 +3820,7 @@ void SolidShellElementSprism3D6N::CbartoFbar(
     } else {
         // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
         Matrix InvJ(3, 3);
-        MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+        MathUtils::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
         // Deformation Gradient F [dx_n+1/dx_n]
         noalias(F) = prod( rVariables.j[rPointNumber], InvJ );
@@ -3950,7 +3950,7 @@ void SolidShellElementSprism3D6N::InitializeGeneralVariables(GeneralVariables& r
     double detJ;
     Matrix inv_j;
     for (IndexType i_point = 0; i_point < integration_point_number; ++i_point) {
-        MathUtils<double>::InvertMatrix( rVariables.j[i_point], inv_j, detJ );
+        MathUtils::InvertMatrix( rVariables.j[i_point], inv_j, detJ );
         noalias(DN_DX[i_point]) = prod(DN_De[i_point], inv_j);
     }
     rVariables.SetShapeFunctionsGradients(DN_DX);
