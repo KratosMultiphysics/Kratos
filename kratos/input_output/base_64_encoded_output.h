@@ -71,17 +71,17 @@ public:
     {
         using value_type = typename std::iterator_traits<TIteratorType>::value_type;
 
-        constexpr IndexType size = sizeof(value_type);
-        const IndexType raw_bytes = N * size;
+        constexpr IndexType value_size = sizeof(value_type);
+        const IndexType raw_bytes = N * value_size;
 
         auto it = Begin;
         auto value = *it;
         IndexType byte_index = 0;
 
-        auto next = [&value, &byte_index, &it, size]() {
+        auto next = [&value, &byte_index, &it]() {
             char byte = *(reinterpret_cast<const char*>(&value) + byte_index++);
 
-            if (byte_index == size) {
+            if (byte_index == value_size) {
                 ++it;
                 value = *it;
                 byte_index = 0;
