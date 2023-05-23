@@ -67,10 +67,11 @@ public:
     ///@name Public enums
     ///@{
 
+    /// Enumerations for the output writer format.
     enum WriterFormat
     {
-        ASCII,
-        BINARY
+        ASCII,  /// ASCII format.
+        BINARY  /// Binary format.
     };
 
     ///@}
@@ -197,7 +198,6 @@ public:
     void PrintOutput(const std::string& rOutputFilenamePrefix);
 
     ///@}
-
 private:
     ///@name Private member variables
     ///@{
@@ -230,7 +230,7 @@ private:
 
     std::unordered_map<std::string, SupportedCellContainerExpressions> mCellContainerExpressionsMap; /// Map to store supported cell container expressions.
 
-        ///@}
+    ///@}
     ///@name Private operations
     ///@{
 
