@@ -256,8 +256,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     m.def_submodule("ImplicitFilterUtils")
         .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount)
         .def("SetBulkRadiusForShapeFiltering", &ImplicitFilterUtils::SetBulkRadiusForShapeFiltering)
-        .def("AssignVectorNodalExpressionToScalarVariable", &ImplicitFilterUtils::AssignVectorNodalExpressionToScalarVariable)
-        .def("AssignScalarVariableToVectorNodalExpression", &ImplicitFilterUtils::AssignScalarVariableToVectorNodalExpression)
         ;
 
 }

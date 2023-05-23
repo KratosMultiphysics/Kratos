@@ -40,8 +40,12 @@ namespace Kratos
         // Helmholtz elements
         mHelmholtzSurfaceElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
         mHelmholtzSurfaceElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzVectorSurfaceElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+        mHelmholtzVectorSurfaceElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzSolidElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzSolidElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(Element::GeometryType::PointsArrayType(8)))),
+        mHelmholtzVectorSolidElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzVectorSolidElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(Element::GeometryType::PointsArrayType(8)))),
         mHelmholtzSolidShapeElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
         mHelmholtzSolidShapeElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(Element::GeometryType::PointsArrayType(8)))),
         /* CONDITIONS */
@@ -206,8 +210,12 @@ namespace Kratos
         // Register the helmholtz elements
 		KRATOS_REGISTER_ELEMENT("HelmholtzSurfaceElement3D3N", mHelmholtzSurfaceElement3D3N);
 		KRATOS_REGISTER_ELEMENT("HelmholtzSurfaceElement3D4N", mHelmholtzSurfaceElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzVectorSurfaceElement3D3N", mHelmholtzVectorSurfaceElement3D3N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzVectorSurfaceElement3D4N", mHelmholtzVectorSurfaceElement3D4N);
 		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D4N", mHelmholtzSolidElement3D4N);
 		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D8N", mHelmholtzSolidElement3D8N);
+	    KRATOS_REGISTER_ELEMENT("HelmholtzVectorSolidElement3D4N", mHelmholtzVectorSolidElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzVectorSolidElement3D8N", mHelmholtzVectorSolidElement3D8N);
 		KRATOS_REGISTER_ELEMENT("HelmholtzSolidShapeElement3D4N", mHelmholtzSolidShapeElement3D4N);
 		KRATOS_REGISTER_ELEMENT("HelmholtzSolidShapeElement3D8N", mHelmholtzSolidShapeElement3D8N);
 

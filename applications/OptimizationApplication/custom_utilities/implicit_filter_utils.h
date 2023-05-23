@@ -47,14 +47,6 @@ public:
     static void SetBulkRadiusForShapeFiltering(
         ModelPart& rModelPart);
 
-    static void AssignVectorNodalExpressionToScalarVariable(const Variable<double>& rVariable,
-        const SpecializedContainerExpression<ModelPart::NodesContainerType,
-        ContainerDataIO<ContainerDataIOTags::NonHistorical>>& rContainer, int step);
-
-    static void AssignScalarVariableToVectorNodalExpression(const Variable<double>& rVariable,
-        SpecializedContainerExpression<ModelPart::NodesContainerType,
-        ContainerDataIO<ContainerDataIOTags::NonHistorical>>& rContainer, int step);
-
     ///@}
 };
 

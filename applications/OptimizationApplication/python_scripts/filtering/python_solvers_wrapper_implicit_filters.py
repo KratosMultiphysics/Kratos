@@ -11,24 +11,21 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         if (filter_type == "general_scalar" ):
             solver_module_name = "helmholtz_scalar_solver"
 
-        elif (filter_type == "bulk_surface_shape"):
-            solver_module_name = "helmholtz_bulk_surface_solver"
+        elif (filter_type == "bulk_surface_shape" or filter_type == "general_vector"):
+            solver_module_name = "helmholtz_vector_solver"
         else:
             err_msg =  'The requested solver type "' + filter_type + '" is not in the python solvers wrapper\n'
-            err_msg += 'Available options are: "general_scalar", "bulk_surface_shape"'
+            err_msg += 'Available options are: "general_scalar", "general_vector", "bulk_surface_shape"'
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
 
-        if (filter_type == "general_vector"):
+        if (filter_type == filter_type == "bulk_surface_shape" or filter_type == "general_vector"):
             solver_module_name = "trilinos_general_vector_filter_solver"
 
         elif (filter_type == "general_scalar" ):
             solver_module_name = "trilinos_general_scalar_filter_solver"
-
-        elif (filter_type == "shape"):
-            solver_module_name = "trilinos_shape_filter_solver"
 
         else:
             err_msg =  'The requested solver type "' + filter_type + '" is not in the python solvers wrapper\n'
