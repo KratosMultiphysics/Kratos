@@ -101,7 +101,6 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorLocalRetrieveGlobalPointers, Kratos
 
     //we will gather on every node the global pointers of the nodes with index from
     // 0 to world_size
-    const int world_size = r_default_comm.Size();
     std::vector<int> indices(1, current_rank+1);
 
     auto gp_list = GlobalPointerUtilities::LocalRetrieveGlobalPointers(r_mp.Nodes(), r_default_comm );
