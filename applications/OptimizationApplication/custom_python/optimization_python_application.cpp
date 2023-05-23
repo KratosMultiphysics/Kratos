@@ -28,6 +28,7 @@
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
 #include "custom_python/add_custom_controls_to_python.h"
+#include "custom_python/add_custom_input_output_to_python.h"
 #include "custom_python/add_custom_responses_to_python.h"
 #include "custom_python/add_custom_optimization_algorithm_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -54,6 +55,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
     AddCustomOptimizationAlgorithmToPython(m);
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomInputOutputToPython(m);
 
     auto response_utils = m.def_submodule("ResponseUtils");
     AddCustomResponseUtilitiesToPython(response_utils);
