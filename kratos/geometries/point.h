@@ -140,10 +140,17 @@ public:
     ///@{
 
     /// Assignment operator.
-    Point &operator=(const Point &rOther);
+    Point &operator=(const Point &rOther)
+    {
+        CoordinatesArrayType::operator=(rOther);
+        return *this;
+    }
 
     /// == operator.
-    bool operator==(const Point &rOther) const;
+    bool operator==(const Point &rOther) const
+    {
+        return std::equal(this->begin(), this->end(), rOther.begin());
+    }
 
     ///@}
     ///@name Operations
@@ -184,56 +191,80 @@ public:
      * @details const version
      * @return X coordinate
      */
-    double X() const;
+    inline double X() const
+    {
+        return this->operator[](0);
+    }
 
     /**
      * @brief Returns Y coordinate
      * @details const version
      * @return Z coordinate
      */
-    double Y() const;
+    inline double Y() const
+    {
+        return this->operator[](1);
+    }
 
     /**
      * @brief Returns Z coordinate
      * @details const version
      * @return Z coordinate
      */
-    double Z() const;
+    inline double Z() const
+    {
+        return this->operator[](2);
+    }
 
     /**
      * @brief Returns X coordinate
      * @details reference version
      * @return X coordinate
      */
-    double& X();
+    inline double& X()
+    {
+        return this->operator[](0);
+    }
 
     /**
      * @brief Returns Y coordinate
      * @details reference version
      * @return Y coordinate
      */
-    double& Y();
+    inline double& Y()
+    {
+        return this->operator[](1);
+    }
 
     /**
      * @brief Returns Z coordinate
      * @details reference version
      * @return Z coordinate
      */
-    double& Z();
+    inline double& Z()
+    {
+        return this->operator[](2);
+    }
 
     /**
      * @brief Returns the coordinates
      * @details const version
      * @return The coordinates
      */
-    const CoordinatesArrayType& Coordinates() const;
+    inline const CoordinatesArrayType& Coordinates() const
+    {
+        return *this;
+    }
 
     /**
      * @brief Returns the coordinates
      * @details reference version
      * @return The coordinates
      */
-    CoordinatesArrayType& Coordinates();
+    inline CoordinatesArrayType& Coordinates()
+    {
+        return *this;
+    }
 
     ///@}
     ///@name Input and output
