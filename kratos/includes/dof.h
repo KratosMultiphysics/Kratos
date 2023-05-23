@@ -22,6 +22,7 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "containers/data_value_container.h"
 #include "containers/nodal_data.h"
 
