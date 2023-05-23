@@ -229,7 +229,7 @@ private:
     * @param rOutputFileNamePrefix The output file name prefix.
     * @param rModelPart            The model part to write.
     */
-    void WriteModelPart(
+    void PrintModelPart(
         const std::string& rOutputFileNamePrefix,
         ModelPart& rModelPart) const;
 

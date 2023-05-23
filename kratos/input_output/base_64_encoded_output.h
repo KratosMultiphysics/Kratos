@@ -78,7 +78,7 @@ public:
         auto value = *it;
         IndexType byte_index = 0;
 
-        auto next = [&value, &byte_index, &it]() {
+        auto next = [&value, &byte_index, &it, size]() {
             char byte = *(reinterpret_cast<const char*>(&value) + byte_index++);
 
             if (byte_index == size) {

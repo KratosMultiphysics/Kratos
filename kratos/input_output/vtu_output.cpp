@@ -674,7 +674,7 @@ void VtuOutput::AddContainerExpression(
     }
 }
 
-void VtuOutput::WriteModelPart(
+void VtuOutput::PrintModelPart(
     const std::string& rOutputFileNamePrefix,
     ModelPart& rModelPart) const
 {
@@ -700,7 +700,7 @@ void VtuOutput::WriteModelPart(
 
     // create the points element
     auto points_element = VtuOutputHelperUtilities::CreatePointsXmlElement(
-        rModelPart, mIsConditionsConsidered);
+        rModelPart, mIsInitialConfiguration);
     piece_element->AddElement(points_element);
 
     // create the cells element
@@ -807,7 +807,7 @@ const ModelPart& VtuOutput::GetModelPart() const
 
 void VtuOutput::PrintOutput(const std::string& rOutputFilenamePrefix)
 {
-    WriteModelPart(rOutputFilenamePrefix, mrModelPart);
+    PrintModelPart(rOutputFilenamePrefix, mrModelPart);
 }
 
 // template instantiations
