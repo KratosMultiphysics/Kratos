@@ -45,7 +45,7 @@ class TestKratosSteepestDescent(kratos_unittest.TestCase, ABC):
 
         cls.parameters = Kratos.Parameters("""{
             "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
-            "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
+            "type"              : "steepest_descent",
             "model_part_name"   : "OptimizationModelPart",
             "objective"         : {
                 "response_name": "mass",
@@ -57,8 +57,14 @@ class TestKratosSteepestDescent(kratos_unittest.TestCase, ABC):
             "settings"          : {
                 "gradient_scaling": "inf_norm",
                 "echo_level"      : 0,
-                "step_size"       : 0.1, 
-                "max_iter"        : 2
+                "line_search"     : {
+                    "type"          : "const_step",
+                    "init_step"     : 0.1
+                },
+                "conv_settings"   : {
+                    "type"          : "max_iter",
+                    "max_iter"      : 2
+                }
             }
         }""")
 

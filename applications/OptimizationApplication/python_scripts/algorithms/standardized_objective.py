@@ -106,10 +106,10 @@ class StandardizedObjective(ResponseRoutine):
         return self.GetStandardizedValue() - self.GetInitialValue()
 
     def GetInfo(self) -> str:
-        msg = "\tObjective info:"
-        msg += f"\n\t\t name          : {self.GetReponse().GetName()}"
-        msg += f"\n\t\t type          : {self.__objective_type}"
-        msg += f"\n\t\t value         : {self.GetValue():0.6e}"
-        msg += f"\n\t\t abs_change    : {self.GetAbsoluteChange():0.6e}"
-        msg += f"\n\t\t rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"
+        msg = f"""\t Objective info: 
+            name          : {self.GetReponse().GetName()}
+            type          : {self.__objective_type} 
+            value         : {self.GetValue():0.6e} 
+            abs_change    : {self.GetAbsoluteChange():0.6e} 
+            rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"""
         return msg
