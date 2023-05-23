@@ -35,7 +35,7 @@ namespace Kratos {
  *        to vtu. Supports both shared and distributed memory architectures.
  *
  * @details This class does not create or destroy any folder structures, hence the output
- * file name prefix should be have a valid parent directory.
+ * file name prefix should have a valid parent directory.
  * @author Suneth Warnakulasuriya
  */
 class KRATOS_API(KRATOS_CORE) VtuOutput : public IO
