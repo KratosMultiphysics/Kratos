@@ -26,6 +26,7 @@
 #include "containers/variable.h"
 #include "containers/flags.h"
 #include "containers/container_expression/container_expression.h"
+#include "utilities/xml_utilities/xml_ostream_writer.h"
 
 
 namespace Kratos {
@@ -64,16 +65,6 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS );
 
     ///@}
-    ///@name Public enums
-    ///@{
-
-    enum WriterFormat
-    {
-        ASCII,
-        BINARY
-    };
-
-    ///@}
     ///@name Life cycle
     ///@{
 
@@ -90,7 +81,7 @@ public:
     VtuOutput(
         ModelPart& rModelPart,
         const bool IsInitialConfiguration = true,
-        const WriterFormat OutputFormat = WriterFormat::BINARY,
+        const XmlOStreamWriter::WriterFormat OutputFormat = XmlOStreamWriter::WriterFormat::BINARY,
         const IndexType Precision = 9);
 
     ///@}
@@ -186,7 +177,7 @@ private:
 
     const bool mIsInitialConfiguration;
 
-    const WriterFormat mOutputFormat;
+    const XmlOStreamWriter::WriterFormat mOutputFormat;
 
     const IndexType mPrecision;
 

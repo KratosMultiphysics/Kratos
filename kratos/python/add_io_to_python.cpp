@@ -202,13 +202,13 @@ void  AddIOToPython(pybind11::module& m)
 
     auto vtu_output = py::class_<VtuOutput, VtuOutput::Pointer>(m, "VtuOutput");
 
-    py::enum_<VtuOutput::WriterFormat>(vtu_output, "WriterFormat")
-        .value("ASCII", VtuOutput::WriterFormat::ASCII)
-        .value("BINARY", VtuOutput::WriterFormat::BINARY)
+    py::enum_<XmlOStreamWriter::WriterFormat>(vtu_output, "WriterFormat")
+        .value("ASCII", XmlOStreamWriter::WriterFormat::ASCII)
+        .value("BINARY", XmlOStreamWriter::WriterFormat::BINARY)
         .export_values();
 
     vtu_output
-        .def(py::init<ModelPart&, const bool, const VtuOutput::WriterFormat, const std::size_t>(), py::arg("model_part"), py::arg("is_initial_configuration_considered") = true, py::arg("binary_output") = VtuOutput::WriterFormat::BINARY, py::arg("precision") = 9)
+        .def(py::init<ModelPart&, const bool, const XmlOStreamWriter::WriterFormat, const std::size_t>(), py::arg("model_part"), py::arg("is_initial_configuration_considered") = true, py::arg("binary_output") = XmlOStreamWriter::WriterFormat::BINARY, py::arg("precision") = 9)
         .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<int>, py::arg("int_variable"))
         .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<double>, py::arg("double_variable"))
         .def("AddHistoricalVariable", &VtuOutput::AddHistoricalVariable<array_1d<double, 3>>, py::arg("array3_variable"))
