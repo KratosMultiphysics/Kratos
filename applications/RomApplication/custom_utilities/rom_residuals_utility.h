@@ -237,6 +237,69 @@ namespace Kratos
         return matrix_residuals;
         }
 
+        Matrix GetProjectedResidualsOntoPhiJ_()
+        {
+            const int n_elements = static_cast<int>(mrModelPart.Elements().size());
+            const int n_conditions = static_cast<int>(mrModelPart.Conditions().size());
+
+            Matrix rPhiJ;
+            GetProjectedGlobalLHSOntoPhi(rPhiJ);
+
+            const auto& r_current_process_info = mrModelPart.GetProcessInfo();
+
+            RomResidualsUtility::AssemblyTLS assembly_tls_container;
+
+            const auto& r_elements = mrModelPart.Elements();
+            const auto& r_conditions = mrModelPart.Conditions();
+
+            Matrix matrix_residuals( (n_elements + n_conditions), mRomDofs);
+
+            const auto el_begin = mrModelPart.ElementsBegin();
+            const auto cond_begin = mrModelPart.ConditionsBegin();
+
+            #pragma omp parallel firstprivate(assembly_tls_container)
+            {
+                #pragma omp for
+                for (int k = 0; k < n_elements; k++){
+                    auto r_element = el_begin + k;
+                    if (r_element->IsDefined(ACTIVE) && r_element->IsNot(ACTIVE)) continue;
+
+                    mpScheme->CalculateRHSContribution(*r_element, assembly_tls_container.rhs, assembly_tls_container.eq_id, r_current_process_info);
+                    r_element->GetDofList(assembly_tls_container.dofs, r_current_process_info);
+
+                    const std::size_t ndofs = assembly_tls_container.dofs.size();
+                    ResizeIfNeeded(assembly_tls_container.phiJE, ndofs, mRomDofs);
+                    RomAuxiliaryUtilities::GetPhiJElemental(assembly_tls_container.phiJE, assembly_tls_container.dofs, rPhiJ);
+
+                    #pragma omp critical
+                    {
+                        noalias(row(matrix_residuals, k)) = prod(trans(assembly_tls_container.phiJE), assembly_tls_container.rhs);
+                    }
+                }
+
+                #pragma omp for
+                for (int k = 0; k < n_conditions; k++){
+                    auto r_condition = cond_begin + k;
+                    if (r_condition->IsDefined(ACTIVE) && r_condition->IsNot(ACTIVE)) continue;
+
+                    mpScheme->CalculateRHSContribution(*r_condition, assembly_tls_container.rhs, assembly_tls_container.eq_id, r_current_process_info);
+                    r_condition->GetDofList(assembly_tls_container.dofs, r_current_process_info);
+
+                    const std::size_t ndofs = assembly_tls_container.dofs.size();
+                    ResizeIfNeeded(assembly_tls_container.phiJE, ndofs, mRomDofs);
+                    RomAuxiliaryUtilities::GetPhiJElemental(assembly_tls_container.phiJE, assembly_tls_container.dofs, rPhiJ);
+
+                    #pragma omp critical
+                    {
+                        noalias(row(matrix_residuals, n_elements + k)) = prod(trans(assembly_tls_container.phiJE), assembly_tls_container.rhs);
+                    }
+                }
+            }
+            return matrix_residuals;
+        }
+
+
+
         Matrix GetProjectedResidualsOntoPhiJ()
         {
             // Get the number of elements and conditions from the model.
@@ -309,11 +372,12 @@ namespace Kratos
             // Calculate the total system size based on the number of nodes and nodal degrees of freedom (DOFs).
             const int system_size = n_nodes*mNodalDofs;
 
-            // Resize the output matrix to match the system size and the ROM basis size.
-            rPhiJ.resize(system_size, mRomDofs);
+            // Resize and set to zero the output matrix to match the system size and the ROM basis size.
+            rPhiJ = ZeroMatrix(system_size, mRomDofs);
 
             // Call the function to build the projected global LHS.
             BuildGlobalLHSProjectedOntoPhi(mpScheme, mrModelPart, rPhiJ);
+            // KRATOS_WATCH(rPhiJ)
         }
 
         /**
@@ -337,13 +401,53 @@ namespace Kratos
             RomResidualsUtility::AssemblyTLS assembly_tls_container;
 
             const auto& r_elements = rModelPart.Elements();
+            const auto& r_conditions = rModelPart.Conditions();
+
+            #pragma omp parallel firstprivate(assembly_tls_container)
+            {
+                #pragma omp for
+                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                    auto& r_element = *(r_elements.begin() + i);
+                    CalculateLocalContributionLSPG(r_element, rPhiJ, assembly_tls_container, *pScheme, r_current_process_info);
+                }
+                
+                #pragma omp for
+                for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
+                    auto& r_condition = *(r_conditions.begin() + i);
+                    CalculateLocalContributionLSPG(r_condition, rPhiJ, assembly_tls_container, *pScheme, r_current_process_info);
+                }
+            }
+            KRATOS_CATCH("")
+        }
+
+        /**
+         * Builds the reduced system of equations on rank 0 
+         */
+        void BuildGlobalLHSProjectedOntoPhi_ParallelUtilities(
+            BaseSchemeType::Pointer pScheme,
+            ModelPart &rModelPart,
+            Matrix &rPhiJ) 
+        {
+            KRATOS_TRY
+
+            // Build the system matrix by looping over elements and conditions and assembling to A
+            KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+            // Get ProcessInfo from main model part
+            const auto& r_current_process_info = rModelPart.GetProcessInfo();
+
+
+            // Assemble all entities
+            RomResidualsUtility::AssemblyTLS assembly_tls_container;
+
+            const auto& r_elements = rModelPart.Elements();
 
             if(!r_elements.empty())
             {
                 block_for_each(r_elements, assembly_tls_container, 
                     [&](Element& r_element, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
                 {
-                    CalculateLocalLHSContributionLSPG(r_element, rPhiJ, r_thread_prealloc, *pScheme, r_current_process_info);
+                    CalculateLocalContributionLSPG(r_element, rPhiJ, r_thread_prealloc, *pScheme, r_current_process_info);
                 });
             }
 
@@ -355,14 +459,14 @@ namespace Kratos
                 block_for_each(r_conditions, assembly_tls_container, 
                     [&](Condition& r_condition, RomResidualsUtility::AssemblyTLS& r_thread_prealloc)
                 {
-                    CalculateLocalLHSContributionLSPG(r_condition, rPhiJ, r_thread_prealloc, *pScheme, r_current_process_info);
+                    CalculateLocalContributionLSPG(r_condition, rPhiJ, r_thread_prealloc, *pScheme, r_current_process_info);
                 });
             }
             KRATOS_CATCH("")
         }
 
         template<typename TEntity>
-        void CalculateLocalLHSContributionLSPG(
+        void CalculateLocalContributionLSPG(
             TEntity& rEntity,
             Matrix& rPhiJglobal,
             RomResidualsUtility::AssemblyTLS& rPreAlloc,

@@ -77,6 +77,14 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Set the flag allowing to run multiple simulations using this process #TODO cope with arbitrarily large cases (parallelism)
         self.rom_manager = settings["rom_manager"].GetBool()
 
+        # Setting flag to indicate the type of solution to be used for building the snapshot matrix in the POD
+        self.snapshot_solution_type = settings["snapshot_solution_type"].GetString()
+
+        # Check if the snapshot_solution_type is either "incremental" or "total"
+        if self.snapshot_solution_type not in ["incremental", "total"]:
+            raise Exception('Invalid snapshot_solution_type: {}. Expected "incremental" or "total".'.format(self.snapshot_solution_type))
+
+
 
     @classmethod
     def GetDefaultParameters(self):
@@ -86,6 +94,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "rom_manager" : false,
             "snapshots_control_type": "step",
             "snapshots_interval": 1.0,
+            "snapshot_solution_type": "total",
             "nodal_unknowns": [],
             "rom_basis_output_format": "numpy",
             "rom_basis_output_name": "RomParameters",
@@ -105,9 +114,14 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
     def PrintOutput(self):
         # Save the data in the snapshots data list
         aux_data_array = []
-        for node in self.model_part.Nodes:
-            for snapshot_var in self.snapshot_variables_list:
-                aux_data_array.append(node.GetSolutionStepValue(snapshot_var))
+        if self.snapshot_solution_type=="incremental":
+            for node in self.model_part.Nodes:
+                for snapshot_var in self.snapshot_variables_list:
+                    aux_data_array.append(node.GetSolutionStepValue(snapshot_var)-node.GetSolutionStepValue(snapshot_var, 1))
+        else:
+            for node in self.model_part.Nodes:
+                for snapshot_var in self.snapshot_variables_list:
+                    aux_data_array.append(node.GetSolutionStepValue(snapshot_var))
         self.snapshots_data_list.append(aux_data_array)
 
         # Schedule next snapshot output
