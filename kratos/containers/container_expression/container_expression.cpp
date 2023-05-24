@@ -106,8 +106,74 @@ const ModelPart::ConditionsContainerType& GetContainer<ModelPart::ConditionsCont
 }
 
 template<>
-const ModelPart::ElementsContainerType& GetContainer<ModelPart::ElementsContainerType>(const ModelPart::MeshType& rMesh){
+const ModelPart::ElementsContainerType& GetContainer<ModelPart::ElementsContainerType>(const ModelPart::MeshType& rMesh)
+{
     return rMesh.Elements();
+}
+
+template <class TRawDataType, class TContainerExpressionType>
+void Read(
+    TContainerExpressionType& rContainerExpression,
+    TRawDataType const* pBegin,
+    const int NumberOfEntities,
+    int const* pShapeBegin,
+    const int ShapeSize)
+{
+    KRATOS_TRY
+
+    const IndexType number_of_entities = NumberOfEntities;
+
+    KRATOS_ERROR_IF_NOT(number_of_entities == rContainerExpression.GetContainer().size())
+        << "Number of entities does not match with the local container size. [ "
+           "NumberOfEntities = "
+        << NumberOfEntities
+        << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
+
+    // Convert int indices to IndexType
+    std::vector<IndexType> shape(ShapeSize);
+    std::copy(pShapeBegin,
+              pShapeBegin + ShapeSize,
+              shape.begin());
+
+    auto p_expression = LiteralFlatExpression<TRawDataType>::Create(number_of_entities, shape);
+    rContainerExpression.SetExpression(p_expression);
+    TRawDataType* data_itr = p_expression->begin();
+
+    const IndexType flattened_size = rContainerExpression.GetExpression().GetItemComponentCount();
+    const IndexType total_size = number_of_entities * flattened_size;
+
+    IndexPartition<IndexType>(total_size).for_each([pBegin, data_itr](const IndexType Index) {
+        data_itr[Index] = pBegin[Index];
+    });
+
+    KRATOS_CATCH("");
+}
+
+template <class TRawDataType, class TContainerExpressionType>
+void MoveFrom(
+    TContainerExpressionType& rContainerExpression,
+    TRawDataType* pBegin,
+    const int NumberOfEntities,
+    int const* pShapeBegin,
+    const int ShapeSize)
+{
+    KRATOS_TRY
+
+    const IndexType number_of_entities = NumberOfEntities;
+
+    KRATOS_ERROR_IF_NOT(number_of_entities == rContainerExpression.GetContainer().size())
+        << "Number of entities does not match with the local container size. [ "
+           "NumberOfEntities = "
+        << NumberOfEntities
+        << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
+
+    std::vector<IndexType> shape(ShapeSize);
+    std::copy(pShapeBegin, pShapeBegin + ShapeSize, shape.begin());
+
+    auto p_expression = LiteralFlatExpression<TRawDataType>::Create(pBegin, number_of_entities, shape);
+    rContainerExpression.SetExpression(p_expression);
+
+    KRATOS_CATCH("");
 }
 
 } // namespace ContainerExpressionHelperUtilities
@@ -145,36 +211,17 @@ void ContainerExpression<TContainerType, TMeshType>::Read(
     int const* pShapeBegin,
     const int ShapeSize)
 {
-    KRATOS_TRY
+    ContainerExpressionHelperUtilities::Read(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
+}
 
-    const IndexType number_of_entities = NumberOfEntities;
-
-    KRATOS_ERROR_IF_NOT(number_of_entities == this->GetContainer().size())
-        << "Number of entities does not match with the local container size. [ "
-           "NumberOfEntities = "
-        << NumberOfEntities
-        << ", local container size = " << this->GetContainer().size() << " ].\n";
-
-    // Convert int indices to IndexType
-    std::vector<IndexType> shape(ShapeSize);
-    std::copy(pShapeBegin,
-              pShapeBegin + ShapeSize,
-              shape.begin());
-
-    auto p_expression = LiteralFlatExpression::Create(number_of_entities, shape);
-    this->mpExpression = p_expression;
-
-    const IndexType flattened_size = this->GetExpression().GetFlattenedSize();
-
-    IndexPartition<IndexType>(number_of_entities).for_each([pBegin, flattened_size, &p_expression](const IndexType EntityIndex) {
-        const IndexType entity_data_begin_index = EntityIndex * flattened_size;
-        double const* p_input_data_begin = pBegin + entity_data_begin_index;
-        for (IndexType i = 0; i < flattened_size; ++i) {
-            p_expression->SetData(entity_data_begin_index, i, *(p_input_data_begin+i));
-        }
-    });
-
-    KRATOS_CATCH("");
+template <class TContainerType, class TMeshType>
+void ContainerExpression<TContainerType, TMeshType>::Read(
+    int const* pBegin,
+    const int NumberOfEntities,
+    int const* pShapeBegin,
+    const int ShapeSize)
+{
+    ContainerExpressionHelperUtilities::Read(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
 }
 
 template <class TContainerType, class TMeshType>
@@ -184,23 +231,17 @@ void ContainerExpression<TContainerType, TMeshType>::MoveFrom(
     int const* pShapeBegin,
     const int ShapeSize)
 {
-    KRATOS_TRY
+    ContainerExpressionHelperUtilities::MoveFrom(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
+}
 
-    const IndexType number_of_entities = NumberOfEntities;
-
-    KRATOS_ERROR_IF_NOT(number_of_entities == this->GetContainer().size())
-        << "Number of entities does not match with the local container size. [ "
-           "NumberOfEntities = "
-        << NumberOfEntities
-        << ", local container size = " << this->GetContainer().size() << " ].\n";
-
-    std::vector<IndexType> shape(ShapeSize);
-    std::copy(pShapeBegin, pShapeBegin + ShapeSize, shape.begin());
-
-    auto p_expression = LiteralFlatExpression::Create(pBegin, number_of_entities, shape);
-    this->mpExpression = p_expression;
-
-    KRATOS_CATCH("");
+template <class TContainerType, class TMeshType>
+void ContainerExpression<TContainerType, TMeshType>::MoveFrom(
+    int* pBegin,
+    const int NumberOfEntities,
+    int const* pShapeBegin,
+    const int ShapeSize)
+{
+    ContainerExpressionHelperUtilities::MoveFrom(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
 }
 
 template <class TContainerType, class TMeshType>
@@ -225,11 +266,11 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
     std::vector<IndexType> shape(ShapeSize);
     std::copy(pShapeBegin, pShapeBegin + ShapeSize, shape.begin());
 
-    KRATOS_ERROR_IF_NOT(shape == r_expression.GetShape())
+    KRATOS_ERROR_IF_NOT(shape == r_expression.GetItemShape())
         << "Shape mismatch. [ Requested shape  = " << shape
-        << ", available shape = " << r_expression.GetShape() << " ].\n";
+        << ", available shape = " << r_expression.GetItemShape() << " ].\n";
 
-    const IndexType flattened_size = r_expression.GetFlattenedSize();
+    const IndexType flattened_size = r_expression.GetItemComponentCount();
 
     IndexPartition<IndexType>(number_of_entities).for_each([pBegin, flattened_size, &r_expression](const IndexType EntityIndex) {
         const IndexType entity_data_begin_index = EntityIndex * flattened_size;
@@ -245,7 +286,7 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
 template <class TContainerType, class TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::SetDataToZero()
 {
-    mpExpression = LiteralExpression<double>::Create(0.0);
+    mpExpression = LiteralExpression<double>::Create(0.0, GetContainer().size());
 }
 
 template <class TContainerType, class TMeshType>
@@ -274,15 +315,15 @@ const Expression::Pointer ContainerExpression<TContainerType, TMeshType>::pGetEx
 }
 
 template <class TContainerType, class TMeshType>
-const std::vector<std::size_t> ContainerExpression<TContainerType, TMeshType>::GetShape() const
+const std::vector<std::size_t> ContainerExpression<TContainerType, TMeshType>::GetItemShape() const
 {
-    return this->GetExpression().GetShape();
+    return this->GetExpression().GetItemShape();
 }
 
 template <class TContainerType, class TMeshType>
-std::size_t ContainerExpression<TContainerType, TMeshType>::GetFlattenedSize() const
+std::size_t ContainerExpression<TContainerType, TMeshType>::GetItemComponentCount() const
 {
-    return this->GetExpression().GetFlattenedSize();
+    return this->GetExpression().GetItemComponentCount();
 }
 
 template <class TContainerType, class TMeshType>
@@ -319,7 +360,7 @@ std::string ContainerExpression<TContainerType, TMeshType>::Info() const
         << ", Number of entities: " << this->GetContainer().size();
 
     if (mpExpression.has_value()) {
-        msg << ", DataDimension: " << this->GetFlattenedSize();
+        msg << ", DataDimension: " << this->GetItemComponentCount();
         msg << ", Expression: " << this->GetExpression();
     } else {
         msg << ", Expression: not initialized";

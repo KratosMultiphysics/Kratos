@@ -86,7 +86,7 @@ public:
      * @param rContainer a reference to the container that holds the entities
      * @param rIdList a const reference to a vector of ids for the entities we need to retrieve
      * @param rDataCommunicator a reference to a DataCommunicator object
-     * @return the unordered map of global pointers corresponding to the given entity ids
+     * @return the unordered map of global pointers corresponding to the given entity ids in (id, global_pointer) pairs
      */
     template< class TContainerType >
     static std::unordered_map< int, GlobalPointer<typename TContainerType::value_type> > RetrieveGlobalIndexedPointersMap(
