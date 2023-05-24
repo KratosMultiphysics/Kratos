@@ -38,7 +38,7 @@ XmlOStreamWriter::XmlOStreamWriter(
 
 void XmlOStreamWriter::WriteElement(
     const std::string& rTagName,
-    const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+    const std::vector<std::pair<std::string, std::string>>& rAttributes,
     const IndexType Level,
     const bool IsEmptyElement)
 {
@@ -62,7 +62,7 @@ void XmlOStreamWriter::CloseElement(
 
 void XmlOStreamWriter::WriteDataElement(
     const std::string& rTagName,
-    const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+    const std::vector<std::pair<std::string, std::string>>& rAttributes,
     const std::vector<Expression::Pointer>& rExpressions,
     const IndexType Level)
 {
@@ -96,7 +96,7 @@ void XmlOStreamWriter::WriteDataElement(
 
 void XmlOStreamWriter::WriteAttributes(
     const std::string& rTagName,
-    const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+    const std::vector<std::pair<std::string, std::string>>& rAttributes,
     const IndexType Level)
 {
     const std::string& tabbing = XmlOStreamWriter::GetTabbing(Level);
@@ -111,7 +111,7 @@ void XmlOStreamWriter::WriteAttributes(
 template<class TExpressionType>
 void XmlOStreamWriter::WriteDataElementAscii(
     const std::string& rTagName,
-    const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+    const std::vector<std::pair<std::string, std::string>>& rAttributes,
     const IndexType Level,
     const std::vector<Expression::Pointer>& rExpressions)
 {
@@ -145,7 +145,7 @@ void XmlOStreamWriter::WriteDataElementAscii(
 template<class TExpressionType>
 void XmlOStreamWriter::WriteDataElementBinary(
     const std::string& rTagName,
-    const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+    const std::vector<std::pair<std::string, std::string>>& rAttributes,
     const IndexType Level,
     const std::vector<Expression::Pointer>& rExpressions)
 {

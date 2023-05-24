@@ -77,11 +77,11 @@ public:
      */
     void WriteElement(
         const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+        const std::vector<std::pair<std::string, std::string>>& rAttributes,
         const IndexType Level,
         const bool IsEmptyElement);
 
-    /** 
+    /**
      * @brief Closes an XML element.
      * @param rTagName The tag name of the element to close.
      * @param Level The indentation level.
@@ -90,7 +90,7 @@ public:
         const std::string& rTagName,
         const IndexType Level);
 
-    /** 
+    /**
      * @brief Writes an XML data element with attributes and expressions.
      * @param rTagName The tag name of the data element.
      * @param rAttributes The attributes of the data element.
@@ -99,7 +99,7 @@ public:
      */
     void WriteDataElement(
         const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+        const std::vector<std::pair<std::string, std::string>>& rAttributes,
         const std::vector<Expression::Pointer>& rExpressions,
         const IndexType Level);
 
@@ -125,10 +125,10 @@ private:
      */
     void WriteAttributes(
         const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+        const std::vector<std::pair<std::string, std::string>>& rAttributes,
         const IndexType Level);
 
-    /** 
+    /**
      * @brief Writes an ASCII data element.
      * @tparam TExpressionType The type of expression to write.
      * @param rTagName The tag name of the data element.
@@ -139,7 +139,7 @@ private:
     template <class TExpressionType>
     void WriteDataElementAscii(
         const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+        const std::vector<std::pair<std::string, std::string>>& rAttributes,
         const IndexType Level,
         const std::vector<Expression::Pointer>& rExpressions);
 
@@ -154,11 +154,11 @@ private:
     template <class TExpressionType>
     void WriteDataElementBinary(
         const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
+        const std::vector<std::pair<std::string, std::string>>& rAttributes,
         const IndexType Level,
         const std::vector<Expression::Pointer>& rExpressions);
 
-    /** 
+    /**
      * @brief Gets the indentation string based on the level.
      * @param Level The indentation level.
      * @return The indentation string.

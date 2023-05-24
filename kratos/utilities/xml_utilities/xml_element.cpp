@@ -86,7 +86,7 @@ void XmlElement::AddAttribute(
     mAttributes.push_back(std::make_pair(rName, rValue));
 }
 
-const std::vector<std::pair<const std::string, const std::string>>& XmlElement::GetAttributes() const
+const std::vector<std::pair<std::string, std::string>>& XmlElement::GetAttributes() const
 {
     return mAttributes;
 }
