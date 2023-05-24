@@ -28,7 +28,7 @@ namespace Kratos
 
 DisplacementShiftedBoundaryCondition::DisplacementShiftedBoundaryCondition(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry)
+    Geometry<Node>::Pointer pGeometry)
     : Condition(
         NewId,
         pGeometry)
@@ -37,7 +37,7 @@ DisplacementShiftedBoundaryCondition::DisplacementShiftedBoundaryCondition(
 
 DisplacementShiftedBoundaryCondition::DisplacementShiftedBoundaryCondition(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry,
+    Geometry<Node>::Pointer pGeometry,
     Properties::Pointer pProperties)
     : Condition(
         NewId,

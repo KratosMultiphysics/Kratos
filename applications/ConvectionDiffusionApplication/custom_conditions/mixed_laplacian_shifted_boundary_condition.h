@@ -49,11 +49,11 @@ public:
 
     MixedLaplacianShiftedBoundaryCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry);
+        Geometry<Node>::Pointer pGeometry);
 
     MixedLaplacianShiftedBoundaryCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry,
+        Geometry<Node>::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     MixedLaplacianShiftedBoundaryCondition(

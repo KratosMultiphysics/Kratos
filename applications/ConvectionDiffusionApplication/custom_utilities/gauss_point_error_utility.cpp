@@ -626,7 +626,7 @@ int GaussPointErrorUtility::Check()
 /* Private functions ******************************************************/
 
 bool GaussPointErrorUtility::ElementIsPositive(
-    Geometry<Node<3>>::Pointer pGeometry,
+    Geometry<Node>::Pointer pGeometry,
     const Vector &rNodalDistances)
 {
     const unsigned int pts_number = pGeometry->PointsNumber();
@@ -643,7 +643,7 @@ bool GaussPointErrorUtility::ElementIsPositive(
 }
 
 bool GaussPointErrorUtility::ElementIsSplit(
-    Geometry<Node<3>>::Pointer pGeometry,
+    Geometry<Node>::Pointer pGeometry,
     const Vector &rNodalDistances)
 {
     const unsigned int pts_number = pGeometry->PointsNumber();
@@ -686,7 +686,7 @@ const Vector GaussPointErrorUtility::SetDistancesVector(ModelPart::ElementIterat
 }
 
 ModifiedShapeFunctions::Pointer GaussPointErrorUtility::SetModifiedShapeFunctionsUtility(
-    const Geometry<Node<3>>::Pointer pGeometry,
+    const Geometry<Node>::Pointer pGeometry,
     const Vector& rNodalDistances)
 {
     // Get the geometry type
