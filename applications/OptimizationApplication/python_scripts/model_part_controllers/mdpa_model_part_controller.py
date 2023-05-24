@@ -1,8 +1,11 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 
+def Factory(parameters: Kratos.Parameters, model: Kratos.Model) -> ModelPartController:
+    return MdpaModelPartController(model, parameters)
+
 class MdpaModelPartController(ModelPartController):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
         default_settings = Kratos.Parameters("""{
             "model_part_name": "",
             "input_filename" : "",

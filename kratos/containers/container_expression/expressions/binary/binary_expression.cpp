@@ -24,7 +24,7 @@ namespace Kratos {
 namespace ExpressionHelperUtilities {
 using IndexType = std::size_t;
 
-std::string GetShape(const std::vector<IndexType>& rShape)
+std::string GetItemShape(const std::vector<IndexType>& rShape)
 {
     std::stringstream msg;
     msg << "[";
@@ -45,17 +45,24 @@ template <class TOperationType>
 BinaryExpression<TOperationType>::BinaryExpression(
     Expression::Pointer pLeft,
     Expression::Pointer pRight)
-    : mpLeft(pLeft),
+    : Expression(pLeft->NumberOfEntities()),
+      mpLeft(pLeft),
       mpRight(pRight)
 {
-    const auto& r_left_shape = mpLeft->GetShape();
-    const auto& r_right_shape = mpRight->GetShape();
+    const auto& r_left_shape = mpLeft->GetItemShape();
+    const auto& r_right_shape = mpRight->GetItemShape();
+
+    KRATOS_ERROR_IF_NOT(pLeft->NumberOfEntities() == pRight->NumberOfEntities())
+        << "Number of entities mismatch in left and right side expressions. [ left expression"
+        << " number of entities = " << pLeft->NumberOfEntities()
+        << ", right expression number of entities = "
+        << pRight->NumberOfEntities() << " ].\n";
 
     KRATOS_ERROR_IF_NOT(r_left_shape == r_right_shape || r_right_shape.size() == 0)
         << "Binary operation should have equal shape in left and right side "
            "expressions or right hand side should be a expression with shape {}. ["
-        << "lhs shape = " << ExpressionHelperUtilities::GetShape(r_left_shape) << ", "
-        << "rhs shape = " << ExpressionHelperUtilities::GetShape(r_right_shape) << " ].\n"
+        << "lhs shape = " << ExpressionHelperUtilities::GetItemShape(r_left_shape) << ", "
+        << "rhs shape = " << ExpressionHelperUtilities::GetItemShape(r_right_shape) << " ].\n"
         << "Expression:\n"
         << "lhs = " << *mpLeft << "\n"
         << "rhs = " << *mpRight << "\n";
@@ -89,9 +96,9 @@ double BinaryExpression<TOperationType>::Evaluate(
 }
 
 template <class TOperationType>
-const std::vector<std::size_t> BinaryExpression<TOperationType>::GetShape() const
+const std::vector<std::size_t> BinaryExpression<TOperationType>::GetItemShape() const
 {
-    return this->mpLeft->GetShape();
+    return this->mpLeft->GetItemShape();
 }
 
 template <class TOperationType>
