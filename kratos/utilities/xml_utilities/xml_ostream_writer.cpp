@@ -171,13 +171,14 @@ void XmlOStreamWriter::WriteDataElementBinary(
     const IndexType total_number_of_values = total_entities * flattened_shape_size;
     const unsigned int total_data_size = total_number_of_values * data_type_size;
 
-    Base64EncodedOutput base64_encoder;
+    {
+        Base64EncodedOutput base64_encoder(mrOStream);
 
-    base64_encoder.WriteOutputData(mrOStream, &total_data_size, 1);
-    for (const auto p_expression : transformed_expressions) {
-        base64_encoder.WriteOutputData(mrOStream, p_expression->cbegin(), p_expression->NumberOfEntities() * flattened_shape_size);
+        base64_encoder.WriteOutputData(&total_data_size, 1);
+        for (const auto p_expression : transformed_expressions) {
+            base64_encoder.WriteOutputData(p_expression->cbegin(), p_expression->NumberOfEntities() * flattened_shape_size);
+        }
     }
-    base64_encoder.CloseOutputData(mrOStream);
 
     mrOStream << "\n";
     CloseElement(rTagName, Level);

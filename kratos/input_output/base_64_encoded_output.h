@@ -48,6 +48,28 @@ public:
     using IndexType = std::size_t;
 
     ///@}
+    ///@name Life cycle
+    ///@{
+
+    Base64EncodedOutput(std::ostream& rOStream)
+        : mrOStream(rOStream)
+    {
+    }
+
+    ~Base64EncodedOutput()
+    {
+        const IndexType padding = 3 - mByteTripletIndex;
+        if (padding != 0 && mByteTripletIndex != 0) {
+            for (; mByteTripletIndex < 3; ++mByteTripletIndex) {
+                mByteTriplet[mByteTripletIndex] = '\0';
+            }
+
+            EncodeTriplet(mrOStream, mByteTriplet, padding);
+        }
+        mByteTripletIndex = 0;
+    }
+
+    ///@}
     ///@name Public operations
     ///@{
 
@@ -58,14 +80,12 @@ public:
      * to the speified @ref rOutput stream in the base64 format.
      *
      * @tparam TIteratorType            Type of the iterator. Should satisfy requirements for std::input_iterator.
-     * @param rOutput                   Output stream.
      * @param Begin                     Begining of the iterator.
      * @param N                         Number of data items in the data collection represented by the Begin iterator.
      */
     template <typename TIteratorType,
               std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIteratorType>::iterator_category>, bool> = true>
     void WriteOutputData(
-        std::ostream& rOutput,
         TIteratorType Begin,
         const IndexType N)
     {
@@ -102,13 +122,13 @@ public:
         if (mByteTripletIndex == 3) {
             mByteTripletIndex = 0;
             // write the last byte triplet
-            EncodeTriplet(rOutput, mByteTriplet, 0);
+            EncodeTriplet(mrOStream, mByteTriplet, 0);
 
             // in steps of 3
             const IndexType number_of_triplets = (raw_bytes - number_of_written_bytes) / 3;
 
             for (IndexType i = 0; i < number_of_triplets; ++i) {
-                EncodeTriplet(rOutput, {next(), next(), next()}, 0);
+                EncodeTriplet(mrOStream, {next(), next(), next()}, 0);
             }
 
             number_of_written_bytes += number_of_triplets * 3;
@@ -121,33 +141,13 @@ public:
         }
     }
 
-    /**
-     * @brief Closes the base64 output.
-     *
-     * This method should be called when the data stream is finished to write
-     * if required the padding. This will reset the writer as well so
-     * a new data collection can be written next time.
-     *
-     * @param rOutput           Output stream.
-     */
-    void CloseOutputData(std::ostream& rOutput)
-    {
-        const IndexType padding = 3 - mByteTripletIndex;
-        if (padding != 0 && mByteTripletIndex != 0) {
-            for (; mByteTripletIndex < 3; ++mByteTripletIndex) {
-                mByteTriplet[mByteTripletIndex] = '\0';
-            }
-
-            EncodeTriplet(rOutput, mByteTriplet, padding);
-        }
-        mByteTripletIndex = 0;
-    }
-
     ///@}
 
 private:
     ///@name Private member variables
     ///@{
+
+    std::ostream& mrOStream;
 
     IndexType mByteTripletIndex = 0;
 
