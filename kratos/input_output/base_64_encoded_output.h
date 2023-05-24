@@ -47,6 +47,79 @@ public:
     using IndexType = std::size_t;
 
     ///@}
+    ///@name Public classes
+    ///@{
+
+    template<class TIteratorType>
+    class ByteIterator
+    {
+    public:
+        ///@name Type definitions
+        ///@{
+
+        using value_type = char;
+
+        using pointer = char*;
+
+        using reference = char&;
+
+        using iterator_category = std::forward_iterator_tag;
+
+        using difference_type = std::ptrdiff_t;
+
+        ///@}
+        ///@name Life cycle
+        ///@{
+
+        ByteIterator(TIteratorType it)
+            : mIt(it),
+            mValue(*it),
+            mByteIndex(0u)
+        {}
+
+        ///@}
+        ///@name Public operations
+        ///@{
+
+        value_type operator*() const
+        {
+            return reinterpret_cast<const value_type*>(&mValue)[mByteIndex];
+        }
+
+        ByteIterator& operator++()
+        {
+            using value_type = typename std::iterator_traits<TIteratorType>::value_type;
+            constexpr IndexType value_size = sizeof(value_type);
+            if ((++mByteIndex) == value_size) {
+                mValue = *++mIt;
+                mByteIndex = 0;
+            }
+            return *this;
+        }
+
+        ByteIterator operator++(int)
+        {
+            ByteIterator copy = *this;
+            ++(*this);
+            return copy;
+        }
+
+        ///@}
+
+    private:
+        ///@name Private member variables
+        ///@{
+
+        TIteratorType mIt;
+
+        typename std::iterator_traits<TIteratorType>::value_type mValue;
+
+        IndexType mByteIndex = 0u;
+
+        ///@}
+    };
+
+    ///}
     ///@name Life cycle
     ///@{
 
@@ -95,29 +168,14 @@ public:
 
         using value_type = typename std::iterator_traits<TIteratorType>::value_type;
 
-        constexpr IndexType value_size = sizeof(value_type);
-        const IndexType raw_bytes = N * value_size;
+        ByteIterator itr_byte_triplet(Begin);
 
-        auto it = Begin;
-        auto value = *it;
-        IndexType byte_index = 0;
-
-        auto next = [&]() {
-            char byte = *(reinterpret_cast<const char*>(&value) + byte_index++);
-
-            if (byte_index == value_size) {
-                ++it;
-                value = *it;
-                byte_index = 0;
-            }
-
-            return byte;
-        };
+        const IndexType raw_bytes = N * sizeof(value_type);
 
         // first fill the existing mByteTriplet
         IndexType number_of_written_bytes = 0;
         for (; mByteTripletIndex < std::min(raw_bytes, IndexType{3}); ++mByteTripletIndex) {
-            mByteTriplet[mByteTripletIndex] = next();
+            mByteTriplet[mByteTripletIndex] = *itr_byte_triplet++;
             ++number_of_written_bytes;
         }
 
@@ -132,7 +190,7 @@ public:
             const IndexType number_of_triplets = (raw_bytes - number_of_written_bytes) / 3;
 
             for (IndexType i = 0; i < number_of_triplets; ++i) {
-                EncodeTriplet(mrOStream, {next(), next(), next()}, 0);
+                EncodeTriplet(mrOStream, {*itr_byte_triplet++, *itr_byte_triplet++, *itr_byte_triplet++}, 0);
             }
 
             number_of_written_bytes += number_of_triplets * 3;
@@ -140,7 +198,7 @@ public:
             // now fill the mByteTriplet with the remaining bytes of the data
             const IndexType remaining_bytes = raw_bytes - number_of_written_bytes;
             for (; mByteTripletIndex < remaining_bytes; ++mByteTripletIndex) {
-                mByteTriplet[mByteTripletIndex] = next();
+                mByteTriplet[mByteTripletIndex] = *itr_byte_triplet++;
             }
         }
     }
