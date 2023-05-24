@@ -237,7 +237,7 @@ namespace Kratos
         return matrix_residuals;
         }
 
-        Matrix GetProjectedResidualsOntoPhiJ_()
+        Matrix GetProjectedResidualsOntoPhiJ()
         {
             const int n_elements = static_cast<int>(mrModelPart.Elements().size());
             const int n_conditions = static_cast<int>(mrModelPart.Conditions().size());
@@ -300,7 +300,7 @@ namespace Kratos
 
 
 
-        Matrix GetProjectedResidualsOntoPhiJ()
+        Matrix GetProjectedResidualsOntoPhiJ_Parallel()
         {
             // Get the number of elements and conditions from the model.
             const int n_elements = static_cast<int>(mrModelPart.Elements().size());
@@ -380,50 +380,50 @@ namespace Kratos
             // KRATOS_WATCH(rPhiJ)
         }
 
+        // /**
+        //  * Builds the reduced system of equations on rank 0 
+        //  */
+        // void BuildGlobalLHSProjectedOntoPhi(
+        //     BaseSchemeType::Pointer pScheme,
+        //     ModelPart &rModelPart,
+        //     Matrix &rPhiJ) 
+        // {
+        //     KRATOS_TRY
+
+        //     // Build the system matrix by looping over elements and conditions and assembling to A
+        //     KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+        //     // Get ProcessInfo from main model part
+        //     const auto& r_current_process_info = rModelPart.GetProcessInfo();
+
+
+        //     // Assemble all entities
+        //     RomResidualsUtility::AssemblyTLS assembly_tls_container;
+
+        //     const auto& r_elements = rModelPart.Elements();
+        //     const auto& r_conditions = rModelPart.Conditions();
+
+        //     #pragma omp parallel firstprivate(assembly_tls_container)
+        //     {
+        //         #pragma omp for
+        //         for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+        //             auto& r_element = *(r_elements.begin() + i);
+        //             CalculateLocalContributionLSPG(r_element, rPhiJ, assembly_tls_container, *pScheme, r_current_process_info);
+        //         }
+                
+        //         #pragma omp for
+        //         for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
+        //             auto& r_condition = *(r_conditions.begin() + i);
+        //             CalculateLocalContributionLSPG(r_condition, rPhiJ, assembly_tls_container, *pScheme, r_current_process_info);
+        //         }
+        //     }
+        //     KRATOS_CATCH("")
+        // }
+
         /**
          * Builds the reduced system of equations on rank 0 
          */
         void BuildGlobalLHSProjectedOntoPhi(
-            BaseSchemeType::Pointer pScheme,
-            ModelPart &rModelPart,
-            Matrix &rPhiJ) 
-        {
-            KRATOS_TRY
-
-            // Build the system matrix by looping over elements and conditions and assembling to A
-            KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-            // Get ProcessInfo from main model part
-            const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-
-            // Assemble all entities
-            RomResidualsUtility::AssemblyTLS assembly_tls_container;
-
-            const auto& r_elements = rModelPart.Elements();
-            const auto& r_conditions = rModelPart.Conditions();
-
-            #pragma omp parallel firstprivate(assembly_tls_container)
-            {
-                #pragma omp for
-                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-                    auto& r_element = *(r_elements.begin() + i);
-                    CalculateLocalContributionLSPG(r_element, rPhiJ, assembly_tls_container, *pScheme, r_current_process_info);
-                }
-                
-                #pragma omp for
-                for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
-                    auto& r_condition = *(r_conditions.begin() + i);
-                    CalculateLocalContributionLSPG(r_condition, rPhiJ, assembly_tls_container, *pScheme, r_current_process_info);
-                }
-            }
-            KRATOS_CATCH("")
-        }
-
-        /**
-         * Builds the reduced system of equations on rank 0 
-         */
-        void BuildGlobalLHSProjectedOntoPhi_ParallelUtilities(
             BaseSchemeType::Pointer pScheme,
             ModelPart &rModelPart,
             Matrix &rPhiJ) 

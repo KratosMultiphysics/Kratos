@@ -312,7 +312,7 @@ class RomManager(object):
             self._StoreSnapshotsMatrix('residuals_projected',RedidualsSnapshotsMatrix)
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
         self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
-        # n_conditions = model.GetModelPart("Structure").NumberOfConditions()
+        # n_conditions = model.GetModelPart("FluidModelPart").NumberOfConditions()
         # simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, constrain_conditions = True, number_of_conditions = n_conditions)
         simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
         simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
