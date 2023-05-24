@@ -204,6 +204,9 @@ private:
 
     bool mIsElementsConsidered; /// Flag indicating if elements are considered.
 
+    // TODO: In the future study to replace the std::unordered_map
+    // TODO: Study replace string, expensive, with hashes or keys
+
     std::unordered_map<IndexType, IndexType> mKratosVtuIndicesMap; /// Map to store Kratos VTU indices.
 
     std::unordered_map<std::string, SupportedVariables> mHistoricalVariablesMap; /// Map to store supported historical variables.
