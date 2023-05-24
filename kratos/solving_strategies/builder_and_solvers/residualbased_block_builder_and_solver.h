@@ -1059,8 +1059,8 @@ public:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
-            // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
-            mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+            // Compute the scale factor value
+            mScaleFactor = TSparseSpace::GetScaleNorm(rModelPart.GetProcessInfo(), rA, mScalingDiagonal);
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
