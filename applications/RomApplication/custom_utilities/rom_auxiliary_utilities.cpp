@@ -40,6 +40,129 @@ namespace
     };
 }
 
+void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
+    const Parameters HRomWeights,
+    ModelPart& rOriginModelPart,
+    ModelPart& rHRomComputingModelPart)
+{
+    // Ensure that the provided destination model part is empty
+    rHRomComputingModelPart.Clear();
+
+    // Auxiliary containers to save the entities involved in the HROM mesh
+    NodesPointerSetType hrom_nodes_set;
+    std::vector<Element::Pointer> hrom_elems_vect;
+    std::vector<Condition::Pointer> hrom_conds_vect;
+
+    const auto& r_elem_weights = HRomWeights["Elements"];
+    hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rOriginModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
+        // Get element from origin mesh
+        const IndexType elem_id = stoi(it.name());
+        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); 
+
+        // Add the element to the auxiliary container and to the main HROM model part
+        hrom_elems_vect.push_back(p_elem);
+        rHRomComputingModelPart.AddElement(p_elem);
+
+        // Add the element nodes to the auxiliary set and to the main HROM model part
+        const auto& r_geom = p_elem->GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            NodeType::Pointer p_node = r_geom(i_node);
+            hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+            rHRomComputingModelPart.AddNode(p_node);
+            
+            // Get the neighbor elements from each node and add them to the model part
+            for (auto& neighbor_elem : p_node->GetValue(NEIGHBOUR_ELEMENTS)) {
+                Kratos::Element::Pointer p_neighbor_elem = &neighbor_elem;
+                KRATOS_WATCH(p_neighbor_elem->Id())
+                // Be careful to not add an element that is already in the model part.
+                // For this, we will check if the element is already in our vector of elements.
+                if(std::find(hrom_elems_vect.begin(), hrom_elems_vect.end(), p_neighbor_elem) == hrom_elems_vect.end()) {
+                    hrom_elems_vect.push_back(p_neighbor_elem);
+                    rHRomComputingModelPart.AddElement(p_neighbor_elem);
+                    
+                    // Add the nodes of the neighboring element to the model part
+                    const auto& neighbor_r_geom = p_neighbor_elem->GetGeometry();
+                    const SizeType neighbor_n_nodes = neighbor_r_geom.PointsNumber();
+                    for (IndexType i_neighbor_node = 0; i_neighbor_node < neighbor_n_nodes; ++i_neighbor_node) {
+                        NodeType::Pointer p_neighbor_node = neighbor_r_geom(i_neighbor_node);
+                        hrom_nodes_set.insert(hrom_nodes_set.end(), p_neighbor_node);
+                        rHRomComputingModelPart.AddNode(p_neighbor_node);
+                    }
+                }
+            }
+        }
+    }
+    hrom_elems_vect.shrink_to_fit();
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rOriginModelPart);
+    find_nodal_conditions_neighbours_process.Execute();
+
+    const auto& r_cond_weights = HRomWeights["Conditions"];
+    hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
+    for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
+        // Get the condition from origin mesh
+        const IndexType cond_id = stoi(it.name());
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); 
+
+        // Add the condition to the auxiliary container and to the main HROM model part
+        hrom_conds_vect.push_back(p_cond);
+        rHRomComputingModelPart.AddCondition(p_cond);
+
+        // Add the condition nodes to the auxiliary set and to the main HROM model part
+        const auto& r_geom = p_cond->GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            auto p_node = r_geom(i_node);
+            hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+            rHRomComputingModelPart.AddNode(p_node);
+
+            // Get the neighbor conditions from each node and add them to the model part
+            for (auto& neighbor_cond : p_node->GetValue(NEIGHBOUR_CONDITIONS)) {
+                Kratos::Condition::Pointer p_neighbor_cond = &neighbor_cond;
+                KRATOS_WATCH(p_neighbor_cond->Id())
+                // Be careful to not add a condition that is already in the model part.
+                // For this, we will check if the condition is already in our vector of conditions.
+                if(std::find(hrom_conds_vect.begin(), hrom_conds_vect.end(), p_neighbor_cond) == hrom_conds_vect.end()) {
+                    hrom_conds_vect.push_back(p_neighbor_cond);
+                    rHRomComputingModelPart.AddCondition(p_neighbor_cond);
+                    
+                    // Add the nodes of the neighboring condition to the model part
+                    const auto& neighbor_r_geom = p_neighbor_cond->GetGeometry();
+                    const SizeType neighbor_n_nodes = neighbor_r_geom.PointsNumber();
+                    for (IndexType i_neighbor_node = 0; i_neighbor_node < neighbor_n_nodes; ++i_neighbor_node) {
+                        NodeType::Pointer p_neighbor_node = neighbor_r_geom(i_neighbor_node);
+                        hrom_nodes_set.insert(hrom_nodes_set.end(), p_neighbor_node);
+                        rHRomComputingModelPart.AddNode(p_neighbor_node);
+                    }
+                }
+            }
+        }
+    }
+    hrom_conds_vect.shrink_to_fit();
+
+    //TODO: ADD MPC'S
+
+    // Add properties to the HROM mesh
+    // Note that we add all the properties although some of them might note be used in the HROM mesh
+    auto& r_root_model_part = const_cast<ModelPart&>(rOriginModelPart).GetRootModelPart();
+    auto& r_properties = r_root_model_part.rProperties();
+    for (auto it_p_prop = r_properties.ptr_begin(); it_p_prop < r_properties.ptr_end(); ++it_p_prop) {
+        rHRomComputingModelPart.AddProperties(*it_p_prop);
+    }
+
+    // Create and fill the HROM calculation sub model parts
+    for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
+        RecursiveHRomModelPartCreation(hrom_nodes_set, hrom_elems_vect, hrom_conds_vect, r_orig_sub_mp, rHRomComputingModelPart);
+    }
+}
+
+
 void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     const Parameters HRomWeights,
     const ModelPart& rOriginModelPart,

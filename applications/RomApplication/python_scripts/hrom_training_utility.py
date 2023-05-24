@@ -104,7 +104,10 @@ class HRomTrainingUtility(object):
                 hrom_info = rom_parameters["elements_and_weights"]
 
         # Get the weights and fill the HROM computing model part
-        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+        if (self.projection_strategy=="lspg"):
+            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
+        else:
+            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 

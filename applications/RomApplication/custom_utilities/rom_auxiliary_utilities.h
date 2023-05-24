@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "modified_shape_functions/modified_shape_functions.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 // Application includes
 #include "rom_application_variables.h"
@@ -80,6 +81,25 @@ public:
         const Parameters HRomWeights,
         const ModelPart& rOriginModelPart,
         ModelPart& rHRomComputingModelPart);
+
+    /**
+     * @brief Sets the HROM model part including neighboring entities based on the nodal weights
+     *
+     * Provided an origin model part and a parameters object containing the HROM weights,
+     * this method stores not only the elements and conditions required by the HROM in the destination
+     * model part, but also includes neighboring elements and conditions of the nodes involved.
+     * The resulting model part features the same submodelpart hierarchy that the origin has, but is
+     * augmented with the neighboring elements and conditions.
+     *
+     * @param HRomWeights Parameters object containing the HROM elemental and condition weights
+     * @param rOriginModelPart Origin model part (this is likely the computing model part)
+     * @param rHRomComputingModelPart Destination model part to store the HROM mesh augmented with neighbours
+     */
+    static void SetHRomComputingModelPartWithNeighbours(
+        const Parameters HRomWeights,
+        ModelPart& rOriginModelPart,
+        ModelPart& rHRomComputingModelPart);
+
 
     /**
      * @brief Sets the HROM skin visualization model part for a volumetric body
