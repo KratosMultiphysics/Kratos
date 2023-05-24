@@ -55,7 +55,9 @@ class AlgorithmSteepestDescent(Algorithm):
         self.gradient_scaling = settings["gradient_scaling"].GetString()
         self.echo_level = settings["echo_level"].GetInt()
 
-        self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"])
+        ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
+
+        self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)

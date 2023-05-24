@@ -27,6 +27,7 @@ class TestAlgorithmSteepestDescent(kratos_unittest.TestCase, ABC):
         cls.response_function = MassResponseFunction("mass", cls.model, default_settings)
 
         cls.optimization_problem = OptimizationProblem()
+        ComponentDataView("algorithm", cls.optimization_problem).SetDataBuffer(1)
 
     @classmethod
     def CreateElements(cls):
