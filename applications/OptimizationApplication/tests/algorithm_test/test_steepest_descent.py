@@ -4,7 +4,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent_new import AlgorithmSteepestDescent
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent import AlgorithmSteepestDescent
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
@@ -87,7 +87,7 @@ class TestAlgorithmSteepestDescent(kratos_unittest.TestCase, ABC):
         properties[Kratos.THICKNESS] = 6.0
         cls.model_part.CreateNewElement("Element2D3N", 2, [4, 1, 3], properties)
 
-    def test_ComputeSearchDirection(self):
+    def test_Optimize(self):
         conv = self.algorithm.SolveOptimizationProblem()
         self.assertTrue(conv)
         self.assertEqual(self.algorithm.GetOptimizedObjectiveValue(), 14.249999999999998)

@@ -1,10 +1,9 @@
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
-def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+def CreateConvergenceCriteria(parameters: Kratos.Parameters):
     type = parameters["type"].GetString()
     if type == "max_iter":
-        return MaxIterConvCriterium(parameters, optimization_problem)
+        return MaxIterConvCriterium(parameters)
     else:
         raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
 
@@ -16,12 +15,10 @@ class MaxIterConvCriterium(object):
             "max_iter"          : 0,
         }""")
 
-    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-        self.optimization_problem = optimization_problem
+    def __init__(self, parameters: Kratos.Parameters):
         self.__max_iter = parameters["max_iter"].GetInt()
 
-    def CheckConvergence(self):
-        iter = self.optimization_problem.GetStep()
+    def CheckConvergence(self, iter):
         conv = True if iter >= self.__max_iter else False
         msg = f"""\t Convergence info: 
             type          : {"max_iter"} 
