@@ -184,11 +184,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>:: Exe
         auto& r_nodes_array = mDestinationModelPart.Nodes();
 
         if (mOptions.Is(DESTINATION_IS_HISTORICAL)){
-            block_for_each(r_nodes_array, [this](Node<3>& rNode){
+            block_for_each(r_nodes_array, [this](Node& rNode){
                 rNode.FastGetSolutionStepValue(*mpDestinationVariable) *= mMappingCoefficient;
             });
         } else {
-            block_for_each(r_nodes_array, [this](Node<3>& rNode){
+            block_for_each(r_nodes_array, [this](Node& rNode){
                 rNode.GetValue(*mpDestinationVariable) *= mMappingCoefficient;
             });
         }

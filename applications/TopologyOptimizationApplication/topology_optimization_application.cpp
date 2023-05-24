@@ -37,7 +37,7 @@ namespace Kratos
 
     ///we define the node type
 
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
     KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication()
         : KratosApplication("TopologyOptimizationApplication"),

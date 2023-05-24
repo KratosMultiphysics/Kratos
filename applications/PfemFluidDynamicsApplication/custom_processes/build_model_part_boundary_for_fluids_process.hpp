@@ -54,7 +54,7 @@ namespace Kratos
 	typedef ModelPart::ElementsContainerType ElementsContainerType;
 	typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-	typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+	typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 	typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
 	///@}
@@ -228,7 +228,7 @@ namespace Kratos
 				DenseMatrix<unsigned int> lpofa; // connectivities of points defining faces
 				DenseVector<unsigned int> lnofa; // number of points defining faces
 
-				Geometry<Node<3>> &rConditionGeometry = i_cond->GetGeometry();
+				Geometry<Node> &rConditionGeometry = i_cond->GetGeometry();
 				unsigned int size = rConditionGeometry.size();
 
 				bool perform_search = true;
@@ -272,7 +272,7 @@ namespace Kratos
 									}
 									i_cond->SetValue(MASTER_ELEMENTS, MasterElements);
 
-									Geometry<Node<3>> &rElementGeometry = (ie)->GetGeometry();
+									Geometry<Node> &rElementGeometry = (ie)->GetGeometry();
 
 									// get matrix nodes in faces
 									rElementGeometry.NodesInFaces(lpofa);
@@ -343,7 +343,7 @@ namespace Kratos
 											}
 											i_cond->SetValue(MASTER_ELEMENTS, MasterElements);
 
-											Geometry<Node<3>> &rElementGeometry = (ie)->GetGeometry();
+											Geometry<Node> &rElementGeometry = (ie)->GetGeometry();
 
 											// get matrix nodes in faces
 											rElementGeometry.NodesInFaces(lpofa);
@@ -553,7 +553,7 @@ namespace Kratos
 			// 	if( any_node_to_erase ){
 			// 	  for(ModelPart::ConditionsContainerType::iterator i_cond = TemporaryConditions.begin(); i_cond!= TemporaryConditions.end(); ++i_cond)
 			// 	    {
-			// 	      Geometry< Node<3> >& rConditionGeometry = i_cond->GetGeometry();
+			// 	      Geometry< Node >& rConditionGeometry = i_cond->GetGeometry();
 			// 	      for( unsigned int i=0; i<rConditionGeometry.size(); i++ )
 			// 		{
 			// 		  if( rConditionGeometry[i].Is(TO_ERASE)){
@@ -609,7 +609,7 @@ namespace Kratos
 
 			for (ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end; ie++)
 			{
-				Geometry<Node<3>> &rElementGeometry = ie->GetGeometry();
+				Geometry<Node> &rElementGeometry = ie->GetGeometry();
 
 				if (rElementGeometry.FacesNumber() >= 3)
 				{ // 3 or 4
@@ -695,7 +695,7 @@ namespace Kratos
 			// clear nodal boundary flag
 			for (ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end; ++ie)
 			{
-				Geometry<Node<3>> &rElementGeometry = ie->GetGeometry();
+				Geometry<Node> &rElementGeometry = ie->GetGeometry();
 
 				for (unsigned int j = 0; j < rElementGeometry.size(); ++j)
 				{
@@ -706,7 +706,7 @@ namespace Kratos
 			rConditionId = 0;
 			for (ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end; ++ie)
 			{
-				Geometry<Node<3>> &rElementGeometry = ie->GetGeometry();
+				Geometry<Node> &rElementGeometry = ie->GetGeometry();
 
 				const unsigned int dimension = rElementGeometry.WorkingSpaceDimension();
 
@@ -767,16 +767,16 @@ namespace Kratos
 							if (NumberNodesInFace == 2)
 							{
 								if (dimension == 2)
-									ConditionVertices = Kratos::make_shared<Line2D2<Node<3>>>(FaceNodes);
+									ConditionVertices = Kratos::make_shared<Line2D2<Node>>(FaceNodes);
 								else
-									ConditionVertices = Kratos::make_shared<Line3D2<Node<3>>>(FaceNodes);
+									ConditionVertices = Kratos::make_shared<Line3D2<Node>>(FaceNodes);
 							}
 							else if (NumberNodesInFace == 3)
 							{
 								if (dimension == 2)
-									ConditionVertices = Kratos::make_shared<Line2D3<Node<3>>>(FaceNodes);
+									ConditionVertices = Kratos::make_shared<Line2D3<Node>>(FaceNodes);
 								else
-									ConditionVertices = Kratos::make_shared<Triangle3D3<Node<3>>>(FaceNodes);
+									ConditionVertices = Kratos::make_shared<Triangle3D3<Node>>(FaceNodes);
 							}
 
 							rConditionId += 1;
@@ -790,7 +790,7 @@ namespace Kratos
 							// Search for existing conditions: start
 							for (ModelPart::ConditionsContainerType::iterator i_cond = rTemporaryConditions.begin(); i_cond != rTemporaryConditions.end(); ++i_cond)
 							{
-								Geometry<Node<3>> &rConditionGeometry = i_cond->GetGeometry();
+								Geometry<Node> &rConditionGeometry = i_cond->GetGeometry();
 
 								MesherUtilities MesherUtils;
 								condition_found = MesherUtils.FindCondition(rConditionGeometry, rElementGeometry, lpofa, lnofa, iface);
@@ -851,7 +851,7 @@ namespace Kratos
 		//**************************************************************************
 		//**************************************************************************
 
-		bool FindConditionID(ModelPart &rModelPart, Geometry<Node<3>> &rConditionGeometry)
+		bool FindConditionID(ModelPart &rModelPart, Geometry<Node> &rConditionGeometry)
 		{
 			KRATOS_TRY
 
@@ -885,7 +885,7 @@ namespace Kratos
 			for (ConditionsContainerType::iterator i_cond = rCond.begin(); i_cond != rCond.end(); ++i_cond)
 			{
 
-				Geometry<Node<3>> &rConditionGeometry = i_cond->GetGeometry();
+				Geometry<Node> &rConditionGeometry = i_cond->GetGeometry();
 				std::cout << "[" << i_cond->Id() << "]:" << std::endl;
 				// i_cond->PrintInfo(std::cout);
 				std::cout << "( ";
@@ -924,7 +924,7 @@ namespace Kratos
 					if (this->CheckAcceptedCondition(rModelPart, *i_cond))
 					{
 
-						Geometry<Node<3>> &rConditionGeometry = i_cond->GetGeometry();
+						Geometry<Node> &rConditionGeometry = i_cond->GetGeometry();
 
 						Condition::NodesArrayType FaceNodes;
 
@@ -986,7 +986,7 @@ namespace Kratos
 		{
 			KRATOS_TRY
 
-			Geometry<Node<3>> &rConditionGeometry = rCondition.GetGeometry();
+			Geometry<Node> &rConditionGeometry = rCondition.GetGeometry();
 
 			return FindConditionID(rModelPart, rConditionGeometry);
 

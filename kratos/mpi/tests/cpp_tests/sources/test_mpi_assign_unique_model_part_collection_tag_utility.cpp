@@ -29,7 +29,6 @@
 
 namespace Kratos::Testing
 {
-    typedef Node<3> NodeType;
     typedef std::size_t IndexSize;
     typedef std::unordered_map<IndexSize,IndexSize> IndexIndexMapType;
     typedef std::unordered_map<IndexSize,std::vector<std::string>> IndexStringMapType;
@@ -82,7 +81,6 @@ namespace Kratos::Testing
         // Adding elements to random submodelparts
         r_sub_modelpart_1.AddElement(r_model_part.pGetElement(1));
         r_sub_modelpart_2.AddElement(r_model_part.pGetElement(4));
-
 
         AssignUniqueModelPartCollectionTagUtility collections_utility(r_model_part);
 

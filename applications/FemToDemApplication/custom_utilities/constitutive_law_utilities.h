@@ -87,7 +87,7 @@ class KRATOS_API(FEM_TO_DEM_APPLICATION) ConstitutiveLawUtilities
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
 
     /// Node type definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Geometry definitions
     typedef Geometry<NodeType> GeometryType;

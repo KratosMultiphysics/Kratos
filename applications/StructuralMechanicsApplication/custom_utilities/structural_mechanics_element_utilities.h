@@ -40,7 +40,7 @@ typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
 /// Node type definition
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /// Geometry definitions
 typedef Geometry<NodeType> GeometryType;

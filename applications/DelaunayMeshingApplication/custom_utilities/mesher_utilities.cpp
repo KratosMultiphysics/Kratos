@@ -195,7 +195,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool MesherUtilities::CheckSubdomain(Geometry<Node<3>> &rGeometry)
+  bool MesherUtilities::CheckSubdomain(Geometry<Node> &rGeometry)
   {
 
     KRATOS_TRY
@@ -259,7 +259,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool MesherUtilities::CheckRigidOuterCentre(Geometry<Node<3>> &rGeometry)
+  bool MesherUtilities::CheckRigidOuterCentre(Geometry<Node> &rGeometry)
   {
 
     KRATOS_TRY
@@ -353,7 +353,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool MesherUtilities::CheckInnerCentre(Geometry<Node<3>> &rGeometry)
+  bool MesherUtilities::CheckInnerCentre(Geometry<Node> &rGeometry)
   {
 
     KRATOS_TRY
@@ -433,7 +433,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool MesherUtilities::CheckOuterCentre(Geometry<Node<3>> &rGeometry, double &rOffsetFactor, bool &rSelfContact)
+  bool MesherUtilities::CheckOuterCentre(Geometry<Node> &rGeometry, double &rOffsetFactor, bool &rSelfContact)
   {
     KRATOS_TRY
 
@@ -584,7 +584,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  MesherUtilities::ContactElementType MesherUtilities::CheckContactElement(Geometry<Node<3>> &rGeometry, std::vector<int> &rSlaveVertices)
+  MesherUtilities::ContactElementType MesherUtilities::CheckContactElement(Geometry<Node> &rGeometry, std::vector<int> &rSlaveVertices)
   {
 
     KRATOS_TRY
@@ -678,7 +678,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool MesherUtilities::CheckSliver(Geometry<Node<3>> &rGeometry)
+  bool MesherUtilities::CheckSliver(Geometry<Node> &rGeometry)
   {
 
     KRATOS_TRY
@@ -811,7 +811,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  double MesherUtilities::GetAndCompareSideLenghts(Geometry<Node<3>> &rGeometry, double &rMaximumSideLength, double &rMinimumSideLength)
+  double MesherUtilities::GetAndCompareSideLenghts(Geometry<Node> &rGeometry, double &rMaximumSideLength, double &rMinimumSideLength)
   {
 
     KRATOS_TRY
@@ -846,7 +846,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool MesherUtilities::CheckGeometryShape(Geometry<Node<3>> &rGeometry, int &rShape)
+  bool MesherUtilities::CheckGeometryShape(Geometry<Node> &rGeometry, int &rShape)
   {
     KRATOS_TRY
 
@@ -950,7 +950,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  double MesherUtilities::FindBoundaryH(Node<3> &BoundaryPoint)
+  double MesherUtilities::FindBoundaryH(Node &BoundaryPoint)
   {
     KRATOS_TRY
 
@@ -1131,7 +1131,7 @@ namespace Kratos
   //*******************************************************************************************
 
   // returns false if it should be removed
-  bool MesherUtilities::AlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, const unsigned int dimension, const double MeanMeshSize)
+  bool MesherUtilities::AlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, const unsigned int dimension, const double MeanMeshSize)
   {
     KRATOS_TRY
 
@@ -1179,7 +1179,7 @@ namespace Kratos
   }
 
   // returns false if it should be removed
-  bool MesherUtilities::AlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, const unsigned int dimension)
+  bool MesherUtilities::AlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, const unsigned int dimension)
   {
     KRATOS_TRY
 
@@ -1238,7 +1238,7 @@ namespace Kratos
   //*******************************************************************************************
 
   // returns false if it should be removed
-  bool MesherUtilities::ShrankAlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, double &rOffsetFactor, const unsigned int dimension)
+  bool MesherUtilities::ShrankAlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, double &rOffsetFactor, const unsigned int dimension)
   {
     KRATOS_TRY
 
@@ -1343,7 +1343,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool MesherUtilities::CheckRelativeVelocities(Geometry<Node<3>> &rVertices, const double &rRelativeFactor)
+  bool MesherUtilities::CheckRelativeVelocities(Geometry<Node> &rVertices, const double &rRelativeFactor)
   {
     KRATOS_TRY
 
@@ -1380,7 +1380,7 @@ namespace Kratos
     bool accepted = false;
     if (rDimension == 2)
     {
-      Triangle2D3<Node<3>> CurrentTriangle(rVertices);
+      Triangle2D3<Node> CurrentTriangle(rVertices);
       const double CurrentArea = CurrentTriangle.Area();
 
       // new volume with a 1.0 * DeltaDisplacement
@@ -1397,7 +1397,7 @@ namespace Kratos
     else if (rDimension == 3)
     {
 
-      Tetrahedra3D4<Node<3>> CurrentTetrahedron(rVertices);
+      Tetrahedra3D4<Node> CurrentTetrahedron(rVertices);
       const double CurrentVolume = CurrentTetrahedron.Volume();
 
       // new volume with a 1.0 * DeltaDisplacement
@@ -1503,7 +1503,7 @@ namespace Kratos
 
     if (rDimension == 2)
     {
-      Triangle2D3<Node<3>> Triangle(rVertices);
+      Triangle2D3<Node> Triangle(rVertices);
 
       DenseVector<Matrix> J;
       J = Triangle.Jacobian(J, GeometryData::IntegrationMethod::GI_GAUSS_1, DeltaPosition);
@@ -1520,7 +1520,7 @@ namespace Kratos
     else if (rDimension == 3)
     {
 
-      Tetrahedra3D4<Node<3>> Tetrahedron(rVertices);
+      Tetrahedra3D4<Node> Tetrahedron(rVertices);
 
       DenseVector<Matrix> J;
       J = Tetrahedron.Jacobian(J, GeometryData::IntegrationMethod::GI_GAUSS_1, DeltaPosition);
@@ -1562,7 +1562,7 @@ namespace Kratos
 
     bool inside = true;
     Vector Point(3);
-    Geometry<Node<3>> &rGeometry = pCondition->GetGeometry();
+    Geometry<Node> &rGeometry = pCondition->GetGeometry();
 
     for (unsigned int i = 0; i < rGeometry.size(); ++i)
     {
@@ -1590,7 +1590,7 @@ namespace Kratos
 
     bool inside = true;
     Vector Point(3);
-    Geometry<Node<3>> &rGeometry = pElement->GetGeometry();
+    Geometry<Node> &rGeometry = pElement->GetGeometry();
 
     for (unsigned int i = 0; i < rGeometry.size(); ++i)
     {
@@ -1612,7 +1612,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  bool MesherUtilities::CheckVerticesInBox(Geometry<Node<3>> &rGeometry, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo)
+  bool MesherUtilities::CheckVerticesInBox(Geometry<Node> &rGeometry, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -1645,7 +1645,7 @@ namespace Kratos
 
     Condition::Pointer pMasterCondition;
 
-    Geometry<Node<3>> &rGeometry = pCondition->GetGeometry();
+    Geometry<Node> &rGeometry = pCondition->GetGeometry();
     DenseMatrix<unsigned int> lpofa; // points that define the faces
     rGeometry.NodesInFaces(lpofa);
 
@@ -1666,7 +1666,7 @@ namespace Kratos
         if (i_cond->IsNot(CONTACT))
         {
 
-          Geometry<Node<3>> &rConditionGeometry = i_cond->GetGeometry();
+          Geometry<Node> &rConditionGeometry = i_cond->GetGeometry();
 
           for (unsigned int iface = 0; iface < lpofa.size2(); ++iface)
           {
@@ -1700,7 +1700,7 @@ namespace Kratos
         if (i_cond->IsNot(CONTACT))
         {
 
-          Geometry<Node<3>> &rConditionGeometry = i_cond->GetGeometry();
+          Geometry<Node> &rConditionGeometry = i_cond->GetGeometry();
 
           for (unsigned int iface = 0; iface < lpofa.size2(); ++iface)
           {
@@ -1737,7 +1737,7 @@ namespace Kratos
           if (i_cond->IsNot(CONTACT))
           {
 
-            Geometry<Node<3>> &rConditionGeometry = i_cond->GetGeometry();
+            Geometry<Node> &rConditionGeometry = i_cond->GetGeometry();
 
             for (unsigned int iface = 0; iface < lpofa.size2() - 1; ++iface)
             {
@@ -1795,7 +1795,7 @@ namespace Kratos
 
     Condition::Pointer pMasterCondition;
 
-    Geometry<Node<3>> &rGeometry = pCondition->GetGeometry();
+    Geometry<Node> &rGeometry = pCondition->GetGeometry();
     DenseMatrix<unsigned int> lpofa; // points that define the faces
     rGeometry.NodesInFaces(lpofa);
 
@@ -1809,7 +1809,7 @@ namespace Kratos
       if (i_cond->IsNot(CONTACT))
       {
 
-        Geometry<Node<3>> &rConditionGeom = i_cond->GetGeometry();
+        Geometry<Node> &rConditionGeom = i_cond->GetGeometry();
 
         for (unsigned int i = 0; i < lpofa.size2(); ++i)
         {
@@ -1968,7 +1968,7 @@ namespace Kratos
   //**************************************************************************
   //**************************************************************************
 
-  bool MesherUtilities::FindCondition(Geometry<Node<3>> &rConditionGeometry, Geometry<Node<3>> &rGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface)
+  bool MesherUtilities::FindCondition(Geometry<Node> &rConditionGeometry, Geometry<Node> &rGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface)
   {
 
     KRATOS_TRY
@@ -2138,7 +2138,7 @@ namespace Kratos
     int base = 0;
     for (unsigned int el = 0; el < (unsigned int)NumberOfElements; ++el)
     {
-      Geometry<Node<3>> &geom = (element_begin + el)->GetGeometry();
+      Geometry<Node> &geom = (element_begin + el)->GetGeometry();
 
       for (unsigned int i = 0; i < nds; ++i)
       {

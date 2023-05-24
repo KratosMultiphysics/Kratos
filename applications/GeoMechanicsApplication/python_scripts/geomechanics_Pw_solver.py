@@ -6,12 +6,12 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructure
 
 # Import base class file
-from KratosMultiphysics.GeoMechanicsApplication.geomechanics_U_Pw_solver import UPwSolver
+from KratosMultiphysics.GeoMechanicsApplication.geomechanics_solver import GeoMechanicalSolver as GeoSolver
 
 def CreateSolver(model, custom_settings):
     return PwSolver(model, custom_settings)
 
-class PwSolver(UPwSolver):
+class PwSolver(GeoSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
     def __init__(self, model, custom_settings):
@@ -66,7 +66,6 @@ class PwSolver(UPwSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "realised_factor"            : 1.0,
             "calculate_reactions"        : true,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
@@ -98,15 +97,19 @@ class PwSolver(UPwSolver):
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
+    def PrepareModelPart(self):
+        super().PrepareModelPart()
+        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "Model reading finished.")
+
     def AddDofs(self):
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "DOFs added correctly.")
 
-
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_Pw_Solver]:: ", "Initialisation ...")
+        
         super().Initialize()
 
         self.find_neighbour_elements_of_conditions_process = KratosGeo.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
@@ -190,4 +193,3 @@ class PwSolver(UPwSolver):
             raise Exception(err_msg)
 
         return convergence_criterion
-

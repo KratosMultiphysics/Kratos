@@ -33,13 +33,23 @@ namespace Kratos {
  * flattening the data structure to a vector. This allocates
  * a Vector with large sizes.
  *
+ * @tparam TRawDataType        Raw data type of the literal. Can be char, int or double
  */
+template<class TRawDataType = double>
 class KRATOS_API(KRATOS_CORE) LiteralFlatExpression : public Expression {
 public:
     ///@name Type definition
     ///@{
 
-    using Pointer = Kratos::intrusive_ptr<LiteralFlatExpression>;
+    using Pointer = Kratos::intrusive_ptr<LiteralFlatExpression<TRawDataType>>;
+
+    using value_type = TRawDataType;
+
+    using size_type = std::size_t;
+
+    using iterator = TRawDataType*;
+
+    using const_iterator = TRawDataType const*;
 
     ///@}
     ///@name Life cycle
@@ -50,7 +60,7 @@ public:
         const std::vector<IndexType>& rShape);
 
     LiteralFlatExpression(
-        double* pDataBegin,
+        TRawDataType* pDataBegin,
         const IndexType NumberOfEntities,
         const std::vector<IndexType>& rShape);
 
@@ -69,21 +79,35 @@ public:
      * @param rShape                            Shape of the data in each entity.
      * @return LiteralFlatExpression::Pointer   Returns an intrusive pointer to LiteralFlatExpression.
      */
-    static LiteralFlatExpression::Pointer Create(
+    static LiteralFlatExpression<TRawDataType>::Pointer Create(
         const IndexType NumberOfEntities,
         const std::vector<IndexType>& rShape);
 
-    static LiteralFlatExpression::Pointer Create(
-        double* pDataBegin,
+    static LiteralFlatExpression<TRawDataType>::Pointer Create(
+        TRawDataType* pDataBegin,
         const IndexType NumberOfEntities,
         const std::vector<IndexType>& rShape);
 
     void SetData(
         const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex,
-        const double Value);
+        const TRawDataType Value);
 
-    const std::vector<IndexType> GetShape() const override;
+    const std::vector<IndexType> GetItemShape() const override;
+
+    IndexType size() const noexcept { return mData.size(); }
+
+    iterator begin() noexcept { return mData.begin(); }
+
+    iterator end() noexcept { return mData.end(); }
+
+    const_iterator begin() const noexcept { return mData.begin(); }
+
+    const_iterator end() const noexcept { return mData.end(); }
+
+    const_iterator cbegin() const noexcept { return mData.begin(); }
+
+    const_iterator cend() const noexcept { return mData.end(); }
 
     std::string Info() const override;
 
@@ -99,8 +123,8 @@ protected:
      * This representation can be done in two ways:
      *
      *      1) If the data is moved, then this instance will hold a pointer
-     *         to the double flattened data array. In this case it is important to
-     *         make sure that the double flattened data array lives until this expression
+     *         to the TRawDataType flattened data array. In this case it is important to
+     *         make sure that the TRawDataType flattened data array lives until this expression
      *         is destructed. In this case mIsManaged will be false.
      *      2) If the data is copied, then a flattened array for the required size is
      *         created at the construction in the heap, and will be destructed when the
@@ -119,14 +143,14 @@ protected:
          *
          * @param Size      Size of the allocated array.
          */
-        Data(const IndexType Size): mpBegin(new double[Size]), mIsManaged(true) {}
+        Data(const IndexType Size): mpBegin(new TRawDataType[Size]), mIsManaged(true), mSize(Size) {}
 
         /**
          * @brief Construct a new Data object, where the underlying array memory is not managed by the object.
          *
          * @param pBegin    Pointer to the memory array.
          */
-        Data(double* pBegin): mpBegin(pBegin), mIsManaged(false) {}
+        Data(TRawDataType* pBegin, const IndexType Size): mpBegin(pBegin), mIsManaged(false), mSize(Size) {}
 
         ~Data() { if (mIsManaged) { delete[] mpBegin; } }
 
@@ -134,18 +158,30 @@ protected:
         ///@name Operators
         ///@{
 
-        double& operator[](const IndexType Index) noexcept { return mpBegin[Index]; }
+        inline iterator begin() noexcept { return mpBegin; }
 
-        double operator[](const IndexType Index) const noexcept { return mpBegin[Index]; }
+        inline iterator end() noexcept { return mpBegin + mSize; }
+
+        inline const_iterator begin() const noexcept { return mpBegin; }
+
+        inline const_iterator end() const noexcept { return mpBegin + mSize; }
+
+        inline const_iterator cbegin() const noexcept { return mpBegin; }
+
+        inline const_iterator cend() const noexcept { return mpBegin + mSize; }
+
+        inline IndexType size() const noexcept { return mSize; }
 
         ///@}
     private:
         ///@name Private member variables
         ///@{
 
-        double* mpBegin;
+        TRawDataType* mpBegin;
 
-        bool mIsManaged;
+        const bool mIsManaged;
+
+        const IndexType mSize;
 
         ///@}
     };
@@ -161,11 +197,14 @@ protected:
     ///@}
 };
 
-class LiteralScalarFlatExpression : public LiteralFlatExpression
+template<class TRawDataType = double>
+class LiteralScalarFlatExpression : public LiteralFlatExpression<TRawDataType>
 {
 public:
 
-    using LiteralFlatExpression::LiteralFlatExpression;
+    using IndexType = std::size_t;
+
+    using LiteralFlatExpression<TRawDataType>::LiteralFlatExpression;
 
     double Evaluate(
         const IndexType EntityIndex,
@@ -174,11 +213,14 @@ public:
 
 };
 
-class LiteralNonScalarFlatExpression : public LiteralFlatExpression
+template<class TRawDataType = double>
+class LiteralNonScalarFlatExpression : public LiteralFlatExpression<TRawDataType>
 {
 public:
 
-    using LiteralFlatExpression::LiteralFlatExpression;
+    using IndexType = std::size_t;
+
+    using LiteralFlatExpression<TRawDataType>::LiteralFlatExpression;
 
     double Evaluate(
         const IndexType EntityIndex,
