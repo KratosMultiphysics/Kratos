@@ -239,7 +239,7 @@ class HRomTrainingUtility(object):
 
             # json uses this
             for index in real_imposed_indexes:
-                hrom_weights["Elements"][index] = 0.0
+                hrom_weights["Elements"][int(index)] = 0.0
         except:
             pass
 
