@@ -1,7 +1,6 @@
 # Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication.filtering.python_solvers_wrapper_implicit_filters as implicit_filter_solvers
-from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_vector_solver import HelmholtzVectorSolver
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 import KratosMultiphysics.OptimizationApplication as KOA
 
@@ -58,7 +57,8 @@ class HelmholtzAnalysis(AnalysisStage):
     def _AssignNodalSolutionToDataExpression(self, output_data_exp_type):
 
         nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
-        if type(self._GetSolver()) == HelmholtzVectorSolver:
+        filter_type = self._GetSolver().settings["filter_type"].GetString()
+        if filter_type == "bulk_surface_shape" or filter_type == "general_vector":
             nodal_solution_field.Read(KOA.HELMHOLTZ_VECTOR)
         else:
             nodal_solution_field.Read(KOA.HELMHOLTZ_SCALAR)
@@ -89,7 +89,7 @@ class HelmholtzAnalysis(AnalysisStage):
         self._GetComputingModelPart().ProcessInfo.SetValue(KOA.HELMHOLTZ_RADIUS,filter_radius)
 
     def SetBulkFilterRadius(self):
-        if type(self._GetSolver()) == HelmholtzVectorSolver:
+        if self._GetSolver().settings["filter_type"].GetString() == "bulk_surface_shape":
             KOA.ImplicitFilterUtils.SetBulkRadiusForShapeFiltering(self._GetComputingModelPart())
         else:
             pass
