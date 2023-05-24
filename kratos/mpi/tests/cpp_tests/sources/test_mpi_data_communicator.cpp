@@ -1246,7 +1246,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorDouble, Kr
 // SendRecv ///////////////////////////////////////////////////////////////////
 
 namespace {
-template<typename T> 
+template<typename T>
 void MPIDataCommunicatorSendRecvIntegralTypeTest()
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -1287,7 +1287,7 @@ void MPIDataCommunicatorSendRecvIntegralTypeTest()
     }
 }
 
-template<typename T> 
+template<typename T>
 void MPIDataCommunicatorSendAndRecvIntegralTypeTest()
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -2574,6 +2574,7 @@ template<typename T> void MPIDataCommunicatorAllGathervIntegralTypeVectorTest()
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGathervInt, KratosMPICoreFastSuite)
 {
+    KRATOS_CHECK_IS_FALSE(true) // Forcing a failure
     MPIDataCommunicatorAllGathervIntegralTypeVectorTest<int>();
 }
 
