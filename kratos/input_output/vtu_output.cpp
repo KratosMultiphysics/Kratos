@@ -446,7 +446,7 @@ void CreatePDataArrays(
     }
 }
 
-std::string GetEndianess()
+std::string GetEndianness()
 {
     int i = 0x0001;
 
@@ -492,7 +492,7 @@ void WritePvtuFile(
         auto vtk_file_element = Kratos::make_shared<XmlElement>("VTKFile");
         vtk_file_element->AddAttribute("type", "PUnstructuredGrid");
         vtk_file_element->AddAttribute("version", "0.1");
-        vtk_file_element->AddAttribute("byte_order", GetEndianess());
+        vtk_file_element->AddAttribute("byte_order", GetEndianness());
 
         // create the unstructured grid
         auto unstructured_grid_element = Kratos::make_shared<XmlElement>("PUnstructuredGrid");
@@ -682,7 +682,7 @@ void VtuOutput::PrintModelPart(
     auto vtk_file_element = Kratos::make_shared<XmlElement>("VTKFile");
     vtk_file_element->AddAttribute("type", "UnstructuredGrid");
     vtk_file_element->AddAttribute("version", "0.1");
-    vtk_file_element->AddAttribute("byte_order", VtuOutputHelperUtilities::GetEndianess());
+    vtk_file_element->AddAttribute("byte_order", VtuOutputHelperUtilities::GetEndianness());
 
     // create the unstructured grid
     auto unstructured_grid_element = Kratos::make_shared<XmlElement>("UnstructuredGrid");

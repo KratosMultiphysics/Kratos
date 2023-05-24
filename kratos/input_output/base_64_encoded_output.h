@@ -30,13 +30,11 @@ namespace Kratos {
 /**
  * @brief Encodes given iterator data to base 64 string representation
  *
- * This class allows encoding data given by the iterator (can be non-contiguous) to base 64
- * string representation. It allows having list of iterators as well. In the case if a list of
- * iterators needs to be processed for one base64 string representation, then they needs
- * to be passed in the order to the WriteData method.
- *
- * The TIteratorType should satisfy requirements for a std::input_iterator.
- *
+ *  @brief Encode incoming data to base 64 string representation.
+ *  @details Input data is read from chunks of consecutive iterators. Non-consecutive iterators
+ *           can be processed by repeatedly calling @ref Base64EncodedOutput::WriteOutputData.
+ *  @note The destructor of the instance will write the remaining bytes of the data container with padding.
+ *        Hence, scoping of the encoder should be done to properly finish writing of the data stream
  */
 class Base64EncodedOutput
 {
