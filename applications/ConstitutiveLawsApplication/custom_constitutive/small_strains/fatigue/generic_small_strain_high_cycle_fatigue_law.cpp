@@ -192,7 +192,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         first_min_indicator = true;
         previous_max_stress = max_stress;
         previous_min_stress = min_stress;
-        mPreviousCycleDamage = GetDamage();
+        mPreviousCycleDamage = this->GetDamage();
 
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(rValues.GetMaterialProperties(),
                                                                                         max_stress,
