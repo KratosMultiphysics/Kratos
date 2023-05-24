@@ -26,6 +26,7 @@
 #include "utilities/pointer_communicator.h"
 #include "utilities/string_utilities.h"
 #include "input_output/base_64_encoded_output.h"
+#include "input_output/vtk_definitions.h"
 #include "utilities/xml_utilities/xml_element.h"
 #include "utilities/xml_utilities/xml_ostream_writer.h"
 
@@ -39,31 +40,6 @@ namespace Kratos {
     KRATOS_CREATE_LOCAL_FLAG(VtuOutput, ELEMENTS, 3);
 
 namespace VtuOutputHelperUtilities {
-
-const std::map<GeometryData::KratosGeometryType, char> KratosVtuGeometryTypes = {
-    { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
-    { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
-    { GeometryData::KratosGeometryType::Kratos_Line2D2,          3 },
-    { GeometryData::KratosGeometryType::Kratos_Line3D2,          3 },
-    { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      5 },
-    { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      5 },
-    { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
-    { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
-    { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
-    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 },
-    { GeometryData::KratosGeometryType::Kratos_Prism3D6,         13 },
-    { GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       14 },
-    { GeometryData::KratosGeometryType::Kratos_Line2D3,          21 },
-    { GeometryData::KratosGeometryType::Kratos_Line3D3,          21 },
-    { GeometryData::KratosGeometryType::Kratos_Triangle2D6,      22 },
-    { GeometryData::KratosGeometryType::Kratos_Triangle3D6,      22 },
-    { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, 23 },
-    { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, 23 },
-    { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,   24 },
-    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    25 },
-    { GeometryData::KratosGeometryType::Kratos_Prism3D15,        26 },
-    { GeometryData::KratosGeometryType::Kratos_Pyramid3D13,      27 }
-};
 
 Expression::Pointer CreatePositionsExpression(
     const ModelPart::NodesContainerType& rNodes,
@@ -170,8 +146,8 @@ Expression::Pointer CreateGeometryTypesExpression(const TContainerType& rContain
     auto data_itr = p_geometry_expression->begin();
 
     IndexPartition<IndexType>(rContainer.size()).for_each([data_itr, &rContainer](const IndexType Index) {
-        const auto p_itr = KratosVtuGeometryTypes.find((rContainer.begin() + Index)->GetGeometry().GetGeometryType());
-        if (p_itr != KratosVtuGeometryTypes.end()) {
+        const auto p_itr = VtkDefinitions::KratosVtkGeometryTypes.find((rContainer.begin() + Index)->GetGeometry().GetGeometryType());
+        if (p_itr != VtkDefinitions::KratosVtkGeometryTypes.end()) {
             *(data_itr + Index) = p_itr->second;
         } else {
             KRATOS_ERROR << "Element with id " << (rContainer.begin() + Index)->Id() << " has unsupported geometry.";
