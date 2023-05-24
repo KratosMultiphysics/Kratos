@@ -133,6 +133,9 @@ class AlgorithmSteepestDescent(Algorithm):
                     control_data_storage.GetUnBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
 
                 self.converged = self.__convergence_criteria.CheckConvergence()
+
+                self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
+
                 self._optimization_problem.AdvanceStep()
 
             self.Finalize()
