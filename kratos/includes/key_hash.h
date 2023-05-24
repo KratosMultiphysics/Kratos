@@ -149,7 +149,7 @@ namespace Kratos
     /**
      * @brief This is a hasher for variables
      */
-    struct VariableHasher
+    struct KRATOS_API(KRATOS_CORE) VariableHasher
     {
         /**
          * @brief This is the () operator
@@ -162,7 +162,7 @@ namespace Kratos
     /**
      * @brief This is a key comparer between two variables
      */
-    struct VariableComparator
+    struct KRATOS_API(KRATOS_CORE) VariableComparator
     {
         /**
          * @brief This is the () operator
@@ -178,7 +178,7 @@ namespace Kratos
     /**
      * @brief This is a hasher for variables pointers
      */
-    struct pVariableHasher
+    struct KRATOS_API(KRATOS_CORE) pVariableHasher
     {
         /**
          * @brief This is the () operator
@@ -191,7 +191,7 @@ namespace Kratos
     /**
      * @brief This is a key comparer between two variables pointers
      */
-    struct pVariableComparator
+    struct KRATOS_API(KRATOS_CORE) pVariableComparator
     {
         /**
          * @brief This is the () operator
