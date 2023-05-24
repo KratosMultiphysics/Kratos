@@ -37,13 +37,9 @@ class OptimizationProblem:
 
         # create the unbufferd optimization problem data container
         self.__problem_data = BufferedDict(1)
-        self.__unbuffered_data = BufferedDict(1)
-        self.__buffered_data = BufferedDict(1) 
-        self.__problem_data["unbuffered"] = self.__unbuffered_data
-        self.__problem_data["buffered"] = self.__buffered_data
-        
+
         # initialize the step
-        self.__problem_data["buffered/step"] = 0
+        self.__problem_data["step"] = 0
 
     def GetComponentType(self, component: Union[ExecutionPolicy, ResponseFunction, Control]) -> Any:
         for k in self.__components.keys():
@@ -105,9 +101,6 @@ class OptimizationProblem:
     def RemoveControl(self, name: str) -> None:
         self.RemoveComponent(name, Control)
 
-    def AddProcessType(self, process_type: str) -> None:
-        self.__proceses[process_type] = []
-
     def AddProcess(self, process_type: str, process: Kratos.Process) -> None:
         if process_type not in self.__proceses.keys():
             self.__proceses[process_type]: 'list[Kratos.Process]' = []
@@ -134,7 +127,7 @@ class OptimizationProblem:
         Returns:
             int: Current step of the optimization info.
         """
-        return self.__problem_data["buffered/step"]
+        return self.__problem_data["step"]
 
     def AdvanceStep(self) -> None:
         """Advances the problem data by one step.
@@ -143,9 +136,9 @@ class OptimizationProblem:
         clears all the data in the advanced step.
 
         """
-        current_step = self.__problem_data["buffered/step"]
-        self.__buffered_data.AdvanceStep()
-        self.__problem_data["buffered/step"] = current_step + 1
+        current_step = self.__problem_data["step"]
+        self.__problem_data.AdvanceStep()
+        self.__problem_data["step"] = current_step + 1
 
     def GetProblemDataContainer(self) -> BufferedDict:
         """Gets the global problem data container.
