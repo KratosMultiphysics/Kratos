@@ -197,12 +197,12 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiDouble, KratosCor
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 4);
+    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 0);
     element.Write(writer, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
-            "     0.0000e+00  1.0000e+00  2.0000e+00  3.0000e+00  4.0000e+00  5.0000e+00  0.0000e+00  1.0000e+00  2.0000e+00  3.0000e+00  4.0000e+00  5.0000e+00  6.0000e+00  7.0000e+00  8.0000e+00\n"
+            "     0e+00  1e+00  2e+00  3e+00  4e+00  5e+00  0e+00  1e+00  2e+00  3e+00  4e+00  5e+00  6e+00  7e+00  8e+00\n"
             "   </DataArray>\n");
 }
 
@@ -225,12 +225,12 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiMixed, KratosCore
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 4);
+    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 0);
     element.Write(writer, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
-            "     0.0000e+00  1.0000e+00  2.0000e+00  3.0000e+00  4.0000e+00  5.0000e+00  0.0000e+00  1.0000e+00  2.0000e+00  3.0000e+00  4.0000e+00  5.0000e+00  6.0000e+00  7.0000e+00  8.0000e+00\n"
+            "     0e+00  1e+00  2e+00  3e+00  4e+00  5e+00  0e+00  1e+00  2e+00  3e+00  4e+00  5e+00  6e+00  7e+00  8e+00\n"
             "   </DataArray>\n");
 }
 
