@@ -105,6 +105,9 @@ class OptimizationProblem:
     def RemoveControl(self, name: str) -> None:
         self.RemoveComponent(name, Control)
 
+    def AddProcessType(self, process_type: str) -> None:
+        self.__proceses[process_type] = []
+
     def AddProcess(self, process_type: str, process: Kratos.Process) -> None:
         if process_type not in self.__proceses.keys():
             self.__proceses[process_type]: 'list[Kratos.Process]' = []
