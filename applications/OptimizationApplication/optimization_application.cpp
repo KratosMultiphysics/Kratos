@@ -43,7 +43,15 @@ namespace Kratos
 
  	void KratosOptimizationApplication::Register()
  	{
-        KRATOS_INFO("") << "Initializing KratosOptimizationApplication..." << std::endl;
+
+        KRATOS_INFO("") << "_______        ____________             \n"       
+                        << "__  __ \\_________  /___    |_______________             \n"
+                        << "_  / / /__  __ \\  __/_  /| |__  __ \\__  __ \\            \n"
+                        << "/ /_/ /__  /_/ / /_ _  ___ |_  /_/ /_  /_/ /            \n"
+                        << "\\____/ _  .___/\\__/ /_/  |_|  .___/_  .___/             \n"
+                        << "       /_/                 /_/     /_/                  \n"
+                        << "Initializing KratosOptimizationApplication... " << std::endl;
+
 
         // Register variables
 
