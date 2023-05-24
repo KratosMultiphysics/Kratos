@@ -47,13 +47,13 @@ XmlElement::XmlElement(
     if (std::all_of(mExpressions.begin(), mExpressions.end(), [](const auto& pExpression) {
             return dynamic_cast<const LiteralFlatExpression<char>*>(&*pExpression);
         })) {
-        AddAttribute("type", "UInt8");
+        AddAttribute("type", "UInt" + std::to_string(sizeof(char) * 8));
     } else if (std::all_of(mExpressions.begin(), mExpressions.end(), [](const auto& pExpression) {
             return dynamic_cast<const LiteralFlatExpression<int>*>(&*pExpression);
         })) {
-        AddAttribute("type", "Int32");
+        AddAttribute("type", "Int" + std::to_string(sizeof(int) * 8));
     } else {
-        AddAttribute("type", "Float64");
+        AddAttribute("type", "Float" + std::to_string(sizeof(double) * 8));
     }
 
     AddAttribute("Name", rDataName);
