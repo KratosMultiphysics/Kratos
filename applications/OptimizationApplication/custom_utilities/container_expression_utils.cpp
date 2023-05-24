@@ -123,12 +123,6 @@ void ComputeMatrixExpressionProduct(
 } // namespace ContainerVariableDataHolderUtilsHelper
 
 template<class TContainerType>
-int ContainerExpressionUtils::GetFlattenedSize(const ContainerExpression<TContainerType>& rContainer)
-{
-   return rContainer.GetFlattenedSize();
-}
-
-template<class TContainerType>
 double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<TContainerType>& rContainer)
 {
     if (rContainer.GetItemComponentCount() == 0) {
@@ -644,7 +638,6 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
 
 // template instantiations
 #define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                      \
-    template int ContainerExpressionUtils::GetFlattenedSize(const ContainerExpression<ContainerType>&);                                                                                                                          \
     template double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
     template double ContainerExpressionUtils::NormInf(const ContainerExpression<ContainerType>&);                                                                                                                                \
     template double ContainerExpressionUtils::NormL2(const ContainerExpression<ContainerType>&);                                                                                                                                 \

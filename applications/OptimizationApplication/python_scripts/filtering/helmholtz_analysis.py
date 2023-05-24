@@ -47,10 +47,10 @@ class HelmholtzAnalysis(AnalysisStage):
             KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourConditions(neighbour_conds)
             KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_conds)
 
-        size = KOA.ContainerExpressionUtils.GetFlattenedSize(mapped_values)
-        if size==3:
+        filter_type = self._GetSolver().settings["filter_type"].GetString()
+        if filter_type == "bulk_surface_shape" or filter_type == "general_vector":
             mapped_values.Evaluate(KOA.HELMHOLTZ_VECTOR_SOURCE)
-        elif size==1:
+        else:
             mapped_values.Evaluate(KOA.HELMHOLTZ_SCALAR_SOURCE)
 
 
