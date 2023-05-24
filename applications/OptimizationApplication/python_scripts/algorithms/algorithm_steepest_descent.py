@@ -70,8 +70,7 @@ class AlgorithmSteepestDescent(Algorithm):
         return 2
 
     def Check(self):
-        if len(self.parameters["objectives"]) > 1:
-            raise RuntimeError(f"{self.__class__.__name__} only supports single objective optimizations.")
+        pass
         
     def Initialize(self):
         self.converged = False
@@ -123,7 +122,7 @@ class AlgorithmSteepestDescent(Algorithm):
                         control_data_storage = ComponentDataView(control, self._optimization_problem)
                         control_data_storage.GetUnBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
 
-                    alpha = self.__line_search_method.ComputeStep(search_direction)
+                    alpha = self.__line_search_method.ComputeStep()
 
                     update = search_direction * alpha
                     self.__control_field += update
@@ -133,7 +132,7 @@ class AlgorithmSteepestDescent(Algorithm):
                     control_data_storage.GetUnBufferedData().SetValue("parameter_update", update.Clone(), overwrite=True)
                     control_data_storage.GetUnBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
 
-                self.converged = self.__convergence_criteria.CheckConvergence(self._optimization_problem.GetStep())
+                self.converged = self.__convergence_criteria.CheckConvergence()
                 self._optimization_problem.AdvanceStep()
 
             self.Finalize()
