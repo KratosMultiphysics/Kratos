@@ -149,7 +149,10 @@ public:
                    TIterator it_end,
                    int Nchunks = ParallelUtilities::GetNumThreads())
     {
-        static_assert(std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category, std::random_access_iterator_tag>);
+        static_assert(
+            std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category, std::random_access_iterator_tag>,
+            "BlockPartition requires random access iterators to divide the input range into partitions"
+        );
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
         const std::ptrdiff_t size_container = it_end-it_begin;
@@ -292,7 +295,7 @@ private:
  */
 template <class TIterator,
           class TFunction,
-          std::enable_if_t<std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category,std::random_access_iterator_tag>,bool> = true>
+          std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
 void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction)
 {
     BlockPartition<TIterator>(itBegin, itEnd).for_each(std::forward<TFunction>(rFunction));
@@ -309,7 +312,7 @@ void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction)
 template <class TReduction,
           class TIterator,
           class TFunction,
-          std::enable_if_t<std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category,std::random_access_iterator_tag>,bool> = true>
+          std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
 [[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction)
 {
     return  BlockPartition<TIterator>(itBegin, itEnd).template for_each<TReduction>(std::forward<TFunction>(std::forward<TFunction>(rFunction)));
@@ -327,7 +330,7 @@ template <class TReduction,
 template <class TIterator,
           class TTLS,
           class TFunction,
-          std::enable_if_t<std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category,std::random_access_iterator_tag>,bool> = true>
+          std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
 void block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& rTLS, TFunction &&rFunction)
 {
      BlockPartition<TIterator>(itBegin, itEnd).for_each(rTLS, std::forward<TFunction>(rFunction));
@@ -347,7 +350,7 @@ template <class TReduction,
           class TIterator,
           class TTLS,
           class TFunction,
-          std::enable_if_t<std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category,std::random_access_iterator_tag>,bool> = true>
+          std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
 [[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& tls, TFunction&& rFunction)
 {
     return BlockPartition<TIterator>(itBegin, itEnd).template for_each<TReduction>(tls, std::forward<TFunction>(std::forward<TFunction>(rFunction)));
