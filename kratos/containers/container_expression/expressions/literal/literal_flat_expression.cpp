@@ -24,7 +24,8 @@ template<class TRawDataType>
 LiteralFlatExpression<TRawDataType>::LiteralFlatExpression(
     const IndexType NumberOfEntities,
     const std::vector<IndexType>& rShape)
-    : mShape(rShape),
+    : Expression(NumberOfEntities),
+      mShape(rShape),
       mData(NumberOfEntities * this->GetItemComponentCount())
 {
 }
@@ -34,7 +35,8 @@ LiteralFlatExpression<TRawDataType>::LiteralFlatExpression(
     TRawDataType* pDataBegin,
     const IndexType NumberOfEntities,
     const std::vector<IndexType>& rShape)
-    : mShape(rShape),
+    : Expression(NumberOfEntities),
+      mShape(rShape),
       mData(pDataBegin, NumberOfEntities * this->GetItemComponentCount())
 {
 }
@@ -109,7 +111,7 @@ double LiteralScalarFlatExpression<TRawDataType>::Evaluate(
     const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
-    return *(this->mData.begin() + EntityIndex);
+    return *(this->mData.cbegin() + EntityIndex);
 }
 
 template<class TRawDataType>
@@ -118,7 +120,7 @@ double LiteralNonScalarFlatExpression<TRawDataType>::Evaluate(
     const IndexType EntityDataBeginIndex,
     const IndexType ComponentIndex) const
 {
-    return *(this->mData.begin() + EntityDataBeginIndex + ComponentIndex);
+    return *(this->mData.cbegin() + EntityDataBeginIndex + ComponentIndex);
 }
 
 // template instantiations

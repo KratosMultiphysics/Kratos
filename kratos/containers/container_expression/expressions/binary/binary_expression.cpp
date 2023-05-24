@@ -45,11 +45,18 @@ template <class TOperationType>
 BinaryExpression<TOperationType>::BinaryExpression(
     Expression::Pointer pLeft,
     Expression::Pointer pRight)
-    : mpLeft(pLeft),
+    : Expression(pLeft->NumberOfEntities()),
+      mpLeft(pLeft),
       mpRight(pRight)
 {
     const auto& r_left_shape = mpLeft->GetItemShape();
     const auto& r_right_shape = mpRight->GetItemShape();
+
+    KRATOS_ERROR_IF_NOT(pLeft->NumberOfEntities() == pRight->NumberOfEntities())
+        << "Number of entities mismatch in left and right side expressions. [ left expression"
+        << " number of entities = " << pLeft->NumberOfEntities()
+        << ", right expression number of entities = "
+        << pRight->NumberOfEntities() << " ].\n";
 
     KRATOS_ERROR_IF_NOT(r_left_shape == r_right_shape || r_right_shape.size() == 0)
         << "Binary operation should have equal shape in left and right side "
