@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
+//                   José Ignacio Aliaga Estellés
 //
 
 #pragma once
@@ -74,6 +75,19 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
 
             return gko::preconditioner::Ilu<gko::solver::LowerTrs<TValueType, TIndexType>,gko::solver::UpperTrs<TValueType, TIndexType>, false, TIndexType>::build()
                 .with_factorization_factory(fact)
+                .with_l_solver_factory(gko::solver::LowerTrs<double,TIndexType>::build().with_algorithm(gko::solver::trisolve_algorithm::syncfree).on(exec))
+                .with_u_solver_factory(gko::solver::UpperTrs<double,TIndexType>::build().with_algorithm(gko::solver::trisolve_algorithm::syncfree).on(exec))
+                .on(exec);
+        }},
+    {"parilu_no_lu_solver_factory",
+        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
+            auto fact = gko::share(gko::factorization::ParIlu<TValueType, TIndexType>::build()
+                .with_iterations(rSettings["parilu_iterations"].GetInt())
+                .with_skip_sorting(true)
+                .on(exec));
+
+            return gko::preconditioner::Ilu<gko::solver::LowerTrs<TValueType, TIndexType>,gko::solver::UpperTrs<TValueType, TIndexType>, false, TIndexType>::build()
+                .with_factorization_factory(fact)
                 .on(exec);
         }},
     {"parilut",
@@ -98,6 +112,16 @@ const std::map<std::string, std::function<std::shared_ptr<gko::LinOpFactory>(std
                 .on(exec);
         }},
     {"ilu",
+        [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
+            auto fact = gko::share(gko::factorization::Ilu<TValueType, TIndexType>::build().on(exec));
+
+            return gko::preconditioner::Ilu<gko::solver::LowerTrs<TValueType, TIndexType>, gko::solver::UpperTrs<TValueType, TIndexType>, false, TIndexType>::build()
+                .with_factorization_factory(fact)
+                .with_l_solver_factory(gko::solver::LowerTrs<double,TIndexType>::build().with_algorithm(gko::solver::trisolve_algorithm::syncfree).on(exec))                 
+                .with_u_solver_factory(gko::solver::UpperTrs<double,TIndexType>::build().with_algorithm(gko::solver::trisolve_algorithm::syncfree).on(exec))                 
+                .on(exec);
+        }},
+    {"ilu_no_lu_solver_factory",
         [](std::shared_ptr<const gko::Executor> exec, const Parameters &rSettings) {
             auto fact = gko::share(gko::factorization::Ilu<TValueType, TIndexType>::build().on(exec));
 

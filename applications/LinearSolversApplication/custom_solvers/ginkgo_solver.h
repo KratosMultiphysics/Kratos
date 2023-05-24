@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
+//                   José Ignacio Aliaga Estellés
 //
 
 #pragma once
@@ -23,7 +24,7 @@
 
 namespace Kratos {
 
-template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>, class TIndexType=std::int32_t>
+template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>, class TIndexType=std::int64_t>
 class GinkgoSolver
     : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
@@ -46,7 +47,8 @@ public:
 
     using vec = gko::matrix::Dense<double>;
     using mtx = gko::matrix::Csr<double, TIndexType>;
-    
+    using mtx_data = gko::matrix_data<double, TIndexType>;
+
     GinkgoSolver() = delete;
 
     GinkgoSolver(Parameters settings)
@@ -185,30 +187,41 @@ public:
             std::cout << "\tSizeof(TIndexType)   (Ginkgo IndexType): " << sizeof(TIndexType) << std::endl;
         #endif
 
-        // Initialize ginkgo data interfaces
         // NOTE: Ginkgo does not have std::size_t (unsigned long int) IndexType CSR matrices, so we have to make an 
         //  reinterpret cast. This will make matrices with ~2100M non-zero values not to work.
+        // auto gko_rA = gko::share(mtx::create(
+        //     mExec, 
+        //     gko::dim<2>{rA.size1(), rA.size2()},
+        //     gko::make_array_view(mExec, rA.value_data().size(),  &(rA.value_data()[0])),                                  // Values
+        //     gko::make_array_view(mExec, rA.index2_data().size(), reinterpret_cast<TIndexType *>(&(rA.index2_data()[0]))), // Col
+        //     gko::make_array_view(mExec, rA.index1_data().size(), reinterpret_cast<TIndexType *>(&(rA.index1_data()[0]))), // Row
+        //     std::make_shared<typename mtx::load_balance>(2)
+        // ));
+
+        // Initialize ginkgo data interfaces
+        std::cout << "Creating gko_rA..." << std::endl;
         auto gko_rA = gko::share(mtx::create(
             mExec, 
             gko::dim<2>{rA.size1(), rA.size2()},
-            gko::make_array_view(mExec, rA.value_data().size(),  &(rA.value_data()[0])),                                    // Values
-            gko::make_array_view(mExec, rA.index2_data().size(), reinterpret_cast<TIndexType *>(&(rA.index2_data()[0]))), // Col
-            gko::make_array_view(mExec, rA.index1_data().size(), reinterpret_cast<TIndexType *>(&(rA.index1_data()[0]))), // Row
+            gko::array<double>(mExec, rA.value_data().begin(),  rA.value_data().end()),         // Values         
+            gko::array<TIndexType>(mExec, rA.index2_data().begin(), rA.index2_data().end()),    // Col
+            gko::array<TIndexType>(mExec, rA.index1_data().begin(), rA.index1_data().end()),    // Row
             std::make_shared<typename mtx::load_balance>(2)
         ));
 
+
         auto gko_rB = gko::share(vec::create(
-            mExec, 
+            mExec->get_master(),
             gko::dim<2>(rB.size(), 1),
-            gko::make_array_view(mExec, rB.size(),  &(rB[0])),                                                              // Values
-            1                                                                                                               // Stride
+            gko::make_array_view(mExec, rB.size(),  &(rB[0])),                                  // Values
+            1                                                                                   // Stride
         ));
 
         auto gko_rX = gko::share(vec::create(
-            mExec, 
+            mExec->get_master(),
             gko::dim<2>(rX.size(), 1),
-            gko::make_array_view(mExec, rX.size(),  &(rX[0])),                                                              // Values
-            1                                                                                                               // Stride
+            gko::make_array_view(mExec, rX.size(),  &(rX[0])),                                  // Values
+            1                                                                                   // Stride
         ));
 
         #ifdef KRATOS_DEBUG
@@ -272,6 +285,8 @@ public:
 
         auto precond = gko::preconditioner::Ilu<gko::solver::LowerTrs<double, TIndexType>,gko::solver::UpperTrs<double, TIndexType>, false, TIndexType>::build()
                 .with_factorization_factory(fact)
+                .with_l_solver_factory(gko::solver::LowerTrs<double,TIndexType>::build().with_algorithm(gko::solver::trisolve_algorithm::syncfree).on(exec))                 
+		        .with_u_solver_factory(gko::solver::UpperTrs<double,TIndexType>::build().with_algorithm(gko::solver::trisolve_algorithm::syncfree).on(exec))                 
                 .on(exec);
 
         auto iteration_stop = gko::share(
@@ -303,30 +318,42 @@ public:
         ));
 
         auto gko_rB = gko::share(vec::create(
-            exec,
+            exec->get_master(),
             gko::dim<2>(rB.size(), 1)
         ));
 
         auto gko_rX = gko::share(vec::create(
-            exec,
+            exec->get_master(),
             gko::dim<2>(rX.size(), 1)
         ));
 
         // A
-        auto values_ref_debug = gko_rA->get_values();
-        for(int i = 0; i < rA.value_data().size(); i++) {
-            // std::cout << "VAL A KTS: " << rA.value_data()[i] << std::endl;
-            // std::cout << "VAL A GKO: " << gko_rA->get_values()[i] << std::endl;
-            gko_rA->get_values()[i] = rA.value_data()[i];
-        }
+        std::cout << "creating mtx_data" << std::endl;
+				mtx_data gko_mtx_data{gko::dim<2>{rA.size1(),rA.size2()}};
+        std::cout << "nnz = " << rA.value_data().size() << std::endl;
+    		for (auto i = 0; i < rA.size1(); i++) {
+    				for (auto j = rA.index1_data()[i]; j < rA.index1_data()[i+1]; j++) {
+        				gko_mtx_data.nonzeros.emplace_back(i, rA.index2_data()[j], rA.value_data()[j]);
+    				}
+    		}
+        std::cout << "reading matrix" << std::endl;
+    		gko_rA->read(gko_mtx_data);
 
-        for(int i = 0; i < rA.index2_data().size(); i++) {
-            gko_rA->get_col_idxs()[i] = rA.index2_data()[i];
-        }
+        // // A
+        // auto values_ref_debug = gko_rA->get_values();
+        // for(int i = 0; i < rA.value_data().size(); i++) {
+        //     // std::cout << "VAL A KTS: " << rA.value_data()[i] << std::endl;
+        //     // std::cout << "VAL A GKO: " << gko_rA->get_values()[i] << std::endl;
+        //     gko_rA->get_values()[i] = rA.value_data()[i];
+        // }
 
-        for(int i = 0; i < rA.index1_data().size(); i++) {
-            gko_rA->get_row_ptrs()[i] = rA.index1_data()[i];
-        }
+        // for(int i = 0; i < rA.index2_data().size(); i++) {
+        //     gko_rA->get_col_idxs()[i] = rA.index2_data()[i];
+        // }
+
+        // for(int i = 0; i < rA.index1_data().size(); i++) {
+        //     gko_rA->get_row_ptrs()[i] = rA.index1_data()[i];
+        // }
 
         // B
         for(int i = 0; i < rB.size(); i++) {
