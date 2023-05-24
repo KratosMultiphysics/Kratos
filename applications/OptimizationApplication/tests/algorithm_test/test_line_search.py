@@ -5,6 +5,8 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.responses.mass_response_function import MassResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import *
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 
 
@@ -23,6 +25,8 @@ class TestAlgorithmSteepestDescent(kratos_unittest.TestCase, ABC):
             ]
         }""")
         cls.response_function = MassResponseFunction("mass", cls.model, default_settings)
+
+        cls.optimization_problem = OptimizationProblem()
 
     @classmethod
     def CreateElements(cls):
@@ -46,12 +50,13 @@ class TestAlgorithmSteepestDescent(kratos_unittest.TestCase, ABC):
             "type"              : "const_step",
             "init_step"          : 3.0
         }""")  
-        line_search = CreateLineSearch(line_search_settings)
+        line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         self.response_function.Initialize()
         self.response_function.CalculateValue()
         sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
-        alpha = line_search.ComputeStep(sensitivity)
+        ComponentDataView("algorithm", self.optimization_problem).GetBufferedData()["search_direction"] = sensitivity
+        alpha = line_search.ComputeStep()
         self.assertEqual(alpha, 1.0)
 
 if __name__ == "__main__":

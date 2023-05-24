@@ -56,7 +56,7 @@ class AlgorithmSteepestDescent(Algorithm):
         self.echo_level = settings["echo_level"].GetInt()
 
         self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"])
-        self.__line_search_method = CreateLineSearch(settings["line_search"])
+        self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self.__control_field = None
@@ -100,12 +100,14 @@ class AlgorithmSteepestDescent(Algorithm):
         return self.converged
     
     def Solve(self):
+        algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         while not self.converged:
             print("")
             with TimeLogger("Optimization", f" Start Iteration {self._optimization_problem.GetStep()}", f"End Iteration {self._optimization_problem.GetStep()}"):
 
                 with TimeLogger("Calculate objective value", "Start", "End"):
                     self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) 
+                    algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
                     print(self.__objective.GetInfo())
 
                 with TimeLogger("Calculate gradient", "Start", "End"):
@@ -113,6 +115,7 @@ class AlgorithmSteepestDescent(Algorithm):
                 
                 with TimeLogger("Calculate design update", "Start", "End"):
                     search_direction = self.ComputeSearchDirection(obj_grad)
+                    algorithm_data.GetBufferedData()["search_direction"] = search_direction
 
                     for control in self.master_control.GetListOfControls():
                         control_data_storage = ComponentDataView(control, self._optimization_problem)

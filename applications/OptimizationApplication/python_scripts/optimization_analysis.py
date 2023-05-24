@@ -13,6 +13,7 @@ class OptimizationAnalysis:
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
+            "problem_data"      : {},
             "model_parts"       : [],
             "analyses"          : [],
             "responses"         : [],
