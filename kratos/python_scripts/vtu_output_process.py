@@ -91,12 +91,12 @@ class VtuOutputProcess(Kratos.OutputProcess):
 
     def PrintOutput(self) -> None:
         if self.output_control == "time":
-            current_post_fix = str(self.__GetTime())
+            current_suffix = str(self.__GetTime())
         else:
-            current_post_fix = str(self.model_part.ProcessInfo[Kratos.STEP])
+            current_suffix = str(self.model_part.ProcessInfo[Kratos.STEP])
 
         for vtu_output in self.vtu_output_ios:
-            vtu_output.PrintOutput(str(self.output_path / vtu_output.GetModelPart().FullName()) + "_" + current_post_fix)
+            vtu_output.PrintOutput(str(self.output_path / vtu_output.GetModelPart().FullName()) + "_" + current_suffix)
 
         self.__ScheduleNextOutput()
 
