@@ -29,7 +29,7 @@ namespace Kratos::Testing
  */
 KRATOS_TEST_CASE_IN_SUITE(Array1DInitializationValue, KratosCoreFastSuite) 
 {
-    array_1d<double, 3> arr(2, 2.2);
+    const array_1d<double, 3> arr(2, 2.2);
     Vector ref(3);
     ref[0] = 2.2;
     ref[1] = 2.2;
@@ -42,9 +42,9 @@ KRATOS_TEST_CASE_IN_SUITE(Array1DInitializationValue, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(Array1DTest, KratosCoreFastSuite) 
 {
-    array_1d<double, 3> arr1{1.0, 2.0, 3.0};
-    array_1d<double, 3> arr2{1.0, 2.0, 3.0};
-    array_1d<double, 3> arr3{1.0, 2.0, 4.0};
+    const array_1d<double, 3> arr1{1.0, 2.0, 3.0};
+    const array_1d<double, 3> arr2{1.0, 2.0, 3.0};
+    const array_1d<double, 3> arr3{1.0, 2.0, 4.0};
     KRATOS_CHECK(arr1 == arr2);
     KRATOS_CHECK_IS_FALSE(arr1 == arr3);
 }
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(Array1DTest, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(SizeFunction, KratosCoreFastSuite)
 {
-    array_1d<double, 3> arr{1.0, 2.0, 3.0};
+    const array_1d<double, 3> arr{1.0, 2.0, 3.0};
     KRATOS_CHECK_EQUAL(arr.size(), 3);
 }
 
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(SizeFunction, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(IndexOperator, KratosCoreFastSuite)
 {
-    array_1d<double, 3> arr{1.0, 2.0, 3.0};
+    const array_1d<double, 3> arr{1.0, 2.0, 3.0};
     KRATOS_CHECK_EQUAL(arr[0], 1.0);
     KRATOS_CHECK_EQUAL(arr[1], 2.0);
     KRATOS_CHECK_EQUAL(arr[2], 3.0);
@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(IndexOperator, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(Array1DInitializerList, KratosCoreFastSuite) 
 {
-    array_1d<double, 3> arr {1.1, -2.3, 3.4};
+    const array_1d<double, 3> arr {1.1, -2.3, 3.4};
     Vector ref(3);
     ref[0] = 1.1;
     ref[1] = -2.3;
@@ -87,10 +87,10 @@ KRATOS_TEST_CASE_IN_SUITE(Array1DInitializerList, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(AdditionOperator, KratosCoreFastSuite) 
 {
-    array_1d<double, 3> arr1{1.0, 2.0, 3.0};
-    array_1d<double, 3> arr2{4.0, 5.0, 6.0};
-    array_1d<double, 3> sum = arr1 + arr2;
-    array_1d<double, 3> expected_sum{5.0, 7.0, 9.0};
+    const array_1d<double, 3> arr1{1.0, 2.0, 3.0};
+    const array_1d<double, 3> arr2{4.0, 5.0, 6.0};
+    const array_1d<double, 3> sum = arr1 + arr2;
+    const array_1d<double, 3> expected_sum{5.0, 7.0, 9.0};
     KRATOS_CHECK_VECTOR_EQUAL(sum, expected_sum);
 }
 
@@ -99,10 +99,10 @@ KRATOS_TEST_CASE_IN_SUITE(AdditionOperator, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(SubtractionOperator, KratosCoreFastSuite)
 {
-    array_1d<double, 3> arr1{1.0, 2.0, 3.0};
-    array_1d<double, 3> arr2{4.0, 5.0, 6.0};
-    array_1d<double, 3> diff = arr2 - arr1;
-    array_1d<double, 3> expected_diff{3.0, 3.0, 3.0};
+    const array_1d<double, 3> arr1{1.0, 2.0, 3.0};
+    const array_1d<double, 3> arr2{4.0, 5.0, 6.0};
+    const array_1d<double, 3> diff = arr2 - arr1;
+    const array_1d<double, 3> expected_diff{3.0, 3.0, 3.0};
     KRATOS_CHECK_VECTOR_EQUAL(diff, expected_diff);
 }
 
@@ -113,8 +113,9 @@ KRATOS_TEST_CASE_IN_SUITE(HashesCorrectly, KratosCoreFastSuite)
 {
     array_1d<double, 3> arr{1.0, 2.0, 3.0};
     std::hash<array_1d<double, 3>> hasher;
-    std::size_t hash_value = hasher(arr);
-    KRATOS_CHECK_EQUAL(hash_value, 14435809606359582927);
+    const std::size_t hash_value = hasher(arr);
+    const std::size_t expected_hash_value = 14435809606359582927ULL;
+    KRATOS_CHECK_EQUAL(hash_value, expected_hash_value);
 }
 
 } // namespace Kratos::Testing.
