@@ -33,7 +33,7 @@ namespace Kratos {
  * This class allows encoding data given by the iterator (can be non-contiguous) to base 64
  * string representation. It allows having list of iterators as well. In the case if a list of
  * iterators needs to be processed for one base64 string representation, then they needs
- * to be passed in the order to the WriteOutputData method.
+ * to be passed in the order to the WriteData method.
  *
  * The TIteratorType should satisfy requirements for a std::input_iterator.
  *
@@ -84,10 +84,15 @@ public:
      */
     template <typename TIteratorType,
               std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIteratorType>::iterator_category>, bool> = true>
-    void WriteOutputData(
+    void WriteData(
         TIteratorType Begin,
         const IndexType N)
     {
+        // skips writing if an empty container is passed.
+        if (N == 0) {
+            return;
+        }
+
         using value_type = typename std::iterator_traits<TIteratorType>::value_type;
 
         constexpr IndexType value_size = sizeof(value_type);

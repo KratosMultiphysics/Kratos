@@ -174,9 +174,9 @@ void XmlOStreamWriter::WriteDataElementBinary(
     {
         Base64EncodedOutput base64_encoder(mrOStream);
 
-        base64_encoder.WriteOutputData(&total_data_size, 1);
+        base64_encoder.WriteData(&total_data_size, 1);
         for (const auto p_expression : transformed_expressions) {
-            base64_encoder.WriteOutputData(p_expression->cbegin(), p_expression->NumberOfEntities() * flattened_shape_size);
+            base64_encoder.WriteData(p_expression->cbegin(), p_expression->NumberOfEntities() * flattened_shape_size);
         }
     }
 
