@@ -54,11 +54,19 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
     const auto& r_container = this->GetContainer();
     const IndexType number_of_entities = r_container.size();
 
+    using raw_data_type = std::conditional_t<
+                            std::is_same_v<TDataType, char>, char,
+                            std::conditional_t<
+                                std::is_same_v<TDataType, int>, int,
+                                double
+                            >
+                          >;
+
     if (number_of_entities != 0) {
         // initialize the shape with the first entity value
         VariableExpressionDataIO<TDataType> variable_flatten_data_io(TContainerDataIO::GetValue(*r_container.begin(), rVariable));
 
-        auto p_expression = LiteralFlatExpression::Create(number_of_entities, variable_flatten_data_io.GetShape());
+        auto p_expression = LiteralFlatExpression<raw_data_type>::Create(number_of_entities, variable_flatten_data_io.GetItemShape());
         auto& r_expression = *p_expression;
         this->mpExpression = p_expression;
 
@@ -83,7 +91,7 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
     if (number_of_entities > 0) {
         const auto& r_expression = this->GetExpression();
 
-        VariableExpressionDataIO<TDataType> variable_flatten_data_io(r_expression.GetShape());
+        VariableExpressionDataIO<TDataType> variable_flatten_data_io(r_expression.GetItemShape());
 
         // initialize the container variables first
         if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
@@ -135,7 +143,7 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 template<class TDataType>
 void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::SetData(const TDataType& rValue)
 {
-    this->mpExpression = LiteralExpression<TDataType>::Create(rValue);
+    this->mpExpression = LiteralExpression<TDataType>::Create(rValue, this->GetContainer().size());
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
@@ -175,14 +183,14 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
 {
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+=(const double Value)
 {
-    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
     return *this;
 }
 
@@ -215,14 +223,14 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-=(const double Value)
 {
-    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
     return *this;
 }
 
@@ -255,14 +263,14 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*=(const double Value)
 {
-    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
     return *this;
 }
 
@@ -300,7 +308,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
         << "      Divisor           : " << Value << "\n";
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(1.0 / Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(1.0 / Value, this->GetContainer().size()));
     return result;
 }
 
@@ -312,7 +320,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
         << "      Left operand data : " << *this << "\n"
         << "      Divisor           : " << Value << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(1.0 / Value));
+    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(1.0 / Value, this->GetContainer().size()));
     return *this;
 }
 
@@ -333,7 +341,7 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Pow(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Power>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value));
+    result.mpExpression = BinaryExpression<BinaryOperations::Power>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
     return result;
 }
 

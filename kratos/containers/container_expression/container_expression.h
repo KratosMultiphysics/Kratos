@@ -145,6 +145,37 @@ public:
         const int ShapeSize);
 
     /**
+     * @brief Reads data from c like interface
+     *
+     * This method can read data from a c-interface where @ref pBegin is the
+     * starting pointer to a contiguous array having space and data
+     * to all @ref NumberOfEntities where each entity having data for
+     * shape @ref rShape.
+     *
+     * Eg: 1) If NumberOfEntities = 10, and rShape = {4}, then
+     *        pBegin should point to starting double value's pointer
+     *        where it has 40 doubles in a contiguous manner.
+     *     2) iF NumberOfEntities = 10 and rShape = (4, 3), then
+     *        pBegin should point to starting double value's pointer
+     *        where it has 120 doubles in a contiguous manner.
+     *        The matrix within these containers are using row first notation.
+     *              [
+     *                  [1, 2, 3]
+     *                  [3, 4, 5]
+     *              ] = {1, 2, 3, 3, 4, 5}
+     *
+     * @param pBegin            Starting pointer to the data.
+     * @param NumberOfEntities  Number of entities present in data.
+     * @param pShapeBegin       Starting  point of the shape of data in each entity.
+     * @param ShapeSize         Size of the shape.
+     */
+    void Read(
+        int const* pBegin,
+        const int NumberOfEntities,
+        int const* pShapeBegin,
+        const int ShapeSize);
+
+    /**
      * @brief Move data from pBegin array to internal structure.
      *
      * @warning This instance does not take the ownership of the passed array.
@@ -158,6 +189,24 @@ public:
      */
     void MoveFrom(
         double* pBegin,
+        const int NumberOfEntities,
+        int const* pShapeBegin,
+        const int ShapeSize);
+
+    /**
+     * @brief Move data from pBegin array to internal structure.
+     *
+     * @warning This instance does not take the ownership of the passed array.
+     *  The life time of the passed array is not managed by this instance
+     * @warning Seg faults if this is used when passed @ref pBegin was destroyed.
+     *
+     * @param pBegin            Starting pointer to the data.
+     * @param NumberOfEntities  Number of entities present in data.
+     * @param pShapeBegin       Starting  point of the shape of data in each entity.
+     * @param ShapeSize         Size of the shape.
+     */
+    void MoveFrom(
+        int* pBegin,
         const int NumberOfEntities,
         int const* pShapeBegin,
         const int ShapeSize);
@@ -243,7 +292,7 @@ public:
      *
      * @return const std::vector<IndexType>
      */
-    const std::vector<IndexType> GetShape() const;
+    const std::vector<IndexType> GetItemShape() const;
 
     /**
      * @brief Get the Local Size of the data
@@ -252,7 +301,7 @@ public:
      *
      * @return IndexType
      */
-    IndexType GetFlattenedSize() const;
+    IndexType GetItemComponentCount() const;
 
     /**
      * @brief Get the Model Part used in the container data

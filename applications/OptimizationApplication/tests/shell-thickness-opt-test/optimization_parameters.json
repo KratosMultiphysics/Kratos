@@ -13,7 +13,7 @@
         "analyses": [
             {
                 "name": "shell_static",
-                "type": "SteppingAnalysisExecutionPolicy",
+                "type": "stepping_analysis_execution_policy",
                 "settings": {
                     "model_part_names": [
                         "shell"
@@ -93,10 +93,8 @@
                             "increase_fac": 1.5,
                             "update_period": 30
                         },
-                        "fixed_model_parts": [
-                        ],
-                        "fixed_model_parts_thicknesses": [
-                        ],
+                        "fixed_model_parts": [],
+                        "fixed_model_parts_thicknesses": [],
                         "linear_solver_settings": {
                             "solver_type": "amgcl",
                             "smoother_type": "ilu0",
