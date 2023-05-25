@@ -58,10 +58,24 @@ public:
     static constexpr std::size_t NumNodes = TDim + 1;
 
     //TODO: Fake edge data structure to be defined later on
-    struct EdgeData final
+    class EdgeData final
     {
-        double Mass = 0.0;
-        array_1d<double,TDim> FirstDerivatives = ZeroVector(TDim);
+    public:
+
+        double GetMassCoefficient() const
+        {
+            return MassCoefficient;
+        }
+
+        double GetLumpedMassCoefficient() const
+        {
+            return LumpedMassCoefficient;
+        }
+
+        const array_1d<double,TDim>& GetFirstDerivatives() const
+        {
+            return FirstDerivatives;
+        }
 
         void AddFirstDerivatives(
             const double DomainSize,
@@ -70,14 +84,22 @@ public:
         {
             const double w_i = DomainSize / NumNodes;
             for (std::size_t d = 0; d < TDim; ++d) {
-                FirstDerivatives[d] -= 0.5*w_i*rDNjDX[d];
+                FirstDerivatives[d] = 0.5*w_i*(rDNiDX[d]*0.5 + rDNjDX[d]*0.5);
             }
         }
 
-        void AddMass(const double DomainSize)
+        void AddMassCoefficients(const double DomainSize)
         {
-            Mass += DomainSize / NumNodes;
+            const double w_i = DomainSize / NumNodes;
+            MassCoefficient += 0.25 * w_i;
+            LumpedMassCoefficient += 0.5 * w_i;
         }
+    
+    private:
+
+        double MassCoefficient = 0.0;
+        double LumpedMassCoefficient = 0.0;
+        array_1d<double, TDim> FirstDerivatives = ZeroVector(TDim);
     };
 
     /// Index type definition
@@ -141,6 +163,33 @@ public:
     ///@name Access
     ///@{
 
+    SizeType GetNumEdges() const
+    {
+        return mNumEdges;
+    }
+
+    const IndicesVectorType& GetRowIndices() const
+    {
+        return mRowIndices;
+    }
+
+    const IndicesVectorType& GetColIndices() const
+    {
+        return mColIndices;
+    }
+
+    const ValuesVectorType& GetValues() const
+    {
+        return mValues;
+    }
+
+    const EdgeData& GetEdgeData(
+        IndexType I,
+        IndexType J) const
+    {
+        const IndexType ij_col_vect_index = GetColumVectorIndex(I,J);
+        return *(mValues[ij_col_vect_index]);
+    }
 
     ///@}
     ///@name Inquiry
@@ -298,25 +347,18 @@ private:
                     // Check presence of current ij-edge in the sparse graph
                     if (rEdgesSparseGraph.Has(i_id, j_id)) {
                         // Get position in the column indices vector as this is the same one to be used in the values vector
-                        IndexType j_col_index = -1;
-                        const IndexType i_row_index = mRowIndices[i_id];
-                        for (auto it = mColIndices.begin() + i_row_index; it != mColIndices.end(); ++it) {
-                            if (*it == j_id) {
-                                j_col_index = std::distance(mColIndices.begin(), it);
-                                break;
-                            }
-                        }
-                        std::cout << "Element " << r_element.Id() << " edge " << i_id << "-" << j_id << " with col_index " << j_col_index << std::endl;
-                        KRATOS_ERROR_IF(j_col_index < 0) << "Column index cannot be found for ij-edge " << i_id << "-" << j_id << "." << std::endl;
+                        const IndexType ij_col_index = GetColumVectorIndex(i_id, j_id);
+                        std::cout << "Element " << r_element.Id() << " edge " << i_id << "-" << j_id << " with col_index " << ij_col_index << std::endl;
+                        KRATOS_ERROR_IF(ij_col_index < 0) << "Column index cannot be found for ij-edge " << i_id << "-" << j_id << "." << std::endl;
 
                         // If not created yet, create current edge data
-                        auto& rp_edge_data = mValues[j_col_index];
+                        auto& rp_edge_data = mValues[ij_col_index];
                         if (rp_edge_data == nullptr) {
                             rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
                         }
 
-                        // Add current element edge contributions
-                        rp_edge_data->AddMass(domain_size);
+                        // Add current edge elementwise contributions
+                        rp_edge_data->AddMassCoefficients(domain_size);
                         rp_edge_data->AddFirstDerivatives(domain_size, row(DNDX,i), row(DNDX,j));
                     }
                 }
@@ -338,6 +380,20 @@ private:
     ///@name Private  Access
     ///@{
 
+    IndexType GetColumVectorIndex(
+        const IndexType I,
+        const IndexType J) const
+    {
+        IndexType j_col_index = -1;
+        const IndexType i_row_index = mRowIndices[I];
+        for (auto it = mColIndices.begin() + i_row_index; it != mColIndices.end(); ++it) {
+            if (*it == J) {
+                j_col_index = std::distance(mColIndices.begin(), it);
+                break;
+            }
+        }
+        return j_col_index;
+    }
 
     ///@}
     ///@name Private Inquiry

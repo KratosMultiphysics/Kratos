@@ -41,11 +41,6 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     })");
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
 
-    // // Reset Ids to see that the graph still works
-    // for (auto& r_node : r_model_part.Nodes()) {
-    //     r_node.SetId(r_node.Id() + 10);
-    // }
-
     // Calculate nodal neighbours
     FindGlobalNodalNeighboursProcess nodal_neighs_process(r_model_part);
     nodal_neighs_process.Execute();
@@ -53,6 +48,13 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     // Create the edge-based data structure
     EdgeBasedDataStructure<2> edge_based_data_structure;
     edge_based_data_structure.CalculateEdgeDataStructure(r_model_part);
+
+    auto& r_edge_data_12 = edge_based_data_structure.GetEdgeData(1,2);
+    KRATOS_WATCH(r_edge_data_12.GetMassCoefficient())
+    KRATOS_WATCH(r_edge_data_12.GetLumpedMassCoefficient())
+    KRATOS_WATCH(r_edge_data_12.GetFirstDerivatives())
+
+    KRATOS_CHECK_EQUAL(edge_based_data_structure.GetNumEdges(), 16);
 
 }
 
