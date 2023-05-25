@@ -103,7 +103,7 @@ class StandardizedObjective(ResponseRoutine):
             return 0.0
 
     def GetAbsoluteChange(self) -> float:
-        return self.GetStandardizedValue() - self.GetInitialValue()
+        return self.GetValue() - self.GetInitialValue()
 
     def GetInfo(self) -> str:
         msg = f"""\t Objective info: 

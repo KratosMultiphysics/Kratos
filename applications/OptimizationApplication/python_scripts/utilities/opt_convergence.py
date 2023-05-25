@@ -13,10 +13,11 @@ class MaxIterConvCriterium:
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
             "type"              : "max_iter",
-            "max_iter"          : 0,
+            "max_iter"          : 0
         }""")
 
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
 

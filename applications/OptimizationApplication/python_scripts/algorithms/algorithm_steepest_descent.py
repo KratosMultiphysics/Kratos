@@ -44,10 +44,11 @@ class AlgorithmSteepestDescent(Algorithm):
         self.master_control = MasterControl() # Need to fill it with controls
         self.__control_param_list = parameters["controls"]
 
-        for control_param in self.__control_param_list.values():
-            control_name = control_param.GetString()
+        for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
+
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         settings = parameters["settings"]
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
@@ -62,9 +63,7 @@ class AlgorithmSteepestDescent(Algorithm):
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self.__control_field = None
-
         self.__obj_val = None
-        self.opt_iter = None
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -75,8 +74,6 @@ class AlgorithmSteepestDescent(Algorithm):
     def Initialize(self):
         self.converged = False
         self.__obj_val = None
-
-        CallOnAll(self.master_control.GetListOfControls(), Control.Initialize)
         self.__objective.GetReponse().Initialize()
         self.__objective.Initialize()
         self.__objective.Check()
@@ -118,19 +115,13 @@ class AlgorithmSteepestDescent(Algorithm):
                     search_direction = self.ComputeSearchDirection(obj_grad)
                     algorithm_data.GetBufferedData()["search_direction"] = search_direction
 
-                    for control in self.master_control.GetListOfControls():
-                        control_data_storage = ComponentDataView(control, self._optimization_problem)
-                        control_data_storage.GetUnBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
-
                     alpha = self.__line_search_method.ComputeStep()
 
                     update = search_direction * alpha
                     self.__control_field += update
 
-                for control in self.master_control.GetListOfControls():
-                    control_data_storage = ComponentDataView(control, self._optimization_problem)
-                    control_data_storage.GetUnBufferedData().SetValue("parameter_update", update.Clone(), overwrite=True)
-                    control_data_storage.GetUnBufferedData().SetValue("control_field", self.__control_field.Clone(), overwrite=True)
+                algorithm_data.GetBufferedData()["parameter_update"] = update
+                algorithm_data.GetBufferedData()["control_field"] = self.__control_field
 
                 self.converged = self.__convergence_criteria.IsConverged()
 

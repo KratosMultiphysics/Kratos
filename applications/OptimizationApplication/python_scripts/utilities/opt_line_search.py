@@ -15,10 +15,11 @@ class ConstStep(object):
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
             "type"              : "const_step",
-            "init_step"          : 0,
+            "init_step"          : 0
         }""")
 
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.init_step = parameters["init_step"].GetDouble()
         self.__optimization_problem = optimization_problem
 
