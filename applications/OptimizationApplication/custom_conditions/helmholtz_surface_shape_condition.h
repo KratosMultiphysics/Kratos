@@ -54,8 +54,14 @@ public:
     ///@{
 
     /// Default constructor.
-    HelmholtzSurfaceShapeCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    HelmholtzSurfaceShapeCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    HelmholtzSurfaceShapeCondition(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry);
+
+    HelmholtzSurfaceShapeCondition(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~HelmholtzSurfaceShapeCondition();
@@ -223,10 +229,44 @@ private:
 
     ///@name Private Operations
     ///@{
-    void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
-    void CalculateNormal(VectorType & r_n) const;
-    void GetParentElementShapeFunctionsValues(MatrixType& rNMatrix,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;
-    void GetParentElementShapeFunctionsGlobalGradients(MatrixType& rDN_DX,const IndexType PointNumber,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;
+    /**
+      * @brief This is called during the assembling process in order to calculate the condition stiffness matrix
+      * @param rStiffnessMatrix The condition stiffness matrix
+      * @param rCurrentProcessInfo The current process info instance
+      */
+    void CalculateStiffnessMatrix(
+        MatrixType& rStiffnessMatrix,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+      * @brief This is called during the assembling process in order to calculate surface normal
+      * @param rN The surface normal
+      */
+    void CalculateNormal(
+        VectorType & rN) const;
+
+    /**
+      * @brief This is called during the assembling process in order to calculate shape function using parent solid element
+      * @param rNMatrix The matrix of shape functions
+      * @param rIntegrationMethod The given integrations method
+      * @param rCurrentProcessInfo The current process info instance
+      */
+    void GetParentElementShapeFunctionsValues(
+        MatrixType& rNMatrix,
+        const IntegrationMethod& rIntegrationMethod,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+      * @brief This is called during the assembling process in order to calculate shape function gradients from parent solid element
+      * @param rDN_DX The matrix of shape functions gradients
+      * @param rIntegrationMethod The given integrations method
+      * @param rCurrentProcessInfo The current process info instance
+      */
+    void GetParentElementShapeFunctionsGlobalGradients(
+        MatrixType& rDN_DX,
+        const IndexType PointNumber,
+        const IntegrationMethod& rIntegrationMethod,
+        const ProcessInfo& rCurrentProcessInfo) const;
     ///@}
 
 }; // Class HelmholtzSurfaceShapeCondition

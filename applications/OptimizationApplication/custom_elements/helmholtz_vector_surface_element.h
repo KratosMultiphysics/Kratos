@@ -61,8 +61,13 @@ public:
     ///@{
 
     /// Default constructor.
-    HelmholtzVectorSurfaceElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    HelmholtzVectorSurfaceElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    HelmholtzVectorSurfaceElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
+    HelmholtzVectorSurfaceElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~HelmholtzVectorSurfaceElement();
@@ -230,10 +235,47 @@ private:
 
     ///@name Private Operations
     ///@{
-    void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
-    void GetPseudoBulkSurfaceShapeFunctionsValues(MatrixType& rNMatrix,const IntegrationMethod& rIntegrationMethod, const ProcessInfo& rCurrentProcessInfo) const;
-    void CalculatePseudoBulkSurfaceDN_DXMatrix(MatrixType& rDN_DX, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber, const ProcessInfo& rCurrentProcessInfo) const;   
-    void CalculateAvgSurfUnitNormal(VectorType & rNormal) const;
+    /**
+      * @brief This is called during the assembling process in order to calculate stiffness matrix
+      * @param rStiffnessMatrix The stiffness matrix
+      * @param rCurrentProcessInfo The current process info instance
+      */
+    void CalculateStiffnessMatrix(
+        MatrixType& rStiffnessMatrix,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+      * @brief This is called during the assembling process in order to calculate shape functions
+      * from an pseudo bulk element
+      * @param rNMatrix The shape functions matrix
+      * @param rIntegrationMethod The given integration method
+      * @param rCurrentProcessInfo The current process info instance
+      */
+    void GetPseudoBulkSurfaceShapeFunctionsValues(
+        MatrixType& rNMatrix,
+        const IntegrationMethod& rIntegrationMethod,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+      * @brief This is called during the assembling process in order to calculate shape functions
+      * gradients from an pseudo bulk element at the given gp point index
+      * @param rDN_DX The shape functions gradient matrix
+      * @param rIntegrationMethod The given integration method.
+      * @param PointNumber The index of the desired gp.
+      * @param rCurrentProcessInfo The current process info instance.
+      */
+    void CalculatePseudoBulkSurfaceDN_DXMatrix(
+        MatrixType& rDN_DX,
+        const IntegrationMethod& rIntegrationMethod,
+        const IndexType PointNumber,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+      * @brief This is called during the assembling process in order to element surface normal
+      * @param rNormal The averaged surface normal
+      */
+    void CalculateAvgSurfUnitNormal(
+        VectorType& rNormal) const;
     ///@}
 
 }; // Class HelmholtzVectorSurfaceElement

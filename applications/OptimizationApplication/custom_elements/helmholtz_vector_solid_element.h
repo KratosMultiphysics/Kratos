@@ -56,8 +56,13 @@ public:
     ///@{
 
     /// Default constructor.
-    HelmholtzVectorSolidElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    HelmholtzVectorSolidElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    HelmholtzVectorSolidElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
+    HelmholtzVectorSolidElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~HelmholtzVectorSolidElement();
@@ -214,7 +219,14 @@ private:
 
     ///@name Private Operations
     ///@{
-    void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
+    /**
+      * @brief This is called during the assembling process in order to calculate stiffness matrix
+      * @param rStiffnessMatrix The stiffness matrix
+      * @param rCurrentProcessInfo The current process info instance
+      */
+    void CalculateStiffnessMatrix(
+        MatrixType& rStiffnessMatrix,
+        const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
 

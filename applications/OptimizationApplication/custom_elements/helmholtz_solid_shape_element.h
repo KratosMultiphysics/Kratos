@@ -38,7 +38,7 @@ namespace Kratos
  * @ingroup OptimizationApplication
  * @brief Helmholtz filtering element for 3D geometries.
  * @details Implements Helmholtz solid PDEs for filtering shape sensitivites. The equations are stiffened by element's jacobian
- * to robustly filter and move the mesh. Note that this element should only be used for mesh based shape optimization. Also note that 
+ * to robustly filter and move the mesh. Note that this element should only be used for mesh based shape optimization. Also note that
  * this element should be used with helmholtz_surface_shape_condition
  * @author Reza Najian Asl
  */
@@ -57,8 +57,13 @@ public:
     ///@{
 
     /// Default constructor.
-    HelmholtzSolidShapeElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    HelmholtzSolidShapeElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    HelmholtzSolidShapeElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry);
+    HelmholtzSolidShapeElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties);
 
     /// Destructor.
     virtual ~HelmholtzSolidShapeElement();
@@ -226,9 +231,32 @@ private:
 
     ///@name Private Operations
     ///@{
-    void CalculateStiffnessMatrix(MatrixType& rStiffnessMatrix,const ProcessInfo& rCurrentProcessInfo) const;
-    MatrixType SetAndModifyConstitutiveLaw(const int PointNumber, const ProcessInfo& rCurrentProcessInfo) const;
-    MatrixType CalculateBMatrix(const int PointNumber, const ProcessInfo& rCurrentProcessInfo) const;
+    /**
+      * @brief This is called during the assembling process in order to calculate stiffness matrix
+      * @param rStiffnessMatrix The stiffness matrix
+      * @param rCurrentProcessInfo The current process info instance
+      */
+    void CalculateStiffnessMatrix(
+        MatrixType& rStiffnessMatrix,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+      * @brief This is called during the assembling process in order to set the pseudo constitutive law
+      * @param PointNumber The index of integration point
+      * @param rCurrentProcessInfo The current process info instance
+      */
+    MatrixType SetAndModifyConstitutiveLaw(
+        const int PointNumber,
+        const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+      * @brief This is called during the assembling process in order to compute the B matrix (shape function gradients)
+      * @param PointNumber The index of integration point
+      * @param rCurrentProcessInfo The current process info instance
+      */
+    MatrixType CalculateBMatrix(
+        const int PointNumber,
+        const ProcessInfo& rCurrentProcessInfo) const;
     ///@}
 
 }; // Class HelmholtzSolidShapeElement
