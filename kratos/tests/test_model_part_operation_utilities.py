@@ -76,13 +76,13 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
     def test_Order(self):
         merged_model_part = Kratos.ModelPartOperationUtilities.Union("merge_order", self.model_part, self.model_part, False)
 
-        origin_node_ids_list = [entiy.Id for entity in self.model_part.Nodes]
-        origin_condition_ids_list = [entiy.Id for entity in self.model_part.Conditions]
-        origin_element_ids_list = [entiy.Id for entity in self.model_part.Elements]
+        origin_node_ids_list = [entity.Id for entity in self.model_part.Nodes]
+        origin_condition_ids_list = [entity.Id for entity in self.model_part.Conditions]
+        origin_element_ids_list = [entity.Id for entity in self.model_part.Elements]
 
-        merged_node_ids_list = [entiy.Id for entity in merged_model_part.Nodes]
-        merged_condition_ids_list = [entiy.Id for entity in merged_model_part.Conditions]
-        merged_element_ids_list = [entiy.Id for entity in merged_model_part.Elements]
+        merged_node_ids_list = [entity.Id for entity in merged_model_part.Nodes]
+        merged_condition_ids_list = [entity.Id for entity in merged_model_part.Conditions]
+        merged_element_ids_list = [entity.Id for entity in merged_model_part.Elements]
 
         self.assertEqual(origin_node_ids_list, merged_node_ids_list)
         self.assertEqual(origin_condition_ids_list, merged_condition_ids_list)
