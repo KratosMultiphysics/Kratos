@@ -105,7 +105,7 @@ public:
     typedef Element::DofsVectorType DofsVectorType;
 
     /// Node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Containers definition
     typedef typename BaseType::NodesArrayType NodesArrayType;

@@ -23,7 +23,7 @@
 
 namespace Kratos::Testing {
 
-using PointType = Node<3>;
+using PointType = Node;
 using PointPointerType = typename PointType::Pointer;
 using PointVectorType = std::vector<PointType::Pointer>;
 using PointIteratorType = std::vector<PointType::Pointer>::iterator;

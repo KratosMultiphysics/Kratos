@@ -68,7 +68,7 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
 void Define3DWakeProcess::ExecuteInitialize()
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
-    block_for_each(root_model_part.Nodes(), [&](Node<3>& r_nodes)
+    block_for_each(root_model_part.Nodes(), [&](Node& r_nodes)
     {
         r_nodes.SetValue(UPPER_SURFACE, false);
         r_nodes.SetValue(LOWER_SURFACE, false);
@@ -576,7 +576,7 @@ void Define3DWakeProcess::RecomputeNodalDistancesToWakeOrWingLowerSurface() cons
     ModelPart& trailing_edge_sub_model_part =
         root_model_part.GetSubModelPart("trailing_edge_elements_model_part");
 
-    block_for_each(trailing_edge_sub_model_part.Nodes(), [&](Node<3>& r_node)
+    block_for_each(trailing_edge_sub_model_part.Nodes(), [&](Node& r_node)
     {
         // Trailing edge nodes are assigned a positive distance
         if(r_node.GetValue(TRAILING_EDGE)){

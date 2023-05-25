@@ -34,7 +34,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Geometry<Node<3>> GeometryType;
+    typedef Geometry<Node> GeometryType;
 
 ///@}
 ///@name  Enum's

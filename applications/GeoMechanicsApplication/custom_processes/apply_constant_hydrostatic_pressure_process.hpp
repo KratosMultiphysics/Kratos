@@ -106,7 +106,7 @@ namespace Kratos
 
                 if (mIsSeepage)
                 {
-                    block_for_each(mrModelPart.Nodes(), [&var, this](Node<3> &rNode)
+                    block_for_each(mrModelPart.Nodes(), [&var, this](Node &rNode)
                                    {
 
                     const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight*( mReferenceCoordinate - rNode.Coordinates()[mGravityDirection] );
@@ -121,7 +121,7 @@ namespace Kratos
                 }
                 else
                 {
-                    block_for_each(mrModelPart.Nodes(), [&var, this](Node<3> &rNode)
+                    block_for_each(mrModelPart.Nodes(), [&var, this](Node &rNode)
                                    {
                     if (mIsFixed) rNode.Fix(var);
                     else if (mIsFixedProvided) rNode.Free(var);
