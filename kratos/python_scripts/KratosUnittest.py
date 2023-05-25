@@ -232,7 +232,7 @@ def runTests(tests):
 
     # Depending of serial/MPI the level can be different, so we have to parse it
     if KM.IsDistributedRun():
-        parser.add_argument('-l', '--level', default='mpi_small', 
+        parser.add_argument('-l', '--level', default='mpi_small',
             choices=['mpi_all', 'mpi_nightly', 'mpi_small', 'mpi_validation', 'all', 'nightly', 'small', 'validation'],
             help="For distributed runs, options that don't start with mpi_ will be replaced by the corresponding mpi version")
     else:
