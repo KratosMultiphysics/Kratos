@@ -22,7 +22,7 @@ def main():
         return Tester.RunTestCases(args.match_string)
     else:
         Tester.SetVerbosity(Tester.Verbosity.TESTS_LIST)
-        return Tester.RunTestSuite("KratosMPICoreFastSuite")
+        return Tester.RunAllDistributedTestCases()
 
 if __name__ == '__main__':
     try:
