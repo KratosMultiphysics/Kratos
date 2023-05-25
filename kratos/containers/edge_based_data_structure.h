@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/model_part.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -46,23 +47,56 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template<unsigned int TDim>
 class EdgeBasedDataStructure
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    // Number of element nodes (note that simplicial elements are assumed)
+    static constexpr std::size_t NumNodes = TDim + 1;
+
+    //TODO: Fake edge data structure to be defined later on
+    struct EdgeData final
+    {
+        double Mass = 0.0;
+        array_1d<double,TDim> FirstDerivatives = ZeroVector(TDim);
+
+        void AddFirstDerivatives(
+            const double DomainSize,
+            const array_1d<double,TDim>& rDNiDX,
+            const array_1d<double,TDim>& rDNjDX)
+        {
+            const double w_i = DomainSize / NumNodes;
+            for (std::size_t d = 0; d < TDim; ++d) {
+                FirstDerivatives[d] -= 0.5*w_i*rDNjDX[d];
+            }
+        }
+
+        void AddMass(const double DomainSize)
+        {
+            Mass += DomainSize / NumNodes;
+        }
+    };
+
     /// Index type definition
     using IndexType = std::size_t;
+
+    /// Size type definition
+    using SizeType = std::size_t;
 
     /// Sparse graph definition
     using SparseGraphType = SparseGraph<IndexType>;
 
+    /// CSR storage indices vector definition
+    using IndicesVectorType = std::vector<IndexType>;
+
+    /// CSR storage values vector definition
+    using ValuesVectorType = std::vector<std::unique_ptr<EdgeData>>;
+
     /// Pointer definition of EdgeBasedDataStructure
     KRATOS_CLASS_POINTER_DEFINITION(EdgeBasedDataStructure);
-
-    //TODO: Fake edge data structure to be defined later on
-    struct EdgeData final {};
 
     ///@}
     ///@name Life Cycle
@@ -88,9 +122,19 @@ public:
 
     void CalculateEdgeDataStructure(const ModelPart& rModelPart)
     {
-        // Create the sparse edge container graph
+        // Create the edges container sparse graph
+        // Note that this is used to create the CSR storage indices arrays
         SparseGraphType edges_graph;
         FillEdgesSparseGraph(rModelPart, edges_graph);
+        edges_graph.ExportCSRArrays(mRowIndices, mColIndices);
+
+        KRATOS_WATCH(mNumEdges)
+        KRATOS_WATCH(mRowIndices)
+        KRATOS_WATCH(mColIndices)
+
+        // Create the edge data sparse container
+        // TODO: Check the element type with the first one
+        CalculateEdgeDataValues(rModelPart, edges_graph);
     }
 
     ///@}
@@ -179,6 +223,10 @@ private:
     ///@name Member Variables
     ///@{
     
+    SizeType mNumEdges;
+    IndicesVectorType mRowIndices;
+    IndicesVectorType mColIndices;
+    ValuesVectorType mValues;
 
     ///@}
     ///@name Private Operators
@@ -195,28 +243,86 @@ private:
     {
         // Get the edge connectivities from nodal neighbours and set the sparse graph with these
         // Note that we define edge ij such as i is the lower id between i and j
+        mNumEdges = 0;
         for (auto& r_node : rModelPart.Nodes()) {
             // i-node values
             const IndexType i_id = r_node.Id();
             std::vector<IndexType> col_ids;
             
-            // Loop nodal neighbours
+            // Loop nodal neighbours (j-node)
             auto& r_node_neighs = r_node.GetValue(NEIGHBOUR_NODES);
             for (auto& r_neigh : r_node_neighs) {
                 // Check ids for adding current edge
                 const IndexType j_id = r_neigh.Id();
                 if (i_id < j_id) {
                     col_ids.push_back(j_id);
+                    mNumEdges++;
                 }
             }
             // Add edges from current node to graph
-            rEdgesSparseGraph.AddEntries(i_id, col_ids);
+            if (col_ids.size() != 0) {
+                KRATOS_WATCH(i_id)
+                KRATOS_WATCH(col_ids)
+                rEdgesSparseGraph.AddEntries(i_id, col_ids);
+            }
         }
 
         // Finalize edge graph
         rEdgesSparseGraph.Finalize();
     }
 
+    void CalculateEdgeDataValues(
+        const ModelPart& rModelPart,
+        const SparseGraphType& rEdgesSparseGraph)
+    {
+        // Resize values vector to the number of edges
+        KRATOS_ERROR_IF(mNumEdges == 0) << "No edges in model part '" << rModelPart.FullName() << "'" << std::endl;
+        mValues.resize(mNumEdges);
+
+        // Allocate auxiliary arrays for the elementwise calculations
+        double domain_size;
+        array_1d<double, NumNodes> N;
+        BoundedMatrix<double, NumNodes, TDim> DNDX;
+
+        // Loop elements to calculate their corresponding edge contributions
+        for (auto& r_element : rModelPart.Elements()) {
+            // Getting geometry data of the element
+            const auto& r_geom = r_element.GetGeometry();
+            GeometryUtils::CalculateGeometryData(r_geom, DNDX, N, domain_size);
+
+            // Loop element edges
+            for (IndexType i = 0; i < NumNodes-1; ++i) {
+                const IndexType i_id = r_geom[i].Id();
+                for (IndexType j = i+1; j < NumNodes; ++j) {
+                    const IndexType j_id = r_geom[j].Id();
+                    // Check presence of current ij-edge in the sparse graph
+                    if (rEdgesSparseGraph.Has(i_id, j_id)) {
+                        // Get position in the column indices vector as this is the same one to be used in the values vector
+                        IndexType j_col_index = -1;
+                        const IndexType i_row_index = mRowIndices[i_id];
+                        for (auto it = mColIndices.begin() + i_row_index; it != mColIndices.end(); ++it) {
+                            if (*it == j_id) {
+                                j_col_index = std::distance(mColIndices.begin(), it);
+                                break;
+                            }
+                        }
+                        std::cout << "Element " << r_element.Id() << " edge " << i_id << "-" << j_id << " with col_index " << j_col_index << std::endl;
+                        KRATOS_ERROR_IF(j_col_index < 0) << "Column index cannot be found for ij-edge " << i_id << "-" << j_id << "." << std::endl;
+
+                        // If not created yet, create current edge data
+                        auto& rp_edge_data = mValues[j_col_index];
+                        if (rp_edge_data == nullptr) {
+                            rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
+                        }
+
+                        // Add current element edge contributions
+                        rp_edge_data->AddMass(domain_size);
+                        rp_edge_data->AddFirstDerivatives(domain_size, row(DNDX,i), row(DNDX,j));
+                    }
+                }
+            }
+        }
+    }
 
     friend class Serializer;
 
@@ -256,19 +362,19 @@ private:
 ///@{
 
 /// input stream function
-template <class TDataType>
+template <unsigned int TDim>
 inline std::istream &operator>>(
     std::istream &rIStream,
-    EdgeBasedDataStructure &rThis)
+    EdgeBasedDataStructure<TDim> &rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template <class TDataType>
+template <unsigned int TDim>
 inline std::ostream &operator<<(
     std::ostream &rOStream,
-    const EdgeBasedDataStructure &rThis)
+    const EdgeBasedDataStructure<TDim> &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
