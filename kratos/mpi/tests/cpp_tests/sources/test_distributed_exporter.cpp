@@ -25,7 +25,7 @@ namespace Kratos::Testing {
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFastSuite)
 {
     using IndexType = std::size_t;
-    auto& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    auto& r_comm = Testing::GetDefaultDataCommunicator();
 
     IndexType local_size = 4;
     DistributedNumbering<IndexType> numbering(r_comm,local_size);
