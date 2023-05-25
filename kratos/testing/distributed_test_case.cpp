@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/kernel.h"
 #include "includes/parallel_environment.h"
+#include "testing/testing.h"
 #include "testing/distributed_test_case.h"
 
 namespace Kratos::Testing {
