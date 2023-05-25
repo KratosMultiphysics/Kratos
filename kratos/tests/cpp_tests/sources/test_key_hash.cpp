@@ -30,16 +30,27 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(HashCombine, KratosCoreFastSuite) 
 {
   HashType seed = 0;
-  int value1 = 42;
-  std::string value2 = "hello world";
+  const int value1 = 42;
+  const std::string value2 = "hello world";
   
   HashCombine(seed, value1);
   HashCombine(seed, value2);
   
-  // Expected hash value calculated using online hash calculator
-  HashType expected_hash =5577293601871571209;
+  // Expected hash value 
+  const int value3 = 42;
+  const std::string value4 = "hello world";
+  HashType expected_hash = 0;
+  
+  HashCombine(expected_hash, value3);
+  HashCombine(expected_hash, value4);
+
+  // Not expected hash value
+  const double value5 = 3.14159265358979323846;
+  HashType not_expected_hash = expected_hash;
+  HashCombine(not_expected_hash, value5);
   
   KRATOS_CHECK_EQUAL(seed, expected_hash);
+  KRATOS_CHECK_NOT_EQUAL(seed, not_expected_hash);
 }
 
 /**
@@ -47,12 +58,16 @@ KRATOS_TEST_CASE_IN_SUITE(HashCombine, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(HashRange, KratosCoreFastSuite) 
 {
-  std::vector<int> values = {1, 2, 3, 4, 5};
-  HashType expected_hash = 46082543957171356;
+  std::vector<int> values1 = {1, 2, 3, 4, 5};
+  std::vector<int> values2 = {1, 2, 3, 4, 5};
+  std::vector<int> values3 = {1, 2, 3, 4};
 
-  HashType actual_hash = HashRange(values.begin(), values.end());
+  const HashType actual_hash = HashRange(values1.begin(), values1.end());
+  const HashType expected_hash = HashRange(values2.begin(), values2.end());
+  const HashType not_expected_hash = HashRange(values3.begin(), values3.end());
 
   KRATOS_CHECK_EQUAL(actual_hash, expected_hash);
+  KRATOS_CHECK_NOT_EQUAL(actual_hash, not_expected_hash);
 }
 
 /**

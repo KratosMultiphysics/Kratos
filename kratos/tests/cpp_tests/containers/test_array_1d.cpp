@@ -111,11 +111,15 @@ KRATOS_TEST_CASE_IN_SUITE(SubtractionOperator, KratosCoreFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(HashesCorrectly, KratosCoreFastSuite) 
 {
-    array_1d<double, 3> arr{1.0, 2.0, 3.0};
+    const array_1d<double, 3> arr1{1.0, 2.0, 3.0};
+    const array_1d<double, 3> arr2{1.0, 2.0, 3.0};
+    const array_1d<double, 3> arr3{1.0, 2.0, 4.0};
     std::hash<array_1d<double, 3>> hasher;
-    const std::size_t hash_value = hasher(arr);
-    const std::size_t expected_hash_value = 14435809606359582927ULL;
+    const std::size_t hash_value = hasher(arr1);
+    const std::size_t expected_hash_value = hasher(arr2);
+    const std::size_t not_expected_hash_value = hasher(arr3);
     KRATOS_CHECK_EQUAL(hash_value, expected_hash_value);
+    KRATOS_CHECK_NOT_EQUAL(hash_value, not_expected_hash_value);
 }
 
 } // namespace Kratos::Testing.
