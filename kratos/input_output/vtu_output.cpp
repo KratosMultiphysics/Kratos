@@ -27,7 +27,7 @@
 #include "utilities/string_utilities.h"
 #include "input_output/base_64_encoded_output.h"
 #include "input_output/vtk_definitions.h"
-#include "utilities/xml_utilities/xml_element.h"
+#include "utilities/xml_utilities/xml_expression_element.h"
 #include "utilities/xml_utilities/xml_ostream_writer.h"
 
 // Include base h
@@ -69,7 +69,7 @@ Expression::Pointer CreatePositionsExpression(
     return p_position_expression;
 }
 
-XmlElement::Pointer CreateDataArrayElement(
+XmlExpressionElement::Pointer CreateDataArrayElement(
     const std::string& rDataArrayName,
     const std::vector<const Expression*>& rExpressions)
 {
@@ -80,7 +80,7 @@ XmlElement::Pointer CreateDataArrayElement(
         }
     }
     if (expressions.size() > 0) {
-        return Kratos::make_shared<XmlElement>(rDataArrayName, expressions);
+        return Kratos::make_shared<XmlExpressionElement>(rDataArrayName, expressions);
     } else {
         return nullptr;
     }
@@ -97,19 +97,19 @@ const Expression* pGetExpression(const ContainerExpression<TContainerType, TMesh
 }
 
 void AddDataArrayElement(
-    XmlElement::Pointer pParentElement,
-    XmlElement::Pointer pDataArrayElement)
+    XmlExpressionElement::Pointer pParentElement,
+    XmlExpressionElement::Pointer pDataArrayElement)
 {
     if (pDataArrayElement) {
         pParentElement->AddElement(pDataArrayElement);
     }
 }
 
-XmlElement::Pointer CreatePointsXmlElement(
+XmlExpressionElement::Pointer CreatePointsXmlElement(
     const ModelPart& rModelPart,
     const bool IsInitialConfiguration)
 {
-    auto p_points_xml_element = Kratos::make_shared<XmlElement>("Points");
+    auto p_points_xml_element = Kratos::make_shared<XmlExpressionElement>("Points");
 
     const auto& r_communicator = rModelPart.GetCommunicator();
     const auto& r_local_nodes = r_communicator.LocalMesh().Nodes();
@@ -184,11 +184,11 @@ Expression::Pointer CreateConnectivityExpression(
 }
 
 template<class TContainerType>
-XmlElement::Pointer CreateCellsXmlElement(
+XmlExpressionElement::Pointer CreateCellsXmlElement(
     const TContainerType& rContainer,
     const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap)
 {
-    auto p_cells_xml_element = Kratos::make_shared<XmlElement>("Cells");
+    auto p_cells_xml_element = Kratos::make_shared<XmlExpressionElement>("Cells");
 
     auto p_offsets_expression = CreateOffsetsExpression(rContainer);
     auto p_connectivity_expression = CreateConnectivityExpression(p_offsets_expression, rContainer, rKratosVtuIndicesMap);
@@ -205,7 +205,7 @@ XmlElement::Pointer CreateCellsXmlElement(
 }
 
 template<class TDataType, class TContainerType, class TContainerDataIOTag>
-XmlElement::Pointer CreateVariableDataXmlElement(
+XmlExpressionElement::Pointer CreateVariableDataXmlElement(
     const Variable<TDataType>& rVariable,
     ModelPart& rModelPart)
 {
@@ -242,7 +242,7 @@ Expression::Pointer CreateContainerFlagExpression(
 }
 
 template<class TContainerType>
-XmlElement::Pointer CreateFlagDataXmlElement(
+XmlExpressionElement::Pointer CreateFlagDataXmlElement(
     const std::string& rFlagName,
     const Flags& rFlags,
     const ModelPart& rModelPart)
@@ -313,7 +313,7 @@ Expression::Pointer CreateGhostNodeExpression(
 }
 
 template<class TContainerType>
-XmlElement::Pointer CreateContainerExpressionXmlElement(
+XmlExpressionElement::Pointer CreateContainerExpressionXmlElement(
     const std::string& rExpressionName,
     const ContainerExpression<TContainerType>& rContainerExpression,
     const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap)
@@ -347,7 +347,7 @@ void CheckDataArrayName(
 
 template<class TContaierType, class TContainerIOTag>
 void AddListOfVariables(
-    XmlElement::Pointer pXmlDataElement,
+    XmlExpressionElement::Pointer pXmlDataElement,
     ModelPart& rModelPart,
     const std::unordered_map<std::string, VtuOutput::SupportedVariables>& rVariablesMap)
 {
@@ -366,7 +366,7 @@ void AddListOfVariables(
 
 template<class TContaierType>
 void AddListOfFlags(
-    XmlElement::Pointer pXmlDataElement,
+    XmlExpressionElement::Pointer pXmlDataElement,
     ModelPart& rModelPart,
     const std::unordered_map<std::string, const Flags*>& rFlagsMap)
 {
@@ -377,7 +377,7 @@ void AddListOfFlags(
 
 template<class TContainerExpressionType>
 void AddListOfContainerExpressions(
-    XmlElement::Pointer pXmlDataElement,
+    XmlExpressionElement::Pointer pXmlDataElement,
     ModelPart& rModelPart,
     const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap,
     const std::unordered_map<std::string, TContainerExpressionType>& rContainerExpressionsMap)
@@ -403,8 +403,8 @@ void AddListOfContainerExpressions(
 }
 
 void CopyAttributes(
-    XmlElement& rOutputElement,
-    const XmlElement& rInputElement)
+    XmlExpressionElement& rOutputElement,
+    const XmlExpressionElement& rInputElement)
 {
     for (const auto& r_attribute_data : rInputElement.GetAttributes()) {
         rOutputElement.AddAttribute(r_attribute_data.first, r_attribute_data.second);
@@ -412,11 +412,11 @@ void CopyAttributes(
 }
 
 void CreatePDataArrays(
-    XmlElement& rOutputElement,
-    const XmlElement& rInputElement)
+    XmlExpressionElement& rOutputElement,
+    const XmlExpressionElement& rInputElement)
 {
     for (const auto& p_element : rInputElement.GetElements()) {
-        auto new_pdata_array = Kratos::make_shared<XmlElement>("PDataArray");
+        auto new_pdata_array = Kratos::make_shared<XmlExpressionElement>("PDataArray");
         CopyAttributes(*new_pdata_array, *p_element);
         rOutputElement.AddElement(new_pdata_array);
     }
@@ -434,7 +434,7 @@ std::string GetEndianness()
 }
 
 void WritePvtuFile(
-    XmlElement::Pointer pVtkFileElement,
+    XmlExpressionElement::Pointer pVtkFileElement,
     const ModelPart& rModelPart,
     const std::string& rOutputFileNamePrefix,
     const std::string& rOutputFileName)
@@ -465,13 +465,13 @@ void WritePvtuFile(
 
     if (r_data_communicator.Rank() == writing_rank) {
         // create the vtk file
-        auto vtk_file_element = Kratos::make_shared<XmlElement>("VTKFile");
+        auto vtk_file_element = Kratos::make_shared<XmlExpressionElement>("VTKFile");
         vtk_file_element->AddAttribute("type", "PUnstructuredGrid");
         vtk_file_element->AddAttribute("version", "0.1");
         vtk_file_element->AddAttribute("byte_order", GetEndianness());
 
         // create the unstructured grid
-        auto unstructured_grid_element = Kratos::make_shared<XmlElement>("PUnstructuredGrid");
+        auto unstructured_grid_element = Kratos::make_shared<XmlExpressionElement>("PUnstructuredGrid");
         unstructured_grid_element->AddAttribute("GhostLevel", "0");
         vtk_file_element->AddElement(unstructured_grid_element);
 
@@ -479,29 +479,29 @@ void WritePvtuFile(
         auto piece = pVtkFileElement->GetElements("UnstructuredGrid")[0]->GetElements("Piece")[0];
 
         auto points = piece->GetElements("Points")[0];
-        auto p_points = Kratos::make_shared<XmlElement>("PPoints");
+        auto p_points = Kratos::make_shared<XmlExpressionElement>("PPoints");
         VtuOutputHelperUtilities::CreatePDataArrays(*p_points, *points);
         unstructured_grid_element->AddElement(p_points);
 
         auto cells = piece->GetElements("Cells")[0];
-        auto p_cells = Kratos::make_shared<XmlElement>("PCells");
+        auto p_cells = Kratos::make_shared<XmlExpressionElement>("PCells");
         VtuOutputHelperUtilities::CreatePDataArrays(*p_cells, *cells);
         unstructured_grid_element->AddElement(p_cells);
 
         auto point_data = piece->GetElements("PointData")[0];
-        auto p_point_data = Kratos::make_shared<XmlElement>("PPointData");
+        auto p_point_data = Kratos::make_shared<XmlExpressionElement>("PPointData");
         VtuOutputHelperUtilities::CreatePDataArrays(*p_point_data, *point_data);
         unstructured_grid_element->AddElement(p_point_data);
 
         auto cell_data = piece->GetElements("CellData")[0];
-        auto p_cell_data = Kratos::make_shared<XmlElement>("PCellData");
+        auto p_cell_data = Kratos::make_shared<XmlExpressionElement>("PCellData");
         VtuOutputHelperUtilities::CreatePDataArrays(*p_cell_data, *cell_data);
         unstructured_grid_element->AddElement(p_cell_data);
 
         // now write all the pieces
         const auto& r_file_names = StringUtilities::SplitStringByDelimiter(list_of_file_names.str(), '\n');
         for (const auto& r_file_name : r_file_names) {
-            auto piece = Kratos::make_shared<XmlElement>("Piece");
+            auto piece = Kratos::make_shared<XmlExpressionElement>("Piece");
             piece->AddAttribute("Source", r_file_name);
             unstructured_grid_element->AddElement(piece);
         }
@@ -655,17 +655,17 @@ void VtuOutput::PrintModelPart(
     ModelPart& rModelPart) const
 {
     // create the vtk file
-    auto vtk_file_element = Kratos::make_shared<XmlElement>("VTKFile");
+    auto vtk_file_element = Kratos::make_shared<XmlExpressionElement>("VTKFile");
     vtk_file_element->AddAttribute("type", "UnstructuredGrid");
     vtk_file_element->AddAttribute("version", "0.1");
     vtk_file_element->AddAttribute("byte_order", VtuOutputHelperUtilities::GetEndianness());
 
     // create the unstructured grid
-    auto unstructured_grid_element = Kratos::make_shared<XmlElement>("UnstructuredGrid");
+    auto unstructured_grid_element = Kratos::make_shared<XmlExpressionElement>("UnstructuredGrid");
     vtk_file_element->AddElement(unstructured_grid_element);
 
     // create the piece element
-    auto piece_element = Kratos::make_shared<XmlElement>("Piece");
+    auto piece_element = Kratos::make_shared<XmlExpressionElement>("Piece");
     piece_element->AddAttribute("NumberOfPoints",
                                 std::to_string(rModelPart.NumberOfNodes()));
     piece_element->AddAttribute(
@@ -680,7 +680,7 @@ void VtuOutput::PrintModelPart(
     piece_element->AddElement(points_element);
 
     // create the cells element
-    XmlElement::Pointer cells_element;
+    XmlExpressionElement::Pointer cells_element;
     if (mIsElementsConsidered) {
         cells_element = VtuOutputHelperUtilities::CreateCellsXmlElement(
             rModelPart.GetCommunicator().LocalMesh().Elements(), mKratosVtuIndicesMap);
@@ -691,7 +691,7 @@ void VtuOutput::PrintModelPart(
     piece_element->AddElement(cells_element);
 
     // create the point data
-    auto point_data_element = Kratos::make_shared<XmlElement>("PointData");
+    auto point_data_element = Kratos::make_shared<XmlExpressionElement>("PointData");
     piece_element->AddElement(point_data_element);
     VtuOutputHelperUtilities::AddListOfVariables<ModelPart::NodesContainerType, ContainerDataIOTags::Historical>(
         point_data_element, rModelPart, mHistoricalVariablesMap);
@@ -703,7 +703,7 @@ void VtuOutput::PrintModelPart(
         point_data_element, rModelPart, mKratosVtuIndicesMap, mPointContainerExpressionsMap);
 
     // create cell data
-    auto cell_data_element = Kratos::make_shared<XmlElement>("CellData");
+    auto cell_data_element = Kratos::make_shared<XmlExpressionElement>("CellData");
     piece_element->AddElement(cell_data_element);
     if (mIsElementsConsidered) {
         VtuOutputHelperUtilities::AddListOfVariables<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(

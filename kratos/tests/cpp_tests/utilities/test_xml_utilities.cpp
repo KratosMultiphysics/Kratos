@@ -19,7 +19,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "utilities/xml_utilities/xml_element.h"
+#include "utilities/xml_utilities/xml_expression_element.h"
 #include "utilities/xml_utilities/xml_ostream_writer.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 
@@ -27,13 +27,13 @@ namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementGetTagName, KratosCoreFastSuite)
 {
-    XmlElement element("TestElement");
+    XmlExpressionElement element("TestElement");
     KRATOS_CHECK_EQUAL(element.GetTagName(), "TestElement");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementAddAndGetAttributes, KratosCoreFastSuite)
 {
-    XmlElement element("TestElement");
+    XmlExpressionElement element("TestElement");
     element.AddAttribute("Attribute1", "Value1");
     element.AddAttribute("Attribute2", "Value2");
 
@@ -47,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementAddAndGetAttributes, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementClearAttributes, KratosCoreFastSuite)
 {
-    XmlElement element("TestElement");
+    XmlExpressionElement element("TestElement");
     element.AddAttribute("Attribute1", "Value1");
     element.ClearAttributes();
 
@@ -57,8 +57,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementClearAttributes, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementAddElement, KratosCoreFastSuite)
 {
-    XmlElement element("TestElement");
-    auto childElement = Kratos::make_shared<XmlElement>("ChildElement");
+    XmlExpressionElement element("TestElement");
+    auto childElement = Kratos::make_shared<XmlExpressionElement>("ChildElement");
     element.AddElement(childElement);
 
     auto children = element.GetElements();
@@ -67,9 +67,9 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementAddElement, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementGetElements, KratosCoreFastSuite)
 {
-    XmlElement element("TestElement");
-    auto childElement1 = Kratos::make_shared<XmlElement>("ChildElement");
-    auto childElement2 = Kratos::make_shared<XmlElement>("ChildElement2");
+    XmlExpressionElement element("TestElement");
+    auto childElement1 = Kratos::make_shared<XmlExpressionElement>("ChildElement");
+    auto childElement2 = Kratos::make_shared<XmlExpressionElement>("ChildElement2");
     element.AddElement(childElement1);
     element.AddElement(childElement2);
 
@@ -80,8 +80,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementGetElements, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlElementClearElements, KratosCoreFastSuite)
 {
-    XmlElement element("TestElement");
-    auto childElement = Kratos::make_shared<XmlElement>("ChildElement");
+    XmlExpressionElement element("TestElement");
+    auto childElement = Kratos::make_shared<XmlExpressionElement>("ChildElement");
     element.AddElement(childElement);
     element.ClearElements();
 
@@ -91,11 +91,11 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementClearElements, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWrite, KratosCoreFastSuite)
 {
-    XmlElement element("TestElement");
+    XmlExpressionElement element("TestElement");
     std::stringstream ss;
     XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 4);
     element.AddAttribute("Attribute1", "Value1");
-    auto childElement = Kratos::make_shared<XmlElement>("ChildElement");
+    auto childElement = Kratos::make_shared<XmlExpressionElement>("ChildElement");
     element.AddElement(childElement);
     element.Write(writer, 1);
 
@@ -137,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiChar, KratosCoreF
     }
 
     std::vector<Expression::Pointer> expressions = {char_expression_1, char_expression_2};
-    XmlElement element("data_1", expressions);
+    XmlExpressionElement element("data_1", expressions);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -165,7 +165,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiInt, KratosCoreFa
     }
 
     std::vector<Expression::Pointer> expressions = {char_expression_1, char_expression_2};
-    XmlElement element("data_1", expressions);
+    XmlExpressionElement element("data_1", expressions);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -193,7 +193,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiDouble, KratosCor
     }
 
     std::vector<Expression::Pointer> expressions = {char_expression_1, char_expression_2};
-    XmlElement element("data_1", expressions);
+    XmlExpressionElement element("data_1", expressions);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -221,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiMixed, KratosCore
     }
 
     std::vector<Expression::Pointer> expressions = {char_expression_1, char_expression_2};
-    XmlElement element("data_1", expressions);
+    XmlExpressionElement element("data_1", expressions);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -249,7 +249,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryChar, KratosCore
     }
 
     std::vector<Expression::Pointer> expressions = {char_expression_1, char_expression_2};
-    XmlElement element("data_1", expressions);
+    XmlExpressionElement element("data_1", expressions);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -277,7 +277,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryInt, KratosCoreF
     }
 
     std::vector<Expression::Pointer> expressions = {char_expression_1, char_expression_2};
-    XmlElement element("data_1", expressions);
+    XmlExpressionElement element("data_1", expressions);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -305,7 +305,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryDouble, KratosCo
     }
 
     std::vector<Expression::Pointer> expressions = {char_expression_1, char_expression_2};
-    XmlElement element("data_1", expressions);
+    XmlExpressionElement element("data_1", expressions);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
@@ -333,7 +333,7 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryMixed, KratosCor
     }
 
     std::vector<Expression::Pointer> expressions = {char_expression_1, char_expression_2};
-    XmlElement element("data_1", expressions);
+    XmlExpressionElement element("data_1", expressions);
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;

@@ -26,14 +26,14 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_CORE) XmlElement {
+class KRATOS_API(KRATOS_CORE) XmlExpressionElement {
 public:
     ///@name Type definitions
     ///@{
 
     using IndexType = std::size_t;
 
-    KRATOS_CLASS_POINTER_DEFINITION(XmlElement);
+    KRATOS_CLASS_POINTER_DEFINITION(XmlExpressionElement);
 
     ///@}
     ///@name Life cycle
@@ -43,14 +43,14 @@ public:
      * @brief Constructor.
      * @param rTagName The tag name of the XML element.
      */
-    XmlElement(const std::string& rTagName);
+    XmlExpressionElement(const std::string& rTagName);
 
     /**
      * @brief Constructor.
      * @param rDataName The name of the data element.
      * @param rExpressions The expressions to write as data.
      */
-    XmlElement(
+    XmlExpressionElement(
         const std::string& rDataName,
         const std::vector<Expression::Pointer>& rExpressions);
 
@@ -88,20 +88,20 @@ public:
      * @brief Add a sub-element to the XML element.
      * @param pXmlElement The sub-element to add.
      */
-    void AddElement(const XmlElement::Pointer pXmlElement);
+    void AddElement(const XmlExpressionElement::Pointer pXmlElement);
 
     /**
      * @brief Get sub-elements with a specific tag name.
      * @param rTagName The tag name of the sub-elements.
      * @return The vector of sub-elements.
      */
-    std::vector<XmlElement::Pointer> GetElements(const std::string& rTagName) const;
+    std::vector<XmlExpressionElement::Pointer> GetElements(const std::string& rTagName) const;
 
     /**
      * @brief Get all sub-elements of the XML element.
      * @return The vector of sub-elements.
      */
-    const std::vector<XmlElement::Pointer>& GetElements() const;
+    const std::vector<XmlExpressionElement::Pointer>& GetElements() const;
 
     /**
      * @brief Clear all sub-elements of the XML element.
@@ -127,7 +127,7 @@ private:
 
     std::vector<std::pair<std::string, std::string>> mAttributes; /// The attributes of the XML element.
 
-    std::vector<XmlElement::Pointer> mXmlElements; /// The sub-elements of the XML element.
+    std::vector<XmlExpressionElement::Pointer> mXmlElements; /// The sub-elements of the XML element.
 
     const std::vector<Expression::Pointer> mExpressions; /// The expressions to write as data.
 

@@ -16,16 +16,16 @@
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 
 // Include base h
-#include "xml_element.h"
+#include "xml_expression_element.h"
 
 namespace Kratos {
 
-XmlElement::XmlElement(const std::string& rTagName)
+XmlExpressionElement::XmlExpressionElement(const std::string& rTagName)
     : mTagName(rTagName)
 {
 }
 
-XmlElement::XmlElement(
+XmlExpressionElement::XmlExpressionElement(
     const std::string& rDataName,
     const std::vector<Expression::Pointer>& rExpressions)
     : mTagName("DataArray"),
@@ -67,12 +67,12 @@ XmlElement::XmlElement(
     ///@name Public operations
     ///@{
 
-const std::string XmlElement::GetTagName() const
+const std::string XmlExpressionElement::GetTagName() const
 {
     return mTagName;
 };
 
-void XmlElement::AddAttribute(
+void XmlExpressionElement::AddAttribute(
     const std::string& rName,
     const std::string& rValue)
 {
@@ -86,17 +86,17 @@ void XmlElement::AddAttribute(
     mAttributes.push_back(std::make_pair(rName, rValue));
 }
 
-const std::vector<std::pair<std::string, std::string>>& XmlElement::GetAttributes() const
+const std::vector<std::pair<std::string, std::string>>& XmlExpressionElement::GetAttributes() const
 {
     return mAttributes;
 }
 
-void XmlElement::ClearAttributes()
+void XmlExpressionElement::ClearAttributes()
 {
     mAttributes.clear();
 }
 
-void XmlElement::AddElement(const XmlElement::Pointer pXmlElement)
+void XmlExpressionElement::AddElement(const XmlExpressionElement::Pointer pXmlElement)
 {
     if (mExpressions.size() == 0) {
         for (const auto& p_element : mXmlElements) {
@@ -112,9 +112,9 @@ void XmlElement::AddElement(const XmlElement::Pointer pXmlElement)
     }
 }
 
-std::vector<XmlElement::Pointer> XmlElement::GetElements(const std::string& rTagName) const
+std::vector<XmlExpressionElement::Pointer> XmlExpressionElement::GetElements(const std::string& rTagName) const
 {
-    std::vector<XmlElement::Pointer> results;
+    std::vector<XmlExpressionElement::Pointer> results;
     for (const auto& p_element : mXmlElements) {
         if (p_element->GetTagName() == rTagName) {
             results.push_back(p_element);
@@ -123,17 +123,17 @@ std::vector<XmlElement::Pointer> XmlElement::GetElements(const std::string& rTag
     return results;
 }
 
-const std::vector<XmlElement::Pointer>& XmlElement::GetElements() const
+const std::vector<XmlExpressionElement::Pointer>& XmlExpressionElement::GetElements() const
 {
     return mXmlElements;
 }
 
-void XmlElement::ClearElements()
+void XmlExpressionElement::ClearElements()
 {
     mXmlElements.clear();
 }
 
-void XmlElement::Write(
+void XmlExpressionElement::Write(
     XmlOStreamWriter& rWriter,
     const IndexType Level) const
 {
