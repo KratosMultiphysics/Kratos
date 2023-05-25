@@ -124,12 +124,15 @@ void HelmholtzSolidShapeElement::CalculateLocalSystem(MatrixType& rLeftHandSideM
     MatrixType K;
     CalculateStiffnessMatrix(K,rCurrentProcessInfo);
 
+    const bool is_inversed = rCurrentProcessInfo[COMPUTE_HELMHOLTZ_INVERSE];
+
     noalias(rLeftHandSideMatrix) += M;
-    if(!rCurrentProcessInfo[COMPUTE_HELMHOLTZ_INVERSE])
+    if(!is_inversed)
         noalias(rLeftHandSideMatrix) += K;
 
     const unsigned int number_of_points = r_geometry.size();
     Vector nodal_vals(number_of_points*3);
+    const bool is_integrated_field = rCurrentProcessInfo[HELMHOLTZ_INTEGRATED_FIELD];
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
         const auto &source = r_geometry[node_element].GetValue(HELMHOLTZ_VECTOR_SOURCE);
@@ -137,16 +140,16 @@ void HelmholtzSolidShapeElement::CalculateLocalSystem(MatrixType& rLeftHandSideM
         nodal_vals[3 * node_element + 0] = source[0];
         nodal_vals[3 * node_element + 1] = source[1];
         nodal_vals[3 * node_element + 2] = source[2];
-        if(rCurrentProcessInfo[HELMHOLTZ_INTEGRATED_FIELD]){
+        if(is_integrated_field){
             nodal_vals[3 * node_element + 0] /= node_weight;
             nodal_vals[3 * node_element + 1] /= node_weight;
             nodal_vals[3 * node_element + 2] /= node_weight;
         }
     }
 
-    if(rCurrentProcessInfo[HELMHOLTZ_INTEGRATED_FIELD])
+    if(is_integrated_field)
         noalias(rRightHandSideVector) += nodal_vals;
-    else if (rCurrentProcessInfo[COMPUTE_HELMHOLTZ_INVERSE])
+    else if (is_inversed)
         noalias(rRightHandSideVector) += prod(K+M,nodal_vals);
     else
         noalias(rRightHandSideVector) += prod(M,nodal_vals);

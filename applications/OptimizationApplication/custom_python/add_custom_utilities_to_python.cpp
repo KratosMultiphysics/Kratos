@@ -251,8 +251,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     m.def_submodule("ImplicitFilterUtils")
-        .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount)
-        .def("SetBulkRadiusForShapeFiltering", &ImplicitFilterUtils::SetBulkRadiusForShapeFiltering)
+        .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount, py::arg("input_model_part"))
+        .def("SetBulkRadiusForShapeFiltering", &ImplicitFilterUtils::SetBulkRadiusForShapeFiltering, py::arg("input_model_part"))
         ;
 
 }

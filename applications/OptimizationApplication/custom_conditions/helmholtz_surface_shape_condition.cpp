@@ -126,7 +126,9 @@ void HelmholtzSurfaceShapeCondition::CalculateLocalSystem(MatrixType& rLeftHandS
     MatrixType K;
     CalculateStiffnessMatrix(K,rCurrentProcessInfo);
 
-    if(!rCurrentProcessInfo[COMPUTE_HELMHOLTZ_INVERSE])
+    const bool is_inversed = rCurrentProcessInfo[COMPUTE_HELMHOLTZ_INVERSE];
+
+    if(!is_inversed)
         noalias(rLeftHandSideMatrix) += K;
 
     const unsigned int number_of_points = r_geometry.size();
@@ -139,7 +141,7 @@ void HelmholtzSurfaceShapeCondition::CalculateLocalSystem(MatrixType& rLeftHandS
         nodal_vals[3 * node_element + 2] = source[2];
     }
 
-    if (rCurrentProcessInfo[COMPUTE_HELMHOLTZ_INVERSE])
+    if (is_inversed)
         noalias(rRightHandSideVector) += prod(K,nodal_vals);
 
     //apply drichlet BC

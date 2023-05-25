@@ -3,8 +3,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_analysis import HelmholtzAnalysis
 from KratosMultiphysics.testing.utilities import ReadModelPart
 import KratosMultiphysics.OptimizationApplication as KOA
-from numpy import linalg as LA
-import os
 
 # Additional imports
 from KratosMultiphysics.KratosUnittest import TestCase
@@ -16,7 +14,6 @@ class HelmholtzAnalysisTest(TestCase):
             model = KM.Model()
             model_part = model.CreateModelPart("solid")
             model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
-            model_part_io = KM.ModelPartIO("solid")
 
             general_scalar_parameters = KM.Parameters("""
                             {
@@ -56,13 +53,13 @@ class HelmholtzAnalysisTest(TestCase):
 
         my_filter = HelmholtzAnalysis(model, general_scalar_parameters)
 
-        model_part_io.ReadModelPart(model_part)
+        ReadModelPart("solid",model_part)
 
         unfiltered_uniform_field_nodal = KM.ContainerExpression.NodalNonHistoricalExpression(model_part)
         unfiltered_uniform_field_nodal.SetData(1.0)
 
         filtered_field = my_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 3.741657, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 3.741657, 4)
 
         for node in model_part.Nodes:
             node.SetValue(KM.NODAL_VOLUME, 0)
@@ -75,9 +72,9 @@ class HelmholtzAnalysisTest(TestCase):
         nodal_volume.Read(KM.NODAL_VOLUME)
 
         filtered_field = my_filter.FilterIntegratedField(nodal_volume)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 3.741657, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 3.741657, 4)
         filtered_field = my_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 3.741657, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 3.741657, 4)
 
         my_filter.Finalize()
 
@@ -86,7 +83,6 @@ class HelmholtzAnalysisTest(TestCase):
             model = KM.Model()
             model_part = model.CreateModelPart("solid")
             model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
-            model_part_io = KM.ModelPartIO("solid")
 
             filter_parameters = KM.Parameters("""
                             {
@@ -126,13 +122,13 @@ class HelmholtzAnalysisTest(TestCase):
 
         my_filter = HelmholtzAnalysis(model, filter_parameters)
 
-        model_part_io.ReadModelPart(model_part)
+        ReadModelPart("solid",model_part)
 
         unfiltered_uniform_field_nodal = KM.ContainerExpression.NodalNonHistoricalExpression(model_part)
         unfiltered_uniform_field_nodal.SetData(KM.Array3([1, 1, 1]))
 
         filtered_field = my_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 6.48074, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 6.48074, 4)
 
         for node in model_part.Nodes:
             node.SetValue(KM.VELOCITY, KM.Array3([0, 0, 0]))
@@ -147,9 +143,9 @@ class HelmholtzAnalysisTest(TestCase):
         nodal_volume.Read(KM.VELOCITY)
 
         filtered_field = my_filter.FilterIntegratedField(nodal_volume)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 6.48074, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 6.48074, 4)
         filtered_field = my_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 6.48074, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 6.48074, 4)
 
         my_filter.Finalize()
 
@@ -222,7 +218,7 @@ class HelmholtzAnalysisTest(TestCase):
         unfiltered_uniform_field_nodal.SetData(1.0)
 
         filtered_field = my_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 3.0, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 3.0, 4)
 
         for node in model_part.Nodes:
             node.SetValue(KM.NODAL_AREA, 0)
@@ -235,9 +231,9 @@ class HelmholtzAnalysisTest(TestCase):
         nodal_area.Read(KM.NODAL_AREA)
 
         filtered_field = my_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 3.0, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 3.0, 4)
         filtered_field = my_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 3.0, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 3.0, 4)
 
         my_filter.Finalize()
 
@@ -304,7 +300,7 @@ class HelmholtzAnalysisTest(TestCase):
         unfiltered_uniform_field_nodal.SetData(KM.Array3([1, 1, 1]))
 
         filtered_field = my_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 5.1961524, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 5.1961524, 4)
 
 
         for node in model_part.Nodes:
@@ -321,9 +317,9 @@ class HelmholtzAnalysisTest(TestCase):
 
 
         filtered_field = my_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 5.1961524, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 5.1961524, 4)
         filtered_field = my_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 5.1961524, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 5.1961524, 4)
 
         my_filter.Finalize()
 
@@ -332,7 +328,7 @@ class HelmholtzAnalysisTest(TestCase):
             model = KM.Model()
             model_part = model.CreateModelPart("bulk_surface")
             model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
-            model_part_io = KM.ModelPartIO("solid")
+
             filter_parameters = KM.Parameters("""
                             {
                                 "solver_settings" : {
@@ -367,13 +363,13 @@ class HelmholtzAnalysisTest(TestCase):
                             }""")
 
         my_filter = HelmholtzAnalysis(model, filter_parameters)
-        model_part_io.ReadModelPart(model_part)
+        ReadModelPart("solid",model_part)
 
         unfiltered_uniform_field_nodal = KM.ContainerExpression.NodalNonHistoricalExpression(model_part)
         unfiltered_uniform_field_nodal.SetData(KM.Array3([1, 1, 1]))
 
         filtered_field = my_filter.FilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 6.4807406, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 6.4807406, 4)
 
 
         for node in model_part.Nodes:
@@ -389,9 +385,9 @@ class HelmholtzAnalysisTest(TestCase):
         nodal_area.Read(KM.VELOCITY)
 
         filtered_field = my_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 6.4807406, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 6.4807406, 4)
         filtered_field = my_filter.UnFilterField(unfiltered_uniform_field_nodal)
-        self.assertAlmostEqual(LA.norm(filtered_field.Evaluate()), 6.4807406, 4)
+        self.assertAlmostEqual(KOA.ContainerExpressionUtils.NormL2(filtered_field), 6.4807406, 4)
 
         my_filter.Finalize()
 
