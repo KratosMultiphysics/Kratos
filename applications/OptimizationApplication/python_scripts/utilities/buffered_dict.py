@@ -19,18 +19,20 @@ class BufferedDict:
 
     The buffered data is stored in a cyclic buffer.
     """
-    def __init__(self, buffer_size: int = 1):
+    def __init__(self, buffer_size: int = 1, clear_buffer_when_advancing: bool = True):
         """Creates an instance of BufferedDict with specified buffer size
 
         This creates an instance of buffered data with given buffer size.
 
         Args:
             buffer_size (int, optional): Cyclic buffer size. Defaults to 1.
+            clear_buffer_when_advancing (bool): Clears the buffer and sub item buffers when advancing.
         """
         self.__parent = None
         self.__buffer_index = 0
         self.__buffered_data: 'list[dict[str, Any]]' = []
         self.__sub_items: 'dict[str, BufferedDict]' = {}
+        self.__clear_buffer_when_advancing = clear_buffer_when_advancing
 
         # sets the buffer
         self.__SetBufferSize(buffer_size)
@@ -56,7 +58,8 @@ class BufferedDict:
         """
         # first advance the current instance
         self.__buffer_index = (self.__buffer_index + 1) % self.GetBufferSize()
-        self.__buffered_data[self.__GetBufferIndex(0)] = {}
+        if self.__clear_buffer_when_advancing:
+            self.__buffered_data[self.__GetBufferIndex(0)] = {}
 
         if recursive:
             # now advance the sub items
@@ -138,7 +141,7 @@ class BufferedDict:
             else:
                 raise RuntimeError(f"The key \"{current_key}\" not found in the buffered data which is a parent key for \"{key}\". BufferedDict:\n{self}")
 
-    def SetValue(self, key: str, value: Any, step_index: int = 0) -> None:
+    def SetValue(self, key: str, value: Any, step_index: int = 0, overwrite: bool = False) -> None:
         """Sets a value for specified key at specified step_index.
 
         This method sets the value at the key at the specified step_index.
@@ -150,6 +153,7 @@ class BufferedDict:
             key (str): Relative path to the value.
             value (Any): value to be set
             step_index (int, optional): Step index the value should be set. Defaults to 0.
+            overwrite (bool): Overwrites if existing key is found with the new value, otherwise creates a key with the value.
 
         Raises:
             RuntimeError: If a value is overwritten.
@@ -160,7 +164,7 @@ class BufferedDict:
             if isinstance(value, dict):
                 # if the given value is a dict, then convert the structure
                 # to BufferedDict while keeping the sub_item structure.
-                sub_item = BufferedDict(self.GetBufferSize())
+                sub_item = BufferedDict(self.GetBufferSize(), self.__clear_buffer_when_advancing)
                 self.__AddSubItem(key, sub_item)
 
                 # now iterate through all the sub_keys and values of the dictionary and
@@ -172,7 +176,7 @@ class BufferedDict:
                 self.__AddSubItem(key, value)
             else:
                 # if not any of the above, it is a normal value. Then put it to buffer.
-                self.__AddBufferedValue(key, value, step_index)
+                self.__AddBufferedValue(key, value, step_index, overwrite)
         else:
             # if it is not a leaf key. then look for the sub_item, and recursively
             # call the Set method.
@@ -181,7 +185,7 @@ class BufferedDict:
                 # no existing key found then create it.
                 self.__AddSubItem(current_key, BufferedDict(self.GetBufferSize()))
 
-            self.__sub_items[current_key].SetValue(key[pos+1:], value, step_index)
+            self.__sub_items[current_key].SetValue(key[pos+1:], value, step_index, overwrite)
 
     def RemoveValue(self, key: str, step_index: int = 0) -> None:
         """Remove value at the key in the specified step_index
@@ -228,6 +232,12 @@ class BufferedDict:
                 self.__sub_items[current_key].RemoveValue(key[pos+1:], step_index)
             else:
                 raise RuntimeError(f"\"{key}\" is not found. BufferedDict:\n{self}")
+
+    def GetValueItems(self, step_index: int = 0) -> 'dict[str, Any]':
+        return self.__buffered_data[self.__GetBufferIndex(step_index)]
+
+    def GetSubItems(self) -> 'dict[str, BufferedDict]':
+        return self.__sub_items
 
     def GetMap(self, step_index: int = 0) -> 'dict[str, Any]':
         """Generates (str, Any) pair map with recursively collecting all items in the BufferedDict
@@ -300,10 +310,10 @@ class BufferedDict:
             key_value_pair_map[f"{current_path}{k}"] = v
             v.__AddKeyValuePairsToMap(f"{current_path}{k}/", key_value_pair_map, step_index)
 
-    def __AddBufferedValue(self, key: str, value: Any, step_index: int) -> None:
+    def __AddBufferedValue(self, key: str, value: Any, step_index: int, overwrite: bool) -> None:
         # first check whether this key exists in the specified step_index
         buffer_data = self.__buffered_data[self.__GetBufferIndex(step_index)]
-        if key in buffer_data.keys():
+        if not overwrite and key in buffer_data.keys():
             raise RuntimeError(f"Trying to add a buffer value with key = \"{key}\" when already value exists for the key [ Existing value = {buffer_data[key]}]. BufferedDict:\n{self}")
 
         # now check whether a sub item exists

@@ -74,6 +74,7 @@ class TestResponseRoutine(kratos_unittest.TestCase):
         cls.response.Initialize()
 
         cls.response_routine = ResponseRoutine(cls.master_control, cls.response)
+        cls.response.Initialize()
         cls.response_routine.Initialize()
 
     def test_CalculateValue(self):
