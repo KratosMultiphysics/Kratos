@@ -86,7 +86,7 @@ public:
                        [Time](auto element){return element ? element->GetValue(Time) : 0.0;});
 
         if (IsSeepage()) {
-            block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+            block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
                 const double pressure = CalculateTimeDependentPressure(rNode, deltaH);
 
                 if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
@@ -97,7 +97,7 @@ public:
                 }
             });
         } else {
-            block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+            block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
                 const double pressure = CalculateTimeDependentPressure(rNode, deltaH);
 
                 if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < PressureTensionCutOff()) {
@@ -126,7 +126,7 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-    double CalculateTimeDependentPressure(const Node<3> &rNode, std::vector<double> &deltaH) const
+    double CalculateTimeDependentPressure(const Node &rNode, std::vector<double> &deltaH) const
     {
 
         double height = 0.0;

@@ -151,7 +151,7 @@ public:
         const Variable<double> &var = KratosComponents< Variable<double> >::Get(VariableName());
 
         if (IsSeepage()) {
-            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
                 const double pressure = CalculatePressure(rNode);
 
                 if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
@@ -162,7 +162,7 @@ public:
                 }
             });
         } else {
-            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
                 if (IsFixed()) rNode.Fix(var);
                 else           rNode.Free(var);
                 const double pressure = CalculatePressure(rNode);
@@ -263,7 +263,7 @@ protected:
 
     ModelPart& mrModelPart;
 
-    int findIndex(const Node<3>& rNode) const
+    int findIndex(const Node& rNode) const
     {
         int index = 0;
         auto coords = rNode.Coordinates();
@@ -286,7 +286,7 @@ protected:
         
     }
 
-    double CalculatePressure(const Node<3> &rNode) const
+    double CalculatePressure(const Node &rNode) const
     {
         double height = 0.0;
         int firstPointIndex;
