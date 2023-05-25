@@ -312,9 +312,9 @@ class RomManager(object):
             self._StoreSnapshotsMatrix('residuals_projected',RedidualsSnapshotsMatrix)
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
         self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
-        # n_conditions = model.GetModelPart("FluidModelPart").NumberOfConditions()
-        # simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, constrain_conditions = True, number_of_conditions = n_conditions)
-        simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
+        n_conditions = model.GetModelPart("Structure").NumberOfConditions()
+        simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, constrain_conditions = True, number_of_conditions = n_conditions)
+        # simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
         simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
         simulation.GetHROM_utility().CreateHRomModelParts()
@@ -327,6 +327,9 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+        # mdpa_name  = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+        # hrom_mdpa_name = f"{mdpa_name}HROM"
+        # parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(hrom_mdpa_name)
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)

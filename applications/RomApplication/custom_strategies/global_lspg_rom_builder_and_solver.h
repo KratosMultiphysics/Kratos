@@ -536,7 +536,19 @@ protected:
             // Zero out rows in the matrix that correspond to zero in the mask vector
             ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
         }
-        //////////
+
+        int non_zero_entries = 0;
+        for (unsigned int i=0; i<rA_left.size1(); i++){
+            for (unsigned int j=0; j<rA_left.size2(); j++){
+                if (rA_left(i,j)!=0){
+                    non_zero_entries += 1;
+                }
+            }
+        }
+        // KRATOS_WATCH(rA_left)
+        KRATOS_WATCH(non_zero_entries)
+
+        ////////
 
 
         const auto projection_timer = BuiltinTimer();
@@ -594,6 +606,7 @@ protected:
         {
             Element::DofsVectorType hrom_dofs;
             r_element.GetDofList(hrom_dofs, rCurrentProcessInfo);
+            KRATOS_WATCH(hrom_dofs.size())
             for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
             {
                 const Dof<double>& r_dof = *hrom_dofs[i];
@@ -605,6 +618,7 @@ protected:
         {
             Condition::DofsVectorType hrom_dofs;
             r_condition.GetDofList(hrom_dofs, rCurrentProcessInfo);
+            KRATOS_WATCH(hrom_dofs.size())
             for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
             {
                 const Dof<double>& r_dof = *hrom_dofs[i];
