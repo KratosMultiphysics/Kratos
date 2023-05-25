@@ -82,7 +82,9 @@
                     "type": "optimization_problem_ascii_output_process",
                     "module": "KratosMultiphysics.OptimizationApplication.processes",
                     "settings": {
-                        "output_file_name": "summary.csv"
+                        "output_file_name": "summary.csv",
+                        "write_kratos_version": false,
+                        "write_time_stamp": false
                     }
                 }
             ]

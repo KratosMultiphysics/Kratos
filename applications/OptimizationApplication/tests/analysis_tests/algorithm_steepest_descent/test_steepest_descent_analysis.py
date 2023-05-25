@@ -1,41 +1,32 @@
-from KratosMultiphysics.KratosUnittest import TestCase
-from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
-import csv, os, shutil
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
+from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
+from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
+from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
+
 class TestSteepestDescentAnalysis(kratos_unittest.TestCase):
     def test_steepest_descent_analysis(self):
-        with open("optimization_parameters.json", "r") as file_input:
-            parameters = Kratos.Parameters(file_input.read())
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            with open("optimization_parameters.json", "r") as file_input:
+                parameters = Kratos.Parameters(file_input.read())
 
-        model = Kratos.Model()
-        analysis = OptimizationAnalysis(model, parameters)
-        analysis.Run()
+            model = Kratos.Model()
+            analysis = OptimizationAnalysis(model, parameters)
+            analysis.Run()
 
-        # # Check against specifications
-        mass_value = []
-        start_found = False
-        count = 0
-        output_file = "summary.csv"
-        with open(output_file, 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
-            for line in reader:
-                if "#  STEP" in line:
-                    start_found = True
-                    continue
-                if start_found and count < 11:
-                    mass_value.append(float(line[1].strip()))
-                    count += 1
+            CompareTwoFilesCheckProcess(Kratos.Parameters("""
+            {
+                "reference_file_name"   : "summary_orig.csv",
+                "output_file_name"      : "summary.csv",
+                "remove_output_file"    : true,
+                "comparison_type"       : "deterministic"
+            }""")).Execute()
 
-            TestCase().assertEqual(mass_value[0], 1.386000000e+04)
-            TestCase().assertEqual(mass_value[2], 1.266000000e+04)
-            TestCase().assertEqual(mass_value[5], 1.086000000e+04)
-            TestCase().assertEqual(mass_value[7], 9.660000000e+03)
-            TestCase().assertEqual(mass_value[10], 7.860000000e+03)
-
-        os.remove(output_file)
+    @classmethod
+    def tearDownClass(cls) -> None:
+        with kratos_unittest.WorkFolderScope(".", __file__):        
+            DeleteFileIfExisting("Structure.time")
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

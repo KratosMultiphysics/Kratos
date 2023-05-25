@@ -14,13 +14,13 @@ class TestConvergence(kratos_unittest.TestCase):
             "max_iter"          : 2
         }""")
         convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
-        self.assertFalse(convergence_criterium.CheckConvergence())
+        self.assertFalse(convergence_criterium.IsConverged())
         self.optimization_problem.AdvanceStep()
-        self.assertFalse(convergence_criterium.CheckConvergence())
+        self.assertFalse(convergence_criterium.IsConverged())
         self.optimization_problem.AdvanceStep()
-        self.assertTrue(convergence_criterium.CheckConvergence())
+        self.assertTrue(convergence_criterium.IsConverged())
         self.optimization_problem.AdvanceStep()
-        self.assertTrue(convergence_criterium.CheckConvergence())
+        self.assertTrue(convergence_criterium.IsConverged())
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
