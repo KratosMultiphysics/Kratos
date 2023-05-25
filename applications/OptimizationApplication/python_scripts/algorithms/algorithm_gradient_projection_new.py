@@ -8,6 +8,10 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.algorithms.standardized_constraint import StandardizedConstraint
+from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory import ConstructSolver
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
+
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return AlgorithmSteepestDescent(model, parameters, optimization_problem)
@@ -24,6 +28,7 @@ class AlgorithmSteepestDescent(Algorithm):
             "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
             "model_part_name"   : "OptimizationModelPart",
             "objective"         : {},
+            "constraints"       : [],
             "controls"          : [],
             "echo_level"        : 0,
             "settings"          : {
@@ -38,6 +43,7 @@ class AlgorithmSteepestDescent(Algorithm):
         self.model = model
         self.parameters = parameters
         self._optimization_problem = optimization_problem
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.master_control = MasterControl() # Need to fill it with controls
 
@@ -45,7 +51,6 @@ class AlgorithmSteepestDescent(Algorithm):
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
 
-        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         settings = parameters["settings"]
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
@@ -59,8 +64,17 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        for constraint_param in parameters["constraints"]:
+            constraint = StandardizedConstraint(constraint_param, self.master_control, optimization_problem)
+            self.__constraints_list.append(constraint)
         self.__control_field = None
         self.__obj_val = None
+
+        default_linear_solver_settings = Kratos.Parameters("""{
+            "solver_type": "LinearSolversApplication.dense_col_piv_householder_qr"
+        }""")
+        settings["linear_solver_settings"].ValidateAndAssignDefaults(default_linear_solver_settings)
+        self.linear_solver = ConstructSolver(settings["linear_solver_settings"])
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -73,7 +87,9 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__obj_val = None
         self.__objective.GetReponse().Initialize()
         self.__objective.Initialize()
+        CallOnAll(self.optimization_problem.__constraints_list(), StandardizedConstraint.Initialize())
         self.__objective.Check()
+        CallOnAll(self.optimization_problem.__constraints_list(), StandardizedConstraint.Check())
         self.__control_field = self.master_control.GetControlField() # GetInitialControlFields() later
 
     def Finalize(self):
