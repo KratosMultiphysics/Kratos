@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: OptimizationApplication/license.txt
+//  License:         BSD License
+//                   license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl
 //
