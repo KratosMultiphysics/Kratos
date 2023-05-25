@@ -102,7 +102,6 @@ class AlgorithmSteepestDescent(Algorithm):
             with TimeLogger("Optimization", f" Start Iteration {self._optimization_problem.GetStep()}", f"End Iteration {self._optimization_problem.GetStep()}"):
 
                 with TimeLogger("Calculate objective value", "Start", "End"):
-                    print("begin", self.__control_field.Evaluate())
                     self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) 
                     algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
                     print(self.__objective.GetInfo())
@@ -127,8 +126,6 @@ class AlgorithmSteepestDescent(Algorithm):
                 self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
 
                 self._optimization_problem.AdvanceStep()
-
-                print("end", self.__control_field.Evaluate())
 
             self.Finalize()
     

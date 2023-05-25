@@ -112,4 +112,7 @@ class StandardizedObjective(ResponseRoutine):
             value         : {self.GetValue():0.6e} 
             abs_change    : {self.GetAbsoluteChange():0.6e} 
             rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"""
+        init_value = self.GetInitialValue()
+        if init_value:
+            msg = f"{msg} \n\t    abs_change [%]: {self.GetAbsoluteChange()/init_value * 100:0.6e} "
         return msg
