@@ -929,6 +929,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType
 }
 
 //----------------------------------------------------------------------------------------
+    KRATOS_WATCH( "932" )
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
@@ -956,6 +957,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandS
     //Element variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+
+    KRATOS_WATCH( "ANTES DEL LOOP DE GP" )
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -1497,7 +1500,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateExplicitContributions (Vect
 }
 
 //----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------  FORMACION DEL LHS DE LA MATRIZ GLOBAL (2.38 TESIS)
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
@@ -1511,62 +1514,76 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddLHS(MatrixType& rLeft
     this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix,rVariables);
 }
 
-//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------MATRIX K Stiffness Matrix
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B),rVariables.ConstitutiveMatrix);
-    noalias(rVariables.UMatrix) = prod(rVariables.UVoigtMatrix,rVariables.B)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B),rVariables.ConstitutiveMatrix); //B^T*D
+    noalias(rVariables.UMatrix) = prod(rVariables.UVoigtMatrix,rVariables.B)*rVariables.IntegrationCoefficient; //(B^T*D)*B=UMatrix    (2.39)
 
     //Distribute stiffness block matrix into the elemental matrix
-    PoroElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
+    PoroElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix,rVariables.UMatrix);  //ensamble a la UMatrix dentro de la matriz elemental rLeftHandSideMatrix
 }
 
-//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------MATRIZ Q Coupling Matrix
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    noalias(rVariables.UVector) = prod(trans(rVariables.B),rVariables.VoigtVector);
+    noalias(rVariables.UVector) = prod(trans(rVariables.B),rVariables.VoigtVector); //B^T*m=UVector
+    noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.UVector),rVariables.ConstitutiveMatrix); //(B^T*m)^T=(B*m^T)*D
 
-    noalias(rVariables.UPMatrix) = -rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
-
+    noalias(rVariables.UPWMatrix) = - (rVariables.Sw*rVariables.BiotCoefficient)*outer_prod(rVariables.UVector,rVariables.Npw)*rVariables.IntegrationCoefficient; //-Sw*b*((B^T*m)*Np)=UPMatrix=Qwm   (77)B
+    noalias(rVariables.UPGMatrix) = -((1.0-rVariables.Sw)*rVariables.BiotCoefficient)*outer_prod(rVariables.UVector,rVariables.Npg)*rVariables.IntegrationCoefficient; //-(1-Sw)*b*((B^T*m)*Np)=UPMatrix=Qgm   (77)B
+    **noalias(rVariables.PWUMatrixE) = (rVariables.BiotCoefficientBulkW*rVariables.BiotModulusInverse)*outer_prod(rVariables.UVoigtMatrix,trans(rVariables.Npw))*rVariables.IntegrationCoefficient; //(bw/K)*((B*m^T*D)*Npw^T)=UPMatrix=Qw   (96)
+    **noalias(rVariables.PGUMatrixE) = (rVariables.BiotCoefficientBulkG*rVariables.BiotModulusInverse)*outer_prod(rVariables.UVoigtMatrix,trans(rVariables.Npg))*rVariables.IntegrationCoefficient; //(bg/K)*((B*m^T*D)*Npg^T)=UPMatrix=Qg   (101)
+    //////////// Variables creadas: Sw     BiotCoefficientBulkW     BiotCoefficientBulkG        
+    
     //Distribute coupling block matrix into the elemental matrix
-    PoroElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
+    PoroElementUtilities::AssembleUPWBlockMatrix(rLeftHandSideMatrix,rVariables.UPWMatrix); //Ensambla UPMatrix (Qwm) dentro de la matriz elemental rLeftHandSideMatrix UPBlockMatrix
+    PoroElementUtilities::AssembleUPGBlockMatrix(rLeftHandSideMatrix,rVariables.UPGMatrix); //Ensambla UPMatrix (Qwg) dentro de la matriz elemental rLeftHandSideMatrix UPBlockMatrix
 
-    noalias(rVariables.PUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.UPMatrix);
+    noalias(rVariables.PWUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.PWUMatrixE); //gamma/(beta*delta t)*QW^T=PWUMatrix   (96)
+    noalias(rVariables.PGUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.PGUMatrixE); //gamma/(beta*delta t)*QG^T=PWUMatrix   (96)
 
     //Distribute transposed coupling block matrix into the elemental matrix
-    PoroElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix,rVariables.PUMatrix);
+    PoroElementUtilities::AssemblePWUBlockMatrix(rLeftHandSideMatrix,rVariables.PWUMatrix); //Ensambla PWUMatrix (Qw)^T dentro de la matriz elemental rLeftHandSideMatrix PWUBlockMatrix
+    PoroElementUtilities::AssemblePGUBlockMatrix(rLeftHandSideMatrix,rVariables.PGUMatrix); //Ensambla PGUMatrix (Qg)^T dentro de la matriz elemental rLeftHandSideMatrix PWGBlockMatrix
+
+} 
 }
 
-//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------MATRIZ C Compressibility Matrix
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    noalias(rVariables.PMatrix) = rVariables.DtPressureCoefficient*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = rVariables.DtPressureCoefficient*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient; //1/(ThetaDetat)*Np^T*1/Q*Np=Cww (96)
+    ((rVariables.Porosity*(rVariables.Sw*rVariables.BiotModulusInverseW))+(rVariables.Sw*rVariables.Sw*(rVariables.BiotCoefficient-rVariables.Porosity)*(1.0-rVariables.BiotCoefficient)*(rVariables.BiotModulusInverse))+(rVariables.BiotCoefficientW*rVariables.BiotCoefficientW*rVariables.BiotModulusInverse))*outer_prod(rVariables.Npw,rVariables.Npw)*rVariables.IntegrationCoefficient; // cte*(Np*Np)=Cww (96)
+
+
+
 
     //Distribute compressibility block matrix into the elemental matrix
-    PoroElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes); //ensamble a la matrix P 
 }
 
-//----------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------- MATRIZ H
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
+    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability); //$GradNpT^T*k
 
-    noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient; //1/miu*((GradNpT*k)*(GradNpT)^T)=PMatrix   (2.27), (2.38)
 
     //Distribute permeability block matrix into the elemental matrix
-    PoroElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes); //ensamble a la matrix P 
 }
 
 //----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------FORMACION DEL RHS DE LA MATRIZ GLOBAL (2.38 TESIS)// ECUACIONES (2.32 2.33)
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
@@ -1584,88 +1601,88 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 }
 
-//----------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------- Vector -1*B^T*sigma de ru
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rVariables.UVector) = -1.0*prod(trans(rVariables.B),rVariables.StressVector)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UVector) = -1.0*prod(trans(rVariables.B),rVariables.StressVector)*rVariables.IntegrationCoefficient;  //-1*B^T*sigma=UVector (2.32)
 
     //Distribute stiffness block vector into elemental vector
-    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);  //ensamble al vector U
 }
 
-//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------Vector fu de ru 
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rVariables.UVector) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UVector) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient; //Density*Np^T*b (sin la integral de la sup)=UVector (2.32)
 
     //Distribute body force block vector into elemental vector
-    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector); //ensamble al vector U 
 }
 
-//----------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------- Vector Q de ru y rp
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rVariables.UVector) = prod(trans(rVariables.B),rVariables.VoigtVector);
+    noalias(rVariables.UVector) = prod(trans(rVariables.B),rVariables.VoigtVector); //B^T*m=UVector
 
-    noalias(rVariables.UPMatrix) = rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.UPMatrix) = rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;  //b*((B^T*m)*Np)=UPMatrix=Q   (2.26)
 
-    noalias(rVariables.UVector) = prod(rVariables.UPMatrix,rVariables.PressureVector);
+    noalias(rVariables.UVector) = prod(rVariables.UPMatrix,rVariables.PressureVector); //Qp(/)=UVector (2.32)
 
     //Distribute coupling block vector 1 into elemental vector
-    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);   //Ensambla UVector dentro del vector U, para el vector ru
 
-    noalias(rVariables.PVector) = -1.0*prod(trans(rVariables.UPMatrix),rVariables.VelocityVector);
+    noalias(rVariables.PVector) = -1.0*prod(trans(rVariables.UPMatrix),rVariables.VelocityVector);  //-1*Q^T*u(./)    (2.33)
 
     //Distribute coupling block vector 2 into elemental vector
-    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes); //Ensambla PVector dentro del vector p, para el vector rp
 }
 
-//----------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------- Vector C de rp
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rVariables.PMatrix) = rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient; // (1/Q)*Np*Np^T=C=PMatrix (2.27)
 
-    noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.DtPressureVector);
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.DtPressureVector);  //-1*C*p(./)=PVector   (2.33)
 
     //Distribute compressibility block vector into elemental vector
-    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes); //Ensambla PVector dentro del vector p, para el vector rp
 }
 
-//----------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------Vector H de rp
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
+    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability); //$GradNpT*k=PDimMatrix   
 
-    noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
+    noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;  //1/miu*((GradNpT*k)*(GradNpT)^T)=PMatrix   (2.27), (2.33)
 
-    noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.PressureVector);
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.PressureVector); //-1*1/miu*((GradNpT*k)*(GradNpT)^T)*(PressureVector)=PVector     (2.33)
 
     //Distribute permeability block vector into elemental vector
-    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);     //Ensambla PVector dentro del vector p, para el vector rp
 }
 
-//----------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------- Vector fp de rp
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability)*rVariables.IntegrationCoefficient;
+    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability)*rVariables.IntegrationCoefficient;  //GradNpT*(1/miu)=PDimMatrix
 
-    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse*rVariables.FluidDensity*
-                                    prod(rVariables.PDimMatrix,rVariables.BodyAcceleration);
+    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse*rVariables.FluidDensity* //(1/miu)*pf*GradNpT*(1/miu)*b=fp=PVector           (2.33) se desprecia la integral de la superficie
+                                    prod(rVariables.PDimMatrix,rVariables.BodyAcceleration);  
 
     //Distribute fluid body flow block vector into elemental vector
-    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);  //Ensambla PVector dentro del vector p, para el vector rp
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
