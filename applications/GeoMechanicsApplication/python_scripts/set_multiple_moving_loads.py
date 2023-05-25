@@ -32,7 +32,7 @@ def Factory(settings, Model):
                                                      )
     load_settings = settings["Parameters"]
     load_settings.ValidateAndAssignDefaults(default_settings)
-    
+
     # Set process
     model_part = Model.GetModelPart(load_settings["model_part_name"].GetString())
     return KGM.SetMultipleMovingLoadsProcess(model_part, load_settings)
