@@ -1,9 +1,7 @@
 {
     "problem_data": {
         "parallel_type": "OpenMP",
-        "echo_level": 0,
-        "start_time": 0,
-        "end_time": 50
+        "echo_level": 0
     },
     "model_parts": [
         {
