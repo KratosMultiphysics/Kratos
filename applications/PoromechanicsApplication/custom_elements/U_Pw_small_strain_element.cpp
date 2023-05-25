@@ -929,6 +929,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType
 }
 
 //----------------------------------------------------------------------------------------
+    KRATOS_WATCH( "932" )
 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
@@ -956,6 +957,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandS
     //Element variables
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+
+    KRATOS_WATCH( "ANTES DEL LOOP DE GP" )
 
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
