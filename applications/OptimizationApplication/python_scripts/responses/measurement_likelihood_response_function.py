@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -60,14 +62,18 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         return self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().GetAnalysisModelPart()
 
     def CalculateValue(self) -> float:
-        # covariance = 0.001
+        covariance = 0.001
         # LL = 0.5*(1/covariance) * error.T @ error  # Without constant terms, and for diag. covariance matrix
         # LL = 1/2 * 1/cov * error**2
 
-        error = self.model_part.Nodes()
+        measured_value = Kratos.Array3(0.1)
+        objective_value = 0
+        for node in self.model_part.Nodes:
+            objective_value += (measured_value - node.GetSolutionStepValue(Kratos.DISPLACEMENT)).norm_2()
+        objective_value *= 0.5 * 1/covariance
 
         # return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_part)
-        return 0
+        return objective_value
 
     def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
         # first calculate the gradients

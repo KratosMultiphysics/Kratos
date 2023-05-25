@@ -1,0 +1,1 @@
+{"description_of_load": {"type_of_load": ["PointLoad"], "direction_normal": [[0, -1, 0]], "strength_in_N": 2000, "position_of_mesh_vertex": [0, 0, 0]}, "description_of_sensors": [{"type_of_sensor": ["Displacement"], "measurement_direction_normal": [[0, 1, 0]], "position_of_mesh_vertex": [0, 0, 0], "measured_value": 0.5}]}
