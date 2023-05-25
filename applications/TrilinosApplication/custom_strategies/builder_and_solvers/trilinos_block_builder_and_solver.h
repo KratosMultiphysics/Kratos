@@ -112,7 +112,7 @@ public:
     typedef Epetra_MpiComm EpetraCommunicatorType;
 
     /// DoF types definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef DofType::Pointer DofPointerType;
 
@@ -480,13 +480,16 @@ public:
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      */
-    void SetUpDofSet(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart) override
+    void SetUpDofSet(
+        typename TSchemeType::Pointer pScheme, 
+        ModelPart& rModelPart
+        ) override
     {
         KRATOS_TRY
 
-        typedef Element::DofsVectorType DofsVectorType;
+        using DofsVectorType = Element::DofsVectorType;
+        
         // Gets the array of elements from the modeler
-        ElementsArrayType& r_elements_array = rModelPart.GetCommunicator().LocalMesh().Elements();
         DofsVectorType dof_list;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
@@ -496,6 +499,7 @@ public:
         BaseType::mDofSet = DofsArrayType();
 
         // Taking dofs of elements
+        ElementsArrayType& r_elements_array = rModelPart.GetCommunicator().LocalMesh().Elements();
         for (auto it_elem = r_elements_array.ptr_begin(); it_elem != r_elements_array.ptr_end(); ++it_elem) {
             pScheme->GetDofList(**it_elem, dof_list, r_current_process_info);
             for (auto i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)
@@ -503,7 +507,7 @@ public:
         }
 
         // Taking dofs of conditions
-        auto& r_conditions_array = rModelPart.Conditions();
+        auto& r_conditions_array = rModelPart.GetCommunicator().LocalMesh().Conditions();
         for (auto it_cond = r_conditions_array.ptr_begin(); it_cond != r_conditions_array.ptr_end(); ++it_cond) {
             pScheme->GetDofList(**it_cond, dof_list, r_current_process_info);
             for (auto i_dof = dof_list.begin(); i_dof != dof_list.end(); ++i_dof)

@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
   ///@name Kratos Globals
   ///@{
 
@@ -89,11 +89,6 @@ public:
 
     typedef ResultContainerType::iterator                           ResultIteratorType;
     typedef std::vector<double>::iterator                           DistanceIteratorType;
-
-    typedef ContactPair<PointerType>                                ContactPairType;
-    typedef std::vector<ContactPairType>                            ContainerContactType;
-    typedef ContainerContactType::iterator                          IteratorContactType;
-    typedef ContainerContactType::value_type                        PointerContactType;
 
     ///@}
     ///@name Life Cycle

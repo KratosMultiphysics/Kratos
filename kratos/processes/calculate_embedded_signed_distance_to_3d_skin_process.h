@@ -224,7 +224,7 @@ public:
         this->SetMaximumAndMinimumDistanceValues(max_distance, min_distance);
 
         // Bound the distance value in the non splitted nodes
-        block_for_each(mrFluidModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(mrFluidModelPart.Nodes(), [&](Node& rNode){
             if(rNode.IsNot(TO_SPLIT))
             {
                 double& rnode_distance = rNode.FastGetSolutionStepValue(DISTANCE);
@@ -242,7 +242,7 @@ public:
 
             if(itFluidElement->Is(TO_SPLIT))
             {
-                Geometry<Node<3>>& rGeom = itFluidElement->GetGeometry();
+                Geometry<Node>& rGeom = itFluidElement->GetGeometry();
                 for (unsigned int i=0; i<rGeom.size(); ++i)
                 {
                     rGeom[i].Set(TO_SPLIT, true);

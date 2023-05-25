@@ -12,8 +12,7 @@
 //  Collaborator:   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED)
-#define KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -869,4 +868,3 @@ private:
     TangentOperatorCalculatorUtility &operator=(TangentOperatorCalculatorUtility const &rOther);
 };
 } // namespace Kratos.
-#endif // KRATOS_TANGENT_OPERATOR_CALCULATOR_PROCESS_H_INCLUDED  defined

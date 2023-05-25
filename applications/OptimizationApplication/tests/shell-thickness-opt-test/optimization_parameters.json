@@ -13,19 +13,14 @@
         "analyses": [
             {
                 "name": "shell_static",
-                "execution_policy_settings": {
-                    "type": "SteppingAnalysisExecutionPolicy",
-                    "settings": {
-                        "model_part_names": [
-                            "shell"
-                        ],
-                        "analysis_settings": {
-                            "module": "KratosMultiphysics.StructuralMechanicsApplication",
-                            "type": "StructuralMechanicsAnalysis",
-                            "settings": {
-                                "@include_json": "primal_parameters.json"
-                            }
-                        }
+                "type": "stepping_analysis_execution_policy",
+                "settings": {
+                    "model_part_names": [
+                        "shell"
+                    ],
+                    "analysis_type": "StructuralMechanicsAnalysis",
+                    "analysis_settings": {
+                        "@include_json": "primal_parameters.json"
                     }
                 }
             }
@@ -98,10 +93,8 @@
                             "increase_fac": 1.5,
                             "update_period": 30
                         },
-                        "fixed_model_parts": [   
-                        ],
-                        "fixed_model_parts_thicknesses": [
-                        ],
+                        "fixed_model_parts": [],
+                        "fixed_model_parts_thicknesses": [],
                         "linear_solver_settings": {
                             "solver_type": "amgcl",
                             "smoother_type": "ilu0",

@@ -35,7 +35,7 @@ namespace Kratos
 {
 namespace Testing
 {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> MC;
 typedef VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> VM;
 typedef DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>> DP;

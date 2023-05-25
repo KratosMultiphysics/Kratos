@@ -34,22 +34,22 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UndrainedUPwSmallStrainElement );
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
     using UPwSmallStrainElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwSmallStrainElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwSmallStrainElement<TDim,TNumNodes>::mStressVector;
     using UPwSmallStrainElement<TDim,TNumNodes>::mStateVariablesFinalized;
-    typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
-    typedef Element::EquationIdVectorType EquationIdVectorType;
-    typedef Element::DofsVectorType DofsVectorType;
+    using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
+    using EquationIdVectorType = Element::EquationIdVectorType;
+    using DofsVectorType = Element::DofsVectorType;
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

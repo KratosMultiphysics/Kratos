@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
@@ -22,8 +22,7 @@
 #include "custom_utilities/mapper_utilities.h"
 #include "mapping_application_variables.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
@@ -31,7 +30,7 @@ typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 typedef std::vector<std::vector<double>> MatrixResultsType;
 typedef std::vector<int> EqIDVectorResultsType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 namespace {
 
@@ -176,6 +175,37 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionExists, Kra
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[0], 0.3);
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[1], 0.3);
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[2], 0.4);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_WithoutApproximation, KratosMappingApplicationSerialTestSuite)
+{
+    const double dist = 1.1;
+    Point coords(-0.01, -0.3, dist);
+
+    std::size_t source_local_sys_idx = 123;
+
+    NearestElementInterfaceInfo nearest_element_info(coords, source_local_sys_idx, 0);
+    NearestElementInterfaceInfo nearest_element_info_without_approx(coords, source_local_sys_idx, 0, {false});
+
+    auto node_1(Kratos::make_intrusive<NodeType>(1, 0.0, 0.0, 0.0));
+    auto node_2(Kratos::make_intrusive<NodeType>(2, 1.0, 0.0, 0.0));
+    auto node_3(Kratos::make_intrusive<NodeType>(3, 0.0, -1.0, 0.0));
+
+    const Geometry<NodeType>::Pointer tria(Kratos::make_shared<Triangle3D3<NodeType>>(node_3, node_2, node_1));
+
+    InterfaceObject::Pointer interface_geom_obj(Kratos::make_shared<InterfaceGeometryObject>(tria.get()));
+
+    node_1->SetValue(INTERFACE_EQUATION_ID, 35);
+    node_2->SetValue(INTERFACE_EQUATION_ID, 18);
+    node_3->SetValue(INTERFACE_EQUATION_ID, 61);
+
+    nearest_element_info.ProcessSearchResultForApproximation(*interface_geom_obj);
+    nearest_element_info_without_approx.ProcessSearchResultForApproximation(*interface_geom_obj);
+
+    KRATOS_CHECK(nearest_element_info.GetLocalSearchWasSuccessful());
+    KRATOS_CHECK(nearest_element_info.GetIsApproximation());
+
+    KRATOS_CHECK_IS_FALSE(nearest_element_info_without_approx.GetLocalSearchWasSuccessful());
 }
 
 // KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Approximation, KratosMappingApplicationSerialTestSuite)
@@ -373,7 +403,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
-    auto node_local_sys(Kratos::make_shared<Node<3>>(8, 1.0, 2.5, -5.0));
+    auto node_local_sys(Kratos::make_shared<Node>(8, 1.0, 2.5, -5.0));
 
     NearestElementLocalSystem local_sys(node_local_sys.get());
 
@@ -520,5 +550,4 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystemWithApprox
     TestNearestElementLocalSystem(exp_loc_matrix, exp_origin_ids, p_geom);
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

@@ -29,7 +29,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef std::size_t IndexSize;
         typedef std::unordered_map<IndexSize,IndexSize> IndexIndexMapType;
         typedef std::unordered_map<IndexSize,std::vector<std::string>> IndexStringMapType;

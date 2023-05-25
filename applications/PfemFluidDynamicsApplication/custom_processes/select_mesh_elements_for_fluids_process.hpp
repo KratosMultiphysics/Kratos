@@ -58,8 +58,8 @@ namespace Kratos
         typedef ModelPart::ConditionType ConditionType;
         typedef ModelPart::PropertiesType PropertiesType;
         typedef ConditionType::GeometryType GeometryType;
-
-        typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+        typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
+		typedef std::size_t SizeType;
         ///@}
         ///@name Life Cycle
         ///@{
@@ -124,7 +124,7 @@ namespace Kratos
             int number_of_slivers = 0;
 
             bool refiningBox = false;
-            for (unsigned int index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
+            for (SizeType index = 0; index < mrRemesh.UseRefiningBox.size(); index++)
             {
                 if (mrRemesh.UseRefiningBox[index] == true && currentTime > mrRemesh.RefiningBoxInitialTime[index] && currentTime < mrRemesh.RefiningBoxFinalTime[index])
                 {
@@ -146,49 +146,49 @@ namespace Kratos
                     std::cout << " Start Element Selection " << OutNumberOfElements << std::endl;
 
                 ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-                const unsigned int nds = element_begin->GetGeometry().size();
-                const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
+                const SizeType nds = element_begin->GetGeometry().size();
+                const SizeType dimension = element_begin->GetGeometry().WorkingSpaceDimension();
                 int *OutElementList = mrRemesh.OutMesh.GetElementList();
                 ModelPart::NodesContainerType &rNodes = mrModelPart.Nodes();
 
                 int el = 0;
                 int number = 0;
 
-                //#pragma omp parallel for reduction(+:number) private(el)
+                // #pragma omp parallel for reduction(+:number) private(el)
                 for (el = 0; el < OutNumberOfElements; el++)
                 {
-                    Geometry<Node<3>> vertices;
+                    Geometry<Node> vertices;
                     double meanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
-                    unsigned int numfreesurf = 0;
-                    unsigned int numboundary = 0;
-                    unsigned int numrigid = 0;
-                    unsigned int numinlet = 0;
-                    unsigned int numisolated = 0;
+                    SizeType numfreesurf = 0;
+                    SizeType numboundary = 0;
+                    SizeType numrigid = 0;
+                    SizeType numInletNodes = 0;
+                    SizeType numisolated = 0;
                     bool noremesh = false;
                     std::vector<double> normVelocityP;
                     normVelocityP.resize(nds, false);
-                    unsigned int checkedNodes = 0;
+                    SizeType checkedNodes = 0;
                     box_side_element = false;
-                    unsigned int countIsolatedWallNodes = 0;
+                    SizeType countIsolatedWallNodes = 0;
                     bool increaseAlfa = false;
-                    unsigned int previouslyFreeSurfaceNodes = 0;
-                    unsigned int previouslyIsolatedNodes = 0;
-                    unsigned int sumPreviouslyIsolatedFreeSurf = 0;
-                    unsigned int sumIsolatedFreeSurf = 0;
+                    SizeType previouslyFreeSurfaceNodes = 0;
+                    SizeType previouslyIsolatedNodes = 0;
+                    SizeType sumPreviouslyIsolatedFreeSurf = 0;
+                    SizeType sumIsolatedFreeSurf = 0;
                     std::vector<array_1d<double, 3>> nodesCoordinates;
                     nodesCoordinates.resize(nds);
                     std::vector<array_1d<double, 3>> nodesVelocities;
                     nodesVelocities.resize(nds);
-                    unsigned int isolatedNodesInTheElement = 0;
+                    SizeType isolatedNodesInTheElement = 0;
                     double rigidNodeLocalMeshSize = 0;
                     double rigidNodeMeshCounter = 0;
 
-                    for (unsigned int pn = 0; pn < nds; pn++)
+                    for (SizeType pn = 0; pn < nds; pn++)
                     {
                         if (OutElementList[el * nds + pn] <= 0)
                             std::cout << " ERROR: something is wrong: nodal id < 0 " << el << std::endl;
 
-                        if ((unsigned int)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size())
+                        if ((SizeType)OutElementList[el * nds + pn] > mrRemesh.NodalPreIds.size())
                         {
                             wrong_added_node = true;
                             std::cout << " ERROR: something is wrong: node out of bounds " << std::endl;
@@ -205,6 +205,14 @@ namespace Kratos
                         {
                             numisolated++;
                         }
+                        if (vertices.back().Is(PFEMFlags::PREVIOUS_FREESURFACE))
+                        {
+                            previouslyFreeSurfaceNodes++;
+                        }
+                        if (vertices.back().Is(PFEMFlags::PREVIOUS_ISOLATED))
+                        {
+                            previouslyIsolatedNodes++;
+                        }
                         if (vertices.back().Is(BOUNDARY))
                         {
                             numboundary++;
@@ -213,9 +221,6 @@ namespace Kratos
                         {
                             noremesh = true;
                         }
-
-                        previouslyFreeSurfaceNodes += vertices.back().FastGetSolutionStepValue(FREESURFACE);       // it is 1 if it was free-surface (set in build_mesh_boundary_for_fluids)
-                        previouslyIsolatedNodes += vertices.back().FastGetSolutionStepValue(PREVIOUS_FREESURFACE); // it is 1 if it was isolated (set in build_mesh_boundary_for_fluids)
 
                         if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
                         {
@@ -229,7 +234,7 @@ namespace Kratos
 
                             NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
                             bool localIsolatedWallNode = true;
-                            for (unsigned int i = 0; i < rN.size(); i++)
+                            for (SizeType i = 0; i < rN.size(); i++)
                             {
                                 if (rN[i].IsNot(RIGID))
                                 {
@@ -259,7 +264,7 @@ namespace Kratos
                         }
                         if (vertices.back().Is(INLET))
                         {
-                            numinlet++;
+                            numInletNodes++;
                         }
 
                         if (refiningBox == true && vertices.back().IsNot(RIGID))
@@ -368,7 +373,7 @@ namespace Kratos
                         }
                     }
 
-                    if (numinlet > 0)
+                    if (numInletNodes > 0)
                     {
                         Alpha *= 1.5;
                     }
@@ -411,7 +416,7 @@ namespace Kratos
                                                                   (std::sqrt(std::pow(nodesVelocities[1][0], 2) + std::pow(nodesVelocities[1][1], 2)) *
                                                                    std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2)));
 
-                                        if (fabs(cosAngle01) < 0.95 || fabs(cosAngle02) < 0.95 || fabs(cosAngle12) < 0.95)
+                                        if (std::abs(cosAngle01) < 0.95 || std::abs(cosAngle02) < 0.95 || std::abs(cosAngle12) < 0.95)
                                         {
                                             accepted = false;
                                             // std::cout << isolatedNodesInTheElement << " isolatedNodesInTheElement The angle between the velocity vectors is too big" << std::endl;
@@ -419,7 +424,7 @@ namespace Kratos
                                     }
                                 }
                             }
-                            Geometry<Node<3>> *triangle = new Triangle2D3<Node<3>>(vertices);
+                            Geometry<Node> *triangle = new Triangle2D3<Node>(vertices);
                             double elementArea = triangle->Area();
                             if (elementArea < CriticalVolume)
                             {
@@ -466,7 +471,7 @@ namespace Kratos
                                                                   (std::sqrt(std::pow(nodesVelocities[2][0], 2) + std::pow(nodesVelocities[2][1], 2) + std::pow(nodesVelocities[2][2], 2)) *
                                                                    std::sqrt(std::pow(nodesVelocities[3][0], 2) + std::pow(nodesVelocities[3][1], 2) + std::pow(nodesVelocities[3][2], 2)));
 
-                                        if (fabs(cosAngle01) < 0.85 || fabs(cosAngle02) < 0.85 || fabs(cosAngle03) < 0.85 || fabs(cosAngle12) < 0.85 || fabs(cosAngle13) < 0.85 || fabs(cosAngle23) < 0.85)
+                                        if (std::abs(cosAngle01) < 0.85 || std::abs(cosAngle02) < 0.85 || std::abs(cosAngle03) < 0.85 || std::abs(cosAngle12) < 0.85 || std::abs(cosAngle13) < 0.85 || std::abs(cosAngle23) < 0.85)
                                         {
                                             accepted = false;
                                             // std::cout << "The angle between the velocity vectors is too big" << std::endl;
@@ -481,7 +486,7 @@ namespace Kratos
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
-                        Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
+                        Geometry<Node> *tetrahedron = new Tetrahedra3D4<Node>(vertices);
                         double Volume = tetrahedron->Volume();
 
                         // a1 slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
@@ -516,7 +521,7 @@ namespace Kratos
                         const double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a2, 2) + std::pow(b2, 2) + std::pow(c2, 2)));
                         const double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (std::sqrt(std::pow(a4, 2) + std::pow(b4, 2) + std::pow(c4, 2)) * std::sqrt(std::pow(a3, 2) + std::pow(b3, 2) + std::pow(c3, 2)));
 
-                        if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
+                        if (std::abs(cosAngle12) > 0.999 || std::abs(cosAngle13) > 0.999 || std::abs(cosAngle14) > 0.999 || std::abs(cosAngle23) > 0.999 || std::abs(cosAngle24) > 0.999 || std::abs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
                         {
                             accepted = false;
                             number_of_slivers++;
@@ -528,69 +533,6 @@ namespace Kratos
                         }
                         delete tetrahedron;
                     }
-
-                    // // to control that the element has a good shape
-                    // if (accepted && (numfreesurf > 0 || numrigid == nds))
-                    //     {
-                    //         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
-
-                    //         double Volume = tetrahedron->Volume();
-                    //         double CriticalVolume = 0.01 * mrRemesh.Refine->MeanVolume;
-                    //         if(Volume==0){
-                    //             std::cout<<" !!!!! Volume==0 ";
-                    //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
-                    //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             Volume = std::pow(meanLength, 3) * std::sqrt(2) / 12.0;
-                    //             std::cout<<" now volume is  "<<Volume<<std::endl;
-                    //         }
-                    //         if (CriticalVolume == 0)
-                    //         {
-                    //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
-                    //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += std::sqrt(SquaredLength) / 6.0;
-                    //             double regularTetrahedronVolume = std::pow(meanLength, 3) * std::sqrt(2) / 12.0;
-                    //             CriticalVolume = 0.00001 * regularTetrahedronVolume;
-                    //         }
-
-                    //         if (fabs(Volume) < CriticalVolume)
-                    //         {
-                    //             accepted = false;
-                    //             number_of_slivers++;
-                    //         }
-                    //         delete tetrahedron;
-                    //     }
-                    //}
 
                     if (accepted)
                     {
@@ -609,7 +551,7 @@ namespace Kratos
             if (mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES))
             {
                 ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-                const unsigned int nds = (*element_begin).GetGeometry().size();
+                const SizeType nds = (*element_begin).GetGeometry().size();
 
                 int *OutElementList = mrRemesh.OutMesh.GetElementList();
 
@@ -620,7 +562,7 @@ namespace Kratos
                 {
                     if (mrRemesh.PreservedElements[el])
                     {
-                        for (unsigned int pn = 0; pn < nds; pn++)
+                        for (SizeType pn = 0; pn < nds; pn++)
                         {
                             // set vertices
                             rNodes[OutElementList[el * nds + pn]].Set(BLOCKED);
@@ -745,10 +687,10 @@ namespace Kratos
 
         void IncreaseAlphaForRefininedZones(double &Alpha,
                                             bool increaseAlfa,
-                                            unsigned int nds,
-                                            unsigned int numfreesurf,
-                                            unsigned int numrigid,
-                                            unsigned int numisolated)
+                                            SizeType nds,
+                                            SizeType numfreesurf,
+                                            SizeType numrigid,
+                                            SizeType numisolated)
         {
             KRATOS_TRY
 

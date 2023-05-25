@@ -23,7 +23,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void RubinowAndKellerLiftLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void RubinowAndKellerLiftLaw::ComputeForce(Geometry<Node >& r_geometry,
                                                const double reynolds_number,
                                                double particle_radius,
                                                double fluid_density,
@@ -32,7 +32,7 @@ namespace Kratos {
                                                array_1d<double, 3>& rotation_induced_lift,
                                                const ProcessInfo& r_current_process_info)
     {
-        Node<3>& node = r_geometry[0];
+        Node& node = r_geometry[0];
         const array_1d<double, 3> minus_slip_rot = (0.5 * node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED)
                                               - node.FastGetSolutionStepValue(ANGULAR_VELOCITY));
         array_1d<double, 3> minus_slip_rot_cross_slip_vel;

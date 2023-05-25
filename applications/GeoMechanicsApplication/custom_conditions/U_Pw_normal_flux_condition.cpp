@@ -34,16 +34,16 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
     for(unsigned int i = 0; i<NumGPoints; ++i)
         (JContainer[i]).resize(TDim,LocalDim,false);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
+    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
     
     //Condition variables
     array_1d<double,TNumNodes> NormalFluxVector;
@@ -65,9 +65,8 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
                 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              JContainer[GPoint],
-                                              IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint],
+                                                                                 IntegrationPoints[GPoint].Weight() );
                 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);

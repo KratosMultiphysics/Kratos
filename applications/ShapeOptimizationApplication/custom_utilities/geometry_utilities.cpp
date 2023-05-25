@@ -116,7 +116,7 @@ void GeometryUtilities::ExtractBoundaryNodes( std::string const& rBoundarySubMod
     // Fill map that counts number of faces for given set of nodes
     for (auto& elem_i : mrModelPart.Elements())
     {
-        KRATOS_ERROR_IF(elem_i.GetGeometry().Dimension() < domain_size) << "ExtractBoundaryNodes: This function does only work"
+        KRATOS_ERROR_IF(elem_i.GetGeometry().WorkingSpaceDimension() < domain_size) << "ExtractBoundaryNodes: This function does only work"
             <<" for solid elements in 3D and surface elements in 2D!" << std::endl;
 
         Element::GeometryType::GeometriesArrayType boundaries = elem_i.GetGeometry().GenerateBoundariesEntities();
@@ -214,7 +214,7 @@ std::tuple<std::vector<double>, std::vector<double>> GeometryUtilities::ComputeD
 {
     KRATOS_TRY;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     typedef NodeType::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
@@ -294,7 +294,7 @@ void GeometryUtilities::ComputeVolumeShapeDerivatives(
     block_for_each(mrModelPart.Elements(), VolumeDerivativeMethodType(), [&](ModelPart::ElementType& rElement, VolumeDerivativeMethodType& rVolumeDerivativeMethodType){
         auto& r_geometry = rElement.GetGeometry();
         const auto& geometry_type = r_geometry.GetGeometryType();
-        const SizeType dimension = r_geometry.Dimension();
+        const SizeType dimension = r_geometry.WorkingSpaceDimension();
 
         switch (geometry_type) {
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
@@ -351,7 +351,7 @@ void GeometryUtilities::CalculateNodalAreasFromConditions()
     VariableUtils().SetHistoricalVariableToZero(NODAL_AREA, mrModelPart.Nodes());
 
     //calculating the normals and summing up at nodes
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode)
     {
         const array_1d<double,3> normal = rNode.FastGetSolutionStepValue(NORMAL);
         rNode.FastGetSolutionStepValue(NODAL_AREA) = MathUtils<double>::Norm3(normal);

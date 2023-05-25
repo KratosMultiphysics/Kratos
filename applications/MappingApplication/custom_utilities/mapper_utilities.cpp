@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -313,7 +313,7 @@ void SaveCurrentConfiguration(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(rModelPart.Nodes(), [&](Node& rNode){
         rNode.SetValue(CURRENT_COORDINATES, rNode.Coordinates());
     });
 
@@ -327,7 +327,7 @@ void RestoreCurrentConfiguration(ModelPart& rModelPart)
     if (rModelPart.NumberOfNodes() > 0) {
         KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->Has(CURRENT_COORDINATES)) << "Nodes do not have CURRENT_COORDINATES for restoring the current configuration!" << std::endl;
 
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             noalias(rNode.Coordinates()) = rNode.GetValue(CURRENT_COORDINATES);
             rNode.GetData().Erase(CURRENT_COORDINATES);
         });
