@@ -1,11 +1,9 @@
-from abc import ABC, abstractmethod
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import *
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
-class TestConvergence(kratos_unittest.TestCase, ABC):
+class TestConvergence(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.optimization_problem = OptimizationProblem()

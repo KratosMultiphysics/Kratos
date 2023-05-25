@@ -8,7 +8,7 @@ def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_proble
     else:
         raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
 
-class MaxIterConvCriterium(object):
+class MaxIterConvCriterium:
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -20,12 +20,12 @@ class MaxIterConvCriterium(object):
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
 
-    def CheckConvergence(self):
+    def IsConverged(self) -> bool:
         iter = self.__optimization_problem.GetStep()
         conv = True if iter >= self.__max_iter else False
         msg = f"""\t Convergence info: 
             type          : {"max_iter"} 
             value         : {iter} of {self.__max_iter}
-            status        : {conv}"""
+            status        : {"converged" if conv else "not converged"}"""
         print(msg)
         return conv

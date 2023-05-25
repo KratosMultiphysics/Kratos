@@ -1,5 +1,3 @@
-from abc import ABC, abstractmethod
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
@@ -10,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.responses.mass_response_function
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control import MaterialPropertiesControl
 
-class TestAlgorithmSteepestDescent(kratos_unittest.TestCase, ABC):
+class TestAlgorithmSteepestDescent(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()

@@ -22,7 +22,7 @@ class ConstStep(object):
         self.init_step = parameters["init_step"].GetDouble()
         self.__optimization_problem = optimization_problem
 
-    def ComputeStep(self):
+    def ComputeStep(self) -> float:
         algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
         
         if not algorithm_buffered_data.HasValue("search_direction"):
