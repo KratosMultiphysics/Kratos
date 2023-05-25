@@ -99,6 +99,11 @@ public:
         const Parameters HRomWeights,
         ModelPart& rOriginModelPart,
         ModelPart& rHRomComputingModelPart);
+    
+    static void AddHromEntitiesWithNeighboursToSubModelPart(
+        const Parameters HRomWeights,
+        ModelPart& rOriginModelPart,
+        const std::string& subModelPartName);
 
 
     /**

@@ -327,9 +327,9 @@ class RomManager(object):
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        # mdpa_name  = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
-        # hrom_mdpa_name = f"{mdpa_name}HROM"
-        # parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(hrom_mdpa_name)
+        mdpa_name  = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+        hrom_mdpa_name = f"{mdpa_name}HROM"
+        parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(hrom_mdpa_name)
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)

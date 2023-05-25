@@ -40,6 +40,214 @@ namespace
     };
 }
 
+// void RomAuxiliaryUtilities::AddHromEntitiesWithNeighboursToSubModelPart(
+//     const Parameters HRomWeights,
+//     ModelPart& rOriginModelPart,
+//     const std::string& subModelPartName)
+// {
+//     // Ensure that the subModelPart exists
+//     if (!rOriginModelPart.HasSubModelPart(subModelPartName))
+//     {
+//         throw std::invalid_argument("SubModelPart '" + subModelPartName + "' does not exist in the model part");
+//     }
+//     ModelPart& rSubModelPart = rOriginModelPart.GetSubModelPart(subModelPartName);
+
+//     // Auxiliary containers to save the entities involved in the HROM mesh
+//     std::vector<Element::Pointer> hrom_elems_vect;
+//     std::vector<Condition::Pointer> hrom_conds_vect;
+//     NodesPointerSetType hrom_nodes_set;
+
+//     const auto& r_elem_weights = HRomWeights["Elements"];
+//     hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
+
+//     FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rOriginModelPart);
+//     find_nodal_elements_neighbours_process.Execute();
+
+//     // Loop over elements and add them and their neighbours to the sub model part
+//     for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
+//         // Get element from origin mesh
+//         const IndexType elem_id = stoi(it.name());
+//         auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); 
+
+//         // Add the element to the auxiliary container and to the sub model part
+//         hrom_elems_vect.push_back(p_elem);
+//         rSubModelPart.AddElement(p_elem);
+
+//         // Add the neighboring nodes to the sub model part
+//         const auto& r_geom = p_elem->GetGeometry();
+//         const SizeType n_nodes = r_geom.PointsNumber();
+//         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+//             NodeType::Pointer p_node = r_geom(i_node);
+//             hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+//             rSubModelPart.AddNode(p_node);
+
+//             // Get the neighbor elements from each node and add them to the model part
+//             for (auto& neighbor_elem : p_node->GetValue(NEIGHBOUR_ELEMENTS)) {
+//                 auto p_neighbor_elem = &neighbor_elem;
+//                 // Be careful to not add an element that is already in the model part.
+//                 // For this, we will check if the element is already in our vector of elements.
+//                 if(std::find(hrom_elems_vect.begin(), hrom_elems_vect.end(), p_neighbor_elem) == hrom_elems_vect.end()) {
+//                     hrom_elems_vect.push_back(p_neighbor_elem);
+//                     rSubModelPart.AddElement(p_neighbor_elem);
+//                 }
+
+//                 // Add the nodes of the neighboring element to the sub model part
+//                 const auto& neighbor_r_geom = p_neighbor_elem->GetGeometry();
+//                 const SizeType neighbor_n_nodes = neighbor_r_geom.PointsNumber();
+//                 for (IndexType i_neighbor_node = 0; i_neighbor_node < neighbor_n_nodes; ++i_neighbor_node) {
+//                     NodeType::Pointer p_neighbor_node = neighbor_r_geom(i_neighbor_node);
+//                     hrom_nodes_set.insert(hrom_nodes_set.end(), p_neighbor_node);
+//                     rSubModelPart.AddNode(p_neighbor_node);
+//                 }
+//             }
+//         }
+//     }
+//     hrom_elems_vect.shrink_to_fit();
+
+//     const auto& r_cond_weights = HRomWeights["Conditions"];
+//     hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
+
+//     FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rOriginModelPart);
+//     find_nodal_conditions_neighbours_process.Execute();
+
+//     // Loop over conditions and add them and their neighbours to the sub model part
+//     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
+//         // Get the condition from origin mesh
+//         const IndexType cond_id = stoi(it.name());
+//         auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); 
+
+//         // Add the condition to the auxiliary container and to the sub model part
+//         hrom_conds_vect.push_back(p_cond);
+//         rSubModelPart.AddCondition(p_cond);
+
+//         // Add the neighboring conditions to the sub model part
+//         const auto& r_geom = p_cond->GetGeometry();
+//         const SizeType n_nodes = r_geom.PointsNumber();
+//         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+//             auto p_node = r_geom(i_node);
+//         }
+
+//         // Add the neighboring nodes to the sub model part
+//         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+//             auto p_node = r_geom(i_node);
+//             hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+//             rSubModelPart.AddNode(p_node);
+
+//                         // Get the neighbor conditions from each node and add them to the model part
+//             for (auto& neighbor_cond : p_node->GetValue(NEIGHBOUR_CONDITIONS)) {
+//                 auto p_neighbor_cond = &neighbor_cond;
+//                 // Be careful to not add a condition that is already in the model part.
+//                 // For this, we will check if the condition is already in our vector of conditions.
+//                 if(std::find(hrom_conds_vect.begin(), hrom_conds_vect.end(), p_neighbor_cond) == hrom_conds_vect.end()) {
+//                     hrom_conds_vect.push_back(p_neighbor_cond);
+//                     rSubModelPart.AddCondition(p_neighbor_cond);
+//                 }
+
+//                 // Add the nodes of the neighboring condition to the sub model part
+//                 const auto& neighbor_r_geom = p_neighbor_cond->GetGeometry();
+//                 const SizeType neighbor_n_nodes = neighbor_r_geom.PointsNumber();
+//                 for (IndexType i_neighbor_node = 0; i_neighbor_node < neighbor_n_nodes; ++i_neighbor_node) {
+//                     NodeType::Pointer p_neighbor_node = neighbor_r_geom(i_neighbor_node);
+//                     hrom_nodes_set.insert(hrom_nodes_set.end(), p_neighbor_node);
+//                     rSubModelPart.AddNode(p_neighbor_node);
+//                 }
+//             }
+//         }
+//     }
+//     hrom_conds_vect.shrink_to_fit();
+// }
+
+void RomAuxiliaryUtilities::AddHromEntitiesWithNeighboursToSubModelPart(
+    const Parameters HRomWeights,
+    ModelPart& rOriginModelPart,
+    const std::string& subModelPartName)
+{
+    // Ensure that the subModelPart exists
+    if (!rOriginModelPart.HasSubModelPart(subModelPartName))
+    {
+        throw std::invalid_argument("SubModelPart '" + subModelPartName + "' does not exist in the model part");
+    }
+    ModelPart& rSubModelPart = rOriginModelPart.GetSubModelPart(subModelPartName);
+
+    // Auxiliary containers to save the entities involved in the HROM mesh
+    std::vector<Element::Pointer> hrom_elems_vect;
+    std::vector<Condition::Pointer> hrom_conds_vect;
+
+    const auto& r_elem_weights = HRomWeights["Elements"];
+    hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rOriginModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    // Loop over elements and add them and their neighbours to the sub model part
+    for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
+        // Get element from origin mesh
+        const IndexType elem_id = stoi(it.name());
+        auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); 
+
+        // Add the element to the auxiliary container and to the sub model part
+        hrom_elems_vect.push_back(p_elem);
+        rSubModelPart.AddElement(p_elem);
+
+        // Add the neighboring elements to the sub model part
+        const auto& r_geom = p_elem->GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            NodeType::Pointer p_node = r_geom(i_node);
+
+            // Get the neighbor elements from each node and add them to the model part
+            for (auto& neighbor_elem : p_node->GetValue(NEIGHBOUR_ELEMENTS)) {
+                auto p_neighbor_elem = &neighbor_elem;
+                // Be careful to not add an element that is already in the model part.
+                // For this, we will check if the element is already in our vector of elements.
+                if(std::find(hrom_elems_vect.begin(), hrom_elems_vect.end(), p_neighbor_elem) == hrom_elems_vect.end()) {
+                    hrom_elems_vect.push_back(p_neighbor_elem);
+                    rSubModelPart.AddElement(p_neighbor_elem);
+                }
+            }
+        }
+    }
+    hrom_elems_vect.shrink_to_fit();
+
+    const auto& r_cond_weights = HRomWeights["Conditions"];
+    hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rOriginModelPart);
+    find_nodal_conditions_neighbours_process.Execute();
+
+    // Loop over conditions and add them and their neighbours to the sub model part
+    for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
+        // Get the condition from origin mesh
+        const IndexType cond_id = stoi(it.name());
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); 
+
+        // Add the condition to the auxiliary container and to the sub model part
+        hrom_conds_vect.push_back(p_cond);
+        rSubModelPart.AddCondition(p_cond);
+
+        // Add the neighboring conditions to the sub model part
+        const auto& r_geom = p_cond->GetGeometry();
+        const SizeType n_nodes = r_geom.PointsNumber();
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            auto p_node = r_geom(i_node);
+
+            // Get the neighbor conditions from each node and add them to the model part
+            for (auto& neighbor_cond : p_node->GetValue(NEIGHBOUR_CONDITIONS)) {
+                auto p_neighbor_cond = &neighbor_cond;
+                // Be careful to not add a condition that is already in the model part.
+                // For this, we will check if the condition is already in our vector of conditions.
+                if(std::find(hrom_conds_vect.begin(), hrom_conds_vect.end(), p_neighbor_cond) == hrom_conds_vect.end()) {
+                    hrom_conds_vect.push_back(p_neighbor_cond);
+                    rSubModelPart.AddCondition(p_neighbor_cond);
+                }
+            }
+        }
+    }
+    hrom_conds_vect.shrink_to_fit();
+}
+
+
+
 void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
     const Parameters HRomWeights,
     ModelPart& rOriginModelPart,
@@ -79,7 +287,6 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
             // Get the neighbor elements from each node and add them to the model part
             for (auto& neighbor_elem : p_node->GetValue(NEIGHBOUR_ELEMENTS)) {
                 Kratos::Element::Pointer p_neighbor_elem = &neighbor_elem;
-                KRATOS_WATCH(p_neighbor_elem->Id())
                 // Be careful to not add an element that is already in the model part.
                 // For this, we will check if the element is already in our vector of elements.
                 if(std::find(hrom_elems_vect.begin(), hrom_elems_vect.end(), p_neighbor_elem) == hrom_elems_vect.end()) {
@@ -125,7 +332,6 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPartWithNeighbours(
             // Get the neighbor conditions from each node and add them to the model part
             for (auto& neighbor_cond : p_node->GetValue(NEIGHBOUR_CONDITIONS)) {
                 Kratos::Condition::Pointer p_neighbor_cond = &neighbor_cond;
-                KRATOS_WATCH(p_neighbor_cond->Id())
                 // Be careful to not add a condition that is already in the model part.
                 // For this, we will check if the condition is already in our vector of conditions.
                 if(std::find(hrom_conds_vect.begin(), hrom_conds_vect.end(), p_neighbor_cond) == hrom_conds_vect.end()) {

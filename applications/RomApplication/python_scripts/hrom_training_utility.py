@@ -77,7 +77,7 @@ class HRomTrainingUtility(object):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
         n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
-        self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+        self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = True, number_of_conditions = n_conditions)
         self.hyper_reduction_element_selector.Run()
 
         # Save the HROM weights in the RomParameters.json
@@ -89,7 +89,11 @@ class HRomTrainingUtility(object):
         model_part_name = self.solver.settings["model_part_name"].GetString()
         model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
         # computing_model_part = self.solver.GetComputingModelPart()
-        computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
+        # computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
+        aux_model = KratosMultiphysics.Model()
+        computing_model_part = aux_model.CreateModelPart("main")
+        model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
+        model_part_io.ReadModelPart(computing_model_part)
 
         # Create a new model with the HROM main model part
         # This is intentionally done in order to completely emulate the origin model part
@@ -106,6 +110,11 @@ class HRomTrainingUtility(object):
         # Get the weights and fill the HROM computing model part
         if (self.projection_strategy=="lspg"):
             KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
+            computing_model_part.CreateSubModelPart("LSPG")
+            KratosROM.RomAuxiliaryUtilities.AddHromEntitiesWithNeighboursToSubModelPart(hrom_info, computing_model_part, "LSPG")
+            name_out_file = f"{model_part_output_name}HROMLSPG"
+            KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(computing_model_part)
+            # debug = true
         else:
             KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
         if self.echo_level > 0:
@@ -187,7 +196,7 @@ class HRomTrainingUtility(object):
         #TODO: Make this optional
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
-        include_minimum_condition = False
+        include_minimum_condition = True
         if include_minimum_condition:
             # Get the HROM conditions to be added
             minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
