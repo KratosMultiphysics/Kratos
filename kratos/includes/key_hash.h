@@ -47,6 +47,7 @@ namespace Kratos
 
     /**
      * @brief This method creates an "unique" hash for the input value
+     * @details It comes from boost, taken from here: https://www.boost.org/doc/libs/1_55_0/doc/html/hash/reference.html#boost.hash_combine
      * @tparam TClassType The type of class to be hashed
      * @param Seed This is the seed used to create the hash
      * @param Value This is the value to be hashed

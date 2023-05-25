@@ -768,12 +768,11 @@ private:
 
 }  // namespace	Kratos.
 
-namespace std
-{
-namespace 
+namespace AuxiliaryHashCombine
 {
     /**
      * @brief This method creates an "unique" hash for the input value
+     * @details It comes from boost, taken from here: https://www.boost.org/doc/libs/1_55_0/doc/html/hash/reference.html#boost.hash_combine
      * @tparam TClassType The type of class to be hashed
      * @param rSeed This is the seed used to create the hash
      * @param rValue This is the value to be hashed
@@ -789,12 +788,15 @@ namespace
         rSeed ^= hasher(rValue) + 0x9e3779b9 + (rSeed<<6) + (rSeed>>2);
     }
 } /// namespace
+
+namespace std
+{
 template<class T, std::size_t N>
 struct hash<Kratos::array_1d<T,N>>
 {
     std::size_t operator()(const Kratos::array_1d<T,N>& rArray) {
             std::size_t seed = 0;
-            for (auto component : rArray) {HashCombine(seed, component);}
+            for (auto component : rArray) {AuxiliaryHashCombine::HashCombine(seed, component);}
             return seed;
         }
 };
