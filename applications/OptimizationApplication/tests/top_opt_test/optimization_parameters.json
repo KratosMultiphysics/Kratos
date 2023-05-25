@@ -13,7 +13,7 @@
         "analyses": [
             {
                 "name": "Structure_static",
-                "type": "SteppingAnalysisExecutionPolicy",
+                "type": "stepping_analysis_execution_policy",
                 "settings": {
                     "model_part_names": [
                         "Structure"

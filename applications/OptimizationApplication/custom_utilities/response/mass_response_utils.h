@@ -14,7 +14,6 @@
 #pragma once
 
 // System includes
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -40,56 +39,51 @@ public:
 
     using GeometryType = ModelPart::ElementType::GeometryType;
 
-    using SensitivityFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
-
-    using SensitivityVariableModelPartsListMap = std::unordered_map<SensitivityFieldVariableTypes, std::vector<ModelPart*>>;
+    using GradientFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
 
     ///@}
     ///@name Static operations
     ///@{
 
-    static void Check(const std::vector<ModelPart const*>& rModelParts);
+    static void Check(const ModelPart& rModelPart);
 
-    static double CalculateValue(const std::vector<ModelPart const*>& rModelParts);
+    static double CalculateValue(const ModelPart& rModelPart);
 
-    static void CalculateSensitivity(
-        const std::vector<ModelPart*>& rEvaluatedModelParts,
-        const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo);
+    static void CalculateGradient(
+        const std::vector<GradientFieldVariableTypes>& rListOfGradientVariables,
+        const std::vector<ModelPart*>& rListOfGradientRequiredModelParts,
+        const std::vector<ModelPart*>& rListOfGradientComputedModelParts);
 
     ///@}
 private:
     ///@name Private operations
     ///@{
 
-    static void CheckModelPart(const ModelPart& rModelPart);
-
-    static double CalculateModelPartValue(const ModelPart& rModelPart);
-
     static bool HasVariableInProperties(
         const ModelPart& rModelPart,
         const Variable<double>& rVariable);
 
-    static void CalculateMassGeometricalPropertySensitivity(
+    static void CalculateMassGeometricalPropertyGradient(
         ModelPart& rModelPart,
-        const Variable<double>& rGeometricalPropertySensitivityVariable,
-        const Variable<double>& rGeometricalCoflictingPropertySensitivityVariable,
-        const Variable<double>& rOutputSensitivityVariable);
+        const Variable<double>& rGeometricalPropertyGradientVariable,
+        const Variable<double>& rGeometricalCoflictingPropertyGradientVariable,
+        const Variable<double>& rOutputGradientVariable);
 
-    static void CalculateMassShapeSensitivity(
+    static void CalculateMassShapeGradient(
         ModelPart& rModelPart,
-        const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
+        const Variable<array_1d<double, 3>>& rOutputGradientVariable);
 
-    static void CalculateMassDensitySensitivity(
+    static void CalculateMassDensityGradient(
         ModelPart& rModelPart,
-        const Variable<double>& rOutputSensitivityVariable);
+        const Variable<double>& rOutputGradientVariable);
 
-    static void CalculateMassThicknessSensitivity(
+    static void CalculateMassThicknessGradient(
         ModelPart& rModelPart,
-        const Variable<double>& rOutputSensitivityVariable);
+        const Variable<double>& rOutputGradientVariable);
 
-    static void CalculateMassCrossAreaSensitivity(
+    static void CalculateMassCrossAreaGradient(
         ModelPart& rModelPart,
-        const Variable<double>& rOutputSensitivityVariable);
+        const Variable<double>& rOutputGradientVariable);
 
     ///@}
 };
