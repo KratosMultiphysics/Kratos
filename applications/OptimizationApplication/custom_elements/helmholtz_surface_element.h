@@ -55,7 +55,7 @@ namespace Kratos
  * @class HelmholtzSurfaceElement
  * @ingroup OptimizationApplication
  * @brief Helmholtz filtering element for 3D geometries.
- * @details Implements Sobolev/Helmholtz filter for filtering/regularization. This works for arbitrary geometries in 3D
+ * @details Implements Helmholtz surface PDEs which involve Laplace-Beltrami operations for filtering a scalar field on surface.
  * @author Reza Najian Asl
  */
 class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzSurfaceElement

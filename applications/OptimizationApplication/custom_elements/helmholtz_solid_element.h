@@ -37,7 +37,7 @@ namespace Kratos
  * @class HelmholtzSolidElement
  * @ingroup OptimizationApplication
  * @brief Helmholtz filtering element for 3D geometries.
- * @details Implements Sobolev/Helmholtz filter for filtering/regularization. This works for arbitrary geometries in 3D
+ * @details Implements Helmholtz solid PDEs for filtering a scalar field over solid domains.
  * @author Reza Najian Asl
  */
 class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzSolidElement

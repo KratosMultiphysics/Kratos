@@ -35,7 +35,8 @@ namespace Kratos
  * @class HelmholtzSurfaceShapeCondition
  * @ingroup OptimizationApplication
  * @brief Helmholtz filtering condition for 3D geometries.
- * @details Implements Sobolev/Helmholtz filter for filtering/regularization. This works for arbitrary geometries in 3D
+ * @details Implements Laplace–Beltrami operator on the surface boundaries of a bulk/solid domains. Also note that
+ * this condition should be used with helmholtz_solid_shape_element
  * @author Reza Najian Asl
  */
 class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzSurfaceShapeCondition
