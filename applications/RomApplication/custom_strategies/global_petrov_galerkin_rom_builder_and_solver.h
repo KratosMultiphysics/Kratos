@@ -410,6 +410,28 @@ public:
     ///@name Friends
     ///@{
 
+    double time_rom_system_contruction = 0;
+    double time_rom_system_solving = 0;
+    double time_rom_projection_back = 0;
+
+    void ResetTimeMeasures(){
+        time_rom_system_contruction = 0;
+        time_rom_system_solving = 0;
+        time_rom_projection_back = 0;
+    }
+
+    double Get_contruction_time(){
+        return  time_rom_system_contruction;
+    }
+
+    double Get_solving_time(){
+        return time_rom_system_solving;
+    }
+
+    double Get_projection_time(){
+        return time_rom_projection_back;
+    }
+
 
     ///@}
 protected:
@@ -609,6 +631,8 @@ protected:
 
         ProjectROM(rModelPart, rA, rb);
 
+        time_rom_system_contruction += assembling_timer.ElapsedSeconds();
+
         double time = assembling_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
 
@@ -757,6 +781,7 @@ protected:
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
         dxrom_eigen = mEigenRomA.colPivHouseholderQr().solve(mEigenRomB);
         
+        time_rom_system_solving+= solving_timer.ElapsedSeconds();
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
 

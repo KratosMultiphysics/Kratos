@@ -485,6 +485,8 @@ public:
     {
         KRATOS_TRY
 
+        const auto timer_construction = BuiltinTimer();
+
         Timer::Start("Build");
 
         Build(pScheme, rModelPart, A, b);
@@ -503,12 +505,18 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
+        time_system_contruction += timer_construction.ElapsedSeconds();
+
         const auto timer = BuiltinTimer();
+
         Timer::Start("Solve");
 
         SystemSolveWithPhysics(A, Dx, b, rModelPart);
 
         Timer::Stop("Solve");
+
+        time_system_solving+= timer.ElapsedSeconds();
+
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -697,6 +705,20 @@ public:
         Timer::Stop("BuildRHS");
 
         KRATOS_CATCH("")
+    }
+
+    double time_system_contruction = 0;
+    double time_system_solving = 0;
+
+    void ResetTimeMeasures(){
+        time_system_contruction = 0;
+        time_system_solving = 0;
+    }
+    double Get_contruction_time(){
+        return  time_system_contruction;
+    }
+    double Get_solving_time(){
+        return time_system_solving;
     }
 
     /**

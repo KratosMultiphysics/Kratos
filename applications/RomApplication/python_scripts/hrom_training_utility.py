@@ -77,7 +77,7 @@ class HRomTrainingUtility(object):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
         n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
-        self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = True, number_of_conditions = n_conditions)
+        self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
         self.hyper_reduction_element_selector.Run()
 
         # Save the HROM weights in the RomParameters.json
@@ -196,7 +196,7 @@ class HRomTrainingUtility(object):
         #TODO: Make this optional
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
-        include_minimum_condition = True
+        include_minimum_condition = False
         if include_minimum_condition:
             # Get the HROM conditions to be added
             minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(

@@ -77,19 +77,29 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
     
     py::class_<GlobalROMBuilderAndSolverType, typename GlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "GlobalROMBuilderAndSolver")
-        .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def(py::init< LinearSolverType::Pointer, Parameters>() )  //
+        .def("Get_contruction_time",&GlobalROMBuilderAndSolverType::Get_contruction_time) //
+        .def("Get_solving_time",&GlobalROMBuilderAndSolverType::Get_solving_time) //
+        .def("Get_projection_time",&GlobalROMBuilderAndSolverType::Get_projection_time) //
         ;
     
     typedef GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
 
     py::class_<GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ROMBuilderAndSolverType, BuilderAndSolverType>(m, "GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def("Get_contruction_time",&GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Get_contruction_time) //
+        .def("Get_solving_time",&GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Get_solving_time) //
+        .def("Get_projection_time",&GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Get_projection_time) //
         ;
     
     typedef GlobalPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> GlobalPetrovGalerkinROMBuilderAndSolverType;
     
     py::class_<GlobalPetrovGalerkinROMBuilderAndSolverType, typename GlobalPetrovGalerkinROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "GlobalPetrovGalerkinROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def("Get_contruction_time",&GlobalPetrovGalerkinROMBuilderAndSolverType::Get_contruction_time) //
+        .def("Get_solving_time",&GlobalPetrovGalerkinROMBuilderAndSolverType::Get_solving_time) //
+        .def("Get_projection_time",&GlobalPetrovGalerkinROMBuilderAndSolverType::Get_projection_time)
+        
         ;
 
 }

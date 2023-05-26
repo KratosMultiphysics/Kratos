@@ -23,6 +23,8 @@ class RomManager(object):
         self.hrom_training_parameters = self.SetHromTrainingParameters()
         self.CustomizeSimulation = CustomizeSimulation
         self.UpdateProjectParameters = UpdateProjectParameters
+        self.building_times = []
+        self.solving_times = []
 
 
 
@@ -50,7 +52,7 @@ class RomManager(object):
                 hrom_snapshots = self.__LaunchHROM(mu_train)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                # self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################
 
         #######################################
@@ -214,8 +216,8 @@ class RomManager(object):
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         if any(item == "ROM" for item in training_stages):
             print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_train)
-        if any(item == "HROM" for item in training_stages):
-            print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
+        # if any(item == "HROM" for item in training_stages):
+            # print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
         if any(item == "ROM" for item in testing_stages):
             print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
         if any(item == "HROM" for item in testing_stages):
@@ -237,6 +239,9 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -263,6 +268,9 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)       
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -287,6 +295,9 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
             PetrovGalerkinTrainMatrix.append(simulation.GetPetrovGalerkinTrainUtility()._GetSnapshotsMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
         simulation.GetPetrovGalerkinTrainUtility().CalculateAndSaveBasis(np.block(PetrovGalerkinTrainMatrix))
 
@@ -306,15 +317,18 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
             RedidualsSnapshotsMatrix.append(simulation.GetHROM_utility()._GetResidualsProjectedMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
         RedidualsSnapshotsMatrix = np.block(RedidualsSnapshotsMatrix)
         if store_residuals_projected:
             self._StoreSnapshotsMatrix('residuals_projected',RedidualsSnapshotsMatrix)
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
         self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
-        n_conditions = model.GetModelPart("Structure").NumberOfConditions()
-        simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, constrain_conditions = True, number_of_conditions = n_conditions)
-        # simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
+        # n_conditions = model.GetModelPart("Structure").NumberOfConditions()
+        # simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, constrain_conditions = True, number_of_conditions = n_conditions)
+        simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
         simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
         simulation.GetHROM_utility().CreateHRomModelParts()
@@ -339,6 +353,9 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -364,6 +381,9 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -390,6 +410,9 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -416,6 +439,9 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
@@ -439,6 +465,9 @@ class RomManager(object):
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
 
 
     def __LaunchRunROM(self, mu_run):
@@ -455,6 +484,9 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
 
 
     def __LaunchRunHROM(self, mu_run):
@@ -471,6 +503,9 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
+            if hasattr(simulation, "build_time"):
+                self.building_times.append(simulation.build_time)
+                self.solving_times.append(simulation.solving_time)
 
 
 
