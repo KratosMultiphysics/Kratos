@@ -19,7 +19,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/container_expression/expressions/expression.h"
-#include "xml_ostream_writer.h"
 
 namespace Kratos {
 
@@ -109,15 +108,6 @@ public:
     void ClearElements();
 
     const std::vector<Expression::Pointer> GetExpressions() const;
-
-    /**
-     * @brief Write the XML element to the XML output stream writer.
-     * @param rWriter The XML output stream writer.
-     * @param Level The indentation level.
-     */
-    void Write(
-        XmlOStreamWriter& rWriter,
-        const IndexType Level = 0) const;
 
     ///@}
 

@@ -138,21 +138,4 @@ const std::vector<Expression::Pointer> XmlExpressionElement::GetExpressions() co
     return mExpressions;
 }
 
-void XmlExpressionElement::Write(
-    XmlOStreamWriter& rWriter,
-    const IndexType Level) const
-{
-    if (mXmlElements.size() > 0) {
-        rWriter.WriteElement(GetTagName(), GetAttributes(), Level, false);
-        for (const auto& p_element : mXmlElements) {
-            p_element->Write(rWriter, Level + 1);
-        }
-        rWriter.CloseElement(GetTagName(), Level);
-    } else if (mExpressions.size() > 0) {
-        rWriter.WriteDataElement(GetTagName(), GetAttributes(), mExpressions, Level);
-    } else {
-        rWriter.WriteElement(GetTagName(), GetAttributes(), Level, true);
-    }
-}
-
 } // namespace Kratos
