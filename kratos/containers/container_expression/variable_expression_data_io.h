@@ -58,9 +58,10 @@ public:
 
     static Pointer Create(const std::vector<IndexType>& rShape);
 
+    template<class TExpressionType>
     void Assign(
         TDataType& rOutput,
-        const Expression& rExpression,
+        const TExpressionType& rExpression,
         const IndexType EntityIndex) const;
 
     void Read(
