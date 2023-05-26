@@ -88,7 +88,7 @@ double UnaryCombineExpression::Evaluate(
 
 const std::vector<std::size_t> UnaryCombineExpression::GetItemShape() const
 {
-    return {*(mStrides.begin() + mStrides.size() - 1)};
+    return {mStrides.back()};
 }
 
 std::string UnaryCombineExpression::Info() const
