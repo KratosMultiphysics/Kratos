@@ -66,19 +66,29 @@ public:
 
         EdgeData(const EdgeData& rOther) = delete;
 
+        double GetLength() const
+        {
+            return mLength;
+        }
+
         double GetMassCoefficient() const
         {
-            return MassCoefficient;
+            return mMassCoefficient;
         }
 
         double GetLumpedMassCoefficient() const
         {
-            return LumpedMassCoefficient;
+            return mLumpedMassCoefficient;
         }
 
         const array_1d<double,TDim>& GetFirstDerivatives() const
         {
-            return FirstDerivatives;
+            return mFirstDerivatives;
+        }
+
+        void SetLength(const double Length)
+        {
+            mLength = Length;
         }
 
         void AddFirstDerivatives(
@@ -88,22 +98,23 @@ public:
         {
             const double w_i = DomainSize / NumNodes;
             for (std::size_t d = 0; d < TDim; ++d) {
-                FirstDerivatives[d] = 0.5*w_i*(rDNiDX[d]*0.5 + rDNjDX[d]*0.5);
+                mFirstDerivatives[d] = 0.5*w_i*(rDNiDX[d]*0.5 + rDNjDX[d]*0.5);
             }
         }
 
         void AddMassCoefficients(const double DomainSize)
         {
             const double w_i = DomainSize / NumNodes;
-            MassCoefficient += 0.25 * w_i;
-            LumpedMassCoefficient += 0.5 * w_i;
+            mMassCoefficient += 0.25 * w_i;
+            mLumpedMassCoefficient += 0.5 * w_i;
         }
     
     private:
 
-        double MassCoefficient = 0.0;
-        double LumpedMassCoefficient = 0.0;
-        array_1d<double, TDim> FirstDerivatives = ZeroVector(TDim);
+        double mLength = 0.0;
+        double mMassCoefficient = 0.0;
+        double mLumpedMassCoefficient = 0.0;
+        array_1d<double, TDim> mFirstDerivatives = ZeroVector(TDim);
     };
 
     /// Index type definition
@@ -364,6 +375,7 @@ private:
                         // Add current edge elementwise contributions
                         rp_edge_data->AddMassCoefficients(domain_size);
                         rp_edge_data->AddFirstDerivatives(domain_size, row(DNDX,i), row(DNDX,j));
+                        rp_edge_data->SetLength(norm_2(r_geom[i].Coordinates()-r_geom[j].Coordinates()));
                     }
                 }
             }

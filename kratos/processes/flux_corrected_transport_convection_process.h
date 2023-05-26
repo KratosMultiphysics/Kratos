@@ -25,6 +25,7 @@
 #include "processes/process.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -89,8 +90,8 @@ public:
 
         // Assign all the required member variables
         mEchoLevel = ThisParameters["echo_level"].GetInt();
-        mMaxSubsteps = ThisParameters["max_substeps"].GetInt();
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
+        mMaxAllowedCFL = ThisParameters["max_delta_time"].GetDouble();
         mpConvectedVar = &KratosComponents<Variable<double>>::Get(ThisParameters["convected_variable_name"].GetString());
         mpConvectionVar = &KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["convection_variable_name"].GetString());
     }
@@ -117,6 +118,20 @@ public:
 
         // Auxiliary flag to avoid resetting the edge data structure at each Execute call
         mPerformInitialize = false;
+
+        // Allocate auxiliary arrays
+        const auto& r_row_indices = mpEdgeDataStructure->GetRowIndices();
+        SizeType n_nodes = r_row_indices.size() - 1; // Note that last node is the NNZ
+        mConvectedValues.resize(n_nodes);
+        mConvectionValues.resize(n_nodes);
+        mConvectedValuesOld.resize(n_nodes);
+        mConvectionValuesOld.resize(n_nodes);
+        IndexPartition<IndexType>(n_nodes).for_each([this](IndexType iNode) {
+            mConvectedValues[iNode] = 0.0;
+            mConvectedValuesOld[iNode] = 0.0;
+            mConvectionValues[iNode] = ZeroVector(3);
+            mConvectionValuesOld[iNode] = ZeroVector(3);
+        });
     }
 
 
@@ -130,7 +145,11 @@ public:
         }
 
         // Evaluate steps needed to achieve target max_cfl
-        const auto n_substep = EvaluateNumberOfSubsteps();
+        // const auto n_substep = EvaluateNumberOfSubsteps();
+        const auto& r_process_info = mpModelPart->GetProcessInfo();
+        const auto &r_prev_process_info = r_process_info.GetPreviousTimeStepInfo();
+        const double time = r_process_info[TIME];
+        const double prev_time = r_prev_process_info[TIME];
 
         // Get edge data structure containers
         const auto& r_row_indices = mpEdgeDataStructure->GetRowIndices();
@@ -167,7 +186,7 @@ public:
                     // Atomic additions
                     double aux = 0.0;
                     AtomicAdd(r_i_val, aux);
-                    AtomicAdd(r_j_val, aux);
+                    AtomicAdd(r_j_val, -aux);
 
                     std::cout << "Assembling edge " << iNode << "-" << j_node_id << std::endl;
                 }
@@ -230,8 +249,10 @@ public:
 
     void Clear() override
     {
-        mVelocity.clear();
-        mVelocityOld.clear();
+        mConvectedValues.clear();
+        mConvectionValues.clear();
+        mConvectedValuesOld.clear();
+        mConvectionValuesOld.clear();
     }
 
     const Parameters GetDefaultParameters() const override
@@ -242,7 +263,7 @@ public:
             "convected_variable_name" : "DISTANCE",
             "convection_variable_name" : "VELOCITY",
             "max_CFL" : 1.0,
-            "max_substeps" : 0
+            "max_delta_time" : 1.0
         })");
 
         return default_parameters;
@@ -292,11 +313,11 @@ protected:
 
     ModelPart* mpModelPart;
 
-	SizeType mEchoLevel = 0;
+	SizeType mEchoLevel;
 
-	SizeType mMaxSubsteps = 0;
+    double mMaxAllowedDt;
 
-    double mMaxAllowedCFL = 1.0;
+    double mMaxAllowedCFL;
 
     bool mPerformInitialize = true;
 
@@ -304,9 +325,13 @@ protected:
 
     const Variable<array_1d<double,3>>* mpConvectionVar = nullptr;
 
-    std::vector<array_1d<double,3>> mVelocity;
+    std::vector<double> mConvectedValues;
 
-    std::vector<array_1d<double,3>> mVelocityOld;
+    std::vector<double> mConvectedValuesOld;
+
+    std::vector<array_1d<double,3>> mConvectionValues;
+
+    std::vector<array_1d<double,3>> mConvectionValuesOld;
 
     typename EdgeBasedDataStructure<TDim>::UniquePointer mpEdgeDataStructure;
 
@@ -317,6 +342,59 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    double EvaluateTimeStep(
+        const double PreviousTime,
+        const double TargetTime)
+    {
+        // Get edge data structure containers
+        const auto& r_row_indices = mpEdgeDataStructure->GetRowIndices();
+        const auto& r_col_indices = mpEdgeDataStructure->GetColIndices();
+
+        // Calculate the CFL number at each edge to get the minimum allowed time step
+        // Note that we don't loop the last entry of the row container as it is NNZ
+        SizeType n_nodes = r_row_indices.size() - 1;
+        const double max_dt = IndexPartition<IndexType>(n_nodes).for_each<MinReduction<double>>([&](IndexType iNode){
+            KRATOS_WATCH(iNode)
+            double dt_ij = std::numeric_limits<double>::max();
+            const auto it_row = r_row_indices.begin() + iNode;
+            const IndexType i_col_index = *it_row;
+            const SizeType n_cols = *(it_row+1) - i_col_index;
+            KRATOS_WATCH(n_cols)
+            // Check that there are CSR columns (i.e. that current node involves an edge)
+            if (n_cols != 0) {
+                // i-node nodal data
+                const double i_vel_norm = norm_2(mConvectionValues[iNode]);
+                
+                // j-node nodal loop (i.e. loop ij-edges)
+                const auto i_col_begin = r_col_indices.begin() + i_col_index;
+                for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
+                    // j-node nodal data
+                    IndexType j_node_id = *(i_col_begin + j_node);
+                    const double j_vel_norm = norm_2(mConvectionValues[j_node_id]);
+
+                    // Get ij-edge length from CSR data structure
+                    const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iNode, j_node_id);
+                    const double ij_length = r_ij_edge_data.GetLength();
+
+                    // Calculate the max time step from the velocities at both edge ends and get the minimum
+                    const double dx_CFL = ij_length*mMaxAllowedCFL;
+                    const double dt_i = i_vel_norm > 1.0e-12 ? dx_CFL/i_vel_norm : mMaxAllowedDt;
+                    const double dt_j = j_vel_norm > 1.0e-12 ? dx_CFL/j_vel_norm : mMaxAllowedDt;
+                    dt_ij = std::min(dt_i, dt_j); 
+                    
+                    std::cout << "Dt in edge " << iNode << "-" << j_node_id << " : " << dt_ij << std::endl;
+                }
+            }
+
+            return dt_ij;
+        });
+
+        // Check that current time step doesn't exceed the target time
+        // Return maximum time step if it doesn't exceed the target time
+        // Otherwise the difference between current time and target one is used (potentially in last substep)
+        return PreviousTime + max_dt > TargetTime ? TargetTime - PreviousTime : max_dt;
+    }
 
     unsigned int EvaluateNumberOfSubsteps()
     {
