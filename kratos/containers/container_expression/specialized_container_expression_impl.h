@@ -24,6 +24,9 @@
 #include "containers/container_expression/expressions/literal/literal_expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/expressions/binary/binary_expression.h"
+#include "containers/container_expression/expressions/unary/unary_slice_expression.h"
+#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
+#include "containers/container_expression/expressions/unary/unary_combine_expression.h"
 
 namespace Kratos {
 
@@ -151,6 +154,45 @@ template<class TDataType>
 void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::SetZero(const Variable<TDataType>& rVariable)
 {
     this->SetData(rVariable.Zero());
+}
+
+template <class TContainerType, class TContainerDataIO, class TMeshType>
+SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Slice(
+    const IndexType Offset,
+    const IndexType Stride) const
+{
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
+    result.mpExpression = UnarySliceExpression::Create(*this->mpExpression, Offset, Stride);
+    return result;
+}
+
+template <class TContainerType, class TContainerDataIO, class TMeshType>
+SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(const std::vector<IndexType>& rShape) const
+{
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
+    result.mpExpression = UnaryReshapeExpression::Create(*this->mpExpression, rShape);
+    return result;
+}
+
+template <class TContainerType, class TContainerDataIO, class TMeshType>
+SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const BaseType& rOther) const
+{
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
+    result.mpExpression = UnaryCombineExpression::Create({*this->mpExpression, rOther.pGetExpression()});
+    return result;
+}
+
+template <class TContainerType, class TContainerDataIO, class TMeshType>
+SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const std::vector<typename BaseType::Pointer>& rListOfOthers) const
+{
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
+    std::vector<Expression::Pointer> expressions;
+    expressions.push_back(this->pGetExpression());
+    for (const auto& p_expression : rListOfOthers) {
+        expressions.push_back(p_expression->pGetExpression());
+    }
+    result.mpExpression = UnaryCombineExpression::Create(expressions);
+    return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>

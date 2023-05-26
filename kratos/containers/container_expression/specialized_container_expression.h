@@ -168,6 +168,16 @@ public:
     ///@name Operators
     ///@{
 
+    SpecializedContainerExpression Slice(
+        const IndexType Offset,
+        const IndexType Stride) const;
+
+    SpecializedContainerExpression Reshape(const std::vector<IndexType>& rShape) const;
+
+    SpecializedContainerExpression Comb(const BaseType& rOther) const;
+
+    SpecializedContainerExpression Comb(const std::vector<typename BaseType::Pointer>& rListOfOthers) const;
+
     SpecializedContainerExpression operator+(const SpecializedContainerExpression& rOther) const;
 
     SpecializedContainerExpression& operator+=(const SpecializedContainerExpression& rOther);
