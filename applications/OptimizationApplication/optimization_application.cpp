@@ -43,7 +43,15 @@ namespace Kratos
 
  	void KratosOptimizationApplication::Register()
  	{
-        KRATOS_INFO("") << "Initializing KratosOptimizationApplication..." << std::endl;
+
+        KRATOS_INFO("") << "_______        ____________             \n"       
+                        << "__  __ \\_________  /___    |_______________             \n"
+                        << "_  / / /__  __ \\  __/_  /| |__  __ \\__  __ \\            \n"
+                        << "/ /_/ /__  /_/ / /_ _  ___ |_  /_/ /_  /_/ /            \n"
+                        << "\\____/ _  .___/\\__/ /_/  |_|  .___/_  .___/             \n"
+                        << "       /_/                 /_/     /_/                  \n"
+                        << "Initializing KratosOptimizationApplication... " << std::endl;
+
 
         // Register variables
 
@@ -161,6 +169,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(HELMHOLTZ_RADIUS_DENSITY);
         KRATOS_REGISTER_VARIABLE(COMPUTE_CONTROL_DENSITIES);
 
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE);
         KRATOS_REGISTER_VARIABLE(CROSS_AREA);
         KRATOS_REGISTER_VARIABLE(DENSITY_SENSITIVITY);
         KRATOS_REGISTER_VARIABLE(THICKNESS_SENSITIVITY);
