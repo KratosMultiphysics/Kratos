@@ -37,7 +37,12 @@ template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResult<TObjectType>& rResult)
 {
     // Push_back in local pointers
-    mLocalPointers.push_back(Kratos::intrusive_ptr<TObjectType>(rResult.Get().get()));
+    TObjectType* p_local_result = rResult.Get().get();
+    mLocalPointers.push_back(Kratos::intrusive_ptr<TObjectType>(p_local_result));
+
+    // Add distances
+    const std::size_t id = p_local_result->Id();
+    mLocalDistances.insert({id, rResult.GetDistance()});
 }
 
 /***********************************************************************************/

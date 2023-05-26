@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
@@ -92,6 +93,27 @@ public:
      */
     void SynchronizeAll();
 
+    /**
+     * @brief Applies a user-provided function to the global pointers and return a proxy to the results.
+     * @tparam TFunctorType Functor type.
+     * @param UserFunctor The user-provided function.
+     * @return A proxy to the results.
+     */
+    template<class TFunctorType>
+    ResultsProxy<
+    TObjectType,
+    TFunctorType // TODO: Unfortunately this is deprecated in c++17, so we will have to change this call in the future
+    > Apply(TFunctorType&& UserFunctor)
+    {
+        // Check if the communicator has been created
+        if (mpGlobalPointerCommunicator == nullptr) {
+            SynchronizeAll();
+        }
+
+        // Apply the user-provided function
+        return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -119,6 +141,7 @@ private:
                      std::vector< typename TObjectType::Pointer >
                      > mLocalPointers;                                                              /// Local pointers of the container
     GlobalPointersVector<TObjectType> mGlobalPointers;                                              /// Global pointers of the container
+    std::unordered_map<std::size_t, double> mLocalDistances;                                        /// The local distances 
     typename GlobalPointerCommunicator<TObjectType>::Pointer mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator 
 
     ///@}
