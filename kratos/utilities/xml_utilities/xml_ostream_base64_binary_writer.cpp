@@ -56,51 +56,24 @@ void WriteExpression(
 } // namespace XmlOStreamBase64BinaryWriterHelperUtilities
 
 XmlOStreamBase64BinaryWriter::XmlOStreamBase64BinaryWriter(std::ostream& rOStream)
-    : mrOStream(rOStream)
+    : XmlOStreamWriter(rOStream)
 {
 }
 
-void XmlOStreamBase64BinaryWriter::WriteElement(
-    const XmlExpressionElement& rElement,
-    const IndexType Level)
+void XmlOStreamBase64BinaryWriter::WriteExpressions(
+    const std::vector<Expression::Pointer>& rExpressions,
+    const std::string& rTabbing)
 {
-    const std::string tabbing(Level * 3, ' ');
+    mrOStream << " format=\"binary\">\n" << rTabbing << "  ";
 
-    mrOStream << tabbing << "<" << rElement.GetTagName();
-    const auto& r_attributes = rElement.GetAttributes();
-    if (r_attributes.size() > 0) {
-        for (const auto& r_pair : r_attributes) {
-            mrOStream << " " << r_pair.first << "=\"" << r_pair.second << "\"";
-        }
-    }
-
-    const auto& r_sub_elements = rElement.GetElements();
-    const auto& r_expressions = rElement.GetExpressions();
-
-    if (r_sub_elements.size() > 0) {
-        // write sub elements
-        mrOStream << ">\n";
-        for (const auto& p_sub_element : r_sub_elements) {
-            this->WriteElement(*p_sub_element, Level + 1);
-        }
-        mrOStream << tabbing << "</" << rElement.GetTagName() << ">\n";
-    } else if (r_expressions.size() > 0) {
-        // write a data expression element
-        mrOStream << " format=\"binary\">\n" << tabbing << "  ";
-
-        if (std::all_of(r_expressions.begin(), r_expressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<char>*>(&*pExpression); })) {
-            XmlOStreamBase64BinaryWriterHelperUtilities::WriteExpression<LiteralFlatExpression<char>>(mrOStream, r_expressions);
-        } else if (std::all_of(r_expressions.begin(), r_expressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<int>*>(&*pExpression); })) {
-            XmlOStreamBase64BinaryWriterHelperUtilities::WriteExpression<LiteralFlatExpression<int>>(mrOStream, r_expressions);
-        } else if (std::all_of(r_expressions.begin(), r_expressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<double>*>(&*pExpression); })) {
-            XmlOStreamBase64BinaryWriterHelperUtilities::WriteExpression<LiteralFlatExpression<double>>(mrOStream, r_expressions);
-        } else {
-            XmlOStreamBase64BinaryWriterHelperUtilities::WriteExpression<Expression>(mrOStream, r_expressions);
-        }
-        mrOStream << "\n" << tabbing << "</" << rElement.GetTagName() << ">\n";
+    if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<char>*>(&*pExpression); })) {
+        XmlOStreamBase64BinaryWriterHelperUtilities::WriteExpression<LiteralFlatExpression<char>>(mrOStream, rExpressions);
+    } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<int>*>(&*pExpression); })) {
+        XmlOStreamBase64BinaryWriterHelperUtilities::WriteExpression<LiteralFlatExpression<int>>(mrOStream, rExpressions);
+    } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<const LiteralFlatExpression<double>*>(&*pExpression); })) {
+        XmlOStreamBase64BinaryWriterHelperUtilities::WriteExpression<LiteralFlatExpression<double>>(mrOStream, rExpressions);
     } else {
-        // then it is an empty element.
-        mrOStream << "/>\n";
+        XmlOStreamBase64BinaryWriterHelperUtilities::WriteExpression<Expression>(mrOStream, rExpressions);
     }
 }
 

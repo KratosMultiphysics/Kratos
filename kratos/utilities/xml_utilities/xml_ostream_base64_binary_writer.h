@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "xml_expression_element.h"
+#include "xml_ostream_writer.h"
 
 namespace Kratos {
 
@@ -29,7 +29,7 @@ namespace Kratos {
  * @brief Output stream ascii writer for XML format.
  * @author Suneth Warnakulasuriya
  */
-class KRATOS_API(KRATOS_CORE) XmlOStreamBase64BinaryWriter
+class KRATOS_API(KRATOS_CORE) XmlOStreamBase64BinaryWriter: public XmlOStreamWriter
 {
 public:
     ///@name Life cycle
@@ -48,25 +48,14 @@ public:
     XmlOStreamBase64BinaryWriter(std::ostream& rOStream);
 
     ///@}
-    ///@name Public operations
+
+protected:
+    ///@name Protected operations
     ///@{
 
-    /**
-     * @brief Writes an XML expression element.
-     * @param XmlExpressionElement Expression xml element to be written.
-     * @param Level The indentation level.
-     */
-    void WriteElement(
-        const XmlExpressionElement& rElement,
-        const IndexType Level = 0);
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    std::ostream& mrOStream; /// The output stream
+    void WriteExpressions(
+        const std::vector<Expression::Pointer>& rExpressions,
+        const std::string& rTabbing) override;
 
     ///@}
 };

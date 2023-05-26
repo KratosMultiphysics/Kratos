@@ -18,7 +18,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/container_expression/expressions/expression.h"
+#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "utilities/xml_utilities/xml_expression_element.h"
 
 namespace Kratos {
 
@@ -39,131 +40,51 @@ public:
     using IndexType = std::size_t;
 
     ///@}
-    ///@name Public enums
-    ///@{
-
-    /// Enumerations for the output writer format.
-    enum WriterFormat
-    {
-        ASCII,  /// ASCII format.
-        BINARY  /// Binary format.
-    };
-
-    ///@}
     ///@name Life cycle
     ///@{
 
     /**
      * @brief Constructor.
      * @param rOStream The output stream to write to.
-     * @param OutputFormat The format of the writer.
-     * @param Precision The precision for floating-point numbers.
      */
-    XmlOStreamWriter(
-        std::ostream& rOStream,
-        const WriterFormat OutputFormat,
-        const IndexType Precision);
+    XmlOStreamWriter(std::ostream& rOStream);
+
+    virtual ~XmlOStreamWriter() = default;
 
     ///@}
     ///@name Public operations
     ///@{
 
     /**
-     * @brief Writes an XML element with attributes.
-     * @param rTagName The tag name of the element.
-     * @param rAttributes The attributes of the element.
+     * @brief Writes an XML expression element.
+     * @param XmlExpressionElement Expression xml element to be written.
      * @param Level The indentation level.
-     * @param IsEmptyElement Flag indicating if the element is empty.
      */
     void WriteElement(
-        const std::string& rTagName,
-        const std::vector<std::pair<std::string, std::string>>& rAttributes,
-        const IndexType Level,
-        const bool IsEmptyElement);
-
-    /**
-     * @brief Closes an XML element.
-     * @param rTagName The tag name of the element to close.
-     * @param Level The indentation level.
-     */
-    void CloseElement(
-        const std::string& rTagName,
-        const IndexType Level);
-
-    /**
-     * @brief Writes an XML data element with attributes and expressions.
-     * @param rTagName The tag name of the data element.
-     * @param rAttributes The attributes of the data element.
-     * @param rExpressions The expressions to write as data.
-     * @param Level The indentation level.
-     */
-    void WriteDataElement(
-        const std::string& rTagName,
-        const std::vector<std::pair<std::string, std::string>>& rAttributes,
-        const std::vector<Expression::Pointer>& rExpressions,
-        const IndexType Level);
+        const XmlExpressionElement& rElement,
+        const IndexType Level = 0);
 
     ///@}
 
-private:
-    ///@name Private member variables
+protected:
+    ///@name Protected member variables
     ///@{
 
     std::ostream& mrOStream; /// The output stream
 
-    const WriterFormat mOutputFormat; /// The output format.
-
     ///@}
-    ///@name Private operations
+    ///@name Protected operations
     ///@{
 
     /**
-     * @brief Writes the attributes of an XML element.
-     * @param rTagName The tag name of the element.
-     * @param rAttributes The attributes of the element.
-     * @param Level The indentation level.
+     * @brief Writes generic lazy type expressions
+     *
+     * @param rExpressions      Expressions list to write.
+     * @param rTabbing          Tabbing used for expression writing.
      */
-    void WriteAttributes(
-        const std::string& rTagName,
-        const std::vector<std::pair<std::string, std::string>>& rAttributes,
-        const IndexType Level);
-
-    /**
-     * @brief Writes an ASCII data element.
-     * @tparam TExpressionType The type of expression to write.
-     * @param rTagName The tag name of the data element.
-     * @param rAttributes The attributes of the data element.
-     * @param Level The indentation level.
-     * @param rExpressions The expressions to write as data.
-     */
-    template <class TExpressionType>
-    void WriteDataElementAscii(
-        const std::string& rTagName,
-        const std::vector<std::pair<std::string, std::string>>& rAttributes,
-        const IndexType Level,
-        const std::vector<Expression::Pointer>& rExpressions);
-
-    /**
-     * @brief Writes a binary data element.
-     * @tparam TExpressionType The type of expression to write.
-     * @param rTagName The tag name of the data element.
-     * @param rAttributes The attributes of the data element.
-     * @param Level The indentation level.
-     * @param rExpressions The expressions to write as data.
-     */
-    template <class TExpressionType>
-    void WriteDataElementBinary(
-        const std::string& rTagName,
-        const std::vector<std::pair<std::string, std::string>>& rAttributes,
-        const IndexType Level,
-        const std::vector<Expression::Pointer>& rExpressions);
-
-    /**
-     * @brief Gets the indentation string based on the level.
-     * @param Level The indentation level.
-     * @return The indentation string.
-     */
-    static const std::string GetTabbing(const IndexType Level);
+    virtual void WriteExpressions(
+        const std::vector<Expression::Pointer>& rExpressions,
+        const std::string& rTabbing) = 0;
 
     ///@}
 };
