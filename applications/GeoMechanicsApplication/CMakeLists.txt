@@ -56,6 +56,13 @@ IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosGeoMechanicsApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
 ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
+# Add version info to DLL's
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.rc.in ${CMAKE_CURRENT_BINARY_DIR}/version.rc @ONLY)
+    target_sources(KratosGeoMechanicsCore PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+    target_sources(KratosGeoMechanicsApplication PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosGeoMechanicsApplication PROPERTIES SUFFIX .pyd)

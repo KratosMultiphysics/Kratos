@@ -232,6 +232,7 @@ void  AddIOToPython(pybind11::module& m)
         .def("ClearCellFlags", &VtuOutput::ClearCellFlags)
         .def("ClearNodalContainerExpressions", &VtuOutput::ClearNodalContainerExpressions)
         .def("ClearCellContainerExpressions", &VtuOutput::ClearCellContainerExpressions)
+        .def("GetModelPart", &VtuOutput::GetModelPart, py::return_value_policy::reference)
         .def("PrintOutput", &VtuOutput::PrintOutput, py::arg("output_file_name_prefix"))
         ;
 

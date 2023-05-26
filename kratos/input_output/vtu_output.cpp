@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <string>
 #include <vector>
 #include <iomanip>
 #include <numeric>
@@ -19,18 +18,18 @@
 // External includes
 
 // Project includes
-#include "containers/container_expression/expressions/expression.h"
-#include "containers/container_expression/expressions/expression_iterator.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/specialized_container_expression.h"
 #include "includes/data_communicator.h"
-#include "includes/define.h"
-#include "includes/io.h"
 #include "utilities/global_pointer_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
-#include "utilities/reduction_utilities.h"
 #include "utilities/string_utilities.h"
+#include "input_output/base_64_encoded_output.h"
+#include "input_output/vtk_definitions.h"
+#include "utilities/xml_utilities/xml_expression_element.h"
+#include "utilities/xml_utilities/xml_ostream_ascii_writer.h"
+#include "utilities/xml_utilities/xml_ostream_base64_binary_writer.h"
 
 // Include base h
 #include "vtu_output.h"
@@ -42,484 +41,6 @@ namespace Kratos {
     KRATOS_CREATE_LOCAL_FLAG(VtuOutput, ELEMENTS, 3);
 
 namespace VtuOutputHelperUtilities {
-
-constexpr char base64Map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-class KRATOS_API(KRATOS_CORE) XmlOStreamWriter
-{
-public:
-    ///@name Life cycle
-    ///@{
-
-    using IndexType = std::size_t;
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    XmlOStreamWriter(
-        std::ostream& rOStream,
-        const VtuOutput::WriterFormat OutputFormat,
-        const IndexType Precision)
-        : mrOStream(rOStream),
-        mOutputFormat(OutputFormat)
-    {
-        mrOStream << std::scientific << std::setprecision(Precision);
-    }
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    void WriteElement(
-        const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
-        const IndexType Level,
-        const bool IsEmptyElement)
-    {
-        WriteAttributes(rTagName, rAttributes, Level);
-
-        if (IsEmptyElement) {
-            mrOStream << "/>\n";
-        } else {
-            mrOStream << ">\n";
-        }
-
-    }
-
-    void CloseElement(
-        const std::string& rTagName,
-        const IndexType Level)
-    {
-        const std::string& tabbing = XmlOStreamWriter::GetTabbing(Level);
-        mrOStream << tabbing << "</" << rTagName << ">\n";
-    }
-
-    void WriteDataElement(
-        const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
-        const std::vector<Expression::Pointer>& rExpressions,
-        const IndexType Level)
-    {
-
-        switch (mOutputFormat){
-            case VtuOutput::WriterFormat::ASCII:
-                if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<char>*>(&*pExpression); })) {
-                    WriteDataElementAscii<LiteralFlatExpression<char>>(rTagName, rAttributes, Level, rExpressions);
-                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<int>*>(&*pExpression); })) {
-                    WriteDataElementAscii<LiteralFlatExpression<int>>(rTagName, rAttributes, Level, rExpressions);
-                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<double>*>(&*pExpression); })) {
-                    WriteDataElementAscii<LiteralFlatExpression<double>>(rTagName, rAttributes, Level, rExpressions);
-                } else {
-                    WriteDataElementAscii<Expression>(rTagName, rAttributes, Level, rExpressions);
-                }
-                break;
-            case VtuOutput::WriterFormat::BINARY:
-                if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<char>*>(&*pExpression); })) {
-                    WriteDataElementBinary<LiteralFlatExpression<char>>(rTagName, rAttributes, Level, rExpressions);
-                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<int>*>(&*pExpression); })) {
-                    WriteDataElementBinary<LiteralFlatExpression<int>>(rTagName, rAttributes, Level, rExpressions);
-                } else if (std::all_of(rExpressions.begin(), rExpressions.end(), [](const auto& pExpression) { return dynamic_cast<LiteralFlatExpression<double>*>(&*pExpression); })) {
-                    WriteDataElementBinary<LiteralFlatExpression<double>>(rTagName, rAttributes, Level, rExpressions);
-                } else {
-                    WriteDataElementBinary<Expression>(rTagName, rAttributes, Level, rExpressions);
-                }
-                break;
-        }
-    }
-
-    ///@}
-
-private:
-    ///@name Private classes
-    ///@{
-
-    class Base64EncodedOutput
-    {
-    public:
-        template<typename TIteratorType>
-        void WriteOutputData(
-            std::ostream& rOutput,
-            TIteratorType Begin,
-            IndexType N)
-        {
-            constexpr IndexType size = sizeof(decltype(*Begin));
-            const IndexType rawBytes = N * size;
-
-            auto it = Begin;
-            auto value = *it;
-            IndexType byteIndex = 0;
-
-            auto next = [&]() {
-                char byte = *(reinterpret_cast<const char*>(&value) + byteIndex++);
-
-                if(byteIndex == size) {
-                    ++it;
-                    value = *it;
-                    byteIndex = 0;
-                }
-
-                return byte;
-            };
-
-            // first fill the existing mByteTriplet
-            IndexType numberOfWrittenBytes = 0;
-            for (; mByteTripletIndex < std::min(rawBytes, IndexType{3}); ++mByteTripletIndex) {
-                mByteTriplet[mByteTripletIndex] = next();
-                ++numberOfWrittenBytes;
-            }
-
-            // check if the triplets are filled otherwise don't write, wait for the closeOutputData call
-            // to write remaining bytes in mByteTriplet
-            if (mByteTripletIndex == 3) {
-                mByteTripletIndex = 0;
-                // write the last byte triplet
-                EncodeTriplet(rOutput, mByteTriplet, 0);
-
-                // in steps of 3
-                const IndexType numberOfTriplets = (rawBytes - numberOfWrittenBytes) / 3;
-
-                for(IndexType i = 0; i < numberOfTriplets; ++i) {
-                    EncodeTriplet(rOutput, {next(), next(), next()}, 0);
-                }
-
-                numberOfWrittenBytes += numberOfTriplets * 3;
-
-                // now fill the mByteTriplet with the remaining bytes of the data
-                const IndexType remaining_bytes = rawBytes - numberOfWrittenBytes;
-                for (; mByteTripletIndex < remaining_bytes; ++mByteTripletIndex) {
-                    mByteTriplet[mByteTripletIndex] = next();
-                }
-            }
-        }
-
-        void CloseOutputData(std::ostream& rOutput)
-        {
-            const IndexType padding = 3 - mByteTripletIndex;
-            if (padding != 0 && mByteTripletIndex != 0) {
-                for(; mByteTripletIndex < 3; ++mByteTripletIndex) {
-                    mByteTriplet[mByteTripletIndex] = '\0';
-                }
-
-                EncodeTriplet(rOutput, mByteTriplet, padding );
-            }
-            mByteTripletIndex = 0;
-        }
-
-    private:
-        static void EncodeTriplet(
-            std::ostream& rOutput,
-            const std::array<char, 3>& rBytes,
-            IndexType Padding )
-        {
-            char tmp[5] = { base64Map[(   rBytes[0] & 0xfc ) >> 2],
-                            base64Map[( ( rBytes[0] & 0x03 ) << 4 ) + ( ( rBytes[1] & 0xf0 ) >> 4 )],
-                            base64Map[( ( rBytes[1] & 0x0f ) << 2 ) + ( ( rBytes[2] & 0xc0 ) >> 6 )],
-                            base64Map[rBytes[2] & 0x3f],
-                            '\0' };
-
-            std::fill( tmp + 4 - Padding, tmp + 4, '=' );
-
-            rOutput << tmp;
-        }
-
-        IndexType mByteTripletIndex = 0;
-
-        std::array<char, 3> mByteTriplet;
-    };
-
-    ///@}
-    ///@name Private member variables
-    ///@{
-
-    std::ostream& mrOStream;
-
-    const VtuOutput::WriterFormat mOutputFormat;
-
-    ///@}
-    ///@name Private operations
-    ///@{
-
-    void WriteAttributes(
-        const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
-        const IndexType Level)
-    {
-        const std::string& tabbing = XmlOStreamWriter::GetTabbing(Level);
-        mrOStream << tabbing << "<" << rTagName;
-        if (rAttributes.size() > 0) {
-            for (const auto& r_pair : rAttributes) {
-                mrOStream << " " << r_pair.first << "=\"" << r_pair.second << "\"";
-            }
-        }
-    }
-
-    template<class TExpressionType>
-    void WriteDataElementAscii(
-        const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
-        const IndexType Level,
-        const std::vector<Expression::Pointer>& rExpressions)
-    {
-        using exp_itr_type = ExpressionIterator<TExpressionType>;
-
-        using data_itr_type = typename exp_itr_type::ConstIteratorType;
-
-        WriteAttributes(rTagName, rAttributes, Level);
-        // add format
-        const std::string& tabbing = XmlOStreamWriter::GetTabbing(Level);
-        mrOStream << " format=\"ascii\">\n" << tabbing;
-
-        std::vector<TExpressionType*> transformed_expressions(rExpressions.size());
-        std::transform(rExpressions.begin(), rExpressions.end(),
-                    transformed_expressions.begin(), [](auto& pExpression) {
-                        return dynamic_cast<TExpressionType*>(&*(pExpression));
-                    });
-
-        for (const auto& p_expression : transformed_expressions) {
-            exp_itr_type expression_iterator(p_expression);
-            auto data_begin = expression_iterator.cbegin();
-            auto data_end   = expression_iterator.cend();
-            for (data_itr_type itr = data_begin; itr != data_end; ++itr) {
-                if constexpr(std::is_same_v<typename exp_itr_type::value_type, char>) {
-                    mrOStream << "  " << static_cast<int>(*(itr));
-                } else {
-                    mrOStream << "  " << *itr;
-                }
-            }
-        }
-
-        mrOStream << "\n";
-        CloseElement(rTagName, Level);
-    }
-
-    template<class TExpressionType>
-    void WriteDataElementBinary(
-        const std::string& rTagName,
-        const std::vector<std::pair<const std::string, const std::string>>& rAttributes,
-        const IndexType Level,
-        const std::vector<Expression::Pointer>& rExpressions)
-    {
-        using exp_itr_type = ExpressionIterator<TExpressionType>;
-
-        using value_type = typename exp_itr_type::value_type;
-
-        WriteAttributes(rTagName, rAttributes, Level);
-
-        std::vector<TExpressionType*> transformed_expressions(rExpressions.size());
-        std::transform(rExpressions.begin(), rExpressions.end(),
-                    transformed_expressions.begin(), [](auto& pExpression) {
-                        return dynamic_cast<TExpressionType*>(&*(pExpression));
-                    });
-
-        if (rExpressions.size() == 0) {
-            mrOStream << " format=\"binary\"/>\n";
-            return;
-        } else {
-            const std::string& tabbing = XmlOStreamWriter::GetTabbing(Level);
-            mrOStream << " format=\"binary\">\n" << tabbing << "  ";
-        }
-
-        using writing_data_type = value_type;
-        constexpr IndexType data_type_size = sizeof(writing_data_type);
-        const IndexType total_entities = std::accumulate(rExpressions.begin(), rExpressions.end(), 0U, [](const IndexType LHS, const auto& pExpression) { return LHS + pExpression->NumberOfEntities();});
-        const IndexType flattened_shape_size = rExpressions[0]->GetFlattenedShapeSize();
-        const IndexType total_number_of_values = total_entities * flattened_shape_size;
-        const unsigned int total_data_size = total_number_of_values * data_type_size;
-
-        Base64EncodedOutput base64_encoder;
-
-        base64_encoder.WriteOutputData(mrOStream, &total_data_size, 1);
-        for (const auto p_expression : transformed_expressions) {
-            base64_encoder.WriteOutputData(mrOStream, exp_itr_type(p_expression).cbegin(), p_expression->NumberOfEntities() * flattened_shape_size);
-        }
-        base64_encoder.CloseOutputData(mrOStream);
-
-        mrOStream << "\n";
-        CloseElement(rTagName, Level);
-    }
-
-    static const std::string GetTabbing(const IndexType Level)
-    {
-        std::stringstream ss_tabbing;
-        for (IndexType i = 0; i < Level; ++i) {
-            ss_tabbing << "   ";
-        }
-        return ss_tabbing.str();
-    }
-
-    ///@}
-};
-
-class XmlElement {
-public:
-    ///@name Type definitions
-    ///@{
-
-    using IndexType = std::size_t;
-
-    KRATOS_CLASS_POINTER_DEFINITION(XmlElement);
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    XmlElement(const std::string& rTagName)
-        : mTagName(rTagName)
-    {
-    }
-
-    XmlElement(
-        const std::string& rDataName,
-        const std::vector<Expression::Pointer>& rExpressions)
-        : mTagName("DataArray"),
-        mExpressions(rExpressions)
-    {
-        KRATOS_ERROR_IF(rExpressions.size() == 0)
-            << "Empty expression lists are not allowed.";
-
-        IndexType number_of_components = 0;
-
-        for (const auto& p_expression : rExpressions) {
-            if (number_of_components == 0) {
-                number_of_components = p_expression->GetFlattenedShapeSize();
-            }
-            KRATOS_ERROR_IF(number_of_components != p_expression->GetFlattenedShapeSize())
-                << "Found expressions with mismatching shapes.";
-        }
-
-        if (std::all_of(mExpressions.begin(), mExpressions.end(), [](const auto& pExpression) {
-                return dynamic_cast<LiteralFlatExpression<char>*>(&*pExpression);
-            })) {
-            AddAttribute("type", "UInt8");
-        } else if (std::all_of(mExpressions.begin(), mExpressions.end(), [](const auto& pExpression) {
-                return dynamic_cast<LiteralFlatExpression<int>*>(&*pExpression);
-            })) {
-            AddAttribute("type", "Int32");
-        } else {
-            AddAttribute("type", "Float64");
-        }
-
-        AddAttribute("Name", rDataName);
-
-        if (number_of_components > 0) {
-            AddAttribute("NumberOfComponents", std::to_string(number_of_components));
-        }
-    }
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    const std::string GetTagName() const { return mTagName; };
-
-    void AddAttribute(
-        const std::string& rName,
-        const std::string& rValue)
-    {
-        for (const auto& r_attribute : mAttributes) {
-            KRATOS_ERROR_IF(r_attribute.first == rName)
-                << "There exists an attribute named \"" << rName
-                << "\" in the xml element with value = \""
-                << r_attribute.second << "\" [ given new value = \""
-                << rValue << "\" ].\n";
-        }
-        mAttributes.push_back(std::make_pair(rName, rValue));
-    }
-
-    const std::vector<std::pair<const std::string, const std::string>>& GetAttributes() const { return mAttributes; }
-
-    void ClearAttributes() { mAttributes.clear(); }
-
-    void AddElement(const XmlElement::Pointer pXmlElement)
-    {
-        if (mExpressions.size() == 0) {
-            for (const auto& p_element : mXmlElements) {
-                KRATOS_ERROR_IF(&*(p_element) == &*(pXmlElement))
-                    << "The xml element is already aded.";
-            }
-            mXmlElements.push_back(pXmlElement);
-        } else {
-            KRATOS_ERROR << "Cannot add element to an Xml element which has "
-                            "data [ current xml tag = \""
-                        << GetTagName() << "\", new element tag name = \""
-                        << pXmlElement->GetTagName() << "\" ].\n";
-        }
-    }
-
-    std::vector<XmlElement::Pointer> GetElements(const std::string& rTagName) const
-    {
-        std::vector<XmlElement::Pointer> results;
-        for (const auto& p_element : mXmlElements) {
-            if (p_element->GetTagName() == rTagName) {
-                results.push_back(p_element);
-            }
-        }
-        return results;
-    }
-
-    const std::vector<XmlElement::Pointer>& GetElements() const { return mXmlElements; }
-
-    void ClearElements() { mXmlElements.clear(); }
-
-    void Write(
-        XmlOStreamWriter& rWriter,
-        const IndexType Level = 0) const
-    {
-        if (mXmlElements.size() > 0) {
-            rWriter.WriteElement(GetTagName(), GetAttributes(), Level, false);
-            for (const auto& p_element : mXmlElements) {
-                p_element->Write(rWriter, Level + 1);
-            }
-            rWriter.CloseElement(GetTagName(), Level);
-        } else if (mExpressions.size() > 0) {
-            rWriter.WriteDataElement(GetTagName(), GetAttributes(), mExpressions, Level);
-        } else {
-            rWriter.WriteElement(GetTagName(), GetAttributes(), Level, true);
-        }
-    }
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const std::string mTagName;
-
-    std::vector<std::pair<const std::string, const std::string>> mAttributes;
-
-    std::vector<XmlElement::Pointer> mXmlElements;
-
-    const std::vector<Expression::Pointer> mExpressions;
-
-    ///@}
-};
-
-const std::map<GeometryData::KratosGeometryType, char> KratosVtuGeometryTypes = {
-    { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
-    { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
-    { GeometryData::KratosGeometryType::Kratos_Line2D2,          3 },
-    { GeometryData::KratosGeometryType::Kratos_Line3D2,          3 },
-    { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      5 },
-    { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      5 },
-    { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
-    { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
-    { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
-    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 },
-    { GeometryData::KratosGeometryType::Kratos_Prism3D6,         13 },
-    { GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       14 },
-    { GeometryData::KratosGeometryType::Kratos_Line2D3,          21 },
-    { GeometryData::KratosGeometryType::Kratos_Line3D3,          21 },
-    { GeometryData::KratosGeometryType::Kratos_Triangle2D6,      22 },
-    { GeometryData::KratosGeometryType::Kratos_Triangle3D6,      22 },
-    { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, 23 },
-    { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, 23 },
-    { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,   24 },
-    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    25 },
-    { GeometryData::KratosGeometryType::Kratos_Prism3D15,        26 },
-    { GeometryData::KratosGeometryType::Kratos_Pyramid3D13,      27 }
-};
 
 Expression::Pointer CreatePositionsExpression(
     const ModelPart::NodesContainerType& rNodes,
@@ -549,9 +70,9 @@ Expression::Pointer CreatePositionsExpression(
     return p_position_expression;
 }
 
-XmlElement::Pointer CreateDataArrayElement(
+XmlExpressionElement::Pointer CreateDataArrayElement(
     const std::string& rDataArrayName,
-    const std::vector<Expression*>& rExpressions)
+    const std::vector<const Expression*>& rExpressions)
 {
     std::vector<Expression::Pointer> expressions;
     for (const auto& p_expression : rExpressions) {
@@ -560,14 +81,14 @@ XmlElement::Pointer CreateDataArrayElement(
         }
     }
     if (expressions.size() > 0) {
-        return Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>(rDataArrayName, expressions);
+        return Kratos::make_shared<XmlExpressionElement>(rDataArrayName, expressions);
     } else {
         return nullptr;
     }
 }
 
 template<class TContainerType, class TMeshType>
-Expression* pGetExpression(const ContainerExpression<TContainerType, TMeshType>& rContainerExpression)
+const Expression* pGetExpression(const ContainerExpression<TContainerType, TMeshType>& rContainerExpression)
 {
     if (rContainerExpression.HasExpression()) {
         return &*rContainerExpression.pGetExpression();
@@ -577,19 +98,19 @@ Expression* pGetExpression(const ContainerExpression<TContainerType, TMeshType>&
 }
 
 void AddDataArrayElement(
-    VtuOutputHelperUtilities::XmlElement::Pointer pParentElement,
-    VtuOutputHelperUtilities::XmlElement::Pointer pDataArrayElement)
+    XmlExpressionElement::Pointer pParentElement,
+    XmlExpressionElement::Pointer pDataArrayElement)
 {
     if (pDataArrayElement) {
         pParentElement->AddElement(pDataArrayElement);
     }
 }
 
-VtuOutputHelperUtilities::XmlElement::Pointer CreatePointsXmlElement(
+XmlExpressionElement::Pointer CreatePointsXmlElement(
     const ModelPart& rModelPart,
     const bool IsInitialConfiguration)
 {
-    auto p_points_xml_element = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("Points");
+    auto p_points_xml_element = Kratos::make_shared<XmlExpressionElement>("Points");
 
     const auto& r_communicator = rModelPart.GetCommunicator();
     const auto& r_local_nodes = r_communicator.LocalMesh().Nodes();
@@ -626,8 +147,8 @@ Expression::Pointer CreateGeometryTypesExpression(const TContainerType& rContain
     auto data_itr = p_geometry_expression->begin();
 
     IndexPartition<IndexType>(rContainer.size()).for_each([data_itr, &rContainer](const IndexType Index) {
-        const auto p_itr = KratosVtuGeometryTypes.find((rContainer.begin() + Index)->GetGeometry().GetGeometryType());
-        if (p_itr != KratosVtuGeometryTypes.end()) {
+        const auto p_itr = VtkDefinitions::KratosVtkGeometryTypes.find((rContainer.begin() + Index)->GetGeometry().GetGeometryType());
+        if (p_itr != VtkDefinitions::KratosVtkGeometryTypes.end()) {
             *(data_itr + Index) = p_itr->second;
         } else {
             KRATOS_ERROR << "Element with id " << (rContainer.begin() + Index)->Id() << " has unsupported geometry.";
@@ -664,11 +185,11 @@ Expression::Pointer CreateConnectivityExpression(
 }
 
 template<class TContainerType>
-VtuOutputHelperUtilities::XmlElement::Pointer CreateCellsXmlElement(
+XmlExpressionElement::Pointer CreateCellsXmlElement(
     const TContainerType& rContainer,
     const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap)
 {
-    auto p_cells_xml_element = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("Cells");
+    auto p_cells_xml_element = Kratos::make_shared<XmlExpressionElement>("Cells");
 
     auto p_offsets_expression = CreateOffsetsExpression(rContainer);
     auto p_connectivity_expression = CreateConnectivityExpression(p_offsets_expression, rContainer, rKratosVtuIndicesMap);
@@ -685,7 +206,7 @@ VtuOutputHelperUtilities::XmlElement::Pointer CreateCellsXmlElement(
 }
 
 template<class TDataType, class TContainerType, class TContainerDataIOTag>
-VtuOutputHelperUtilities::XmlElement::Pointer CreateVariableDataXmlElement(
+XmlExpressionElement::Pointer CreateVariableDataXmlElement(
     const Variable<TDataType>& rVariable,
     ModelPart& rModelPart)
 {
@@ -722,7 +243,7 @@ Expression::Pointer CreateContainerFlagExpression(
 }
 
 template<class TContainerType>
-VtuOutputHelperUtilities::XmlElement::Pointer CreateFlagDataXmlElement(
+XmlExpressionElement::Pointer CreateFlagDataXmlElement(
     const std::string& rFlagName,
     const Flags& rFlags,
     const ModelPart& rModelPart)
@@ -762,7 +283,7 @@ Expression::Pointer CreateGhostNodeExpression(
 
     GlobalPointerCommunicator<ModelPart::NodeType> pointer_comm(rDataCommunicator, gp_list.ptr_begin(), gp_list.ptr_end());
 
-    const IndexType number_of_components = rLocalNodesExpression.GetFlattenedShapeSize();
+    const IndexType number_of_components = rLocalNodesExpression.GetItemComponentCount();
 
     auto values_proxy = pointer_comm.Apply(
         [&rLocalNodesExpression, number_of_components, &rKratosVtuIndicesMap](GlobalPointer<ModelPart::NodeType>& rGP) -> std::vector<double> {
@@ -780,7 +301,7 @@ Expression::Pointer CreateGhostNodeExpression(
         }
     );
 
-    auto p_ghost_nodes_expression = LiteralFlatExpression<double>::Create(number_of_ghost_nodes, rLocalNodesExpression.GetShape());
+    auto p_ghost_nodes_expression = LiteralFlatExpression<double>::Create(number_of_ghost_nodes, rLocalNodesExpression.GetItemShape());
     auto data_itr = p_ghost_nodes_expression->begin();
 
     for(IndexType i = 0; i < number_of_ghost_nodes; ++i) {
@@ -793,7 +314,7 @@ Expression::Pointer CreateGhostNodeExpression(
 }
 
 template<class TContainerType>
-VtuOutputHelperUtilities::XmlElement::Pointer CreateContainerExpressionXmlElement(
+XmlExpressionElement::Pointer CreateContainerExpressionXmlElement(
     const std::string& rExpressionName,
     const ContainerExpression<TContainerType>& rContainerExpression,
     const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap)
@@ -827,7 +348,7 @@ void CheckDataArrayName(
 
 template<class TContaierType, class TContainerIOTag>
 void AddListOfVariables(
-    VtuOutputHelperUtilities::XmlElement::Pointer pXmlDataElement,
+    XmlExpressionElement::Pointer pXmlDataElement,
     ModelPart& rModelPart,
     const std::unordered_map<std::string, VtuOutput::SupportedVariables>& rVariablesMap)
 {
@@ -846,7 +367,7 @@ void AddListOfVariables(
 
 template<class TContaierType>
 void AddListOfFlags(
-    VtuOutputHelperUtilities::XmlElement::Pointer pXmlDataElement,
+    XmlExpressionElement::Pointer pXmlDataElement,
     ModelPart& rModelPart,
     const std::unordered_map<std::string, const Flags*>& rFlagsMap)
 {
@@ -857,7 +378,7 @@ void AddListOfFlags(
 
 template<class TContainerExpressionType>
 void AddListOfContainerExpressions(
-    VtuOutputHelperUtilities::XmlElement::Pointer pXmlDataElement,
+    XmlExpressionElement::Pointer pXmlDataElement,
     ModelPart& rModelPart,
     const std::unordered_map<IndexType, IndexType>& rKratosVtuIndicesMap,
     const std::unordered_map<std::string, TContainerExpressionType>& rContainerExpressionsMap)
@@ -883,8 +404,8 @@ void AddListOfContainerExpressions(
 }
 
 void CopyAttributes(
-    VtuOutputHelperUtilities::XmlElement& rOutputElement,
-    const VtuOutputHelperUtilities::XmlElement& rInputElement)
+    XmlExpressionElement& rOutputElement,
+    const XmlExpressionElement& rInputElement)
 {
     for (const auto& r_attribute_data : rInputElement.GetAttributes()) {
         rOutputElement.AddAttribute(r_attribute_data.first, r_attribute_data.second);
@@ -892,17 +413,17 @@ void CopyAttributes(
 }
 
 void CreatePDataArrays(
-    VtuOutputHelperUtilities::XmlElement& rOutputElement,
-    const VtuOutputHelperUtilities::XmlElement& rInputElement)
+    XmlExpressionElement& rOutputElement,
+    const XmlExpressionElement& rInputElement)
 {
     for (const auto& p_element : rInputElement.GetElements()) {
-        auto new_pdata_array = Kratos::make_shared<XmlElement>("PDataArray");
+        auto new_pdata_array = Kratos::make_shared<XmlExpressionElement>("PDataArray");
         CopyAttributes(*new_pdata_array, *p_element);
         rOutputElement.AddElement(new_pdata_array);
     }
 }
 
-std::string GetEndianess()
+std::string GetEndianness()
 {
     int i = 0x0001;
 
@@ -914,7 +435,7 @@ std::string GetEndianess()
 }
 
 void WritePvtuFile(
-    VtuOutputHelperUtilities::XmlElement::Pointer pVtkFileElement,
+    XmlExpressionElement::Pointer pVtkFileElement,
     const ModelPart& rModelPart,
     const std::string& rOutputFileNamePrefix,
     const std::string& rOutputFileName)
@@ -945,13 +466,13 @@ void WritePvtuFile(
 
     if (r_data_communicator.Rank() == writing_rank) {
         // create the vtk file
-        auto vtk_file_element = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("VTKFile");
+        auto vtk_file_element = Kratos::make_shared<XmlExpressionElement>("VTKFile");
         vtk_file_element->AddAttribute("type", "PUnstructuredGrid");
         vtk_file_element->AddAttribute("version", "0.1");
-        vtk_file_element->AddAttribute("byte_order", GetEndianess());
+        vtk_file_element->AddAttribute("byte_order", GetEndianness());
 
         // create the unstructured grid
-        auto unstructured_grid_element = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("PUnstructuredGrid");
+        auto unstructured_grid_element = Kratos::make_shared<XmlExpressionElement>("PUnstructuredGrid");
         unstructured_grid_element->AddAttribute("GhostLevel", "0");
         vtk_file_element->AddElement(unstructured_grid_element);
 
@@ -959,29 +480,29 @@ void WritePvtuFile(
         auto piece = pVtkFileElement->GetElements("UnstructuredGrid")[0]->GetElements("Piece")[0];
 
         auto points = piece->GetElements("Points")[0];
-        auto p_points = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("PPoints");
+        auto p_points = Kratos::make_shared<XmlExpressionElement>("PPoints");
         VtuOutputHelperUtilities::CreatePDataArrays(*p_points, *points);
         unstructured_grid_element->AddElement(p_points);
 
         auto cells = piece->GetElements("Cells")[0];
-        auto p_cells = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("PCells");
+        auto p_cells = Kratos::make_shared<XmlExpressionElement>("PCells");
         VtuOutputHelperUtilities::CreatePDataArrays(*p_cells, *cells);
         unstructured_grid_element->AddElement(p_cells);
 
         auto point_data = piece->GetElements("PointData")[0];
-        auto p_point_data = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("PPointData");
+        auto p_point_data = Kratos::make_shared<XmlExpressionElement>("PPointData");
         VtuOutputHelperUtilities::CreatePDataArrays(*p_point_data, *point_data);
         unstructured_grid_element->AddElement(p_point_data);
 
         auto cell_data = piece->GetElements("CellData")[0];
-        auto p_cell_data = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("PCellData");
+        auto p_cell_data = Kratos::make_shared<XmlExpressionElement>("PCellData");
         VtuOutputHelperUtilities::CreatePDataArrays(*p_cell_data, *cell_data);
         unstructured_grid_element->AddElement(p_cell_data);
 
         // now write all the pieces
         const auto& r_file_names = StringUtilities::SplitStringByDelimiter(list_of_file_names.str(), '\n');
         for (const auto& r_file_name : r_file_names) {
-            auto piece = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("Piece");
+            auto piece = Kratos::make_shared<XmlExpressionElement>("Piece");
             piece->AddAttribute("Source", r_file_name);
             unstructured_grid_element->AddElement(piece);
         }
@@ -991,8 +512,8 @@ void WritePvtuFile(
         output_pvtu_file_name << rOutputFileNamePrefix << ".pvtu";
         std::ofstream output_file;
         output_file.open(output_pvtu_file_name.str(), std::ios::out | std::ios::trunc);
-        VtuOutputHelperUtilities::XmlOStreamWriter writer(output_file, VtuOutput::WriterFormat::ASCII, 1);
-        vtk_file_element->Write(writer);
+        XmlOStreamAsciiWriter writer(output_file, 1);
+        writer.WriteElement(*vtk_file_element);
         output_file.close();
     }
 }
@@ -1016,7 +537,7 @@ VtuOutput::VtuOutput(
 
     KRATOS_WARNING_IF("VtuOutput", mIsElementsConsidered && mIsConditionsConsidered)
         << "Conditions and Elements vtu output chosen for " << mrModelPart.FullName()
-        << " which is not supported. Giving priority to elements.";
+        << " which is not supported. Giving priority to elements.\n";
 
     mIsConditionsConsidered = mIsElementsConsidered ? false : mIsConditionsConsidered;
 
@@ -1130,22 +651,22 @@ void VtuOutput::AddContainerExpression(
     }
 }
 
-void VtuOutput::WriteModelPart(
+void VtuOutput::PrintModelPart(
     const std::string& rOutputFileNamePrefix,
     ModelPart& rModelPart) const
 {
     // create the vtk file
-    auto vtk_file_element = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("VTKFile");
+    auto vtk_file_element = Kratos::make_shared<XmlExpressionElement>("VTKFile");
     vtk_file_element->AddAttribute("type", "UnstructuredGrid");
     vtk_file_element->AddAttribute("version", "0.1");
-    vtk_file_element->AddAttribute("byte_order", VtuOutputHelperUtilities::GetEndianess());
+    vtk_file_element->AddAttribute("byte_order", VtuOutputHelperUtilities::GetEndianness());
 
     // create the unstructured grid
-    auto unstructured_grid_element = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("UnstructuredGrid");
+    auto unstructured_grid_element = Kratos::make_shared<XmlExpressionElement>("UnstructuredGrid");
     vtk_file_element->AddElement(unstructured_grid_element);
 
     // create the piece element
-    auto piece_element = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("Piece");
+    auto piece_element = Kratos::make_shared<XmlExpressionElement>("Piece");
     piece_element->AddAttribute("NumberOfPoints",
                                 std::to_string(rModelPart.NumberOfNodes()));
     piece_element->AddAttribute(
@@ -1156,11 +677,11 @@ void VtuOutput::WriteModelPart(
 
     // create the points element
     auto points_element = VtuOutputHelperUtilities::CreatePointsXmlElement(
-        rModelPart, mIsConditionsConsidered);
+        rModelPart, mIsInitialConfiguration);
     piece_element->AddElement(points_element);
 
     // create the cells element
-    VtuOutputHelperUtilities::XmlElement::Pointer cells_element;
+    XmlExpressionElement::Pointer cells_element;
     if (mIsElementsConsidered) {
         cells_element = VtuOutputHelperUtilities::CreateCellsXmlElement(
             rModelPart.GetCommunicator().LocalMesh().Elements(), mKratosVtuIndicesMap);
@@ -1171,7 +692,7 @@ void VtuOutput::WriteModelPart(
     piece_element->AddElement(cells_element);
 
     // create the point data
-    auto point_data_element = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("PointData");
+    auto point_data_element = Kratos::make_shared<XmlExpressionElement>("PointData");
     piece_element->AddElement(point_data_element);
     VtuOutputHelperUtilities::AddListOfVariables<ModelPart::NodesContainerType, ContainerDataIOTags::Historical>(
         point_data_element, rModelPart, mHistoricalVariablesMap);
@@ -1183,7 +704,7 @@ void VtuOutput::WriteModelPart(
         point_data_element, rModelPart, mKratosVtuIndicesMap, mPointContainerExpressionsMap);
 
     // create cell data
-    auto cell_data_element = Kratos::make_shared<VtuOutputHelperUtilities::XmlElement>("CellData");
+    auto cell_data_element = Kratos::make_shared<XmlExpressionElement>("CellData");
     piece_element->AddElement(cell_data_element);
     if (mIsElementsConsidered) {
         VtuOutputHelperUtilities::AddListOfVariables<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(
@@ -1211,8 +732,22 @@ void VtuOutput::WriteModelPart(
 
     std::ofstream output_file;
     output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
-    VtuOutputHelperUtilities::XmlOStreamWriter writer(output_file, mOutputFormat, mPrecision);
-    vtk_file_element->Write(writer);
+
+    switch (mOutputFormat) {
+        case WriterFormat::ASCII:
+        {
+            XmlOStreamAsciiWriter writer(output_file, mPrecision);
+            writer.WriteElement(*vtk_file_element);
+        }
+        break;
+        case WriterFormat::BINARY:
+        {
+            XmlOStreamBase64BinaryWriter writer(output_file);
+            writer.WriteElement(*vtk_file_element);
+        }
+        break;
+    }
+
     output_file.close();
 
     if (r_communiator.IsDistributed()) {
@@ -1256,9 +791,14 @@ void VtuOutput::ClearCellContainerExpressions()
     mCellContainerExpressionsMap.clear();
 }
 
+const ModelPart& VtuOutput::GetModelPart() const
+{
+    return mrModelPart;
+}
+
 void VtuOutput::PrintOutput(const std::string& rOutputFilenamePrefix)
 {
-    WriteModelPart(rOutputFilenamePrefix, mrModelPart);
+    PrintModelPart(rOutputFilenamePrefix, mrModelPart);
 }
 
 // template instantiations

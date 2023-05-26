@@ -20,14 +20,23 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
 #include "includes/io.h"
 #include "includes/model_part.h"
 #include "containers/variable.h"
 #include "containers/flags.h"
 #include "containers/container_expression/container_expression.h"
 
-
 namespace Kratos {
+/**
+ * @class VtuOutput
+ * @brief Class to output Kratos Flags, Variables and ContainerExpressions
+ *        to vtu. Supports both shared and distributed memory architectures.
+ *
+ * @details This class does not create or destroy any folder structures, hence the output
+ * file name prefix should have a valid parent directory.
+ * @author Suneth Warnakulasuriya
+ */
 class KRATOS_API(KRATOS_CORE) VtuOutput : public IO
 {
 public:
@@ -55,33 +64,28 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS );
 
     ///@}
-    ///@name Public classes
+    ///@name Public enums
     ///@{
 
-    struct VariableComparator
-    {
-        bool operator()(
-            const SupportedVariables& rFirst,
-            const SupportedVariables& rSecond) const
-        {
-            bool is_less = false;
-            std::visit([&is_less](auto pFirst, auto pSecond) {
-                is_less = pFirst->Key() < pSecond->Key();
-            }, rFirst, rSecond);
-            return is_less;
-        }
-    };
-
+    /// Enumerations for the output writer format.
     enum WriterFormat
     {
-        ASCII,
-        BINARY
+        ASCII,  /// ASCII format.
+        BINARY  /// Binary format.
     };
 
     ///@}
     ///@name Life cycle
     ///@{
 
+    /**
+     * @brief Construct a new Vtu Output IO
+     * @details Constructs a new VtuOuput IO instance with the given parameters.
+     * @param rModelPart                Model part to be used.
+     * @param IsInitialConfiguration    If true, the initial configuration is written.
+     * @param OutputFormat              Output format. Either ASCII or BINARY supported.
+     * @param Precision                 Precision of the double output.
+     */
     VtuOutput(
         ModelPart& rModelPart,
         const bool IsInitialConfiguration = true,
@@ -92,79 +96,153 @@ public:
     ///@name Public operations
     ///@{
 
+    /**
+     * @brief Adds historical variables to the output.
+     *
+     * @tparam TDataType
+     * @param rVariable
+     */
     template<class TDataType>
     void AddHistoricalVariable(const Variable<TDataType>& rVariable);
 
+    /**
+     * @brief Adds non historical variables to the output.
+     *
+     * @tparam TDataType
+     * @param rVariable         Variable to be added.
+     * @param rEntityFlags      Considered container for the variable. Either NODES, CONDITIONS or ELEMENTS
+     */
     template<class TDataType>
     void AddNonHistoricalVariable(
         const Variable<TDataType>& rVariable,
         const Flags& rEntityFlags);
 
+    /**
+     * @brief Adds flag output.
+     *
+     * @param rFlagName         Flag name.
+     * @param rFlagVariable     Variable to be added.
+     * @param rEntityFlags      Considered container for the variable. Either NODES, CONDITIONS or ELEMENTS
+     */
     void AddFlagVariable(
         const std::string& rFlagName,
         const Flags& rFlagVariable,
         const Flags& rEntityFlags);
 
+    /**
+     * @brief Adds container expressions to the vtu output.
+     *
+     * This adds container expressions to the output. Proper care should be taken when updating ContainerExpressions because
+     * In python, when a container expression is assigned with a new container expression, it does not call the assignment operator.
+     * Hence, the new expression takes place. Therefore, when container expressions required to be outputted, then it is best
+     * to always clear the existing container expressions and add the new ones. Otherwise, the vtu output may be writing not the
+     * latest container expression.
+     *
+     * @tparam TContainerType
+     * @param rExpressionName           Name for the container expression.
+     * @param pContainerExpression      Container expression.
+     */
     template <class TContainerType>
     void AddContainerExpression(
         const std::string& rExpressionName,
         const typename ContainerExpression<TContainerType>::Pointer pContainerExpression);
 
+    /**
+    * @brief Clears the historical variables.
+    */
     void ClearHistoricalVariables();
 
+    /**
+    * @brief Clears the nodal non-historical variables.
+    */
     void ClearNodalNonHistoricalVariables();
 
+    /**
+    * @brief Clears the cell non-historical variables.
+    */
     void ClearCellNonHistoricalVariables();
 
+    /**
+    * @brief Clears the nodal flags.
+    */
     void ClearNodalFlags();
 
+    /**
+    * @brief Clears the cell flags.
+    */
     void ClearCellFlags();
 
+    /**
+    * @brief Clears the nodal container expressions.
+    */
     void ClearNodalContainerExpressions();
 
+    /**
+    * @brief Clears the cell container expressions.
+    */
     void ClearCellContainerExpressions();
 
+    /**
+    * @brief Returns the model part.
+    * @return The constant reference to the model part.
+    */
+    const ModelPart& GetModelPart() const;
+
+    /**
+     * @brief Writes the Vtu file.
+     * @details This writes the final vtu file. If this is a transient output, then @ref rOutputFilenamePrefix
+     * should have indication of the step, otherwise this will overwrite the same file.
+     * In the MPI case, this will create one .vtu file per rank, and a .pvtu file to combine them.
+     * @param rOutputFilenamePrefix         Output file name prefix.
+     */
     void PrintOutput(const std::string& rOutputFilenamePrefix);
 
     ///@}
-
 private:
     ///@name Private member variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart& mrModelPart; /// Reference to the model part.
 
-    const bool mIsInitialConfiguration;
+    const bool mIsInitialConfiguration; /// Flag indicating if it is the initial configuration.
 
-    const WriterFormat mOutputFormat;
+    const WriterFormat mOutputFormat; /// The output format for writing the model part.
 
-    const IndexType mPrecision;
+    const IndexType mPrecision; /// The precision used for writing floating-point values.
 
-    bool mIsConditionsConsidered;
+    bool mIsConditionsConsidered; /// Flag indicating if conditions are considered.
 
-    bool mIsElementsConsidered;
+    bool mIsElementsConsidered; /// Flag indicating if elements are considered.
 
-    std::unordered_map<IndexType, IndexType> mKratosVtuIndicesMap;
+    // TODO: In the future study to replace the std::unordered_map
+    // TODO: Study replace string, expensive, with hashes or keys
 
-    std::unordered_map<std::string, SupportedVariables> mHistoricalVariablesMap;
+    std::unordered_map<IndexType, IndexType> mKratosVtuIndicesMap; /// Map to store Kratos VTU indices.
 
-    std::unordered_map<std::string, SupportedVariables> mNonHistoricalNodalVariablesMap;
+    std::unordered_map<std::string, SupportedVariables> mHistoricalVariablesMap; /// Map to store supported historical variables.
 
-    std::unordered_map<std::string, SupportedVariables> mNonHistoricalCellVariablesMap;
+    std::unordered_map<std::string, SupportedVariables> mNonHistoricalNodalVariablesMap; /// Map to store supported non-historical nodal variables.
 
-    std::unordered_map<std::string, const Flags*> mNodalFlagsMap;
+    std::unordered_map<std::string, SupportedVariables> mNonHistoricalCellVariablesMap; /// Map to store supported non-historical cell variables.
 
-    std::unordered_map<std::string, const Flags*> mCellFlagsMap;
+    std::unordered_map<std::string, const Flags*> mNodalFlagsMap; /// Map to store nodal flags.
 
-    std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mPointContainerExpressionsMap;
+    std::unordered_map<std::string, const Flags*> mCellFlagsMap; /// Map to store cell flags.
 
-    std::unordered_map<std::string, SupportedCellContainerExpressions> mCellContainerExpressionsMap;
+    std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mPointContainerExpressionsMap; /// Map to store point container expressions.
+
+    std::unordered_map<std::string, SupportedCellContainerExpressions> mCellContainerExpressionsMap; /// Map to store supported cell container expressions.
 
     ///@}
     ///@name Private operations
     ///@{
 
-    void WriteModelPart(
+    /**
+    * @brief Writes the model part to a file.
+    * @param rOutputFileNamePrefix The output file name prefix.
+    * @param rModelPart            The model part to write.
+    */
+    void PrintModelPart(
         const std::string& rOutputFileNamePrefix,
         ModelPart& rModelPart) const;
 

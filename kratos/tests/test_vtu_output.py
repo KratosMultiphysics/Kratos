@@ -82,5 +82,5 @@ class TestVtuOutput3D(TestVtuOutputBase, kratos_unittest.TestCase):
         super().setUpClass("3D", SetupModelPart3D)
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
     kratos_unittest.main()

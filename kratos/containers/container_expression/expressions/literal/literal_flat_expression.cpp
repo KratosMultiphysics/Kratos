@@ -26,7 +26,7 @@ LiteralFlatExpression<TRawDataType>::LiteralFlatExpression(
     const std::vector<IndexType>& rShape)
     : Expression(NumberOfEntities),
       mShape(rShape),
-      mData(NumberOfEntities * this->GetFlattenedShapeSize())
+      mData(NumberOfEntities * this->GetItemComponentCount())
 {
 }
 
@@ -37,7 +37,7 @@ LiteralFlatExpression<TRawDataType>::LiteralFlatExpression(
     const std::vector<IndexType>& rShape)
     : Expression(NumberOfEntities),
       mShape(rShape),
-      mData(pDataBegin, NumberOfEntities * this->GetFlattenedShapeSize())
+      mData(pDataBegin, NumberOfEntities * this->GetItemComponentCount())
 {
 }
 
@@ -76,7 +76,7 @@ void LiteralFlatExpression<TRawDataType>::SetData(
 }
 
 template<class TRawDataType>
-const std::vector<std::size_t> LiteralFlatExpression<TRawDataType>::GetShape() const
+const std::vector<std::size_t> LiteralFlatExpression<TRawDataType>::GetItemShape() const
 {
     return mShape;
 }

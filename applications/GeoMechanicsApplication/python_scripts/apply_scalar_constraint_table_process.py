@@ -28,7 +28,7 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                     self.process = KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.params)
                 else:
                     self.params.AddValue("table",settings["table"])
-                    self.process = KratosGeo.ApplyDoubleTableProcess(self.model_part, self.params)
+                    self.process = KratosGeo.ApplyComponentTableProcess(self.model_part, self.params)
             elif settings["fluid_pressure_type"].GetString() == "Hydrostatic":
                 self.params.AddValue("gravity_direction",settings["gravity_direction"])
                 self.params.AddValue("reference_coordinate",settings["reference_coordinate"])
@@ -105,7 +105,7 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                 self.process = KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.params)
             else:
                 self.params.AddValue("table",settings["table"])
-                self.process = KratosGeo.ApplyDoubleTableProcess(self.model_part, self.params)
+                self.process = KratosGeo.ApplyComponentTableProcess(self.model_part, self.params)
 
     def ExecuteInitialize(self):
 
