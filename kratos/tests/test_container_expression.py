@@ -501,10 +501,7 @@ class TestContainerExpression(ABC):
         a = self._GetSpecializedContainerExpression()
         a.Read(Kratos.INITIAL_STRAIN)
 
-        combed = a.Comb([a.Slice(2, 2), a.Slice(3, 2)])
-        combed *= 2
-        combed = combed.Reshape([5, 2])
-        combed.Evaluate(Kratos.PK2_STRESS_TENSOR)
+        (a.Comb([a.Slice(2, 2), a.Slice(3, 2)]) * 2).Reshape([5, 2]).Evaluate(Kratos.PK2_STRESS_TENSOR)
 
         for entity in a.GetContainer():
             original_value = self._GetValue(entity, Kratos.INITIAL_STRAIN)
