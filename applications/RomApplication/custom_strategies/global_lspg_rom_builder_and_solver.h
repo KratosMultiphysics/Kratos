@@ -424,7 +424,6 @@ protected:
 
     //     // Create the Eigen matrix using the buffer
     //     Eigen::Map<EigenDynamicMatrix> eigen_matrix(rA.data().begin(), rA.size1(), rA.size2());
-    //     KRATOS_WATCH(rA)
     //     Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
     //     Eigen::Map<EigenDynamicVector> eigen_vector(rb.data().begin(), rb.size());
 
@@ -536,31 +535,12 @@ protected:
             for (unsigned int i = 0; i < hrom_dof_mask_vector.size(); i++){
                 if (hrom_dof_mask_vector[i] != 0){
                     non_zero_entries_vector += 1;
-                    // if (i==8 || i==48){
-                    //     KRATOS_WATCH(row(rA_left,i))
-                    //     KRATOS_WATCH(i)
-                    // }
                 }
             }
-        // KRATOS_WATCH(hrom_dof_mask_vector)
-        // KRATOS_WATCH(non_zero_entries_vector)
 
             // Zero out rows in the matrix that correspond to zero in the mask vector
             ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
         }
-
-        int non_zero_entries = 0;
-        for (unsigned int i=0; i<rA_left.size1(); i++){
-            for (unsigned int j=0; j<rA_left.size2(); j++){
-                if (rA_left(i,j)!=0){
-                    non_zero_entries += 1;
-                }
-            }
-        }
-        // KRATOS_WATCH(rA_left)
-        // KRATOS_WATCH(non_zero_entries)
-
-
         ////////
 
 
@@ -577,8 +557,6 @@ protected:
         // Compute the matrix multiplication
         mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
         mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
-        // KRATOS_WATCH(mA_eigen)
-        // KRATOS_WATCH(mb_eigen)
         
         KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Projection time: " << projection_timer.ElapsedSeconds() << std::endl;
         double time = assembling_timer.ElapsedSeconds();
@@ -592,7 +570,6 @@ protected:
     void ApplyMaskToMatrixRows(Matrix& rA_left, 
         const Vector& hrom_dof_mask_vector)
     {
-        int counter=0;
         if(rA_left.size1() != hrom_dof_mask_vector.size()) 
         {
             throw std::invalid_argument("Matrix and vector sizes do not match");
@@ -604,11 +581,7 @@ protected:
             {
                 row(rA_left, i) = zero_vector<double>(rA_left.size2());
             }
-            else{
-                counter += 1;
-            }
         }
-        // KRATOS_WATCH(counter)
     }
 
 
@@ -626,13 +599,10 @@ protected:
         {
             Element::DofsVectorType hrom_dofs;
             r_element.GetDofList(hrom_dofs, rCurrentProcessInfo);
-            // KRATOS_WATCH(hrom_dofs.size())
             for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
             {
                 const Dof<double>& r_dof = *hrom_dofs[i];
                 std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
-                // KRATOS_WATCH(r_dof.EquationId())
-                // KRATOS_WATCH(r_dof.Id())
             }
         });
 
@@ -640,13 +610,10 @@ protected:
         {
             Condition::DofsVectorType hrom_dofs;
             r_condition.GetDofList(hrom_dofs, rCurrentProcessInfo);
-            // KRATOS_WATCH(hrom_dofs.size())
             for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
             {
                 const Dof<double>& r_dof = *hrom_dofs[i];
                 std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
-                // KRATOS_WATCH(r_dof.EquationId())
-                // KRATOS_WATCH(r_dof.Id())
             }
         });
 
@@ -673,12 +640,9 @@ protected:
         
         const auto solving_timer = BuiltinTimer();
 
-        ////EIGEN////
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
         dxrom_eigen = mA_eigen.colPivHouseholderQr().solve(mb_eigen);
-        KRATOS_WATCH(dxrom_eigen)
-        /////////////
 
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
@@ -825,14 +789,6 @@ private:
                     const SizeType global_col = col;
                     double& r_aij = rAglobal(global_row, global_col);
                     AtomicAdd(r_aij, rPreAlloc.romA(row, col));
-                    // if (!rHromWeightFlag){
-                    //     if (global_row==8 || global_row==48){
-                    //         KRATOS_WATCH(global_row)
-                    //         KRATOS_WATCH(rPreAlloc.lhs)
-                    //         KRATOS_WATCH(rPreAlloc.phiE)
-                    //         KRATOS_WATCH(rPreAlloc.romA(row, col))
-                    //     }
-                    // }
                 }
             }
         }
