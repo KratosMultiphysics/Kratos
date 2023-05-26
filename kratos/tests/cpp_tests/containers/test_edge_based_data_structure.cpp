@@ -42,6 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
 
     // Calculate nodal neighbours
+    // TODO: Temporary solution until we skip the neighbours calculation
     FindGlobalNodalNeighboursProcess nodal_neighs_process(r_model_part);
     nodal_neighs_process.Execute();
 
@@ -54,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     KRATOS_WATCH(r_edge_data_12.GetLumpedMassCoefficient())
     KRATOS_WATCH(r_edge_data_12.GetFirstDerivatives())
 
-    KRATOS_CHECK_EQUAL(edge_based_data_structure.GetNumEdges(), 16);
+    KRATOS_CHECK_EQUAL(edge_based_data_structure.NumberOfEdges(), 16);
 
 }
 

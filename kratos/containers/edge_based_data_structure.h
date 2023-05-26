@@ -62,6 +62,10 @@ public:
     {
     public:
 
+        EdgeData() = default;
+
+        EdgeData(const EdgeData& rOther) = delete;
+
         double GetMassCoefficient() const
         {
             return MassCoefficient;
@@ -163,7 +167,7 @@ public:
     ///@name Access
     ///@{
 
-    SizeType GetNumEdges() const
+    SizeType NumberOfEdges() const
     {
         return mNumEdges;
     }
@@ -354,7 +358,8 @@ private:
                         // If not created yet, create current edge data
                         auto& rp_edge_data = mValues[ij_col_index];
                         if (rp_edge_data == nullptr) {
-                            rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
+                            auto p_aux = Kratos::make_unique<EdgeData>();
+                            std::swap(rp_edge_data, p_aux);
                         }
 
                         // Add current edge elementwise contributions
