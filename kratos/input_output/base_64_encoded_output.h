@@ -43,12 +43,20 @@ public:
     ///@name Type definitions
     //@{
 
+    /// The index type
     using IndexType = std::size_t;
 
     ///@}
     ///@name Public classes
     ///@{
 
+    /**
+    * @class ByteIterator
+    * @brief A forward iterator that iterates over bytes in a sequence.
+    * @details This class provides an iterator interface for iterating over bytes in a sequence specified by the underlying iterator type.
+    * It allows accessing individual bytes of the sequence and advancing the iterator by one byte at a time.
+    * @tparam TIteratorType The underlying iterator type that provides the sequence to iterate over.
+    */
     template<class TIteratorType>
     class ByteIterator
     {
@@ -56,20 +64,23 @@ public:
         ///@name Type definitions
         ///@{
 
-        using value_type = char;
-
-        using pointer = char*;
-
-        using reference = char&;
-
-        using iterator_category = std::forward_iterator_tag;
-
-        using difference_type = std::ptrdiff_t;
+        using value_type = char;                               //// The value type representing a byte.
+        using pointer = char*;                                 //// Pointer to a byte.
+        using reference = char&;                               //// Reference to a byte. 
+        using iterator_category = std::forward_iterator_tag;   //// Iterator category - forward iterator. 
+        using difference_type = std::ptrdiff_t;                //// Difference type between iterators.
 
         ///@}
         ///@name Life cycle
         ///@{
 
+        /**
+        * @brief Constructor.
+        * @param it The underlying iterator representing the current position in the sequence.
+        * @details This constructor initializes a ByteIterator object with the specified underlying iterator.
+        * The current byte is determined from the value pointed to by the underlying iterator.
+        * The byte index is set to the first byte (index 0).
+        */
         ByteIterator(TIteratorType it)
             : mIt(it),
             mValue(*it),
@@ -80,11 +91,25 @@ public:
         ///@name Public operations
         ///@{
 
+        /**
+        * @brief Dereference operator.
+        * @details This operator returns the value of the current byte being pointed to by the iterator.
+        * The byte value is obtained by interpreting the value pointed to by the underlying iterator as a sequence of bytes.
+        * The byte at the current byte index is returned.
+        * @return The current byte value.
+        */
         value_type operator*() const
         {
             return reinterpret_cast<const value_type*>(&mValue)[mByteIndex];
         }
 
+        /**
+        * @brief Pre-increment operator.
+        * @details This operator advances the iterator to the next byte in the sequence.
+        * If the current byte index reaches the size of the value type, the underlying iterator is incremented and the byte index is reset to zero.
+        * The updated iterator is returned by reference.
+        * @return Reference to the updated iterator.
+        */
         ByteIterator& operator++()
         {
             using value_type = typename std::iterator_traits<TIteratorType>::value_type;
@@ -96,6 +121,12 @@ public:
             return *this;
         }
 
+        /**
+        * @brief Post-increment operator.
+        * @details This operator advances the iterator to the next byte in the sequence and returns a copy of the iterator before the increment.
+        * The pre-increment operator is invoked to perform the actual incrementation.
+        * @return A copy of the iterator before incrementing.
+        */
         ByteIterator operator++(int)
         {
             ByteIterator copy = *this;
@@ -109,11 +140,11 @@ public:
         ///@name Private member variables
         ///@{
 
-        TIteratorType mIt;
+        TIteratorType mIt;                                              /// The underlying iterator representing the current position in the sequence.
+        typename std::iterator_traits<TIteratorType>::value_type mValue; /// The value pointed to by the underlying iterator.
+    
 
-        typename std::iterator_traits<TIteratorType>::value_type mValue;
-
-        IndexType mByteIndex = 0u;
+        IndexType mByteIndex = 0u;                                      /// The index of the current byte being processed.
 
         ///@}
     };
@@ -122,22 +153,38 @@ public:
     ///@name Life cycle
     ///@{
 
+    /**
+     * @brief Constructor.
+     * @details This constructor initializes a Base64EncodedOutput object with the specified output stream.
+     * The encoded data will be written to the provided output stream during encoding operations.
+     * @param rOStream The output stream where the encoded data will be written.
+     */
     Base64EncodedOutput(std::ostream& rOStream)
         : mrOStream(rOStream)
     {
     }
 
+    /**
+     * @brief Destructor.
+     * @brief This destructor finalizes the encoding process by handling any remaining bytes and padding at the end of the data.
+     * It ensures that the encoded data is correctly written to the output stream before the object is destroyed.
+     */
     ~Base64EncodedOutput()
     {
         const IndexType padding = 3 - mByteTripletIndex;
+
+        // Check if there are remaining bytes and padding needs to be added
         if (padding != 0 && mByteTripletIndex != 0) {
+            // Fill the remaining bytes with null characters
             for (; mByteTripletIndex < 3; ++mByteTripletIndex) {
                 mByteTriplet[mByteTripletIndex] = '\0';
             }
 
+            // Encode the remaining byte triplet and write it to the output stream
             EncodeTriplet(mrOStream, mByteTriplet, padding);
         }
-        mByteTripletIndex = 0;
+
+        mByteTripletIndex = 0; // Reset the byte triplet index for future encoding operations
     }
 
     ///@}
@@ -208,18 +255,52 @@ private:
     ///@name Private member variables
     ///@{
 
+    /**
+    * @brief The output stream for encoding operations.
+    * @details This member variable represents the output stream where the encoded data will be written.
+    * It is used by the encoding functions in this class to write the encoded data.
+    */
     std::ostream& mrOStream;
 
+    /**
+    * @brief The index of the current byte triplet being processed.
+    * @details This member variable keeps track of the current byte triplet being processed during encoding.
+    * It is used to determine the position of the bytes in the triplet and to handle padding correctly.
+    */
     IndexType mByteTripletIndex = 0;
 
+    /**
+    * @brief The byte triplet buffer for encoding operations.
+    * @details This member variable is an array of three characters representing the current byte triplet being encoded.
+    * It is used to store the bytes before they are processed and encoded into base64 format.
+    */
     std::array<char, 3> mByteTriplet;
 
+    /**
+    * @brief The base64 encoding character mapping.
+    * @details This static constexpr member variable is a character array that maps the values used for base64 encoding.
+    * It contains the characters 'A' to 'Z', 'a' to 'z', '0' to '9', and the '+' and '/' characters.
+    * It is used by the encoding functions to convert the binary data into base64-encoded characters.
+    */
     constexpr static char base64Map[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     ///@}
     ///@name Private static operations
     ///@{
 
+    /**
+    * @brief Encodes a triplet of bytes into base64 format and writes it to the specified output stream.
+    *
+    * This function takes three bytes and encodes them using the base64 encoding scheme.
+    * The resulting encoded triplet is written to the provided output stream.
+    *
+    * @param rOutput The output stream where the encoded triplet will be written.
+    * @param rBytes An array of three bytes to encode.
+    * @param Padding The number of padding characters to append to the encoded triplet.
+    *                It should be a value between 0 and 2 (inclusive).
+    *
+    * @note The output stream should be in a valid state and open for writing.
+    */
     static void EncodeTriplet(
         std::ostream& rOutput,
         const std::array<char, 3>& rBytes,
