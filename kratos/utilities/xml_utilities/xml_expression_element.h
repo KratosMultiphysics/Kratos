@@ -108,6 +108,8 @@ public:
      */
     void ClearElements();
 
+    const std::vector<Expression::Pointer> GetExpressions() const;
+
     /**
      * @brief Write the XML element to the XML output stream writer.
      * @param rWriter The XML output stream writer.

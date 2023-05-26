@@ -133,6 +133,11 @@ void XmlExpressionElement::ClearElements()
     mXmlElements.clear();
 }
 
+const std::vector<Expression::Pointer> XmlExpressionElement::GetExpressions() const
+{
+    return mExpressions;
+}
+
 void XmlExpressionElement::Write(
     XmlOStreamWriter& rWriter,
     const IndexType Level) const
