@@ -28,7 +28,6 @@
 #include "input_output/base_64_encoded_output.h"
 #include "input_output/vtk_definitions.h"
 #include "utilities/xml_utilities/xml_expression_element.h"
-#include "utilities/xml_utilities/xml_ostream_writer.h"
 #include "utilities/xml_utilities/xml_ostream_ascii_writer.h"
 #include "utilities/xml_utilities/xml_ostream_base64_binary_writer.h"
 
@@ -524,7 +523,7 @@ void WritePvtuFile(
 VtuOutput::VtuOutput(
     ModelPart& rModelPart,
     const bool IsInitialConfiguration,
-    const XmlOStreamWriter::WriterFormat OutputFormat,
+    const WriterFormat OutputFormat,
     const IndexType Precision)
     : mrModelPart(rModelPart),
       mIsInitialConfiguration(IsInitialConfiguration),
@@ -735,13 +734,13 @@ void VtuOutput::PrintModelPart(
     output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
 
     switch (mOutputFormat) {
-        case XmlOStreamWriter::WriterFormat::ASCII:
+        case WriterFormat::ASCII:
         {
             XmlOStreamAsciiWriter writer(output_file, mPrecision);
             writer.WriteElement(*vtk_file_element);
         }
         break;
-        case XmlOStreamWriter::WriterFormat::BINARY:
+        case WriterFormat::BINARY:
         {
             XmlOStreamBase64BinaryWriter writer(output_file);
             writer.WriteElement(*vtk_file_element);
