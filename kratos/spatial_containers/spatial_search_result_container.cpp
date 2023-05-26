@@ -34,9 +34,10 @@ SpatialSearchResultContainer<TObjectType>::SpatialSearchResultContainer(const Da
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::AddResult(const SpatialSearchResult<TObjectType>& rResult)
+void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResult<TObjectType>& rResult)
 {
-    //mLocalPointers.push_back();
+    // Push_back in local pointers
+    mLocalPointers.push_back(Kratos::intrusive_ptr<TObjectType>(rResult.Get().get()));
 }
 
 /***********************************************************************************/
@@ -59,9 +60,9 @@ void SpatialSearchResultContainer<TObjectType>::Clear()
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::Synchronize()
+void SpatialSearchResultContainer<TObjectType>::SynchronizeAll()
 {
-    // Synchronize local pointers to global pointers // TODO: Fix
+    // Synchronize local pointers to global pointers
     mGlobalPointers = GlobalPointerUtilities::GlobalRetrieveGlobalPointers(mLocalPointers, mrDataCommunicator);
 
     // Generate the communicator
