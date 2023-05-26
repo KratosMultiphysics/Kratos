@@ -37,7 +37,7 @@ namespace Kratos {
  *  @note The destructor of the instance will write the remaining bytes of the data container with padding.
  *        Hence, scoping of the encoder should be done to properly finish writing of the data stream
  */
-class Base64EncodedOutput
+class KRATOS_API(KRATOS_CORE) Base64EncodedOutput
 {
 public:
     ///@name Type definitions
@@ -140,11 +140,9 @@ public:
         ///@name Private member variables
         ///@{
 
-        TIteratorType mIt;                                              /// The underlying iterator representing the current position in the sequence.
+        TIteratorType mIt;                                               /// The underlying iterator representing the current position in the sequence.
         typename std::iterator_traits<TIteratorType>::value_type mValue; /// The value pointed to by the underlying iterator.
-    
-
-        IndexType mByteIndex = 0u;                                      /// The index of the current byte being processed.
+        IndexType mByteIndex = 0u;                                       /// The index of the current byte being processed.
 
         ///@}
     };
@@ -169,23 +167,7 @@ public:
      * @brief This destructor finalizes the encoding process by handling any remaining bytes and padding at the end of the data.
      * It ensures that the encoded data is correctly written to the output stream before the object is destroyed.
      */
-    ~Base64EncodedOutput()
-    {
-        const IndexType padding = 3 - mByteTripletIndex;
-
-        // Check if there are remaining bytes and padding needs to be added
-        if (padding != 0 && mByteTripletIndex != 0) {
-            // Fill the remaining bytes with null characters
-            for (; mByteTripletIndex < 3; ++mByteTripletIndex) {
-                mByteTriplet[mByteTripletIndex] = '\0';
-            }
-
-            // Encode the remaining byte triplet and write it to the output stream
-            EncodeTriplet(mrOStream, mByteTriplet, padding);
-        }
-
-        mByteTripletIndex = 0; // Reset the byte triplet index for future encoding operations
-    }
+    ~Base64EncodedOutput();
 
     ///@}
     ///@name Public operations
@@ -304,18 +286,8 @@ private:
     static void EncodeTriplet(
         std::ostream& rOutput,
         const std::array<char, 3>& rBytes,
-        const IndexType Padding)
-    {
-        char tmp[5] = {
-            base64Map[(rBytes[0] & 0xfc) >> 2],
-            base64Map[((rBytes[0] & 0x03) << 4) + ((rBytes[1] & 0xf0) >> 4)],
-            base64Map[((rBytes[1] & 0x0f) << 2) + ((rBytes[2] & 0xc0) >> 6)],
-            base64Map[rBytes[2] & 0x3f], '\0'};
-
-        std::fill(tmp + 4 - Padding, tmp + 4, '=');
-
-        rOutput << tmp;
-    }
+        const IndexType Padding
+        );
 
     ///@}
 };
