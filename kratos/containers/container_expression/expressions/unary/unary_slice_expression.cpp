@@ -55,11 +55,10 @@ double UnarySliceExpression::Evaluate(
 
 const std::vector<std::size_t> UnarySliceExpression::GetItemShape() const
 {
-    // The following block has a problem.
-    // That is, if the shape = [], then it is assumed as a scalar, then no problem.
-    // but if the given shape = [1], then this will simplify it to a scalar.
-    // At the moment I don't see a problem with this simplification, but this means
-    // we are not consistent in the shape conversion. (programatically, mathematically it should be fine.)
+    // Following will always convert shape = [1] to shape = [].
+    // Hence, if slicing is used, the output for scalars always will be
+    // shape = [] irrespective of the input scalar shape. If they still want to
+    // have the shape = [1], then UnaryReshapeExpression may be used.
     if (mStride == 1) {
         return {};
     } else {
