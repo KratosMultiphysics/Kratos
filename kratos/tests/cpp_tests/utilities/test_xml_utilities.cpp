@@ -21,6 +21,8 @@
 #include "testing/testing.h"
 #include "utilities/xml_utilities/xml_expression_element.h"
 #include "utilities/xml_utilities/xml_ostream_writer.h"
+#include "utilities/xml_utilities/xml_ostream_ascii_writer.h"
+#include "utilities/xml_utilities/xml_ostream_base64_binary_writer.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 
 namespace Kratos::Testing {
@@ -92,34 +94,18 @@ KRATOS_TEST_CASE_IN_SUITE(XmlElementClearElements, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWrite, KratosCoreFastSuite)
 {
     XmlExpressionElement element("TestElement");
-    std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 4);
     element.AddAttribute("Attribute1", "Value1");
     auto childElement = Kratos::make_shared<XmlExpressionElement>("ChildElement");
     element.AddElement(childElement);
-    element.Write(writer, 1);
+
+    std::stringstream ss;
+    XmlOStreamAsciiWriter writer(ss, 4);
+    writer.WriteElement(element, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
                        "   <TestElement Attribute1=\"Value1\">\n"
                        "      <ChildElement/>\n"
                        "   </TestElement>\n");
-}
-
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteElement, KratosCoreFastSuite)
-{
-    std::vector<std::pair<std::string, std::string>> attributes = {{"attribute1", "value1"}, {"attribute2", "value2"}};
-    std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 4);
-    writer.WriteElement("TestElement", attributes, 1, true);
-    KRATOS_CHECK_EQUAL(ss.str(), "   <TestElement attribute1=\"value1\" attribute2=\"value2\"/>\n");
-}
-
-KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterCloseElement, KratosCoreFastSuite)
-{
-    std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 4);
-    writer.CloseElement("TestElement", 1);
-    KRATOS_CHECK_EQUAL(ss.str(), "   </TestElement>\n");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiChar, KratosCoreFastSuite)
@@ -141,8 +127,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiChar, KratosCoreF
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 4);
-    element.Write(writer, 1);
+    XmlOStreamAsciiWriter writer(ss, 4);
+    writer.WriteElement(element, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"UInt8\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
@@ -169,8 +155,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiInt, KratosCoreFa
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 4);
-    element.Write(writer, 1);
+    XmlOStreamAsciiWriter writer(ss, 4);
+    writer.WriteElement(element, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"Int32\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
@@ -197,8 +183,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiDouble, KratosCor
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 0);
-    element.Write(writer, 1);
+    XmlOStreamAsciiWriter writer(ss, 0);
+    writer.WriteElement(element, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
@@ -225,8 +211,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementAsciiMixed, KratosCore
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::ASCII, 0);
-    element.Write(writer, 1);
+    XmlOStreamAsciiWriter writer(ss, 0);
+    writer.WriteElement(element, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"ascii\">\n"
@@ -253,8 +239,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryChar, KratosCore
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::BINARY, 4);
-    element.Write(writer, 1);
+    XmlOStreamBase64BinaryWriter writer(ss);
+    writer.WriteElement(element, 1);
 
         KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"UInt8\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
@@ -281,8 +267,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryInt, KratosCoreF
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::BINARY, 4);
-    element.Write(writer, 1);
+    XmlOStreamBase64BinaryWriter writer(ss);
+    writer.WriteElement(element, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"Int32\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
@@ -309,8 +295,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryDouble, KratosCo
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::BINARY, 4);
-    element.Write(writer, 1);
+    XmlOStreamBase64BinaryWriter writer(ss);
+    writer.WriteElement(element, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
@@ -337,8 +323,8 @@ KRATOS_TEST_CASE_IN_SUITE(XmlOStreamWriterWriteDataElementBinaryMixed, KratosCor
     element.AddAttribute("attribute1", "value1");
 
     std::stringstream ss;
-    XmlOStreamWriter writer(ss, XmlOStreamWriter::WriterFormat::BINARY, 4);
-    element.Write(writer, 1);
+    XmlOStreamBase64BinaryWriter writer(ss);
+    writer.WriteElement(element, 1);
 
     KRATOS_CHECK_EQUAL(ss.str(),
             "   <DataArray type=\"Float64\" Name=\"data_1\" NumberOfComponents=\"3\" attribute1=\"value1\" format=\"binary\">\n"
