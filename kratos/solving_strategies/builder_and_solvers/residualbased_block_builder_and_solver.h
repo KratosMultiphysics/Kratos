@@ -510,10 +510,9 @@ public:
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
-        time_system_solving+= timer.ElapsedSeconds();
-
-
         SystemSolveWithPhysics(A, Dx, b, rModelPart);
+
+        time_system_solving+= timer.ElapsedSeconds();
 
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
