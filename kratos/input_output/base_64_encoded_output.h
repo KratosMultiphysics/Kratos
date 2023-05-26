@@ -273,15 +273,12 @@ private:
 
     /**
     * @brief Encodes a triplet of bytes into base64 format and writes it to the specified output stream.
-    *
-    * This function takes three bytes and encodes them using the base64 encoding scheme.
+    * @details This function takes three bytes and encodes them using the base64 encoding scheme.
     * The resulting encoded triplet is written to the provided output stream.
-    *
     * @param rOutput The output stream where the encoded triplet will be written.
     * @param rBytes An array of three bytes to encode.
     * @param Padding The number of padding characters to append to the encoded triplet.
     *                It should be a value between 0 and 2 (inclusive).
-    *
     * @note The output stream should be in a valid state and open for writing.
     */
     static inline void EncodeTriplet(
