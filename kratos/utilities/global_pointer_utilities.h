@@ -49,6 +49,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+class Element;   /// Forward declaration
+class Condition; /// Forward declaration
+class Node;      /// Forward declaration
+
 /**
  * @class GlobalPointerUtilities
  * @brief This class is used to manage global pointers. Overall, the GlobalPointerUtilities class provides a useful utility for retrieving global pointers to entities in a distributed Kratos simulation.
@@ -369,53 +373,16 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "GlobalPointerUtilities" ;
-        return buffer.str();
-    }
+    virtual std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "GlobalPointerUtilities";
-    }
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream& rOStream) const;
 
     ///@}
     ///@name Friends
-    ///@{
-
-    ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
     ///@{
 
     ///@}
@@ -433,10 +400,7 @@ private:
      * @param CurrentRank The current rank.
      * @return True if the iterator was found, then it is local!
      */
-    static bool ObjectIsLocal(const Element& rElem, const int CurrentRank)
-    {
-        return true; //if the iterator was found, then it is local!
-    }
+    static bool ObjectIsLocal(const Element& rElem, const int CurrentRank);
 
     /**
      * @brief Determines if an object meets a certain condition and is located locally.
@@ -444,10 +408,7 @@ private:
      * @param CurrentRank the current rank of the object
      * @return true if the object is local, false otherwise
      */
-    static bool ObjectIsLocal(const Condition& rCond, const int CurrentRank)
-    {
-        return true; //if the iterator was found, then it is local!
-    }
+    static bool ObjectIsLocal(const Condition& rCond, const int CurrentRank);
 
     /**
      * @brief Determines if an object is local based on its partition index.
@@ -455,10 +416,7 @@ private:
      * @param CurrentRank The current partition index to compare with.
      * @return True if the object is local, false otherwise.
      */
-    static bool ObjectIsLocal(const Node& rNode, const int CurrentRank)
-    {
-        return rNode.FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank;
-    }
+    static bool ObjectIsLocal(const Node& rNode, const int CurrentRank);
 
     ///@}
     ///@name Private Operators
