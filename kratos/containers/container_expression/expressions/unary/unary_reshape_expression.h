@@ -24,6 +24,10 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Used to create lazy expression to reshape given expression to a new shape.
+ *
+ */
 class KRATOS_API(KRATOS_CORE) UnaryReshapeExpression : public Expression {
 public:
     ///@name Type definitions

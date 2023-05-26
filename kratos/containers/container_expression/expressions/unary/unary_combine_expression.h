@@ -24,6 +24,15 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Use to create an expression which combines given input expressions list in the order given.
+ *
+ * @details Instances of this expression combines given list of expression in the given order. This combines the entity values wise,
+ *          and not append one expressions all the values after another.
+ *
+ * @note All the expressions should have the same number of entities.
+ *
+ */
 class KRATOS_API(KRATOS_CORE) UnaryCombineExpression : public Expression {
 public:
     ///@name Type definitions

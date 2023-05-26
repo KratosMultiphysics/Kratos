@@ -23,6 +23,12 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Unary slice expression used to represent a slicing lazy expression of a given input expression.
+ *
+ * @details This expression slices the input expression's entity values with an offset and stride (length of components).
+ *
+ */
 class KRATOS_API(KRATOS_CORE) UnarySliceExpression : public Expression {
 public:
     ///@name Type definitions
