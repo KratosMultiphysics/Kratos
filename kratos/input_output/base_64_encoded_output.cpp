@@ -40,23 +40,4 @@ Base64EncodedOutput::~Base64EncodedOutput()
     mByteTripletIndex = 0; // Reset the byte triplet index for future encoding operations
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void Base64EncodedOutput::EncodeTriplet(
-    std::ostream& rOutput,
-    const std::array<char, 3>& rBytes,
-    const IndexType Padding)
-{
-    char tmp[5] = {
-        base64Map[(rBytes[0] & 0xfc) >> 2],
-        base64Map[((rBytes[0] & 0x03) << 4) + ((rBytes[1] & 0xf0) >> 4)],
-        base64Map[((rBytes[1] & 0x0f) << 2) + ((rBytes[2] & 0xc0) >> 6)],
-        base64Map[rBytes[2] & 0x3f], '\0'};
-
-    std::fill(tmp + 4 - Padding, tmp + 4, '=');
-
-    rOutput << tmp;
-}
-
 } // namespace Kratos
