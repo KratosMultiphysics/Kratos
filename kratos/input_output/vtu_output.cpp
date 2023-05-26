@@ -29,6 +29,8 @@
 #include "input_output/vtk_definitions.h"
 #include "utilities/xml_utilities/xml_expression_element.h"
 #include "utilities/xml_utilities/xml_ostream_writer.h"
+#include "utilities/xml_utilities/xml_ostream_ascii_writer.h"
+#include "utilities/xml_utilities/xml_ostream_base64_binary_writer.h"
 
 // Include base h
 #include "vtu_output.h"
@@ -511,8 +513,8 @@ void WritePvtuFile(
         output_pvtu_file_name << rOutputFileNamePrefix << ".pvtu";
         std::ofstream output_file;
         output_file.open(output_pvtu_file_name.str(), std::ios::out | std::ios::trunc);
-        XmlOStreamWriter writer(output_file, XmlOStreamWriter::WriterFormat::ASCII, 1);
-        vtk_file_element->Write(writer);
+        XmlOStreamAsciiWriter writer(output_file, 1);
+        writer.WriteElement(*vtk_file_element);
         output_file.close();
     }
 }
@@ -731,8 +733,22 @@ void VtuOutput::PrintModelPart(
 
     std::ofstream output_file;
     output_file.open(output_vtu_file_name.str(), std::ios::out | std::ios::trunc);
-    XmlOStreamWriter writer(output_file, mOutputFormat, mPrecision);
-    vtk_file_element->Write(writer);
+
+    switch (mOutputFormat) {
+        case XmlOStreamWriter::WriterFormat::ASCII:
+        {
+            XmlOStreamAsciiWriter writer(output_file, mPrecision);
+            writer.WriteElement(*vtk_file_element);
+        }
+        break;
+        case XmlOStreamWriter::WriterFormat::BINARY:
+        {
+            XmlOStreamBase64BinaryWriter writer(output_file);
+            writer.WriteElement(*vtk_file_element);
+        }
+        break;
+    }
+
     output_file.close();
 
     if (r_communiator.IsDistributed()) {
