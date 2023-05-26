@@ -119,10 +119,30 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
             }
         }
 
-        IndexPartition<IndexType>(number_of_entities).for_each(TDataType{}, [&r_container, &rVariable, &r_expression, &variable_flatten_data_io](const IndexType Index, TDataType& rValue){
-            variable_flatten_data_io.Assign(rValue, r_expression, Index);
-            TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rValue);
-        });
+        if (dynamic_cast<const LiteralFlatExpression<char>*>(&r_expression)) {
+            auto& r_transformed_expression = *dynamic_cast<const LiteralFlatExpression<char>*>(&r_expression);
+            IndexPartition<IndexType>(number_of_entities).for_each(TDataType{}, [&r_container, &rVariable, &r_transformed_expression, &variable_flatten_data_io](const IndexType Index, TDataType& rValue){
+                variable_flatten_data_io.Assign(rValue, r_transformed_expression, Index);
+                TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rValue);
+            });
+        } else if (dynamic_cast<const LiteralFlatExpression<int>*>(&r_expression)) {
+            auto& r_transformed_expression = *dynamic_cast<const LiteralFlatExpression<int>*>(&r_expression);
+            IndexPartition<IndexType>(number_of_entities).for_each(TDataType{}, [&r_container, &rVariable, &r_transformed_expression, &variable_flatten_data_io](const IndexType Index, TDataType& rValue){
+                variable_flatten_data_io.Assign(rValue, r_transformed_expression, Index);
+                TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rValue);
+            });
+        } else if (dynamic_cast<const LiteralFlatExpression<double>*>(&r_expression)) {
+            auto& r_transformed_expression = *dynamic_cast<const LiteralFlatExpression<double>*>(&r_expression);
+            IndexPartition<IndexType>(number_of_entities).for_each(TDataType{}, [&r_container, &rVariable, &r_transformed_expression, &variable_flatten_data_io](const IndexType Index, TDataType& rValue){
+                variable_flatten_data_io.Assign(rValue, r_transformed_expression, Index);
+                TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rValue);
+            });
+        } else {
+            IndexPartition<IndexType>(number_of_entities).for_each(TDataType{}, [&r_container, &rVariable, &r_expression, &variable_flatten_data_io](const IndexType Index, TDataType& rValue){
+                variable_flatten_data_io.Assign(rValue, r_expression, Index);
+                TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rValue);
+            });
+        }
 
         if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
             // synchronize nodal values
