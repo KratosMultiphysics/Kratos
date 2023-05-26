@@ -31,17 +31,23 @@ public:
 
     using IndexType = std::size_t;
 
+    using const_iterator = std::vector<Expression::Pointer>::const_iterator;
+
     ///@}
     ///@name Life cycle
     ///@{
 
-    UnaryCombineExpression(const std::vector<Expression::Pointer>& rExpressions);
+    UnaryCombineExpression(
+        const_iterator Begin,
+        const_iterator End);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    static Expression::Pointer Create(const std::vector<Expression::Pointer>& rExpressions);
+    static Expression::Pointer Create(
+        const_iterator Begin,
+        const_iterator End);
 
     double Evaluate(
         const IndexType EntityIndex,

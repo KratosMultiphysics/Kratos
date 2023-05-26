@@ -22,10 +22,11 @@ namespace Kratos {
 
 UnaryReshapeExpression::UnaryReshapeExpression(
     Expression::Pointer pExpression,
-    const std::vector<IndexType>& rShape)
+    const_iterator Begin,
+    const_iterator End)
     : Expression(pExpression->NumberOfEntities()),
       mpSourceExpression(pExpression),
-      mShape(rShape)
+      mShape(Begin, End)
 {
     KRATOS_ERROR_IF_NOT(this->GetItemComponentCount() == mpSourceExpression->GetItemComponentCount())
         << "The source and destination should have same stride. [ source stride = "
@@ -37,9 +38,10 @@ UnaryReshapeExpression::UnaryReshapeExpression(
 
 Expression::Pointer UnaryReshapeExpression::Create(
     Expression::Pointer pExpression,
-    const std::vector<IndexType>& rShape)
+    const_iterator Begin,
+    const_iterator End)
 {
-    return Kratos::make_intrusive<UnaryReshapeExpression>(std::move(pExpression), std::move(rShape));
+    return Kratos::make_intrusive<UnaryReshapeExpression>(std::move(pExpression), Begin, End);
 }
 
 double UnaryReshapeExpression::Evaluate(

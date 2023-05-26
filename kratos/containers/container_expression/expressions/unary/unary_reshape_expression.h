@@ -14,6 +14,7 @@
 
 // System includes
 #include <string>
+#include <iterator>
 
 // Project includes
 #include "containers/container_expression/expressions/expression.h"
@@ -30,13 +31,16 @@ public:
 
     using IndexType = std::size_t;
 
+    using const_iterator = std::vector<IndexType>::const_iterator;
+
     ///@}
     ///@name Life cycle
     ///@{
 
     UnaryReshapeExpression(
         Expression::Pointer pExpression,
-        const std::vector<IndexType>& rShape);
+        const_iterator Begin,
+        const_iterator End);
 
     ///@}
     ///@name Public operations
@@ -44,7 +48,8 @@ public:
 
     static Expression::Pointer Create(
         Expression::Pointer pExpression,
-        const std::vector<IndexType>& rShape);
+        const_iterator Begin,
+        const_iterator End);
 
     double Evaluate(
         const IndexType EntityIndex,

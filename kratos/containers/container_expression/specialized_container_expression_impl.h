@@ -169,8 +169,16 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(const std::vector<IndexType>& rShape) const
 {
+    return this->Reshape(rShape.begin(), rShape.end());
+}
+
+template <class TContainerType, class TContainerDataIO, class TMeshType>
+SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(
+    std::vector<IndexType>::const_iterator Begin,
+    std::vector<IndexType>::const_iterator End) const
+{
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = UnaryReshapeExpression::Create(*this->mpExpression, rShape);
+    result.mpExpression = UnaryReshapeExpression::Create(*this->mpExpression, Begin, End);
     return result;
 }
 
@@ -178,20 +186,29 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const BaseType& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = UnaryCombineExpression::Create({*this->mpExpression, rOther.pGetExpression()});
+    std::vector<Expression::Pointer> expressions{*this->mpExpression, rOther.pGetExpression()};
+    result.mpExpression = UnaryCombineExpression::Create(expressions.begin(), expressions.end());
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const std::vector<typename BaseType::Pointer>& rListOfOthers) const
 {
+    return this->Comb(rListOfOthers.begin(), rListOfOthers.end());
+}
+
+template <class TContainerType, class TContainerDataIO, class TMeshType>
+SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(
+    typename std::vector<typename BaseType::Pointer>::const_iterator Begin,
+    typename std::vector<typename BaseType::Pointer>::const_iterator End) const
+{
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
     std::vector<Expression::Pointer> expressions;
     expressions.push_back(this->pGetExpression());
-    for (const auto& p_expression : rListOfOthers) {
-        expressions.push_back(p_expression->pGetExpression());
+    for (auto itr = Begin; itr != End; ++itr) {
+        expressions.push_back((*itr)->pGetExpression());
     }
-    result.mpExpression = UnaryCombineExpression::Create(expressions);
+    result.mpExpression = UnaryCombineExpression::Create(expressions.begin(), expressions.end());
     return result;
 }
 

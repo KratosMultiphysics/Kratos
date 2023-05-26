@@ -23,10 +23,14 @@ namespace Kratos {
 namespace UnaryCombineExpressionHelperUtilities
 {
 
-std::size_t GetNumberOfEntities(const std::vector<Expression::Pointer>& rExpressions)
+using const_iterator = std::vector<Expression::Pointer>::const_iterator;
+
+std::size_t GetNumberOfEntities(
+    const_iterator Begin,
+    const_iterator End)
 {
-    if (rExpressions.size() != 0) {
-        return rExpressions[0]->NumberOfEntities();
+    if (Begin != End) {
+        return (*Begin)->NumberOfEntities();
     } else {
         KRATOS_ERROR << "Trying to create a UnaryCombineExpression with empty "
                         "expressions list.\n";
@@ -36,9 +40,11 @@ std::size_t GetNumberOfEntities(const std::vector<Expression::Pointer>& rExpress
 
 } // namespace UnaryCombineExpressionHelperUtilities
 
-UnaryCombineExpression::UnaryCombineExpression(const std::vector<Expression::Pointer>& rExpressions)
-    : Expression(UnaryCombineExpressionHelperUtilities::GetNumberOfEntities(rExpressions)),
-      mSourceExpressions(rExpressions)
+UnaryCombineExpression::UnaryCombineExpression(
+    const_iterator Begin,
+    const_iterator End)
+    : Expression(UnaryCombineExpressionHelperUtilities::GetNumberOfEntities(Begin, End)),
+      mSourceExpressions(Begin, End)
 
 {
     mStrides.resize(mSourceExpressions.size());
@@ -61,9 +67,11 @@ UnaryCombineExpression::UnaryCombineExpression(const std::vector<Expression::Poi
     }
 }
 
-Expression::Pointer UnaryCombineExpression::Create(const std::vector<Expression::Pointer>& rExpressions)
+Expression::Pointer UnaryCombineExpression::Create(
+    const_iterator Begin,
+    const_iterator End)
 {
-    return Kratos::make_intrusive<UnaryCombineExpression>(std::move(rExpressions));
+    return Kratos::make_intrusive<UnaryCombineExpression>(Begin, End);
 }
 
 double UnaryCombineExpression::Evaluate(

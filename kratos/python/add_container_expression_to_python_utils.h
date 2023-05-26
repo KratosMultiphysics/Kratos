@@ -209,7 +209,7 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("SetZero", &container_type::template SetZero<Matrix>, py::arg("Matrix_variable"))
         .def("Clone", &container_type::Clone)
         .def("Slice", &container_type::Slice, py::arg("offset"), py::arg("stride"))
-        .def("Reshape", &container_type::Reshape, py::arg("shape"))
+        .def("Reshape", py::overload_cast<const std::vector<IndexType>&>(&container_type::Reshape, py::const_), py::arg("shape"))
         .def("Comb", py::overload_cast<const typename container_type::BaseType&>(&container_type::Comb, py::const_), py::arg("other_container_expression_to_combine_with"))
         .def("Comb", py::overload_cast<const std::vector<typename container_type::BaseType::Pointer>&>(&container_type::Comb, py::const_), py::arg("other_container_expressions_list_to_combine_with"))
         .def("__add__", [](const container_type& rSelf, const container_type& rOther) { return rSelf + rOther; })

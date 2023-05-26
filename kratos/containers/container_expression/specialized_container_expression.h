@@ -174,9 +174,17 @@ public:
 
     SpecializedContainerExpression Reshape(const std::vector<IndexType>& rShape) const;
 
+    SpecializedContainerExpression Reshape(
+        std::vector<IndexType>::const_iterator Begin,
+        std::vector<IndexType>::const_iterator End) const;
+
     SpecializedContainerExpression Comb(const BaseType& rOther) const;
 
     SpecializedContainerExpression Comb(const std::vector<typename BaseType::Pointer>& rListOfOthers) const;
+
+    SpecializedContainerExpression Comb(
+        typename std::vector<typename BaseType::Pointer>::const_iterator Begin,
+        typename std::vector<typename BaseType::Pointer>::const_iterator End) const;
 
     SpecializedContainerExpression operator+(const SpecializedContainerExpression& rOther) const;
 
