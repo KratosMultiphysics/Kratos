@@ -19,6 +19,10 @@
 // External includes
 
 // Project includes
+#include "includes/element.h"
+#include "includes/condition.h"
+#include "includes/node.h"
+#include "includes/variables.h"
 #include "includes/data_communicator.h"
 #include "includes/global_pointer.h"
 #include "containers/global_pointers_vector.h"
