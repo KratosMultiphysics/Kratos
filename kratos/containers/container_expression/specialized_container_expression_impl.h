@@ -173,9 +173,10 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
+template<class TIteratorType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(
-    std::vector<IndexType>::const_iterator Begin,
-    std::vector<IndexType>::const_iterator End) const
+    TIteratorType Begin,
+    TIteratorType End) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
     result.mpExpression = UnaryReshapeExpression::Create(*this->mpExpression, Begin, End);
@@ -186,7 +187,9 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const BaseType& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    std::vector<Expression::Pointer> expressions{*this->mpExpression, rOther.pGetExpression()};
+    std::vector<Expression::Pointer> expressions;
+    expressions.push_back(this->pGetExpression());
+    expressions.push_back(rOther.pGetExpression());
     result.mpExpression = UnaryCombineExpression::Create(expressions.begin(), expressions.end());
     return result;
 }
@@ -198,9 +201,10 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
+template<class TIteratorType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(
-    typename std::vector<typename BaseType::Pointer>::const_iterator Begin,
-    typename std::vector<typename BaseType::Pointer>::const_iterator End) const
+    TIteratorType Begin,
+    TIteratorType End) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
     std::vector<Expression::Pointer> expressions;
