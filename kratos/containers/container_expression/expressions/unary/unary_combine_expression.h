@@ -31,23 +31,52 @@ public:
 
     using IndexType = std::size_t;
 
-    using const_iterator = std::vector<Expression::Pointer>::const_iterator;
-
     ///@}
     ///@name Life cycle
     ///@{
 
+    template<class TIteratorType>
     UnaryCombineExpression(
-        const_iterator Begin,
-        const_iterator End);
+        TIteratorType Begin,
+        TIteratorType End)
+        : Expression(Begin != End ? (*Begin)->NumberOfEntities() : 0),
+        mSourceExpressions(Begin, End)
+
+    {
+        mStrides.resize(mSourceExpressions.size());
+
+        // every expression should have same number of entities
+        IndexType local_stride = 0;
+        for (IndexType i = 0; i < mSourceExpressions.size(); ++i) {
+            const auto& p_expression = mSourceExpressions[i];
+
+            KRATOS_ERROR_IF_NOT(p_expression->NumberOfEntities() == NumberOfEntities())
+                << "Expression number of entities mismatch. [ required number of entities = "
+                << NumberOfEntities() << ", found number of entities = "
+                << p_expression->NumberOfEntities() << " ].\n"
+                << "Expressions:\n"
+                << "Reference = " << *mSourceExpressions[0] << "\n"
+                << "Current   = " << p_expression << "\n";
+
+            local_stride += p_expression->GetItemComponentCount();
+            mStrides[i] = local_stride;
+        }
+
+        KRATOS_ERROR_IF(this->GetItemComponentCount() == 0)
+            << "No expressions were given.\n";
+    }
 
     ///@}
     ///@name Public operations
     ///@{
 
+    template<class TIteratorType>
     static Expression::Pointer Create(
-        const_iterator Begin,
-        const_iterator End);
+        TIteratorType Begin,
+        TIteratorType End)
+    {
+        return Kratos::make_intrusive<UnaryCombineExpression>(Begin, End);
+    }
 
     double Evaluate(
         const IndexType EntityIndex,

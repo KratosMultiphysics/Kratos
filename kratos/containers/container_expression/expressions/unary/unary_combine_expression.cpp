@@ -20,60 +20,6 @@
 
 namespace Kratos {
 
-namespace UnaryCombineExpressionHelperUtilities
-{
-
-using const_iterator = std::vector<Expression::Pointer>::const_iterator;
-
-std::size_t GetNumberOfEntities(
-    const_iterator Begin,
-    const_iterator End)
-{
-    if (Begin != End) {
-        return (*Begin)->NumberOfEntities();
-    } else {
-        KRATOS_ERROR << "Trying to create a UnaryCombineExpression with empty "
-                        "expressions list.\n";
-        return 0;
-    }
-}
-
-} // namespace UnaryCombineExpressionHelperUtilities
-
-UnaryCombineExpression::UnaryCombineExpression(
-    const_iterator Begin,
-    const_iterator End)
-    : Expression(UnaryCombineExpressionHelperUtilities::GetNumberOfEntities(Begin, End)),
-      mSourceExpressions(Begin, End)
-
-{
-    mStrides.resize(mSourceExpressions.size());
-
-    // every expression should have same number of entities
-    IndexType local_stride = 0;
-    for (IndexType i = 0; i < mSourceExpressions.size(); ++i) {
-        const auto& p_expression = mSourceExpressions[i];
-
-        KRATOS_ERROR_IF_NOT(p_expression->NumberOfEntities() == NumberOfEntities())
-            << "Expression number of entities mismatch. [ required number of entities = "
-            << NumberOfEntities() << ", found number of entities = "
-            << p_expression->NumberOfEntities() << " ].\n"
-            << "Expressions:\n"
-            << "Reference = " << *mSourceExpressions[0] << "\n"
-            << "Current   = " << p_expression << "\n";
-
-        local_stride += p_expression->GetItemComponentCount();
-        mStrides[i] = local_stride;
-    }
-}
-
-Expression::Pointer UnaryCombineExpression::Create(
-    const_iterator Begin,
-    const_iterator End)
-{
-    return Kratos::make_intrusive<UnaryCombineExpression>(Begin, End);
-}
-
 double UnaryCombineExpression::Evaluate(
     const IndexType EntityIndex,
     const IndexType EntityDataBeginIndex,

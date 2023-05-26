@@ -31,25 +31,39 @@ public:
 
     using IndexType = std::size_t;
 
-    using const_iterator = std::vector<IndexType>::const_iterator;
-
     ///@}
     ///@name Life cycle
     ///@{
 
+    template<class TIteratorType>
     UnaryReshapeExpression(
         Expression::Pointer pExpression,
-        const_iterator Begin,
-        const_iterator End);
+        TIteratorType Begin,
+        TIteratorType End)
+        : Expression(pExpression->NumberOfEntities()),
+        mpSourceExpression(pExpression),
+        mShape(Begin, End)
+    {
+        KRATOS_ERROR_IF_NOT(this->GetItemComponentCount() == mpSourceExpression->GetItemComponentCount())
+            << "The source and destination should have same stride. [ source stride = "
+            << mpSourceExpression->GetItemComponentCount() << ", destination stride = "
+            << this->GetItemComponentCount() << " ].\n"
+            << "Source expression:\n"
+            << *mpSourceExpression << "\n";
+    }
 
     ///@}
     ///@name Public operations
     ///@{
 
+    template<class TIteratorType>
     static Expression::Pointer Create(
         Expression::Pointer pExpression,
-        const_iterator Begin,
-        const_iterator End);
+        TIteratorType Begin,
+        TIteratorType End)
+    {
+        return Kratos::make_intrusive<UnaryReshapeExpression>(std::move(pExpression), Begin, End);
+    }
 
     double Evaluate(
         const IndexType EntityIndex,
