@@ -358,8 +358,7 @@ private:
                         // If not created yet, create current edge data
                         auto& rp_edge_data = mValues[ij_col_index];
                         if (rp_edge_data == nullptr) {
-                            auto p_aux = Kratos::make_unique<EdgeData>();
-                            std::swap(rp_edge_data, p_aux);
+                            rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
                         }
 
                         // Add current edge elementwise contributions
