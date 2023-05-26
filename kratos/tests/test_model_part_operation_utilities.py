@@ -74,7 +74,7 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
     def test_Order(self):
-        merged_model_part = Kratos.ModelPartOperationUtilities.Union("merge_order", self.model_part, self.model_part, False)
+        merged_model_part = Kratos.ModelPartOperationUtilities.Union("merge_order", self.model_part, [self.model_part], False)
 
         origin_node_ids_list = [entity.Id for entity in self.model_part.Nodes]
         origin_condition_ids_list = [entity.Id for entity in self.model_part.Conditions]
