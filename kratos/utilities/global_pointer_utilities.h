@@ -19,9 +19,8 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "includes/condition.h"
 #include "includes/node.h"
+#include "includes/geometrical_object.h"
 #include "includes/variables.h"
 #include "includes/data_communicator.h"
 #include "includes/global_pointer.h"
@@ -432,23 +431,12 @@ private:
     ///@{
 
     /**
-     * @brief Determines whether an element is local or not.
-     * @param rElem The element to check.
-     * @param CurrentRank The current rank.
-     * @return True if the iterator was found, then it is local!
-     */
-    static bool ObjectIsLocal(const Element& rElem, const int CurrentRank)
-    {
-        return true; //if the iterator was found, then it is local!
-    }
-
-    /**
-     * @brief Determines if an object meets a certain condition and is located locally.
-     * @param rCond the condition that the object must meet
+     * @brief Determines if an object meets a certain geometrical object and is located locally.
+     * @param rGeometricalObject the geometrical object that the object must meet
      * @param CurrentRank the current rank of the object
      * @return true if the object is local, false otherwise
      */
-    static bool ObjectIsLocal(const Condition& rCond, const int CurrentRank)
+    static bool ObjectIsLocal(const GeometricalObject& rGeometricalObject, const int CurrentRank)
     {
         return true; //if the iterator was found, then it is local!
     }
