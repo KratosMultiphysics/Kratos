@@ -17,6 +17,7 @@
 #include <array>
 #include <iterator>
 #include <string>
+#include <ostream>
 
 // External includes
 
