@@ -147,7 +147,7 @@ protected:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-    Geometry< Node<3> >::Pointer mpPressureGeometry;
+    Geometry< Node >::Pointer mpPressureGeometry;
 
     Matrix mIntrinsicPermeability;
     

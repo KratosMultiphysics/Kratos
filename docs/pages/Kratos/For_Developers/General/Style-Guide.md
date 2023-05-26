@@ -42,9 +42,6 @@ The community members (regardless of being developer or not) are highly encourag
 * Use the issue system for report a bug or propose a new feature/enhancement
     * Self assigning an issue is a way of announcing your ongoing work and get feedback.
 
-
-
-  
 # Project Structure
 The root directory of Kratos has following main folders:
 * **applications** all the applications are here

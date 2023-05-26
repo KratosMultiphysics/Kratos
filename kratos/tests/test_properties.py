@@ -1,6 +1,9 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
 
+from unittest.mock import patch
+from io import StringIO
+
 class TestProperties(KratosUnittest.TestCase):
 
     def test_copy_properties(self):
@@ -76,5 +79,23 @@ class TestProperties(KratosUnittest.TestCase):
         accessor_from_get = properties.GetAccessor(KM.TEMPERATURE)
         self.assertEqual(id(accessor_from_create), id(accessor_from_get))
 
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_print(self, mock_stdout):
+        current_model = KM.Model()
+        model_part= current_model.CreateModelPart("Main")
+        properties = model_part.CreateNewProperties(1)
+        table = KM.PiecewiseLinearTable()
+        table.AddRow(9.0, 1.0)
+        table.AddRow(10.0, 1.0)
+        properties.SetTable(KM.TEMPERATURE, KM.YOUNG_MODULUS, table)
+        print(properties)
+        output = mock_stdout.getvalue()
+        self.assertTrue("Properties" in output)
+        self.assertTrue("Id : 1" in output)
+        self.assertTrue("This properties contains 1 tables" in output)
+        self.assertTrue("\t9\t\t1" in output)
+        self.assertTrue("\t10\t\t1" in output)
+
 if __name__ == '__main__':
+    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.main()

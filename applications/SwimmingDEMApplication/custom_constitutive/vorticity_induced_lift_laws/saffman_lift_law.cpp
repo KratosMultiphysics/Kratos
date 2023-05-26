@@ -37,7 +37,7 @@ namespace Kratos {
         }
     }
 
-    void SaffmanLiftLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void SaffmanLiftLaw::ComputeForce(Geometry<Node >& r_geometry,
                                       const double reynolds_number,
                                       double particle_radius,
                                       double fluid_density,
@@ -46,7 +46,7 @@ namespace Kratos {
                                       array_1d<double, 3>& vorticity_induced_lift,
                                       const ProcessInfo& r_current_process_info)
     {
-        Node<3>& node = r_geometry[0];
+        Node& node = r_geometry[0];
         const array_1d<double, 3>& vorticity = node.FastGetSolutionStepValue(FLUID_VORTICITY_PROJECTED);
         array_1d<double, 3> vort_cross_slip_vel;
         SWIMMING_SET_TO_CROSS_OF_FIRST_TWO_3(minus_slip_velocity, vorticity, vort_cross_slip_vel)

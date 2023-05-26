@@ -30,7 +30,7 @@
 
 namespace CSharpKratosWrapper {
 
-    using NodeType = Kratos::Node<3>;
+    using NodeType = Kratos::Node;
     using ElementType = Kratos::Element;
     using ConditionType = Kratos::Condition;
     using ModelPart = Kratos::ModelPart;

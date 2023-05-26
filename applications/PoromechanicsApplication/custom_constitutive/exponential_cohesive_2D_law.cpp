@@ -69,7 +69,7 @@ void ExponentialCohesive2DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     //     }
     // }
 
-    const double WeightingParameter = 1.0; // TODO ?
+    const double WeightingParameter = MaterialProperties[TAU]/rVariables.YieldStress;
     rVariables.WeightMatrix.resize(2,2);
     noalias(rVariables.WeightMatrix) = ZeroMatrix(2,2);
     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter;
@@ -119,8 +119,7 @@ void ExponentialCohesive2DLaw::ComputeCriticalDisplacement(ConstitutiveLawVariab
         ModeMixingRatio = ShearStrain2 / TotalStrain2;
     else
         ModeMixingRatio = 1.0;
-    const double CurveFittingParameter = 1.0; // TODO ?
-    const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,CurveFittingParameter);
+    const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,MaterialProperties[CURVE_FITTING_ETA]);
 
     // TODO Should CriticalDisplacement be calculated with FractureEnergy ?
     rVariables.CriticalDisplacement = FractureThoughness / (std::exp(1.0) * MaterialProperties[YIELD_STRESS]);

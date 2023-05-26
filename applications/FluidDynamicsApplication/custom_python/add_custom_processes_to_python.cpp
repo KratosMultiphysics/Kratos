@@ -15,9 +15,6 @@
 // System includes
 
 // External includes
-#ifdef KRATOS_USE_AMATRIX
-#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
-#endif // KRATOS_USE_AMATRIX
 
 // Project includes
 #include "containers/model.h"

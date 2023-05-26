@@ -75,7 +75,7 @@
 
 namespace Kratos::Python
 {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 // Discontinuous distance computation auxiliar functions
 template<std::size_t TDim>
@@ -230,7 +230,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
-    py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess")
+    py::class_<EntitiesEraseProcess<Node>, EntitiesEraseProcess<Node>::Pointer, Process>(m,"NodeEraseProcess")
     .def(py::init<ModelPart&>())
     ;
 
@@ -274,7 +274,7 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<StructuredMeshGeneratorProcess, StructuredMeshGeneratorProcess::Pointer, Process>(m,"StructuredMeshGeneratorProcess")
-            .def(py::init<const Geometry< Node<3> >&, ModelPart&, Parameters>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
+            .def(py::init<const Geometry< Node >&, ModelPart&, Parameters>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
     ;
 
     auto orientation_check_interface = py::class_<TetrahedralMeshOrientationCheck, TetrahedralMeshOrientationCheck::Pointer, Process>(m,"TetrahedralMeshOrientationCheck")

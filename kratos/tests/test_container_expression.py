@@ -22,6 +22,8 @@ class TestContainerExpression(ABC):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PENALTY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PK2_STRESS_TENSOR)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.STEP)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.STATIONARY)
         with kratos_unittest.WorkFolderScope(".", __file__, True):
             ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
 
@@ -373,6 +375,7 @@ class TestContainerExpression(ABC):
                     self.assertEqual(v[i, j], numpy_array[i_entity, i, j] * 2)
 
     def test_NumpyMoveFrom(self):
+        # double move check
         a = self._GetSpecializedContainerExpression()
 
         numpy_array = numpy.arange(0.0, len(a.GetContainer()))
@@ -390,38 +393,40 @@ class TestContainerExpression(ABC):
             v = self._GetValue(entity, Kratos.DENSITY)
             self.assertEqual(v, numpy_array[i], 12)
 
+        # int move check
+        a = self._GetSpecializedContainerExpression()
+
+        numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
+        a.MoveFrom(numpy_array)
+        a.Evaluate(Kratos.STEP)
+
+        for i, entity in enumerate(a.GetContainer()):
+            v = self._GetValue(entity, Kratos.STEP)
+            self.assertEqual(v, numpy_array[i], 12)
+
+        numpy_array[:] = numpy_array + 1
+
+        a.Evaluate(Kratos.STATIONARY)
+        for i, entity in enumerate(a.GetContainer()):
+            v = self._GetValue(entity, Kratos.STATIONARY)
+            self.assertEqual(v, numpy_array[i], 12)
+
     def test_NumpyForbiddenCasts(self):
         a = self._GetSpecializedContainerExpression()
 
-        with self.assertRaises(RuntimeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()))
-            a.Read(numpy_array)
-
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.float32)
             a.Read(numpy_array)
 
-        with self.assertRaises(RuntimeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
-            a.Read(numpy_array)
-
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int64)
             a.Read(numpy_array)
 
-        with self.assertRaises(RuntimeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()))
-            a.MoveFrom(numpy_array)
-
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.float32)
             a.MoveFrom(numpy_array)
 
-        with self.assertRaises(RuntimeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
-            a.MoveFrom(numpy_array)
-
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int64)
             a.MoveFrom(numpy_array)
 
