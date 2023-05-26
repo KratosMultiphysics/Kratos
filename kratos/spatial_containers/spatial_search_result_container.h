@@ -78,7 +78,7 @@ public:
      * @brief Add a result to the container
      * @param rResult The result
      */
-    void AddResult(const SpatialSearchResult<TObjectType>& rResult);
+    void AddResult(SpatialSearchResult<TObjectType>& rResult);
 
     /**
      * @brief Clear the containers
@@ -90,7 +90,7 @@ public:
      * @brief Synchronize the container between partitions
      * @details This method synchronizes the container between partitions
      */
-    void Synchronize();
+    void SynchronizeAll();
 
     ///@}
     ///@name Input and output
