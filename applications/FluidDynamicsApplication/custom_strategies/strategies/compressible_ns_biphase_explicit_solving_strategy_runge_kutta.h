@@ -284,7 +284,8 @@ public:
         // Initialize the postprocess non-historical variables
         block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
             rNode.SetValue(MACH, 0.0);
-            rNode.SetValue(SOUND_VELOCITY, 0.0);            rNode.SetValue(DYNAMIC_PRESSURE, 0.0);
+            rNode.SetValue(SOUND_VELOCITY, 0.0);            
+            rNode.SetValue(DYNAMIC_PRESSURE, 0.0);
             rNode.SetValue(SOLID_CONCENTRATION, 0.0);
             rNode.SetValue(GAS_PRESSURE, 0.0);
         });
@@ -549,6 +550,7 @@ private:
         const double R = (gamma - 1.0) * c_v; // Ideal gas constant
         const double rho_s = r_prop.GetValue(SOLID_MATERIAL_DENSITY); // Density of the solid part
         const double c_s = r_prop.GetValue(SOLID_MATERIAL_SPECIFIC_HEAT); // Specific heat of the solid part
+
         // Loop the nodes to calculate the non-conservative magnitudes
         array_1d<double,3> aux_vel;
         block_for_each(r_model_part.Nodes(), aux_vel,[&] (Node<3> &rNode, array_1d<double,3>&rVelocity) {

@@ -2135,7 +2135,7 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateTotalEnergyProjection(const Pr
 
     // Calculate shock capturing values
     BoundedVector<double, 4> tot_ener_proj;
-
+/*
     const double ctot_ener_proj0 =             0.1381966*U_0_0;
 const double ctot_ener_proj1 =             0.1381966*U_2_0;
 const double ctot_ener_proj2 =             0.1381966*U_3_0;
@@ -2432,8 +2432,9 @@ const double ctot_ener_proj281 =             ctot_ener_proj10 + ctot_ener_proj10
 #pragma omp atomic
         r_geometry[i_node].GetValue(TOTAL_ENERGY_PROJECTION) += tot_ener_proj[i_node];
     }
-
+*/
     KRATOS_CATCH("")
+    
 }
 
 template <>
@@ -2654,7 +2655,7 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 
 	// printf("gamma = %.3e - SpeedSound = %.3e\n", gamma, SpeedSound); 
 
-	if (dt > h/(SpeedSound + norm_u))   printf("dt = %.3e dt_crit = %.3e\n", dt, h/(SpeedSound + norm_u));
+	if (dt > h/(SpeedSound + norm_u))   printf("dt = %.3e dt_crit = %.3e h = %.3e\n", dt, h/(SpeedSound + norm_u),h);
 
 	if (DTOT_el < 0)    				printf("dtot_el = %.3e \n", DTOT_el);
 
@@ -3403,7 +3404,7 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
 
 	// printf("gamma = %.3e - SpeedSound = %.3e\n", gamma, SpeedSound); 
 
-	if (dt > h/(SpeedSound + norm_u))   printf("dt = %.3e dt_crit = %.3e\n", dt, h/(SpeedSound + norm_u));
+	if (dt > h/(SpeedSound + norm_u))   printf("dt = %.3e dt_crit = %.3e h = %.3e\n", dt, h/(SpeedSound + norm_u),h);
 
 	if (DTOT_el < 0)    				printf("dtot_el = %.3e \n", DTOT_el);
 

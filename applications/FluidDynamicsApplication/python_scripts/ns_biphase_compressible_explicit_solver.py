@@ -22,7 +22,7 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
         super(NSBiphaseCompressibleExplicitSolver,self).__init__(model,custom_settings)
 
         # Define the formulation settings
-        self.element_name = "CompressibleNavierStokesExplicit"
+        self.element_name = "CompressibleNSBiphaseExplicit"
         if custom_settings["domain_size"].GetInt() == 2:
             self.condition_name = "LineCondition" # TODO: We need to create a Compressible NS condition (now using the base ones)
         elif custom_settings["domain_size"].GetInt() == 3:
