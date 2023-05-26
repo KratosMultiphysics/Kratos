@@ -10,8 +10,6 @@
 //  Main authors:    Suneth Warnakulasuriya
 //
 
-#pragma once
-
 // System includes
 
 // External includes

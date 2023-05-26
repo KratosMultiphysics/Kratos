@@ -281,7 +281,7 @@ private:
     *                It should be a value between 0 and 2 (inclusive).
     * @note The output stream should be in a valid state and open for writing.
     */
-    static inline void EncodeTriplet(
+    static void EncodeTriplet(
         std::ostream& rOutput,
         const std::array<char, 3>& rBytes,
         const IndexType Padding
