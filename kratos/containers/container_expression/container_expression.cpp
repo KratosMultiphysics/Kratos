@@ -272,13 +272,33 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
 
     const IndexType flattened_size = r_expression.GetItemComponentCount();
 
-    IndexPartition<IndexType>(number_of_entities).for_each([pBegin, flattened_size, &r_expression](const IndexType EntityIndex) {
-        const IndexType entity_data_begin_index = EntityIndex * flattened_size;
-        double* p_input_data_begin = pBegin + entity_data_begin_index;
-        for (IndexType i = 0; i < flattened_size; ++i) {
-            *(p_input_data_begin+i) = r_expression.Evaluate(EntityIndex, entity_data_begin_index, i);
-        }
-    });
+    if (dynamic_cast<const LiteralFlatExpression<char>*>(&r_expression)) {
+        const auto& r_transformed_expression = *dynamic_cast<const LiteralFlatExpression<char>*>(&r_expression);
+        const auto p_expression_begin = r_transformed_expression.cbegin();
+        IndexPartition<IndexType>(number_of_entities * flattened_size).for_each([pBegin, p_expression_begin](const IndexType Index) {
+                pBegin[Index] = static_cast<double>(p_expression_begin[Index]);
+        });
+    } else if (dynamic_cast<const LiteralFlatExpression<int>*>(&r_expression)) {
+        const auto& r_transformed_expression = *dynamic_cast<const LiteralFlatExpression<int>*>(&r_expression);
+        const auto p_expression_begin = r_transformed_expression.cbegin();
+        IndexPartition<IndexType>(number_of_entities * flattened_size).for_each([pBegin, p_expression_begin](const IndexType Index) {
+                pBegin[Index] = static_cast<double>(p_expression_begin[Index]);
+        });
+    } else if (dynamic_cast<const LiteralFlatExpression<double>*>(&r_expression)) {
+        const auto& r_transformed_expression = *dynamic_cast<const LiteralFlatExpression<double>*>(&r_expression);
+        const auto p_expression_begin = r_transformed_expression.cbegin();
+        IndexPartition<IndexType>(number_of_entities * flattened_size).for_each([pBegin, p_expression_begin](const IndexType Index) {
+                pBegin[Index] = p_expression_begin[Index];
+        });
+    } else {
+        IndexPartition<IndexType>(number_of_entities).for_each([pBegin, flattened_size, &r_expression](const IndexType EntityIndex) {
+            const IndexType entity_data_begin_index = EntityIndex * flattened_size;
+            double* p_input_data_begin = pBegin + entity_data_begin_index;
+            for (IndexType i = 0; i < flattened_size; ++i) {
+                *(p_input_data_begin+i) = r_expression.Evaluate(EntityIndex, entity_data_begin_index, i);
+            }
+        });
+    }
 
     KRATOS_CATCH("");
 }
