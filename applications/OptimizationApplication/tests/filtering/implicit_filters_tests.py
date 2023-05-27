@@ -5,6 +5,7 @@ import KratosMultiphysics.OptimizationApplication as KOA
 
 # Additional imports
 from KratosMultiphysics.KratosUnittest import TestCase
+import KratosMultiphysics.KratosUnittest as kratos_unittest
 
 class HelmholtzAnalysisTest(TestCase):
     @classmethod
@@ -13,180 +14,181 @@ class HelmholtzAnalysisTest(TestCase):
         cls.solid_model_part =  cls.model.CreateModelPart("solid")
         cls.solid_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
 
-        solid_scalar_filter_parameters = KM.Parameters("""
-                            {
-                                "solver_settings" : {
-                                    "domain_size"     : 3,
-                                    "echo_level"      : 0,
-                                    "filter_type"     : "general_scalar",
-                                    "filter_radius"     : 20.0,
-                                    "model_part_name" : "solid",
-                                    "model_import_settings"              : {
-                                        "input_type"     : "use_input_model_part"
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            solid_scalar_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "general_scalar",
+                                        "filter_radius"     : 20.0,
+                                        "model_part_name" : "solid",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
                                     }
-                                },
-                                "problem_data": {
-                                    "echo_level"    : 0,
-                                    "start_time"    : 0.0,
-                                    "end_time"      : 1.0,
-                                    "parallel_type" : "OpenMP"
-                                }
-                            }""")
+                                }""")
 
-        solid_vector_filter_parameters = KM.Parameters("""
-                            {
-                                "solver_settings" : {
-                                    "domain_size"     : 3,
-                                    "echo_level"      : 0,
-                                    "filter_type"     : "general_vector",
-                                    "filter_radius"     : 2.0,
-                                    "model_part_name" : "solid",
-                                    "model_import_settings"              : {
-                                        "input_type"     : "use_input_model_part"
+            solid_vector_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "general_vector",
+                                        "filter_radius"     : 2.0,
+                                        "model_part_name" : "solid",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
                                     }
-                                },
-                                "problem_data": {
-                                    "echo_level"    : 0,
-                                    "start_time"    : 0.0,
-                                    "end_time"      : 1.0,
-                                    "parallel_type" : "OpenMP"
-                                }
-                            }""")
+                                }""")
 
-        bulk_surface_filter_parameters = KM.Parameters("""
-                            {
-                                "solver_settings" : {
-                                    "domain_size"     : 3,
-                                    "echo_level"      : 0,
-                                    "filter_type"     : "bulk_surface_shape",
-                                    "filter_radius"     : 2.0,
-                                    "model_part_name" : "solid",
-                                    "model_import_settings"              : {
-                                        "input_type"     : "use_input_model_part"
+            bulk_surface_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "bulk_surface_shape",
+                                        "filter_radius"     : 2.0,
+                                        "model_part_name" : "solid",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
                                     }
-                                },
-                                "problem_data": {
-                                    "echo_level"    : 0,
-                                    "start_time"    : 0.0,
-                                    "end_time"      : 1.0,
-                                    "parallel_type" : "OpenMP"
-                                }
-                            }""")
+                                }""")
 
-        cls.solid_scalar_filter = HelmholtzAnalysis(cls.model, solid_scalar_filter_parameters)
-        cls.solid_vector_filter = HelmholtzAnalysis(cls.model, solid_vector_filter_parameters)
-        cls.bulk_surface_filter = HelmholtzAnalysis(cls.model, bulk_surface_filter_parameters)
-        ReadModelPart("solid",cls.solid_model_part)
+            cls.solid_scalar_filter = HelmholtzAnalysis(cls.model, solid_scalar_filter_parameters)
+            cls.solid_vector_filter = HelmholtzAnalysis(cls.model, solid_vector_filter_parameters)
+            cls.bulk_surface_filter = HelmholtzAnalysis(cls.model, bulk_surface_filter_parameters)
+            ReadModelPart("solid",cls.solid_model_part)
 
-        cls.shell_model_part =  cls.model.CreateModelPart("shell")
-        cls.shell_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
-        shell_scalar_filter_parameters = KM.Parameters("""
-                            {
-                                "solver_settings" : {
-                                    "domain_size"     : 3,
-                                    "echo_level"      : 0,
-                                    "filter_type"     : "general_scalar",
-                                    "filter_radius"     : 200,
-                                    "model_part_name" : "shell",
-                                    "model_import_settings"              : {
-                                        "input_type"     : "use_input_model_part"
+            cls.shell_model_part =  cls.model.CreateModelPart("shell")
+            cls.shell_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+            shell_scalar_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "general_scalar",
+                                        "filter_radius"     : 200,
+                                        "model_part_name" : "shell",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
                                     }
-                                },
-                                "problem_data": {
-                                    "echo_level"    : 0,
-                                    "start_time"    : 0.0,
-                                    "end_time"      : 1.0,
-                                    "parallel_type" : "OpenMP"
-                                }
-                            }""")
-        shell_vector_filter_parameters = KM.Parameters("""
-                            {
-                                "solver_settings" : {
-                                    "domain_size"     : 3,
-                                    "echo_level"      : 0,
-                                    "filter_type"     : "general_vector",
-                                    "filter_radius"     : 500.0,
-                                    "model_part_name" : "shell",
-                                    "model_import_settings"              : {
-                                        "input_type"     : "use_input_model_part"
+                                }""")
+            shell_vector_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "general_vector",
+                                        "filter_radius"     : 500.0,
+                                        "model_part_name" : "shell",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
                                     }
-                                },
-                                "problem_data": {
-                                    "echo_level"    : 0,
-                                    "start_time"    : 0.0,
-                                    "end_time"      : 1.0,
-                                    "parallel_type" : "OpenMP"
-                                }
-                            }""")
-        cls.shell_scalar_filter = HelmholtzAnalysis(cls.model, shell_scalar_filter_parameters)
-        cls.shell_vector_filter = HelmholtzAnalysis(cls.model, shell_vector_filter_parameters)
+                                }""")
+            cls.shell_scalar_filter = HelmholtzAnalysis(cls.model, shell_scalar_filter_parameters)
+            cls.shell_vector_filter = HelmholtzAnalysis(cls.model, shell_vector_filter_parameters)
 
-        cls.shell_model_part.CreateNewNode(1, 0.0,0.0,0.0)
-        cls.shell_model_part.CreateNewNode(2, 1.0,0.0,0.0)
-        cls.shell_model_part.CreateNewNode(3, 2.0,0.0,0.0)
+            cls.shell_model_part.CreateNewNode(1, 0.0,0.0,0.0)
+            cls.shell_model_part.CreateNewNode(2, 1.0,0.0,0.0)
+            cls.shell_model_part.CreateNewNode(3, 2.0,0.0,0.0)
 
-        cls.shell_model_part.CreateNewNode(4, 0.0,1.0,0.0)
-        cls.shell_model_part.CreateNewNode(5, 1.0,1.0,0.0)
-        cls.shell_model_part.CreateNewNode(6, 2.0,1.0,0.0)
+            cls.shell_model_part.CreateNewNode(4, 0.0,1.0,0.0)
+            cls.shell_model_part.CreateNewNode(5, 1.0,1.0,0.0)
+            cls.shell_model_part.CreateNewNode(6, 2.0,1.0,0.0)
 
-        cls.shell_model_part.CreateNewNode(7, 0.0,2.0,0.0)
-        cls.shell_model_part.CreateNewNode(8, 1.0,2.0,0.0)
-        cls.shell_model_part.CreateNewNode(9, 2.0,2.0,0.0)
+            cls.shell_model_part.CreateNewNode(7, 0.0,2.0,0.0)
+            cls.shell_model_part.CreateNewNode(8, 1.0,2.0,0.0)
+            cls.shell_model_part.CreateNewNode(9, 2.0,2.0,0.0)
 
 
-        properties_1 = cls.shell_model_part.CreateNewProperties(1)
-        cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 1, [1,2,4], properties_1)
-        cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 2, [2,5,4], properties_1)
-        cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 3, [2,3,5], properties_1)
-        cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 4, [3,6,5], properties_1)
+            properties_1 = cls.shell_model_part.CreateNewProperties(1)
+            cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 1, [1,2,4], properties_1)
+            cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 2, [2,5,4], properties_1)
+            cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 3, [2,3,5], properties_1)
+            cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 4, [3,6,5], properties_1)
 
-        cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 5, [4,5,7], properties_1)
-        cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 6, [5,8,7], properties_1)
-        cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 7, [5,6,8], properties_1)
-        cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 8, [6,9,8], properties_1)
+            cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 5, [4,5,7], properties_1)
+            cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 6, [5,8,7], properties_1)
+            cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 7, [5,6,8], properties_1)
+            cls.shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D3N", 8, [6,9,8], properties_1)
 
 
-        cls.closed_shell_model_part =  cls.model.CreateModelPart("closed_surface_shell")
-        cls.closed_shell_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
-        closed_surface_shell_scalar_filter_parameters = KM.Parameters("""
-                            {
-                                "solver_settings" : {
-                                    "domain_size"     : 3,
-                                    "echo_level"      : 0,
-                                    "filter_type"     : "general_scalar",
-                                    "filter_radius"     : 20.0,
-                                    "model_part_name" : "closed_surface_shell",
-                                    "model_import_settings"              : {
-                                        "input_type"     : "use_input_model_part"
+            cls.closed_shell_model_part =  cls.model.CreateModelPart("closed_surface_shell")
+            cls.closed_shell_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, 3)
+            closed_surface_shell_scalar_filter_parameters = KM.Parameters("""
+                                {
+                                    "solver_settings" : {
+                                        "domain_size"     : 3,
+                                        "echo_level"      : 0,
+                                        "filter_type"     : "general_scalar",
+                                        "filter_radius"     : 20.0,
+                                        "model_part_name" : "closed_surface_shell",
+                                        "model_import_settings"              : {
+                                            "input_type"     : "use_input_model_part"
+                                        }
+                                    },
+                                    "problem_data": {
+                                        "echo_level"    : 0,
+                                        "start_time"    : 0.0,
+                                        "end_time"      : 1.0,
+                                        "parallel_type" : "OpenMP"
                                     }
-                                },
-                                "problem_data": {
-                                    "echo_level"    : 0,
-                                    "start_time"    : 0.0,
-                                    "end_time"      : 1.0,
-                                    "parallel_type" : "OpenMP"
-                                }
-                            }""")
+                                }""")
 
-        cls.closed_shell_scalar_filter = HelmholtzAnalysis(cls.model, closed_surface_shell_scalar_filter_parameters)
+            cls.closed_shell_scalar_filter = HelmholtzAnalysis(cls.model, closed_surface_shell_scalar_filter_parameters)
 
-        cls.closed_shell_model_part.CreateNewNode(1, 50.0,0.0,0.0)
-        cls.closed_shell_model_part.CreateNewNode(2, 51.0,0.0,0.0)
-        cls.closed_shell_model_part.CreateNewNode(3, 51.0,51.0,0.0)
-        cls.closed_shell_model_part.CreateNewNode(4, 50.0,51.0,0.0)
+            cls.closed_shell_model_part.CreateNewNode(1, 50.0,0.0,0.0)
+            cls.closed_shell_model_part.CreateNewNode(2, 51.0,0.0,0.0)
+            cls.closed_shell_model_part.CreateNewNode(3, 51.0,51.0,0.0)
+            cls.closed_shell_model_part.CreateNewNode(4, 50.0,51.0,0.0)
 
-        cls.closed_shell_model_part.CreateNewNode(5, 50.0,0.0,1.0)
-        cls.closed_shell_model_part.CreateNewNode(6, 51.0,0.0,1.0)
-        cls.closed_shell_model_part.CreateNewNode(7, 51.0,51.0,1.0)
-        cls.closed_shell_model_part.CreateNewNode(8, 50.0,51.0,1.0)
+            cls.closed_shell_model_part.CreateNewNode(5, 50.0,0.0,1.0)
+            cls.closed_shell_model_part.CreateNewNode(6, 51.0,0.0,1.0)
+            cls.closed_shell_model_part.CreateNewNode(7, 51.0,51.0,1.0)
+            cls.closed_shell_model_part.CreateNewNode(8, 50.0,51.0,1.0)
 
-        properties_1 = cls.closed_shell_model_part.CreateNewProperties(1)
-        cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 1, [1,2,3,4], properties_1)
-        cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 2, [5,6,7,8], properties_1)
-        cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 3, [1,2,6,5], properties_1)
-        cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 4, [1,4,8,5], properties_1)
-        cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 5, [3,2,6,7], properties_1)
-        cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 6, [4,3,7,8], properties_1)
+            properties_1 = cls.closed_shell_model_part.CreateNewProperties(1)
+            cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 1, [1,2,3,4], properties_1)
+            cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 2, [5,6,7,8], properties_1)
+            cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 3, [1,2,6,5], properties_1)
+            cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 4, [1,4,8,5], properties_1)
+            cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 5, [3,2,6,7], properties_1)
+            cls.closed_shell_model_part.CreateNewElement("HelmholtzVectorSurfaceElement3D4N", 6, [4,3,7,8], properties_1)
 
 
     def test_scalar_solid_filter(self):

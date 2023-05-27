@@ -4,7 +4,8 @@
 
 
 # Import Kratos "wrapper" for unittests
-import KratosMultiphysics as km
+import KratosMultiphysics
+import run_cpp_unit_tests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # ==============================================================================
@@ -111,7 +112,12 @@ def AssembleTestSuites():
 # Main
 # ==============================================================================
 if __name__ == '__main__':
-    km.Tester.SetVerbosity(km.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
+
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
 
 # ==============================================================================
