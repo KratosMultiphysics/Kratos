@@ -39,6 +39,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
         "element_name" : "Element2D3N",
         "create_skin_sub_model_part" : false
     })");
+    r_model_part.SetBufferSize(3);
     r_model_part.AddNodalSolutionStepVariable(DISTANCE);
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
@@ -52,6 +53,15 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart"
     })");
+
+    // Fake time advance to set the previous process info container
+    const double dt = 1.0;
+    r_model_part.GetProcessInfo()[TIME] = 0.0;
+    r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
+    r_model_part.CloneTimeStep(dt);
+    r_model_part.CloneTimeStep(2.0*dt);
+
+    // Set and execute the FCT convection process
     FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
     fct_convection_process.Execute();
 }

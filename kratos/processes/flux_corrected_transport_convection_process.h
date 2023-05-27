@@ -144,53 +144,41 @@ public:
             this->ExecuteInitialize();
         }
 
-        // Evaluate steps needed to achieve target max_cfl
-        // const auto n_substep = EvaluateNumberOfSubsteps();
+        // Evaluate current time (n) and target time (n+1)
+        // Note that it is assumed that the CloneTimeStep of the model part has been already done
         const auto& r_process_info = mpModelPart->GetProcessInfo();
         const auto &r_prev_process_info = r_process_info.GetPreviousTimeStepInfo();
         const double time = r_process_info[TIME];
-        const double prev_time = r_prev_process_info[TIME];
+        double prev_time = r_prev_process_info[TIME];
 
-        // Get edge data structure containers
-        const auto& r_row_indices = mpEdgeDataStructure->GetRowIndices();
-        const auto& r_col_indices = mpEdgeDataStructure->GetColIndices();
-        const auto& r_values = mpEdgeDataStructure->GetValues();
+        // Update data vectors
+        IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
+            const auto& r_node = mpModelPart->GetNode(iNode);
+            mConvectedValuesOld[iNode] = r_node.GetSolutionStepValue(*mpConvectedVar,1); //solution at n
+            mConvectionValues[iNode] = r_node.GetSolutionStepValue(*mpConvectionVar,1); //convective velocity at n
+            mConvectionValuesOld[iNode] = r_node.GetSolutionStepValue(*mpConvectionVar,2); //convective velocity at n-1
+        });
 
-        // Edge contributions assembly
-        // Note that we don't loop the last entry of the row container as it is NNZ
-        SizeType n_nodes = r_row_indices.size() - 1;
-        IndexPartition<IndexType>(n_nodes).for_each([&](IndexType iNode){
-            KRATOS_WATCH(iNode)
-            const auto it_row = r_row_indices.begin() + iNode;
-            const IndexType i_col_index = *it_row;
-            const SizeType n_cols = *(it_row+1) - i_col_index;
-            KRATOS_WATCH(n_cols)
-            // Check that there are CSR columns (i.e. that current node involves an edge)
-            if (n_cols != 0) {
-                // i-node nodal data
-                auto& r_i_node = mpModelPart->GetNode(iNode);
-                auto& r_i_val = r_i_node.FastGetSolutionStepValue(*mpConvectedVar);
-                auto& r_i_vel = r_i_node.FastGetSolutionStepValue(*mpConvectionVar);
-                
-                // j-node nodal loop (i.e. loop ij-edges)
-                const auto i_col_begin = r_col_indices.begin() + i_col_index;
-                for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
-                    // j-node nodal data
-                    IndexType j_node_id = *(i_col_begin + j_node);
-                    auto& r_j_node = mpModelPart->GetNode(j_node_id);
-                    auto& r_j_val = r_j_node.FastGetSolutionStepValue(*mpConvectedVar);
+        // Substepping loop according to max CFL
+        while (time - prev_time < 1.0e-12) {
+            // Evaluate current substep maximum allowable delta time
+            const double dt = this->CalculateSubStepDeltaTime(prev_time, time);
 
-                    // Get ij-edge operators data from CSR data structure
-                    const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iNode, j_node_id);
+            // Solve current substep
+            this->SolveSubStep(dt);
 
-                    // Atomic additions
-                    double aux = 0.0;
-                    AtomicAdd(r_i_val, aux);
-                    AtomicAdd(r_j_val, -aux);
+            // Advance in time
+            prev_time += dt;
 
-                    std::cout << "Assembling edge " << iNode << "-" << j_node_id << std::endl;
-                }
-            }
+            // Update solution
+            IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
+                mConvectedValuesOld[iNode] = mConvectedValues[iNode];
+            });
+        }
+
+        // Set final solution in the model part database
+        IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
+            (mpModelPart->GetNode(iNode)).FastGetSolutionStepValue(*mpConvectedVar) = mConvectedValues[iNode];
         });
 
 
@@ -343,7 +331,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double EvaluateTimeStep(
+    double CalculateSubStepDeltaTime(
         const double PreviousTime,
         const double TargetTime)
     {
@@ -365,7 +353,7 @@ protected:
             if (n_cols != 0) {
                 // i-node nodal data
                 const double i_vel_norm = norm_2(mConvectionValues[iNode]);
-                
+
                 // j-node nodal loop (i.e. loop ij-edges)
                 const auto i_col_begin = r_col_indices.begin() + i_col_index;
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
@@ -381,8 +369,8 @@ protected:
                     const double dx_CFL = ij_length*mMaxAllowedCFL;
                     const double dt_i = i_vel_norm > 1.0e-12 ? dx_CFL/i_vel_norm : mMaxAllowedDt;
                     const double dt_j = j_vel_norm > 1.0e-12 ? dx_CFL/j_vel_norm : mMaxAllowedDt;
-                    dt_ij = std::min(dt_i, dt_j); 
-                    
+                    dt_ij = std::min(dt_i, dt_j);
+
                     std::cout << "Dt in edge " << iNode << "-" << j_node_id << " : " << dt_ij << std::endl;
                 }
             }
@@ -394,6 +382,51 @@ protected:
         // Return maximum time step if it doesn't exceed the target time
         // Otherwise the difference between current time and target one is used (potentially in last substep)
         return PreviousTime + max_dt > TargetTime ? TargetTime - PreviousTime : max_dt;
+    }
+
+    void SolveSubStep(const double DeltaTime)
+    {
+        // Get edge data structure containers
+        const auto& r_row_indices = mpEdgeDataStructure->GetRowIndices();
+        const auto& r_col_indices = mpEdgeDataStructure->GetColIndices();
+        const auto& r_values = mpEdgeDataStructure->GetValues();
+
+        // Edge contributions assembly
+        // Note that we don't loop the last entry of the row container as it is NNZ
+        SizeType n_nodes = r_row_indices.size() - 1;
+        IndexPartition<IndexType>(n_nodes).for_each([&](IndexType iNode){
+            KRATOS_WATCH(iNode)
+            const auto it_row = r_row_indices.begin() + iNode;
+            const IndexType i_col_index = *it_row;
+            const SizeType n_cols = *(it_row+1) - i_col_index;
+            KRATOS_WATCH(n_cols)
+            // Check that there are CSR columns (i.e. that current node involves an edge)
+            if (n_cols != 0) {
+                // i-node nodal data
+                auto& r_i_node = mpModelPart->GetNode(iNode);
+                auto& r_i_val = r_i_node.FastGetSolutionStepValue(*mpConvectedVar);
+                auto& r_i_vel = r_i_node.FastGetSolutionStepValue(*mpConvectionVar);
+
+                // j-node nodal loop (i.e. loop ij-edges)
+                const auto i_col_begin = r_col_indices.begin() + i_col_index;
+                for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
+                    // j-node nodal data
+                    IndexType j_node_id = *(i_col_begin + j_node);
+                    auto& r_j_node = mpModelPart->GetNode(j_node_id);
+                    auto& r_j_val = r_j_node.FastGetSolutionStepValue(*mpConvectedVar);
+
+                    // Get ij-edge operators data from CSR data structure
+                    const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iNode, j_node_id);
+
+                    // Atomic additions
+                    double aux = 0.0;
+                    AtomicAdd(r_i_val, aux);
+                    AtomicAdd(r_j_val, -aux);
+
+                    std::cout << "Assembling edge " << iNode << "-" << j_node_id << std::endl;
+                }
+            }
+        });
     }
 
     unsigned int EvaluateNumberOfSubsteps()
