@@ -7,8 +7,8 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetAllComponents
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetComponentByFullName
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetAllComponentFullNamesWithData
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetComponentHavingDataByFullName
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Any:
@@ -115,10 +115,10 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         list_of_component_names = parameters["list_of_output_components"].GetStringArray()
         if len(list_of_component_names) == 1 and list_of_component_names[0] == "all":
-            self.list_of_components = GetAllComponents(optimization_problem)
-        else:
-            for component_name in list_of_component_names:
-                self.list_of_components.append(GetComponentByFullName(component_name, optimization_problem))
+            list_of_component_names = GetAllComponentFullNamesWithData(optimization_problem)
+
+        for component_name in list_of_component_names:
+            self.list_of_components.append(GetComponentHavingDataByFullName(component_name, optimization_problem))
 
         self.list_of_expresson_vtu_outputs: 'list[ExpressionVtuOutput]' = []
         self.initialized_vtu_outputs = False
