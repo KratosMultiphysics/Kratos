@@ -19,6 +19,12 @@
 
 namespace Kratos {
 
+/**
+ * @class FixedIntervalRecurringEventUtility
+ * @ingroup KratosCore
+ * @brief Utility class to handle fixed interval recurring events.
+ * @tparam TDataType The data type used for event values.
+ */
 template <class TDataType>
 class KRATOS_API(KRATOS_CORE) FixedIntervalRecurringEventUtility
 {
@@ -32,6 +38,11 @@ public:
     ///@name Life cycle
     ///@{
 
+    /**
+     * @brief Constructor.
+     * @param InitialValue The initial value of the event.
+     * @param Interval The time interval between events.
+     */
     FixedIntervalRecurringEventUtility(
         const TDataType InitialValue,
         const TDataType Interval);
@@ -40,15 +51,27 @@ public:
     ///@name Public operations
     ///@{
 
+    /**
+     * @brief Checks if an event is expected based on the current value.
+     * @param CurrentValue The current value.
+     * @return true if an event is expected, false otherwise.
+     */
     bool IsEventExpected(const TDataType CurrentValue) const;
 
+    /**
+     * @brief Schedules the next event based on the current value.
+     * @param CurrentValue The current value.
+     */
     void ScheduleNextEvent(const TDataType CurrentValue);
 
     ///@}
     ///@name Public input output
     ///@{
 
-    /// Turn back information as a string.
+    /**
+     * @brief Returns the information of the utility as a string.
+     * @return The utility information as a string.
+     */
     std::string Info() const;
 
     ///@}
@@ -57,9 +80,8 @@ private:
     ///@name Private member variables
     ///@{
 
-    const TDataType mInterval;
-
-    TDataType mNextEventValue;
+    const TDataType mInterval; /// The time interval between events.
+    TDataType mNextEventValue; /// The value of the next event.
 
     ///@}
 };
