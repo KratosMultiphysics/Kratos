@@ -108,7 +108,7 @@ public:
             mMassCoefficient += 0.25 * w_i;
             mLumpedMassCoefficient += 0.5 * w_i;
         }
-    
+
     private:
 
         double mLength = 0.0;
@@ -138,7 +138,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /// Constructor
     EdgeBasedDataStructure() = default;
 
@@ -164,10 +164,6 @@ public:
         SparseGraphType edges_graph;
         FillEdgesSparseGraph(rModelPart, edges_graph);
         edges_graph.ExportCSRArrays(mRowIndices, mColIndices);
-
-        KRATOS_WATCH(mNumEdges)
-        KRATOS_WATCH(mRowIndices)
-        KRATOS_WATCH(mColIndices)
 
         // Create the edge data sparse container
         // TODO: Check the element type with the first one
@@ -254,7 +250,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
 
     ///@}
     ///@name Protected Operations
@@ -286,7 +282,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     SizeType mNumEdges;
     IndicesVectorType mRowIndices;
     IndicesVectorType mColIndices;
@@ -312,7 +308,7 @@ private:
             // i-node values
             const IndexType i_id = r_node.Id();
             std::vector<IndexType> col_ids;
-            
+
             // Loop nodal neighbours (j-node)
             auto& r_node_neighs = r_node.GetValue(NEIGHBOUR_NODES);
             for (auto& r_neigh : r_node_neighs) {
@@ -325,8 +321,6 @@ private:
             }
             // Add edges from current node to graph
             if (col_ids.size() != 0) {
-                KRATOS_WATCH(i_id)
-                KRATOS_WATCH(col_ids)
                 rEdgesSparseGraph.AddEntries(i_id, col_ids);
             }
         }
@@ -360,22 +354,22 @@ private:
                 for (IndexType j = i+1; j < NumNodes; ++j) {
                     const IndexType j_id = r_geom[j].Id();
                     // Check presence of current ij-edge in the sparse graph
-                    if (rEdgesSparseGraph.Has(i_id, j_id)) {
+                    const IndexType aux_i_id = std::min(i_id, j_id);
+                    const IndexType aux_j_id = std::max(i_id, j_id);
+                    if (rEdgesSparseGraph.Has(aux_i_id, aux_j_id)) {
                         // Get position in the column indices vector as this is the same one to be used in the values vector
-                        const IndexType ij_col_index = GetColumVectorIndex(i_id, j_id);
+                        const IndexType ij_col_index = GetColumVectorIndex(aux_i_id, aux_j_id);
                         std::cout << "Element " << r_element.Id() << " edge " << i_id << "-" << j_id << " with col_index " << ij_col_index << std::endl;
                         KRATOS_ERROR_IF(ij_col_index < 0) << "Column index cannot be found for ij-edge " << i_id << "-" << j_id << "." << std::endl;
 
-                        // If not created yet, create current edge data
+                        // If not created yet, create and fill current edge data
                         auto& rp_edge_data = mValues[ij_col_index];
                         if (rp_edge_data == nullptr) {
                             rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
+                            rp_edge_data->AddMassCoefficients(domain_size);
+                            rp_edge_data->AddFirstDerivatives(domain_size, row(DNDX,i), row(DNDX,j));
+                            rp_edge_data->SetLength(norm_2(r_geom[i].Coordinates()-r_geom[j].Coordinates()));
                         }
-
-                        // Add current edge elementwise contributions
-                        rp_edge_data->AddMassCoefficients(domain_size);
-                        rp_edge_data->AddFirstDerivatives(domain_size, row(DNDX,i), row(DNDX,j));
-                        rp_edge_data->SetLength(norm_2(r_geom[i].Coordinates()-r_geom[j].Coordinates()));
                     }
                 }
             }

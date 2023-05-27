@@ -91,7 +91,7 @@ public:
         // Assign all the required member variables
         mEchoLevel = ThisParameters["echo_level"].GetInt();
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
-        mMaxAllowedCFL = ThisParameters["max_delta_time"].GetDouble();
+        mMaxAllowedDt = ThisParameters["max_delta_time"].GetDouble();
         mpConvectedVar = &KratosComponents<Variable<double>>::Get(ThisParameters["convected_variable_name"].GetString());
         mpConvectionVar = &KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["convection_variable_name"].GetString());
     }
@@ -120,8 +120,7 @@ public:
         mPerformInitialize = false;
 
         // Allocate auxiliary arrays
-        const auto& r_row_indices = mpEdgeDataStructure->GetRowIndices();
-        SizeType n_nodes = r_row_indices.size() - 1; // Note that last node is the NNZ
+        const SizeType n_nodes = mpModelPart->NumberOfNodes();
         mConvectedValues.resize(n_nodes);
         mConvectionValues.resize(n_nodes);
         mConvectedValuesOld.resize(n_nodes);
@@ -153,14 +152,14 @@ public:
 
         // Update data vectors
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
-            const auto& r_node = mpModelPart->GetNode(iNode);
+            const auto& r_node = mpModelPart->GetNode(iNode+1);
             mConvectedValuesOld[iNode] = r_node.GetSolutionStepValue(*mpConvectedVar,1); //solution at n
             mConvectionValues[iNode] = r_node.GetSolutionStepValue(*mpConvectionVar,1); //convective velocity at n
             mConvectionValuesOld[iNode] = r_node.GetSolutionStepValue(*mpConvectionVar,2); //convective velocity at n-1
         });
 
         // Substepping loop according to max CFL
-        while (time - prev_time < 1.0e-12) {
+        while (time - prev_time > 1.0e-12) {
             // Evaluate current substep maximum allowable delta time
             const double dt = this->CalculateSubStepDeltaTime(prev_time, time);
 
@@ -178,7 +177,7 @@ public:
 
         // Set final solution in the model part database
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
-            (mpModelPart->GetNode(iNode)).FastGetSolutionStepValue(*mpConvectedVar) = mConvectedValues[iNode];
+            (mpModelPart->GetNode(iNode+1)).FastGetSolutionStepValue(*mpConvectedVar) = mConvectedValues[iNode];
         });
 
 
@@ -343,23 +342,21 @@ protected:
         // Note that we don't loop the last entry of the row container as it is NNZ
         SizeType n_nodes = r_row_indices.size() - 1;
         const double max_dt = IndexPartition<IndexType>(n_nodes).for_each<MinReduction<double>>([&](IndexType iNode){
-            KRATOS_WATCH(iNode)
             double dt_ij = std::numeric_limits<double>::max();
             const auto it_row = r_row_indices.begin() + iNode;
             const IndexType i_col_index = *it_row;
             const SizeType n_cols = *(it_row+1) - i_col_index;
-            KRATOS_WATCH(n_cols)
             // Check that there are CSR columns (i.e. that current node involves an edge)
             if (n_cols != 0) {
                 // i-node nodal data
-                const double i_vel_norm = norm_2(mConvectionValues[iNode]);
+                const double i_vel_norm = norm_2(mConvectionValues[iNode-1]);
 
                 // j-node nodal loop (i.e. loop ij-edges)
                 const auto i_col_begin = r_col_indices.begin() + i_col_index;
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    const double j_vel_norm = norm_2(mConvectionValues[j_node_id]);
+                    const double j_vel_norm = norm_2(mConvectionValues[j_node_id-1]);
 
                     // Get ij-edge length from CSR data structure
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iNode, j_node_id);
@@ -395,11 +392,10 @@ protected:
         // Note that we don't loop the last entry of the row container as it is NNZ
         SizeType n_nodes = r_row_indices.size() - 1;
         IndexPartition<IndexType>(n_nodes).for_each([&](IndexType iNode){
-            KRATOS_WATCH(iNode)
             const auto it_row = r_row_indices.begin() + iNode;
             const IndexType i_col_index = *it_row;
             const SizeType n_cols = *(it_row+1) - i_col_index;
-            KRATOS_WATCH(n_cols)
+
             // Check that there are CSR columns (i.e. that current node involves an edge)
             if (n_cols != 0) {
                 // i-node nodal data
