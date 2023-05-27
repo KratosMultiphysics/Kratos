@@ -3,9 +3,9 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 
 def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model):
-    if(isinstance(settings, KratosMultiphysics.Parameters)):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    if(isinstance(model, KratosMultiphysics.Model)):
+    if not isinstance(model, KratosMultiphysics.Model):
         raise Exception("expected input shall be a Model object")
 
     return VtkOutputProcess(model, settings["Parameters"])
