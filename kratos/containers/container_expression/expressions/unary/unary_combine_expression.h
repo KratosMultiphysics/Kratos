@@ -33,7 +33,7 @@ namespace Kratos {
  * @note All the expressions should have the same number of entities.
  *
  */
-class KRATOS_API(KRATOS_CORE) UnaryCombineExpression : public Expression {
+class UnaryCombineExpression : public Expression {
 public:
     ///@name Type definitions
     ///@{
@@ -90,11 +90,40 @@ public:
     double Evaluate(
         const IndexType EntityIndex,
         const IndexType EntityDataBeginIndex,
-        const IndexType ComponentIndex) const override;
+        const IndexType ComponentIndex) const override
+    {
+        IndexType current_starting = 0;
 
-    const std::vector<IndexType> GetItemShape() const override;
+        for (IndexType i = 0; i < mSourceExpressions.size(); ++i) {
+            const IndexType current_stride = mStrides[i];
+            if (ComponentIndex < current_stride) {
+                return mSourceExpressions[i]->Evaluate(EntityIndex, EntityIndex * (current_stride - current_starting), ComponentIndex - current_starting);
+            }
+            current_starting = current_stride;
+        }
 
-    std::string Info() const override;
+        KRATOS_ERROR << "Component index is greater than the current expressions stride.\n";
+
+        return 0.0;
+    }
+
+    const std::vector<IndexType> GetItemShape() const override
+    {
+        return {mStrides.back()};
+    }
+
+    std::string Info() const override
+    {
+        std::stringstream msg;
+
+        msg << "CombinedExpression: ";
+
+        for (const auto& p_expression : mSourceExpressions) {
+            msg << "\n\t" << *p_expression;
+        }
+
+        return msg.str();
+    }
 
     ///@}
 protected:

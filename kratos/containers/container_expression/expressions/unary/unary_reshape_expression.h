@@ -28,7 +28,7 @@ namespace Kratos {
  * @brief Used to create lazy expression to reshape given expression to a new shape.
  *
  */
-class KRATOS_API(KRATOS_CORE) UnaryReshapeExpression : public Expression {
+class UnaryReshapeExpression : public Expression {
 public:
     ///@name Type definitions
     ///@{
@@ -72,11 +72,26 @@ public:
     double Evaluate(
         const IndexType EntityIndex,
         const IndexType EntityDataBeginIndex,
-        const IndexType ComponentIndex) const override;
+        const IndexType ComponentIndex) const override
+    {
+        return mpSourceExpression->Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex);
+    }
 
-    const std::vector<IndexType> GetItemShape() const override;
+    const std::vector<IndexType> GetItemShape() const override
+    {
+        return mShape;
+    }
 
-    std::string Info() const override;
+    std::string Info() const override
+    {
+        std::stringstream msg;
+        msg << mpSourceExpression << "-> [";
+        for (const auto v : mShape) {
+            msg << " " << v;
+        }
+        msg << " ]";
+        return msg.str();
+    }
 
     ///@}
 protected:
