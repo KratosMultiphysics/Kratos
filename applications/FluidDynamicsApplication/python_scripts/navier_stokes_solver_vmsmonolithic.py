@@ -351,6 +351,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
          totalerrorvelocity=0.0
          totalerrorpressure=0.0
          nodalareasum=0.0
+         totalarea=0.0 
          for node in self.main_model_part.Nodes:
           vel_x=-1.0*math.sin(node.X)*math.cos(node.Y)*math.exp(-2.0*(mu/rho)*time)  
           vel_y=math.cos(node.X)*math.sin(node.Y)*math.exp(-2.0*(mu/rho)*time)
@@ -374,14 +375,136 @@ class NavierStokesSolverMonolithic(FluidSolver):
          totalerrorpressurewithnodalarea  = math.sqrt(totalerrorpressurewithnodalarea)
          totalerrorvelocity  = math.sqrt(totalerrorvelocity)  
          totalerrorpressure  = math.sqrt(totalerrorpressure)
-         elementvelocityerror=0.0
-         elementpressureerror=0.0
+         #error calculation with 7 gauss points https://kratos-wiki.cimne.upc.edu/index.php/Numerical_Integration
+         totalerror=0.0
+         error_vel=0.0
+         error_pressure=0.0
          totalarea=0.0
+         for element in self.main_model_part.Elements:
+          x10 = element.GetNode(1).X - element.GetNode(0).X
+          y10 = element.GetNode(1).Y - element.GetNode(0).Y
+          x20 = element.GetNode(2).X - element.GetNode(0).X
+          y20 = element.GetNode(2).Y - element.GetNode(0).Y
+          detJ = x10 * y20-y10 * x20
+          Area = 0.5*detJ
+          totalarea=totalarea+Area
+          #node_a
+          xa_g=0.0*(element.GetNode(0).X)+0.0*(element.GetNode(1).X)+1.0*(element.GetNode(2).X)
+          ya_g=0.0*(element.GetNode(0).Y)+0.0*(element.GetNode(1).Y)+1.0*(element.GetNode(2).Y)
+          weight_a=1.0/40.0
+          vela_x=-1.0*math.sin(xa_g)*math.cos(ya_g)*math.exp(-2.0*(mu/rho)*time)  
+          vela_y=math.cos(xa_g)*math.sin(ya_g)*math.exp(-2.0*(mu/rho)*time)
+          pressure_a=(rho/4.0)*(math.cos(2.0*xa_g)+math.cos(2.0*ya_g))*math.exp(-4.0*(mu/rho)*time) 
+          numerical_vela_x=0.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+1.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))
+          numerical_vela_y=0.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+1.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))
+          numerical_pressure_a=0.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+1.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.PRESSURE))
+          error_vela_x=vela_x-numerical_vela_x
+          error_vela_y=vela_y-numerical_vela_y
+          error_pressurea=pressure_a-numerical_pressure_a
+          error_vel=error_vel+(error_vela_x*error_vela_x+error_vela_y*error_vela_y)*weight_a*detJ
+          error_pressure=error_pressure+(error_pressurea*error_pressurea)*weight_a*detJ
+          #node_b
+          xb_g=0.5*(element.GetNode(0).X)+0.0*(element.GetNode(1).X)+0.5*(element.GetNode(2).X)
+          yb_g=0.5*(element.GetNode(0).Y)+0.0*(element.GetNode(1).Y)+0.5*(element.GetNode(2).Y)
+          weight_b=1.0/15.0
+          velb_x=-1.0*math.sin(xb_g)*math.cos(yb_g)*math.exp(-2.0*(mu/rho)*time)  
+          velb_y=math.cos(xb_g)*math.sin(yb_g)*math.exp(-2.0*(mu/rho)*time)
+          pressure_b=(rho/4.0)*(math.cos(2.0*xb_g)+math.cos(2.0*yb_g))*math.exp(-4.0*(mu/rho)*time) 
+          numerical_velb_x=0.5*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.5*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))
+          numerical_velb_y=0.5*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.5*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))
+          numerical_pressure_b=0.5*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.5*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.PRESSURE))
+          errorb_x=velb_x-numerical_velb_x
+          errorb_y=velb_y-numerical_velb_y
+          error_pressureb=pressure_b-numerical_pressure_b
+          error_vel=error_vel+(errorb_x*errorb_x+errorb_y*errorb_y)*weight_b*detJ
+          error_pressure=error_pressure+(error_pressureb*error_pressureb)*weight_b*detJ
+          #node_c
+          xc_g=1.0*(element.GetNode(0).X)+0.0*(element.GetNode(1).X)+0.0*(element.GetNode(2).X)
+          yc_g=1.0*(element.GetNode(0).Y)+0.0*(element.GetNode(1).Y)+0.0*(element.GetNode(2).Y)
+          weight_c=1.0/40.0
+          velc_x=-1.0*math.sin(xc_g)*math.cos(yc_g)*math.exp(-2.0*(mu/rho)*time)  
+          velc_y=math.cos(xc_g)*math.sin(yc_g)*math.exp(-2.0*(mu/rho)*time)
+          pressure_c=(rho/4.0)*(math.cos(2.0*xc_g)+math.cos(2.0*yc_g))*math.exp(-4.0*(mu/rho)*time) 
+          numerical_velc_x=1.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))
+          numerical_velc_y=1.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))
+          numerical_pressure_c=1.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.PRESSURE))
+          errorc_x=velc_x-numerical_velc_x
+          errorc_y=velc_y-numerical_velc_y
+          error_pressurec=pressure_c-numerical_pressure_c
+          error_vel=error_vel+(errorc_x*errorc_x+errorc_y*errorc_y)*weight_c*detJ
+          error_pressure=error_pressure+(error_pressurec*error_pressurec)*weight_c*detJ
+          #node_d
+          xd_g=0.5*(element.GetNode(0).X)+0.5*(element.GetNode(1).X)+0.0*(element.GetNode(2).X)
+          yd_g=0.5*(element.GetNode(0).Y)+0.5*(element.GetNode(1).Y)+0.0*(element.GetNode(2).Y)
+          weight_d=1.0/15.0
+          veld_x=-1.0*math.sin(xd_g)*math.cos(yd_g)*math.exp(-2.0*(mu/rho)*time)  
+          veld_y=math.cos(xd_g)*math.sin(yd_g)*math.exp(-2.0*(mu/rho)*time)
+          pressure_d=(rho/4.0)*(math.cos(2.0*xd_g)+math.cos(2.0*yd_g))*math.exp(-4.0*(mu/rho)*time) 
+          numerical_veld_x=0.5*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.5*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))
+          numerical_veld_y=0.5*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.5*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))
+          numerical_pressure_d=0.5*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.5*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.PRESSURE))
+          errord_x=veld_x-numerical_veld_x
+          errord_y=veld_y-numerical_veld_y
+          error_pressured=pressure_d-numerical_pressure_d
+          error_vel=error_vel+(errord_x*errord_x+errord_y*errord_y)*weight_d*detJ
+          error_pressure=error_pressure+(error_pressured*error_pressured)*weight_d*detJ
+          #node_e
+          xe_g=0.0*(element.GetNode(0).X)+1.0*(element.GetNode(1).X)+0.0*(element.GetNode(2).X)
+          ye_g=0.0*(element.GetNode(0).Y)+1.0*(element.GetNode(1).Y)+0.0*(element.GetNode(2).Y)
+          weight_e=1.0/40.0
+          vele_x=-1.0*math.sin(xe_g)*math.cos(ye_g)*math.exp(-2.0*(mu/rho)*time)  
+          vele_y=math.cos(xe_g)*math.sin(ye_g)*math.exp(-2.0*(mu/rho)*time)
+          pressure_e=(rho/4.0)*(math.cos(2.0*xe_g)+math.cos(2.0*ye_g))*math.exp(-4.0*(mu/rho)*time) 
+          numerical_vele_x=0.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+1.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))
+          numerical_vele_y=0.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+1.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))
+          numerical_pressure_e=0.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+1.0*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.0*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.PRESSURE))
+          errore_x=vele_x-numerical_vele_x
+          errore_y=vele_y-numerical_vele_y
+          error_pressuree=pressure_e-numerical_pressure_e
+          error_vel=error_vel+(errore_x*errore_x+errore_y*errore_y)*weight_e*detJ
+          error_pressure=error_pressure+(error_pressuree*error_pressuree)*weight_e*detJ
+          #node_f
+          xf_g=0.0*(element.GetNode(0).X)+0.5*(element.GetNode(1).X)+0.5*(element.GetNode(2).X)
+          yf_g=0.0*(element.GetNode(0).Y)+0.5*(element.GetNode(1).Y)+0.5*(element.GetNode(2).Y)
+          weight_f=1.0/15.0
+          velf_x=-1.0*math.sin(xf_g)*math.cos(yf_g)*math.exp(-2.0*(mu/rho)*time)  
+          velf_y=math.cos(xf_g)*math.sin(yf_g)*math.exp(-2.0*(mu/rho)*time)
+          pressure_f=(rho/4.0)*(math.cos(2.0*xf_g)+math.cos(2.0*yf_g))*math.exp(-4.0*(mu/rho)*time) 
+          numerical_velf_x=0.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.5*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.5*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))
+          numerical_velf_y=0.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.5*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.5*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))
+          numerical_pressure_f=0.0*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.5*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.5*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.PRESSURE))
+          errorf_x=velf_x-numerical_velf_x
+          errorf_y=velf_y-numerical_velf_y
+          error_pressuref=pressure_f-numerical_pressure_f
+          error_vel=error_vel+(errorf_x*errorf_x+errorf_y*errorf_y)*weight_f*detJ
+          error_pressure=error_pressure+(error_pressuref*error_pressuref)*weight_f*detJ
+          #node_g
+          xg_g=0.333333333333333*(element.GetNode(0).X)+0.333333333333333*(element.GetNode(1).X)+0.333333333333333*(element.GetNode(2).X)
+          yg_g=0.333333333333333*(element.GetNode(0).Y)+0.333333333333333*(element.GetNode(1).Y)+0.333333333333333*(element.GetNode(2).Y)
+          weight_g=9.0/40.0
+          velg_x=-1.0*math.sin(xg_g)*math.cos(yg_g)*math.exp(-2.0*(mu/rho)*time)  
+          velg_y=math.cos(xg_g)*math.sin(yg_g)*math.exp(-2.0*(mu/rho)*time)
+          pressure_g=(rho/4.0)*(math.cos(2.0*xg_g)+math.cos(2.0*yg_g))*math.exp(-4.0*(mu/rho)*time) 
+          numerical_velg_x=0.333333333333333*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.333333333333333*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))+0.333333333333333*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X))
+          numerical_velg_y=0.333333333333333*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.333333333333333*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))+0.333333333333333*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y))
+          numerical_pressure_g=0.333333333333333*(element.GetNode(0).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.333333333333333*(element.GetNode(1).GetSolutionStepValue(KratosMultiphysics.PRESSURE))+0.333333333333333*(element.GetNode(2).GetSolutionStepValue(KratosMultiphysics.PRESSURE))
+          errorg_x=velg_x-numerical_velg_x
+          errorg_y=velg_y-numerical_velg_y
+          error_pressureg=pressure_g-numerical_pressure_g
+          error_vel=error_vel+(errorg_x*errorg_x+errorg_y*errorg_y)*weight_g*detJ
+          error_pressure=error_pressure+(error_pressureg*error_pressureg)*weight_g*detJ
+
+         error_vel=error_vel/totalarea
+         error_vel=math.sqrt(error_vel)
+         error_pressure=error_pressure/totalarea
+         error_pressure=math.sqrt(error_pressure)
          print("dt=", self.timestep)
          print("totalerrorvelocitywithnodalarea=", totalerrorvelocitywithnodalarea) 
          print("totalerrorpressurewithnodalarea=", totalerrorpressurewithnodalarea)
          print("totalerrorvelocity=", totalerrorvelocity) 
          print("totalerrorpressure=", totalerrorpressure)   
+         print("totalerrorvelocitywith7gp=", error_vel)  
+         print("totalerrorpressurewith7gp=", error_pressure)  
 
     def InitializeSolutionStep(self):
         # If required, compute the BDF coefficients
