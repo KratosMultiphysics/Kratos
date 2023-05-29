@@ -113,6 +113,25 @@ public:
         return mpGlobalPointerCommunicator->Apply(std::forward<TFunctorType>(UserFunctor));
     }
 
+    /**
+     * @brief Considers the global pointer communicator to get the shape functions of the resulting object
+     * @param rPoint The point coordinates
+     * @return A vector containing all the shape functions
+     */
+    std::vector<Vector> GetResultShapeFunctions(array_1d<double, 3>& rPoint);
+
+    /**
+     * @brief Considers the global pointer communicator to get the indices of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<std::size_t> GetResultIndices();
+
+    /**
+     * @brief Considers the global pointer communicator to get the coordinates of the resulting object
+     * @return A vector containing all the coordinates
+     */
+    std::vector<std::vector<array_1d<double, 3>>> GetResultCoordinates();
+
     ///@}
     ///@name Input and output
     ///@{
