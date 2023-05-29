@@ -226,6 +226,7 @@ void SpatialSearchResultContainer<TObjectType>::load(Serializer& rSerializer)
 /***********************************************************************************/
 /***********************************************************************************/
 
+/// Template instantiation
 template class SpatialSearchResultContainer<GeometricalObject>;
 
 /***********************************************************************************/
@@ -329,6 +330,7 @@ void SpatialSearchResultContainerMap<TObjectType>::load(Serializer& rSerializer)
 /***********************************************************************************/
 /***********************************************************************************/
 
+/// Template instantiation
 template class SpatialSearchResultContainerMap<GeometricalObject>;
 
 }  // namespace Kratos
