@@ -196,6 +196,17 @@ public:
     return mDataPointer;
   }
 
+  /**
+   * @brief Overloads the '==' operator to compare two GlobalPointer objects of the
+   * same template type. Returns true if the underlying pointers are equal.
+   * @param rOther The GlobalPointer object to be compared.
+   * @return true if the underlying pointers are equal, false otherwise.
+   */
+  bool operator==(const GlobalPointer& rOther)
+  {
+      return this->get() == rOther.get();
+  }
+
   /** Fills buffer with the GlobalPoiter data
    * Fills buffer with the GlobalPoiter data
    * @param buffer Object data buffer
@@ -227,8 +238,6 @@ public:
   private:
 
   friend class Serializer;
-
-
 
   void save(Serializer& rSerializer) const
   {
