@@ -48,6 +48,8 @@
 
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/elastic_cohesive_3D_law.hpp"
+#include "custom_constitutive/elastic_cohesive_2D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_3D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_2D_law.hpp"
 
@@ -193,6 +195,8 @@ const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrde
 
 const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
 const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
+const ElasticCohesive3DLaw mElasticCohesive3DLaw;
+const ElasticCohesive2DLaw mElasticCohesive2DLaw;
 const ExponentialCohesive3DLaw mExponentialCohesive3DLaw;
 const ExponentialCohesive2DLaw mExponentialCohesive2DLaw;
 
