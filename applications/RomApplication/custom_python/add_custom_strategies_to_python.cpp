@@ -59,6 +59,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
      py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def("Get_contruction_time",&ROMBuilderAndSolverType::Get_contruction_time) //
+        .def("Get_solving_time",&ROMBuilderAndSolverType::Get_solving_time) //
+        .def("Get_projection_time",&ROMBuilderAndSolverType::Get_projection_time) //
         ;
 
     typedef LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> LeastSquaresPetrovGalerkinROMBuilderAndSolverType;
