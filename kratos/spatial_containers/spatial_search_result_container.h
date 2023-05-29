@@ -55,6 +55,18 @@ public:
     /// The index type
     using IndexType = std::size_t;
 
+    /// The local pointer vector type
+    using LocalPointerVector = PointerVectorSet<TObjectType,
+                        IndexedObject,
+                        std::less<typename IndexedObject::result_type>,
+                        std::equal_to<typename IndexedObject::result_type>,
+                        typename TObjectType::Pointer,
+                        std::vector< typename TObjectType::Pointer >
+                        >;
+
+    /// The global pointer communicator
+    using PointerCommunicatorPointer = typename GlobalPointerCommunicator<TObjectType>::Pointer;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -133,6 +145,46 @@ public:
     std::vector<std::vector<array_1d<double, 3>>> GetResultCoordinates();
 
     ///@}
+    ///@name Access
+    ///@{
+
+    /**
+     * @brief Accessor for mLocalPointers.
+     * This method returns a reference to the LocalPointerVector mLocalPointers.
+     * @return A reference to the LocalPointerVector mLocalPointers.
+     */
+    LocalPointerVector& GetLocalPointers() {
+        return mLocalPointers;
+    }
+
+    /**
+     * @brief Accessor for mGlobalPointers.
+     * This method returns a reference to the GlobalPointersVector mGlobalPointers.
+     * @return A reference to the GlobalPointersVector mGlobalPointers.
+     */
+    GlobalPointersVector<TObjectType>& GetGlobalPointers() {
+        return mGlobalPointers;
+    }
+
+    /**
+     * @brief Accessor for mLocalDistances.
+     * This method returns a reference to the std::unordered_map mLocalDistances.
+     * @return A reference to the std::unordered_map mLocalDistances.
+     */
+    std::unordered_map<IndexType, double>& GetLocalDistances() {
+        return mLocalDistances;
+    }
+
+    /**
+     * @brief Accessor for mpGlobalPointerCommunicator.
+     * This method returns the PointerCommunicatorPointer mpGlobalPointerCommunicator.
+     * @return The PointerCommunicatorPointer mpGlobalPointerCommunicator.
+     */
+    PointerCommunicatorPointer GetGlobalPointerCommunicator() {
+        return mpGlobalPointerCommunicator;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -150,16 +202,10 @@ private:
     ///@name Member Variables
     ///@{
     
-    PointerVectorSet<TObjectType,
-                     IndexedObject,
-                     std::less<typename IndexedObject::result_type>,
-                     std::equal_to<typename IndexedObject::result_type>,
-                     typename TObjectType::Pointer,
-                     std::vector< typename TObjectType::Pointer >
-                     > mLocalPointers;                                                              /// Local pointers of the container
-    GlobalPointersVector<TObjectType> mGlobalPointers;                                              /// Global pointers of the container
-    std::unordered_map<IndexType, double> mLocalDistances;                                          /// The local distances 
-    typename GlobalPointerCommunicator<TObjectType>::Pointer mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator 
+    LocalPointerVector mLocalPointers;                                /// Local pointers of the container
+    GlobalPointersVector<TObjectType> mGlobalPointers;                /// Global pointers of the container
+    std::unordered_map<IndexType, double> mLocalDistances;            /// The local distances 
+    PointerCommunicatorPointer mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator 
 
     ///@}
     ///@name Private Operations
