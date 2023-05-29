@@ -38,7 +38,7 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResult<TO
 {
     // Push_back in local pointers
     TObjectType* p_local_result = rResult.Get().get();
-    mLocalPointers.push_back(Kratos::intrusive_ptr<TObjectType>(p_local_result));
+    mLocalPointers.push_back(p_local_result);
 
     // Add distances
     const IndexType id = p_local_result->Id();

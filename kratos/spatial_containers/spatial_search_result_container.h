@@ -60,8 +60,8 @@ public:
                         IndexedObject,
                         std::less<typename IndexedObject::result_type>,
                         std::equal_to<typename IndexedObject::result_type>,
-                        typename TObjectType::Pointer,
-                        std::vector< typename TObjectType::Pointer >
+                        TObjectType*,
+                        std::vector<TObjectType* >
                         >;
 
     /// The global pointer communicator
