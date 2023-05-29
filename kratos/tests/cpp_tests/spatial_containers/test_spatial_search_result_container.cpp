@@ -41,12 +41,17 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastS
     auto& r_local_pointers = container.GetLocalPointers();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 1);
 
+    // Check distances
     auto& r_distances = container.GetLocalDistances();
     KRATOS_CHECK_EQUAL(r_distances.size(), 1);
     KRATOS_CHECK_EQUAL(r_distances[1], 0.5);
+
+    // Check global pointers
+    auto& r_global_pointers = container.GetGlobalPointers();
+    KRATOS_CHECK_EQUAL(r_global_pointers.size(), 0); // It should be empty as we have not synchronized
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestSpatialSearchResultContainerClear, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerClear, KratosCoreFastSuite)
 {
     // Create a test object
     SpatialSearchResultContainer<GeometricalObject> container;
@@ -66,6 +71,32 @@ KRATOS_TEST_CASE_IN_SUITE(TestSpatialSearchResultContainerClear, KratosCoreFastS
     // Check that the result was added correctly
     auto& r_local_pointers = container.GetLocalPointers();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject();
+    object.SetId(1);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    container.AddResult(result);
+
+    // Synchronize the container between partitions
+    DataCommunicator data_communicator;
+    container.SynchronizeAll(data_communicator);
+
+    // Check that the result was added correctly
+    auto& r_local_pointers = container.GetLocalPointers();
+    KRATOS_CHECK_EQUAL(r_local_pointers.size(), 1);
+
+    // Check global pointers
+    auto& r_global_pointers = container.GetGlobalPointers();
+    KRATOS_CHECK_EQUAL(r_global_pointers.size(), 1);
 }
 
 }  // namespace Kratos::Testing
