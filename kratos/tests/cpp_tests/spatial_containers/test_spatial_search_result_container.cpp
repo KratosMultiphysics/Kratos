@@ -46,4 +46,26 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastS
     KRATOS_CHECK_EQUAL(r_distances[1], 0.5);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TestSpatialSearchResultContainerClear, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject();
+    object.SetId(1);
+    SpatialSearchResult<GeometricalObject> result(&object);
+    result.SetDistance(0.5);
+
+    // Add the result to the container
+    container.AddResult(result);
+
+    // Clear
+    container.Clear();
+
+    // Check that the result was added correctly
+    auto& r_local_pointers = container.GetLocalPointers();
+    KRATOS_CHECK_EQUAL(r_local_pointers.size(), 0);
+}
+
 }  // namespace Kratos::Testing
