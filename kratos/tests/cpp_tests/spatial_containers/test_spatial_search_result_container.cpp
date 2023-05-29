@@ -17,6 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "geometries/line_2d_2.h"
 #include "spatial_containers/spatial_search_result.h"
 #include "spatial_containers/spatial_search_result_container.h"
 
@@ -29,8 +30,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastS
     SpatialSearchResultContainer<GeometricalObject> container;
 
     // Create a test result
-    GeometricalObject object = GeometricalObject();
-    object.SetId(1);
+    GeometricalObject object = GeometricalObject(1);
     SpatialSearchResult<GeometricalObject> result(&object);
     result.SetDistance(0.5);
 
@@ -57,8 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerClear, KratosCoreFastSuite
     SpatialSearchResultContainer<GeometricalObject> container;
 
     // Create a test result
-    GeometricalObject object = GeometricalObject();
-    object.SetId(1);
+    GeometricalObject object = GeometricalObject(1);
     SpatialSearchResult<GeometricalObject> result(&object);
     result.SetDistance(0.5);
 
@@ -79,8 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCore
     SpatialSearchResultContainer<GeometricalObject> container;
 
     // Create a test result
-    GeometricalObject object = GeometricalObject();
-    object.SetId(1);
+    GeometricalObject object = GeometricalObject(1);
     SpatialSearchResult<GeometricalObject> result(&object);
 
     // Add the result to the container
@@ -97,6 +95,37 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCore
     // Check global pointers
     auto& r_global_pointers = container.GetGlobalPointers();
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), 1);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultShapeFunctions, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Generate a geometry
+    auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_node2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    Geometry<Node>::Pointer p_geom = Kratos::make_shared<Line2D2<Node>>(p_node1, p_node2);
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1, p_geom);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    container.AddResult(result);
+
+    // Synchronize the container between partitions
+    DataCommunicator data_communicator;
+    container.SynchronizeAll(data_communicator);
+
+    // Compute shape functions
+    Point point = Point(0.5, 0.0, 0.0);
+    auto shape_functions = container.GetResultShapeFunctions(point);
+
+    // Check shape functions
+    KRATOS_CHECK_EQUAL(shape_functions.size(), 1);
+    KRATOS_CHECK_NEAR(shape_functions[0][0], 0.5, 1.0e-12);
+    KRATOS_CHECK_NEAR(shape_functions[0][1], 0.5, 1.0e-12);
 }
 
 }  // namespace Kratos::Testing
