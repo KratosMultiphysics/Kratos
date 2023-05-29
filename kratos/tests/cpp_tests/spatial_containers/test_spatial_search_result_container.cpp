@@ -44,8 +44,6 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastS
     auto& r_distances = container.GetLocalDistances();
     KRATOS_CHECK_EQUAL(r_distances.size(), 1);
     KRATOS_CHECK_EQUAL(r_distances[1], 0.5);
-
-    // TODO: Memory error with destructor
 }
 
 }  // namespace Kratos::Testing
