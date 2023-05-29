@@ -22,9 +22,9 @@
 #include "includes/accessor.h"
 #include "includes/properties.h"
 
-using AcccessorBindType = std::unique_ptr<Kratos::Accessor>;
+using AccessorBindType = std::unique_ptr<Kratos::Accessor>;
 
-PYBIND11_MAKE_OPAQUE(AcccessorBindType);
+PYBIND11_MAKE_OPAQUE(AccessorBindType);
 
 namespace Kratos::Python
 {
@@ -33,7 +33,7 @@ namespace py = pybind11;
 
 void AddAccessorsToPython(py::module& m)
 {
-    py::class_<AcccessorBindType>(m, "Accessor")
+    py::class_<AccessorBindType>(m, "Accessor")
         .def_static("Create", []() { 
             return std::make_unique<Accessor>();
         })

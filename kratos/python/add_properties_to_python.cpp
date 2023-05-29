@@ -25,7 +25,7 @@
 #include "python/add_properties_to_python.h"
 #include "python/containers_interface.h"
 
-using AcccessorBindType = std::unique_ptr<Kratos::Accessor>;
+using AccessorBindType = std::unique_ptr<Kratos::Accessor>;
 
 PYBIND11_MAKE_OPAQUE(AcccessorBindType);
 
@@ -156,12 +156,12 @@ void AddInterfaceToAccessorFold(pybind11::class_<Properties, Properties::Pointer
     .def("GetAccessor", [](Properties &rProperties, Variable<TVariableType> &rVariable) { 
             auto accessor = &rProperties.pGetAccessor(rVariable);
             
-            KRATOS_ERROR_IF(*accessor == nullptr) << "Trying to get a consumed or invalid Accessor." << std::endl;
+            KRATOS_ERROR_IF(*accessor) << "Trying to get a consumed or invalid Accessor." << std::endl;
                 
             return accessor; 
         }, py::return_value_policy::reference_internal)
     .def("SetAccessor", [](Properties &rProperties, Variable<TVariableType> &rVariable, std::unique_ptr<Accessor>& rpAccessor) {
-            if (rpAccessor == nullptr)
+            if (rpAccessor)
                 KRATOS_ERROR << "Trying to set a consumed or invalid Accessor. Accessors are unique. Please create a different one." << std::endl;
 
             rProperties.SetAccessor(rVariable, std::move(rpAccessor));
