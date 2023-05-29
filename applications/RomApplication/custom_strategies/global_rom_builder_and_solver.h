@@ -513,7 +513,7 @@ protected:
         KRATOS_CATCH("")
     }
     
-    DofQueue ExtractDofSet(
+    static DofQueue ExtractDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart)
     {
@@ -531,7 +531,8 @@ protected:
 
         // Inspecting elements
         DofsVectorType tls_dof_list; // Preallocation
-        ElementsArrayType elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
+        // ElementsArrayType elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
+        ElementsArrayType elements = rModelPart.Elements();
         block_for_each(elements, tls_dof_list,
             [&](const Element& r_element, DofsVectorType& r_dof_list)
         {
@@ -540,7 +541,8 @@ protected:
         });
 
         // Inspecting conditions
-        ConditionsArrayType conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
+        // ConditionsArrayType conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
+        ConditionsArrayType conditions = rModelPart.Conditions();
         block_for_each(conditions, tls_dof_list,
             [&](const Condition& r_condition, DofsVectorType& r_dof_list)
         {
