@@ -227,20 +227,17 @@ class RomManager(object):
         This method should be parallel capable
         """
 
-        with open(self.project_parameters_name,'r') as parameter_file:
-            parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            for param in parameters["processes"]["constraints_process_list"]:
-                if param["python_module"].GetString() == "variable_snapshot_process":
-                    param["Parameters"]["folder_name"].SetString("")
-                    param["Parameters"]["file_prefix"].SetString("FOM")
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
+            with open(self.project_parameters_name,'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
+                
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
             parameters = self._StoreResultsByName(parameters,'FOM_Fit',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -269,7 +266,7 @@ class RomManager(object):
             parameters = self._StoreResultsByName(parameters,'ROM_Fit',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -296,7 +293,7 @@ class RomManager(object):
             parameters = self._StoreNoResults(parameters)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -318,7 +315,7 @@ class RomManager(object):
             parameters = self._StoreNoResults(parameters)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -354,7 +351,7 @@ class RomManager(object):
             parameters = self._StoreResultsByName(parameters,'HROM_Fit',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -382,7 +379,7 @@ class RomManager(object):
             parameters = self._StoreResultsByName(parameters,'FOM_Test',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -411,7 +408,7 @@ class RomManager(object):
             parameters = self._StoreResultsByName(parameters,'ROM_Test',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -440,7 +437,7 @@ class RomManager(object):
             parameters = self._StoreResultsByName(parameters,'HROM_Test',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -466,7 +463,7 @@ class RomManager(object):
             parameters = self._StoreResultsByName(parameters,'FOM_Run',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -485,7 +482,7 @@ class RomManager(object):
             parameters = self._StoreResultsByName(parameters,'ROM_Run',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -504,7 +501,7 @@ class RomManager(object):
             parameters = self._StoreResultsByName(parameters,'HROM_Run',mu,Id)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters.Clone())
             simulation.Run()
             if hasattr(simulation, "build_time"):
                 self.building_times.append(simulation.build_time)
@@ -573,26 +570,6 @@ class RomManager(object):
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
 
-            # Read the JSON file
-            with open(self.project_parameters_name, 'r') as project_parameter_file:
-                json_data = json.load(project_parameter_file)
-                parameters = KratosMultiphysics.Parameters(json.dumps(json_data))
-
-            # Modify the parameters
-            for param in parameters["processes"]["constraints_process_list"]:
-                if param["python_module"].GetString() == "variable_snapshot_process":
-                    param["Parameters"]["folder_name"].SetString(f"{f['projection_strategy']}")
-                    if f['train_hrom'] == True:
-                        param["Parameters"]["file_prefix"].SetString("TrainHROM")
-                    elif f['train_hrom'] == False and f['run_hrom'] == False:
-                        param["Parameters"]["file_prefix"].SetString("ROM")
-                    elif f['run_hrom'] == True:
-                        param["Parameters"]["file_prefix"].SetString("HROM")
-
-            # Write the modified parameters back to the file
-            with open(self.project_parameters_name, 'w') as project_parameter_file:
-                project_parameter_file.write(parameters.PrettyPrintJsonString())
-
             parameter_file.seek(0)
             json.dump(f,parameter_file,indent=4)
             parameter_file.truncate()
@@ -612,7 +589,13 @@ class RomManager(object):
 
 
     def _StoreResultsByName(self,parameters,results_name,mu, Id):
+
         prefix_name = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        # Modify the parameters
+        for param in parameters["processes"]["boundary_conditions_process_list"]:
+            if param["python_module"].GetString() == "variable_snapshot_process":
+                param["Parameters"]["folder_name"].SetString(f"{prefix_name}")
+                param["Parameters"]["file_prefix"].SetString(f"{mu}_{results_name}")
         results_name = f"{prefix_name}_{results_name}"
         if  self.general_rom_manager_parameters["output_name"].GetString() == "mu":
             case_name = (", ".join(map(str, mu)))
