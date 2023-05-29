@@ -359,7 +359,6 @@ private:
                     if (rEdgesSparseGraph.Has(aux_i_id, aux_j_id)) {
                         // Get position in the column indices vector as this is the same one to be used in the values vector
                         const IndexType ij_col_index = GetColumVectorIndex(aux_i_id, aux_j_id);
-                        std::cout << "Element " << r_element.Id() << " edge " << i_id << "-" << j_id << " with col_index " << ij_col_index << std::endl;
                         KRATOS_ERROR_IF(ij_col_index < 0) << "Column index cannot be found for ij-edge " << i_id << "-" << j_id << "." << std::endl;
 
                         // If not created yet, create and fill current edge data

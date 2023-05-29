@@ -17,6 +17,7 @@
 // Project includes
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "includes/gid_io.h"
 #include "processes/flux_corrected_transport_convection_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/structured_mesh_generator_process.h"
@@ -35,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     auto p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
     Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
     Parameters mesher_parameters(R"({
-        "number_of_divisions" : 2,
+        "number_of_divisions" : 20,
         "element_name" : "Element2D3N",
         "create_skin_sub_model_part" : false
     })");
@@ -51,7 +52,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
 
     // Create the edge-based data structure
     Parameters fct_parameters(R"({
-        "model_part_name" : "ModelPart"
+        "model_part_name" : "ModelPart",
+        "echo_level" : 1
     })");
 
     // Fake time advance to set the previous process info container
@@ -61,9 +63,33 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     r_model_part.CloneTimeStep(dt);
     r_model_part.CloneTimeStep(2.0*dt);
 
+    // Set nodal values
+    auto dist_func = [](Node& rNode){return rNode.X() - 0.5;};
+    array_1d<double,3> aux_v = ZeroVector(3);
+    aux_v[0] = 1.0;
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(DISTANCE, 0) = dist_func(r_node);
+        r_node.FastGetSolutionStepValue(DISTANCE, 1) = dist_func(r_node);
+        r_node.FastGetSolutionStepValue(VELOCITY, 0) = aux_v;
+        r_node.FastGetSolutionStepValue(VELOCITY, 1) = aux_v;
+        r_node.FastGetSolutionStepValue(VELOCITY, 2) = aux_v;
+    }
+
+
     // Set and execute the FCT convection process
     FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
     fct_convection_process.Execute();
+
+    GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportConvectionProcess2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    gid_io_convection.InitializeMesh(0);
+    gid_io_convection.WriteMesh(r_model_part.GetMesh());
+    gid_io_convection.FinalizeMesh();
+    gid_io_convection.InitializeResults(0, r_model_part.GetMesh());
+    gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
+    gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
+    gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 1, 0);
+    gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 1, 0);
+    gid_io_convection.FinalizeResults();
 }
 
 } // namespace Kratos::Testing.

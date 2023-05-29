@@ -106,6 +106,8 @@ public:
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    FluxCorrectedTransportConvectionProcess &operator=(FluxCorrectedTransportConvectionProcess const &rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -159,77 +161,30 @@ public:
         });
 
         // Substepping loop according to max CFL
+        IndexType step = 1;
         while (time - prev_time > 1.0e-12) {
             // Evaluate current substep maximum allowable delta time
             const double dt = this->CalculateSubStepDeltaTime(prev_time, time);
 
             // Solve current substep
+            KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << "Substep " << step << " - \u0394t " << dt << std::endl;
             this->SolveSubStep(dt);
-
-            // Advance in time
-            prev_time += dt;
 
             // Update solution
             IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
                 mConvectedValuesOld[iNode] = mConvectedValues[iNode];
             });
+
+            // Advance in time
+            step++;
+            prev_time += dt;
         }
 
         // Set final solution in the model part database
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
-            (mpModelPart->GetNode(iNode+1)).FastGetSolutionStepValue(*mpConvectedVar) = mConvectedValues[iNode];
+            auto it_node = mpModelPart->NodesBegin() + iNode;
+            it_node->FastGetSolutionStepValue(*mpConvectedVar) = mConvectedValues[iNode];
         });
-
-
-        // // Set convection problem data
-        // auto& r_conv_process_info = mpDistanceModelPart->GetProcessInfo();
-        // const double previous_delta_time = r_conv_process_info.GetValue(DELTA_TIME);
-        // const double dt =  previous_delta_time / static_cast<double>(n_substep);
-        // r_conv_process_info.SetValue(DELTA_TIME, dt);
-        // r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
-        // r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetGradientVariable(*mpLevelSetGradientVar);
-        // r_conv_process_info.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetConvectionVariable(*mpConvectVar);
-
-        // // Save current level set value and current and previous step velocity values
-        // // If the nodal stabilization tau is to be used, it is also computed in here
-        // IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each([&](int i_node){
-        //     const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-        //     mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
-        //     mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar,1);
-        //     mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
-        // });
-
-        // for(unsigned int step = 1; step <= n_substep; ++step){
-        //     KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mLevelSetConvectionSettings["echo_level"].GetInt() > 0) <<
-        //         "Doing step "<< step << " of " << n_substep << std::endl;
-
-        //     // Compute shape functions of old and new step
-        //     const double Nold = 1.0 - static_cast<double>(step) / static_cast<double>(n_substep);
-        //     const double Nnew = 1.0 - Nold;
-
-        //     const double Nold_before = 1.0 - static_cast<double>(step-1) / static_cast<double>(n_substep);
-        //     const double Nnew_before = 1.0 - Nold_before;
-
-        //     // Emulate clone time step by copying the new distance onto the old one
-        //     IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        //     [&](int i_node){
-        //         auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-
-        //         const array_1d<double,3>& r_v = mVelocity[i_node];
-        //         const array_1d<double,3>& r_v_old = mVelocityOld[i_node];
-
-        //         noalias(it_node->FastGetSolutionStepValue(*mpConvectVar)) = Nold * r_v_old + Nnew * r_v;
-        //         noalias(it_node->FastGetSolutionStepValue(*mpConvectVar, 1)) = Nold_before * r_v_old + Nnew_before * r_v;
-        //         it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = it_node->FastGetSolutionStepValue(*mpLevelSetVar);
-        //     }
-        //     );
-
-        //     mpSolvingStrategy->InitializeSolutionStep();
-        //     mpSolvingStrategy->Predict();
-        //     mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
-        //     mpSolvingStrategy->FinalizeSolutionStep();
-
-        // }
 
         KRATOS_CATCH("")
     }
@@ -290,12 +245,12 @@ public:
     ///@{
 
     ///@}
-protected:
-    ///@name Protected static Member Variables
+private:
+    ///@name Static Member Variables
     ///@{
 
     ///@}
-    ///@name Protected member Variables
+    ///@name Member Variables
     ///@{
 
     ModelPart* mpModelPart;
@@ -323,11 +278,11 @@ protected:
     typename EdgeBasedDataStructure<TDim>::UniquePointer mpEdgeDataStructure;
 
     ///@}
-    ///@name Protected Operators
+    ///@name Private Operators
     ///@{
 
     ///@}
-    ///@name Protected Operations
+    ///@name Private Operations
     ///@{
 
     double CalculateSubStepDeltaTime(
@@ -341,7 +296,7 @@ protected:
         // Calculate the CFL number at each edge to get the minimum allowed time step
         // Note that we don't loop the last entry of the row container as it is NNZ
         SizeType n_nodes = r_row_indices.size() - 1;
-        const double max_dt = IndexPartition<IndexType>(n_nodes).for_each<MinReduction<double>>([&](IndexType iNode){
+        const double min_dt = IndexPartition<IndexType>(n_nodes).for_each<MinReduction<double>>([&](IndexType iNode){
             double dt_ij = std::numeric_limits<double>::max();
             const auto it_row = r_row_indices.begin() + iNode;
             const IndexType i_col_index = *it_row;
@@ -349,7 +304,7 @@ protected:
             // Check that there are CSR columns (i.e. that current node involves an edge)
             if (n_cols != 0) {
                 // i-node nodal data
-                const double i_vel_norm = norm_2(mConvectionValues[iNode-1]);
+                const double i_vel_norm = norm_2(mConvectionValues[iNode]);
 
                 // j-node nodal loop (i.e. loop ij-edges)
                 const auto i_col_begin = r_col_indices.begin() + i_col_index;
@@ -367,8 +322,6 @@ protected:
                     const double dt_i = i_vel_norm > 1.0e-12 ? dx_CFL/i_vel_norm : mMaxAllowedDt;
                     const double dt_j = j_vel_norm > 1.0e-12 ? dx_CFL/j_vel_norm : mMaxAllowedDt;
                     dt_ij = std::min(dt_i, dt_j);
-
-                    std::cout << "Dt in edge " << iNode << "-" << j_node_id << " : " << dt_ij << std::endl;
                 }
             }
 
@@ -376,9 +329,15 @@ protected:
         });
 
         // Check that current time step doesn't exceed the target time
-        // Return maximum time step if it doesn't exceed the target time
+        // Use maximum allowable time step if it doesn't exceed the target time
         // Otherwise the difference between current time and target one is used (potentially in last substep)
-        return PreviousTime + max_dt > TargetTime ? TargetTime - PreviousTime : max_dt;
+        double dt = PreviousTime + min_dt > TargetTime ? TargetTime - PreviousTime : min_dt;
+
+        // Synchronize among MPI nodes
+        mpModelPart->GetCommunicator().GetDataCommunicator().MinAll(dt);
+
+        // Return maximum allowable time step
+        return dt;
     }
 
     void SolveSubStep(const double DeltaTime)
@@ -386,124 +345,101 @@ protected:
         // Get edge data structure containers
         const auto& r_row_indices = mpEdgeDataStructure->GetRowIndices();
         const auto& r_col_indices = mpEdgeDataStructure->GetColIndices();
-        const auto& r_values = mpEdgeDataStructure->GetValues();
+
+        // Aux TLS container
+        struct AuxTLS
+        {
+            array_1d<double,TDim> F_i;
+            array_1d<double,TDim> F_j;
+        };
 
         // Edge contributions assembly
         // Note that we don't loop the last entry of the row container as it is NNZ
         SizeType n_nodes = r_row_indices.size() - 1;
-        IndexPartition<IndexType>(n_nodes).for_each([&](IndexType iNode){
+        IndexPartition<IndexType>(n_nodes).for_each(AuxTLS(), [&](IndexType iNode, AuxTLS& rTLS){
+            // Get current row (node) storage data
             const auto it_row = r_row_indices.begin() + iNode;
             const IndexType i_col_index = *it_row;
             const SizeType n_cols = *(it_row+1) - i_col_index;
 
             // Check that there are CSR columns (i.e. that current node involves an edge)
             if (n_cols != 0) {
+                // Get TLS data
+                auto& F_i = rTLS.F_i;
+                auto& F_j = rTLS.F_j;
+
                 // i-node nodal data
-                auto& r_i_node = mpModelPart->GetNode(iNode);
-                auto& r_i_val = r_i_node.FastGetSolutionStepValue(*mpConvectedVar);
-                auto& r_i_vel = r_i_node.FastGetSolutionStepValue(*mpConvectionVar);
+                double& r_u_i = mConvectedValuesOld[iNode];
+                const auto& r_i_vel = mConvectionValues[iNode];
+
+                // i-node convective flux calculation
+                for (IndexType d = 0; d < TDim; ++d) {
+                    F_i[d] = r_u_i * r_i_vel[d];
+                }
 
                 // j-node nodal loop (i.e. loop ij-edges)
                 const auto i_col_begin = r_col_indices.begin() + i_col_index;
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    auto& r_j_node = mpModelPart->GetNode(j_node_id);
-                    auto& r_j_val = r_j_node.FastGetSolutionStepValue(*mpConvectedVar);
+                    double& r_u_j = mConvectedValuesOld[j_node_id-1];
+                    const auto& r_j_vel = mConvectionValues[j_node_id-1];
+
+                    // j-node convective flux calculation
+                    for (IndexType d = 0; d < TDim; ++d) {
+                        F_j[d] = r_u_j * r_j_vel[d];
+                    }
 
                     // Get ij-edge operators data from CSR data structure
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iNode, j_node_id);
+                    const auto& r_d_ij = r_ij_edge_data.GetFirstDerivatives();
+
+                    // Calculate fluxes along edges
+                    double f_i = 0.0;
+                    double f_j = 0.0;
+                    double D_ij = 0.0;
+                    for (IndexType d = 0; d < TDim; ++d) {
+                        D_ij += std::pow(r_d_ij[d],2);
+                        f_i += r_d_ij[d] * F_i[d];
+                        f_j -= r_d_ij[d] * F_j[d];
+                    }
+                    D_ij = std::sqrt(D_ij);
+                    f_i /= D_ij;
+                    f_j /= D_ij;
+
+                    // Calculate residual from numerical flux
+                    double F_ij_d;
+                    double r_i = 0.0;
+                    double r_j = 0.0;
+                    const double u_ij = 0.5*(r_u_i + r_u_j) - 0.5*DeltaTime*(f_i-f_j)/D_ij; // u_{ij}^{n+0.5}
+                    for (IndexType d = 0; d < TDim; ++d) {
+                        //TODO: We're using the old values. Probably we should use an estimate of the substep midpoint ones
+                        F_ij_d = (r_i_vel[d] + r_j_vel[d]) * u_ij; // F(u_{ij}^{n+0.5})
+                        r_i -= 0.5*r_d_ij[d]*F_ij_d;
+                        r_j += 0.5*r_d_ij[d]*F_ij_d;
+                    }
+
+                    // Calculate nodal explicit low order contributions
+                    const double diff_coeff = 1.0;
+                    const double M_c = r_ij_edge_data.GetMassCoefficient();
+                    const double M_l = r_ij_edge_data.GetLumpedMassCoefficient();
+                    double delta_u_i_low = (DeltaTime / M_l) * (r_i + diff_coeff * (M_c * r_u_i + M_c * r_u_j - M_l * r_u_i));
+                    double delta_u_j_low = (DeltaTime / M_l) * (r_j + diff_coeff * (M_c * r_u_i + M_c * r_u_j - M_l * r_u_j));
+
+
+                    // Calculate antidiffusive fluxes (high order contribution)
+                    //TODO: Implement this!
 
                     // Atomic additions
-                    double aux = 0.0;
-                    AtomicAdd(r_i_val, aux);
-                    AtomicAdd(r_j_val, -aux);
-
-                    std::cout << "Assembling edge " << iNode << "-" << j_node_id << std::endl;
+                    //FIXME: Remove after testing
+                    double delta_u_i = delta_u_i_low;
+                    double delta_u_j = delta_u_j_low;
+                    AtomicAdd(mConvectedValues[iNode], delta_u_i);
+                    AtomicAdd(mConvectedValues[j_node_id - 1], delta_u_j);
                 }
             }
         });
     }
-
-    unsigned int EvaluateNumberOfSubsteps()
-    {
-        // // First of all compute the maximum local CFL number
-        // const double dt = mpDistanceModelPart->GetProcessInfo()[DELTA_TIME];
-        // double max_cfl_found = block_for_each<MaxReduction<double>>(mpDistanceModelPart->Elements(), [&](Element& rElement){
-        //     double vol;
-        //     array_1d<double, TDim+1 > N;
-        //     BoundedMatrix<double, TDim+1, TDim > DN_DX;
-        //     auto& r_geom = rElement.GetGeometry();
-        //     GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, vol);
-
-        //     // Compute h
-        //     double h=0.0;
-        //     for(unsigned int i=0; i<TDim+1; i++){
-        //         double h_inv = 0.0;
-        //         for(unsigned int k=0; k<TDim; k++){
-        //             h_inv += DN_DX(i,k)*DN_DX(i,k);
-        //         }
-        //         h += 1.0/h_inv;
-        //     }
-        //     h = sqrt(h)/static_cast<double>(TDim+1);
-
-        //     // Get average velocity at the nodes
-        //     array_1d<double, 3 > vgauss = ZeroVector(3);
-        //     for(unsigned int i=0; i<TDim+1; i++){
-        //         vgauss += N[i]* r_geom[i].FastGetSolutionStepValue(*mpConvectVar);
-        //     }
-
-        //     double cfl_local = norm_2(vgauss) / h;
-        //     return cfl_local;
-        // });
-        // max_cfl_found *= dt;
-
-        // // Synchronize maximum CFL between processes
-        // max_cfl_found = mpDistanceModelPart->GetCommunicator().GetDataCommunicator().MaxAll(max_cfl_found);
-
-        // unsigned int n_steps = static_cast<unsigned int>(max_cfl_found / mMaxAllowedCFL);
-        // if(n_steps < 1){
-        //     n_steps = 1;
-        // }
-
-		// // Now we compare with the maximum set
-		// if (mMaxSubsteps > 0 && mMaxSubsteps < n_steps){
-        //     n_steps = mMaxSubsteps;
-        // }
-
-        // return n_steps;
-        return 0;
-    }
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
 
     ///@}
     ///@name Private  Access
@@ -516,9 +452,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    FluxCorrectedTransportConvectionProcess& operator=(FluxCorrectedTransportConvectionProcess const& rOther);
 
     ///@}
 }; // Class FluxCorrectedTransportConvectionProcess
