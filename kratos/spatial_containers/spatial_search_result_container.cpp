@@ -57,6 +57,9 @@ void SpatialSearchResultContainer<TObjectType>::Clear()
     // Clear local pointers
     mLocalPointers.clear();
 
+    // Clear distances
+    mLocalDistances.clear();
+
     // Clear global pointers
     mGlobalPointers.clear();
 }
