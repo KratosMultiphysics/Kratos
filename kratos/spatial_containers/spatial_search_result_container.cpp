@@ -78,6 +78,97 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
 /***********************************************************************************/
 
 template <class TObjectType>
+std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFunctions(array_1d<double, 3>& rPoint)
+{
+    // Check if the communicator has been created
+    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+    // Define the coordinates vector
+    const std::size_t number_of_gp = mGlobalPointers.size();
+    std::vector<Vector> shape_functions(number_of_gp);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([&rPoint](GlobalPointer<TObjectType>& rGP) -> Vector {
+        auto& r_geometry = rGP->GetGeometry();
+        Vector N(r_geometry.size());
+        array_1d<double, 3> local_coordinates;
+        r_geometry.PointLocalCoordinates(local_coordinates, rPoint);
+        r_geometry.ShapeFunctionsValues(N, local_coordinates);
+        return N;
+    });
+
+    // Get the shape functions
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalPointers(i);
+        shape_functions[i] = proxy.Get(r_gp);
+    }
+
+    return shape_functions;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
+std::vector<std::size_t> SpatialSearchResultContainer<TObjectType>::GetResultIndices()
+{
+    // Check if the communicator has been created
+    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+    // Define the indices vector
+    const std::size_t number_of_gp = mGlobalPointers.size();
+    std::vector<std::size_t> indices(number_of_gp);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([](GlobalPointer<TObjectType>& rGP) -> std::size_t {
+        return rGP->Id();
+    });
+
+    // Get the indices
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalPointers(i);
+        indices[i] = proxy.Get(r_gp);
+    }
+
+    return indices;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
+std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObjectType>::GetResultCoordinates()
+{
+    // Check if the communicator has been created
+    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+    // Define the coordinates vector
+    const std::size_t number_of_gp = mGlobalPointers.size();
+    std::vector<std::vector<array_1d<double, 3>>> coordinates(number_of_gp);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([](GlobalPointer<TObjectType>& rGP) -> std::vector<array_1d<double, 3>> {
+        auto& r_geometry = rGP->GetGeometry();
+        std::vector<array_1d<double, 3>> coordinates(r_geometry.size());
+        for (unsigned int i = 0; i < r_geometry.size(); ++i) {
+            coordinates[i] = r_geometry[i].Coordinates();
+        }
+        return coordinates;
+    });
+
+    // Get the coordinates
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalPointers(i);
+        coordinates[i] = proxy.Get(r_gp);
+    }
+
+    return coordinates;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 std::string SpatialSearchResultContainer<TObjectType>::Info() const
 {
     std::stringstream buffer;
