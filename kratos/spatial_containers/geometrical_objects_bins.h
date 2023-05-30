@@ -398,7 +398,9 @@ public:
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
             auto& r_point_result = rResults.InitializeResult(it_point->Coordinates());
             auto result = SearchIsInside(*it_point);
-            r_point_result.AddResult(result);
+            if (result.GetIsObjectFound()){
+                r_point_result.AddResult(result);
+            }
         }
     }
 
