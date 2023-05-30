@@ -16,7 +16,6 @@
 #include "mpi.h"
 
 // Project includes
-#include "includes/geometrical_object.h"
 #include "input_output/vtk_output.h"
 //#include "utilities/pointer_communicator.h"
 #include "mpi/includes/mpi_data_communicator.h"

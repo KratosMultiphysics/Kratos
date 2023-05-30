@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/data_communicator.h"
+#include "includes/geometrical_object.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 
 namespace Kratos
@@ -28,8 +29,6 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
-
-class GeometricalObject; // forward declaration, to be included in the cpp. This is needed to reduce the compilation time. Can be done as we consider the GeometricalObject as a pointer
 
 /**
  * @class GeometricalObjectsBinsMPI
@@ -112,7 +111,7 @@ public:
     }
 
     /// Destructor.
-    ~GeometricalObjectsBinsMPI() = default;
+    virtual ~GeometricalObjectsBinsMPI() = default;
 
     ///@}
     ///@name Operators
