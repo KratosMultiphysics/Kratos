@@ -52,6 +52,14 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
 
+    def test_Map_constant_scalar_expression(self) -> None:
+        val = 1.234
+        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        source_expression = KM.ContainerExpression.HistoricalExpression(self.interface_model_part_origin)
+        source_expression.Read(KM.PRESSURE)
+        self.mapper.Map(source_expression, KM.TEMPERATURE)
+        self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
+
     def test_InverseMap_constant_scalar(self):
         val = -571.147
         KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
