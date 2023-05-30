@@ -117,18 +117,17 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
             self.assertEqual(node_results[0].Id, 1) # Local result
         self.assertEqual(node_results(0).Id, 1)     # Global result
 
-    # def test_GeometricalObjectsBins_SearchIsInside(self): # TODO: Failing
-    #     # One node search
-    #     result = self.search.SearchIsInside(self.node)
-    #     self.assertEqual(result.Get(), None)
+    def test_GeometricalObjectsBins_SearchIsInside(self):
+        # One node search
+        result = self.search.SearchIsInside(self.node)
+        self.assertEqual(result.Get(), None)
 
-    #     # Nodes array search
-    #     results = self.search.SearchIsInside(self.sub_model_part.Nodes) 
-    #     self.assertEqual(results.NumberOfPointsResults(), 1)
-    #     node_results = results[self.node]
-    #     node_results.SynchronizeAll(self.data_comm)    
-    #     self.assertEqual(node_results.NumberOfGlobalResults(), 1)
-    #     self.assertEqual(node_results[1].Get(), None)
+        # Nodes array search
+        results = self.search.SearchIsInside(self.sub_model_part.Nodes) 
+        self.assertEqual(results.NumberOfPointsResults(), 1)
+        node_results = results[self.node]
+        node_results.SynchronizeAll(self.data_comm)    
+        self.assertEqual(node_results.NumberOfGlobalResults(), 0)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
