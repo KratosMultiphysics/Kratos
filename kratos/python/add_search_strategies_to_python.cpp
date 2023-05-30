@@ -712,6 +712,8 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
     py::class_<ResultTypeContainer, ResultTypeContainer::Pointer>(m, "ResultTypeContainer")
     .def(py::init< >())
+    .def("NumberOfLocalResults", &ResultTypeContainer::NumberOfLocalResults)
+    .def("NumberOfGlobalResults", &ResultTypeContainer::NumberOfGlobalResults)
     .def("AddResult", &ResultTypeContainer::AddResult)
     .def("Clear", &ResultTypeContainer::Clear)
     .def("SynchronizeAll", &ResultTypeContainer::SynchronizeAll)
@@ -761,6 +763,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
     py::class_<ResultTypeContainerMap, ResultTypeContainerMap::Pointer>(m, "ResultTypeContainerMap")
     .def(py::init< >())
+    .def("NumberOfPointsResults", &ResultTypeContainerMap::NumberOfPointsResults)
     .def("InitializeResult", &ResultTypeContainerMap::InitializeResult)
     .def("HasResult", &ResultTypeContainerMap::HasResult)
     .def("Clear", &ResultTypeContainerMap::Clear)
@@ -785,31 +788,15 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("GetTotalNumberOfCells", &GeometricalObjectsBins::GetTotalNumberOfCells)
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
         // Perform the search
-        std::vector<ResultType> results;
+        ResultTypeContainer results;
         self.SearchInRadius(rPoint, Radius, results);
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            list_results.append(r_result);
-        }
-        return list_results;
+        return results;
     })
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        std::vector<std::vector<ResultType>> results;
+        ResultTypeContainerMap results; 
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            py::list sub_list_results;
-            for (auto& r_sub_result : r_result) {
-                sub_list_results.append(r_sub_result);
-            }
-            list_results.append(sub_list_results);
-        }
-        return list_results;
+        return results;
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
         // Perform the search
@@ -817,14 +804,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        std::vector<ResultType> results = self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            list_results.append(r_result);
-        }
-        return list_results;
+        ResultTypeContainerMap results;
+        self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, results);
+        return results;
     })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const Point& rPoint) {
         // Perform the search
@@ -832,14 +814,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        std::vector<ResultType> results = self.SearchNearest(rNodes.begin(), rNodes.end());
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            list_results.append(r_result);
-        }
-        return list_results;
+        ResultTypeContainerMap results;
+        self.SearchNearest(rNodes.begin(), rNodes.end(), results);
+        return results;
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const Point& rPoint) {
         // Perform the search
@@ -847,14 +824,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        std::vector<ResultType> results = self.SearchIsInside(rNodes.begin(), rNodes.end());
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            list_results.append(r_result);
-        }
-        return list_results;
+        ResultTypeContainerMap results;
+        self.SearchIsInside(rNodes.begin(), rNodes.end(), results);
+        return results;
     })
     ;
 }

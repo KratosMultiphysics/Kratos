@@ -382,6 +382,15 @@ public:
     ///@{
 
     /**
+     * @brief Returns the number of points results
+     * @return The number of points results
+     */
+    std::size_t NumberOfPointsResults() const
+    {
+        return mPointResults.size();
+    }
+
+    /**
      * @brief Initialize the container
      * @param rCoordinates The coordinates
      */
