@@ -40,6 +40,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastS
     // Check that the result was added correctly
     auto& r_local_pointers = container.GetLocalPointers();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 1);
+    KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
 
     // Check distances
     auto& r_distances = container.GetLocalDistances();
@@ -49,6 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastS
     // Check global pointers
     auto& r_global_pointers = container.GetGlobalPointers();
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), 0); // It should be empty as we have not synchronized
+    KRATOS_CHECK_EQUAL(r_global_pointers.size(), container.NumberOfGlobalResults()); // It should be empty as we have not synchronized
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerClear, KratosCoreFastSuite)
@@ -70,6 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerClear, KratosCoreFastSuite
     // Check that the result was added correctly
     auto& r_local_pointers = container.GetLocalPointers();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 0);
+    KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCoreFastSuite)
@@ -91,10 +94,12 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCore
     // Check that the result was added correctly
     auto& r_local_pointers = container.GetLocalPointers();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 1);
+    KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
 
     // Check global pointers
     auto& r_global_pointers = container.GetGlobalPointers();
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), 1);
+    KRATOS_CHECK_EQUAL(r_global_pointers.size(), container.NumberOfGlobalResults());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultShapeFunctions, KratosCoreFastSuite)
@@ -226,6 +231,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerMapOperators, KratosCoreFa
     auto& r_result = container_map[point];
     auto& r_local_pointers = r_result.GetLocalPointers();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 0);
+    KRATOS_CHECK_EQUAL(r_local_pointers.size(), r_result.NumberOfLocalResults());
 }
 
 }  // namespace Kratos::Testing

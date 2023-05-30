@@ -83,9 +83,73 @@ public:
     ///@name Operators
     ///@{
 
+    /**
+     * @brief Operator []
+     * @param Index The index
+     * @return The result container
+     */
+    TObjectType& operator[](const std::size_t Index)
+    {
+        return mLocalPointers[Index];
+    }
+
+    /**
+     * @brief Operator [] const version
+     * @param Index The index
+     * @return The result container
+     */
+    const TObjectType& operator[](const std::size_t Index) const 
+    {
+        const auto it = mLocalPointers.find(Index);
+        KRATOS_ERROR_IF(it == mLocalPointers.end()) << "The result does not exist." << std::endl;
+        return *it;
+    }
+
+    /**
+     * @brief Operator ()
+     * @param Index The index
+     * @return The result container
+     */
+    TObjectType& operator()(const std::size_t Index)
+    {
+        // Check if the communicator has been created
+        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
+        return mGlobalPointers[Index];
+    }
+
+    /**
+     * @brief Operator () const version
+     * @param Index The index
+     * @return The result container
+     */
+    const TObjectType& operator()(const std::size_t Index) const 
+    {
+        // Check if the communicator has been created
+        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
+        return mGlobalPointers[Index];
+    }
+
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Returns the local pointers size
+     * @return The local pointers size
+     */
+    std::size_t NumberOfLocalResults() const
+    {
+        return mLocalPointers.size();
+    }
+
+    /**
+     * @brief Returns the global pointers size
+     * @return The global pointers size
+     */
+    std::size_t NumberOfGlobalResults() const
+    {
+        return mGlobalPointers.size();
+    }
 
     /**
      * @brief Add a result to the container
