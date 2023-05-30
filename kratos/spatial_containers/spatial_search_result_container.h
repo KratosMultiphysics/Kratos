@@ -130,7 +130,7 @@ public:
      * @param rPoint The point coordinates
      * @return A vector containing all the shape functions
      */
-    std::vector<Vector> GetResultShapeFunctions(array_1d<double, 3>& rPoint);
+    std::vector<Vector> GetResultShapeFunctions(const array_1d<double, 3>& rPoint);
 
     /**
      * @brief Considers the global pointer communicator to get the indices of the resulting object
