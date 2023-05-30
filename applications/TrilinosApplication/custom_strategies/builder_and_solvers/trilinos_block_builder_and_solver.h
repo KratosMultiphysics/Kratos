@@ -127,9 +127,7 @@ public:
     /**
      * @brief Default constructor (empty)
      */
-    explicit TrilinosBlockBuilderAndSolver() : BaseType()
-    {
-    }
+    explicit TrilinosBlockBuilderAndSolver() : BaseType() = default;
 
     /**
      * @brief Default constructor.
