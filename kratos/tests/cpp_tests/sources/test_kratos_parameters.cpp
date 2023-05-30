@@ -800,7 +800,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMethods, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsStringArray, KratosCoreFastSuite)
 {
-    // Read and check Vectors from a Parameters-Object
+    // Read and check string arrays from a Parameters-Object
     Parameters tmp = Parameters(R"({
         "valid_string_arrays" : [ ["hello", "world"],
                                 ["array", "string"],
