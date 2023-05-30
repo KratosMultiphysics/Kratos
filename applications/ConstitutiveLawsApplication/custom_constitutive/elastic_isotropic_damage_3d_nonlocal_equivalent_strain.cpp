@@ -194,10 +194,10 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
 
     // If we compute the tangent moduli or the stress
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
-        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) 
+        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
         {
         Vector& r_stress_vector       = rParametersValues.GetStressVector();
-        const Vector& r_strain_vector = rParametersValues.GetStrainVector();   
+        const Vector& r_strain_vector = rParametersValues.GetStrainVector();
         Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
         Matrix r_elastic_tensor;
         r_elastic_tensor.resize(6, 6, false);
@@ -205,7 +205,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
         noalias(r_stress_vector)      = prod(r_elastic_tensor, r_strain_vector);
         BoundedMatrix3x6Type derivatives_of_eigen_values;
         BoundedVectorVoigtType H_uNL        = ZeroVector(6);
-        BoundedVectorVoigtType H_NLu        = ZeroVector(6);        
+        BoundedVectorVoigtType H_NLu        = ZeroVector(6);
         BoundedVectorType Spr = ZeroVector(3);
         BoundedVectorType principal_strains = ZeroVector(3);
         double r, D, local_equivalent_strain, k0t, k0c, SprMax, max_principal_strain;
@@ -219,7 +219,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
         const double H = (SprMax < eps) ? 0.0 : 1.0;
         GetEigenValues(principal_strains, max_principal_strain, STRAIN, r_strain_vector);
 
-        //nonlocal equivalent strain        
+        //nonlocal equivalent strain
         double nonlocal_equivalent_strain = 0.0;
         for (SizeType i = 0; i < N.size(); ++i) {
             nonlocal_equivalent_strain += N[i] * rParametersValues.GetElementGeometry()[i].FastGetSolutionStepValue(NON_LOCAL_VARIABLE, 0);
@@ -240,32 +240,32 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
         if(r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true){
             k0c = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
         }else{
-            k0c = (10./3.) * ft/E;
+            k0c = ft/E;
         }
         const double k0 = k0t  * H * (1-del_r) + (1.0- H + del_r) * k0c;
         const double beta1 = beta1t  * H * (1-del_r) + (1.-H + del_r) * beta1c;
         const double beta2 = beta2t  * H * (1-del_r) + (1.-H + del_r) * beta2c;
-        const double kappa = std::max(nonlocal_equivalent_strain,k0);     
+        const double kappa = std::max(nonlocal_equivalent_strain,k0);
         //damage loading condition
         const double f_d   = nonlocal_equivalent_strain - kappa;
         if (f_d < 0.0){
             D = 0.0;
             AssembleConstitutiveMatrix(r_constitutive_matrix, r_elastic_tensor, H_NLu, H_uNL, H_NLNL);
-        }else if (f_d == 0.0) {       
+        }else if (f_d == 0.0) {
             const double var1     = pow((k0/kappa),beta1);
             const double var2     = exp(-beta2*((kappa-k0)/(k0)));
             D                     = 1.0 - var1 * var2;
             const double DN       = pow((1.0 - D),2);
             r_stress_vector      *= DN;
             r_elastic_tensor     *= DN ;
-            //H_uu = dSigmadEps; H_uNL = dSigmadNL; H_NLu = dlocaldEps; H_NLNL = dlocal/dNL;        
+            //H_uu = dSigmadEps; H_uNL = dSigmadNL; H_NLu = dlocaldEps; H_NLNL = dlocal/dNL;
             const double dDdKappa = (1.- D) * (beta1/kappa + beta2/k0);
-            H_uNL                 = 2.0*(D-1.0) * prod(r_elastic_tensor, r_strain_vector) * dDdKappa;  
+            H_uNL                 = 2.0*(D-1.0) * prod(r_elastic_tensor, r_strain_vector) * dDdKappa;
             CalculateDerivativesofEigenvalues(derivatives_of_eigen_values, principal_strains, r_strain_vector, STRAIN);
             for(SizeType i = 0; i < Dimension; ++i){
-                if (MacaulayBrackets(principal_strains[i])!=0.0){   
+                if (MacaulayBrackets(principal_strains[i])!=0.0){
                     for (SizeType j = 0; j < VoigtSize; ++j){
-                        H_NLu[j]   +=  principal_strains[i] * derivatives_of_eigen_values(i,j); 
+                        H_NLu[j]   +=  principal_strains[i] * derivatives_of_eigen_values(i,j);
                     }
                 }
             }
@@ -276,7 +276,6 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
         }
         if(D < 0.0) D = 0.0;
         rEquivalentStrain = local_equivalent_strain;
-
     }
     KRATOS_CATCH("")
 }
@@ -307,10 +306,10 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::GetEigenValues(
 //************************************************************************************
 
 void ElasticIsotropicDamage3DNonLocalEquivalentStrain::AssembleConstitutiveMatrix(
-    Matrix& ConstitutiveMatrix, 
-    const Matrix& H_uu, 
-    const Vector& H_NLu, 
-    const Vector& H_uNL, 
+    Matrix& ConstitutiveMatrix,
+    const Matrix& H_uu,
+    const Vector& H_NLu,
+    const Vector& H_uNL,
     const double& H_NLNL
     )const
 {
@@ -340,7 +339,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::AssembleConstitutiveMatri
 
 void ElasticIsotropicDamage3DNonLocalEquivalentStrain::VectorToTensor(
     BoundedMatrixType& TensorForm,
-    const Vector& VectorForm, 
+    const Vector& VectorForm,
     const Variable<Vector>& rThisVariable
 )
 {
@@ -362,7 +361,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::VectorToTensor(
 //************************************************************************************
 
 void ElasticIsotropicDamage3DNonLocalEquivalentStrain::GetStressWeightFactor(
-    double &w, 
+    double &w,
     const BoundedVectorType &s_pr) const
 {
     Vector N1(3);
@@ -386,8 +385,16 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateDerivativesofEig
     )
 {
     BoundedMatrixType Matrixform;
-    BoundedMatrixType DerivtivesMatrix;
+    const double eps = 1e-8;
     VectorToTensor(Matrixform, Voigtform, rThisVariable);
+    BoundedMatrixType DerivtivesMatrix;
+    for(SizeType i = 0; i < Dimension; ++i){
+        for(SizeType j = 0; j < Dimension; ++j){
+            if(i != j && Matrixform(i,j)< eps){
+                Matrixform(i,j) = eps;
+            }
+        }
+    }
     for(SizeType i = 0; i < Dimension; ++i){
         BoundedMatrixType AminusLambdaMatrix = Matrixform - EigenvaluesVector[i] * IdentityMatrix(Dimension, Dimension);
         BoundedMatrixType cofactor_matrix = MathUtils<double>::CofactorMatrix(AminusLambdaMatrix);
@@ -401,6 +408,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateDerivativesofEig
         DerivativesofEigenvalues(i,5) = DerivtivesMatrix(0,1);
     }
 }
+
 
 //************************************************************************************
 //************************************************************************************

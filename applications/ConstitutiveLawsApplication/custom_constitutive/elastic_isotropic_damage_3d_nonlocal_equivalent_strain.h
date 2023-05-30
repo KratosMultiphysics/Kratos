@@ -289,17 +289,17 @@ protected:
 
     /**
      * @brief Get the Eigen Values object
-     * 
-     * @param Pri_Values 
-     * @param MaxValue 
-     * @param rThisVariable 
-     * @param VectorForm 
+     *
+     * @param Pri_Values
+     * @param MaxValue
+     * @param rThisVariable
+     * @param VectorForm
      */
     void GetEigenValues(BoundedVectorType& Pri_Values,
                         double& MaxValue,
                         const Variable<Vector>& rThisVariable,
-                        const Vector& VectorForm); 
-        
+                        const Vector& VectorForm);
+
     /**
      * @brief This method computes the invariants of stress matrix
      * @param StressVector Stresses in vector form
@@ -311,14 +311,14 @@ protected:
                        double& J2);
 
     /**
-     * @brief This method assembles constitutive matrix 
+     * @brief This method assembles constitutive matrix
      */
-    void AssembleConstitutiveMatrix(Matrix& ConstitutiveMatrix, 
-                                    const Matrix& H_uu, 
-                                    const Vector& H_NLu, 
-                                    const Vector& H_uNL, 
+    void AssembleConstitutiveMatrix(Matrix& ConstitutiveMatrix,
+                                    const Matrix& H_uu,
+                                    const Vector& H_NLu,
+                                    const Vector& H_uNL,
                                     const double& H_NLNL) const;
-                                    
+
     /**
      * @brief This method evaluates the Macaulay brackets
      */
@@ -329,23 +329,23 @@ protected:
 
     /**
      * @brief This method converts stress or strain vectors to tensors
-     */ 
+     */
     void VectorToTensor(BoundedMatrixType& TensorForm,
-                        const Vector& VectorForm, 
+                        const Vector& VectorForm,
                         const Variable<Vector>& rThisVariable
                         );
 
     /**
      * @brief This method computes stress weight factor
-     */                                
-    void GetStressWeightFactor(double &w, 
+     */
+    void GetStressWeightFactor(double &w,
                                const BoundedVectorType &s_pr) const ;
 
     /**
      * @brief the derivatives of eigen values with respect to the matrix elements
-     * @param DerivativesofEigenvalues 
-     * @param EigenvaluesVector 
-     * @param Voigtform 
+     * @param DerivativesofEigenvalues
+     * @param EigenvaluesVector
+     * @param Voigtform
      */
     void CalculateDerivativesofEigenvalues(BoundedMatrix3x6Type &DerivativesofEigenvalues,
                                            const BoundedVectorType &EigenvaluesVector,
@@ -362,10 +362,10 @@ private:
 
     ///@name Member Variables
     ///@{
-    
+
     ///@}
 
-    ///@name Private Operators 
+    ///@name Private Operators
     ///@}
 
     ///@name Private  Access
