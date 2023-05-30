@@ -243,10 +243,11 @@ class TestContainerExpression(ABC):
 
     def test_Clone(self):
         a = self._GetSpecializedContainerExpression()
+        b = self._GetSpecializedContainerExpression()
 
         a.Read(Kratos.VELOCITY)
 
-        b = a.Clone()
+        Kratos.ContainerExpression.Clone(a, b)
         b.SetData(Kratos.Array3([10, 11, 12]))
 
         a.Evaluate(Kratos.ACCELERATION)
@@ -261,7 +262,7 @@ class TestContainerExpression(ABC):
 
         a.Read(Kratos.PRESSURE)
 
-        b = a.Clone()
+        Kratos.ContainerExpression.Clone(a, b)
         b.SetData(12)
 
         a.Evaluate(Kratos.DENSITY)

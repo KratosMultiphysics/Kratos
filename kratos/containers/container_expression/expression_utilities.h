@@ -26,6 +26,13 @@ struct KRATOS_API(KRATOS_CORE) ExpressionUtilities
     /// @name Copy operations
     /// @{
 
+    /** @brief Clones the existing data container.
+     *  @param rSource Source expression to copy from.
+     *  @param rTarget Target expression to copy to.
+     *  @details Clone an existing expression. This is light weight operation
+     *           since this just clones the expression pointer. No underlying
+     *           data is copied.
+     */
     template <class TContainer>
     static void Clone(const ContainerExpression<TContainer>& rSource,
                       ContainerExpression<TContainer>& rTarget);

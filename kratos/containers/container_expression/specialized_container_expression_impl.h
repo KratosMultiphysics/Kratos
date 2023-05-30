@@ -40,12 +40,6 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
-typename SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Pointer SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Clone() const
-{
-    return Kratos::make_shared<SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>>(*this);
-}
-
-template <class TContainerType, class TContainerDataIO, class TMeshType>
 template<class TDataType>
 void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Read(const Variable<TDataType>& rVariable)
 {

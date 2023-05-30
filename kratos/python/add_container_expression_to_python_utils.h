@@ -208,7 +208,6 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("SetZero", &container_type::template SetZero<array_1d<double, 9>>, py::arg("Array9_variable"))
         .def("SetZero", &container_type::template SetZero<Vector>, py::arg("Vector_variable"))
         .def("SetZero", &container_type::template SetZero<Matrix>, py::arg("Matrix_variable"))
-        .def("Clone", &container_type::Clone)
         .def("__add__", [](const container_type& rSelf, const container_type& rOther) { return rSelf + rOther; })
         .def("__iadd__", [](container_type& rSelf, const container_type& rOther) { rSelf = rSelf + rOther; return rSelf; })
         .def("__add__", [](const container_type& rSelf, const double Value) { return rSelf + Value; })

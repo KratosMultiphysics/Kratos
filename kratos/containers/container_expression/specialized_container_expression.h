@@ -86,17 +86,6 @@ public:
     ///@name Public operations
     ///@{
 
-    /**
-     * @brief Clones the existing data container.
-     *
-     * This clones existing specialized data container. This is light weight operation
-     * since this just clones the expression pointer. No data copying for the underlying
-     * data in expression is done.
-     *
-     * @return SpecializedContainerExpression::Pointer
-     */
-    SpecializedContainerExpression::Pointer Clone() const;
-
     using BaseType::Read;
 
     using BaseType::MoveFrom;
