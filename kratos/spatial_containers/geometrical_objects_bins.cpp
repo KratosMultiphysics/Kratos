@@ -98,6 +98,22 @@ void GeometricalObjectsBins::SearchInRadius(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void GeometricalObjectsBins::SearchInRadius(
+    const Point& rPoint,
+    const double Radius,
+    ResultTypeContainer& rResults
+    )
+{
+    std::vector<ResultType> results;
+    SearchInRadius(rPoint, Radius, results);
+    for (auto& r_result : results) {
+        rResults.AddResult(r_result);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius(
     const Point& rPoint,
     const double Radius
