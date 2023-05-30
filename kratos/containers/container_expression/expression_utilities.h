@@ -45,6 +45,13 @@ struct KRATOS_API(KRATOS_CORE) ExpressionUtilities
     /// @name Arithmetic Operations
     /// @{
 
+    template <class TContainer>
+    static void Pow(ContainerExpression<TContainer>& rBase, double Exponent);
+
+    template <class TContainer>
+    static void Pow(ContainerExpression<TContainer>& rBase,
+                    const ContainerExpression<TContainer>& rExponent);
+
     /// @}
 }; // struct ExpressionUtilities
 

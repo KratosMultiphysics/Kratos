@@ -191,23 +191,21 @@ class TestContainerExpression(ABC):
         a = self._GetSpecializedContainerExpression()
         a.Read(Kratos.VELOCITY)
 
-        c = a ** 2.0
-        c **= 2.0
+        a **= 2.0
 
-        c.Evaluate(Kratos.ACCELERATION)
-        for node in c.GetContainer():
+        a.Evaluate(Kratos.ACCELERATION)
+        for node in a.GetContainer():
             ref_value = self._GetValue(node, Kratos.VELOCITY)
-            self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([ref_value[0]**4, ref_value[1]**4, ref_value[2]**4]), 12)
+            self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([ref_value[0]**2, ref_value[1]**2, ref_value[2]**2]), 12)
 
         a = self._GetSpecializedContainerExpression()
         a.Read(Kratos.PRESSURE)
 
-        c = a ** 2.0
-        c **= 2.0
+        a **= 2.0
 
-        c.Evaluate(Kratos.DENSITY)
-        for node in c.GetContainer():
-            self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) ** 4, 12)
+        a.Evaluate(Kratos.DENSITY)
+        for node in a.GetContainer():
+            self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) ** 2, 12)
 
     def test_ContainerExpressionNeg(self):
         a = self._GetSpecializedContainerExpression()

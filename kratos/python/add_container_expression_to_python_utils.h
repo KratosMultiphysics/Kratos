@@ -224,10 +224,8 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("__itruediv__", [](container_type& rSelf, const container_type& rOther) { rSelf = rSelf / rOther; return rSelf; })
         .def("__truediv__", [](const container_type& rSelf, const double Value) { return rSelf / Value; })
         .def("__itruediv__", [](container_type& rSelf, const double Value) { rSelf = rSelf / Value; return rSelf; })
-        .def("__pow__", [](container_type& rSelf, const container_type& rInput) { container_type result(rSelf.GetModelPart()); result = rSelf.Pow(rInput); return result; })
-        .def("__ipow__", [](container_type& rSelf, const container_type& rInput) { rSelf = rSelf.Pow(rInput); return rSelf; })
-        .def("__pow__", [](container_type& rSelf, const double Value) { container_type result(rSelf.GetModelPart()); result = rSelf.Pow(Value); return result; })
-        .def("__ipow__", [](container_type& rSelf, const double Value) { rSelf = rSelf.Pow(Value); return rSelf; })
+        .def("__ipow__", [](container_type& rSelf, const container_type& rInput) { ExpressionUtilities::Pow(rSelf, rInput); return rSelf; })
+        .def("__ipow__", [](container_type& rSelf, const double Value) { ExpressionUtilities::Pow(rSelf, Value); return rSelf; })
         .def("__neg__", [](container_type& rSelf) { return rSelf.operator*(-1.0); })
         ;
 }
@@ -236,9 +234,9 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
 template <class TContainer>
 void AddExpressionUtilitiesToPython(pybind11::module& rUtilityModule)
 {
-    rUtilityModule
-        .def("Clone", &ExpressionUtilities::Clone<TContainer>)
-        ;
+    rUtilityModule.def("Clone", &ExpressionUtilities::Clone<TContainer>);
+    rUtilityModule.def("Pow", [](ContainerExpression<TContainer>& rBase, double Exponent){ExpressionUtilities::Pow(rBase, Exponent);});
+    rUtilityModule.def("Pow", [](ContainerExpression<TContainer>& rBase, const ContainerExpression<TContainer>& rExponent){ExpressionUtilities::Pow(rBase, rExponent);});
 }
 
 
