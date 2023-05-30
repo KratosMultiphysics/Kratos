@@ -25,6 +25,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/flags.h"
+#include "containers/container_expression/container_expression.h"
 
 
 namespace Kratos
@@ -53,6 +54,8 @@ public:
     typedef Kratos::unique_ptr<Mapper> MapperUniquePointerType;
 
     typedef typename TSparseSpace::MatrixType TMappingMatrixType;
+
+    using ExpressionType = ContainerExpression<ModelPart::NodesContainerType>;
 
     ///@}
     ///@name Life Cycle
@@ -109,6 +112,11 @@ public:
         const Variable< array_1d<double, 3> >& rOriginVariable,
         const Variable< array_1d<double, 3> >& rDestinationVariable,
         Kratos::Flags MappingOptions) = 0;
+
+    /// @brief Mapping interface for @ref Expression s.
+    virtual void Map(ExpressionType& rOriginExpression,
+                     const Variable<double>& rDestinationVariable,
+                     Kratos::Flags MappingOptions) = 0;
 
     /**
     * @brief Mapping from Destination to Origin, Scalar Variable
