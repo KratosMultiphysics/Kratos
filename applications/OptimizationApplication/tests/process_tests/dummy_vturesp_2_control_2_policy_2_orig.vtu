@@ -14,7 +14,7 @@
               BAAAAAQAAAA=
             </DataArray>
             <DataArray type="UInt8" Name="types" NumberOfComponents="1" format="binary">
-              AQAAAA==
+              AQAAAAk=
             </DataArray>
          </Cells>
          <PointData>
