@@ -210,7 +210,6 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("SetZero", &container_type::template SetZero<array_1d<double, 9>>, py::arg("Array9_variable"))
         .def("SetZero", &container_type::template SetZero<Vector>, py::arg("Vector_variable"))
         .def("SetZero", &container_type::template SetZero<Matrix>, py::arg("Matrix_variable"))
-        .def("Slice", &container_type::Slice, py::arg("offset"), py::arg("stride"))
         .def("Reshape", [](const container_type& rSelf, const std::vector<IndexType>& rShape) { return rSelf.Reshape(rShape); }, py::arg("shape"))
         .def("Comb", [](const container_type& rSelf, const typename container_type::BaseType& rOther) { return rSelf.Comb(rOther); }, py::arg("other_container_expression_to_combine_with"))
         .def("Comb", [](const container_type& rSelf, const std::vector<typename container_type::BaseType::Pointer>& rListOfOthersContainerExpressions) { return rSelf.Comb(rListOfOthersContainerExpressions); }, py::arg("other_container_expressions_list_to_combine_with"))
@@ -240,9 +239,23 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
 template <class TContainer>
 void AddExpressionUtilitiesToPython(pybind11::module& rUtilityModule)
 {
-    rUtilityModule.def("Clone", &ExpressionUtilities::Clone<TContainer>);
-    rUtilityModule.def("Pow", [](ContainerExpression<TContainer>& rBase, double Exponent){ExpressionUtilities::Pow(rBase, Exponent);});
-    rUtilityModule.def("Pow", [](ContainerExpression<TContainer>& rBase, const ContainerExpression<TContainer>& rExponent){ExpressionUtilities::Pow(rBase, rExponent);});
+    rUtilityModule.def("Clone",
+                       &ExpressionUtilities::Clone<TContainer>,
+                       pybind11::arg("source"),
+                       pybind11::arg("target"));
+    rUtilityModule.def("Pow",
+                       [](ContainerExpression<TContainer>& rBase, double Exponent){ExpressionUtilities::Pow(rBase, Exponent);},
+                       pybind11::arg("base"),
+                       pybind11::arg("exponent"));
+    rUtilityModule.def("Pow",
+                       [](ContainerExpression<TContainer>& rBase, const ContainerExpression<TContainer>& rExponent){ExpressionUtilities::Pow(rBase, rExponent);},
+                       pybind11::arg("base"),
+                       pybind11::arg("exponent"));
+    rUtilityModule.def("Slice",
+                       &ExpressionUtilities::Slice<TContainer>,
+                       pybind11::arg("expression"),
+                       pybind11::arg("offset"),
+                       pybind11::arg("stride"));
 }
 
 

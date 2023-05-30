@@ -151,16 +151,6 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Slice(
-    const IndexType Offset,
-    const IndexType Stride) const
-{
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = UnarySliceExpression::Create(*this->mpExpression, Offset, Stride);
-    return result;
-}
-
-template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(const std::vector<IndexType>& rShape) const
 {
     return this->Reshape(rShape.begin(), rShape.end());

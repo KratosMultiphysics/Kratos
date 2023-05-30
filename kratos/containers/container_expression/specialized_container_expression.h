@@ -158,41 +158,6 @@ public:
     ///@{
 
     /**
-     * @brief Returns a slice of the current expression. Slicing is based on the entity values.
-     *
-     * @details This method returns a new sliced @ref SpecializedContainerExpression.
-     *          This slicing is done on each entitiy's data array, and not on the flattened
-     *          expression. Following is an example:
-     *
-     *          Assume a SpecializedContainerExpression with an expression of shape [5] and 2 entities with
-     *          following data values in the flattened representation.
-     *
-     *          data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-     *                  <---- 1 ----> <----- 2 ----->
-     *
-     *          Data for entity 1 is represented with <--1-->.
-     *
-     *          If the Offset is 1, and Stride is 3 then, the @ref SpecializedContainerExpression output
-     *          of this method will produce the lazy expression which will give following data when SpecializedContainerExpression::Evaluate
-     *          is called.
-     *
-     *          output_data = [2, 3, 4, 7, 8, 9]
-     *          output containers shape = [3] = equal to Stride.
-     *
-     *          Slicing will always create one dimensional vector even if the input has more than one dimension.
-     *          @see Reshape to reshape the one dimensional vector to desired shape if required.
-     *
-     *          This creates a lazy expression, hence it has a constant cost complexity irrespective of the data size.
-     *
-     * @param Offset                            Offset of entity value to be considered to start slicing.
-     * @param Stride                            Length of components from the offset in the entity value.
-     * @return SpecializedContainerExpression   Container expresssion having the sliced lazy expression.
-     */
-    SpecializedContainerExpression Slice(
-        const IndexType Offset,
-        const IndexType Stride) const;
-
-    /**
      * @brief Returns current expression reshaped to specified shape.
      *
      * @details This method returns a new reshaped @ref SpecializedContainerExpression.

@@ -41,6 +41,39 @@ struct KRATOS_API(KRATOS_CORE) ExpressionUtilities
     /// @name Views
     /// @{
 
+    /** @brief Returns a slice of the provided expression. Slicing is based on the entity values.
+     *
+     *  @details Slicing is done on each entitiy's data array, and not on the flattened
+     *           expression. For example:
+     *
+     *           Assume a @ref SpecializedContainerExpression with an expression of shape [5] and 2 entities with
+     *           the following data values in the flattened representation.
+     *
+     *           data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+     *                   <---- 1 ----> <----- 2 ----->
+     *
+     *           Data for entity 1 is represented with <--1-->.
+     *
+     *           If the Offset is 1, and Stride is 3 then, the @ref SpecializedContainerExpression output
+     *           of this method will produce the lazy expression which will give following data when
+     *           SpecializedContainerExpression::Evaluate is called.
+     *
+     *           output_data = [2, 3, 4, 7, 8, 9]
+     *           output container shape = [3] = equal to Stride.
+     *
+     *           Slicing will always create a one dimensional vector even if the input has more than one dimensions.
+     *           @see Reshape to reshape the one dimensional vector to the desired shape if required.
+     *
+     *           This creates a lazy expression, hence it has a constant cost complexity irrespective of the data size.
+     *
+     *  @param Offset Offset of the component to start slicing at.
+     *  @param Stride Number of components from the offset in the sliced entity.
+     */
+    template <class TContainer>
+    static void Slice(ContainerExpression<TContainer>& rExpression,
+                      std::size_t Offset,
+                      std::size_t Stride);
+
     /// @}
     /// @name Arithmetic Operations
     /// @{

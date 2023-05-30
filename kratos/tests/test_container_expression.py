@@ -431,9 +431,11 @@ class TestContainerExpression(ABC):
 
     def test_Slice(self):
         a = self._GetSpecializedContainerExpression()
+        sliced = self._GetSpecializedContainerExpression()
         a.Read(Kratos.INITIAL_STRAIN)
+        Kratos.ContainerExpression.Clone(a, sliced)
 
-        sliced = a.Slice(2, 3)
+        Kratos.ContainerExpression.Slice(sliced, 2, 3)
         sliced *= 2.0
         sliced.Evaluate(Kratos.ACCELERATION)
 
@@ -498,9 +500,15 @@ class TestContainerExpression(ABC):
 
     def test_SliceCombReshape(self):
         a = self._GetSpecializedContainerExpression()
+        b = self._GetSpecializedContainerExpression()
+        c = self._GetSpecializedContainerExpression()
         a.Read(Kratos.INITIAL_STRAIN)
+        Kratos.ContainerExpression.Clone(a, b)
+        Kratos.ContainerExpression.Clone(a, c)
 
-        (a.Comb([a.Slice(2, 2), a.Slice(3, 2)]) * 2).Reshape([5, 2]).Evaluate(Kratos.PK2_STRESS_TENSOR)
+        Kratos.ContainerExpression.Slice(b, 2, 2)
+        Kratos.ContainerExpression.Slice(c, 3, 2)
+        (a.Comb([b, c]) * 2).Reshape([5, 2]).Evaluate(Kratos.PK2_STRESS_TENSOR)
 
         for entity in a.GetContainer():
             original_value = self._GetValue(entity, Kratos.INITIAL_STRAIN)

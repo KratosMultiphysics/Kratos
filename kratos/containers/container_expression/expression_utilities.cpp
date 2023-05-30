@@ -16,6 +16,9 @@
 #include "containers/container_expression/expressions/literal/literal_expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/expressions/binary/binary_expression.h"
+#include "containers/container_expression/expressions/unary/unary_slice_expression.h"
+#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
+#include "containers/container_expression/expressions/unary/unary_combine_expression.h"
 
 
 namespace Kratos {
@@ -54,13 +57,29 @@ void ExpressionUtilities::Pow(ContainerExpression<TContainer>& rBase,
 }
 
 
+template <class TContainer>
+void ExpressionUtilities::Slice(ContainerExpression<TContainer>& rExpression,
+                                std::size_t Offset,
+                                std::size_t Stride)
+{
+    rExpression.SetExpression(UnarySliceExpression::Create(
+        rExpression.pGetExpression(),
+        Offset,
+        Stride
+    ));
+}
+
+
 #define KRATOS_INSTANTIATE_EXPRESSION_UTILITY(CONTAINER_TYPE)                                               \
     template void ExpressionUtilities::Clone<CONTAINER_TYPE>(const ContainerExpression<CONTAINER_TYPE>&,    \
                                                              ContainerExpression<CONTAINER_TYPE>&);         \
     template void ExpressionUtilities::Pow<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,            \
                                                            double);                                         \
     template void ExpressionUtilities::Pow<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,            \
-                                                           const ContainerExpression<CONTAINER_TYPE>&)
+                                                           const ContainerExpression<CONTAINER_TYPE>&);     \
+    template void ExpressionUtilities::Slice<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,          \
+                                                             std::size_t,                                   \
+                                                             std::size_t)
 
 
 KRATOS_INSTANTIATE_EXPRESSION_UTILITY(ModelPart::NodesContainerType);
