@@ -98,6 +98,8 @@ public:
     typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
     typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
 
+    using typename Mapper<TSparseSpace,TDenseSpace>::ExpressionType;
+
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
@@ -181,6 +183,18 @@ public:
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
 
+        KRATOS_CATCH("");
+    }
+
+    void Map(ExpressionType& rOriginExpression,
+             const Variable<double>& rDestinationVariable,
+             Kratos::Flags MappingOptions) override
+    {
+        KRATOS_ERROR_IF(MappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL)) << "Mapping expressions from non-historical variables is not supported";
+        KRATOS_ERROR_IF(MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) << "Transpose mapping with expressions is not implemented";
+
+        KRATOS_TRY;
+        MapInternal(rOriginExpression, rDestinationVariable, MappingOptions);
         KRATOS_CATCH("");
     }
 
@@ -334,7 +348,7 @@ protected:
     }
 
     ///@}
-    
+
 private:
     ///@name Member Variables
     ///@{
@@ -418,6 +432,22 @@ private:
         MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
     }
 
+    void ApplyTransform() const
+    {
+        TSparseSpace::Mult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerOrigin->GetVector(),
+            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
+    }
+
+    void ApplyTransposeTransform() const
+    {
+        TSparseSpace::TransposeMult(
+            *mpMappingMatrix,
+            mpInterfaceVectorContainerDestination->GetVector(),
+            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
+    }
+
     void MapInternal(const Variable<double>& rOriginVariable,
                      const Variable<double>& rDestinationVariable,
                      Kratos::Flags MappingOptions)
@@ -425,12 +455,7 @@ private:
         KRATOS_TRY;
 
         mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
-
-        TSparseSpace::Mult(
-            *mpMappingMatrix,
-            mpInterfaceVectorContainerOrigin->GetVector(),
-            mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
-
+        this->ApplyTransform();
         mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
 
         KRATOS_CATCH("");
@@ -443,12 +468,7 @@ private:
         KRATOS_TRY;
 
         mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
-
-        TSparseSpace::TransposeMult(
-            *mpMappingMatrix,
-            mpInterfaceVectorContainerDestination->GetVector(),
-            mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
-
+        this->ApplyTransposeTransform();
         mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
 
         KRATOS_CATCH("");
@@ -465,6 +485,56 @@ private:
             const auto& var_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + var_ext);
 
             MapInternal(var_origin, var_destination, MappingOptions);
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void MapInternal(ExpressionType& rOriginExpression,
+                     const Variable<double>& rDestinationVariable,
+                     Kratos::Flags MappingOptions)
+    {
+        KRATOS_TRY;
+
+        const std::size_t expression_size = rOriginExpression.GetExpression().size();
+        const std::size_t origin_node_count = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
+        KRATOS_ERROR_IF_NOT(((expression_size == 0) == (origin_node_count == 0)) && expression_size % origin_node_count)
+            << "Expression size (" << expression_size
+            << ") must be a multiple of the number of local nodes in the model part (" << mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes() << ')';
+
+        if (expression_size) {
+            TSparseSpace::Resize(mpInterfaceVectorContainerOrigin->GetVector(), expression_size);
+            TSparseSpace::Resize(mpInterfaceVectorContainerDestination->GetVector(), TSparseSpace::Size1(*mpMappingMatrix));
+
+            // Get the pointer to the first item in the local vector
+            // Sadly, this isn't starightforward because operator[] in Trilinos vector types
+            // returns a double*& instead of a double&, so both cases must be handled.
+            double* p_begin = nullptr;
+            using ComponentType = typename TSparseSpace::DataType;
+            using VectorSubscriptType = decltype(std::declval<typename TSparseSpace::VectorType>()[0]);
+            if constexpr (std::is_same_v<VectorSubscriptType,ComponentType*&>) {
+                p_begin = mpInterfaceVectorContainerOrigin->GetVector()[0];
+            } else if constexpr (std::is_same_v<VectorSubscriptType,ComponentType&>) {
+                p_begin = &mpInterfaceVectorContainerOrigin->GetVector()[0];
+            }
+
+            // Copy data from the source expression
+            const int item_shape[] = {};
+            const int item_shape_size = 0;
+            rOriginExpression.Evaluate(p_begin,
+                                       rOriginExpression.GetExpression().size(),
+                                       item_shape,
+                                       item_shape_size);
+
+            // Transform
+            std::cout << "ApplyTransform" << std::endl;
+            this->ApplyTransform();
+            std::cout << "Finished ApplyTransform" << std::endl;
+
+            // Assign results to the destination model part
+            std::cout << "Assign" << std::endl;
+            mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+            std::cout << "Finished Assign" << std::endl;
         }
 
         KRATOS_CATCH("");
