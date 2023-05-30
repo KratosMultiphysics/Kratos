@@ -15,6 +15,7 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.THICKNESS)
         with kratos_unittest.WorkFolderScope(".", __file__, True):
             ReadModelPart("model_part_utils_test/quads", cls.model_part)
 
@@ -23,6 +24,8 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
             node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
             node.SetSolutionStepValue(Kratos.PRESSURE, id+3)
             node.SetSolutionStepValue(Kratos.DENSITY, id+4)
+            node.SetSolutionStepValue(Kratos.THICKNESS, -id)
+
 
     def test_ContainerVariableDataNormInf(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
@@ -32,6 +35,9 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
 
         a.Read(Kratos.VELOCITY)
         self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(a), 30)
+
+        a.Read(Kratos.THICKNESS)
+        self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(a), 25.0)
 
     def test_ContainerVariableDataNormL2(self):
         a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)

@@ -27,7 +27,7 @@
 namespace Kratos {
 namespace Testing {
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
     /// Factory functions
     NurbsCurveGeometry<2, PointerVector<Point>> GenerateReferenceCurveForProjection2d()

@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#ifndef KRATOS_KEY_HASH_H_INCLUDED
-#define KRATOS_KEY_HASH_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -19,7 +18,6 @@
 
 // Project includes
 #include "includes/dof.h"
-#include "includes/indexed_object.h"
 
 namespace Kratos
 {
@@ -34,10 +32,10 @@ namespace Kratos
 ///@{
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of the hash type
-    typedef std::size_t HashType;
+    using HashType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -49,6 +47,7 @@ namespace Kratos
 
     /**
      * @brief This method creates an "unique" hash for the input value
+     * @details It comes from boost, taken from here: https://www.boost.org/doc/libs/1_55_0/doc/html/hash/reference.html#boost.hash_combine
      * @tparam TClassType The type of class to be hashed
      * @param Seed This is the seed used to create the hash
      * @param Value This is the value to be hashed
@@ -85,6 +84,12 @@ namespace Kratos
 
         return seed;
     }
+
+///@}
+///@name Kratos Classes
+///@{
+
+    class VariableData; // forward declaration
 
     /**
      * @brief This is a key comparer of general pourpose between two classes
@@ -144,28 +149,21 @@ namespace Kratos
 
     /**
      * @brief This is a hasher for variables
-     * @tparam TVariable The type of variable to be hashed
      */
-    template<class TVariable>
-    struct VariableHasher
+    struct KRATOS_API(KRATOS_CORE) VariableHasher
     {
         /**
          * @brief This is the () operator
          * @param rVariable The variable to be hashed
          * @return The corresponding hash
          */
-        HashType operator()(const TVariable& rVariable) const
-        {
-            return rVariable.Key();
-        }
+        HashType operator()(const VariableData& rVariable) const;
     };
 
     /**
      * @brief This is a key comparer between two variables
-     * @tparam TVariable The type of variable to be compared
      */
-    template<class TVariable>
-    struct VariableComparator
+    struct KRATOS_API(KRATOS_CORE) VariableComparator
     {
         /**
          * @brief This is the () operator
@@ -173,56 +171,43 @@ namespace Kratos
          * @param rSecond The second class to be compared
          */
         bool operator()(
-            const TVariable& rFirst,
-            const TVariable& rSecond
-            ) const
-        {
-            return rFirst.Key() == rSecond.Key();
-        }
+            const VariableData& rFirst,
+            const VariableData& rSecond
+            ) const;
     };
 
     /**
      * @brief This is a hasher for variables pointers
-     * @tparam TVariable The type of variable to be hashed
      */
-    template<class TVariable>
-    struct pVariableHasher
+    struct KRATOS_API(KRATOS_CORE) pVariableHasher
     {
         /**
          * @brief This is the () operator
          * @param pVariable The variable pointer to be hashed
          * @return The corresponding hash
          */
-        HashType operator()(const TVariable* pVariable) const
-        {
-            return pVariable->Key();
-        }
+        HashType operator()(const VariableData* pVariable) const;
     };
 
     /**
      * @brief This is a key comparer between two variables pointers
-     * @tparam TVariable The type of variable to be compared
      */
-    template<class TVariable>
-    struct pVariableComparator
+    struct KRATOS_API(KRATOS_CORE) pVariableComparator
     {
         /**
          * @brief This is the () operator
-         * @param pFirst The first class to be compared
-         * @param pSecond The second class to be compared
+         * @param pFirst The first variable to be compared
+         * @param pSecond The second variable to be compared
          */
         bool operator()(
-            const TVariable* pFirst,
-            const TVariable* pSecond
-            ) const
-        {
-            return pFirst->Key() == pSecond->Key();
-        }
+            const VariableData* pFirst,
+            const VariableData* pSecond
+            ) const;
     };
 
     /**
      * @brief This is a hasher for indexed objects
-     * @tparam TIndexedObject Type of indexed object
+     * @tparam TIndexedObject The type of indexed object
      */
     template<class TIndexedObject>
     struct IndexedObjectHasher
@@ -240,7 +225,7 @@ namespace Kratos
 
     /**
      * @brief This is a key comparer between two indexed objects
-     * @tparam TIndexedObject Type of indexed object
+     * @tparam TIndexedObject The type of indexed object
      */
     template<class TIndexedObject>
     struct IndexedObjectComparator
@@ -429,9 +414,9 @@ namespace Kratos
          * @brief The () operator
          * @param rPair The index pair to hash
          */
-        std::size_t operator()(const std::pair<TType1, TType2>& rPair) const
+        HashType operator()(const std::pair<TType1, TType2>& rPair) const
         {
-            std::size_t seed = 0;
+            HashType seed = 0;
             HashCombine<TType1>(seed, rPair.first);
             HashCombine<TType2>(seed, rPair.second);
             return seed;
@@ -461,4 +446,3 @@ namespace Kratos
 ///@{
 
 } // namespace Kratos.
-#endif

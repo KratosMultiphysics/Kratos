@@ -31,7 +31,7 @@ namespace Testing
     static constexpr double tolerance = 1.0e-6;
 
     // NodeType
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
 /**
 * Check the correct calculation of the CL utilities principal stress

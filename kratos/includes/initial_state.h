@@ -11,8 +11,7 @@
 //
 //
 
-#if !defined(KRATOS_INITIAL_STATE_H_INCLUDED)
-#define  KRATOS_INITIAL_STATE_H_INCLUDED
+# pragma once
 
 // System includes
 #include <atomic>
@@ -22,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-
 
 namespace Kratos
 {
@@ -44,7 +42,16 @@ class KRATOS_API(KRATOS_CORE) InitialState
     public:
         ///@name Type Definitions
         ///@{
-        typedef std::size_t SizeType;
+
+        // Size type definition
+        using SizeType = std::size_t;
+
+        /// Pointer definition of NodeSearchUtility
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(InitialState);
+
+        ///@}
+        ///@name  Enum's
+        ///@{
 
         enum class InitialImposingType
         {
@@ -54,9 +61,6 @@ class KRATOS_API(KRATOS_CORE) InitialState
             STRAIN_AND_STRESS = 3,
             DEFORMATION_GRADIENT_AND_STRESS = 4
         };
-
-        /// Pointer definition of NodeSearchUtility
-        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(InitialState);
 
         ///@}
         ///@name Life Cycle
@@ -206,5 +210,3 @@ class KRATOS_API(KRATOS_CORE) InitialState
 ///@} addtogroup block
 
 } // namespace Kratos
-
-#endif // KRATOS_INITIAL_STATE_H_INCLUDED  defined
