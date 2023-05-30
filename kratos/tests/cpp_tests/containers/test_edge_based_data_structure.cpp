@@ -50,10 +50,10 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     EdgeBasedDataStructure<2> edge_based_data_structure;
     edge_based_data_structure.CalculateEdgeDataStructure(r_model_part);
 
-    auto& r_edge_data_12 = edge_based_data_structure.GetEdgeData(1,2);
-    KRATOS_WATCH(r_edge_data_12.GetMassCoefficient())
-    KRATOS_WATCH(r_edge_data_12.GetLumpedMassCoefficient())
-    KRATOS_WATCH(r_edge_data_12.GetFirstDerivatives())
+    auto &r_edge_data_12 = edge_based_data_structure.GetEdgeData(1, 2);
+    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConsistentMass())
+    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalLaplacian())
+    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConvective())
 
     KRATOS_CHECK_EQUAL(edge_based_data_structure.NumberOfEdges(), 16);
 

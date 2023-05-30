@@ -71,19 +71,24 @@ public:
             return mLength;
         }
 
-        double GetMassCoefficient() const
+        double GetOffDiagonalConsistentMass() const
         {
-            return mMassCoefficient;
+            return mMij;
         }
 
-        double GetLumpedMassCoefficient() const
+        double GetOffDiagonalLaplacian() const
         {
-            return mLumpedMassCoefficient;
+            return mLij;
         }
 
-        const array_1d<double,TDim>& GetFirstDerivatives() const
+        const array_1d<double,TDim>& GetOffDiagonalConvective() const
         {
-            return mFirstDerivatives;
+            return mNiDNj;
+        }
+
+        const array_1d<double,TDim>& GetOffDiagonalConvectiveTranspose() const
+        {
+            return mDNiNj;
         }
 
         void SetLength(const double Length)
@@ -91,30 +96,27 @@ public:
             mLength = Length;
         }
 
-        void AddFirstDerivatives(
+        void AddOffDiagonalValues(
             const double DomainSize,
-            const array_1d<double,TDim>& rDNiDX,
-            const array_1d<double,TDim>& rDNjDX)
+            const array_1d<double, TDim> &rDNiDX,
+            const array_1d<double, TDim> &rDNjDX)
         {
             const double w_i = DomainSize / NumNodes;
+            mMij += w_i * 0.25;
             for (std::size_t d = 0; d < TDim; ++d) {
-                mFirstDerivatives[d] = 0.5*w_i*(rDNiDX[d]*0.5 + rDNjDX[d]*0.5);
+                mLij += w_i * rDNiDX[d] * rDNjDX[d];
+                mNiDNj[d] += w_i * 0.5 * rDNjDX[d];
+                mDNiNj[d] += w_i * rDNiDX[d] * 0.5;
             }
-        }
-
-        void AddMassCoefficients(const double DomainSize)
-        {
-            const double w_i = DomainSize / NumNodes;
-            mMassCoefficient += 0.25 * w_i;
-            mLumpedMassCoefficient += 0.5 * w_i;
         }
 
     private:
 
-        double mLength = 0.0;
-        double mMassCoefficient = 0.0;
-        double mLumpedMassCoefficient = 0.0;
-        array_1d<double, TDim> mFirstDerivatives = ZeroVector(TDim);
+        double mLength = 0.0; // l_{ij}
+        double mMij = 0.0; // N_{i}*N_{j}
+        double mLij = 0.0; // grad(N_{i})^{T}*grad(N_{j})
+        array_1d<double, TDim> mNiDNj = ZeroVector(TDim); // N_{i}*grad(N_{j})
+        array_1d<double, TDim> mDNiNj = ZeroVector(TDim); // grad(N_{i})*N_{j}
     };
 
     /// Index type definition
@@ -129,8 +131,11 @@ public:
     /// CSR storage indices vector definition
     using IndicesVectorType = std::vector<IndexType>;
 
-    /// CSR storage values vector definition
-    using ValuesVectorType = std::vector<std::unique_ptr<EdgeData>>;
+    /// CSR storage off-diagonal values vector definition
+    using EdgeDataVectorType = std::vector<std::unique_ptr<EdgeData>>;
+
+    /// CSR storage mass matrices vector definition
+    using MassMatrixVectorType = std::vector<double>;
 
     /// Pointer definition of EdgeBasedDataStructure
     KRATOS_CLASS_POINTER_DEFINITION(EdgeBasedDataStructure);
@@ -170,6 +175,16 @@ public:
         CalculateEdgeDataValues(rModelPart, edges_graph);
     }
 
+    void Clear()
+    {
+        mNumEdges = 0;
+        mRowIndices.clear();
+        mColIndices.clear();
+        mEdgeData.clear();
+        mMassMatrixDiagonal.clear();
+        mLumpedMassMatrixDiagonal.clear();
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -189,9 +204,29 @@ public:
         return mColIndices;
     }
 
-    const ValuesVectorType& GetValues() const
+    const MassMatrixVectorType& GetMassMatrixDiagonal() const
     {
-        return mValues;
+        return mMassMatrixDiagonal;
+    }
+
+    double GetMassMatrixDiagonal(IndexType I) const
+    {
+        return mMassMatrixDiagonal[I-1];
+    }
+
+    const MassMatrixVectorType& GetLumpedMassMatrixDiagonal() const
+    {
+        return mLumpedMassMatrixDiagonal;
+    }
+
+    double GetLumpedMassMatrixDiagonal(IndexType I) const
+    {
+        return mLumpedMassMatrixDiagonal[I-1];
+    }
+
+    const EdgeDataVectorType& GetEdgeData() const
+    {
+        return mEdgeData;
     }
 
     const EdgeData& GetEdgeData(
@@ -199,7 +234,7 @@ public:
         IndexType J) const
     {
         const IndexType ij_col_vect_index = GetColumVectorIndex(I,J);
-        return *(mValues[ij_col_vect_index]);
+        return *(mEdgeData[ij_col_vect_index]);
     }
 
     ///@}
@@ -286,7 +321,9 @@ private:
     SizeType mNumEdges;
     IndicesVectorType mRowIndices;
     IndicesVectorType mColIndices;
-    ValuesVectorType mValues;
+    MassMatrixVectorType mMassMatrixDiagonal;
+    MassMatrixVectorType mLumpedMassMatrixDiagonal;
+    EdgeDataVectorType mEdgeData;
 
     ///@}
     ///@name Private Operators
@@ -335,7 +372,13 @@ private:
     {
         // Resize values vector to the number of edges
         KRATOS_ERROR_IF(mNumEdges == 0) << "No edges in model part '" << rModelPart.FullName() << "'" << std::endl;
-        mValues.resize(mNumEdges);
+        mEdgeData.resize(mNumEdges);
+        mMassMatrixDiagonal.resize(rModelPart.NumberOfNodes());
+        mLumpedMassMatrixDiagonal.resize(rModelPart.NumberOfNodes());
+
+        // Initialize mass matrices diagonal values
+        std::fill(mMassMatrixDiagonal.begin(), mMassMatrixDiagonal.end(), 0.0);
+        std::fill(mLumpedMassMatrixDiagonal.begin(), mLumpedMassMatrixDiagonal.end(), 0.0);
 
         // Allocate auxiliary arrays for the elementwise calculations
         double domain_size;
@@ -353,22 +396,34 @@ private:
                 const IndexType i_id = r_geom[i].Id();
                 for (IndexType j = i+1; j < NumNodes; ++j) {
                     const IndexType j_id = r_geom[j].Id();
-                    // Check presence of current ij-edge in the sparse graph
+
+                    // Get ij-edge auxiliary id (edge are stored being i the lowest nodal i and j the largest)
                     const IndexType aux_i_id = std::min(i_id, j_id);
                     const IndexType aux_j_id = std::max(i_id, j_id);
+
+                    // Check presence of current ij-edge in the sparse graph
                     if (rEdgesSparseGraph.Has(aux_i_id, aux_j_id)) {
+                        // Add the mass matrices diagonal (II) contributions
+                        // Note that in here we take advantage of the fact that there is an integration point at the mid of each edge
+                        const IndexType i_row_id = i_id - 1;
+                        const double aux_mass = 0.25 * domain_size / NumNodes;
+                        mMassMatrixDiagonal[i_row_id] = aux_mass;
+                        mLumpedMassMatrixDiagonal[i_row_id] = 2.0 * aux_mass;
+
                         // Get position in the column indices vector as this is the same one to be used in the values vector
                         const IndexType ij_col_index = GetColumVectorIndex(aux_i_id, aux_j_id);
                         KRATOS_ERROR_IF(ij_col_index < 0) << "Column index cannot be found for ij-edge " << i_id << "-" << j_id << "." << std::endl;
 
-                        // If not created yet, create and fill current edge data
-                        auto& rp_edge_data = mValues[ij_col_index];
+                        // If not created yet, create current edge data container
+                        // Note that we also set the length which is the same for all neighbour elements
+                        auto& rp_edge_data = mEdgeData[ij_col_index];
                         if (rp_edge_data == nullptr) {
                             rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
-                            rp_edge_data->AddMassCoefficients(domain_size);
-                            rp_edge_data->AddFirstDerivatives(domain_size, row(DNDX,i), row(DNDX,j));
                             rp_edge_data->SetLength(norm_2(r_geom[i].Coordinates()-r_geom[j].Coordinates()));
                         }
+
+                        // Add current element off-diagonal (IJ) contributions
+                        rp_edge_data->AddOffDiagonalValues(domain_size, row(DNDX,i), row(DNDX,j));
                     }
                 }
             }
