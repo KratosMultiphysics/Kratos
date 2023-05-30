@@ -749,6 +749,12 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         }
         return list_results;
     })
+    .def("__getitem__", [&](ResultTypeContainer& self, const std::size_t Index) {
+        return self[Index];
+    })
+    .def("__call__", [&](ResultTypeContainer& self, const std::size_t Index) {
+        return self(Index);
+    })
     ;
 
     using ResultTypeContainerMap = SpatialSearchResultContainerMap<GeometricalObject>;
@@ -760,6 +766,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("Clear", &ResultTypeContainerMap::Clear)
     .def("__getitem__", [&](ResultTypeContainerMap& self, const array_1d<double, 3>& rCoordinates) {
         return self[rCoordinates];
+    })
+    .def("__call__", [&](ResultTypeContainerMap& self, const array_1d<double, 3>& rCoordinates) {
+        return self(rCoordinates);
     })
     ;
 
