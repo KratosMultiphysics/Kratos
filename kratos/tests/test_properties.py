@@ -70,8 +70,11 @@ class TestProperties(KratosUnittest.TestCase):
         current_model = KM.Model()
         model_part = current_model.CreateModelPart("Main")
         properties = model_part.CreateNewProperties(1)
+
         self.assertFalse(properties.HasAccessor(KM.TEMPERATURE))
+
         properties.SetAccessor(KM.TEMPERATURE, KM.Accessor.Create())
+
         self.assertTrue(properties.HasAccessor(KM.TEMPERATURE))
         accessor_from_get = properties.GetAccessor(KM.TEMPERATURE)
 
@@ -90,10 +93,8 @@ class TestProperties(KratosUnittest.TestCase):
 
         properties_1 = model_part.CreateNewProperties(1)
         properties_2 = model_part.CreateNewProperties(2)
-
-        accessor_binding = KM.Accessor.Create()
         
-        properties_1.SetAccessor(KM.TEMPERATURE, accessor_binding)
+        properties_1.SetAccessor(KM.TEMPERATURE, KM.Accessor.Create())
         accessor_from_get = properties_1.GetAccessor(KM.TEMPERATURE)
         properties_2.SetAccessor(KM.TEMPERATURE, accessor_from_get)
 
@@ -109,10 +110,10 @@ class TestProperties(KratosUnittest.TestCase):
 
         accessor_binding = KM.Accessor.Create()
         
-        accessor_from_set = properties_1.SetAccessor(KM.TEMPERATURE, accessor_binding)
+        properties_1.SetAccessor(KM.TEMPERATURE, accessor_binding)
 
         with self.assertRaisesRegex(Exception, "Trying to set a consumed or invalid Accessor. Accessors are unique. Please create a different one."):
-            accessor_from_set = properties_2.SetAccessor(KM.TEMPERATURE, accessor_binding)
+            properties_2.SetAccessor(KM.TEMPERATURE, accessor_binding)
 
 if __name__ == '__main__':
     KratosUnittest.main()
