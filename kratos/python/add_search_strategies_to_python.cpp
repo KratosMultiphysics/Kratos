@@ -24,6 +24,7 @@
 #include "spatial_containers/specialized_spatial_search_factory.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "spatial_containers/spatial_search_result.h"
+#include "spatial_containers/spatial_search_result_container.h"
 
 namespace Kratos::Python
 {
@@ -705,6 +706,61 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("SetDistance", &ResultType::SetDistance)
     .def("IsObjectFound", &ResultType::IsObjectFound)
     .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
+    ;
+
+    using ResultTypeContainer = SpatialSearchResultContainer<GeometricalObject>;
+
+    py::class_<ResultTypeContainer, ResultTypeContainer::Pointer>(m, "ResultTypeContainer")
+    .def(py::init< >())
+    .def("AddResult", &ResultTypeContainer::AddResult)
+    .def("Clear", &ResultTypeContainer::Clear)
+    .def("SynchronizeAll", &ResultTypeContainer::SynchronizeAll)
+    .def("GetResultShapeFunctions", [&](ResultTypeContainer& self, const array_1d<double, 3>& rPoint) {
+        auto results = self.GetResultShapeFunctions(rPoint);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("GetResultIndices", [&](ResultTypeContainer& self) {
+        std::vector<std::size_t> results = self.GetResultIndices();
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("GetResultCoordinates", [&](ResultTypeContainer& self) {
+        auto results = self.GetResultCoordinates();
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            py::list i_list_results;
+            for (auto& r_sub_result : r_result) {
+                i_list_results.append(r_sub_result);
+            }
+            list_results.append(i_list_results);
+        }
+        return list_results;
+    })
+    ;
+
+    using ResultTypeContainerMap = SpatialSearchResultContainerMap<GeometricalObject>;
+
+    py::class_<ResultTypeContainerMap, ResultTypeContainerMap::Pointer>(m, "ResultTypeContainerMap")
+    .def(py::init< >())
+    .def("InitializeResult", &ResultTypeContainerMap::InitializeResult)
+    .def("HasResult", &ResultTypeContainerMap::HasResult)
+    .def("Clear", &ResultTypeContainerMap::Clear)
+    .def("__getitem__", [&](ResultTypeContainerMap& self, const array_1d<double, 3>& rCoordinates) {
+        return self[rCoordinates];
+    })
     ;
 
     using NodesContainerType = ModelPart::NodesContainerType;

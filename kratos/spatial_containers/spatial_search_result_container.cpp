@@ -81,7 +81,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
 /***********************************************************************************/
 
 template <class TObjectType>
-std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFunctions(array_1d<double, 3>& rPoint)
+std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFunctions(const array_1d<double, 3>& rPoint)
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
