@@ -128,4 +128,59 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultShapeFunctions, K
     KRATOS_CHECK_NEAR(shape_functions[0][1], 0.5, 1.0e-12);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIndices, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    container.AddResult(result);
+
+    // Synchronize the container between partitions
+    DataCommunicator data_communicator;
+    container.SynchronizeAll(data_communicator);
+
+    // Compute shape functions
+    auto indixes = container.GetResultIndices();
+
+    // Check shape functions
+    KRATOS_CHECK_EQUAL(indixes.size(), 1);
+    KRATOS_CHECK_EQUAL(indixes[0], object.Id());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultCoordinates, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Generate a geometry
+    auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_node2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    Geometry<Node>::Pointer p_geom = Kratos::make_shared<Line2D2<Node>>(p_node1, p_node2);
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1, p_geom);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    container.AddResult(result);
+
+    // Synchronize the container between partitions
+    DataCommunicator data_communicator;
+    container.SynchronizeAll(data_communicator);
+
+    // Compute shape functions
+    auto coordinates = container.GetResultCoordinates();
+
+    // Check shape functions
+    KRATOS_CHECK_EQUAL(coordinates.size(), 1);
+    KRATOS_CHECK_EQUAL(coordinates[0].size(), 2);
+    KRATOS_CHECK_VECTOR_NEAR(coordinates[0][2], p_node1->Coordinates(), 1.0e-12);
+    KRATOS_CHECK_VECTOR_NEAR(coordinates[0][1], p_node2->Coordinates(), 1.0e-12);
+}
+
 }  // namespace Kratos::Testing
