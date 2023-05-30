@@ -62,11 +62,11 @@ namespace Testing {
    * Generates a point type right triangle with origin in the origin and leg size 1.
    * @return  Pointer to a triangle2D3
    */
-  Triangle2D3<Node<3>>::Pointer GenerateNodesRightTriangle2D3() {
-    return Triangle2D3<Node<3>>::Pointer(new Triangle2D3<Node<3>>(
-      Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)),
-      Node<3>::Pointer(new Node<3>(2, 1.0, 0.0, 0.0)),
-      Node<3>::Pointer(new Node<3>(3, 0.0, 1.0, 0.0))
+  Triangle2D3<Node>::Pointer GenerateNodesRightTriangle2D3() {
+    return Triangle2D3<Node>::Pointer(new Triangle2D3<Node>(
+      Node::Pointer(new Node(1, 0.0, 0.0, 0.0)),
+      Node::Pointer(new Node(2, 1.0, 0.0, 0.0)),
+      Node::Pointer(new Node(3, 0.0, 1.0, 0.0))
     ));
   }
 
@@ -86,11 +86,11 @@ namespace Testing {
    * Generates a node irregular triangle.
    * @return  Pointer to a triangle2D3
    */
-  Triangle2D3<Node<3>>::Pointer GenerateNodesIrregularTriangle2D3() {
-    return Triangle2D3<Node<3>>::Pointer(new Triangle2D3<Node<3>>(
-      Node<3>::Pointer(new Node<3>(1, 1.0, 1.0, 0.0)),
-      Node<3>::Pointer(new Node<3>(2, 3.0, 0.5, 0.0)),
-      Node<3>::Pointer(new Node<3>(3, 2.5, 2.0, 0.0))
+  Triangle2D3<Node>::Pointer GenerateNodesIrregularTriangle2D3() {
+    return Triangle2D3<Node>::Pointer(new Triangle2D3<Node>(
+      Node::Pointer(new Node(1, 1.0, 1.0, 0.0)),
+      Node::Pointer(new Node(2, 3.0, 0.5, 0.0)),
+      Node::Pointer(new Node(3, 2.5, 2.0, 0.0))
     ));
   }
 

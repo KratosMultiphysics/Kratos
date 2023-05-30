@@ -22,8 +22,8 @@
 
 namespace Kratos::Testing
 {
-using PointType = Node<3>;
-using PointPtrType = Node<3>::Pointer;
+using PointType = Node;
+using PointPtrType = Node::Pointer;
 using Prism15GeometryType = Prism3D15<PointType>;
 using Prism15GeometryPtrType = Prism3D15<PointType>::Pointer;
 
@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(Prism3D15GaussPoint5, KratosCoreGeometriesFastSuite) {
 }
 
 void ShapeFunctionSanityCheck(
-    Geometry<Node<3>>::Pointer geom,
+    Geometry<Node>::Pointer geom,
     const GeometryData::IntegrationMethod method,
     bool isFullIntegration)
 {
@@ -223,7 +223,6 @@ void ShapeFunctionSanityCheck(
         for (unsigned int i = 0; i < numPoints; i++) {
             shapeFuncSum += shapeFunctions(g, i);
         }
-        std::cerr << "GPPT g " << g << " sum " << shapeFuncSum << std::endl;
         KRATOS_CHECK_NEAR(shapeFuncSum, 1.0, TOLERANCE);
     }
 

@@ -78,7 +78,7 @@ namespace Python{
     typedef ParticleYieldCriterion::Pointer      MPMYieldCriterionPointer;
     typedef ParticleHardeningLaw::Pointer          MPMHardeningLawPointer;
     typedef Properties::Pointer                    PropertiesPointer;
-    typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
+    typedef Mesh<Node, Properties, Element, Condition>   MeshType;
 
     typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
     typedef ConstitutiveLaw::Pointer          ConstitutiveLawPointer;

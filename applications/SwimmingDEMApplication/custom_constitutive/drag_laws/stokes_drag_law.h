@@ -12,7 +12,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) StokesDragLaw : public DragLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(StokesDragLaw);
 
         StokesDragLaw(){}
