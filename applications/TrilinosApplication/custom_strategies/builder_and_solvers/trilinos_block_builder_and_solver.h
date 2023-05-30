@@ -1054,7 +1054,7 @@ protected:
         if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
             std::stringstream msg;
             msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
-            msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            msg << "Admissible values for the diagonal scaling are : 'no_scaling', 'use_max_diagonal', 'use_diagonal_norm', or 'defined_in_process_info'" << "\n";
             KRATOS_ERROR << msg.str() << std::endl;
         }
 
