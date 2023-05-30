@@ -90,7 +90,7 @@ public:
      */
     TObjectType& operator[](const std::size_t Index)
     {
-        return mLocalPointers[Index];
+        return *(mLocalPointers.begin() + Index);
     }
 
     /**
@@ -100,9 +100,7 @@ public:
      */
     const TObjectType& operator[](const std::size_t Index) const 
     {
-        const auto it = mLocalPointers.find(Index);
-        KRATOS_ERROR_IF(it == mLocalPointers.end()) << "The result does not exist." << std::endl;
-        return *it;
+        return *(mLocalPointers.begin() + Index);
     }
 
     /**
