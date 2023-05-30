@@ -20,6 +20,7 @@
 // Project includes
 #include "containers/container_expression/container_expression.h"
 #include "containers/container_expression/specialized_container_expression.h"
+#include "containers/container_expression/expression_utilities.h"
 
 namespace Kratos::Python
 {
@@ -231,5 +232,15 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("__neg__", [](container_type& rSelf) { return rSelf.operator*(-1.0); })
         ;
 }
+
+
+template <class TContainer>
+void AddExpressionUtilitiesToPython(pybind11::module& rUtilityModule)
+{
+    rUtilityModule
+        .def("Clone", &ExpressionUtilities::Clone<TContainer>)
+        ;
+}
+
 
 } // namespace Kratos::Python

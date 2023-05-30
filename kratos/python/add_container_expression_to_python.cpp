@@ -42,6 +42,10 @@ void  AddContainerExpressionToPython(pybind11::module& m)
     AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "NodalNonHistoricalExpression");
     AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "ConditionNonHistoricalExpression");
     AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "ElementNonHistoricalExpression");
+
+    AddExpressionUtilitiesToPython<ModelPart::NodesContainerType>(sub_module);
+    AddExpressionUtilitiesToPython<ModelPart::ElementsContainerType>(sub_module);
+    AddExpressionUtilitiesToPython<ModelPart::ConditionsContainerType>(sub_module);
 }
 
 } // namespace Kratos::Python
