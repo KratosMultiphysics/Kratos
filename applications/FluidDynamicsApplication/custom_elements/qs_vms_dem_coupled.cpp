@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-//DenseVector<Matrix> mExactBodyForce;
+
 //////////////////////////Life cycle
 
 template< class TElementData >
@@ -352,7 +352,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateOnIntegrationPoints(
 
     TElementData data;
     data.Initialize(*this, rCurrentProcessInfo);
-    const int elem_idx = this->Id()-1;
+
 
     for (unsigned int g = 0; g < number_of_integration_points; g++ ) {
         data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),shape_derivatives[g]);
@@ -363,8 +363,6 @@ void QSVMSDEMCoupled<TElementData>::CalculateOnIntegrationPoints(
         }
         if (rVariable == BODY_FORCE) {
             value = this->GetAtCoordinate(data.BodyForce,data.N);
-            // for (unsigned int d = 0; d < Dim; d++)
-            //     value[d] += mExactBodyForce[elem_idx](d,g);
         }
         if (rVariable == PRESSURE_GRADIENT){
             const auto& r_pressure = data.Pressure;
@@ -428,7 +426,10 @@ void QSVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProces
 template< class TElementData >
 GeometryData::IntegrationMethod QSVMSDEMCoupled<TElementData>::GetIntegrationMethod() const
 {
-    return GeometryData::IntegrationMethod::GI_GAUSS_5;
+    if(mInterpolationOrder == 1)
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    else
+        return GeometryData::IntegrationMethod::GI_GAUSS_3;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -619,12 +620,8 @@ void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
 
-    //MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
+    MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
     const auto body_force = this->GetAtCoordinate(rData.BodyForce, rData.N);
-    // const int elem_idx = this->Id()-1;
-    // array_1d<double,Dim> body_force = ZeroVector(Dim);
-    // for (unsigned int d = 0; d < Dim; d++)
-    //     body_force[d] += mExactBodyForce[elem_idx](d,rData.IntegrationPointIndex);
 
     const auto r_velocities = rData.Velocity;
     const auto r_pressures = rData.Pressure;
@@ -632,23 +629,23 @@ void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     Vector grad_div_u, div_sym_grad_u;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
-        //array_1d<double,Dim> sigma_U = ZeroVector(Dim);
+        array_1d<double,Dim> sigma_U = ZeroVector(Dim);
         grad_div_u = ZeroVector(Dim);
         div_sym_grad_u = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
             for (unsigned int e = 0; e < Dim; e++){
-                //sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
+                sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
                 grad_div_u[d] += rData.DDN_DDX[i](d,e) *  r_velocities(i,e);
                 if (d == e)
                     div_sym_grad_u[d] += rData.DDN_DDX[i](e,e) * r_velocities(i,d);
                 else
                     div_sym_grad_u[d] += 1.0/2.0 * (rData.DDN_DDX[i](e,d) * r_velocities(i,e) + rData.DDN_DDX[i](e,e) * r_velocities(i,d));
             }
-            rMomentumRHS[d] += density * (- AGradN[i]*r_velocities(i,d)) + 2.0 * viscosity * div_sym_grad_u[d] - 2.0/3.0 * viscosity * grad_div_u[d] - rData.DN_DX(i,d) * r_pressures[i];
+            rMomentumRHS[d] += density * (- AGradN[i]*r_velocities(i,d)) + 2.0 * viscosity * div_sym_grad_u[d] - 2.0/3.0 * viscosity * grad_div_u[d] - rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
         }
     }
     for (unsigned int d = 0; d < Dim; d++)
-        rMomentumRHS[d] += density * body_force[d] /*- sigma(d,d) * velocity[d]*/;
+        rMomentumRHS[d] += density * body_force[d];
 }
 
 template<class TElementData>
@@ -669,10 +666,6 @@ void QSVMSDEMCoupled<TElementData>::AddReactionStabilization(
     this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
     array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce, rData.N);
-    // const int elem_idx = this->Id()-1;
-    // array_1d<double,3> body_force = ZeroVector(3);
-    // for (unsigned int d = 0; d < Dim; d++)
-    //     body_force[d] += density * mExactBodyForce[elem_idx](d,rData.IntegrationPointIndex);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN, convective_velocity, rData.DN_DX); // Get a * grad(Ni)
@@ -797,26 +790,6 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
     }
 }
 
-template<class TElementData>
-void QSVMSDEMCoupled<TElementData>::AddMassRHS(
-    VectorType& rRightHandSideVector,
-    TElementData& rData)
-{
-        double fluid_fraction_rate = 0.0;
-        double mass_source = 0.0;
-        mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
-        fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
-
-        // Add the results to the pressure components (Local Dofs are vx, vy, [vz,] p for each node)
-        int LocalIndex = Dim;
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            for (unsigned int d = 0; d < Dim;++d)
-                rRightHandSideVector[LocalIndex] -= rData.Weight * rData.N[i] * (fluid_fraction_rate - mass_source);
-            LocalIndex += Dim + 1;
-        }
-
-}
-
 // Add a the contribution from a single integration point to the velocity contribution
 template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
@@ -830,10 +803,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     // Interpolate nodal data on the integration point
     const double density = this->GetAtCoordinate(rData.Density, rData.N);
     array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N); // Force per unit of volume
-    // const int elem_idx = this->Id()-1;
-    // array_1d<double,3> body_force = ZeroVector(3);
-    // for (unsigned int d = 0; d < Dim; d++)
-    //     body_force[d] += density * mExactBodyForce[elem_idx](d,rData.IntegrationPointIndex);
+
     const array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection, rData.N);
     double mass_projection = this->GetAtCoordinate(rData.MassProjection, rData.N);
 
@@ -864,7 +834,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
 
     // Temporary containers
-    double U;
+    //double U;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -888,7 +858,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 double AA = tau_one(d,d) * AGradN[i] * AGradN[j]; // Stabilization: u*grad(v) * tau_one * u*grad(u);
                 // Stabilization: (a * Grad(v)) * tau_one * Grad(p)
                 double P = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
-                U = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
+                double U = fluid_fraction_gradient[d] * rData.N[j] * rData.N[i];
                 double QD = fluid_fraction * rData.N[i] * rData.DN_DX(j,d);
 
                 double GAlphaA = tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * AGradN[j];
@@ -933,7 +903,6 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                             LA += tau_one(d,d) * viscosity * rData.DDN_DDX[i](f,f) * AGradN[j];
                             LL_diag_1 += tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](f,f);
                             LL_diag_2 += rData.DDN_DDX[j](f,f);
-                            CL_1 += 2.0/3.0 * tau_one(d,d) * viscosity * viscosity * rData.N[i] * rData.DDN_DDX[j](f,f);
                         }
                         LL_2 += tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](f,f) * rData.DDN_DDX[j](d,e);
                         LL_3 += tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](d,e) * rData.DDN_DDX[j](f,f);
@@ -941,6 +910,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                         LC_1 += 2.0/3.0 * tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](f,f) * rData.DDN_DDX[j](d,e);
                         LC_2 += 2.0/3.0 * tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](d,f) * rData.DDN_DDX[j](f,e);
                         CL_2 += 2.0/3.0 * tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](d,f) * rData.DDN_DDX[j](f,e);
+                        CL_1 += 2.0/3.0 * tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](d,e) * rData.DDN_DDX[j](f,f);
                         CC += 4.0/9.0 * tau_one(d,d) * viscosity * viscosity * rData.DDN_DDX[i](f,d) * rData.DDN_DDX[j](f,e);
                     }
                     double LL = (LL_diag_1 * LL_diag_2) + LL_2 + LL_3 + LL_4;
@@ -983,7 +953,6 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
         }
         rLocalRHS[row+Dim] += rData.Weight * (QAlphaF + Q);
     }
-
     // Adding reactive terms to the stabilization
     if(!rData.UseOSS)
         this->AddReactionStabilization(rData,LHS,rLocalRHS);
@@ -1087,6 +1056,36 @@ void QSVMSDEMCoupled<TElementData>::CalculateResistanceTensor(
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
 
     rsigma = permeability;
+}
+
+template< class TElementData >
+void QSVMSDEMCoupled<TElementData>::AddMassLHS(
+    TElementData& rData,
+    MatrixType &rMassMatrix)
+{
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    // Note: Dof order is (u,v,[w,]p) for each node
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        unsigned int row = i*BlockSize;
+        for (unsigned int j = 0; j < NumNodes; j++)
+        {
+            unsigned int col = j*BlockSize;
+            const double Mij = rData.Weight * density * rData.N[i] * rData.N[j];
+            for (unsigned int d = 0; d < Dim; d++)
+                rMassMatrix(row+d,col+d) += Mij;
+        }
+    }
+
+    /* Note on OSS and full projection: Riccardo says that adding the terms provided by
+     * AddMassStabilization (and incluiding their corresponding terms in the projeciton)
+     * could help reduce the non-linearity of the coupling between projection and u,p
+     * However, leaving them on gives a lot of trouble whith the Bossak scheme:
+     * think that we solve F - (1-alpha)*M*u^(n+1) - alpha*M*u^(n) - K(u^(n+1)) = 0
+     * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
+     */
+    if (!rData.UseOSS)
+        this->AddMassStabilization(rData,rMassMatrix);
 }
 
 template<class TElementData>

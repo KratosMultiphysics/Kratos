@@ -316,6 +316,10 @@ protected:
     void CalculateResistanceTensor(
         const TElementData& rData);
 
+    void AddMassLHS(
+        TElementData& rData,
+        MatrixType& rMassMatrix) override;
+
     void MassProjTerm(
         const TElementData& rData,
         double& rMassRHS) const override;
