@@ -34,12 +34,11 @@ namespace Kratos::Python
 
 namespace py = pybind11;
 
-using NodeType = Node<3>;
-using MeshType = Mesh<NodeType, Properties, Element, Condition>;
+using MeshType = Mesh<Node, Properties, Element, Condition>;
 using ConstitutiveLawBaseType = ConstitutiveLaw;
 using IndexType = std::size_t;
 using PropertiesContainerType = PointerVectorSet<Properties, IndexedObject>;
-using GeometryType = Geometry<NodeType>;
+using GeometryType = Geometry<Node>;
 
 template< class TContainerType, class TVariableType >
 bool PropertiesHasHelperFunction(TContainerType& rProperties, const TVariableType& rVar)
