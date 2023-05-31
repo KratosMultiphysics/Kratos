@@ -25,10 +25,10 @@
 
 namespace Kratos {
 
-Geometry<Node>::Pointer EntityCalculationUtils::CreateSolidGeometry(const Geometry<Node>& rSurfaceGeometry)
+Geometry<Node>::Pointer EntityCalculationUtils::CreateSolidGeometry(const GeometryType& rSurfaceGeometry)
 {
     // add the surface nodes
-    Geometry<Node>::PointsArrayType nodes(rSurfaceGeometry.ptr_begin(), rSurfaceGeometry.ptr_end());
+    GeometryType::PointsArrayType nodes(rSurfaceGeometry.ptr_begin(), rSurfaceGeometry.ptr_end());
 
     // add the dummy additional point for the extrusion
     nodes.push_back(Kratos::make_intrusive<Node>(0, 0.0, 0.0, 0.0));
@@ -51,12 +51,33 @@ Geometry<Node>::Pointer EntityCalculationUtils::CreateSolidGeometry(const Geomet
     return nullptr;
 }
 
+void EntityCalculationUtils::CalculateSurfaceElementGaussPointData(
+    Vector& rGaussWeights,
+    Matrix& rShapeFunctionValues,
+    const GeometryType& rGeometry,
+    const IntegrationMethodType& rIntegrationMethod)
+{
+    rShapeFunctionValues = rGeometry.ShapeFunctionsValues(rIntegrationMethod);
+
+    const auto& integration_points = rGeometry.IntegrationPoints(rIntegrationMethod);
+    const IndexType number_of_integration_points = integration_points.size();
+
+    if (rGaussWeights.size() != number_of_integration_points) {
+        rGaussWeights.resize(number_of_integration_points, false);
+    }
+
+    for (IndexType g = 0; g < number_of_integration_points; ++g) {
+        const double detJ0 = rGeometry.DeterminantOfJacobian(g, rIntegrationMethod);
+        rGaussWeights[g] = detJ0 * integration_points[g].Weight();
+    }
+}
+
 template<class TMatrixType>
 void EntityCalculationUtils::CalculateSurfaceElementShapeDerivatives(
     TMatrixType& rOutput,
-    Geometry<Node>& rSolidGeometry,
-    const Geometry<Node>& rSurfaceGeometry,
-    const GeometryData::IntegrationMethod& rIntegrationMethod,
+    GeometryType& rSolidGeometry,
+    const GeometryType& rSurfaceGeometry,
+    const IntegrationMethodType& rIntegrationMethod,
     const IndexType PointNumber)
 {
     // now calculate the out of surface point
@@ -89,6 +110,6 @@ void EntityCalculationUtils::CalculateSurfaceElementShapeDerivatives(
 }
 
 // template instantiations
-template void EntityCalculationUtils::CalculateSurfaceElementShapeDerivatives(Matrix&, Geometry<Node>&, const Geometry<Node>&, const GeometryData::IntegrationMethod&, const IndexType);
+template void EntityCalculationUtils::CalculateSurfaceElementShapeDerivatives(Matrix&, GeometryType&, const GeometryType&, const IntegrationMethodType&, const IndexType);
 
 } // namespace Kratos

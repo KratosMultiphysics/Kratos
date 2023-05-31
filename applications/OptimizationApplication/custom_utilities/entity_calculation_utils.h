@@ -32,18 +32,30 @@ public:
     ///@name Type definitions
     ///@{
 
+    using IndexType = std::size_t;
+
+    using GeometryType = Geometry<Node>;
+
+    using IntegrationMethodType = GeometryData::IntegrationMethod;
+
     ///@}
     ///@name Static operations
     ///@{
 
-    static Geometry<Node>::Pointer CreateSolidGeometry(const Geometry<Node>& rSurfaceGeometry);
+    static Geometry<Node>::Pointer CreateSolidGeometry(const GeometryType& rSurfaceGeometry);
+
+    static void CalculateSurfaceElementGaussPointData(
+        Vector& rGaussWeights,
+        Matrix& rShapeFunctionValues,
+        const GeometryType& rGeometry,
+        const IntegrationMethodType& rIntegrationMethod);
 
     template<class TMatrixType>
     static void CalculateSurfaceElementShapeDerivatives(
         TMatrixType& rOutput,
-        Geometry<Node>& rSolidGeometry,
-        const Geometry<Node>& rSurfaceGeometry,
-        const GeometryData::IntegrationMethod& rIntegrationMethod,
+        GeometryType& rSolidGeometry,
+        const GeometryType& rSurfaceGeometry,
+        const IntegrationMethodType& rIntegrationMethod,
         const IndexType PointNumber);
 
     ///@}
