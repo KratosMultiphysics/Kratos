@@ -17,12 +17,14 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/define.h"
-#include "optimization_application_variables.h"
 #include "utilities/math_utils.h"
 
 // Application incldues
-#include "custom_elements/helmholtz_surface_element.h"
 #include "custom_utilities/entity_calculation_utils.h"
+#include "optimization_application_variables.h"
+
+// Include base h
+#include "custom_elements/helmholtz_surface_element.h"
 
 namespace Kratos {
 

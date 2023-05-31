@@ -22,7 +22,6 @@
 #include "includes/ublas_interface.h"
 
 // Application includes
-#include "optimization_application_variables.h"
 
 namespace Kratos {
 
