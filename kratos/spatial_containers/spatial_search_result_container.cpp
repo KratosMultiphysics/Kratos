@@ -36,13 +36,16 @@ SpatialSearchResultContainer<TObjectType>::SpatialSearchResultContainer()
 template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResult<TObjectType>& rResult)
 {
-    // Push_back in local pointers
-    TObjectType* p_local_result = rResult.Get().get();
-    mLocalPointers.push_back(p_local_result);
+    // Check if the object has been found
+    if (rResult.GetIsObjectFound()) {
+        // Push_back in local pointers
+        TObjectType* p_local_result = rResult.Get().get();
+        mLocalPointers.push_back(p_local_result);
 
-    // Add distances
-    const IndexType id = p_local_result->Id();
-    mLocalDistances.insert({id, rResult.GetDistance()});
+        // Add distances
+        const IndexType id = p_local_result->Id();
+        mLocalDistances.insert({id, rResult.GetDistance()});
+    }
 }
 
 /***********************************************************************************/
