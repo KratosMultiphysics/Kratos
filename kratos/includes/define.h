@@ -785,6 +785,12 @@ __pragma(warning(pop))
     #else
         #define KRATOS_FORCE_INLINE inline
     #endif
+#elif defined(__INTEL_COMPILER)
+    #if __has_attribute(__always_inline__)
+        #define KRATOS_FORCE_INLINE inline __attribute__((__always_inline__))
+    #else
+        #define KRATOS_FORCE_INLINE inline
+    #endif
 #else
     #define KRATOS_FORCE_INLINE inline
 #endif
