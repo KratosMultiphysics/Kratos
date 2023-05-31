@@ -149,10 +149,10 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIndices, KratosCo
     DataCommunicator data_communicator;
     container.SynchronizeAll(data_communicator);
 
-    // Compute shape functions
+    // Compute indices
     auto indices = container.GetResultIndices();
 
-    // Check shape functions
+    // Check indices
     KRATOS_CHECK_EQUAL(indices.size(), 1);
     KRATOS_CHECK_EQUAL(indices[0], object.Id());
 }
@@ -178,10 +178,10 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultCoordinates, Krat
     DataCommunicator data_communicator;
     container.SynchronizeAll(data_communicator);
 
-    // Compute shape functions
+    // Compute result coordinates
     auto coordinates = container.GetResultCoordinates();
 
-    // Check shape functions
+    // Check result coordinates
     KRATOS_CHECK_EQUAL(coordinates.size(), 1);
     KRATOS_CHECK_EQUAL(coordinates[0].size(), 2);
     KRATOS_CHECK_VECTOR_NEAR(coordinates[0][0], p_node1->Coordinates(), 1.0e-12);
