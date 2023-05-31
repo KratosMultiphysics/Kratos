@@ -150,11 +150,11 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIndices, KratosCo
     container.SynchronizeAll(data_communicator);
 
     // Compute shape functions
-    auto indixes = container.GetResultIndices();
+    auto indices = container.GetResultIndices();
 
     // Check shape functions
-    KRATOS_CHECK_EQUAL(indixes.size(), 1);
-    KRATOS_CHECK_EQUAL(indixes[0], object.Id());
+    KRATOS_CHECK_EQUAL(indices.size(), 1);
+    KRATOS_CHECK_EQUAL(indices[0], object.Id());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultCoordinates, KratosCoreFastSuite)
