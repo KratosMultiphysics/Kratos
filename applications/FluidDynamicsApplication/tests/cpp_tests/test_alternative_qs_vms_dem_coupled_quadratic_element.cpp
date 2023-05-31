@@ -63,13 +63,13 @@ KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation, FluidDynamicsAppl
         const unsigned int NumNodes = rElement.GetGeometry().PointsNumber();
 
         AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<Dim, 9>>* p_element = dynamic_cast<AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<Dim, 9>>*>(&rElement);
-        const Geometry<Node <3>>::IntegrationMethod integration_method = p_element->GetIntegrationMethod();
+        const Geometry<Node>::IntegrationMethod integration_method = p_element->GetIntegrationMethod();
 
         p_element->GetShapeSecondDerivatives(DDN_DDX);
 
         Matrix NContainer = p_element->GetGeometry().ShapeFunctionsValues(integration_method);
 
-        const Geometry<Node <3>>::IntegrationPointsArrayType integration_points = p_element->GetGeometry().IntegrationPoints(integration_method);
+        const Geometry<Node>::IntegrationPointsArrayType integration_points = p_element->GetGeometry().IntegrationPoints(integration_method);
         const unsigned int number_of_integration_points = integration_points.size();
 
         Matrix gauss_point_coordinates = ZeroMatrix(number_of_integration_points,Dim);

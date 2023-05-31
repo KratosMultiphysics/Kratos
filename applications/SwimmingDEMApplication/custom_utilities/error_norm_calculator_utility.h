@@ -31,7 +31,7 @@ class ErrorNormCalculator
 
 public:
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     typedef Properties PropertiesType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;

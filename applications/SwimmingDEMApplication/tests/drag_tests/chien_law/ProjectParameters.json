@@ -267,7 +267,7 @@
                 "time_step"           : 1.0
             },
             "formulation"                 : {
-                "element_type"             : "qsvmsDEM",
+                "element_type"             : "aqsvmsDEM",
                 "use_orthogonal_subscales" : false,
                 "dynamic_tau"              : 0.0
             },

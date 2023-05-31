@@ -29,7 +29,7 @@ namespace Kratos {
                                        const ProcessInfo& r_current_process_info)
     {
 
-        Geometry<Node<3> >& r_geometry = p_particle->GetGeometry();
+        Geometry<Node >& r_geometry = p_particle->GetGeometry();
         const double eps = r_geometry[0].FastGetSolutionStepValue(FLUID_FRACTION_PROJECTED);
         const array_1d<double, 3> fluid_vel = r_geometry[0].FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
         array_1d<double, 3> mean_particle_vel = this->CalculateParticleVelocityMean(p_particle);
