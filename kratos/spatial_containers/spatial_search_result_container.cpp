@@ -37,7 +37,7 @@ template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResult<TObjectType>& rResult)
 {
     // Check if the object has been found
-    if (rResult.GetIsObjectFound()) {
+    if (rResult.IsObjectFound()) {
         // Push_back in local pointers
         TObjectType* p_local_result = rResult.Get().get();
         mLocalPointers.push_back(p_local_result);
