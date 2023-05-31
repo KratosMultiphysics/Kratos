@@ -4,27 +4,20 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Fusseder Martin, Armin Geiser, Daniel Baumgaertner
 //
 
-#ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H
-#define EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H
+#pragma once
 
-// ------------------------------------------------------------------------------
 // System includes
-// ------------------------------------------------------------------------------
 #include <iostream>
 #include <string>
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -428,5 +421,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // EIGENFREQUENCY_RESPONSE_FUNCTION_UTILITY_H

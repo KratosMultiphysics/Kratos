@@ -39,16 +39,16 @@ void TetrahedraModelPartForWSSTests(ModelPart& rModelPart)
     rModelPart.GetProcessInfo().SetValue(STEP, 2); // Required as WSS checks step > buffer
 
     // Geometry creation
-    auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0);
-    auto p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    auto p_point_4 = Kratos::make_intrusive<Node<3>>(4, 0.0, 1.0, 0.0);
-    auto p_point_5 = Kratos::make_intrusive<Node<3>>(5, 0.0, 0.0, 1.0);
-    auto p_point_6 = Kratos::make_intrusive<Node<3>>(6, 1.0, 0.0, 1.0);
-    auto p_point_7 = Kratos::make_intrusive<Node<3>>(7, 1.0, 1.0, 1.0);
-    auto p_point_8 = Kratos::make_intrusive<Node<3>>(8, 0.0, 1.0, 1.0);
+    auto p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_point_2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    auto p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    auto p_point_4 = Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0);
+    auto p_point_5 = Kratos::make_intrusive<Node>(5, 0.0, 0.0, 1.0);
+    auto p_point_6 = Kratos::make_intrusive<Node>(6, 1.0, 0.0, 1.0);
+    auto p_point_7 = Kratos::make_intrusive<Node>(7, 1.0, 1.0, 1.0);
+    auto p_point_8 = Kratos::make_intrusive<Node>(8, 0.0, 1.0, 1.0);
 
-    Hexahedra3D8<Node<3>> geometry(
+    Hexahedra3D8<Node> geometry(
         p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
 
     Parameters mesher_parameters(R"({
@@ -88,9 +88,9 @@ KRATOS_TEST_CASE_IN_SUITE(WSSStatisticsUtilitiesWSS, FluidDynamicsBiomedicalAppl
     // Check results
     const double tolerance = 1.0e-8;
     const auto &r_node = *(r_test_skin_model_part.NodesEnd() - 1);
-    std::vector<double> expected_wss_norm_stress = {11.6666870136, 11.6666870136, 11.6666870136};
-    std::vector<double> expected_wss_tang_stress = {-6.66667829347, -1.66666957337, 8.33334786684};
-    KRATOS_CHECK_NEAR(r_node.GetValue(WSS), 10.8012533349, tolerance);
+    std::vector<double> expected_wss_norm_stress = {16.1658075373, 16.1658075373, 16.1658075373};
+    std::vector<double> expected_wss_tang_stress = {-9.23760430703, -2.30940107676, 11.5470053838};
+    KRATOS_CHECK_NEAR(r_node.GetValue(WSS), 14.9666295471, tolerance);
     KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(WSS_NORMAL_STRESS), expected_wss_norm_stress, tolerance);
     KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(WSS_TANGENTIAL_STRESS), expected_wss_tang_stress, tolerance);
 }

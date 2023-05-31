@@ -30,7 +30,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangian2D4N// GUI group identifier: beam
+Begin Elements MPMUpdatedLagrangian2D4N// GUI group identifier: beam
         1          0         13         11          5         10 
         2          0         21         16         11         13 
         3          0         26         23         16         21 

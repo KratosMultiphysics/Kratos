@@ -57,7 +57,6 @@ class ApplyExcavationProcess : public Process
         KRATOS_TRY
 
         mDeactivateSoilPart =  rParameters["deactivate_soil_part"].GetBool();
-        mModelPartName      =  rParameters["model_part_name"].GetString();
 
         KRATOS_CATCH("")
     }
@@ -88,7 +87,7 @@ class ApplyExcavationProcess : public Process
 
                 // Same nodes for both computing model part
                 if (mrModelPart.NumberOfNodes() > 0) {
-                    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode) {
+                    block_for_each(mrModelPart.Nodes(), [&](Node& rNode) {
                         rNode.Set(ACTIVE, true);
                     });
                 }
@@ -121,7 +120,6 @@ class ApplyExcavationProcess : public Process
 
     ModelPart& mrModelPart;
     bool mDeactivateSoilPart;
-    std::string mModelPartName;
 
 }; //Class
 

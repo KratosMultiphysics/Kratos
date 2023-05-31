@@ -56,6 +56,7 @@ namespace Kratos
             rParameters["reference_coordinate"];
             rParameters["variable_name"];
             rParameters["model_part_name"];
+            mIsFixedProvided = rParameters.Has("is_fixed");
 
             // Now validate against defaults -- this also ensures no type mismatch
             rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -105,7 +106,7 @@ namespace Kratos
 
                 if (mIsSeepage)
                 {
-                    block_for_each(mrModelPart.Nodes(), [&var, this](Node<3> &rNode)
+                    block_for_each(mrModelPart.Nodes(), [&var, this](Node &rNode)
                                    {
 
                     const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight*( mReferenceCoordinate - rNode.Coordinates()[mGravityDirection] );
@@ -115,15 +116,15 @@ namespace Kratos
                         if (mIsFixed) rNode.Fix(var);
                     } else {
                         rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                        rNode.Free(var);
+                        if (mIsFixedProvided) rNode.Free(var);
                     } });
                 }
                 else
                 {
-                    block_for_each(mrModelPart.Nodes(), [&var, this](Node<3> &rNode)
+                    block_for_each(mrModelPart.Nodes(), [&var, this](Node &rNode)
                                    {
                     if (mIsFixed) rNode.Fix(var);
-                    else          rNode.Free(var);
+                    else if (mIsFixedProvided) rNode.Free(var);
 
                     const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight*( mReferenceCoordinate - rNode.Coordinates()[mGravityDirection] );
 
@@ -164,6 +165,7 @@ namespace Kratos
         std::string mModelPartName;
         std::string mVariableName;
         bool mIsFixed;
+        bool mIsFixedProvided;
         bool mIsSeepage;
         unsigned int mGravityDirection;
         double mReferenceCoordinate;

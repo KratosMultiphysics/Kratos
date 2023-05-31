@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Manuel Messmer
 //
 
-#if !defined(KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H)
-#define  KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H
+#pragma once
 
 // System includes
 #include <string>
@@ -65,10 +64,6 @@ public:
 
     typedef ResultContainerType::iterator                           ResultIteratorType;
     typedef std::vector<double>::iterator                           DistanceIteratorType;
-
-    typedef ContactPair<PointerType>                                ContactPairType;
-    typedef std::vector<ContactPairType>                            ContainerContactType;
-    typedef ContainerContactType::iterator                          IteratorContactType;
 
     ///@}
     ///@name Life Cycle
@@ -244,4 +239,3 @@ private:
 ///@} addtogroup block
 
 }   // namespace Kratos.
-#endif	/* KRATOS_NODE_CONFIGURE_FOR_NODE_SEARCH_INCLUDED_H */

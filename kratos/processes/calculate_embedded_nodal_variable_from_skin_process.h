@@ -245,7 +245,7 @@ public:
 
         // Check that the base model part is conformed by simplex elements
         const auto &r_aux_geom = (mrBaseModelPart.ElementsBegin())->GetGeometry();
-        const unsigned int dim = r_aux_geom.Dimension();
+        const unsigned int dim = r_aux_geom.WorkingSpaceDimension();
         if(dim == 2){
             KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle." << std::endl;
@@ -253,7 +253,7 @@ public:
             KRATOS_ERROR_IF(r_aux_geom.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedron" << std::endl;
         } else {
-            KRATOS_ERROR << "Wrong geometry Dimension(). Expected 2 or 3 and obtained: " << dim;
+            KRATOS_ERROR << "Wrong geometry WorkingSpaceDimension(). Expected 2 or 3 and obtained: " << dim;
         }
 
         // Construct the linear solver pointer
@@ -475,7 +475,7 @@ protected:
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
 
-        block_for_each(r_int_elems_model_part.Nodes(), [&](Node<3>& rNode){
+        block_for_each(r_int_elems_model_part.Nodes(), [&](Node& rNode){
             auto &r_emb_nod_val = (mrBaseModelPart.GetNode(rNode.Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
             r_emb_nod_val = rNode.FastGetSolutionStepValue(rUnknownVariable);
         });
@@ -512,7 +512,7 @@ protected:
 
         // Temporary container of nodes
         // This is intentionally done to add the nodes at once and avoid the sort at each CreateNewNode call
-        std::unordered_map<unsigned int, Node<3>::Pointer> map_of_nodes;
+        std::unordered_map<unsigned int, Node::Pointer> map_of_nodes;
 
         // Loop the base model part elements
         std::size_t new_elem_id = 1;
@@ -555,7 +555,7 @@ protected:
                                 for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
                                     i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(mrSkinVariable, mBufferPosition) * int_obj_N[i_node];
                                 }
-                                i_edge_d += norm_2(intersection_point - r_i_edge_geom[0]) / r_i_edge_geom.Length();
+                                i_edge_d += intersection_point.Distance(r_i_edge_geom[0]) / r_i_edge_geom.Length();
                             }
                         }
 
@@ -599,7 +599,7 @@ protected:
 
         // Populate the modelpart with all the nodes in NodesMap
         // Note that a temporary vector is created from the set to add all nodes at once
-        PointerVectorSet<Node<3>> tmp;
+        PointerVectorSet<Node> tmp;
         tmp.reserve(rModelPart.NumberOfElements()*2);
         for(auto& item: map_of_nodes){
             tmp.push_back(item.second);
@@ -735,9 +735,9 @@ private:
     }
 
     void AddEdgeNodes(
-        const Geometry<Node<3>> &rEdgeGeometry,
+        const Geometry<Node> &rEdgeGeometry,
         ModelPart &rModelPart,
-        std::unordered_map<unsigned int, Node<3>::Pointer>& rNodesMap
+        std::unordered_map<unsigned int, Node::Pointer>& rNodesMap
         ) const
     {
         const auto& rp_var_list = rModelPart.pGetNodalSolutionStepVariablesList();
@@ -749,7 +749,7 @@ private:
             // Check if the node has been already added
             if (!p_i_node->Is(VISITED)) {
                 p_i_node->Set(VISITED, true);
-                auto p_node_copy = Kratos::make_intrusive< Node<3> >(
+                auto p_node_copy = Kratos::make_intrusive< Node >(
                     p_i_node->Id(), 
                     p_i_node->Coordinates());
                 p_node_copy->SetSolutionStepVariablesList(rp_var_list);
@@ -761,7 +761,7 @@ private:
     }
 
     Element::GeometryType::Pointer pSetEdgeElementGeometry(
-        std::unordered_map<unsigned int, Node<3>::Pointer>& rNodesMap,
+        std::unordered_map<unsigned int, Node::Pointer>& rNodesMap,
         const Element::GeometryType &rCurrentEdgeGeometry,
         const std::pair<std::size_t, std::size_t> NewEdgeIds) const
     {
@@ -771,7 +771,7 @@ private:
         return rCurrentEdgeGeometry.Create(points_array);
     }
 
-    inline std::pair<std::size_t, std::size_t> SetEdgePair(const Geometry<Node<3>> &rEdgeGeom) const
+    inline std::pair<std::size_t, std::size_t> SetEdgePair(const Geometry<Node> &rEdgeGeom) const
     {
         std::pair<std::size_t, std::size_t> edge_pair(
             (rEdgeGeom[0].Id() < rEdgeGeom[1].Id()) ? rEdgeGeom[0].Id() : rEdgeGeom[1].Id(),

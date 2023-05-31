@@ -35,16 +35,16 @@ void PwNormalFluxCondition<TDim,TNumNodes>::
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
     for(unsigned int i = 0; i<NumGPoints; ++i)
         (JContainer[i]).resize(TDim,LocalDim,false);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
+    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
     
     //Condition variables
     array_1d<double,TNumNodes> NormalFluxVector;
@@ -66,9 +66,7 @@ void PwNormalFluxCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
                 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              JContainer[GPoint],
-                                              IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
                 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);
@@ -93,25 +91,22 @@ void PwNormalFluxCondition<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< >
-void PwNormalFluxCondition<2, 2>::
-CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
+double PwNormalFluxCondition<2, 2>::
+CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
 {
     double dx_dxi = Jacobian(0, 0);
     double dy_dxi = Jacobian(1, 0);
 
     double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
 
-    rIntegrationCoefficient = ds * Weight;
+    return ds * Weight;
 }
 
 
 //----------------------------------------------------------------------------------------
 template< >
-void PwNormalFluxCondition<3, 3>::
-CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
+double PwNormalFluxCondition<3, 3>::
+CalculateIntegrationCoefficient(const Matrix& Jacobian,
     const double& Weight)
 {
     double NormalVector[3];
@@ -126,15 +121,13 @@ CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
         + NormalVector[1] * NormalVector[1]
         + NormalVector[2] * NormalVector[2]);
 
-    rIntegrationCoefficient = dA * Weight;
+    return dA * Weight;
 }
 
 //----------------------------------------------------------------------------------------
 template< >
-void PwNormalFluxCondition<3, 4>::
-CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
+double PwNormalFluxCondition<3, 4>::
+CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
 {
     double NormalVector[3];
 
@@ -148,7 +141,7 @@ CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
         + NormalVector[1] * NormalVector[1]
         + NormalVector[2] * NormalVector[2]);
 
-    rIntegrationCoefficient = dA * Weight;
+    return dA * Weight;
 }
 
 

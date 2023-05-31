@@ -389,7 +389,7 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) co
 
     for(unsigned int i=0; i<NumNodes; ++i)
     {
-        const Node<3>& rNode = r_geometry[i];
+        const Node& rNode = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
 
         // Check that required dofs exist

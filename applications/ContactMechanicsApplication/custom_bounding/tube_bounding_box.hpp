@@ -64,7 +64,7 @@ public:
 
     //typedef BoundedVector<double, 3>                     PointType;
     typedef array_1d<double, 3>                             PointType;
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef ModelPart::NodesContainerType          NodesContainerType;
     typedef NodesContainerType::Pointer     NodesContainerTypePointer;
     typedef ModelPart::ElementsContainerType    ElementsContainerType;

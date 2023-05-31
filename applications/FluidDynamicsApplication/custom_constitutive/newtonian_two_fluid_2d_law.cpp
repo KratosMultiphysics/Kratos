@@ -20,6 +20,7 @@
 #include "includes/cfd_variables.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_constitutive/newtonian_two_fluid_2d_law.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -60,7 +61,7 @@ int NewtonianTwoFluid2DLaw::Check(
     const ProcessInfo& rCurrentProcessInfo) const
 {
     for (unsigned int i = 0; i < rElementGeometry.size(); i++) {
-        const Node<3>& rNode = rElementGeometry[i];
+        const Node& rNode = rElementGeometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DYNAMIC_VISCOSITY,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rNode);
@@ -77,6 +78,11 @@ double NewtonianTwoFluid2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
     double viscosity;
     EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters);
     const Properties& prop = rParameters.GetMaterialProperties();
+    const auto& r_geom = rParameters.GetElementGeometry();
+
+    if (r_geom.Has(ARTIFICIAL_DYNAMIC_VISCOSITY)){
+        viscosity += r_geom.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+    }
 
     if (prop.Has(C_SMAGORINSKY)) {
         const double csmag = prop[C_SMAGORINSKY];

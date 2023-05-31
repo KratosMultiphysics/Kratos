@@ -61,19 +61,19 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianFICElement
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
 
     /// Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
@@ -82,8 +82,8 @@ public:
     using UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateShearModulus;
     using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
 
-    typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
-    typedef typename UPwSmallStrainFICElement<TDim,TNumNodes>::FICElementVariables FICElementVariables;
+    using ElementVariables = typename UPwSmallStrainElement<TDim, TNumNodes>::ElementVariables;
+    using FICElementVariables = typename UPwSmallStrainFICElement<TDim, TNumNodes>::FICElementVariables;
 
     /// Counted pointer of UPwUpdatedLagrangianFICElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianFICElement);

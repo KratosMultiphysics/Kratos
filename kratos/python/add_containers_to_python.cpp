@@ -5,8 +5,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -16,24 +16,18 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
-#include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/flags.h"
+#include "containers/variable.h"
+#include "includes/define_python.h"
 #include "includes/kratos_flags.h"
-#include "includes/variables.h"
 #include "includes/constitutive_law.h"
-
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
-#include "utilities/timer.h"
 #include "utilities/quaternion.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -247,6 +241,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,BLOCKED);
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,MARKER);
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,PERIODIC);
+    KRATOS_REGISTER_IN_PYTHON_FLAG(m,WALL);
 
     // Note: using internal macro for these two because they do not have a NOT_ version
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(m,ALL_DEFINED);
@@ -306,6 +301,8 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_STEPS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_LAGRANGE_MULTIPLIER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_INTEGRATION_THETA )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHAPE_FUNCTIONS_VECTOR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHAPE_FUNCTIONS_GRADIENT_MATRIX)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VECTOR_LAGRANGE_MULTIPLIER )
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ANGULAR_ACCELERATION )
@@ -670,5 +667,4 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RADIATION_SETTINGS)
 }
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

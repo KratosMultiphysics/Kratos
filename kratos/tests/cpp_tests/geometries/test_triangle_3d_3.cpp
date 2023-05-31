@@ -32,7 +32,7 @@ namespace Testing
 {
     /// Factory functions
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /** Generates a sample Triangle3D3.
     * Generates a triangle defined by three random points in the space.
@@ -166,8 +166,11 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Volume, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle3D3<NodeType>();
-
+        
+        // TODO: Remove code in June 2023
         KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+        // TODO: Activate code in June 2023
+        //KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Triangle3D3:: Method not well defined. Replace with DomainSize() instead.");
     }
 
     /** Checks if the minimum edge length is calculated correctly.

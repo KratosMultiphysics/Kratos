@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos Roig
 //
@@ -13,35 +13,30 @@
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/node.h"
 #include "testing/testing.h"
 #include "spatial_containers/bins_static.h"
 
+namespace Kratos::Testing {
 
-namespace Kratos {
-namespace Testing {
+using PointType = Node;
+using PointTypePointer = Node::Pointer;
+using PointVector = std::vector<PointType::Pointer>;
+using PointIterator = std::vector<PointType::Pointer>::iterator;
+using DistanceVector = std::vector<double>;
+using DistanceIterator = std::vector<double>::iterator;
 
-typedef Node<3>                                     PointType;
-typedef Node<3>::Pointer                            PointTypePointer;
-typedef std::vector<PointType::Pointer>             PointVector;
-typedef std::vector<PointType::Pointer>::iterator   PointIterator;
-typedef std::vector<double>                         DistanceVector;
-typedef std::vector<double>::iterator               DistanceIterator;
+using StaticBins = Bins<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
 
-typedef Bins<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator> StaticBins;
-
-typedef StaticBins::CoordinateType                  CoordinateType;
-typedef StaticBins::PointerType                     PointerType;
-typedef StaticBins::SearchStructureType             SearchStructureType;
+using CoordinateType = StaticBins::CoordinateType;
+using PointerType = StaticBins::PointerType;
+using SearchStructureType = StaticBins::SearchStructureType;
 
 /**
  * @brief Test that the bins is constructed correctly
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsDefaultConstructorBoundigBox, KratosCoreFastSuite)
 {
@@ -64,7 +59,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsDefaultConstructorBoundigBox, KratosCoreFast
 
 /**
  * @brief Test that the number of cells is calculated correctly
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsDefaultConstructorCellNumber, KratosCoreFastSuite)
 {
@@ -83,7 +77,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsDefaultConstructorCellNumber, KratosCoreFast
 
 /**
  * @brief Test that the size of the cells is calculated correctly
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsDefaultConstructorCellSize, KratosCoreFastSuite)
 {
@@ -102,7 +95,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsDefaultConstructorCellSize, KratosCoreFastSu
 
 /**
  * @brief Test that the bins is constructed correctly with the bounding box constructor
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsBBConstructorBoundingBox, KratosCoreFastSuite)
 {
@@ -128,7 +120,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsBBConstructorBoundingBox, KratosCoreFastSuit
 
 /**
  * @brief Test that the number of cells is calculated correctly with the bounding box constructor
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsBBConstructorCellNumber, KratosCoreFastSuite)
 {
@@ -150,7 +141,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsBBConstructorCellNumber, KratosCoreFastSuite
 
 /**
  * @brief Test that the size of the cells is calculated correctly with the bounding box constructor
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsBBConstructorCellSize, KratosCoreFastSuite)
 {
@@ -172,7 +162,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsBBConstructorCellSize, KratosCoreFastSuite)
 
 /**
  * @brief Test that the bins is constructed correctly with the cell size constructor
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsCellSizeConstructorBoundingBox, KratosCoreFastSuite)
 {
@@ -197,7 +186,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsCellSizeConstructorBoundingBox, KratosCoreFa
 
 /**
  * @brief Test that the number of cells is calculated correctly with the cell size constructor
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsCellSizeConstructorCellNumber, KratosCoreFastSuite)
 {
@@ -218,7 +206,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsCellSizeConstructorCellNumber, KratosCoreFas
 
 /**
  * @brief Test that the size of the cells is calculated correctly with the cell size constructor
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsCellSizeConstructorCellSize, KratosCoreFastSuite)
 {
@@ -239,7 +226,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsCellSizeConstructorCellSize, KratosCoreFastS
 
 /**
  * @brief Searches the nearest point
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsExistPoint, KratosCoreFastSuite)
 {
@@ -258,7 +244,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsExistPoint, KratosCoreFastSuite)
 
 /**
  * @brief Searches the nearest point (excluding the input)
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPointInner, KratosCoreFastSuite)
 {
@@ -270,7 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPointInner, KratosCoreFastSuite)
 
     PointerType pointToSearch = PointerType(new PointType(10, 4.25, 4.25, 4.25));
     points.push_back(pointToSearch);
-    
+
     StaticBins testBins(points.begin(), points.end());
 
     PointerType nearestPoint = testBins.SearchNearestPointInner(pointToSearch);
@@ -280,7 +265,6 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPointInner, KratosCoreFastSuite)
 
 /**
  * @brief Searches the nearest point with (including the input)
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPoint, KratosCoreFastSuite)
 {
@@ -292,17 +276,16 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPoint, KratosCoreFastSuite)
 
     PointerType pointToSearch = PointerType(new PointType(10, 4.25, 4.25, 4.25));
     points.push_back(pointToSearch);
-    
+
     StaticBins testBins(points.begin(), points.end());
 
     PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch);
- 
+
     KRATOS_CHECK_EQUAL(nearestPoint->Id(), 10);
 }
 
 /**
  * @brief Searches the nearest point (including the input) with distance
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPointWithDistance, KratosCoreFastSuite)
 {
@@ -313,19 +296,18 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPointWithDistance, KratosCoreFastSuit
     }
 
     PointerType pointToSearch = PointerType(new PointType(10, 4.25, 4.25, 4.25));
-    
+
     StaticBins testBins(points.begin(), points.end());
 
     double squaredDistance = 0.0;
     PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch, squaredDistance);
- 
+
     KRATOS_CHECK_EQUAL(nearestPoint->Id(), 4);
     KRATOS_CHECK_EQUAL(squaredDistance, 0.1875);
 }
 
 /**
  * @brief Searches the nearest point (including the input) with distance (threadsafe)
- * 
  */
 KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPointWithDistanceThreadsafe, KratosCoreFastSuite)
 {
@@ -336,17 +318,15 @@ KRATOS_TEST_CASE_IN_SUITE(StaticBinsNearestPointWithDistanceThreadsafe, KratosCo
     }
 
     PointerType pointToSearch = PointerType(new PointType(10, 4.25, 4.25, 4.25));
-    
+
     StaticBins testBins(points.begin(), points.end());
     SearchStructureType searchBox;
 
     double squaredDistance = 0.0;
     PointerType nearestPoint = testBins.SearchNearestPoint(*pointToSearch, squaredDistance, searchBox);
- 
+
     KRATOS_CHECK_EQUAL(nearestPoint->Id(), 4);
     KRATOS_CHECK_EQUAL(squaredDistance, 0.1875);
 }
 
-    
-} // namespace Testesing
-} // namespace Kratos
+} // namespace Kratos::Testing

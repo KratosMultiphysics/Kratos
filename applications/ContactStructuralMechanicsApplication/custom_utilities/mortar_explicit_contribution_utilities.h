@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_EXPLICIT_CONTRIBUTION_UTILITIES)
-#define KRATOS_MORTAR_EXPLICIT_CONTRIBUTION_UTILITIES
+#pragma once
 
 // System includes
 
@@ -78,7 +77,7 @@ public:
     typedef Point                                                                        PointType;
 
     /// Node type definition
-    typedef Node<3>                                                                       NodeType;
+    typedef Node                                                                       NodeType;
 
     /// Geoemtry type definition
     typedef Geometry<NodeType>                                                        GeometryType;
@@ -324,4 +323,3 @@ namespace AuxiliaryOperationsUtilities
 }
 
 }  // namespace Kratos
-#endif /* KRATOS_MORTAR_EXPLICIT_CONTRIBUTION_UTILITIES defined */

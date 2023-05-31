@@ -51,7 +51,7 @@ FrictionLaw::Pointer FrictionLawsFactory::CreateSurfaceFrictionLaw(
     const Properties& rProperty,
     const ProcessInfo& rProcessInfo)
 {
-    if (rProcessInfo.Has(DENSITY_AIR) & rGeometry[0].SolutionStepsDataHas(WIND)) {
+    if (rProcessInfo.Has(DENSITY_AIR) && rGeometry[0].SolutionStepsDataHas(WIND)) {
         return Kratos::make_shared<WindWaterFriction>(rGeometry, rProperty, rProcessInfo);
     }
     else {

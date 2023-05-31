@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Peter Wilson
 //
@@ -27,7 +27,7 @@ void MappingIntersectionUtilities::FindIntersection1DGeometries2D(
     double Tolerance)
 {
     KRATOS_ERROR_IF(rModelPartDomainA.ConditionsBegin()->GetGeometry().LocalSpaceDimension() != 1 &&
-        rModelPartDomainA.ConditionsBegin()->GetGeometry().Dimension() != 2)
+        rModelPartDomainA.ConditionsBegin()->GetGeometry().WorkingSpaceDimension() != 2)
         << "Can compare only line segments with other line segments." << std::endl;
 
     std::vector<array_1d<double, 3>> dummy;
@@ -56,7 +56,7 @@ void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
     const ModelPart& rParentModelPart = rModelPartCoupling.GetParentModelPart();
 
     KRATOS_ERROR_IF(rModelPartCoupling.GeometriesBegin()->LocalSpaceDimension() != 1 &&
-        rModelPartCoupling.GeometriesBegin()->Dimension() != 2)
+        rModelPartCoupling.GeometriesBegin()->WorkingSpaceDimension() != 2)
         << "Can compare only line segments with other line segments." << std::endl;
 
     for (auto geometry_itr = rModelPartCoupling.GeometriesBegin();
@@ -112,7 +112,7 @@ void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
             : (rParentModelPart.ConditionsEnd() - 1)->Id() + 1;
         for (IndexType i = 0; i < IntegrationPointsPerSpan; ++i) {
             rModelPartCoupling.AddCondition(Kratos::make_intrusive<Condition>(
-                id + i, Kratos::make_shared<CouplingGeometry<Node<3>>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
+                id + i, Kratos::make_shared<CouplingGeometry<Node>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
         }
     }
 }

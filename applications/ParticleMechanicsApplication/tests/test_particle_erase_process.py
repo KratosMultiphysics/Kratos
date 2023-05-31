@@ -53,7 +53,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         initial_mp.CreateNewNode(8, -0.5,  0.5, 1.0)
 
     def _create_elements(self, initial_mp):
-        initial_mp.CreateNewElement("UpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
+        initial_mp.CreateNewElement("MPMUpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mp.Elements)
 
     def _create_conditions(self, initial_mp):

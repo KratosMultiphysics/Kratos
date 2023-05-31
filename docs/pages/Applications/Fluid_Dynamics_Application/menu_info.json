@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "fluid_dynamics_application",
+    "landing_page": "General/2D-Cavity-flow-problem.md",
+    "additional_menu_options": {
+        "product": "Fluid Dynamics Application",
+        "title": "sidebar"
+    }
+}

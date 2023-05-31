@@ -35,33 +35,29 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AxisymmetricUPwNormalFaceLoadCondition );
 
-    typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    using UPwNormalFaceLoadCondition<TDim,TNumNodes>::mThisIntegrationMethod;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Default constructor
-    AxisymmetricUPwNormalFaceLoadCondition() : UPwNormalFaceLoadCondition<TDim,TNumNodes>() {}
+    AxisymmetricUPwNormalFaceLoadCondition() : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr) {}
 
-    // Constructor 1
-    AxisymmetricUPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    AxisymmetricUPwNormalFaceLoadCondition( IndexType               NewId,
+                                            GeometryType::Pointer   pGeometry )
+        : AxisymmetricUPwNormalFaceLoadCondition(NewId, pGeometry, nullptr)
+    {}
 
-    // Constructor 2
-    AxisymmetricUPwNormalFaceLoadCondition( IndexType NewId,
-                                            GeometryType::Pointer pGeometry,
+    AxisymmetricUPwNormalFaceLoadCondition( IndexType               NewId,
+                                            GeometryType::Pointer   pGeometry,
                                             PropertiesType::Pointer pProperties )
-                                            : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
-    {
-        mThisIntegrationMethod = this->GetIntegrationMethod();
-    }
+        : UPwNormalFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
+    {}
 
-    // Destructor
     ~AxisymmetricUPwNormalFaceLoadCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

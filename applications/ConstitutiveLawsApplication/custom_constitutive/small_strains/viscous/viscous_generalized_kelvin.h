@@ -12,8 +12,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_VISCOUS_GENERALIZED_KELVIN_H_INCLUDED)
-#define KRATOS_VISCOUS_GENERALIZED_KELVIN_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -88,7 +87,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedKelvin);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -360,4 +359,3 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

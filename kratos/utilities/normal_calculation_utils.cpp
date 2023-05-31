@@ -70,7 +70,7 @@ void NormalCalculationUtils::InitializeNormals(
         // If Parallel make sure normals are reset in all partitions
         VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
 
-        BlockPartition<TContainerType>(r_entity_array).for_each([](typename TContainerType::value_type& rEntity) {
+        block_for_each(r_entity_array, [](typename TContainerType::value_type& rEntity) {
             for (auto& r_node : rEntity.GetGeometry()) {
                 r_node.SetLock();
                 r_node.Set(VISITED, true);
@@ -86,14 +86,13 @@ void NormalCalculationUtils::InitializeNormals(
         }
     } else {
         // In serial iterate normally over the condition nodes
-        BlockPartition<TContainerType>(r_entity_array)
-            .for_each([zero, &rNormalVariable, this](typename TContainerType::value_type& rEntity) {
+        block_for_each(r_entity_array, [zero, &rNormalVariable, this](typename TContainerType::value_type& rEntity) {
                 for (auto& r_node : rEntity.GetGeometry()) {
                     r_node.SetLock();
                     SetNormalValue<TIsHistorical>(r_node, rNormalVariable, zero);
                     r_node.UnSetLock();
                 }
-            });
+        });
     }
 }
 
@@ -229,7 +228,7 @@ void NormalCalculationUtils::CalculateNormalShapeDerivativesOnSimplex(
                                                  ZeroMatrix(4, 2), rConditions);
 
         // calculate condition normal shape derivatives
-        BlockPartition<ConditionsArrayType>(rConditions).for_each([](ConditionType& rCondition) {
+        block_for_each(rConditions, [](ConditionType& rCondition) {
             if (rCondition.GetGeometry().GetGeometryType() ==
                 GeometryData::KratosGeometryType::Kratos_Line2D2) {
                 CalculateNormalShapeDerivative2D(rCondition);
@@ -241,7 +240,7 @@ void NormalCalculationUtils::CalculateNormalShapeDerivativesOnSimplex(
                                                  ZeroMatrix(9, 3), rConditions);
 
         // calculate condition normal shape derivatives
-        BlockPartition<ConditionsArrayType>(rConditions).for_each([](ConditionType& rCondition) {
+        block_for_each(rConditions, [](ConditionType& rCondition) {
             if (rCondition.GetGeometry().GetGeometryType() ==
                 GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
                 CalculateNormalShapeDerivative3D(rCondition);
@@ -335,7 +334,7 @@ void NormalCalculationUtils::SwapNormals(ModelPart& rModelPart)
 
     for(auto& r_cond : rModelPart.Conditions()) {
         GeometryType& r_geometry = r_cond.GetGeometry();
-        Node<3>::Pointer paux = r_geometry(0);
+        Node::Pointer paux = r_geometry(0);
         r_geometry(0) = r_geometry(1);
         r_geometry(1) = paux;
     }

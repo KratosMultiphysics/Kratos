@@ -110,7 +110,15 @@ void AddDataCommunicatorToPython(pybind11::module &m)
         rSelf.Broadcast(SourceMessage,SourceRank);
         return SourceMessage;
     })
-    .def("Broadcast", [](DataCommunicator& rSelf, const std::string& rSourceMessage, const int SourceRank){
+    .def("Broadcast", [](DataCommunicator& rSelf, std::string& rSourceMessage, const int SourceRank){
+        rSelf.Broadcast(rSourceMessage, SourceRank);
+        return rSourceMessage;
+    })
+    .def("Broadcast", [](DataCommunicator& rSelf, Vector& rSourceMessage, const int SourceRank){
+        rSelf.Broadcast(rSourceMessage, SourceRank);
+        return rSourceMessage;
+    })
+    .def("Broadcast", [](DataCommunicator& rSelf, Matrix& rSourceMessage, const int SourceRank){
         rSelf.Broadcast(rSourceMessage, SourceRank);
         return rSourceMessage;
     })
@@ -138,6 +146,10 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     // AllGather
     .def("AllGatherInts",(std::vector<int> (DataCommunicator::*)(const std::vector<int>&) const) &DataCommunicator::AllGather)
     .def("AllGatherDoubles",(std::vector<double> (DataCommunicator::*)(const std::vector<double>&) const) &DataCommunicator::AllGather)
+    // AllGatherv
+    .def("AllGathervInts",(std::vector<std::vector<int>> (DataCommunicator::*)(const std::vector<int>&) const) &DataCommunicator::AllGatherv)
+    .def("AllGathervDoubles",(std::vector<std::vector<double>> (DataCommunicator::*)(const std::vector<double>&) const) &DataCommunicator::AllGatherv)
+    // Common MPI operations
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
     .def("IsDistributed", &DataCommunicator::IsDistributed)

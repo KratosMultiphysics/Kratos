@@ -71,9 +71,9 @@ public:
         AllowableIncrements(double NewMax, double NewMin) {max = NewMax; min = NewMin;}
     };
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
-    typedef GlobalPointersVector<Node<3>> GlobalPointersVectorType;
+    typedef GlobalPointersVector<Node> GlobalPointersVectorType;
 
     ///@}
     ///@name Life Cycle

@@ -4,41 +4,36 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
 // System includes
-#include "mpi.h"
 
 // External includes
 
 // Project includes
-#include "includes/parallel_environment.h"
 #include "utilities/communication_coloring_utilities.h"
 #include "testing/testing.h"
 
-namespace Kratos {
-
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, KratosMPICoreFastSuite)
 {
-    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    DataCommunicator& r_default_comm = Testing::GetDefaultDataCommunicator();
 
-    const int world_size = r_default_comm.Size();
     const int current_rank = r_default_comm.Rank();
 
-    KRATOS_SKIP_TEST_IF_NOT(world_size == 4) << "This test is designed for 4 MPI ranks." << std::endl;
+    KRATOS_SKIP_TEST_IF_NOT(r_default_comm.Size() == 4) << "This test is designed for 4 MPI ranks." << std::endl;
 
     // send lists
     std::vector< std::vector< int > > send_list(4);
     send_list[0] = {1,3};
     send_list[1] = {0,2,3};
-    send_list[2]; //does not send to anyone!!
+    // send_list[2]; //does not send to anyone!!
     send_list[3] = {0};
 
     // //expected_recv_list;
@@ -58,18 +53,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, Krat
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
 {
-    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    DataCommunicator& r_default_comm = Testing::GetDefaultDataCommunicator();
 
-    const int world_size = r_default_comm.Size();
     const int current_rank = r_default_comm.Rank();
 
-    KRATOS_SKIP_TEST_IF_NOT(world_size == 4) << "This test is designed for 4 MPI ranks." << std::endl;
+    KRATOS_SKIP_TEST_IF_NOT(r_default_comm.Size() == 4) << "This test is designed for 4 MPI ranks." << std::endl;
 
     // send lists
     std::vector< std::vector< int > > send_list(4);
     send_list[0] = {1,3};
     send_list[1] = {0,2,3};
-    send_list[2]; //does not send to anyone!!
+    // send_list[2]; //does not send to anyone!!
     send_list[3] = {0};
 
     // //expected_recv_list;
@@ -87,6 +81,4 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationS
     }
 };
 
-
-}
 }

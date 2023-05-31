@@ -22,155 +22,147 @@
 // Project includes
 #include "fluid_constitutive_law.h"
 
-namespace Kratos {
-/**
- * Defines a 3D Bingham non-Newtonian constitutive law
- * This material law is defined by the parameters:
- * 1) DYNAMIC_VISCOSITY
- * 2) YIELD_SHEAR
- * 3) ADAPTIVE_EXPONENT
- */
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham3DLaw : public PfemFluidConstitutiveLaw {
-   public:
+namespace Kratos
+{
     /**
-     * Type Definitions
+     * Defines a 3D Bingham non-Newtonian constitutive law
+     * This material law is defined by the parameters:
+     * 1) DYNAMIC_VISCOSITY
+     * 2) YIELD_SHEAR
+     * 3) ADAPTIVE_EXPONENT
      */
-    typedef ProcessInfo ProcessInfoType;
-    typedef ConstitutiveLaw BaseType;
-    typedef std::size_t SizeType;
+    class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham3DLaw : public PfemFluidConstitutiveLaw
+    {
+    public:
+        /**
+         * Type Definitions
+         */
+        typedef ProcessInfo ProcessInfoType;
+        typedef ConstitutiveLaw BaseType;
+        typedef std::size_t SizeType;
 
-    /**
-     * Counted pointer of Bingham3DLaw
-     */
-    KRATOS_CLASS_POINTER_DEFINITION(Bingham3DLaw);
+        /**
+         * Counted pointer of Bingham3DLaw
+         */
+        KRATOS_CLASS_POINTER_DEFINITION(Bingham3DLaw);
 
-    /**
-     * Life Cycle
-     */
+        /**
+         * Life Cycle
+         */
 
-    /**
-     * Default constructor.
-     */
-    Bingham3DLaw();
+        /**
+         * Default constructor.
+         */
+        Bingham3DLaw();
 
-    /**
-     * Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this constitutive law
-     */
-    ConstitutiveLaw::Pointer Clone() const override;
+        /**
+         * Clone function (has to be implemented by any derived class)
+         * @return a pointer to a new instance of this constitutive law
+         */
+        ConstitutiveLaw::Pointer Clone() const override;
 
-    /**
-     * Copy constructor.
-     */
-    Bingham3DLaw(const Bingham3DLaw& rOther);
+        /**
+         * Copy constructor.
+         */
+        Bingham3DLaw(const Bingham3DLaw &rOther);
 
-    /**
-     * Destructor.
-     */
-    ~Bingham3DLaw() override;
+        /**
+         * Destructor.
+         */
+        ~Bingham3DLaw() override;
 
-    /**
-     * Operators
-     */
+        /**
+         * Operators
+         */
 
-    /**
-     * Operations needed by the base class:
-     */
+        /**
+         * Operations needed by the base class:
+         */
 
-    /**
-     * @return Working space dimension constitutive law
-     */
-    SizeType WorkingSpaceDimension() override;
+        /**
+         * @return Working space dimension constitutive law
+         */
+        SizeType WorkingSpaceDimension() override;
 
-    /**
-     * @return Size of the strain vector (in Voigt notation) for the constitutive law
-     */
-    SizeType GetStrainSize() const override;
+        /**
+         * @return Size of the strain vector (in Voigt notation) for the constitutive law
+         */
+        SizeType GetStrainSize() const override;
 
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+        void CalculateMaterialResponseCauchy(Parameters &rValues) override;
 
-    /**
-     * This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rMaterialProperties
-     * @param rElementGeometry
-     * @param rCurrentProcessInfo
-     * @return
-     */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) const override;
+        /**
+         * This function is designed to be called once to perform all the checks needed
+         * on the input provided. Checks can be "expensive" as the function is designed
+         * to catch user's errors.
+         * @param rMaterialProperties
+         * @param rElementGeometry
+         * @param rCurrentProcessInfo
+         * @return
+         */
+        int Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
+                  const ProcessInfo &rCurrentProcessInfo) const override;
 
-    /**
-     * Input and output
-     */
+        /**
+         * Input and output
+         */
 
-    /**
-     * Turn back information as a string.
-     */
-    std::string Info() const override;
+        /**
+         * Turn back information as a string.
+         */
+        std::string Info() const override;
 
-   protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    ///@}
-    ///@name Protected Operators
-    ///@{
-    ///@}
-    ///@name Protected Operations
-    ///@{
+    protected:
+        ///@name Protected static Member Variables
+        ///@{
+        ///@}
+        ///@name Protected member Variables
+        ///@{
+        ///@}
+        ///@name Protected Operators
+        ///@{
+        ///@}
+        ///@name Protected Operations
+        ///@{
 
-    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
-    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+        double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
-    /// Get the effective density for the fluid.
-    double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
+        ///@}
 
-    /// Get the effective yield shear for the fluid.
-    virtual double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const;
+    private:
+        ///@name Static Member Variables
+        ///@{
 
-    /// Get the effective dynamic viscosity for the fluid.
-    virtual double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+        ///@}
+        ///@name Member Variables
+        ///@{
 
-    ///@}
+        ///@}
+        ///@name Private Operators
+        ///@{
 
-   private:
-    ///@name Static Member Variables
-    ///@{
+        ///@}
+        ///@name Private Operations
+        ///@{
+        ///@}
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+        ///@}
+        ///@name Private  Access
+        ///@{
+        ///@}
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+        ///@}
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
 
-    ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
+        void save(Serializer &rSerializer) const override;
 
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
+        void load(Serializer &rSerializer) override;
+        ///@}
 
-    ///@}
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
+    }; // Class Bingham3DLaw
 
-    void save(Serializer& rSerializer) const override;
+} // namespace Kratos.
 
-    void load(Serializer& rSerializer) override;
-    ///@}
-
-};  // Class Bingham3DLaw
-
-}  // namespace Kratos.
-
-#endif  // KRATOS_BINGHAM_LAW_3D_H_INCLUDED  defined
+#endif // KRATOS_BINGHAM_LAW_3D_H_INCLUDED  defined
