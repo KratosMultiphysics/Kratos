@@ -258,6 +258,11 @@ protected:
         TElementData& rData,
         MatrixType &rMassMatrix);
 
+    void AddReactionStabilization(
+        TElementData& rData,
+        auto& rLHS,
+        VectorType& rLocalRHS);
+
     void AddViscousTerm(
         const TElementData& rData,
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,

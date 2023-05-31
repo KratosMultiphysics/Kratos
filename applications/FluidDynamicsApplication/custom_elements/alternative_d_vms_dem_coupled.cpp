@@ -24,9 +24,6 @@
 
 namespace Kratos
 {
-// DenseVector<std::vector<double>> mExactPorosity;
-// DenseVector<Matrix> mExactPorosityGradient;
-//DenseVector<Matrix> mExactBodyForce;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Life cycle
 
@@ -167,7 +164,10 @@ void AlternativeDVMSDEMCoupled<TElementData>::Calculate(
 template< class TElementData >
 GeometryData::IntegrationMethod AlternativeDVMSDEMCoupled<TElementData>::GetIntegrationMethod() const
 {
-    return GeometryData::IntegrationMethod::GI_GAUSS_5;
+    if(mInterpolationOrder == 1)
+        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    else
+        return GeometryData::IntegrationMethod::GI_GAUSS_3;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,7 +193,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCur
 
     // The prediction is updated before each non-linear iteration:
     // It is not stored in a restart and can be safely initialized.
-    mPreviousVelocity.resize(number_of_gauss_points);
+    //mPreviousVelocity.resize(number_of_gauss_points);
 
     // The old velocity may be already defined (if restarting)
     // and we want to keep the loaded values in that case.
@@ -708,22 +708,16 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-    //BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
     array_1d<double,3> fluid_fraction_gradient = ZeroVector(Dim);
     for (unsigned int i = 0; i < NumNodes; i++)
         for (unsigned int d = 0; d < Dim; d++)
             fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
     const auto& body_force = this->GetAtCoordinate(rData.BodyForce, rData.N);
-    // const int elem_idx = this->Id()-1;
-    // array_1d<double,3> body_force;
-    // for (unsigned int d = 0; d < Dim; d++)
-    //    body_force[d] = density * mExactBodyForce[elem_idx](d,rData.IntegrationPointIndex);
     Vector grad_alpha_sym_grad_u, grad_div_u, sigma_U, div_sym_grad_u;
     BoundedMatrix<double,Dim,Dim> sym_gradient_u;
     for (unsigned int i = 0; i < NumNodes; i++) {
-        //const array_1d<double,3>& rAcc = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-        sigma_U = ZeroVector(Dim);
+
         grad_div_u = ZeroVector(Dim);
         sym_gradient_u = ZeroMatrix(Dim, Dim);
         grad_alpha_sym_grad_u = ZeroVector(Dim);
@@ -731,7 +725,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
         for (unsigned int d = 0; d < Dim; d++) {
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
-                sigma_U[d] += sigma(d,e) * rData.N[i] * rData.Velocity(i,e);
                 sym_gradient_u(d,e) += 1.0 / 2.0 * (rData.DN_DX(i,d) * rData.Velocity(i,e) + rData.DN_DX(i,e) * rData.Velocity(i,d));
                 grad_alpha_sym_grad_u[d] += fluid_fraction_gradient[e] * sym_gradient_u(d,e);
                 div_u += rData.DN_DX(i,e) * rData.Velocity(i,e);
@@ -741,7 +734,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
                 else
                     div_sym_grad_u[d] += 1.0/2.0 * (rData.DDN_DDX[i](e,d) * rData.Velocity(i,e) + rData.DDN_DDX[i](e,e) * rData.Velocity(i,d));
             }
-            rMomentumRHS[d] += density * (/*body_force[d]*/ /*- fluid_fraction * rAcc[d]*/ - fluid_fraction * AGradN[i] * rData.Velocity(i,d)) + 2.0 * grad_alpha_sym_grad_u[d] * viscosity - 2.0/3.0 * viscosity * fluid_fraction_gradient[d] * div_u + 2.0 * fluid_fraction * viscosity * div_sym_grad_u[d] - 2.0/3.0 * fluid_fraction * viscosity * grad_div_u[d] - fluid_fraction * rData.DN_DX(i,d) * rData.Pressure[i] - sigma_U[d];
+            rMomentumRHS[d] += density * (- fluid_fraction * AGradN[i] * rData.Velocity(i,d)) + 2.0 * grad_alpha_sym_grad_u[d] * viscosity - 2.0/3.0 * viscosity * fluid_fraction_gradient[d] * div_u + 2.0 * fluid_fraction * viscosity * div_sym_grad_u[d] - 2.0/3.0 * fluid_fraction * viscosity * grad_div_u[d] - fluid_fraction * rData.DN_DX(i,d) * rData.Pressure[i]/* - sigma_U[d]*/;
         }
     }
     for (unsigned int d = 0; d < Dim; d++)
@@ -760,10 +753,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
-    //const int elem_idx = this->Id()-1;
-    //array_1d<double,3> body_force;
-    //for (unsigned int d = 0; d < Dim; d++)
-    //    body_force[d] = density * mExactBodyForce[elem_idx](d,rData.IntegrationPointIndex);
     const array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
     array_1d<double,3> velocity = this->GetAtCoordinate(rData.Velocity,rData.N);
 
@@ -1229,13 +1218,11 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddReactionStabilization(
 
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
-    const array_1d<double, 3> convective_velocity =
-        this->GetAtCoordinate(rData.Velocity, rData.N) -
-        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
+    const array_1d<double, 3> convective_velocity = this->FullConvectiveVelocity(rData);
 
     this->CalculateStabilizationParameters(rData, convective_velocity, tau_one, tau_two);
 
-    array_1d<double,3> body_force = this->GetAtCoordinate(rData.BodyForce, rData.N);
+    array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce, rData.N);
     // const int elem_idx = this->Id()-1;
     // array_1d<double,3> body_force = ZeroVector(3);
     // for (unsigned int d = 0; d < Dim; d++)
@@ -1493,7 +1480,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-    const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
     const int p = mInterpolationOrder;
