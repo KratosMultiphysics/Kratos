@@ -124,6 +124,7 @@ public:
      * @param itPointEnd The last point iterator
      * @param Radius The radius to be checked
      * @param rResults The results of the search
+     * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
@@ -131,9 +132,15 @@ public:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius,
-        ResultTypeContainerMap& rResults
+        ResultTypeContainerMap& rResults, 
+        const bool ClearSolution = true
         )
     {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
@@ -159,6 +166,7 @@ public:
      * @param itPointEnd The last point iterator
      * @param Radius The radius to be checked
      * @param rResults The results of the search
+     * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
@@ -166,9 +174,15 @@ public:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius,
-        ResultTypeContainerMap& rResults
+        ResultTypeContainerMap& rResults, 
+        const bool ClearSolution = true
         )
     {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
@@ -193,14 +207,22 @@ public:
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param rResults The results of the search
+     * @param ClearSolution Clear the current solution
+     * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
     void SearchNearest(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        ResultTypeContainerMap& rResults
+        ResultTypeContainerMap& rResults, 
+        const bool ClearSolution = true
         )
     {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+        
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
@@ -227,15 +249,22 @@ public:
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param rResults The results of the search
+     * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
     void SearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        ResultTypeContainerMap& rResults
+        ResultTypeContainerMap& rResults, 
+        const bool ClearSolution = true
         )
     {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+        
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
