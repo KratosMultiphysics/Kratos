@@ -169,7 +169,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIn
     // Check shape functions
     KRATOS_CHECK_EQUAL(static_cast<int>(indixes.size()), r_data_comm.Size());
     for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
-        KRATOS_CHECK_EQUAL(indixes[i_rank], i_rank + 1);
+        KRATOS_CHECK_EQUAL(static_cast<int>(indixes[i_rank]), i_rank + 1);
     }
 }
 
