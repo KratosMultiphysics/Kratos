@@ -265,9 +265,11 @@ struct KRATOS_API(KRATOS_CORE) ExpressionUtilities
     /// @name Arithmetic Operations
     /// @{
 
+    /// @brief Raise each component of an expression to the power of an exponent.
     template <class TContainer>
     static void Pow(ContainerExpression<TContainer>& rBase, double Exponent);
 
+    /// @brief Raise each component of a base expression to the power of an exponent expression component-wise.
     template <class TContainer>
     static void Pow(ContainerExpression<TContainer>& rBase,
                     const ContainerExpression<TContainer>& rExponent);
