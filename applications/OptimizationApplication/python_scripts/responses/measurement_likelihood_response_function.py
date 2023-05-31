@@ -63,7 +63,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
         self.sensor_positions_model_part = self.model.CreateModelPart("sensor_positions")
 
-        for sensor in self.measurement_data["load_cases"][0]["description_of_sensors"]:
+        for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
 
             point = Kratos.Point(sensor["position_of_mesh_node"])
             search_configuration = Kratos.Configuration.Initial
@@ -78,6 +78,10 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
             sensor["mesh_node_id"] = found_node_id
             # Add node to sensor_positions_model_part
             self.sensor_positions_model_part.AddNode(self.model_part.GetNode(found_node_id))
+
+        # Update measurement data file with newly added infos
+        with open(self.measurement_data_file, "w") as outfile:
+            json.dump(self.measurement_data, outfile)
 
     def Check(self) -> None:
         pass
@@ -98,7 +102,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         # LL = 1/2 * 1/cov * error**2
 
         objective_value = 0
-        for sensor in self.measurement_data["load_cases"][0]["description_of_sensors"]:
+        for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
             measured_displacement = Kratos.Array3(sensor["measured_value"])
 
             mesh_node = self.model_part.GetNode(sensor["mesh_node_id"])

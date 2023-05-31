@@ -13,17 +13,17 @@ class LoadDataContainer:
 
 @dataclasses.dataclass
 class SensorDataContainer:
-    type_of_sensor: str = "Displacement",
+    type_of_sensor: str = "DISPLACEMENT",
     measurement_direction_normal: List[float] = [0, 1, 0],
     position_of_mesh_node: List[float] = [0, 0, 0],
-    mesh_node_id: float = 0,
+    mesh_node_id: float = -1,
     measured_value: float = 0,
 
 
 @dataclasses.dataclass
 class PerLoadCaseMeasurementDataContainer:
-    description_of_load: LoadDataContainer = None,
-    description_of_sensors: List[SensorDataContainer] = None,
+    load_info: LoadDataContainer = None,
+    sensors_infos: List[SensorDataContainer] = None,
 
 
 @dataclasses.dataclass
@@ -44,8 +44,8 @@ sensors = [
                         measurement_direction_normal=[0., -1., 0.])
 ]
 
-data_out = LoadCasesContainer([PerLoadCaseMeasurementDataContainer(description_of_load=load,
-                                                                   description_of_sensors=sensors)
+data_out = LoadCasesContainer([PerLoadCaseMeasurementDataContainer(load_info=load,
+                                                                   sensors_infos=sensors)
                                ])
 
 

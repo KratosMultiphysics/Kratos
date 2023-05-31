@@ -25,14 +25,6 @@
 
 namespace Kratos
 {
-    template <typename T>
-    std::vector<T> as_vector(boost::property_tree::ptree const &pt, boost::property_tree::ptree::key_type const &key)
-    {
-        std::vector<T> r;
-        for (auto &item : pt.get_child(key))
-            r.push_back(item.second.get_value<T>());
-        return r;
-    }
 
     AdjointNodalDisplacementMeasurementResidualResponseFunction::AdjointNodalDisplacementMeasurementResidualResponseFunction(ModelPart &rModelPart, Parameters ResponseSettings)
         : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
@@ -44,33 +36,14 @@ namespace Kratos
         std::ifstream t("MeasurementData.json");
         std::stringstream buffer;
         buffer << t.rdbuf();
-        auto json_string =  buffer.str();
-        std::cout<< "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Start reading measurement json ..."<<std::endl;
+        auto json_string = buffer.str();
+        std::cout << "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Start reading measurement json ..." << std::endl;
 
-        auto measurements = Parameters(json_string);
-        std::cout<< "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Measurements:" << std::endl << measurements<<std::endl;
+        mMeasurementData = Parameters(json_string);
+        std::cout << "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Measurements:" << std::endl
+                  << mMeasurementData << std::endl;
 
-        // std::ifstream measurement_data_file(ResponseSettings["measurement_data_file_path"].GetString());
-        // KRATOS_ERROR_IF_NOT(measurement_data_file)
-        //     << "AdjointNodalDisplacementMeasurementResidualResponseFunction: Measurement data json does not exists" << ResponseSettings["measurement_data_file_path"].GetString() << std::endl;
-
-        // std::stringstream sensorDataJson;
-        // sensorDataJson << measurement_data_file.rdbuf();
-        // measurement_data_file.close();
-
-        // boost::property_tree::ptree measurement_data_tree;
-        // boost::property_tree::read_json(ResponseSettings["measurement_data_file_path"].GetString(), measurement_data_tree);
-
-        // auto sensor_data_array = as_vector < std::vector<boost::property_tree::ptree>(measurement_data_tree, "description_of_sensors");
-
-        // auto first_sensor_data = sensor_data_array[0];
-        // auto type = first_sensor_data.get_value<std::string>("type_of_sensor");
-
-        // std::cout << data << std::endl;
-
-        // Json::Value measurement_data;
-        // std::ifstream people_file("M.json", std::ifstream::binary);
-        // people_file >> people;
+        KRATOS_ERROR_IF_NOT(mMeasurementData["load_cases"].size() == 1) << "AdjointNodalDisplacementMeasurementResidualResponseFunction: More then one load case in measurement data available. Currently only one load is supported.\nSize is: " << mMeasurementData["load_cases"].size() << std::endl;
 
         if (norm_2(mResponseDirection) > 1.0e-7)
         {
@@ -119,20 +92,37 @@ namespace Kratos
         DofsVectorType dofs_of_element;
 
         auto it_map = mElementNodeMap.find(rAdjointElement.Id());
-        if (it_map != mElementNodeMap.end())
+        if (it_map == mElementNodeMap.end())
         {
-            rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
-            for (auto const &node_id : it_map->second)
+            return;
+        }
+
+        double measurement_value;
+        Vector measurement_normal;
+
+        rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
+        for (auto const &node_id : it_map->second)
+        {
+            for (IndexType i = 0; i < dofs_of_element.size(); ++i)
             {
-                for (IndexType i = 0; i < dofs_of_element.size(); ++i)
+                if (dofs_of_element[i]->Id() == node_id &&
+                    dofs_of_element[i]->GetVariable() == *adjoint_solution_variable)
                 {
-                    if (dofs_of_element[i]->Id() == node_id &&
-                        dofs_of_element[i]->GetVariable() == *adjoint_solution_variable)
+                    for (auto &sensor_data : mMeasurementData["load_cases"][0]["sensors_infos"])
                     {
-                        rResponseGradient[i] = -1 * mResponseDirection[0];
-                        rResponseGradient[i + 1] = -1 * mResponseDirection[1];
-                        rResponseGradient[i + 2] = -1 * mResponseDirection[2];
-                        break;
+
+                        const long unsigned int sensor_node_id = sensor_data["mesh_node_id"].GetInt();
+
+                        if (sensor_node_id == node_id)
+                        {
+                            measurement_value = sensor_data["measured_value"].GetDouble();
+                            measurement_normal = sensor_data["measurement_direction_normal"].GetVector();
+
+                            rResponseGradient[i] = (measurement_normal[0] * measurement_value) - mResponseDirection[0];
+                            rResponseGradient[i + 1] = (measurement_normal[1] * measurement_value) - mResponseDirection[1];
+                            rResponseGradient[i + 2] = (measurement_normal[2] * measurement_value) - mResponseDirection[2];
+                            break;
+                        }
                     }
                 }
             }
@@ -231,20 +221,32 @@ namespace Kratos
 
     double AdjointNodalDisplacementMeasurementResidualResponseFunction::CalculateValue(ModelPart &rModelPart)
     {
-        // TODO: Add measurement
         KRATOS_TRY;
 
-        const ArrayVariableType &r_traced_dof =
-            KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
+        const ArrayVariableType &r_traced_dof = KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
 
         double response_value = 0.0;
+        double measurement_value;
+        Vector measurement_normal;
+        int sensor_node_id;
+        Vector simulated_response_vector;
+        double projected_simulated_response;
+        double measurement_difference;
         ModelPart &response_part = rModelPart.GetSubModelPart(mResponsePartName);
-        for (auto &node_i : response_part.Nodes())
+
+        for (auto &sensor_data : mMeasurementData["load_cases"][0]["sensors_infos"])
         {
-            // project displacement vector in the traced direction. As mResponseDirection is a normalized vector
-            // the result of the inner product is already the displacement value in the traced direction.
-            response_value += inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0));
+            measurement_value = sensor_data["measured_value"].GetDouble();
+            measurement_normal = sensor_data["measurement_direction_normal"].GetVector();
+
+            sensor_node_id = sensor_data["mesh_node_id"].GetInt();
+            simulated_response_vector = response_part.GetNode(sensor_node_id).FastGetSolutionStepValue(r_traced_dof);
+            projected_simulated_response = inner_prod(measurement_normal, simulated_response_vector);
+
+            measurement_difference = measurement_value - projected_simulated_response;
+            response_value += measurement_difference;
         }
+        response_value *= 0.5;
 
         return response_value;
 

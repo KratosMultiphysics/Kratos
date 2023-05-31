@@ -191,7 +191,7 @@ namespace Kratos
         std::string mResponsePartName;
         array_1d<double, 3> mResponseDirection;
         std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
-        std::unordered_map<IndexType, std::vector<double>> mNodeMeasurementData;
+        Parameters mMeasurementData;
 
         ///@}
         ///@name Private Operators
