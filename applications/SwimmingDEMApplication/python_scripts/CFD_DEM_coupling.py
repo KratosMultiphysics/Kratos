@@ -95,7 +95,6 @@ class ProjectionModule:
                 alpha = 1 - np.exp(- averaging_time_interval)
             else:
                 alpha = 1.0 / averaging_time_interval
-            print('A'*100, alpha)
             self.projector.AddFluidVariableToBeTimeFiltered(var, alpha)
 
     def UpdateDatabase(self, HMin):
