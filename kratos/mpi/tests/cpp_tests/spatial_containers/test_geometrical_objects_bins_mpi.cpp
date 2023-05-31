@@ -155,7 +155,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIBoundingBox, Krat
 
 /** Checks bins search in radius
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, KratosMPICoreFastSuite2)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, KratosMPICoreFastSuite)
 {
     Model current_model;
 
@@ -173,72 +173,49 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
     // We generate only in first rank
     const int rank = r_data_comm.Rank();
+    Point point(0.0, 0.0, 0.0);
     if (rank == 0) {
-        r_point_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        r_point_model_part.CreateNewNode(1, point.X(), point.Y(), point.Z());
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
 
-    std::vector<std::vector<GeometricalObjectsBinsMPI::ResultType>> results;
+    GeometricalObjectsBinsMPI::ResultTypeContainerMap results;
 
     // 0.29 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
     // Like the point is on the first rank the results should be empty in all partitions except the first one
-    if (rank == 0) {
-        KRATOS_CHECK_EQUAL(results.size(), 1);
-        KRATOS_CHECK_EQUAL(results[0].size(), 0);
-    } else {
-        KRATOS_CHECK_EQUAL(results.size(), 0);
-    }
+    KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 0);
 
     // 0.3 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     // Like the point is on the first rank the results should be empty in all partitions except the first one
-    if (rank == 0) {
-        KRATOS_CHECK_EQUAL(results.size(), 1);
-        KRATOS_CHECK_EQUAL(results[0].size(), 4);
-    } else {
-        KRATOS_CHECK_EQUAL(results.size(), 0);
-    }
+    KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 4);
 
     // 0.4 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
     // Like the point is on the first rank the results should be empty in all partitions except the first one
-    if (rank == 0) {
-        KRATOS_CHECK_EQUAL(results.size(), 1);
-        KRATOS_CHECK_EQUAL(results[0].size(), 4);
-    } else {
-        KRATOS_CHECK_EQUAL(results.size(), 0);
-    }
+    KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 4);
 
     // 0.6 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
     // Like the point is on the first rank the results should be empty in all partitions except the first one
-    if (rank == 0) {
-        KRATOS_CHECK_EQUAL(results.size(), 1);
-        KRATOS_CHECK_EQUAL(results[0].size(), 8);
-    } else {
-        KRATOS_CHECK_EQUAL(results.size(), 0);
-    }
+    KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 8);
 
     // 0.7 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
     // Like the point is on the first rank the results should be empty in all partitions except the first one
-    if (rank == 0) {
-        KRATOS_CHECK_EQUAL(results.size(), 1);
-        KRATOS_CHECK_EQUAL(results[0].size(), 8);
-    } else {
-        KRATOS_CHECK_EQUAL(results.size(), 0);
-    }
+    KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 8);
 
     // 0.9 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
     // Like the point is on the first rank the results should be empty in all partitions except the first one
-    if (rank == 0) {
-        KRATOS_CHECK_EQUAL(results.size(), 1);
-        KRATOS_CHECK_EQUAL(results[0].size(), 12);
-    } else {
-        KRATOS_CHECK_EQUAL(results.size(), 0);
-    }
+    KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 12);
 }
 
 // /** Checks bins search nearest
