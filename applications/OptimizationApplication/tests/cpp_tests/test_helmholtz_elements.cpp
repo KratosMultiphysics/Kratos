@@ -80,12 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(HelmholtzSolidElement, KratosOptimizationFastSuite)
 
     KRATOS_CHECK_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
 
-    Vector ref_rhs(4);
-    ref_rhs[0] = -4.166666666667e-02;
-    ref_rhs[1] = -4.166666666667e-02;
-    ref_rhs[2] = -4.166666666667e-02;
-    ref_rhs[3] = -4.166666666667e-02;
-
+    Vector ref_rhs(4, -4.166666666667e-02);
     KRATOS_CHECK_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
 }
 
