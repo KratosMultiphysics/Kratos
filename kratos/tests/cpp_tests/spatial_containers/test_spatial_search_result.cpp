@@ -23,7 +23,7 @@
 namespace Kratos::Testing 
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TestDefaultConstruction, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultDefaultConstruction, KratosCoreFastSuite)
 {
     auto result = SpatialSearchResult<GeometricalObject>();
     KRATOS_CHECK_EQUAL(result.IsObjectFound(), false);
@@ -32,21 +32,21 @@ KRATOS_TEST_CASE_IN_SUITE(TestDefaultConstruction, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(result.GetDistance(), 0.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestObjectFound, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultObjectFound, KratosCoreFastSuite)
 {
     auto result = SpatialSearchResult<GeometricalObject>();
     result.SetIsObjectFound(true);
     KRATOS_CHECK_EQUAL(result.IsObjectFound(), true);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestDistanceCalculated, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultDistanceCalculated, KratosCoreFastSuite)
 {
     auto result = SpatialSearchResult<GeometricalObject>();
     result.SetIsDistanceCalculated(true);
     KRATOS_CHECK_EQUAL(result.IsDistanceCalculated(), true);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestPointer, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultPointer, KratosCoreFastSuite)
 {
     Element element = Element();
     auto result = SpatialSearchResult<GeometricalObject>(&element);
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestPointer, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(result.Get().get(), ptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestDistance, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultDistance, KratosCoreFastSuite)
 {
     auto result = SpatialSearchResult<GeometricalObject>();
     result.SetDistance(3.14);
