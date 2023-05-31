@@ -210,7 +210,6 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("SetZero", &container_type::template SetZero<array_1d<double, 9>>, py::arg("Array9_variable"))
         .def("SetZero", &container_type::template SetZero<Vector>, py::arg("Vector_variable"))
         .def("SetZero", &container_type::template SetZero<Matrix>, py::arg("Matrix_variable"))
-        .def("Reshape", [](const container_type& rSelf, const std::vector<IndexType>& rShape) { return rSelf.Reshape(rShape); }, py::arg("shape"))
         .def("Comb", [](const container_type& rSelf, const typename container_type::BaseType& rOther) { return rSelf.Comb(rOther); }, py::arg("other_container_expression_to_combine_with"))
         .def("Comb", [](const container_type& rSelf, const std::vector<typename container_type::BaseType::Pointer>& rListOfOthersContainerExpressions) { return rSelf.Comb(rListOfOthersContainerExpressions); }, py::arg("other_container_expressions_list_to_combine_with"))
         .def("__add__", [](const container_type& rSelf, const container_type& rOther) { return rSelf + rOther; })
@@ -256,6 +255,13 @@ void AddExpressionUtilitiesToPython(pybind11::module& rUtilityModule)
                        pybind11::arg("expression"),
                        pybind11::arg("offset"),
                        pybind11::arg("stride"));
+    rUtilityModule.def("Reshape",
+                       [](ContainerExpression<TContainer>& rExpression,
+                          const std::vector<std::size_t>& rNewShape) {
+                            ExpressionUtilities::Reshape(rExpression, rNewShape);
+                       },
+                       pybind11::arg("expression"),
+                       pybind11::arg("new_shape"));
 }
 
 

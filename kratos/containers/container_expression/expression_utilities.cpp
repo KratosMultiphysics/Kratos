@@ -17,7 +17,6 @@
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/expressions/binary/binary_expression.h"
 #include "containers/container_expression/expressions/unary/unary_slice_expression.h"
-#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
 #include "containers/container_expression/expressions/unary/unary_combine_expression.h"
 
 
@@ -70,6 +69,14 @@ void ExpressionUtilities::Slice(ContainerExpression<TContainer>& rExpression,
 }
 
 
+template <class TContainer>
+void ExpressionUtilities::Reshape(ContainerExpression<TContainer>& rExpression,
+                                  const std::vector<std::size_t>& rNewShape)
+{
+    ExpressionUtilities::Reshape(rExpression, rNewShape.begin(), rNewShape.end());
+}
+
+
 #define KRATOS_INSTANTIATE_EXPRESSION_UTILITY(CONTAINER_TYPE)                                               \
     template void ExpressionUtilities::Clone<CONTAINER_TYPE>(const ContainerExpression<CONTAINER_TYPE>&,    \
                                                              ContainerExpression<CONTAINER_TYPE>&);         \
@@ -79,7 +86,9 @@ void ExpressionUtilities::Slice(ContainerExpression<TContainer>& rExpression,
                                                            const ContainerExpression<CONTAINER_TYPE>&);     \
     template void ExpressionUtilities::Slice<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,          \
                                                              std::size_t,                                   \
-                                                             std::size_t)
+                                                             std::size_t);                                  \
+    template void ExpressionUtilities::Reshape<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,        \
+                                                               const std::vector<std::size_t>&)
 
 
 KRATOS_INSTANTIATE_EXPRESSION_UTILITY(ModelPart::NodesContainerType);

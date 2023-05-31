@@ -151,23 +151,6 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(const std::vector<IndexType>& rShape) const
-{
-    return this->Reshape(rShape.begin(), rShape.end());
-}
-
-template <class TContainerType, class TContainerDataIO, class TMeshType>
-template<class TIteratorType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(
-    TIteratorType Begin,
-    TIteratorType End) const
-{
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = UnaryReshapeExpression::Create(*this->mpExpression, Begin, End);
-    return result;
-}
-
-template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const BaseType& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));

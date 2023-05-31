@@ -158,48 +158,6 @@ public:
     ///@{
 
     /**
-     * @brief Returns current expression reshaped to specified shape.
-     *
-     * @details This method returns a new reshaped @ref SpecializedContainerExpression.
-     *          This reshaping is done on each entitiy's data array, and not on the flattened
-     *          expression. Following is an example:
-     *
-     *          Assume a SpecializedContainerExpression with an expression of shape [2, 3] and 2 entities with
-     *          following data values in the flattened representation.
-     *
-     *          data = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
-     *                  <-------- 1 --------->  <----------- 2 ----------->
-     *
-     *          If the rShape = [3, 2] then the returned @ref SpecializedContainerExpression will have an lazy
-     *          expression which will return following output data when Evaluate is called.
-     *
-     *          output_data = [[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]]
-     *          output containers shape = [3, 2]
-     *
-     *          This creates a lazy expression, hence it has a constant cost complexity irrespective of the data size.
-     *
-     * @param rShape                            New shape to used to reshape the existing expression.
-     * @return SpecializedContainerExpression   New container expression with data reshaped to @ref rShape.
-     */
-    SpecializedContainerExpression Reshape(const std::vector<IndexType>& rShape) const;
-
-    /**
-     * @brief Returns current expression reshaped to specified shape.
-     *
-     * @details This method is same as the previous Reshape method. It accepts start and end iterators
-     *          of the shape.
-     *
-     * @see Reshape(const IndexType Offset, const IndexType Stride)
-     * @param Begin                             Start iterator of the shape iterator.
-     * @param End                               End iterator of the shape iterator.
-     * @return SpecializedContainerExpression   New container expression with data reshaped to @ref rShape.
-     */
-    template<class TIteratorType>
-    SpecializedContainerExpression Reshape(
-        TIteratorType Begin,
-        TIteratorType End) const;
-
-    /**
      * @brief Returns container expression which combines current and all the other container expressions provided.
      *
      * @details     This method provides a combined container expression as explained in the following example.

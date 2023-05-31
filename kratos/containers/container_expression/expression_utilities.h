@@ -14,6 +14,7 @@
 #pragma once
 
 // Project includes
+#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
 #include "containers/container_expression/container_expression.h"
 #include "includes/define.h"
 
@@ -73,6 +74,67 @@ struct KRATOS_API(KRATOS_CORE) ExpressionUtilities
     static void Slice(ContainerExpression<TContainer>& rExpression,
                       std::size_t Offset,
                       std::size_t Stride);
+
+    /** @brief Returns current expression reshaped to specified shape.
+     *
+     *  @details Reshaping is done on each entitiy's data array, and not on the flattened
+     *           expression. For example:
+     *
+     *           Assume a SpecializedContainerExpression with an expression of shape [2, 3] and 2 entities with
+     *           following data values in the flattened representation.
+     *
+     *           data = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+     *                   <-------- 1 --------->  <----------- 2 ----------->
+     *
+     *           If the rShape = [3, 2] then the returned @ref SpecializedContainerExpression will have a lazy
+     *           expression which will return the following output data when Evaluate is called.
+     *
+     *           output_data = [[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]]
+     *           output container shape = [3, 2]
+     *
+     *           This creates a lazy expression, hence it has a constant cost complexity irrespective of the data size.
+     *
+     *  @param rExpression Expression to reshape.
+     *  @param rNewShape New shape to used to reshape the existing expression.
+     */
+    template <class TContainer>
+    static void Reshape(ContainerExpression<TContainer>& rExpression,
+                        const std::vector<std::size_t>& rNewShape);
+
+    /** @brief Returns current expression reshaped to specified shape.
+     *
+     *  @details Reshaping is done on each entitiy's data array, and not on the flattened
+     *           expression. For example:
+     *
+     *           Assume a SpecializedContainerExpression with an expression of shape [2, 3] and 2 entities with
+     *           following data values in the flattened representation.
+     *
+     *           data = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+     *                   <-------- 1 --------->  <----------- 2 ----------->
+     *
+     *           If the rShape = [3, 2] then the returned @ref SpecializedContainerExpression will have a lazy
+     *           expression which will return the following output data when Evaluate is called.
+     *
+     *           output_data = [[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]]
+     *           output container shape = [3, 2]
+     *
+     *           This creates a lazy expression, hence it has a constant cost complexity irrespective of the data size.
+     *
+     *  @param rExpression Expression to reshape.
+     *  @param NewShapeBegin Iterator to the first component of the array defining the new shape.
+     *  @param NewShapeEnd Iterator past the last component of the new shape array.
+     */
+    template <class TContainer, class TIterator>
+    static void Reshape(ContainerExpression<TContainer>& rExpression,
+                        TIterator NewShapeBegin,
+                        TIterator NewShapeEnd)
+    {
+        rExpression.SetExpression(UnaryReshapeExpression::Create(
+            rExpression.pGetExpression(),
+            NewShapeBegin,
+            NewShapeEnd
+        ));
+    }
 
     /// @}
     /// @name Arithmetic Operations
