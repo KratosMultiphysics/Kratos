@@ -27,7 +27,7 @@
 
 using AccessorBindType = std::unique_ptr<Kratos::Accessor>;
 
-PYBIND11_MAKE_OPAQUE(AcccessorBindType);
+PYBIND11_MAKE_OPAQUE(AccessorBindType);
 
 namespace Kratos::Python
 {
