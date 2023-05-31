@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main author:     Suneth Warnakulasuriya
+//  Main author:     Reza Najian Asl
+//                   Suneth Warnakulasuriya
 //
 
 #pragma once
