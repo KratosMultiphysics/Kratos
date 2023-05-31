@@ -157,18 +157,6 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * @brief Returns container expression which combines current and other expressions given by Begin and end.
-     *
-     * @param Begin                             Begining of the container expressions list.
-     * @param End                               End of the container expressions list.
-     * @return SpecializedContainerExpression       New container expression with data combined.
-     */
-    template<class TIteratorType>
-    SpecializedContainerExpression Comb(
-        TIteratorType Begin,
-        TIteratorType End) const;
-
     SpecializedContainerExpression operator+(const SpecializedContainerExpression& rOther) const;
 
     SpecializedContainerExpression& operator+=(const SpecializedContainerExpression& rOther);

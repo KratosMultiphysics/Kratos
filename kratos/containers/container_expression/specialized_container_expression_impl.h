@@ -24,9 +24,6 @@
 #include "containers/container_expression/expressions/literal/literal_expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/expressions/binary/binary_expression.h"
-#include "containers/container_expression/expressions/unary/unary_slice_expression.h"
-#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
-#include "containers/container_expression/expressions/unary/unary_combine_expression.h"
 
 namespace Kratos {
 
