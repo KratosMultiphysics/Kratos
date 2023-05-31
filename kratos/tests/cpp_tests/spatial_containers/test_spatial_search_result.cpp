@@ -18,7 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/element.h"
-#include "spatial_containers/spatial_search_result_container.h"
+#include "spatial_containers/spatial_search_result.h"
 
 namespace Kratos::Testing 
 {
