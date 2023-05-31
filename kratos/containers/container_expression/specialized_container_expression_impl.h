@@ -151,39 +151,6 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const BaseType& rOther) const
-{
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    std::vector<Expression::Pointer> expressions;
-    expressions.push_back(this->pGetExpression());
-    expressions.push_back(rOther.pGetExpression());
-    result.mpExpression = UnaryCombineExpression::Create(expressions.begin(), expressions.end());
-    return result;
-}
-
-template <class TContainerType, class TContainerDataIO, class TMeshType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const std::vector<typename BaseType::Pointer>& rListOfOthers) const
-{
-    return this->Comb(rListOfOthers.begin(), rListOfOthers.end());
-}
-
-template <class TContainerType, class TContainerDataIO, class TMeshType>
-template<class TIteratorType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(
-    TIteratorType Begin,
-    TIteratorType End) const
-{
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    std::vector<Expression::Pointer> expressions;
-    expressions.push_back(this->pGetExpression());
-    for (auto itr = Begin; itr != End; ++itr) {
-        expressions.push_back((*itr)->pGetExpression());
-    }
-    result.mpExpression = UnaryCombineExpression::Create(expressions.begin(), expressions.end());
-    return result;
-}
-
-template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())

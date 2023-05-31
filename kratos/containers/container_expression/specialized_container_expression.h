@@ -158,46 +158,6 @@ public:
     ///@{
 
     /**
-     * @brief Returns container expression which combines current and all the other container expressions provided.
-     *
-     * @details     This method provides a combined container expression as explained in the following example.
-     *              All the given container expressions in @ref rListOfOthers should have the same number of
-     *              entities as in the current container expression. The combination is done in the following order
-     *              (The values won't be evaluated unless Evaluate is called.).
-     *                  1. First entity values of current expression put to the entity values of the output expression.
-     *                  2. Then entity values of each expression of @ref rListOfOthers is put one after other.
-     *
-     *              Assume current exression has following data with item shape [2] fand with 2 entities
-     *
-     *              data = [1, 2, 3, 4]
-     *
-     *              If the @ref rListOfOthers has following Container expressions
-     *                  rListOfOthers[0] = data{5, 6} with 2 entities, and shape = []
-     *                  rListOfOthers[1] = data{7, 8, 9, 10} with 2 entities, and shape = [2]
-     *
-     *              Then the resulting container expression will have shape of [5] with 2 entities.
-     *              Following is the output data array which can be obtained after calling Evaluate method
-     *
-     *                  output_data = [1, 2, 5, 7, 8, 3, 4, 6, 9, 10]
-     *
-     *              This creates a lazy expression, hence it has a constant cost complexity irrespective of the data size.
-     *
-     * @param rListOfOthers                         List of other container expressions to be combined with the existing one.
-     * @return SpecializedContainerExpression       New container expression with data combined.
-     */
-    SpecializedContainerExpression Comb(const std::vector<typename BaseType::Pointer>& rListOfOthers) const;
-
-    /**
-     * @brief Returns container expression which combines current rOther expression.
-     *
-     * @details @see Com(const std::vector<typename BaseType::Pointer>& rListOfOthers) method for details.
-     *
-     * @param rOther                                Other contaienr expression to be combined.
-     * @return SpecializedContainerExpression       New container expression with data combined.
-     */
-    SpecializedContainerExpression Comb(const BaseType& rOther) const;
-
-    /**
      * @brief Returns container expression which combines current and other expressions given by Begin and end.
      *
      * @param Begin                             Begining of the container expressions list.

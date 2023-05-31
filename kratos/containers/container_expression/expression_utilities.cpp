@@ -77,18 +77,40 @@ void ExpressionUtilities::Reshape(ContainerExpression<TContainer>& rExpression,
 }
 
 
-#define KRATOS_INSTANTIATE_EXPRESSION_UTILITY(CONTAINER_TYPE)                                               \
-    template void ExpressionUtilities::Clone<CONTAINER_TYPE>(const ContainerExpression<CONTAINER_TYPE>&,    \
-                                                             ContainerExpression<CONTAINER_TYPE>&);         \
-    template void ExpressionUtilities::Pow<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,            \
-                                                           double);                                         \
-    template void ExpressionUtilities::Pow<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,            \
-                                                           const ContainerExpression<CONTAINER_TYPE>&);     \
-    template void ExpressionUtilities::Slice<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,          \
-                                                             std::size_t,                                   \
-                                                             std::size_t);                                  \
-    template void ExpressionUtilities::Reshape<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,        \
-                                                               const std::vector<std::size_t>&)
+template <class TContainer>
+void ExpressionUtilities::Comb(ContainerExpression<TContainer>& rTarget,
+                               const ContainerExpression<TContainer>& rOther)
+{
+    auto p_expression = rOther.pGetExpression();
+    Expression::Pointer expressions[] = {rTarget.pGetExpression(), rOther.pGetExpression()};
+    rTarget.SetExpression(UnaryCombineExpression::Create(expressions, expressions + 2));
+}
+
+
+template <class TContainer>
+void ExpressionUtilities::Comb(ContainerExpression<TContainer>& rTarget,
+                               const std::vector<typename ContainerExpression<TContainer>::Pointer>& rOthers)
+{
+    ExpressionUtilities::Comb(rTarget, rOthers.begin(), rOthers.end());
+}
+
+
+#define KRATOS_INSTANTIATE_EXPRESSION_UTILITY(CONTAINER_TYPE)                                                                           \
+    template void ExpressionUtilities::Clone<CONTAINER_TYPE>(const ContainerExpression<CONTAINER_TYPE>&,                                \
+                                                             ContainerExpression<CONTAINER_TYPE>&);                                     \
+    template void ExpressionUtilities::Pow<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,                                        \
+                                                           double);                                                                     \
+    template void ExpressionUtilities::Pow<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,                                        \
+                                                           const ContainerExpression<CONTAINER_TYPE>&);                                 \
+    template void ExpressionUtilities::Slice<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,                                      \
+                                                             std::size_t,                                                               \
+                                                             std::size_t);                                                              \
+    template void ExpressionUtilities::Reshape<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,                                    \
+                                                               const std::vector<std::size_t>&);                                        \
+    template void ExpressionUtilities::Comb<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,                                       \
+                                                            const ContainerExpression<CONTAINER_TYPE>&);                                \
+    template void ExpressionUtilities::Comb<CONTAINER_TYPE>(ContainerExpression<CONTAINER_TYPE>&,                                       \
+                                                            const std::vector<typename ContainerExpression<CONTAINER_TYPE>::Pointer>&)
 
 
 KRATOS_INSTANTIATE_EXPRESSION_UTILITY(ModelPart::NodesContainerType);

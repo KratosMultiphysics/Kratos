@@ -471,7 +471,10 @@ class TestContainerExpression(ABC):
         b = self._GetSpecializedContainerExpression()
         b.Read(Kratos.VELOCITY)
 
-        combed = a.Comb(b)
+        combed = self._GetSpecializedContainerExpression()
+        Kratos.ContainerExpression.Clone(a, combed)
+
+        Kratos.ContainerExpression.Comb(combed, b)
         combed *= 2.0
         combed.Evaluate(Kratos.PENALTY)
 
@@ -485,7 +488,8 @@ class TestContainerExpression(ABC):
             new_vector[3] = original_v[2]
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), new_vector * 2, 12)
 
-        combed = a.Comb([b, a])
+        Kratos.ContainerExpression.Clone(a, combed)
+        Kratos.ContainerExpression.Comb(combed, [b, a])
         combed *= 2.0
         combed.Evaluate(Kratos.PENALTY)
 
@@ -511,8 +515,12 @@ class TestContainerExpression(ABC):
         Kratos.ContainerExpression.Slice(b, 2, 2)
         Kratos.ContainerExpression.Slice(c, 3, 2)
 
+        combed = self._GetSpecializedContainerExpression()
+        Kratos.ContainerExpression.Clone(a, combed)
+        Kratos.ContainerExpression.Comb(combed, [b, c])
+
         d = self._GetSpecializedContainerExpression()
-        Kratos.ContainerExpression.Clone(a.Comb([b, c]) * 2, d)
+        Kratos.ContainerExpression.Clone(combed * 2, d)
         Kratos.ContainerExpression.Reshape(d, [5, 2])
         d.Evaluate(Kratos.PK2_STRESS_TENSOR)
 
