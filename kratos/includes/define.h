@@ -775,19 +775,23 @@ __pragma(warning(pop))
 #endif
 
 // Defining macros to force inlining
-#ifdef _MSC_VER
-    #define KRATOS_FORCE_INLINE __forceinline
-#elif defined(__GNUC__)
-    #define KRATOS_FORCE_INLINE inline __attribute__((__always_inline__))
-#elif defined(__CLANG__)
-    #if __has_attribute(__always_inline__)
+#ifdef KRATOS_FORCE_INLINING
+    #ifdef _MSC_VER
+        #define KRATOS_FORCE_INLINE __forceinline
+    #elif defined(__GNUC__)
         #define KRATOS_FORCE_INLINE inline __attribute__((__always_inline__))
-    #else
-        #define KRATOS_FORCE_INLINE inline
-    #endif
-#elif defined(__INTEL_COMPILER)
-    #if __has_attribute(__always_inline__)
-        #define KRATOS_FORCE_INLINE inline __attribute__((__always_inline__))
+    #elif defined(__CLANG__)
+        #if __has_attribute(__always_inline__)
+            #define KRATOS_FORCE_INLINE inline __attribute__((__always_inline__))
+        #else
+            #define KRATOS_FORCE_INLINE inline
+        #endif
+    #elif defined(__INTEL_COMPILER)
+        #if __has_attribute(__always_inline__)
+            #define KRATOS_FORCE_INLINE inline __attribute__((__always_inline__))
+        #else
+            #define KRATOS_FORCE_INLINE inline
+        #endif
     #else
         #define KRATOS_FORCE_INLINE inline
     #endif
