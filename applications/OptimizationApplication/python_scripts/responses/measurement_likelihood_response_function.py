@@ -122,28 +122,61 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
         ###################################################################
 
-        self.response_settings = Kratos.Parameters(
-            """{
-                "response_type": "adjoint_nodal_displacement",
-                "primal_settings": "ProjectParameters.json",
-                "adjoint_settings": "auto",
-                "primal_data_transfer_with_python": true
-                }"""
-        )
+        self.primal_file_name = "/media/meister/localdata/GitRepos/Kratos_In_Progress_SysId/scripts/dev_scripts/linear_strain_energy_test/primal_parameters.json"
 
         self.adjoint_file_name = "/media/meister/localdata/GitRepos/Kratos_In_Progress_SysId/scripts/dev_scripts/linear_strain_energy_test/adjoint_parameters.json"
-        # self.adjoint_file_name = "/home/fmeister/GitkrakenRepos/Kratos/scripts/dev_scripts/linear_strain_energy_test/linear_shell_test_nodal_disp_adjoint_parameters.json"
 
-        # Reading the ProjectParameters
+        with open(self.primal_file_name, 'r') as parameter_file:
+            primal_parameters = Kratos.Parameters(parameter_file.read())
         with open(self.adjoint_file_name, 'r') as parameter_file:
             self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
+        self.problem_name = primal_parameters["problem_data"]["problem_name"].GetString()
+        self.model_part_name = primal_parameters["solver_settings"]["model_part_name"].GetString()
 
-        self.model_part_name = self.adjoint_parameters["solver_settings"]["model_part_name"].GetString()
+        # To avoid many prints
+        if (primal_parameters["problem_data"]["echo_level"].GetInt() == 0 or self.adjoint_parameters["problem_data"]["echo_level"].GetInt() == 0):
+            Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
 
+        # SelectAndVerifyLinearSolver(primal_parameters, self.skipTest)
+        # SelectAndVerifyLinearSolver(self.adjoint_parameters, self.skipTest)
+
+        # solve primal problem
+        model_primal = Kratos.Model()
+        primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, primal_parameters)
+        primal_analysis.Run()
         # create adjoint analysis
         model_adjoint = Kratos.Model()
         self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, self.adjoint_parameters)
-        self.adjoint_analysis.Run()
+        self.adjoint_analysis.Initialize()
+        self.adjoint_analysis.RunSolutionLoop()
+        self.adjoint_analysis.Finalize()
+
+        ###################################################################
+
+        # self.response_settings = Kratos.Parameters(
+        #     """{
+        #         "response_type": "adjoint_nodal_displacement",
+        #         "primal_settings": "ProjectParameters.json",
+        #         "adjoint_settings": "auto",
+        #         "primal_data_transfer_with_python": true
+        #         }"""
+        # )
+
+        # self.adjoint_file_name = "/media/meister/localdata/GitRepos/Kratos_In_Progress_SysId/scripts/dev_scripts/linear_strain_energy_test/adjoint_parameters.json"
+        # # self.adjoint_file_name = "/home/fmeister/GitkrakenRepos/Kratos/scripts/dev_scripts/linear_strain_energy_test/linear_shell_test_nodal_disp_adjoint_parameters.json"
+
+        # # Reading the ProjectParameters
+        # with open(self.adjoint_file_name, 'r') as parameter_file:
+        #     self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
+
+        # print(self.adjoint_parameters)
+
+        # self.model_part_name = self.adjoint_parameters["solver_settings"]["model_part_name"].GetString()
+
+        # # create adjoint analysis
+        # model_adjoint = Kratos.Model()
+        # self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, self.adjoint_parameters)
+        # self.adjoint_analysis.Run()
         # self.adjoint_analysis.time = 0.0
         # self.adjoint_analysis.end_time = 1.0
         # adjoint_response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.model_part, self.response_settings)
