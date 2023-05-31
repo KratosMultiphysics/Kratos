@@ -106,7 +106,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronize
 
     // Check global pointers
     auto& r_global_pointers = container.GetGlobalPointers();
-    KRATOS_CHECK_EQUAL(r_global_pointers.size(), r_data_comm.Size());
+    KRATOS_CHECK_EQUAL(static_cast<int>(r_global_pointers.size()), r_data_comm.Size());
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), container.NumberOfGlobalResults()); 
 }
 
@@ -138,8 +138,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultSh
     auto shape_functions = container.GetResultShapeFunctions(point);
 
     // Check shape functions
-    KRATOS_CHECK_EQUAL(shape_functions.size(), r_data_comm.Size());
-    for (unsigned int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+    KRATOS_CHECK_EQUAL(static_cast<int>(shape_functions.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
         KRATOS_CHECK_NEAR(shape_functions[i_rank][0], 0.5, 1.0e-12);
         KRATOS_CHECK_NEAR(shape_functions[i_rank][1], 0.5, 1.0e-12);
     }
@@ -167,8 +167,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIn
     auto indixes = container.GetResultIndices();
 
     // Check shape functions
-    KRATOS_CHECK_EQUAL(indixes.size(), r_data_comm.Size());
-    for (unsigned int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+    KRATOS_CHECK_EQUAL(static_cast<int>(indixes.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
         KRATOS_CHECK_EQUAL(indixes[i_rank], i_rank + 1);
     }
 }
@@ -200,8 +200,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultCo
     auto coordinates = container.GetResultCoordinates();
 
     // Check shape functions
-    KRATOS_CHECK_EQUAL(coordinates.size(), r_data_comm.Size());
-    for (unsigned int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
+    KRATOS_CHECK_EQUAL(static_cast<int>(coordinates.size()), r_data_comm.Size());
+    for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
         KRATOS_CHECK_EQUAL(coordinates[i_rank].size(), 2);
         KRATOS_CHECK_VECTOR_NEAR(coordinates[i_rank][0], p_node1->Coordinates(), 1.0e-12);
         KRATOS_CHECK_VECTOR_NEAR(coordinates[i_rank][1], p_node2->Coordinates(), 1.0e-12);
