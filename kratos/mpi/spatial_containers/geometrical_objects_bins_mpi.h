@@ -21,6 +21,7 @@
 #include "includes/data_communicator.h"
 #include "includes/geometrical_object.h"
 #include "spatial_containers/geometrical_objects_bins.h"
+#include "spatial_containers/spatial_search_result_container.h"
 
 namespace Kratos
 {
@@ -53,6 +54,8 @@ public:
     /// The type of geometrical object to be stored in the bins
     using CellType = GeometricalObjectsBins::CellType;
     using ResultType = GeometricalObjectsBins::ResultType;
+    using ResultTypeContainer = GeometricalObjectsBins::ResultTypeContainer;
+    using ResultTypeContainerMap = GeometricalObjectsBins::ResultTypeContainerMap;
 
     /// Define zero tolerance as Epsilon
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -79,19 +82,6 @@ public:
         ) : mLocalGeometricalObjectsBins(GeometricalObjectsBegin, GeometricalObjectsEnd),
             mrDataCommunicator(rDataCommunicator)
     {
-        // We get the world size
-        const int world_size = GetWorldSize();
-
-        // Set up the buffers
-        mSendSizes.resize(world_size);
-        mRecvSizes.resize(world_size);
-
-        mSendBufferDouble.resize(world_size);
-        mRecvBufferDouble.resize(world_size);
-
-        mSendBufferChar.resize(world_size);
-        mRecvBufferChar.resize(world_size);
-
         // Set up the global bounding boxes
         InitializeGlobalBoundingBoxes();
     }
@@ -141,27 +131,22 @@ public:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius,
-        std::vector<std::vector<ResultType>>& rResults
+        ResultTypeContainerMap& rResults
         )
     {
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        std::array<int, 2> limits;
-        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
-        rResults.resize(number_of_points);
+        PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
 
         // Performa the corresponding searchs
-        const int lower_limit = limits[0];
-        const int upper_limit = limits[1];
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            std::vector<ResultType> result;
-            ImplSearchInRadius(point, Radius, result);
-            // Added only in the corresponding partition
-            if (i_node >= lower_limit && i_node < upper_limit) {
-                rResults[i_node - lower_limit] = result;
-            }
+            auto& r_partial_result = rResults.InitializeResult(point);
+            ImplSearchInRadius(point, Radius, r_partial_result);
+
+            // Synchronize
+            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
     }
 
@@ -173,35 +158,32 @@ public:
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param Radius The radius to be checked
-     * @return ResultType The result of the search
+     * @param rResults The results of the search
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    std::vector<ResultType> SearchNearestInRadius(
+    void SearchNearestInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        const double Radius
+        const double Radius,
+        ResultTypeContainerMap& rResults
         )
     {
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        std::array<int, 2> limits;
-        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
-        std::vector<ResultType> results(number_of_points);
+        PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
 
         // Performa the corresponding searchs
-        const int lower_limit = limits[0];
-        const int upper_limit = limits[1];
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            // Perform local search
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            const auto result = ImplSearchNearestInRadius(point, Radius);
-            // Added only in the corresponding partition
-            if (i_node >= lower_limit && i_node < upper_limit) {
-                results[i_node - lower_limit] = result;
-            }
+            auto& r_partial_result = rResults.InitializeResult(point);
+            ImplSearchNearestInRadius(point, Radius, r_partial_result);
+
+            // Synchronize
+            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
-        return results;
     }
 
     /**
@@ -210,33 +192,30 @@ public:
      * Result contains a flag is the object has been found or not.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
-     * @return ResultType The result of the search
+     * @param rResults The results of the search
      */
     template<typename TPointIteratorType>
-    std::vector<ResultType> SearchNearest(
+    void SearchNearest(
         TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd
+        TPointIteratorType itPointEnd,
+        ResultTypeContainerMap& rResults
         )
     {
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        std::array<int, 2> limits;
-        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
-        std::vector<ResultType> results(number_of_points);
+        PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
 
         // Performa the corresponding searchs
-        const int lower_limit = limits[0];
-        const int upper_limit = limits[1];
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            // Perform local search
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            const auto result = ImplSearchNearest(point);
-            // Added only in the corresponding partition
-            if (i_node >= lower_limit && i_node < upper_limit) {
-                results[i_node - lower_limit] = result;
-            }
+            auto& r_partial_result = rResults.InitializeResult(point);
+            ImplSearchNearest(point, r_partial_result);
+
+            // Synchronize
+            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
-        return results;
     }
 
     /**
@@ -247,34 +226,31 @@ public:
      * This method is a simplified and faster method of SearchNearest.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
-     * @return std::vector<ResultType> The result of the search
+     * @param rResults The results of the search
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    std::vector<ResultType> SearchIsInside(
+    void SearchIsInside(
         TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd
+        TPointIteratorType itPointEnd,
+        ResultTypeContainerMap& rResults
         )
     {
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        std::array<int, 2> limits;
-        const int number_of_points = PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates, limits);
-        std::vector<ResultType> results(number_of_points);
+        PreparePointsForMPISearch(itPointBegin, itPointEnd, all_points_coordinates);
 
         // Performa the corresponding searchs
-        const int lower_limit = limits[0];
-        const int upper_limit = limits[1];
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            // Perform local search
             Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            const auto result = ImplSearchIsInside(point);
-            // Added only in the corresponding partition
-            if (i_node >= lower_limit && i_node < upper_limit) {
-                results[i_node - lower_limit] = result;
-            }
+            auto& r_partial_result = rResults.InitializeResult(point);
+            ImplSearchIsInside(point, r_partial_result);
+            
+            // Synchronize
+            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
-        return results;
     }
 
     ///@}
@@ -323,22 +299,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<double> mGlobalBoundingBoxes; /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
+    std::vector<double> mGlobalBoundingBoxes;            /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
 
-    /// TODO: Replace with a vector and serialize it to all partitions
     GeometricalObjectsBins mLocalGeometricalObjectsBins; /// The local bins
 
-    const DataCommunicator& mrDataCommunicator; /// The data communicator
-
-    // TODO: Check what is necessary after final implementation on MPI is done
-    std::vector<int> mSendSizes; /// The sizes of the send buffers
-    std::vector<int> mRecvSizes; /// The sizes of the recv buffers
-
-    BufferTypeDouble mSendBufferDouble; /// The send buffer (double)
-    BufferTypeDouble mRecvBufferDouble; /// The recv buffer (double)
-
-    BufferTypeChar mSendBufferChar; /// The send buffer (char)
-    BufferTypeChar mRecvBufferChar; /// The recv buffer (char)
+    const DataCommunicator& mrDataCommunicator;          /// The data communicator
 
     ///@}
     ///@name Private Operators
@@ -353,7 +318,6 @@ private:
      * @param itPointBegin Iterator to the beginning of the points range
      * @param itPointEnd Iterator to the end of the points range
      * @param rAllPointsCoordinates vector where the computed coordinates will be stored
-     * @param rLimits array with the lower and upper limits of the current partition
      * @return The number of points in the range
      * @tparam TPointIteratorType The type of the point iterator
      */
@@ -361,8 +325,7 @@ private:
     int PreparePointsForMPISearch(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        std::vector<double>& rAllPointsCoordinates,
-        std::array<int, 2>& rLimits
+        std::vector<double>& rAllPointsCoordinates
         )
     {
         // First check that the points are the same in all processes
@@ -381,13 +344,8 @@ private:
                 rAllPointsCoordinates[3 * counter + 2] = coordinates[2];
                 ++counter;
             }
-
-            // Define limits
-            rLimits[0] = 0;
-            rLimits[1] = number_of_points;
         } else { // If not
             // MPI information
-            const int rank = GetRank();
             const int world_size = GetWorldSize();
 
             // Getting global number of points
@@ -423,14 +381,6 @@ private:
 
             // Invoque AllGatherv
             mrDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
-
-            // Insert 0 in the first position
-            points_per_partition.insert(points_per_partition.begin(), 0);
-
-            // Define limits
-            const auto it_point_begin = points_per_partition.begin();
-            rLimits[0] = std::reduce(it_point_begin, it_point_begin + rank + 1);
-            rLimits[1] = std::reduce(it_point_begin, it_point_begin + rank + 2);
         }
 
         return number_of_points;
@@ -446,7 +396,7 @@ private:
     void ImplSearchInRadius(
         const Point& rPoint,
         const double Radius,
-        std::vector<ResultType>& rResults
+        ResultTypeContainer& rResults
         );
 
     /**
@@ -456,11 +406,12 @@ private:
      * Result contains a flag is the object has been found or not.
      * @param rPoint The point to be checked
      * @param Radius The radius to be checked
-     * @return ResultType The result of the search
+     * @param rResults The results of the search
      */
-    ResultType ImplSearchNearestInRadius(
+    void ImplSearchNearestInRadius(
         const Point& rPoint,
-        const double Radius
+        const double Radius,
+        ResultTypeContainer& rResults
         );
 
     /**
@@ -468,9 +419,12 @@ private:
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
      * @param rPoint The point to be checked
-     * @return ResultType The result of the search
+     * @param rResults The results of the search
     */
-    ResultType ImplSearchNearest(const Point& rPoint);
+    void ImplSearchNearest(
+        const Point& rPoint,
+        ResultTypeContainer& rResults
+        );
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain.
@@ -479,9 +433,12 @@ private:
      * Result contains a flag is the object has been found or not.
      * This method is a simplified and faster method of SearchNearest.
      * @param rPoint The point to be checked
-     * @return ResultType The result of the search
+     * @param rResults The results of the search
      */
-    ResultType ImplSearchIsInside(const Point& rPoint);
+    void ImplSearchIsInside(
+        const Point& rPoint,
+        ResultTypeContainer& rResults
+        );
 
     /**
      * @brief Returns the current rank
@@ -562,31 +519,6 @@ private:
 
         return true;
     }
-
-    // /**
-    //  * @brief This method prepares the buffer for the result
-    //  * @details Values are set in member variables
-    //  * @param rLocalResult The local result
-    //  */
-    // void PrepareBufferResultType(const ResultType& rLocalResult);
-
-    // /**
-    //  * @brief This method deserializes the buffer for the result
-    //  * @details Values are get from member variables
-    //  * @param rGlobalResult The global result
-    //  */
-    // void DeserializeResultType(const ResultType& rGlobalResult);
-
-    /**
-     * @brief This method does the serialization/desiralization of the results and rerieves the result from a given partition
-     * @param rLocalResult The local result
-     * @param Rank The rank in MPI
-     * @return The result from the given partition
-     */
-    ResultType GetResultFromGivenPartition(
-        const ResultType& rLocalResult,
-        const int Rank
-        );
 
     ///@}
     ///@name Private  Access

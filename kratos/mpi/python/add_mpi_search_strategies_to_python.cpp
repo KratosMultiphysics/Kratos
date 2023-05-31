@@ -27,10 +27,10 @@ void AddMPISearchStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using ResultType = SpatialSearchResult<GeometricalObject>;
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
+    using ResultTypeContainerMap = SpatialSearchResultContainerMap<GeometricalObject>;
 
     py::class_<GeometricalObjectsBinsMPI, GeometricalObjectsBinsMPI::Pointer>(m, "GeometricalObjectsBinsMPI")
     .def(py::init<ElementsContainerType&, const DataCommunicator&>())
@@ -38,52 +38,27 @@ void AddMPISearchStrategiesToPython(pybind11::module& m)
     .def("GetBoundingBox", &GeometricalObjectsBinsMPI::GetBoundingBox)
     .def("SearchInRadius", [&](GeometricalObjectsBinsMPI& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        std::vector<std::vector<ResultType>> results;
+        ResultTypeContainerMap results; 
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            py::list sub_list_results;
-            for (auto& r_sub_result : r_result) {
-                sub_list_results.append(r_sub_result);
-            }
-            list_results.append(sub_list_results);
-        }
-        return list_results;
+        return results;
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBinsMPI& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        std::vector<ResultType> results = self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            list_results.append(r_result);
-        }
-        return list_results;
+        ResultTypeContainerMap results;
+        self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, results);
+        return results;
     })
     .def("SearchNearest", [&](GeometricalObjectsBinsMPI& self, const NodesContainerType& rNodes) {
         // Perform the search
-        std::vector<ResultType> results = self.SearchNearest(rNodes.begin(), rNodes.end());
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            list_results.append(r_result);
-        }
-        return list_results;
+        ResultTypeContainerMap results;
+        self.SearchNearest(rNodes.begin(), rNodes.end(), results);
+        return results;
     })
     .def("SearchIsInside", [&](GeometricalObjectsBinsMPI& self, const NodesContainerType& rNodes) {
         // Perform the search
-        std::vector<ResultType> results = self.SearchIsInside(rNodes.begin(), rNodes.end());
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            list_results.append(r_result);
-        }
-        return list_results;
+        ResultTypeContainerMap results;
+        self.SearchIsInside(rNodes.begin(), rNodes.end(), results);
+        return results;
     })
     ;
 }

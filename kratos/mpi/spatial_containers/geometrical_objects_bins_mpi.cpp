@@ -55,14 +55,9 @@ BoundingBox<Point> GeometricalObjectsBinsMPI::GetBoundingBox() const
 void GeometricalObjectsBinsMPI::ImplSearchInRadius(
     const Point& rPoint,
     const double Radius,
-    std::vector<ResultType>& rResults
+    ResultTypeContainer& rResults
     )
 {
-    // TODO: Check if the Global Bounding Box can be replaced with Local Bounding Box and avoid storage and communication
-
-    // Clear vector
-    rResults.clear();
-
     // Find the partitions were point is inside
     const int current_rank = GetRank();
     std::vector<int> ranks = RansksPointIsInsideBoundingBoxWithTolerance(rPoint.Coordinates(), Radius);
@@ -71,51 +66,21 @@ void GeometricalObjectsBinsMPI::ImplSearchInRadius(
     std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
 
     // Check if the point is inside the set
-    std::vector<ResultType> local_results;
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
-        mLocalGeometricalObjectsBins.SearchInRadius(rPoint, Radius, local_results);
-    }
-
-    // Now sync results between partitions
-    for (int i_rank : ranks) {
-        int number_of_results = local_results.size();
-        mrDataCommunicator.Broadcast(number_of_results, i_rank);
-
-        // Only do something if there are results
-        if (number_of_results > 0) {
-            if (i_rank == current_rank) {
-                // Iterate over local results
-                for (auto& r_result : local_results) {
-                    // Push-back the result
-                    rResults.push_back(r_result);
-
-                    // Stream to other partitions
-                    GetResultFromGivenPartition(r_result, i_rank);
-                }
-            } else {
-                // Empty local result
-                ResultType local_result;
-                for (int i = 0; i < number_of_results; ++i) {
-                    // Stream from other partitions
-                    ResultType global_result = GetResultFromGivenPartition(local_result, i_rank);
-                    rResults.push_back(global_result);
-                }
-            }
-        }
+        mLocalGeometricalObjectsBins.SearchInRadius(rPoint, Radius, rResults);
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNearestInRadius(
+void GeometricalObjectsBinsMPI::ImplSearchNearestInRadius(
     const Point& rPoint,
-    const double Radius
+    const double Radius,
+    ResultTypeContainer& rResults
     )
 {
-    // TODO: Check if the Global Bounding Box can be replaced with Local Bounding Box and avoid storage and communication
-
     // Result to return
     ResultType local_result;
 
@@ -148,28 +113,35 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNeare
     MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPIDataCommunicator::GetMPICommunicator(mrDataCommunicator));
 
     // Get the solution from the computed_rank
-    return GetResultFromGivenPartition(local_result, global_min.rank);
+    if (global_min.rank == GetRank()) {
+        // Add the local search
+        rResults.AddResult(local_result);
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchNearest(const Point& rPoint)
+void GeometricalObjectsBinsMPI::ImplSearchNearest(
+    const Point& rPoint,
+    ResultTypeContainer& rResults
+    )
 {
     ResultType current_result;
     const auto bb = GetBoundingBox();
     const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
     const double max_radius= *std::max_element(box_size.begin(), box_size.end());
-    return ImplSearchNearestInRadius(rPoint, max_radius);
+    ImplSearchNearestInRadius(rPoint, max_radius, rResults);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsInside(const Point& rPoint)
+void GeometricalObjectsBinsMPI::ImplSearchIsInside(
+    const Point& rPoint,
+    ResultTypeContainer& rResults
+    )
 {
-    // TODO: Check if the Global Bounding Box can be replaced with Local Bounding Box and avoid storage and communication
-
     // Result to return
     ResultType local_result;
 
@@ -197,7 +169,10 @@ GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::ImplSearchIsIns
     computed_rank = mrDataCommunicator.MinAll(computed_rank);
 
     // Get the solution from the computed_rank
-    return GetResultFromGivenPartition(local_result, computed_rank);
+    if (computed_rank == GetRank()) {
+        // Add the local search
+        rResults.AddResult(local_result);
+    }
 }
 
 /***********************************************************************************/
@@ -293,61 +268,4 @@ std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBoxWithTo
     return ranks;
 }
 
-// /***********************************************************************************/
-// /***********************************************************************************/
-
-// void GeometricalObjectsBinsMPI::PrepareBufferResultType(const ResultType& rLocalResult)
-// {
-//     // TODO
-// }
-
-// /***********************************************************************************/
-// /***********************************************************************************/
-
-// void GeometricalObjectsBinsMPI::DeserializeResultType(const ResultType& rGlobalResult)
-// {
-//     // TODO
-// }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-GeometricalObjectsBinsMPI::ResultType GeometricalObjectsBinsMPI::GetResultFromGivenPartition(
-    const ResultType& rLocalResult,
-    const int Rank
-    )
-{
-    // Get the global result
-    GeometricalObject* global_result_object = Rank == GetRank() ? const_cast<GeometricalObject*>(rLocalResult.Get().get()) : nullptr;
-
-    // Result to return
-    ResultType global_result(global_result_object, Rank);
-    double distance = rLocalResult.GetDistance();
-    mrDataCommunicator.Broadcast(distance, Rank);
-    global_result.SetDistance(distance);
-    bool is_object_found = rLocalResult.GetIsObjectFound();
-    mrDataCommunicator.Broadcast(is_object_found, Rank);
-    global_result.SetIsObjectFound(is_object_found);
-    bool is_distance_calculated = rLocalResult.GetIsDistanceCalculated();
-    mrDataCommunicator.Broadcast(is_distance_calculated, Rank);
-    global_result.SetIsDistanceCalculated(is_distance_calculated);
-
-    // // MPI partition data
-    // const int current_rank = GetRank();
-    // const int world_size = GetWorldSize();
-
-    // // Reset to zero
-    // std::fill(mSendSizes.begin(), mSendSizes.end(), 0);
-    // std::fill(mRecvSizes.begin(), mRecvSizes.end(), 0);
-
-    // //PrepareBufferResultType(rLocalResult);
-
-    // const int err = MPISearchUtilities::ExchangeDataAsync(mSendBufferChar, mRecvBufferChar, current_rank, world_size, mSendSizes, mRecvSizes);
-    // KRATOS_ERROR_IF_NOT(err == MPI_SUCCESS) << "Error in exchanging the serialized ResultType in MPI" << std::endl;
-
-    // //DeserializeResultType(rLocalResult);
-
-    // Return the result
-    return global_result;
-}
 }  // namespace Kratos.
