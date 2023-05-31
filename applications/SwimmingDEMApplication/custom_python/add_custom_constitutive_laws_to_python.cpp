@@ -27,6 +27,7 @@
 #include "../custom_constitutive/drag_laws/newton_drag_law.h"
 #include "../custom_constitutive/drag_laws/chien_drag_law.h"
 #include "../custom_constitutive/drag_laws/dallavalle_drag_law.h"
+#include "../custom_constitutive/drag_laws/difelice_drag_law.h"
 
 // Inviscid force laws
 #include "custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
@@ -141,7 +142,6 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<Parameters>())
         ;
 
-
     py::class_<GanserDragLaw, GanserDragLaw::Pointer, BaseDragLawType>(m, "GanserDragLaw")
         .def(py::init<>())
         .def(py::init<Parameters>())
@@ -158,6 +158,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DallavalleDragLaw, DallavalleDragLaw::Pointer, BaseDragLawType>(m, "DallavalleDragLaw")
+        .def(py::init<>())
+        .def(py::init<Parameters&>())
+        ;
+
+    py::class_<DiFeliceDragLaw, DiFeliceDragLaw::Pointer, BaseDragLawType>(m, "DiFeliceDragLaw")
         .def(py::init<>())
         .def(py::init<Parameters&>())
         ;

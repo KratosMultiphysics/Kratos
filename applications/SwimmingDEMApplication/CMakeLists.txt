@@ -45,6 +45,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/shah_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/newton_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/dallavalle_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/difelice_drag_law.cpp
 
     # Inviscid Force Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/inviscid_force_laws/inviscid_force_law.cpp
