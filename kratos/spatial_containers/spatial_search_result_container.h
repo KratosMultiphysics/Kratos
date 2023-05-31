@@ -693,7 +693,10 @@ public:
      */
     SpatialSearchResultContainer<TObjectType>& operator[](const array_1d<double, 3>& rCoordinates)
     {
-        return mPointResults[Hash(rCoordinates)];
+        const HashType hash = Hash(rCoordinates);
+        const auto it = mPointResults.find(hash);
+        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for point: " << rCoordinates[0] << ", " << rCoordinates[1] << ", " << rCoordinates[2] << std::endl;
+        return it->second;
     }
 
     /**
@@ -705,7 +708,7 @@ public:
     {
         const HashType hash = Hash(rCoordinates);
         const auto it = mPointResults.find(hash);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist." << std::endl;
+        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for point: " << rCoordinates[0] << ", " << rCoordinates[1] << ", " << rCoordinates[2] << std::endl;
         return it->second;
     }
 
@@ -716,7 +719,10 @@ public:
      */
     SpatialSearchResultContainer<TObjectType>& operator()(const array_1d<double, 3>& rCoordinates)
     {
-        return mPointResults[Hash(rCoordinates)];
+        const HashType hash = Hash(rCoordinates);
+        const auto it = mPointResults.find(hash);
+        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for point: " << rCoordinates[0] << ", " << rCoordinates[1] << ", " << rCoordinates[2] << std::endl;
+        return it->second;
     }
 
     /**
@@ -728,7 +734,7 @@ public:
     {
         const HashType hash = Hash(rCoordinates);
         const auto it = mPointResults.find(hash);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist." << std::endl;
+        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for point: " << rCoordinates[0] << ", " << rCoordinates[1] << ", " << rCoordinates[2] << std::endl;
         return it->second;
     }
 
