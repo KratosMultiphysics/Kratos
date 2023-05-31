@@ -358,7 +358,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
     Matrix I = IdentityMatrix(Dim, Dim);
     Matrix sigma = ZeroMatrix(Dim, Dim);
 
-    double du1dt, du2dt, du11, du12, du21, du22, du111, du112, du121, du122, du211, du212, du221, du222, dudt1, dudt2, dalphat, body_force1, body_force2;
+    double du1dt, du2dt, du11, du12, du21, du22, du111, du112, du121, du122, du211, du212, du221, du222, dalphat, body_force1, body_force2;
 
     unsigned int n_elem = mrModelPart.NumberOfElements();
 
