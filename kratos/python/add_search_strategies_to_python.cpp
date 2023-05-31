@@ -757,6 +757,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("__call__", [&](ResultTypeContainer& self, const std::size_t Index) {
         return self(Index);
     })
+    .def("__iter__", [](ResultTypeContainer& self) {
+        return py::make_iterator(self.begin(), self.end());
+    }, py::keep_alive<0, 1>()) /* Keep object alive while iterator is used */
     ;
 
     using ResultTypeContainerMap = SpatialSearchResultContainerMap<GeometricalObject>;
@@ -773,6 +776,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("__call__", [&](ResultTypeContainerMap& self, const array_1d<double, 3>& rCoordinates) {
         return self(rCoordinates);
     })
+    .def("__iter__", [](ResultTypeContainerMap& self) {
+        return py::make_iterator(self.begin(), self.end());
+    }, py::keep_alive<0, 1>()) /* Keep object alive while iterator is used */
     ;
 
     using NodesContainerType = ModelPart::NodesContainerType;

@@ -67,6 +67,9 @@ public:
     /// The global pointer communicator
     using PointerCommunicatorPointer = typename GlobalPointerCommunicator<TObjectType>::Pointer;
 
+    /// The global pointer vector type
+    using GPVector = GlobalPointersVector<TObjectType>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -132,6 +135,186 @@ public:
     ///@{
 
     /**
+     * @brief Returns an iterator pointing to the beginning of the container.
+     * @return Iterator pointing to the beginning of the container.
+     */
+    typename GPVector::iterator begin()
+    {
+        return mGlobalPointers.begin();
+    }
+
+    /**
+     * @brief Returns a constant iterator pointing to the beginning of the container.
+     * @return Constant iterator pointing to the beginning of the container.
+     */
+    typename GPVector::const_iterator begin() const
+    {
+        return mGlobalPointers.begin();
+    }
+
+    /**
+     * @brief Returns an iterator pointing to the end of the container.
+     * @return Iterator pointing to the end of the container.
+     */
+    typename GPVector::iterator end()
+    {
+        return mGlobalPointers.end();
+    }
+
+    /**
+     * @brief Returns a constant iterator pointing to the end of the container.
+     * @return Constant iterator pointing to the end of the container.
+     */
+    typename GPVector::const_iterator end() const
+    {
+        return mGlobalPointers.end();
+    }
+
+    /**
+     * @brief Returns a reverse iterator pointing to the last element of the container.
+     * @return Reverse iterator pointing to the last element of the container.
+     */
+    typename GPVector::reverse_iterator rbegin()
+    {
+        return mGlobalPointers.rbegin();
+    }
+
+    /**
+     * @brief Returns a constant reverse iterator pointing to the last element of the container.
+     * @return Constant reverse iterator pointing to the last element of the container.
+     */
+    typename GPVector::const_reverse_iterator rbegin() const
+    {
+        return mGlobalPointers.rbegin();
+    }
+
+    /**
+     * @brief Returns a reverse iterator pointing to the theoretical element preceding the first element of the container.
+     * @return Reverse iterator pointing to the theoretical element preceding the first element.
+     */
+    typename GPVector::reverse_iterator rend()
+    {
+        return mGlobalPointers.rend();
+    }
+
+    /**
+     * @brief Returns a constant reverse iterator pointing to the theoretical element preceding the first element of the container.
+     * @return Constant reverse iterator pointing to the theoretical element preceding the first element.
+     */
+    typename GPVector::const_reverse_iterator rend() const
+    {
+        return mGlobalPointers.rend();
+    }
+
+    /**
+     * @brief Returns a pointer iterator pointing to the beginning of the container.
+     * @return Pointer iterator pointing to the beginning of the container.
+     */
+    typename GPVector::ptr_iterator ptr_begin()
+    {
+        return mGlobalPointers.ptr_begin();
+    }
+
+    /**
+     * @brief Returns a constant pointer iterator pointing to the beginning of the container.
+     * @return Constant pointer iterator pointing to the beginning of the container.
+     */
+    typename GPVector::ptr_const_iterator ptr_begin() const
+    {
+        return mGlobalPointers.ptr_begin();
+    }
+
+    /**
+     * @brief Returns a pointer iterator pointing to the end of the container.
+     * @return Pointer iterator pointing to the end of the container.
+     */
+    typename GPVector::ptr_iterator ptr_end()
+    {
+        return mGlobalPointers.ptr_end();
+    }
+
+    /**
+     * @brief Returns a constant pointer iterator pointing to the end of the container.
+     * @return Constant pointer iterator pointing to the end of the container.
+     */
+    typename GPVector::ptr_const_iterator ptr_end() const
+    {
+        return mGlobalPointers.ptr_end();
+    }
+
+    /**
+     * @brief Returns a reverse pointer iterator pointing to the last element of the container.
+     * @return Reverse pointer iterator pointing to the last element of the container.
+     */
+    typename GPVector::ptr_reverse_iterator ptr_rbegin()
+    {
+        return mGlobalPointers.ptr_rbegin();
+    }
+
+    /**
+     * @brief Returns a constant reverse pointer iterator pointing to the last element of the container.
+     * @return Constant reverse pointer iterator pointing to the last element of the container.
+     */
+    typename GPVector::ptr_const_reverse_iterator ptr_rbegin() const
+    {
+        return mGlobalPointers.ptr_rbegin();
+    }
+
+    /**
+     * @brief Returns a reverse pointer iterator pointing to the theoretical element preceding the first element of the container.
+     * @return Reverse pointer iterator pointing to the theoretical element preceding the first element.
+     */
+    typename GPVector::ptr_reverse_iterator ptr_rend()
+    {
+        return mGlobalPointers.ptr_rend();
+    }
+
+    /**
+     * @brief Returns a constant reverse pointer iterator pointing to the theoretical element preceding the first element of the container.
+     * @return Constant reverse pointer iterator pointing to the theoretical element preceding the first element.
+     */
+    typename GPVector::ptr_const_reverse_iterator ptr_rend() const
+    {
+        return mGlobalPointers.ptr_rend();
+    }
+
+    /**
+     * @brief Returns a reference to the first element of the container.
+     * @return Reference to the first element of the container.
+     */
+    typename GPVector::reference front() /* nothrow */
+    {
+        return mGlobalPointers.front();
+    }
+
+    /**
+     * @brief Returns a constant reference to the first element of the container.
+     * @return Constant reference to the first element of the container.
+     */
+    typename GPVector::const_reference front() const /* nothrow */
+    {
+        return mGlobalPointers.front();
+    }
+
+    /**
+     * @brief Returns a reference to the last element of the container.
+     * @return Reference to the last element of the container.
+     */
+    typename GPVector::reference back() /* nothrow */
+    {
+        return mGlobalPointers.back();
+    }
+
+    /**
+     * @brief Returns a constant reference to the last element of the container.
+     * @return Constant reference to the last element of the container.
+     */
+    typename GPVector::const_reference back() const /* nothrow */
+    {
+        return mGlobalPointers.back();
+    }
+
+    /**
      * @brief Returns the local pointers size
      * @return The local pointers size
      */
@@ -151,9 +334,18 @@ public:
 
     /**
      * @brief Add a result to the container
-     * @param rResult The result
+     * @param rResult The result to be added
      */
     void AddResult(SpatialSearchResult<TObjectType>& rResult);
+
+    /**
+     * @brief Pushes back a result to the container
+     * @param rResult The result to be added
+     */
+    void push_back(SpatialSearchResult<TObjectType>& rResult)
+    {
+        AddResult(rResult);
+    }
 
     /**
      * @brief Clear the containers
@@ -265,7 +457,7 @@ private:
     ///@{
     
     LocalPointerVector mLocalPointers;                                /// Local pointers of the container
-    GlobalPointersVector<TObjectType> mGlobalPointers;                /// Global pointers of the container
+    GPVector mGlobalPointers;                                         /// Global pointers of the container
     std::unordered_map<IndexType, double> mLocalDistances;            /// The local distances 
     PointerCommunicatorPointer mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator 
 
@@ -314,6 +506,171 @@ public:
 
     /// The hash type
     using HashType = std::size_t;
+
+    /// The container type
+    using ContainerType = std::unordered_map<HashType, SpatialSearchResultContainer<TObjectType>>;
+
+    // Define the iterator class
+    class iterator {
+    public:
+        /// The category of the iterator, indicating forward iteration.
+        using iterator_category = std::forward_iterator_tag;
+
+        /// The type of the value pointed to by the iterator.
+        using value_type = std::pair<const HashType, SpatialSearchResultContainer<TObjectType>>;
+
+        /// The difference type between two iterators.
+        using difference_type = std::ptrdiff_t;
+
+        /// A pointer to the value type.
+        using pointer = value_type*;
+
+        /// A reference to the value type.
+        using reference = value_type&;
+
+        /**
+         * @brief Constructs an iterator pointing to the specified position.
+         * @param iter The iterator to initialize from.
+         */
+        iterator(typename ContainerType::iterator iter) : iter_(iter) {}
+
+        /**
+         * @brief Prefix increment operator.
+         * @return Reference to the incremented iterator.
+         */
+        iterator& operator++() {
+            ++iter_;
+            return *this;
+        }
+
+        /**
+         * @brief Postfix increment operator.
+         * @return An iterator before increment.
+         */
+        iterator operator++(int) {
+            iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        /**
+         * @brief Equality comparison operator.
+         * @param other The iterator to compare with.
+         * @return True if the iterators are equal, false otherwise.
+         */
+        bool operator==(const iterator& other) const {
+            return iter_ == other.iter_;
+        }
+
+        /**
+         * @brief Inequality comparison operator.
+         * @param other The iterator to compare with.
+         * @return True if the iterators are not equal, false otherwise.
+         */
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
+
+        /**
+         * @brief Dereference operator.
+         * @return Reference to the value pointed to by the iterator.
+         */
+        reference operator*() const {
+            return *iter_;
+        }
+
+        /**
+         * @brief Member access operator.
+         * @return Pointer to the value pointed to by the iterator.
+         */
+        pointer operator->() const {
+            return &(*iter_);
+        }
+
+    private:
+        typename ContainerType::iterator iter_;
+    };
+
+    // Define the const_iterator class
+    class const_iterator {
+    public:
+        /// The category of the iterator, indicating forward iteration.
+        using iterator_category = std::forward_iterator_tag;
+
+        /// The type of the value pointed to by the iterator.
+        using value_type = std::pair<const HashType, SpatialSearchResultContainer<TObjectType>>;
+
+        /// The difference type between two iterators.
+        using difference_type = std::ptrdiff_t;
+
+        /// A pointer to the value type.
+        using pointer = const value_type*;
+
+        /// A reference to the value type.
+        using reference = const value_type&;
+
+        /**
+         * @brief Constructs a constant iterator pointing to the specified position.
+         * @param iter The constant iterator to initialize from.
+         */
+        const_iterator(typename ContainerType::const_iterator iter) : iter_(iter) {}
+
+        /**
+         * @brief Prefix increment operator.
+         * @return Reference to the incremented constant iterator.
+         */
+        const_iterator& operator++() {
+            ++iter_;
+            return *this;
+        }
+
+        /**
+         * @brief Postfix increment operator.
+         * @return A constant iterator before increment.
+         */
+        const_iterator operator++(int) {
+            const_iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+
+        /**
+         * @brief Equality comparison operator.
+         * @param other The constant iterator to compare with.
+         * @return True if the constant iterators are equal, false otherwise.
+         */
+        bool operator==(const const_iterator& other) const {
+            return iter_ == other.iter_;
+        }
+
+        /**
+         * @brief Inequality comparison operator.
+         * @param other The constant iterator to compare with.
+         * @return True if the constant iterators are not equal, false otherwise.
+         */
+        bool operator!=(const const_iterator& other) const {
+            return !(*this == other);
+        }
+
+        /**
+         * @brief Dereference operator.
+         * @return Reference to the value pointed to by the constant iterator.
+         */
+        reference operator*() const {
+            return *iter_;
+        }
+
+        /**
+         * @brief Member access operator.
+         * @return Pointer to the value pointed to by the constant iterator.
+         */
+        pointer operator->() const {
+            return &(*iter_);
+        }
+
+    private:
+        typename ContainerType::const_iterator iter_;
+    };
 
     ///@}
     ///@name Life Cycle
@@ -380,6 +737,38 @@ public:
     ///@{
 
     /**
+     * @brief Returns an iterator pointing to the beginning of the container.
+     * @return An iterator pointing to the beginning of the container.
+     */
+    iterator begin() {
+        return iterator(mPointResults.begin());
+    }
+
+    /**
+     * @brief Returns an iterator pointing to the end of the container.
+     * @return An iterator pointing to the end of the container.
+     */
+    iterator end() {
+        return iterator(mPointResults.end());
+    }
+
+    /**
+     * @brief Returns a constant iterator pointing to the beginning of the container.
+     * @return A constant iterator pointing to the beginning of the container.
+     */
+    const_iterator begin() const {
+        return const_iterator(mPointResults.begin());
+    }
+
+    /**
+     * @brief Returns a constant iterator pointing to the end of the container.
+     * @return A constant iterator pointing to the end of the container.
+     */
+    const_iterator end() const {
+        return const_iterator(mPointResults.end());
+    }
+
+    /**
      * @brief Returns the number of points results
      * @return The number of points results
      */
@@ -425,7 +814,7 @@ private:
     ///@name Member Variables
     ///@{
     
-    std::unordered_map<HashType, SpatialSearchResultContainer<TObjectType>> mPointResults;  /// The results of each point
+    ContainerType mPointResults;  /// The results of each point
 
     ///@}
     ///@name Private Operations
