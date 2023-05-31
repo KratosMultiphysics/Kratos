@@ -19,34 +19,13 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "utilities/integration_utilities.h"
-#include "utilities/geometry_utilities.h"
-#include "geometries/pyramid_3d_5.h"
-#include "geometries/tetrahedra_3d_4.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h"
+
+// Application includes
 #include "optimization_application_variables.h"
 
+namespace Kratos {
 
-namespace Kratos
-{
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -58,17 +37,17 @@ namespace Kratos
  * @details Implements Helmholtz surface PDEs which involve Laplace-Beltrami operations for filtering a scalar field on surface.
  * @author Reza Najian Asl
  */
-class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzSurfaceElement
-    : public Element
+class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzSurfaceElement : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
-        typedef Node                                PointType;
-        typedef Node::Pointer                       PointPtrType;
-        typedef Geometry<PointType>                 GeometryType;
-        typedef Pyramid3D5<PointType>               PyramidGeometryType;
-        typedef Tetrahedra3D4<PointType>            TetrahedraGeometryType;
+
+    using PointType = Node;
+
+    using PointPtrType = Node::Pointer;
+
+    using GeometryType = Geometry<PointType>;
 
     /// Counted pointer of HelmholtzSurfaceElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzSurfaceElement);
@@ -81,25 +60,20 @@ public:
     HelmholtzSurfaceElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
+
     HelmholtzSurfaceElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~HelmholtzSurfaceElement();
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
+    virtual ~HelmholtzSurfaceElement() = default;
 
     ///@}
     ///@name Operations
     ///@{
 
-   /**
+    /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
      * @param pGeom The pointer to the geometry of the element
@@ -109,8 +83,7 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
+        PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -122,8 +95,7 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-        ) const override;
+        PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief It creates a new element pointer and clones the previous element data
@@ -132,10 +104,9 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone (
+    Element::Pointer Clone(
         IndexType NewId,
-        NodesArrayType const& rThisNodes
-        ) const override;
+        const NodesArrayType& rThisNodes) const override;
 
     /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -144,8 +115,7 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -154,8 +124,7 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief Sets on rValues the nodal values
@@ -164,8 +133,7 @@ public:
      */
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0
-        ) const override;
+        int Step = 0) const override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -177,8 +145,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This is called during the assembling process in order to calculate the elemental left hand side matrix only
@@ -187,29 +154,25 @@ public:
      */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-      * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector the elemental right hand side vector
-      * @param rCurrentProcessInfo the current process info instance
-      */
+     * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
+     * @param rRightHandSideVector the elemental right hand side vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-      * @brief This is called during the assembling process in order to calculate the elemental mass matrix
-      * @param rMassMatrix The elemental mass matrix
-      * @param rCurrentProcessInfo The current process info instance
-      */
+     * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+     * @param rMassMatrix The elemental mass matrix
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -218,7 +181,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo the current process info instance
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
@@ -252,46 +215,19 @@ private:
     ///@name Private Operations
     ///@{
     /**
-      * @brief This is called during the assembling process in order to calculate stiffness matrix
-      * @param rStiffnessMatrix The stiffness matrix
-      * @param rCurrentProcessInfo The current process info instance
-      */
+     * @brief This is called during the assembling process in order to calculate stiffness matrix
+     * @param rStiffnessMatrix The stiffness matrix
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void CalculateStiffnessMatrix(
         MatrixType& rStiffnessMatrix,
         const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
-      * @brief This is called during the assembling process in order to calculate shape functions
-      * from an pseudo bulk element
-      * @param rNMatrix The shape functions matrix
-      * @param rIntegrationMethod The given integration method
-      * @param rCurrentProcessInfo The current process info instance
-      */
-    void GetPseudoBulkSurfaceShapeFunctionsValues(
-        MatrixType& rNMatrix,
-        const IntegrationMethod& rIntegrationMethod,
-        const ProcessInfo& rCurrentProcessInfo) const;
-
-    /**
-      * @brief This is called during the assembling process in order to calculate shape functions
-      * gradients from an pseudo bulk element at the given gp point index
-      * @param rDN_DX The shape functions gradient matrix
-      * @param rIntegrationMethod The given integration method.
-      * @param PointNumber The index of the desired gp.
-      * @param rCurrentProcessInfo The current process info instance.
-      */
-    void CalculatePseudoBulkSurfaceDN_DXMatrix(
-        MatrixType& rDN_DX,
-        const IntegrationMethod& rIntegrationMethod,
-        const IndexType PointNumber,
-        const ProcessInfo& rCurrentProcessInfo) const;
-
-    /**
-      * @brief This is called during the assembling process in order to element surface normal
-      * @param rNormal The averaged surface normal
-      */
-    void CalculateAvgSurfUnitNormal(
-        VectorType& rNormal) const;
+     * @brief This is called during the assembling process in order to element surface normal
+     * @param rNormal The averaged surface normal
+     */
+    void CalculateAvgSurfUnitNormal(VectorType& rNormal) const;
 
     ///@}
 
@@ -299,7 +235,4 @@ private:
 
 ///@}
 
-}  // namespace Kratos.
-
-
-
+} // namespace Kratos.
