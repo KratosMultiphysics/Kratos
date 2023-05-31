@@ -18,6 +18,7 @@
 #include "containers/edge_based_data_structure.h"
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "includes/gid_io.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "testing/testing.h"
@@ -41,6 +42,11 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     })");
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
 
+    GidIO<> gid_io_convection("/home/rzorrilla/Desktop/EdgeBasedDataStructure2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    gid_io_convection.InitializeMesh(0);
+    gid_io_convection.WriteMesh(r_model_part.GetMesh());
+    gid_io_convection.FinalizeMesh();
+
     // Calculate nodal neighbours
     // TODO: Temporary solution until we skip the neighbours calculation
     FindGlobalNodalNeighboursProcess nodal_neighs_process(r_model_part);
@@ -51,9 +57,9 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     edge_based_data_structure.CalculateEdgeDataStructure(r_model_part);
 
     auto &r_edge_data_12 = edge_based_data_structure.GetEdgeData(1, 2);
-    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConsistentMass())
-    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalLaplacian())
-    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConvective())
+    // KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConsistentMass())
+    // KRATOS_WATCH(r_edge_data_12.GetOffDiagonalLaplacian())
+    // KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConvective())
 
     KRATOS_CHECK_EQUAL(edge_based_data_structure.NumberOfEdges(), 16);
 

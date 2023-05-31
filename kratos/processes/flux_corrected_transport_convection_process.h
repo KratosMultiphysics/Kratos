@@ -186,7 +186,6 @@ public:
 
             // TODO:Remove after debugging
             IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
-                KRATOS_WATCH(mConvectedValues[iNode])
                 auto it_node = mpModelPart->NodesBegin() + iNode;
                 it_node->FastGetSolutionStepValue(*mpConvectedVar) = mConvectedValues[it_node->Id()];
             });
@@ -400,7 +399,7 @@ private:
                 // Get TLS data
                 auto& F_i = rTLS.F_i;
                 auto& F_j = rTLS.F_j;
-                auto& r_d_ij = rTLS.d_ij;
+                auto& d_ij = rTLS.d_ij;
 
                 // i-node nodal data
                 const double u_i = mConvectedValuesOld[iRow];
@@ -413,12 +412,6 @@ private:
                 // i-node convective flux calculation
                 for (IndexType d = 0; d < TDim; ++d) {
                     F_i[d] = u_i * r_i_vel[d];
-                }
-
-                if (iRow == 1) {
-                    KRATOS_WATCH(u_i)
-                    KRATOS_WATCH(r_i_vel)
-                    KRATOS_WATCH(F_i)
                 }
 
                 // j-node nodal loop (i.e. loop ij-edges)
@@ -438,70 +431,30 @@ private:
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                     const auto& r_Ni_DNj = r_ij_edge_data.GetOffDiagonalConvective();
                     const auto& r_DNi_Nj = r_ij_edge_data.GetOffDiagonalConvectiveTranspose();
-                    r_d_ij = 0.5 * (r_DNi_Nj - r_Ni_DNj);
-
-                    if (iRow == 1 && j_node_id == 2) {
-                        KRATOS_WATCH(u_j)
-                        KRATOS_WATCH(r_j_vel)
-                        KRATOS_WATCH(F_j)
-                        KRATOS_WATCH(r_d_ij)
-                    }
+                    d_ij = 0.5 * (r_DNi_Nj - r_Ni_DNj);
 
                     // Calculate fluxes along edges
                     double f_i = 0.0;
                     double f_j = 0.0;
                     double D_ij = 0.0;
                     for (IndexType d = 0; d < TDim; ++d) {
-                        D_ij += std::pow(r_d_ij[d],2);
-                        f_i += r_d_ij[d] * F_i[d];
-                        f_j -= r_d_ij[d] * F_j[d];
+                        D_ij += std::pow(d_ij[d],2);
+                        f_i += d_ij[d] * F_i[d];
+                        f_j -= d_ij[d] * F_j[d];
                     }
                     D_ij = std::sqrt(D_ij);
                     f_i /= D_ij;
                     f_j /= D_ij;
                 
-                    if (iRow == 1 && j_node_id == 2) {
-                        KRATOS_WATCH(D_ij)
-                        KRATOS_WATCH(f_i)
-                        KRATOS_WATCH(f_j)
-                    }
-
-                    // Calculate residual from numerical flux
-                    double F_ij_d;
-                    double res_i = 0.0;
-                    double res_j = 0.0;
-                    const double u_ij = 0.5*(u_i + u_j) - 0.5*DeltaTime*(f_i-f_j)/D_ij; // u_{ij}^{n+0.5}
-                    for (IndexType d = 0; d < TDim; ++d) {
-                        //TODO: We're using the old values. Probably we should use an estimate of the substep midpoint ones
-                        F_ij_d = (r_i_vel[d] + r_j_vel[d]) * u_ij; // F(u_{ij}^{n+0.5})
-                        res_i -= 0.5*r_d_ij[d]*F_ij_d;
-                        res_j += 0.5*r_d_ij[d]*F_ij_d;
-                    }
-
-                    if (iRow == 1 && j_node_id == 2) {
-                        KRATOS_WATCH(u_ij)
-                        KRATOS_WATCH(F_ij_d)
-                        KRATOS_WATCH(res_i)
-                        KRATOS_WATCH(res_j)
-                    }
+                    // Calculate numerical flux from the fluxes along edges
+                    // Note that this numerical flux corresponds to a Lax-Wendroff scheme
+                    const double F_ij = 0.5 * (f_i + f_j) - 0.5 * DeltaTime * (f_i - f_j) / D_ij;
 
                     // Calculate nodal explicit low order contributions
                     const double diff_coeff = 0.0;
-                    double delta_u_i_low = res_i + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_i);
-                    double delta_u_j_low = res_j + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_j);
-
-                    if (iRow == 1 && j_node_id == 2) {
-                        KRATOS_WATCH(delta_u_i_low)
-                        KRATOS_WATCH(delta_u_j_low)
-                    }
-
-                    if (std::abs(delta_u_i_low) > 1.0e-12 || std::abs(delta_u_j_low) > 1.0e-12)
-                    {
-                        KRATOS_WATCH(iRow)
-                        KRATOS_WATCH(j_node_id)
-                        KRATOS_WATCH(delta_u_i_low)
-                        KRATOS_WATCH(delta_u_j_low)
-                    }
+                    const double res = D_ij * F_ij;
+                    double delta_u_i_low = res + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_i);
+                    double delta_u_j_low = res + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_j);
 
                     // Calculate antidiffusive fluxes (high order contribution)
                     //TODO: Implement this!
@@ -514,12 +467,11 @@ private:
         });
 
         // Do the explicit lumped mass matrix solve
-        IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
-            KRATOS_WATCH(mUpdateLowOrder[iRow])
-            const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(iRow);
+        IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
+            IndexType i_node_id = mpModelPart->NodesBegin()->Id();
+            const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
             const double solve_coeff = DeltaTime / M_l;
-            mConvectedValues[iRow] = solve_coeff * mUpdateLowOrder[iRow];
-            KRATOS_WATCH(mConvectedValues[iRow])
+            mConvectedValues[i_node_id] += solve_coeff * mUpdateLowOrder[i_node_id];
         });
     }
 

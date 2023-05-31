@@ -397,18 +397,34 @@ private:
                 for (IndexType j = i+1; j < NumNodes; ++j) {
                     const IndexType j_id = r_geom[j].Id();
 
-                    // Get ij-edge auxiliary id (edge are stored being i the lowest nodal i and j the largest)
+                    // Get ij-edge auxiliary ids (edges are stored being i the lowest nodal i and j the largest)
                     const IndexType aux_i_id = std::min(i_id, j_id);
                     const IndexType aux_j_id = std::max(i_id, j_id);
 
                     // Check presence of current ij-edge in the sparse graph
                     if (rEdgesSparseGraph.Has(aux_i_id, aux_j_id)) {
+
+                        // Get ij-edge auxiliary local ids
+                        // Note that these are set according to the "i lowest id" storage criterion
+                        IndexType aux_i;
+                        IndexType aux_j;
+                        if (i_id < j_id) {
+                            aux_i = i;
+                            aux_j = j;
+                        } else {
+                            aux_i = j;
+                            aux_j = i;
+                        }
+
                         // Add the mass matrices diagonal (II) contributions
                         // Note that in here we take advantage of the fact that there is an integration point at the mid of each edge
                         const IndexType i_row_id = i_id - 1;
+                        const IndexType j_row_id = j_id - 1;
                         const double aux_mass = 0.25 * domain_size / NumNodes;
-                        mMassMatrixDiagonal[i_row_id] = aux_mass;
-                        mLumpedMassMatrixDiagonal[i_row_id] = 2.0 * aux_mass;
+                        mMassMatrixDiagonal[i_row_id] += aux_mass;
+                        mMassMatrixDiagonal[j_row_id] += aux_mass;
+                        mLumpedMassMatrixDiagonal[i_row_id] += 2.0 * aux_mass;
+                        mLumpedMassMatrixDiagonal[j_row_id] += 2.0 * aux_mass;
 
                         // Get position in the column indices vector as this is the same one to be used in the values vector
                         const IndexType ij_col_index = GetColumVectorIndex(aux_i_id, aux_j_id);
@@ -419,11 +435,11 @@ private:
                         auto& rp_edge_data = mEdgeData[ij_col_index];
                         if (rp_edge_data == nullptr) {
                             rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
-                            rp_edge_data->SetLength(norm_2(r_geom[i].Coordinates()-r_geom[j].Coordinates()));
+                            rp_edge_data->SetLength(norm_2(r_geom[aux_i].Coordinates()-r_geom[aux_j].Coordinates()));
                         }
 
                         // Add current element off-diagonal (IJ) contributions
-                        rp_edge_data->AddOffDiagonalValues(domain_size, row(DNDX,i), row(DNDX,j));
+                        rp_edge_data->AddOffDiagonalValues(domain_size, row(DNDX,aux_i), row(DNDX,aux_j));
                     }
                 }
             }

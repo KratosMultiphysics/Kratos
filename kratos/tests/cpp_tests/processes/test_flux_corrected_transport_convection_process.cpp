@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     auto p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
     Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
     Parameters mesher_parameters(R"({
-        "number_of_divisions" : 2,
+        "number_of_divisions" : 10,
         "element_name" : "Element2D3N",
         "create_skin_sub_model_part" : false
     })");
