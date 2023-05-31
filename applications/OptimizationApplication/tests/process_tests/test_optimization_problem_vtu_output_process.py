@@ -119,9 +119,6 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             cls.optimization_problem.AddComponent(component)
             ComponentDataView(component, cls.optimization_problem).SetDataBuffer(2)
 
-        # cls.components_list.append("algorithm")
-        # ComponentDataView("algorithm", cls.optimization_problem).SetDataBuffer(2)
-
     def __AddData(self, buffered_dict: BufferedDict, is_buffered_data: bool, component):
         step_v = self.optimization_problem.GetStep() + 1
 
