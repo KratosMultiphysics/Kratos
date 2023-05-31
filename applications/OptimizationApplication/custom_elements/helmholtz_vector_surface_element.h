@@ -117,12 +117,12 @@ public:
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
-     * @brief Sets on rConditionalDofList the degrees of freedom of the considered element geometry
-     * @param rConditionalDofList The vector containing the dof of the element
+     * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     * @param rElementalDofList The vector containing the dof of the element
      * @param rCurrentProcessInfo The current process info instance
      */
     void GetDofList(
-        DofsVectorType& rConditionalDofList,
+        DofsVectorType& rElementalDofList,
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
@@ -147,8 +147,8 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief This is called during the assembling process in order to calculate the conditional left hand side matrix only
-     * @param rLeftHandSideMatrix the conditional left hand side matrix
+     * @brief This is called during the assembling process in order to calculate the elemental left hand side matrix only
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLeftHandSide(
@@ -156,8 +156,8 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief This is called during the assembling process in order to calculate the conditional right hand side vector only
-     * @param rRightHandSideVector the conditional right hand side vector
+     * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
+     * @param rRightHandSideVector the elemental right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateRightHandSide(
@@ -165,8 +165,8 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief This is called during the assembling process in order to calculate the conditional mass matrix
-     * @param rMassMatrix The conditional mass matrix
+     * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+     * @param rMassMatrix The elemental mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateMassMatrix(
@@ -222,7 +222,6 @@ private:
     }
 
     ///@}
-
     ///@name Private Operations
     ///@{
     /**
@@ -239,6 +238,7 @@ private:
      * @param rNormal The averaged surface normal
      */
     void CalculateAvgSurfUnitNormal(VectorType& rNormal) const;
+
     ///@}
 
 }; // Class HelmholtzVectorSurfaceElement

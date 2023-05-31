@@ -211,6 +211,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
+    ///@}
     ///@name Private Operations
     ///@{
     /**
