@@ -160,7 +160,7 @@ void AddInterfaceToAccessorFold(pybind11::class_<Properties, Properties::Pointer
             return accessor; 
         }, py::return_value_policy::reference_internal)
     .def("SetAccessor", [](Properties &rProperties, Variable<TVariableType> &rVariable, std::unique_ptr<Accessor>& rpAccessor) {
-            KRATOS_ERROR_IF(!*rpAccessor) << "Trying to set a consumed or invalid Accessor. Accessors are unique. Please create a different one." << std::endl;
+            KRATOS_ERROR_IF(!rpAccessor) << "Trying to set a consumed or invalid Accessor. Accessors are unique. Please create a different one." << std::endl;
 
             rProperties.SetAccessor(rVariable, std::move(rpAccessor));
         }, py::return_value_policy::reference_internal)
