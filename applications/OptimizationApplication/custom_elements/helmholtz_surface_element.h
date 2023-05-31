@@ -229,7 +229,12 @@ protected:
     }
 
 private:
+    ///@name Private member variables
+    ///@{
 
+    Geometry<Node>::Pointer mpSolidGeometry;
+
+    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
