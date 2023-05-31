@@ -49,7 +49,7 @@ with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
     response_function.Initialize()
 
     # now replace the properties
-    KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model["Structure.structure"], model_part.Elements)
+    KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model["Structure.whole_structure"], model_part.Elements)
 
     execution_policy_decorator.Execute()
     ref_value = response_function.CalculateValue()

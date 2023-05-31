@@ -6,8 +6,10 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_solver import MechanicalSolver
 
+
 def CreateSolver(model, custom_settings):
     return StructuralMechanicsAdjointStaticSolver(model, custom_settings)
+
 
 class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
 
@@ -35,14 +37,14 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
     def PrepareModelPart(self):
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]!= 3):
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] != 3):
             raise Exception("there are currently only 3D adjoint elements available")
         super().PrepareModelPart()
         # TODO Why does replacement need to happen after reading materials?
 
         process_info = self.main_model_part.ProcessInfo
         if (process_info.Has(StructuralMechanicsApplication.IS_ADJOINT) and
-            process_info.GetValue(StructuralMechanicsApplication.IS_ADJOINT)):
+                process_info.GetValue(StructuralMechanicsApplication.IS_ADJOINT)):
             raise RuntimeError("Modelpart '{}' is already adjoint modelpart!".format(self.main_model_part.Name))
 
         # defines how the primal elements should be replaced with their adjoint counterparts
@@ -63,7 +65,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
                     "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
                     "SpringDamperElement3D"          : "AdjointFiniteDifferenceSpringDamperElement3D2N",
-                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N" 
+                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N"
                 },
                 "condition_name_table" :
                 {
@@ -82,7 +84,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "PointCondition3D1N"
                 ]
             }
-        """) # TODO remove "Condition3D" after issue#4439 is resolved; remove SpringDamperElement3D2N, it is deprecated
+        """)  # TODO remove "Condition3D" after issue#4439 is resolved; remove SpringDamperElement3D2N, it is deprecated
 
         StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
         process_info.SetValue(StructuralMechanicsApplication.IS_ADJOINT, True)
@@ -108,6 +110,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             self.response_function = StructuralMechanicsApplication.AdjointMaxStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_displacement":
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_nodal_displacement_measurement_residual":
+            self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementMeasurementResidualResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_linear_strain_energy":
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_reaction":
@@ -142,10 +146,10 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         for node in self.main_model_part.Nodes:
             adjoint_displacement = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement )
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement)
             if self.settings["rotation_dofs"].GetBool():
                 adjoint_rotation = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
-                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation )
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation)
 
     def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
@@ -156,7 +160,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                 raise Exception("\"move_mesh_flag\" is not allowed for adjoint models parts")
             mechanical_solution_strategy = self._create_linear_strategy()
         else:
-            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available for adjoints!\n"
+            err_msg = "The requested analysis type \"" + analysis_type + "\" is not available for adjoints!\n"
             err_msg += "Available options are: \"linear\""
             raise Exception(err_msg)
         return mechanical_solution_strategy

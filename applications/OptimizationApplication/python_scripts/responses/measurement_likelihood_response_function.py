@@ -61,7 +61,9 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         file = open(self.measurement_data_file)
         self.measurement_data = json.load(file)
 
-        for sensor in self.measurement_data["description_of_sensors"]:
+        self.sensor_positions_model_part = self.model.CreateModelPart("sensor_positions")
+
+        for sensor in self.measurement_data["load_cases"][0]["description_of_sensors"]:
 
             point = Kratos.Point(sensor["position_of_mesh_node"])
             search_configuration = Kratos.Configuration.Initial
@@ -72,9 +74,10 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
             found_node_id = point_locator.FindNode(
                 point, search_configuration, search_tolerance
             )
-            # node = self.model_part.GetNode(found_node_id)
-            # print(node)
+
             sensor["mesh_node_id"] = found_node_id
+            # Add node to sensor_positions_model_part
+            self.sensor_positions_model_part.AddNode(self.model_part.GetNode(found_node_id))
 
     def Check(self) -> None:
         pass
@@ -95,7 +98,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         # LL = 1/2 * 1/cov * error**2
 
         objective_value = 0
-        for sensor in self.measurement_data["description_of_sensors"]:
+        for sensor in self.measurement_data["load_cases"][0]["description_of_sensors"]:
             measured_displacement = Kratos.Array3(sensor["measured_value"])
 
             mesh_node = self.model_part.GetNode(sensor["mesh_node_id"])
@@ -124,7 +127,8 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
                 }"""
         )
 
-        self.adjoint_file_name = "/home/fmeister/GitkrakenRepos/Kratos/scripts/dev_scripts/linear_strain_energy_test/linear_shell_test_nodal_disp_adjoint_parameters.json"
+        self.adjoint_file_name = "/media/meister/localdata/GitRepos/Kratos_In_Progress_SysId/scripts/dev_scripts/linear_strain_energy_test/adjoint_parameters.json"
+        # self.adjoint_file_name = "/home/fmeister/GitkrakenRepos/Kratos/scripts/dev_scripts/linear_strain_energy_test/linear_shell_test_nodal_disp_adjoint_parameters.json"
 
         # Reading the ProjectParameters
         with open(self.adjoint_file_name, 'r') as parameter_file:
@@ -135,7 +139,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         # create adjoint analysis
         model_adjoint = Kratos.Model()
         self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, self.adjoint_parameters)
-        # self.adjoint_analysis.Run()
+        self.adjoint_analysis.Run()
         # self.adjoint_analysis.time = 0.0
         # self.adjoint_analysis.end_time = 1.0
         # adjoint_response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.model_part, self.response_settings)

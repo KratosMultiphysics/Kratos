@@ -428,7 +428,7 @@ Begin SubModelPart	left_support
 	End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart	structure
+Begin SubModelPart	whole_structure
 	Begin SubModelPartData
 	End SubModelPartData
 	Begin SubModelPartTables

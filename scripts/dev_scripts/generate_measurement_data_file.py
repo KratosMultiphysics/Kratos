@@ -21,9 +21,14 @@ class SensorDataContainer:
 
 
 @dataclasses.dataclass
-class MeasurementDataContainer:
+class PerLoadCaseMeasurementDataContainer:
     description_of_load: LoadDataContainer = None,
     description_of_sensors: List[SensorDataContainer] = None,
+
+
+@dataclasses.dataclass
+class LoadCasesContainer:
+    load_cases: List[PerLoadCaseMeasurementDataContainer] = None
 
 
 load = LoadDataContainer(strength_in_N=2000,
@@ -39,8 +44,9 @@ sensors = [
                         measurement_direction_normal=[0., -1., 0.])
 ]
 
-data_out = MeasurementDataContainer(description_of_load=load,
-                                    description_of_sensors=sensors)
+data_out = LoadCasesContainer([PerLoadCaseMeasurementDataContainer(description_of_load=load,
+                                                                   description_of_sensors=sensors)
+                               ])
 
 
 with open("MeasurementData.json", "w") as outfile:
