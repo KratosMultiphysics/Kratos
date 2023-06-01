@@ -102,6 +102,10 @@ class AlgorithmSteepestDescent(Algorithm):
                 with TimeLogger("Calculate objective value", "Start", "End"):
                     self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) 
                     algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
+                    algorithm_data.GetBufferedData()["rel_obj[%]"] = self.__objective.GetRelativeChange() * 100
+                    initial_value = self.__objective.GetInitialValue()
+                    if initial_value:
+                        algorithm_data.GetBufferedData()["abs_obj[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
                     print(self.__objective.GetInfo())
 
                 with TimeLogger("Calculate gradient", "Start", "End"):
