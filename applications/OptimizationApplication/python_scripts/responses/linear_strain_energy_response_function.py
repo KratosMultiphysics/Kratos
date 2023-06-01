@@ -1,3 +1,6 @@
+from typing import List
+from typing import Dict
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -6,6 +9,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_function impo
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 
+
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
         raise RuntimeError(f"LinearStrainEnergyResponseFunction instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
@@ -13,6 +17,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
         raise RuntimeError(f"LinearStrainEnergyResponseFunction instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
     return LinearStrainEnergyResponseFunction(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+
 
 class LinearStrainEnergyResponseFunction(ResponseFunction):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -37,7 +42,7 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         if len(self.model_part_names) == 0:
             raise RuntimeError("No model parts were provided for LinearStrainEnergyResponseFunction.")
 
-    def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+    def GetImplementedPhysicalKratosVariables(self) -> List[SupportedSensitivityFieldVariableTypes]:
         return [KratosOA.SHAPE, Kratos.YOUNG_MODULUS, Kratos.THICKNESS, Kratos.POISSON_RATIO]
 
     def Initialize(self) -> None:
@@ -62,11 +67,12 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
         return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_part)
 
-    def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
+    def CalculateGradient(self, physical_variable_collective_expressions: Dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
         # first calculate the gradients
         merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
         intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.GetAnalysisModelPart(), merged_model_part_map, True)
-        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(list(merged_model_part_map.keys()), list(merged_model_part_map.values()), list(intersected_model_part_map.values()), self.perturbation_size)
+        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(list(merged_model_part_map.keys()), list(
+            merged_model_part_map.values()), list(intersected_model_part_map.values()), self.perturbation_size)
 
         # now fill the collective expressions
         for variable, collective_expression in physical_variable_collective_expressions.items():

@@ -139,23 +139,46 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
         adjoint_analysis.Run()
 
+        Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, model_adjoint.GetModelPart("Structure"), self.model["Structure"])
+
         # for node in model_adjoint.GetModelPart("Structure").GetNodes():
         #     print(f"Displacement: {node.GetSolutionStepValue(Kratos.DISPLACEMENT)}")
         #     print(f"Displacement X: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)}")
         #     print(f"Displacement Y: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)}")
         #     print(f"Displacement Z: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)}")
 
-        # elements = model_adjoint.GetModelPart("Structure").GetElements()
-        # results = np.ndarray(shape=(len(elements), 1), dtype=np.float64)
-        # for i, element in enumerate(elements):
-        #     results[i] = element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
+        elements = model_adjoint.GetModelPart("Structure").GetElements()
+        results = np.ndarray(shape=(len(elements), 1), dtype=np.float64)
+        for i, element in enumerate(elements):
+            results[i] = element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
+        print("aaaa", results)
+
+        elements = self.model["Structure"].GetElements()
+        results = np.ndarray(shape=(len(elements), 1), dtype=np.float64)
+        for i, element in enumerate(elements):
+            results[i] = element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
+        print("dddd", results)
 
         # now fill the collective expressions
         for variable, collective_expression in physical_variable_collective_expressions.items():
-            collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
+            for expression in collective_expression.GetContainerExpressions():
+                if isinstance(expression, KratosOA.ContainerExpression.ElementPropertiesExpression):
+                    element_data_expression = Kratos.ContainerExpression.ElementNonHistoricalExpression(expression.GetModelPart())
+                    element_data_expression.Read(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
+                    expression.CopyFrom(element_data_expression)
+                else:
+                    expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
+            # collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
             # collective_expression.Read(results)
 
         print(f"Collective results: {physical_variable_collective_expressions}")
+        for variable, collective_expression in physical_variable_collective_expressions.items():
+            print(variable)
+            for cexp in collective_expression.GetContainerExpressions():
+                print(cexp)
+                data = cexp.Evaluate()
+                print(data)
+        raise RuntimeError(1)
         #####################################################################
 
         # Likelihood Gradient
