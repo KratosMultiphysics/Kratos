@@ -17,7 +17,6 @@
 
 // Project includes
 #include "input_output/vtk_output.h"
-//#include "utilities/pointer_communicator.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/mpi_search_utilities.h"
 #include "mpi/spatial_containers/geometrical_objects_bins_mpi.h"
