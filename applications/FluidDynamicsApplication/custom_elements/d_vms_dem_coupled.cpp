@@ -657,7 +657,7 @@ void DVMSDEMCoupled<TElementData>::MomentumProjTerm(
 template<class TElementData>
 void DVMSDEMCoupled<TElementData>::AddReactionStabilization(
     TElementData& rData,
-    auto& rLHS,
+    BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& rLHS,
     VectorType& rLocalRHS)
 {
 
@@ -749,7 +749,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     MatrixType &rLocalLHS,
     VectorType &rLocalRHS)
 {
-    auto& LHS = rData.LHS;
+    BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& LHS = rData.LHS;
     LHS.clear();
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);

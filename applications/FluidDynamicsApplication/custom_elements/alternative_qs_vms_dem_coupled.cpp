@@ -796,7 +796,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddMassStabilization(
 template<class TElementData>
 void AlternativeQSVMSDEMCoupled<TElementData>::AddReactionStabilization(
     TElementData& rData,
-    auto& rLHS,
+    BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& rLHS,
     VectorType& rLocalRHS)
 {
 
@@ -923,7 +923,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     MatrixType& rLocalLHS,
     VectorType& rLocalRHS)
 {
-    auto& LHS = rData.LHS;
+    BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& LHS = rData.LHS;
     LHS.clear();
     //const auto& rGeom = this->GetGeometry();
     const double density = this->GetAtCoordinate(rData.Density,rData.N);

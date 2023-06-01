@@ -293,7 +293,7 @@ protected:
 
     void AddReactionStabilization(
         TElementData& rData,
-        auto& rLHS,
+        BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& rLHS,
         VectorType& rLocalRHS);
 
     void AddMassStabilization(

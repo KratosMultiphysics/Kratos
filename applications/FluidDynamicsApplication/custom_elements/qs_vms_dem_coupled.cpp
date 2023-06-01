@@ -651,7 +651,7 @@ void QSVMSDEMCoupled<TElementData>::MomentumProjTerm(
 template<class TElementData>
 void QSVMSDEMCoupled<TElementData>::AddReactionStabilization(
     TElementData& rData,
-    auto& rLHS,
+    BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& rLHS,
     VectorType& rLocalRHS)
 {
 
@@ -797,7 +797,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     MatrixType& rLocalLHS,
     VectorType& rLocalRHS)
 {
-    auto& LHS = rData.LHS;
+    BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& LHS = rData.LHS;
     LHS.clear();
 
     // Interpolate nodal data on the integration point
