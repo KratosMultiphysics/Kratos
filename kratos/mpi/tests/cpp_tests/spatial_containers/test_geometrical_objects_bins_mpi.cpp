@@ -221,7 +221,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
 
 /** Checks bins search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRadius, KratosMPICoreFastSuite2) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRadius, KratosMPICoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -258,11 +258,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRa
     bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
-    KRATOS_WATCH(results[near_point].NumberOfGlobalResults())
     KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
 
     // Distances are just local
-    if (rank == 0) {
+    if (rank == 1) {
         auto& r_distances = results[near_point].GetLocalDistances();
         KRATOS_CHECK_NEAR(r_distances.begin()->second, (cube_z - epsilon), tolerance);
     }
