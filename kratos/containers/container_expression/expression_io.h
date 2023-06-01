@@ -14,12 +14,13 @@
 
 // Project includes
 #include "containers/container_expression/expressions/expression.h"
+#include "includes/define.h"
 
 
 namespace Kratos {
 
 
-class ExpressionIO
+class KRATOS_API(KRATOS_CORE) ExpressionIO
 {
 public:
     virtual ~ExpressionIO() = default;
