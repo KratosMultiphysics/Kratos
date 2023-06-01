@@ -265,31 +265,37 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
     // 0.29 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_IS_FALSE(results[point].IsObjectFound());
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 0);
 
     // 0.3 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK(results[point].IsObjectFound());
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 4);
 
     // 0.4 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK(results[point].IsObjectFound());
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 4);
 
     // 0.6 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK(results[point].IsObjectFound());
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 8);
 
     // 0.7 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK(results[point].IsObjectFound());
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 8);
 
     // 0.9 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK(results[point].IsObjectFound());
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 12);
 }
 
@@ -326,11 +332,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRa
     bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
-    KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 0);
+    KRATOS_CHECK_IS_FALSE(results[near_point].IsObjectFound());
 
     bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK(results[near_point].IsObjectFound());
     KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
 
     // Distances are just local
@@ -378,6 +385,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearest, Kr
     bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK(results[near_point].IsObjectFound());
     KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
 
     // Distances are just local
@@ -419,7 +427,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIEmptySearchNeares
     bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
-    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 0);
+    KRATOS_CHECK_IS_FALSE(results[point].IsObjectFound());
 }
 
 /** Checks bins search is inside 
@@ -449,6 +457,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchIsInside, K
     bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK(results[inside_point].IsObjectFound());
     KRATOS_CHECK_EQUAL(results[inside_point].NumberOfGlobalResults(), 1);
 }
 
@@ -479,7 +488,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchIsNotInside
     bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
-    KRATOS_CHECK_EQUAL(results[outside_point].NumberOfGlobalResults(), 0);
+    KRATOS_CHECK_IS_FALSE(results[outside_point].IsObjectFound());
 }
 
 } // namespace Kratos::Testing.
