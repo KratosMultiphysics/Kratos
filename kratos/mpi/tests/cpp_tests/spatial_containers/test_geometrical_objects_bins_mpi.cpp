@@ -126,6 +126,89 @@ ModelPart& CreateCubeSkinModelPart(
     return r_skin_part;
 }
 
+ModelPart& CreateCubeModelPart(Model& rCurrentModel)
+{
+    // Generate the cube skin
+    ModelPart& r_model_part = rCurrentModel.CreateModelPart("Cube");
+    r_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // Create properties
+    auto p_properties = r_model_part.CreateNewProperties(1, 0);
+
+    // Set partitions
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+    const int rank =  r_data_comm.Rank();
+    const int world_size = r_data_comm.Size();
+    if (world_size == 1) {
+        r_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
+        r_model_part.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
+        r_model_part.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
+        r_model_part.CreateNewNode(4 , 0.5 , 1.0 , 1.0);
+        r_model_part.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
+        r_model_part.CreateNewNode(6 , 0.5 , 1.0 , 0.0);
+        r_model_part.CreateNewNode(7 , 0.5 , 0.0 , 1.0);
+        r_model_part.CreateNewNode(8 , 0.5 , 0.0 , 0.0);
+        r_model_part.CreateNewNode(9 , 1.0 , 1.0 , 1.0);
+        r_model_part.CreateNewNode(10 , 1.0 , 1.0 , 0.0);
+        r_model_part.CreateNewNode(11 , 1.0 , 0.0 , 1.0);
+        r_model_part.CreateNewNode(12 , 1.0 , 0.0 , 0.0);
+
+        for (auto& r_node : r_model_part.Nodes()) {
+            r_node.FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+        }
+        // Create elements
+        r_model_part.CreateNewElement("Element3D8N", 1, {{5,8,6,2,3,7,4,1}}, p_properties);
+        r_model_part.CreateNewElement("Element3D8N", 2, {{8,12,10,6,7,11,9,4}}, p_properties);
+    } else { // Assuming always two partitions
+        if (rank == 0) {
+            // Create nodes
+            r_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
+            r_model_part.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
+            r_model_part.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
+            r_model_part.CreateNewNode(4 , 0.5 , 1.0 , 1.0);
+            r_model_part.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
+            r_model_part.CreateNewNode(6 , 0.5 , 1.0 , 0.0);
+            r_model_part.CreateNewNode(7 , 0.5 , 0.0 , 1.0);
+            r_model_part.CreateNewNode(8 , 0.5 , 0.0 , 0.0);
+
+            // Set partitions
+            for (auto& r_node : r_model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+            }
+
+            // Create elements
+            r_model_part.CreateNewElement("Element3D8N", 1, {{5,8,6,2,3,7,4,1}}, p_properties);
+        } else if (rank == 1) {
+            // Create nodes
+            auto p_node4  = r_model_part.CreateNewNode(4 , 0.5 , 1.0 , 1.0);
+            auto p_node6  = r_model_part.CreateNewNode(6 , 0.5 , 1.0 , 0.0);
+            auto p_node7  = r_model_part.CreateNewNode(7 , 0.5 , 0.0 , 1.0);
+            auto p_node8  = r_model_part.CreateNewNode(8 , 0.5 , 0.0 , 0.0);
+            auto p_node9  = r_model_part.CreateNewNode(9 , 1.0 , 1.0 , 1.0);
+            auto p_node10 = r_model_part.CreateNewNode(10 , 1.0 , 1.0 , 0.0);
+            auto p_node11 = r_model_part.CreateNewNode(11 , 1.0 , 0.0 , 1.0);
+            auto p_node12 = r_model_part.CreateNewNode(12 , 1.0 , 0.0 , 0.0);
+
+            // Set partitions
+            for (auto& r_node : r_model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(PARTITION_INDEX) = 1;
+            }
+            p_node4->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+            p_node6->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+            p_node7->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+            p_node8->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+
+            // Create elements
+            r_model_part.CreateNewElement("Element3D8N", 2, {{8,12,10,6,7,11,9,4}}, p_properties);
+        }
+    }
+
+    // Compute communicaton plan and fill communicator meshes correctly
+    ParallelFillCommunicator(r_model_part, r_data_comm).Execute();
+
+    return r_model_part;
+}
+
 /** Checks bins bounding box
 */
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIBoundingBox, KratosMPICoreFastSuite)
@@ -251,7 +334,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRa
     KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
 
     // Distances are just local
-    if (rank == 1) {
+    if (rank == 1 || r_data_comm.Size() == 1) {
         auto& r_distances = results[near_point].GetLocalDistances();
         KRATOS_CHECK_NEAR(r_distances.begin()->second, (cube_z - epsilon), tolerance);
     }
@@ -298,7 +381,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearest, Kr
     KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
 
     // Distances are just local
-    if (rank == 1) {
+    if (rank == 1 || r_data_comm.Size() == 1) {
         auto& r_distances = results[near_point].GetLocalDistances();
         KRATOS_CHECK_NEAR(r_distances.begin()->second, (cube_z - epsilon), tolerance);
     }
@@ -339,55 +422,64 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIEmptySearchNeares
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 0);
 }
 
-// /** Checks bins search is inside 
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchIsInside, KratosMPICoreFastSuite) 
-// {
-//     constexpr double tolerance = 1e-12;
+/** Checks bins search is inside 
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchIsInside, KratosMPICoreFastSuite) 
+{
+    Model current_model;
 
-//     Model current_model;
+    // Generate the cube skin
+    ModelPart& r_skin_part = CreateCubeModelPart(current_model);
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-//     // Generate the cube skin
-//     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
-//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-//     r_skin_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-//     r_skin_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-//     r_skin_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-//     r_skin_part.CreateNewNode(4, 0.0, 0.0, 1.0);
-//     Properties::Pointer p_properties(new Properties(0));
-//     r_skin_part.CreateNewElement("Element3D4N",  1, { 1,2,3,4 }, p_properties);
+    GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
-//     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    Point inside_point{0.5,0.5,0.5};
 
-//     Point near_point{0.1,0.1,0.1};
-//     auto result = bins.SearchIsInside(near_point);
+    // Generate new model part
+    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
+    // We generate only in first rank
+    const int rank = r_data_comm.Rank();
+    if (rank == 0) {
+        r_point_model_part.CreateNewNode(1, 0.5,0.5,0.5);
+    }
+    auto& r_array_nodes = r_point_model_part.Nodes();
 
-//     KRATOS_CHECK(result.IsObjectFound());
-//     KRATOS_CHECK_NEAR(result.GetDistance(), 0.0, tolerance);
-// }
+    GeometricalObjectsBinsMPI::ResultTypeContainerMap results;
+    bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
-// /** Checks bins search is inside = not found
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchIsNotInside, KratosMPICoreFastSuite) 
-// {
-//     Model current_model;
+    KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_EQUAL(results[inside_point].NumberOfGlobalResults(), 1);
+}
 
-//     // Generate the cube skin
-//     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
-//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-//     r_skin_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-//     r_skin_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-//     r_skin_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-//     r_skin_part.CreateNewNode(4, 0.0, 0.0, 1.0);
-//     Properties::Pointer p_properties(new Properties(0));
-//     r_skin_part.CreateNewElement("Element3D4N",  1, { 1,2,3,4 }, p_properties);
+/** Checks bins search is inside = not found
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchIsNotInside, KratosMPICoreFastSuite) 
+{
+    Model current_model;
 
-//     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    // Generate the cube skin
+    ModelPart& r_skin_part = CreateCubeModelPart(current_model);
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-//     Point near_point{0.5,0.5,0.5};
-//     auto result = bins.SearchIsInside(near_point);
+    GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
-//     KRATOS_CHECK_IS_FALSE(result.IsObjectFound());
-// }
+    Point outside_point{100.0,100.0,100.0};
+
+    // Generate new model part
+    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
+    // We generate only in first rank
+    const int rank = r_data_comm.Rank();
+    if (rank == 0) {
+        r_point_model_part.CreateNewNode(1, 100.0,100.0,100.0);
+    }
+    auto& r_array_nodes = r_point_model_part.Nodes();
+
+    GeometricalObjectsBinsMPI::ResultTypeContainerMap results;
+    bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
+
+    KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_EQUAL(results[outside_point].NumberOfGlobalResults(), 0);
+}
 
 } // namespace Kratos::Testing.
