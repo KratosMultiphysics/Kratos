@@ -7,23 +7,22 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
+//  Main authors:    Carlos Roig
 //
 
 #pragma once
 
 // System includes
-#include <pybind11/pybind11.h>
 
 // External includes
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 // Project includes
 
 namespace Kratos::Python
 {
 
-void  AddNodeToPython(pybind11::module& m);
-void  AddMeshToPython(pybind11::module& m);
+void AddPropertiesToPython(pybind11::module& m);
 
 }  // namespace Kratos::Python.
