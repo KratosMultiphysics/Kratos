@@ -1,6 +1,10 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
+# Importing the MPI
+if KM.IsDistributedRun():
+    import KratosMultiphysics.mpi as KratosMPI
+
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -44,21 +48,21 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         # Create search
         self.data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
         if KM.IsDistributedRun():
-            self.search = KM.GeometricalObjectsBinsMPI(self.model_part.Conditions, self.data_comm)
+            self.search = KratosMPI.GeometricalObjectsBinsMPI(self.model_part.Conditions, self.data_comm)
         else:
             self.search = KM.GeometricalObjectsBins(self.model_part.Conditions)
 
         # Create node for search
+        self.node_coordinates = KM.Point(0.0, 0.0, 0.15)
         if KM.IsDistributedRun():
-            import KratosMultiphysics.mpi as KratosMPI
             # Only added to first rank to actualy check it works in all ranks
             if self.data_comm.Rank() == 0:
-                self.node = self.sub_model_part.CreateNewNode(100000, 0.0, 0.0, 0.15)
+                self.node = self.sub_model_part.CreateNewNode(100000, self.node_coordinates.X, self.node_coordinates.Y, self.node_coordinates.Z)
                 self.node.SetSolutionStepValue(KM.PARTITION_INDEX, 0)
             ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.model_part)
             ParallelFillCommunicator.Execute()
         else:
-            self.node = self.sub_model_part.CreateNewNode(100000, 0.0, 0.0, 0.15)
+            self.node = self.sub_model_part.CreateNewNode(100000, self.node_coordinates.X, self.node_coordinates.Y, self.node_coordinates.Z)
 
     def test_GeometricalObjectsBins_SearchInRadius(self):
         # Define radius
@@ -68,8 +72,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         cond_id_ref = [125,78,117,18,68,1,41,119]
 
         # One node search
-        results = self.search.SearchInRadius(self.node, radius)
-        results.SynchronizeAll(self.data_comm)
+        results = self.search.SearchInRadius(self.node_coordinates, radius)
         self.assertEqual(results.NumberOfGlobalResults(), 8)
         ids = results.GetResultIndices()
         for id in ids:
@@ -78,7 +81,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         # Nodes array search
         results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
         self.assertEqual(results.NumberOfPointsResults(), 1)
-        node_results = results[self.node]
+        node_results = results[self.node_coordinates]
         node_results.SynchronizeAll(self.data_comm)   
         self.assertEqual(node_results.NumberOfGlobalResults(), 8)
         ids = node_results.GetResultIndices()
@@ -89,14 +92,15 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         radius = 0.35
 
         # One node search
-        result = self.search.SearchNearestInRadius(self.node, radius)
-        self.assertEqual(result.Get().Id, 1)
+        result = self.search.SearchNearestInRadius(self.node_coordinates, radius)
+        self.assertEqual(result.NumberOfGlobalResults(), 1)
+        ids = result.GetResultIndices()
+        self.assertTrue(1 in ids)
 
         # Nodes array search
         results = self.search.SearchNearestInRadius(self.sub_model_part.Nodes, radius)   
         self.assertEqual(results.NumberOfPointsResults(), 1)
-        node_results = results[self.node]
-        node_results.SynchronizeAll(self.data_comm)    
+        node_results = results[self.node_coordinates]
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
         if self.data_comm.Rank() == 0:
             self.assertEqual(node_results[0].Id, 1) # Local result
@@ -104,14 +108,15 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
     def test_GeometricalObjectsBins_SearchNearest(self):
         # One node search
-        result = self.search.SearchNearest(self.node)
-        self.assertEqual(result.Get().Id, 1)
+        result = self.search.SearchNearest(self.node_coordinates)
+        self.assertEqual(result.NumberOfGlobalResults(), 1)
+        ids = result.GetResultIndices()
+        self.assertTrue(1 in ids)
 
         # Nodes array search
         results = self.search.SearchNearest(self.sub_model_part.Nodes) 
         self.assertEqual(results.NumberOfPointsResults(), 1)
-        node_results = results[self.node]
-        node_results.SynchronizeAll(self.data_comm)    
+        node_results = results[self.node_coordinates] 
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
         if self.data_comm.Rank() == 0:
             self.assertEqual(node_results[0].Id, 1) # Local result
@@ -119,15 +124,14 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
     def test_GeometricalObjectsBins_SearchIsInside(self):
         # One node search
-        result = self.search.SearchIsInside(self.node)
-        self.assertEqual(result.Get(), None)
+        result = self.search.SearchIsInside(self.node_coordinates)
+        self.assertFalse(result.IsObjectFound())
 
         # Nodes array search
         results = self.search.SearchIsInside(self.sub_model_part.Nodes) 
         self.assertEqual(results.NumberOfPointsResults(), 1)
-        node_results = results[self.node]
-        node_results.SynchronizeAll(self.data_comm)    
-        self.assertEqual(node_results.NumberOfGlobalResults(), 0)
+        node_results = results[self.node_coordinates] 
+        self.assertFalse(node_results.IsObjectFound())
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
