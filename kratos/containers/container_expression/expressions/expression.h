@@ -155,6 +155,7 @@ public:
      * @param EntityDataBeginIndex  Index at which entity data starts.
      * @param ComponentIndex        Component index.
      * @return double               Evaluated expression.
+     * @todo Move to private.
      */
     virtual double Evaluate(
         const IndexType EntityIndex,
@@ -201,6 +202,8 @@ public:
     ///@}
 
 private:
+    friend class ExpressionIO;
+
     ///@name Private member variables
     ///@{
 
