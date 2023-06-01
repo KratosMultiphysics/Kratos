@@ -124,6 +124,19 @@ public:
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it.
      * @details The result contains the object and also its distance to the point.
+     * @param rPoint The point to be checked
+     * @param Radius The radius to be checked
+     * @param rResults The results of the search
+     */
+    void SearchInRadius(
+        const Point& rPoint,
+        const double Radius,
+        ResultTypeContainer& rResults
+        ) override;
+
+    /**
+     * @brief This method takes a point and finds all of the objects in the given radius to it.
+     * @details The result contains the object and also its distance to the point.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param Radius The radius to be checked
@@ -152,14 +165,26 @@ public:
         // Performa the corresponding searchs
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
-            Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(point);
-            ImplSearchInRadius(point, Radius, r_partial_result);
-
-            // Synchronize
-            r_partial_result.SynchronizeAll(mrDataCommunicator);
+            this->SearchInRadius(point, Radius, r_partial_result);
         }
     }
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it in a given radius.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * If there are no objects in that radius the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * @param rPoint The point to be checked
+     * @param Radius The radius to be checked
+     * @param rResults The results of the search
+     */
+    void SearchNearestInRadius(
+        const Point& rPoint,
+        const double Radius,
+        ResultTypeContainer& rResults
+        ) override;
 
     /**
      * @brief This method takes a point and finds the nearest object to it in a given radius.
@@ -195,14 +220,23 @@ public:
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             // Perform local search
-            Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(point);
-            ImplSearchNearestInRadius(point, Radius, r_partial_result);
-
-            // Synchronize
-            r_partial_result.SynchronizeAll(mrDataCommunicator);
+            this->SearchNearestInRadius(point, Radius, r_partial_result);
         }
     }
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * Result contains a flag is the object has been found or not.
+     * @param rPoint The point to be checked
+     * @param rResults The results of the search
+    */
+    void SearchNearest(
+        const Point& rPoint,
+        ResultTypeContainer& rResults
+        ) override;
 
     /**
      * @brief This method takes a point and finds the nearest object to it.
@@ -235,14 +269,25 @@ public:
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             // Perform local search
-            Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(point);
-            ImplSearchNearest(point, r_partial_result);
-
-            // Synchronize
-            r_partial_result.SynchronizeAll(mrDataCommunicator);
+            this->SearchNearest(point, r_partial_result);
         }
     }
+
+    /**
+     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
+     * @details If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * This method is a simplified and faster method of SearchNearest.
+     * @param rPoint The point to be checked
+     * @param rResults The results of the search
+     */
+    void SearchIsInside(
+        const Point& rPoint,
+        ResultTypeContainer& rResults
+        ) override;
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
@@ -277,12 +322,9 @@ public:
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             // Perform local search
-            Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(point);
-            ImplSearchIsInside(point, r_partial_result);
-            
-            // Synchronize
-            r_partial_result.SynchronizeAll(mrDataCommunicator);
+            this->SearchIsInside(point, r_partial_result);
         }
     }
 
@@ -415,60 +457,6 @@ private:
 
         return number_of_points;
     }
-
-    /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it.
-     * @details The result contains the object and also its distance to the point.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     */
-    void ImplSearchInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultTypeContainer& rResults
-        );
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * If there are no objects in that radius the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     */
-    void ImplSearchNearestInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultTypeContainer& rResults
-        );
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-    */
-    void ImplSearchNearest(
-        const Point& rPoint,
-        ResultTypeContainer& rResults
-        );
-
-    /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
-     * @details If it is inside an object, it returns it, and search distance is set to zero.
-     * If there is no object, the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * This method is a simplified and faster method of SearchNearest.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-     */
-    void ImplSearchIsInside(
-        const Point& rPoint,
-        ResultTypeContainer& rResults
-        );
 
     /**
      * @brief Returns the current rank

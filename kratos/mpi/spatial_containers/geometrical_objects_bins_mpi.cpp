@@ -51,7 +51,7 @@ BoundingBox<Point> GeometricalObjectsBinsMPI::GetBoundingBox() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometricalObjectsBinsMPI::ImplSearchInRadius(
+void GeometricalObjectsBinsMPI::SearchInRadius(
     const Point& rPoint,
     const double Radius,
     ResultTypeContainer& rResults
@@ -69,12 +69,15 @@ void GeometricalObjectsBinsMPI::ImplSearchInRadius(
         // Call local search
         BaseType::SearchInRadius(rPoint, Radius, rResults);
     }
+
+    // Synchronize
+    rResults.SynchronizeAll(mrDataCommunicator);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometricalObjectsBinsMPI::ImplSearchNearestInRadius(
+void GeometricalObjectsBinsMPI::SearchNearestInRadius(
     const Point& rPoint,
     const double Radius,
     ResultTypeContainer& rResults
@@ -116,12 +119,15 @@ void GeometricalObjectsBinsMPI::ImplSearchNearestInRadius(
         // Add the local search
         rResults.AddResult(local_result);
     }
+
+    // Synchronize
+    rResults.SynchronizeAll(mrDataCommunicator);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometricalObjectsBinsMPI::ImplSearchNearest(
+void GeometricalObjectsBinsMPI::SearchNearest(
     const Point& rPoint,
     ResultTypeContainer& rResults
     )
@@ -130,13 +136,13 @@ void GeometricalObjectsBinsMPI::ImplSearchNearest(
     const auto bb = GetBoundingBox();
     const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
     const double max_radius= *std::max_element(box_size.begin(), box_size.end());
-    ImplSearchNearestInRadius(rPoint, max_radius, rResults);
+    this->SearchNearestInRadius(rPoint, max_radius, rResults);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometricalObjectsBinsMPI::ImplSearchIsInside(
+void GeometricalObjectsBinsMPI::SearchIsInside(
     const Point& rPoint,
     ResultTypeContainer& rResults
     )
@@ -162,7 +168,7 @@ void GeometricalObjectsBinsMPI::ImplSearchIsInside(
     }
 
     // Now sync results between partitions
-    //KRATOS_WARNING("GeometricalObjectsBinsMPI.ImplSearchIsInside") << "This assumes that first one of the viable results is the closest one. The algorithm  sets distance to 0, so it is ambiguous which is the closest one." << std::endl;
+    //KRATOS_WARNING("GeometricalObjectsBinsMPI.SearchIsInside") << "This assumes that first one of the viable results is the closest one. The algorithm  sets distance to 0, so it is ambiguous which is the closest one." << std::endl;
 
     // Min rank of all ranks
     computed_rank = mrDataCommunicator.MinAll(computed_rank);
@@ -172,6 +178,9 @@ void GeometricalObjectsBinsMPI::ImplSearchIsInside(
         // Add the local search
         rResults.AddResult(local_result);
     }
+
+    // Synchronize
+    rResults.SynchronizeAll(mrDataCommunicator);
 }
 
 /***********************************************************************************/

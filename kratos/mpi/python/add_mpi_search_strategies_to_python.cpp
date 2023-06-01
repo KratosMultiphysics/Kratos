@@ -32,7 +32,7 @@ void AddMPISearchStrategiesToPython(pybind11::module& m)
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
     using ResultTypeContainerMap = SpatialSearchResultContainerMap<GeometricalObject>;
 
-    py::class_<GeometricalObjectsBinsMPI, GeometricalObjectsBinsMPI::Pointer>(m, "GeometricalObjectsBinsMPI")
+    py::class_<GeometricalObjectsBinsMPI, GeometricalObjectsBinsMPI::Pointer, GeometricalObjectsBins>(m, "GeometricalObjectsBinsMPI")
     .def(py::init<ElementsContainerType&, const DataCommunicator&>())
     .def(py::init<ConditionsContainerType&, const DataCommunicator&>())
     .def("GetBoundingBox", &GeometricalObjectsBinsMPI::GetBoundingBox)
