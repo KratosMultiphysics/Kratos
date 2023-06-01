@@ -231,6 +231,11 @@ public:
         return mNumberOfRomModes;
     } 
 
+    void SetNumberOfROMModes(SizeType n_mNumberOfRomModes) 
+    {
+        mNumberOfRomModes = n_mNumberOfRomModes;
+    } 
+
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
         const ModelPart& rModelPart,
@@ -252,6 +257,7 @@ public:
         TSystemVectorType& rDx,
         TSystemVectorType& rb) override
     {
+        SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
         // Call the base B&S InitializeSolutionStep
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
@@ -269,6 +275,8 @@ public:
         TSystemVectorType &b) override
     {
         KRATOS_TRY
+
+        SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
 
         RomSystemMatrixType Arom = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
         RomSystemVectorType brom = ZeroVector(GetNumberOfROMModes());
@@ -627,6 +635,8 @@ protected:
     {
         KRATOS_TRY
 
+        SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
+
         // Define a dense matrix to hold the reduced problem
         rA = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
         rb = ZeroVector(GetNumberOfROMModes());
@@ -689,6 +699,8 @@ protected:
     {
         KRATOS_TRY
 
+        SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
+
         RomSystemVectorType dxrom(GetNumberOfROMModes());
         
         const auto solving_timer = BuiltinTimer();
@@ -740,6 +752,7 @@ private:
         TSchemeType& rScheme,
         const ProcessInfo& rCurrentProcessInfo)
     {
+        SetNumberOfROMModes(rCurrentProcessInfo.GetValue(NUM_ROM_BASIS));
         if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE))
         {
             rPreAlloc.romA = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
