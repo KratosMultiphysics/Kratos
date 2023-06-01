@@ -445,7 +445,7 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
     for (IndexType i_point = 0; i_point < number_of_gauss_points; ++i_point) {
 
         Matrix DN_DX;
-        mDataContainer.CalculateShapeFunctionDerivatives(DN_DX, i_point, constant_data);
+        mDataContainer.CalculateGaussPointStiffnessContribution(DN_DX, i_point, constant_data);
 
         const double W = integration_points[i_point].Weight() * gauss_pts_J_det[i_point];
         noalias(A_dirc) += W * helmholtz_radius * helmholtz_radius * prod(DN_DX, trans(DN_DX));

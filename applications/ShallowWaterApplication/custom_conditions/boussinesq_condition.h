@@ -204,7 +204,7 @@ protected:
         const Matrix& rDN_DX,
         const double Weight = 1.0);
 
-    void CalculateShapeFunctionDerivatives(
+    void CalculateGaussPointStiffnessContribution(
         Matrix& rDN_DX,
         const GeometryType& rParentGeometry,
         const Point& rPoint);
