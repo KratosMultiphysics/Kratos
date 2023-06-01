@@ -114,7 +114,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::Calculate(
         data.Initialize(*this, rCurrentProcessInfo);
         for (unsigned int g = 0; g < NumGauss; g++)
         {
-            this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g],ShapeSecondDerivatives[g]);
+            this->UpdateIntegrationPointDataSecondDerivatives(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g],ShapeSecondDerivatives[g]);
 
             array_1d<double, 3> MomentumRes = ZeroVector(3);
             double MassRes = 0.0;
@@ -547,7 +547,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::FinalizeSolutionStep(const Process
     data.Initialize(*this,rCurrentProcessInfo);
     array_1d<double,3> UpdatedValue;
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
         // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
         UpdatedValue = ZeroVector(3);
@@ -574,7 +574,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
         this->CalculateResistanceTensor(data);
     }
@@ -595,14 +595,14 @@ void AlternativeDVMSDEMCoupled<TElementData>::FinalizeNonLinearIteration(const P
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
         this->UpdateSubscaleVelocity(data);
     }
 }
 
 template <class TElementData>
-void AlternativeDVMSDEMCoupled<TElementData>::UpdateIntegrationPointData(
+void AlternativeDVMSDEMCoupled<TElementData>::UpdateIntegrationPointDataSecondDerivatives(
     TElementData& rData,
     unsigned int IntegrationPointIndex,
     double Weight,
@@ -610,10 +610,8 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateIntegrationPointData(
     const typename TElementData::ShapeDerivativesType& rDN_DX,
     const typename TElementData::ShapeFunctionsSecondDerivativesType& rDDN_DDX) const
 {
-    rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
+    this->UpdateIntegrationPointData(rData, IntegrationPointIndex, Weight, rN, rDN_DX);
     rData.UpdateSecondDerivativesValues(rDDN_DDX);
-
-    this->CalculateMaterialResponse(rData);
 }
 
 template< class TElementData >
@@ -1069,7 +1067,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateMassMatrix(MatrixType& rM
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            this->UpdateIntegrationPointData(
+            this->UpdateIntegrationPointDataSecondDerivatives(
                 data, g, gauss_weights[g],
                 row(shape_functions, g),shape_derivatives[g],shape_function_second_derivatives[g]);
 
@@ -1111,7 +1109,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateLocalVelocityContribution
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             const auto& r_dndx = shape_derivatives[g];
-            this->UpdateIntegrationPointData(
+            this->UpdateIntegrationPointDataSecondDerivatives(
                 data, g, gauss_weights[g],
                 row(shape_functions, g),r_dndx, shape_function_second_derivatives[g]);
 
@@ -1409,7 +1407,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateProjections(const Process
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        this->UpdateIntegrationPointData(
+        this->UpdateIntegrationPointDataSecondDerivatives(
             data, g, gauss_weights[g],
             row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 

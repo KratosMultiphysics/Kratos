@@ -310,7 +310,7 @@ protected:
     void CalculateProjections(
         const ProcessInfo &rCurrentProcessInfo) override;
 
-    void UpdateIntegrationPointData(
+    void UpdateIntegrationPointDataSecondDerivatives(
         TElementData& rData,
         unsigned int IntegrationPointIndex,
         double Weight,

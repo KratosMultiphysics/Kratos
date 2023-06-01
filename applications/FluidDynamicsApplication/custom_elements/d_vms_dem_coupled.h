@@ -281,7 +281,7 @@ protected:
         BoundedMatrix<double,Dim,Dim> &TauOne,
         double &TauTwo) const;
 
-    void UpdateIntegrationPointData(
+    void UpdateIntegrationPointDataSecondDerivatives(
         TElementData& rData,
         unsigned int IntegrationPointIndex,
         double Weight,

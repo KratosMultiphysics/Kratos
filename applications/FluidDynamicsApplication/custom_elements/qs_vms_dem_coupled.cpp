@@ -514,7 +514,7 @@ void QSVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessIn
     data.Initialize(*this,rCurrentProcessInfo);
 
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
         this->CalculateResistanceTensor(data);
         //this->UpdateSubscaleVelocity(data);
@@ -536,14 +536,14 @@ void QSVMSDEMCoupled<TElementData>::FinalizeNonLinearIteration(const ProcessInfo
     data.Initialize(*this,rCurrentProcessInfo);
 
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
         this->UpdateSubscaleVelocity(data);
     }
 }
 
 template <class TElementData>
-void QSVMSDEMCoupled<TElementData>::UpdateIntegrationPointData(
+void QSVMSDEMCoupled<TElementData>::UpdateIntegrationPointDataSecondDerivatives(
     TElementData& rData,
     unsigned int IntegrationPointIndex,
     double Weight,
@@ -551,10 +551,8 @@ void QSVMSDEMCoupled<TElementData>::UpdateIntegrationPointData(
     const typename TElementData::ShapeDerivativesType& rDN_DX,
     const typename TElementData::ShapeFunctionsSecondDerivativesType& rDDN_DDX) const
 {
-    rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
+    this->UpdateIntegrationPointData(rData, IntegrationPointIndex, Weight, rN, rDN_DX);
     rData.UpdateSecondDerivativesValues(rDDN_DDX);
-
-    this->CalculateMaterialResponse(rData);
 }
 
 template<class TElementData>
@@ -997,7 +995,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            this->UpdateIntegrationPointData(
+            this->UpdateIntegrationPointDataSecondDerivatives(
                 data, g, gauss_weights[g],
                 row(shape_functions, g),shape_derivatives[g],shape_function_second_derivatives[g]);
 
@@ -1039,7 +1037,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateLocalVelocityContribution(MatrixTyp
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             const auto& r_dndx = shape_derivatives[g];
-            this->UpdateIntegrationPointData(
+            this->UpdateIntegrationPointDataSecondDerivatives(
                 data, g, gauss_weights[g],
                 row(shape_functions, g),r_dndx, shape_function_second_derivatives[g]);
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
@@ -1182,7 +1180,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateProjections(const ProcessInfo &rCur
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g],ShapeFunctionSecondDerivatives[g]);
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g],ShapeFunctionSecondDerivatives[g]);
 
         array_1d<double, 3> MomentumRes = ZeroVector(3);
         double MassRes = 0.0;

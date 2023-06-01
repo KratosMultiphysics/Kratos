@@ -486,7 +486,7 @@ void DVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessInf
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
         this->CalculateResistanceTensor(data);
     }
@@ -507,14 +507,14 @@ void DVMSDEMCoupled<TElementData>::FinalizeNonLinearIteration(const ProcessInfo&
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
         this->UpdateSubscaleVelocity(data);
     }
 }
 
 template <class TElementData>
-void DVMSDEMCoupled<TElementData>::UpdateIntegrationPointData(
+void DVMSDEMCoupled<TElementData>::UpdateIntegrationPointDataSecondDerivatives(
     TElementData& rData,
     unsigned int IntegrationPointIndex,
     double Weight,
@@ -522,10 +522,8 @@ void DVMSDEMCoupled<TElementData>::UpdateIntegrationPointData(
     const typename TElementData::ShapeDerivativesType& rDN_DX,
     const typename TElementData::ShapeFunctionsSecondDerivativesType& rDDN_DDX) const
 {
-    rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
+    this->UpdateIntegrationPointData(rData, IntegrationPointIndex, Weight, rN, rDN_DX);
     rData.UpdateSecondDerivativesValues(rDDN_DDX);
-
-    this->CalculateMaterialResponse(rData);
 }
 
 template <class TElementData>
@@ -544,7 +542,7 @@ void DVMSDEMCoupled<TElementData>::FinalizeSolutionStep(const ProcessInfo& rCurr
     data.Initialize(*this,rCurrentProcessInfo);
     array_1d<double,3> UpdatedValue;
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
+        this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
         // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
         UpdatedValue = ZeroVector(3);
@@ -973,7 +971,7 @@ void DVMSDEMCoupled<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            this->UpdateIntegrationPointData(
+            this->UpdateIntegrationPointDataSecondDerivatives(
                 data, g, gauss_weights[g],
                 row(shape_functions, g),shape_derivatives[g],shape_function_second_derivatives[g]);
 
@@ -1015,7 +1013,7 @@ void DVMSDEMCoupled<TElementData>::CalculateLocalVelocityContribution(MatrixType
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             const auto& r_dndx = shape_derivatives[g];
-            this->UpdateIntegrationPointData(
+            this->UpdateIntegrationPointDataSecondDerivatives(
                 data, g, gauss_weights[g],
                 row(shape_functions, g),r_dndx, shape_function_second_derivatives[g]);
 
@@ -1192,7 +1190,7 @@ void DVMSDEMCoupled<TElementData>::CalculateProjections(const ProcessInfo &rCurr
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        this->UpdateIntegrationPointData(
+        this->UpdateIntegrationPointDataSecondDerivatives(
             data, g, gauss_weights[g],
             row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
