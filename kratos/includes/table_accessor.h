@@ -129,7 +129,7 @@ public:
     // }
 
     // Getting a pointer to the class
-    Accessor::UniquePointer Clone() const;
+    Accessor::UniquePointer Clone() const override;
 
     ///@}
     ///@name Input and output
@@ -145,10 +145,10 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const  {rOStream << "TableAccessor";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "TableAccessor";}
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const {rOStream << "TableAccessor class";}
+    void PrintData(std::ostream& rOStream) const override {rOStream << "TableAccessor class";}
 
     ///@}
 
