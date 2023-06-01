@@ -37,6 +37,7 @@ class ConstStep(object):
             step =  self.init_step
         msg = f"""\t Line Search info: 
             type          : constant 
-            value         : {step:0.6e}"""
+            unscaled_step : {self.init_step:0.6e}
+            scaled_step   : {step:0.6e}"""
         print(msg)
         return step
