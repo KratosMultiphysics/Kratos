@@ -14,23 +14,23 @@
 #pragma once
 
 // System includes
-#include <array>
 
 // External includes
 
 // Project includes
 #include "geometries/geometry.h"
 #include "includes/node.h"
-#include "utilities/math_utils.h"
 
 // Application includes
 #include "custom_utilities/entity_calculation_utils.h"
+#include "helmholtz_variable_data.h"
 #include "optimization_application_variables.h"
 
 namespace Kratos {
 
-template <unsigned int TDim, unsigned int TNumNodes>
-class HelmholtzVectorSolidDataContainer {
+template <unsigned int TDim, unsigned int TNumNodes, unsigned int TDataDimension>
+class HelmholtzSolidDataContainer
+{
 public:
     ///@name Type definitions
     ///@{
@@ -41,14 +41,11 @@ public:
 
     static constexpr IndexType NumberOfNodes = TNumNodes;
 
-    static constexpr auto TargetVariablesList = (TDim == 2) ?
-                                                    std::array<const Variable<double>*, TDim>{&HELMHOLTZ_VECTOR_X, &HELMHOLTZ_VECTOR_Y} :
-                                                    std::array<const Variable<double>*, TDim>{&HELMHOLTZ_VECTOR_X, &HELMHOLTZ_VECTOR_Y, &HELMHOLTZ_VECTOR_Z};
+    static constexpr IndexType NumberOfVariables = (TDataDimension == 1) ? 1 : TDim;
 
-    static constexpr auto SourceVariablesList = (TDim == 2) ?
-                                                    std::array<const Variable<double>*, TDim>{&HELMHOLTZ_VECTOR_SOURCE_X, &HELMHOLTZ_VECTOR_SOURCE_Y} :
-                                                    std::array<const Variable<double>*, TDim>{&HELMHOLTZ_VECTOR_SOURCE_X, &HELMHOLTZ_VECTOR_SOURCE_Y, &HELMHOLTZ_VECTOR_SOURCE_Z};
+    static constexpr auto TargetVariablesList = HelmholtzVariableData<NumberOfVariables>::TargetVariablesList;
 
+    static constexpr auto SourceVariablesList = HelmholtzVariableData<NumberOfVariables>::SourceVariablesList;
 
     ///@}
     ///@name Public classes
@@ -73,7 +70,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    HelmholtzVectorSolidDataContainer(const Geometry<Node>& rGeometry)
+    HelmholtzSolidDataContainer(const Geometry<Node>& rGeometry)
     {
     }
 

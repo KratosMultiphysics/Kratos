@@ -14,7 +14,6 @@
 #pragma once
 
 // System includes
-#include <array>
 
 // External includes
 
@@ -25,12 +24,14 @@
 
 // Application includes
 #include "custom_utilities/entity_calculation_utils.h"
+#include "helmholtz_variable_data.h"
 #include "optimization_application_variables.h"
 
 namespace Kratos {
 
-template <unsigned int TDim, unsigned int TNumNodes>
-class HelmholtzScalarSurfaceDataContainer {
+template <unsigned int TDim, unsigned int TNumNodes, unsigned int TDataDimension>
+class HelmholtzSurfaceDataContainer
+{
 public:
     ///@name Type definitions
     ///@{
@@ -41,9 +42,11 @@ public:
 
     static constexpr IndexType NumberOfNodes = TNumNodes;
 
-    static constexpr std::array<const Variable<double>*, 1> TargetVariablesList = {&HELMHOLTZ_SCALAR};
+    static constexpr IndexType NumberOfVariables = (TDataDimension == 1) ? 1 : TDim;
 
-    static constexpr std::array<const Variable<double>*, 1> SourceVariablesList = {&HELMHOLTZ_SCALAR_SOURCE};
+    static constexpr auto TargetVariablesList = HelmholtzVariableData<NumberOfVariables>::TargetVariablesList;
+
+    static constexpr auto SourceVariablesList = HelmholtzVariableData<NumberOfVariables>::SourceVariablesList;
 
     ///@}
     ///@name Public classes
@@ -68,7 +71,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    HelmholtzScalarSurfaceDataContainer(const Geometry<Node>& rGeometry)
+    HelmholtzSurfaceDataContainer(const Geometry<Node>& rGeometry)
         : mpSolidGeometry(EntityCalculationUtils::CreateSolidGeometry(rGeometry))
     {
     }

@@ -38,10 +38,8 @@
 #include "custom_elements/helmholtz_element.h"
 
 // Data containers
-#include "custom_elements/data_containers/helmholtz_scalar_surface_data_container.h"
-#include "custom_elements/data_containers/helmholtz_vector_surface_data_container.h"
-#include "custom_elements/data_containers/helmholtz_scalar_solid_data_container.h"
-#include "custom_elements/data_containers/helmholtz_vector_solid_data_container.h"
+#include "custom_elements/data_containers/helmholtz_surface_data_container.h"
+#include "custom_elements/data_containers/helmholtz_solid_data_container.h"
 
 /* ADJOINT ELEMENTS */
 #include "custom_elements/adjoint_small_displacement_element.h"
@@ -217,15 +215,15 @@ namespace Kratos
 		const HelmholtzBulkElement mHelmholtzBulkTopology3D4N;
 
 		// Helmholtz elements
-		const HelmholtzElement<HelmholtzScalarSurfaceDataContainer<3, 3>> mHelmholtzSurfaceElement3D3N;
-		const HelmholtzElement<HelmholtzScalarSurfaceDataContainer<3, 4>> mHelmholtzSurfaceElement3D4N;
-		const HelmholtzElement<HelmholtzVectorSurfaceDataContainer<3, 3>> mHelmholtzVectorSurfaceElement3D3N;
-		const HelmholtzElement<HelmholtzVectorSurfaceDataContainer<3, 4>> mHelmholtzVectorSurfaceElement3D4N;
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1>> mHelmholtzSurfaceElement3D3N;
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 1>> mHelmholtzSurfaceElement3D4N;
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3>> mHelmholtzVectorSurfaceElement3D3N;
+		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3>> mHelmholtzVectorSurfaceElement3D4N;
 
-		const HelmholtzElement<HelmholtzScalarSolidDataContainer<3, 4>> mHelmholtzSolidElement3D4N;
-		const HelmholtzElement<HelmholtzScalarSolidDataContainer<3, 8>> mHelmholtzSolidElement3D8N;
-		const HelmholtzElement<HelmholtzVectorSolidDataContainer<3, 4>> mHelmholtzVectorSolidElement3D4N;
-		const HelmholtzElement<HelmholtzVectorSolidDataContainer<3, 8>> mHelmholtzVectorSolidElement3D8N;
+		const HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 1>> mHelmholtzSolidElement3D4N;
+		const HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 1>> mHelmholtzSolidElement3D8N;
+		const HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 3>> mHelmholtzVectorSolidElement3D4N;
+		const HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 3>> mHelmholtzVectorSolidElement3D8N;
 
 		const HelmholtzSolidShapeElement mHelmholtzSolidShapeElement3D4N;
 		const HelmholtzSolidShapeElement mHelmholtzSolidShapeElement3D8N;

@@ -20,10 +20,8 @@
 #include "includes/variables.h"
 
 // Application incldues
-#include "custom_elements/data_containers/helmholtz_vector_surface_data_container.h"
-#include "custom_elements/data_containers/helmholtz_scalar_surface_data_container.h"
-#include "custom_elements/data_containers/helmholtz_scalar_solid_data_container.h"
-#include "custom_elements/data_containers/helmholtz_vector_solid_data_container.h"
+#include "custom_elements/data_containers/helmholtz_surface_data_container.h"
+#include "custom_elements/data_containers/helmholtz_solid_data_container.h"
 #include "custom_utilities/entity_calculation_utils.h"
 #include "optimization_application_variables.h"
 
@@ -485,16 +483,16 @@ void HelmholtzElement<TDataContainer>::CalculateAvgSurfUnitNormal(array_1d<doubl
 }
 
 // template instantiations
-template class HelmholtzElement<HelmholtzScalarSurfaceDataContainer<3, 3>>;
-template class HelmholtzElement<HelmholtzScalarSurfaceDataContainer<3, 4>>;
+template class HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1>>;
+template class HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 1>>;
 
-template class HelmholtzElement<HelmholtzVectorSurfaceDataContainer<3, 3>>;
-template class HelmholtzElement<HelmholtzVectorSurfaceDataContainer<3, 4>>;
+template class HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 3>>;
+template class HelmholtzElement<HelmholtzSurfaceDataContainer<3, 4, 3>>;
 
-template class HelmholtzElement<HelmholtzScalarSolidDataContainer<3, 4>>;
-template class HelmholtzElement<HelmholtzScalarSolidDataContainer<3, 8>>;
+template class HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 1>>;
+template class HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 1>>;
 
-template class HelmholtzElement<HelmholtzVectorSolidDataContainer<3, 4>>;
-template class HelmholtzElement<HelmholtzVectorSolidDataContainer<3, 8>>;
+template class HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 3>>;
+template class HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 3>>;
 
 } // Namespace Kratos
