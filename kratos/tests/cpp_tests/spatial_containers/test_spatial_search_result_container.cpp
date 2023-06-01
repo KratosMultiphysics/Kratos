@@ -48,6 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastS
     KRATOS_CHECK_EQUAL(r_distances[1], 0.5);
 
     // Check global pointers
+    KRATOS_CHECK_IS_FALSE(container.IsObjectFound());
     auto& r_global_pointers = container.GetGlobalPointers();
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), 0); // It should be empty as we have not synchronized
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), container.NumberOfGlobalResults()); // It should be empty as we have not synchronized
@@ -97,6 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerSynchronizeAll, KratosCore
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
 
     // Check global pointers
+    KRATOS_CHECK(container.IsObjectFound());
     auto& r_global_pointers = container.GetGlobalPointers();
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), 1);
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), container.NumberOfGlobalResults());
