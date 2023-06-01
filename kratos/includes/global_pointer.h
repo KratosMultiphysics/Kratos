@@ -204,7 +204,11 @@ public:
    */
   bool operator==(const GlobalPointer& rOther)
   {
-      return this->get() == rOther.get();
+#ifdef KRATOS_USING_MPI
+    return this->get() == rOther.get() && this->GetRank() == rOther.GetRank();
+#else 
+    return this->get() == rOther.get();
+#endif
   }
 
   /** Fills buffer with the GlobalPoiter data
