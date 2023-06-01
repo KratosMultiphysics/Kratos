@@ -19,6 +19,7 @@
 // Project includes
 #include "utilities/read_materials_utility.h"
 #include "utilities/parallel_utilities.h"
+#include "includes/table_accessor.h"
 
 namespace Kratos {
 namespace {
