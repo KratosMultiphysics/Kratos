@@ -156,6 +156,16 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         Properties& rProperty
         );
 
+    /**
+     * @brief This method assigns the accessors to a property from configuration parameters
+     * @param MaterialData The parameters containing all the configurations of the materials
+     * @param rProperty The reference to the property for which the materials are to be assigned
+     */
+    virtual void AssignAccessorsToProperty(
+        const Parameters MaterialData,
+        Properties& rProperty
+        );
+
     ///@}
     ///@name Access
     ///@{
