@@ -15,7 +15,8 @@ class ConstStep(object):
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
             "type"              : "const_step",
-            "init_step"          : 0
+            "init_step"          : 0,
+            "gradient_scaling": "inf_norm"
         }""")
 
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
