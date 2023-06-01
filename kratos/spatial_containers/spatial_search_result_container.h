@@ -315,6 +315,15 @@ public:
     }
 
     /**
+     * @brief Returns if at least one result is found
+     * @return If at least one result is found
+     */
+    bool IsObjectFound() const
+    {
+        return static_cast<bool>(mGlobalPointers.size());
+    }
+
+    /**
      * @brief Returns the local pointers size
      * @return The local pointers size
      */
