@@ -198,7 +198,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPoros
 
         double r_sq = std::pow(x1-x10,2) + std::pow(x2-x20,2);
 
-        if ((std::sqrt(r_sq) > r1) & (std::sqrt(r_sq) < r2)){
+        if ((std::sqrt(r_sq) > r1) && (std::sqrt(r_sq) < r2)){
 
             r_alpha = -(1 - alpha_min)*(1 - std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/(std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))) + std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))))) + 1;
 
@@ -358,7 +358,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
     Matrix I = IdentityMatrix(Dim, Dim);
     Matrix sigma = ZeroMatrix(Dim, Dim);
 
-    double du1dt, du2dt, du11, du12, du21, du22, du111, du112, du121, du122, du211, du212, du221, du222, dalphat, body_force1, body_force2;
+    double du1dt, du2dt, du11, du12, du21, du22, du111, du112, du121, du122, du211, du212, du221, du222, body_force1, body_force2;
 
     unsigned int n_elem = mrModelPart.NumberOfElements();
 
@@ -429,7 +429,7 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
 
             double r_sq = std::pow(x1-x10,2) + std::pow(x2-x20,2);
 
-            if ((std::sqrt(r_sq) > r1) & (std::sqrt(r_sq) < r2)){
+            if ((std::sqrt(r_sq) > r1) && (std::sqrt(r_sq) < r2)){
 
                 alpha = -(1 - alpha_min)*(1 - std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/(std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))) + std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))))) + 1;
 
@@ -440,8 +440,6 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
                 du1dt = 0.0;
 
                 du2dt = 0.0;
-
-                dalphat = 0.0;
 
                 alpha1 = -(1 - alpha_min)*(-((2*x1 - 2*x10)*std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/((-std::pow(r1,2) + std::pow(r2,2))*std::pow((1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))),2)) - (2*x1 - 2*x10)*std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/((-std::pow(r1,2) + std::pow(r2,2))*std::pow(((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))),2)))*std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/std::pow((std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))) + std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))),2) - (2*x1 - 2*x10)*std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/((-std::pow(r1,2) + std::pow(r2,2))*std::pow(((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))),2)*(std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))) + std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))))));
 
@@ -486,8 +484,6 @@ void PlateauBumpPorositySolutionAndBodyForceProcess::SetValuesOnIntegrationPoint
             du1dt = 0.0;
 
             du2dt = 0.0;
-
-            dalphat = 0.0;
 
             alpha1 = 0.0;
 

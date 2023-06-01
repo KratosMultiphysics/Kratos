@@ -161,16 +161,10 @@ void NonDivergenceFreeTransientPorositySolutionTransientBodyForceProcess::SetBod
     const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
     const int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double alpha_min = mAlphaMin;
-    const double alpha_max = mAlphaMax;
     const double rho = mDensity;
     const double nu = mViscosity;
     const double Re = mReynolds;
     const double Da = mSigma/(alpha_min * nu);
-    const double a = mPlateauRadius;
-    const double b = mBumpRadius;
-    const double x10 = mX1Origin;
-    const double x20 = mX2Origin;
-    const double squeeze_amplitude = mSqueezeAmplitude;
     const double omega = mOmega;
     const double k = mk;
     Matrix I = IdentityMatrix(Dim, Dim);
@@ -323,20 +317,12 @@ void NonDivergenceFreeTransientPorositySolutionTransientBodyForceProcess::SetBod
 void NonDivergenceFreeTransientPorositySolutionTransientBodyForceProcess::SetValuesOnIntegrationPoints()
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
-    const double step = mrModelPart.GetProcessInfo()[STEP];
-    const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
-    const int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    const unsigned int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double alpha_min = mAlphaMin;
-    const double alpha_max = mAlphaMax;
     const double rho = mDensity;
     const double nu = mViscosity;
     const double Re = mReynolds;
     const double Da = mSigma/(alpha_min * nu);
-    const double a = mPlateauRadius;
-    const double b = mBumpRadius;
-    const double x10 = mX1Origin;
-    const double x20 = mX2Origin;
-    const double squeeze_amplitude = mSqueezeAmplitude;
     const double omega = mOmega;
     const double k = mk;
     Matrix I = IdentityMatrix(Dim, Dim);

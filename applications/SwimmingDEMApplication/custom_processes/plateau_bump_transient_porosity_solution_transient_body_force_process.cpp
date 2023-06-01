@@ -212,7 +212,7 @@ void PlateauBumpTransientPorositySolutionTransientBodyForceProcess::SetBodyForce
             double& r_u12 = it_node->FastGetSolutionStepValue(VELOCITY_X,2);
             double& r_u22 = it_node->FastGetSolutionStepValue(VELOCITY_Y,2);
 
-            if ((t1 > std::numeric_limits<double>::epsilon()) & (1-t1 > std::numeric_limits<double>::epsilon())){
+            if ((t1 > std::numeric_limits<double>::epsilon()) && (1-t1 > std::numeric_limits<double>::epsilon())){
 
                 r_u11 = std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*(time-delta_time))/(alpha_max - (1 - std::exp(-1/((-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*(time-delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*(time-delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*(time-delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*(time-delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1/((-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*(time-delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*(time-delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
 
@@ -405,9 +405,7 @@ void PlateauBumpTransientPorositySolutionTransientBodyForceProcess::SetBodyForce
 void PlateauBumpTransientPorositySolutionTransientBodyForceProcess::SetValuesOnIntegrationPoints()
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
-    const double step = mrModelPart.GetProcessInfo()[STEP];
-    const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
-    const int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    const unsigned int Dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double alpha_min = mAlphaMin;
     const double alpha_max = mAlphaMax;
     const double rho = mDensity;
@@ -503,7 +501,7 @@ void PlateauBumpTransientPorositySolutionTransientBodyForceProcess::SetValuesOnI
 
             double t = (std::pow(c*(x1-x10),2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2)) + (std::pow((x2-x20)/c,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2));
 
-            if ((t > std::numeric_limits<double>::epsilon()) & (1-t > std::numeric_limits<double>::epsilon())){
+            if ((t > std::numeric_limits<double>::epsilon()) && (1-t > std::numeric_limits<double>::epsilon())){
 
                 alpha = alpha_max - (1 - std::exp(-1/((-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1/((-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min);
 

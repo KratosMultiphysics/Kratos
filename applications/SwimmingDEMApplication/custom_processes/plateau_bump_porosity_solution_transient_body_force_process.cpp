@@ -201,7 +201,7 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetBodyForceAndPorosi
 
         double t = (std::pow(x1-x10,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2)) + (std::pow(x2-x20,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2));
 
-        if ((t > std::numeric_limits<double>::epsilon()) & (1-t > std::numeric_limits<double>::epsilon())){
+        if ((t > std::numeric_limits<double>::epsilon()) && (1-t > std::numeric_limits<double>::epsilon())){
 
             if (step == 0){
 
@@ -399,7 +399,7 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetValuesOnIntegratio
     Matrix I = IdentityMatrix(Dim,Dim);
     Matrix sigma = ZeroMatrix(Dim,Dim);
 
-    double du1dt, du2dt, du11, du12, du21, du22, du111, du112, du121, du122, du211, du212, du221, du222, dalphat, body_force1, body_force2;
+    double du1dt, du2dt, du11, du12, du21, du22, du111, du112, du121, du122, du211, du212, du221, du222, body_force1, body_force2;
 
     unsigned int n_elem = mrModelPart.NumberOfElements();
 
@@ -470,7 +470,7 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetValuesOnIntegratio
 
             double t = (std::pow(x1-x10,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2)) + (std::pow(x2-x20,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2));
 
-            if ((t > std::numeric_limits<double>::epsilon()) & (1-t > std::numeric_limits<double>::epsilon())){
+            if ((t > std::numeric_limits<double>::epsilon()) && (1-t > std::numeric_limits<double>::epsilon())){
 
             alpha =  alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min);
 
@@ -481,8 +481,6 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetValuesOnIntegratio
             du1dt = -Globals::Pi * std::sin(Globals::Pi * time) * std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/(alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
 
             du2dt = -Globals::Pi * std::sin(Globals::Pi * time) * std::pow(u_char,2)*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/(alpha_max - (1 - std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
-
-            dalphat = 0.0;
 
             alpha1 = (alpha_max - alpha_min)*(((2*x1 - 2*x10)*std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/((-std::pow(a,2) + std::pow(b,2))*std::pow((1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))),2)) - (2*x1 - 2*x10)*std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/((-std::pow(a,2) + std::pow(b,2))*std::pow(((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))),2)))*std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/std::pow((std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))),2) + (2*x1 - 2*x10)*std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))))/((-std::pow(a,2) + std::pow(b,2))*std::pow(((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2))),2)*(std::exp(-1.0/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1.0/((-std::pow(a,2) + std::pow((x1 - x10),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2))/(-std::pow(a,2) + std::pow(b,2)))))));
 
@@ -527,8 +525,6 @@ void PlateauBumpPorositySolutionTransientBodyForceProcess::SetValuesOnIntegratio
             du1dt = -Globals::Pi * std::sin(Globals::Pi * time) * std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/alpha;
 
             du2dt = -Globals::Pi * std::sin(Globals::Pi * time) * std::pow(u_char,2)*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/alpha;
-
-            dalphat = 0.0;
 
             alpha1 = 0.0;
 
