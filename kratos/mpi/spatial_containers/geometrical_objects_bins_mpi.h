@@ -366,11 +366,12 @@ private:
             rAllPointsCoordinates.resize(number_of_points * 3);
             std::size_t counter = 0;
             array_1d<double, 3> coordinates;
+            unsigned int i_coord;
             for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
                 noalias(coordinates) = it_point->Coordinates();
-                rAllPointsCoordinates[3 * counter + 0] = coordinates[0];
-                rAllPointsCoordinates[3 * counter + 1] = coordinates[1];
-                rAllPointsCoordinates[3 * counter + 2] = coordinates[2];
+                for (i_coord = 0; i_coord < 3; ++i_coord) {
+                    rAllPointsCoordinates[3 * counter + i_coord] = coordinates[i_coord];
+                }
                 ++counter;
             }
         } else { // If not
@@ -397,15 +398,13 @@ private:
             }
 
             // Generate vectors with sizes for AllGatherv
-            std::vector<int> recv_sizes(world_size);
-            for (int i_rank = 1; i_rank < world_size; i_rank++) {
+            std::vector<int> recv_sizes(world_size, 0);
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
                 recv_sizes[i_rank] = 3 * points_per_partition[i_rank];
             }
-            int message_size = 0;
             std::vector<int> recv_offsets(world_size, 0);
-            for (int i_rank = 1; i_rank < world_size; i_rank++) {
-                recv_offsets[i_rank] = message_size;
-                message_size += recv_sizes[i_rank];
+            for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+                recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
             }
 
             // Invoque AllGatherv
