@@ -79,10 +79,15 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
     auto p_elem = Kratos::make_intrusive<TestElement>(0, pgeom, p_prop, TestElement::ResidualType::LINEAR);
 
     p_prop->SetAccessor(YOUNG_MODULUS, std::make_unique<CustomAccessor>());
+    KRATOS_CHECK(p_prop->HasAccessor(YOUNG_MODULUS))
 
     Vector N;
     const double modified_E = p_prop->GetValue(YOUNG_MODULUS, *pgeom, N, r_process_info);
     KRATOS_CHECK_NEAR(2.1e11 * 2.0,  modified_E, 1.0e-8);
+
+    const auto& r_accessor = p_prop->GetAccessor(YOUNG_MODULUS);
+    const double modified_E_from_acc = r_accessor.GetValue(YOUNG_MODULUS, *p_prop, *pgeom, N, r_process_info);
+    KRATOS_CHECK_NEAR(2.1e11 * 2.0, modified_E_from_acc, 1.0e-8);
 }
 
 
