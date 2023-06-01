@@ -39,6 +39,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(KRATOS_CORE) GeometricalObjectsBinsMPI
+    : public GeometricalObjectsBins
 {
 public:
     ///@name Type Definitions
@@ -46,6 +47,9 @@ public:
 
     /// Pointer definition of GeometricalObjectsBinsMPI
     KRATOS_CLASS_POINTER_DEFINITION(GeometricalObjectsBinsMPI);
+
+    /// Base type definition
+    using BaseType = GeometricalObjectsBins;
 
     /// The buffer type definition
     using BufferTypeDouble = std::vector<std::vector<double>>;
@@ -79,7 +83,7 @@ public:
         TIteratorType GeometricalObjectsBegin,
         TIteratorType GeometricalObjectsEnd,
         const DataCommunicator& rDataCommunicator
-        ) : mLocalGeometricalObjectsBins(GeometricalObjectsBegin, GeometricalObjectsEnd),
+        ) : BaseType(GeometricalObjectsBegin, GeometricalObjectsEnd),
             mrDataCommunicator(rDataCommunicator)
     {
         // Set up the global bounding boxes
@@ -101,7 +105,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~GeometricalObjectsBinsMPI() = default;
+    ~GeometricalObjectsBinsMPI() override = default;
 
     ///@}
     ///@name Operators
@@ -295,7 +299,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "GeometricalObjectsBinsMPI" ;
@@ -303,16 +307,16 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "GeometricalObjectsBinsMPI";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "Local Geometrical Objects Bins for Rank " << GetRank() + 1 << "/" << GetWorldSize() << "\n";
-        mLocalGeometricalObjectsBins.PrintData(rOStream);
+        BaseType::PrintData(rOStream);
     }
 
     ///@}
@@ -328,11 +332,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<double> mGlobalBoundingBoxes;            /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
+    std::vector<double> mGlobalBoundingBoxes;   /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
 
-    GeometricalObjectsBins mLocalGeometricalObjectsBins; /// The local bins
-
-    const DataCommunicator& mrDataCommunicator;          /// The data communicator
+    const DataCommunicator& mrDataCommunicator; /// The data communicator
 
     ///@}
     ///@name Private Operators

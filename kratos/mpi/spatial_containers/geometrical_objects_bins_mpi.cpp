@@ -31,7 +31,7 @@ BoundingBox<Point> GeometricalObjectsBinsMPI::GetBoundingBox() const
     auto& r_max = bb.GetMaxPoint();
     auto& r_min = bb.GetMinPoint();
 
-    const auto& r_local_bb = mLocalGeometricalObjectsBins.GetBoundingBox();
+    const auto& r_local_bb = BaseType::GetBoundingBox();
     const auto& r_local_max = r_local_bb.GetMaxPoint();
     const auto& r_local_min = r_local_bb.GetMinPoint();
 
@@ -67,7 +67,7 @@ void GeometricalObjectsBinsMPI::ImplSearchInRadius(
     // Check if the point is inside the set
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
-        mLocalGeometricalObjectsBins.SearchInRadius(rPoint, Radius, rResults);
+        BaseType::SearchInRadius(rPoint, Radius, rResults);
     }
 }
 
@@ -93,7 +93,7 @@ void GeometricalObjectsBinsMPI::ImplSearchNearestInRadius(
     // Check if the point is inside the set
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
-        local_result = mLocalGeometricalObjectsBins.SearchNearestInRadius(rPoint, Radius);
+        local_result = BaseType::SearchNearestInRadius(rPoint, Radius);
     }
 
     /* Now sync results between partitions */
@@ -155,7 +155,7 @@ void GeometricalObjectsBinsMPI::ImplSearchIsInside(
     int computed_rank = std::numeric_limits<int>::max();
     if (ranks_set.find(current_rank) != ranks_set.end()) {
         // Call local search
-        local_result = mLocalGeometricalObjectsBins.SearchIsInside(rPoint);
+        local_result = BaseType::SearchIsInside(rPoint);
 
         // Set current rank
         computed_rank = current_rank;
@@ -205,7 +205,7 @@ void GeometricalObjectsBinsMPI::InitializeGlobalBoundingBoxes()
 
     // Set up the local bounding boxes
     std::vector<double> local_bounding_box(6);
-    const auto& r_bb = mLocalGeometricalObjectsBins.GetBoundingBox();
+    const auto& r_bb = BaseType::GetBoundingBox();
     const auto& r_max = r_bb.GetMaxPoint();
     const auto& r_min = r_bb.GetMinPoint();
     for (int i = 0; i < 3; ++i) {
