@@ -54,6 +54,9 @@ double TableAccessor::GetValueFromTable(
     // Compute the independent variable at the Gauss point
     double independent_at_gauss = 0.0;
     for (SizeType i = 0; i < rShapeFunctionVector.size(); ++i) {
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rGeometry[i].SolutionStepsDataHas(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the nodes of the Geometry to retrieve Table values." << std::endl;
+
         const double nodal_value = rGeometry[i].FastGetSolutionStepValue(rIndependentVariable);
         independent_at_gauss += nodal_value * rShapeFunctionVector[i];
     }
