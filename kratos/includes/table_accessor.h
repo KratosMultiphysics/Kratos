@@ -97,6 +97,23 @@ public:
         const ProcessInfo& rProcessInfo
         ) const override;
 
+
+    /**
+     * @brief Returns the member input variable
+     */
+    VariableType& GetInputVariable()
+    {
+        return mInputVariable;
+    }
+
+    /**
+     * @brief Sets the InputVariable to a VariableType
+     */
+    // void SetInputVariableType(const VariableType& rVariable)
+    // {
+    //     mInputVariable = rVariable;
+    // }
+
     // Getting a pointer to the class
     Accessor::UniquePointer Clone() const;
 
