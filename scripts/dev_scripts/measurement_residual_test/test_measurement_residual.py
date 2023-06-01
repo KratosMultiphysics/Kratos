@@ -95,11 +95,12 @@ adjoint_analysis.Initialize()
 adjoint_analysis.RunSolutionLoop()
 adjoint_analysis.Finalize()
 
-for node in model_adjoint.GetModelPart("Structure").GetNodes():
-    # print(node)
-    print(node.GetSolutionStepValue(Kratos.DISPLACEMENT))
+# for node in model_adjoint.GetModelPart("Structure").GetNodes():
+#     print(f"Displacement: {node.GetSolutionStepValue(Kratos.DISPLACEMENT)}")
+#     print(f"Displacement X: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)}")
+#     print(f"Displacement Y: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)}")
+#     print(f"Displacement Z: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)}")
 
 for element in model_adjoint.GetModelPart("Structure").GetElements():
-    # print(element)
-    print(element.GetValue(StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
-    print(element.GetValue(Kratos.YOUNG_MODULUS))
+    # print(f"Sensi. Thickness: {element.GetValue(StructuralMechanicsApplication.THICKNESS_SENSITIVITY)}")
+    print(f"Sensi. Youngs Modulus: {element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)}")

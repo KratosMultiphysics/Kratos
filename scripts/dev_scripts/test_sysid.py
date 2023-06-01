@@ -1,5 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -12,7 +13,7 @@ model_part = model.CreateModelPart("Structure")
 model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
 
 # create the primal analysis execution policy wrapper
-with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
+with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
     # creating the execution policy wrapper
     execution_policy_wrapper_settings = Kratos.Parameters("""{
             "name"    : "primal",
@@ -28,13 +29,13 @@ with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             },
             "pre_operations"           : [],
             "post_operations"          : [],
-            "log_in_file"              : false,
+            "log_in_file"              : true,
             "log_file_name"            : "structure.log"
         }""")
     execution_policy_decorator = ExecutionPolicyDecorator(model, execution_policy_wrapper_settings, optimization_problem)
     optimization_problem.AddComponent(execution_policy_decorator)
 
-    Kratos.ModelPartIO("Structure", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(model_part)
+    Kratos.ModelPartIO("rectangular_plate", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(model_part)
 
     # creating the response function wrapper
     response_function_settings = Kratos.Parameters("""{
@@ -42,14 +43,14 @@ with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
             "primal_analysis_name"      : "primal",
             "perturbation_size"         : 1e-8
         }""")
-    response_function: MeasurementLikelihoodResponseFunction = MeasurementLikelihoodResponseFunction("strain_energy", model, response_function_settings, optimization_problem)
+    response_function: MeasurementLikelihoodResponseFunction = MeasurementLikelihoodResponseFunction("measurement_residual", model, response_function_settings, optimization_problem)
     optimization_problem.AddComponent(response_function)
 
     execution_policy_decorator.Initialize()
     response_function.Initialize()
 
     # now replace the properties
-    KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model["Structure.whole_structure"], model_part.Elements)
+    KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model["Structure.Parts_AREAS"], model_part.Elements)
 
     execution_policy_decorator.Execute()
     ref_value = response_function.CalculateValue()
@@ -59,3 +60,4 @@ with kratos_unittest.WorkFolderScope("linear_strain_energy_test", __file__):
     response_function.CalculateGradient({Kratos.YOUNG_MODULUS: sensitivity_expression})
     for element in model_part.Elements:
         print(f"Sensitivity: {element.Properties[KratosOA.YOUNG_MODULUS_SENSITIVITY]}")
+        print(f"Sensitivity: {element.Properties[StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY]}")

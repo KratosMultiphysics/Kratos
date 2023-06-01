@@ -32,8 +32,11 @@ namespace Kratos
         mResponsePartName = ResponseSettings["response_part_name"].GetString();
         mResponseDirection = ResponseSettings["direction"].GetVector();
         mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
+        std::string measurementFileName = ResponseSettings["measurement_file_name"].GetString();
 
-        std::ifstream t("MeasurementData.json");
+        std::ifstream t(measurementFileName);
+        KRATOS_ERROR_IF_NOT(t.good() == 1) << "\n\nAdjointNodalDisplacementMeasurementResidualResponseFunction: The file "<<measurementFileName<<" which contains the measurement data was not found. Please use the parameter option 'measurement_file_name' to specify the path.\n\n" << std::endl;
+
         std::stringstream buffer;
         buffer << t.rdbuf();
         auto json_string = buffer.str();
@@ -99,12 +102,17 @@ namespace Kratos
 
         double measurement_value;
         Vector measurement_normal;
+        Vector simulated_displacement;
+
+        const ModelPart &response_part = mrModelPart.GetSubModelPart(mResponsePartName);
+        const ArrayVariableType &r_traced_dof = KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
 
         rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
         for (auto const &node_id : it_map->second)
         {
             for (IndexType i = 0; i < dofs_of_element.size(); ++i)
             {
+
                 if (dofs_of_element[i]->Id() == node_id &&
                     dofs_of_element[i]->GetVariable() == *adjoint_solution_variable)
                 {
@@ -117,10 +125,12 @@ namespace Kratos
                         {
                             measurement_value = sensor_data["measured_value"].GetDouble();
                             measurement_normal = sensor_data["measurement_direction_normal"].GetVector();
+                            simulated_displacement =response_part.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof);
 
-                            rResponseGradient[i] = (measurement_normal[0] * measurement_value) - mResponseDirection[0];
-                            rResponseGradient[i + 1] = (measurement_normal[1] * measurement_value) - mResponseDirection[1];
-                            rResponseGradient[i + 2] = (measurement_normal[2] * measurement_value) - mResponseDirection[2];
+                            rResponseGradient[i] = (measurement_normal[0] * measurement_value) - simulated_displacement[0];
+                            rResponseGradient[i + 1] = (measurement_normal[1] * measurement_value) - simulated_displacement[1];
+                            rResponseGradient[i + 2] = (measurement_normal[2] * measurement_value) - simulated_displacement[2];
+
                             break;
                         }
                     }

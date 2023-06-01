@@ -1,6 +1,8 @@
 from __future__ import annotations
 import json
 
+import numpy as np
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -122,70 +124,38 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
         ###################################################################
 
-        self.primal_file_name = "/media/meister/localdata/GitRepos/Kratos_In_Progress_SysId/scripts/dev_scripts/linear_strain_energy_test/primal_parameters.json"
+        adjoint_file_name = "/media/meister/localdata/GitRepos/Kratos_In_Progress_SysId/scripts/dev_scripts/measurement_residual_test/linear_shell_test_nodal_disp_adjoint_parameters.json"
 
-        self.adjoint_file_name = "/media/meister/localdata/GitRepos/Kratos_In_Progress_SysId/scripts/dev_scripts/linear_strain_energy_test/adjoint_parameters.json"
+        with open(adjoint_file_name, 'r') as parameter_file:
+            adjoint_parameters = Kratos.Parameters(parameter_file.read())
 
-        with open(self.primal_file_name, 'r') as parameter_file:
-            primal_parameters = Kratos.Parameters(parameter_file.read())
-        with open(self.adjoint_file_name, 'r') as parameter_file:
-            self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
-        self.problem_name = primal_parameters["problem_data"]["problem_name"].GetString()
-        self.model_part_name = primal_parameters["solver_settings"]["model_part_name"].GetString()
-
-        # To avoid many prints
-        if (primal_parameters["problem_data"]["echo_level"].GetInt() == 0 or self.adjoint_parameters["problem_data"]["echo_level"].GetInt() == 0):
-            Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
-
-        # SelectAndVerifyLinearSolver(primal_parameters, self.skipTest)
-        # SelectAndVerifyLinearSolver(self.adjoint_parameters, self.skipTest)
-
-        # solve primal problem
-        model_primal = Kratos.Model()
-        primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, primal_parameters)
-        primal_analysis.Run()
-        # create adjoint analysis
         model_adjoint = Kratos.Model()
-        self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, self.adjoint_parameters)
-        self.adjoint_analysis.Initialize()
-        self.adjoint_analysis.RunSolutionLoop()
-        self.adjoint_analysis.Finalize()
+        adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, adjoint_parameters)
 
-        ###################################################################
+        # model_adjoint.CreateModelPart("Structure.Test1")
 
-        # self.response_settings = Kratos.Parameters(
-        #     """{
-        #         "response_type": "adjoint_nodal_displacement",
-        #         "primal_settings": "ProjectParameters.json",
-        #         "adjoint_settings": "auto",
-        #         "primal_data_transfer_with_python": true
-        #         }"""
-        # )
+        # for node in list(intersected_model_part_map.values())[0].Nodes:
+        #     model_adjoint.GetModelPart("Structure.Test1").AddNode(node, node.Id)
 
-        # self.adjoint_file_name = "/media/meister/localdata/GitRepos/Kratos_In_Progress_SysId/scripts/dev_scripts/linear_strain_energy_test/adjoint_parameters.json"
-        # # self.adjoint_file_name = "/home/fmeister/GitkrakenRepos/Kratos/scripts/dev_scripts/linear_strain_energy_test/linear_shell_test_nodal_disp_adjoint_parameters.json"
+        adjoint_analysis.Run()
 
-        # # Reading the ProjectParameters
-        # with open(self.adjoint_file_name, 'r') as parameter_file:
-        #     self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
+        # for node in model_adjoint.GetModelPart("Structure").GetNodes():
+        #     print(f"Displacement: {node.GetSolutionStepValue(Kratos.DISPLACEMENT)}")
+        #     print(f"Displacement X: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)}")
+        #     print(f"Displacement Y: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)}")
+        #     print(f"Displacement Z: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)}")
 
-        # print(self.adjoint_parameters)
+        # elements = model_adjoint.GetModelPart("Structure").GetElements()
+        # results = np.ndarray(shape=(len(elements), 1), dtype=np.float64)
+        # for i, element in enumerate(elements):
+        #     results[i] = element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
 
-        # self.model_part_name = self.adjoint_parameters["solver_settings"]["model_part_name"].GetString()
+        # now fill the collective expressions
+        for variable, collective_expression in physical_variable_collective_expressions.items():
+            collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
+            # collective_expression.Read(results)
 
-        # # create adjoint analysis
-        # model_adjoint = Kratos.Model()
-        # self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, self.adjoint_parameters)
-        # self.adjoint_analysis.Run()
-        # self.adjoint_analysis.time = 0.0
-        # self.adjoint_analysis.end_time = 1.0
-        # adjoint_response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.model_part, self.response_settings)
-        # adjoint_response_function.CalculateGradient()
-
-        adjoint_model_part = self.adjoint_analysis.model.GetModelPart(self.model_part_name)
-        for element in adjoint_model_part.GetElements():
-            print(f"Sensi: {element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)}")
-
+        print(f"Collective results: {physical_variable_collective_expressions}")
         #####################################################################
 
         # Likelihood Gradient
@@ -194,12 +164,15 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         # Gradient = error @ d_disp/d_Youngs_modulus
 
         # TODO remove after testing
-        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(list(merged_model_part_map.keys()), list(
-            merged_model_part_map.values()), list(intersected_model_part_map.values()), self.perturbation_size)
+        # KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(
+        #     list(merged_model_part_map.keys()),
+        #     list(merged_model_part_map.values()),
+        #     list(intersected_model_part_map.values()),
+        #     self.perturbation_size)
 
-        # now fill the collective expressions
-        for variable, collective_expression in physical_variable_collective_expressions.items():
-            collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
+        # # now fill the collective expressions
+        # for variable, collective_expression in physical_variable_collective_expressions.items():
+        #     collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
