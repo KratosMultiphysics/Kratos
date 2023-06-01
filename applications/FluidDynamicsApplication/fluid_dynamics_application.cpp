@@ -125,6 +125,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mHerschelBulkleyVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mStokes3DTwoFluid(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+    mNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))), //TODO: Legacy to be removed
+    mNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))), //TODO: Legacy to be removed
     // Navier-Stokes wall conditions
     mNavierStokesWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
     mNavierStokesWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
@@ -132,8 +134,6 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mNavierStokesLinearLogWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
     mNavierStokesNavierSlipWallCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node>(Element::GeometryType::PointsArrayType(3)))),
     mNavierStokesNavierSlipWallCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node>(Element::GeometryType::PointsArrayType(2)))),
-    mNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))), //TODO: Legacy to be removed
-    mNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))), //TODO: Legacy to be removed
     // Embedded Navier-Stokes symbolic elements
     mEmbeddedNavierStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node>(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedNavierStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
