@@ -104,11 +104,15 @@ void GeometricalObjectsBins::SearchInRadius(
     ResultTypeContainer& rResults
     )
 {
+    // Search
     std::vector<ResultType> results;
     SearchInRadius(rPoint, Radius, results);
     for (auto& r_result : results) {
         rResults.AddResult(r_result);
     }
+
+    // Synchronize
+    rResults.SynchronizeAll(ParallelEnvironment::GetDefaultDataCommunicator());
 }
 
 /***********************************************************************************/
@@ -155,6 +159,23 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
 /***********************************************************************************/
 /***********************************************************************************/
 
+void GeometricalObjectsBins::SearchNearestInRadius(
+    const Point& rPoint,
+    const double Radius,
+    ResultTypeContainer& rResults
+    )
+{
+    // Search
+    auto result = SearchNearestInRadius(rPoint, Radius);
+    rResults.AddResult(result);
+
+    // Synchronize
+    rResults.SynchronizeAll(ParallelEnvironment::GetDefaultDataCommunicator());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const Point& rPoint)
 {
     ResultType current_result;
@@ -163,6 +184,22 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const P
     const double max_radius= *std::max_element(box_size.begin(), box_size.end());
 
     return SearchNearestInRadius(rPoint, max_radius);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GeometricalObjectsBins::SearchNearest(
+    const Point& rPoint,
+    ResultTypeContainer& rResults
+    )
+{
+    // Search
+    auto result = SearchNearest(rPoint);
+    rResults.AddResult(result);
+
+    // Synchronize
+    rResults.SynchronizeAll(ParallelEnvironment::GetDefaultDataCommunicator());
 }
 
 /***********************************************************************************/
@@ -182,6 +219,22 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const 
     SearchIsInsideInCell(r_cell, rPoint, current_result);
 
     return current_result;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void GeometricalObjectsBins::SearchIsInside(
+    const Point& rPoint,
+    ResultTypeContainer& rResults
+    )
+{
+    // Search
+    auto result = SearchIsInside(rPoint);
+    rResults.AddResult(result);
+
+    // Synchronize
+    rResults.SynchronizeAll(ParallelEnvironment::GetDefaultDataCommunicator());
 }
 
 /***********************************************************************************/

@@ -712,6 +712,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
     py::class_<ResultTypeContainer, ResultTypeContainer::Pointer>(m, "ResultTypeContainer")
     .def(py::init< >())
+    .def("IsObjectFound", &ResultTypeContainer::IsObjectFound)
     .def("NumberOfLocalResults", &ResultTypeContainer::NumberOfLocalResults)
     .def("NumberOfGlobalResults", &ResultTypeContainer::NumberOfGlobalResults)
     .def("AddResult", &ResultTypeContainer::AddResult)
@@ -806,7 +807,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
         // Perform the search
-        return self.SearchNearestInRadius(rPoint, Radius);
+        ResultTypeContainer results;
+        self.SearchNearestInRadius(rPoint, Radius, results);
+        return results;
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
@@ -816,7 +819,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const Point& rPoint) {
         // Perform the search
-        return self.SearchNearest(rPoint);
+        ResultTypeContainer results;
+        self.SearchNearest(rPoint, results);
+        return results;
     })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
@@ -826,7 +831,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const Point& rPoint) {
         // Perform the search
-        return self.SearchIsInside(rPoint);
+        ResultTypeContainer results;
+        self.SearchIsInside(rPoint, results);
+        return results;
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
