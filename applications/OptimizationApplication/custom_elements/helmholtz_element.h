@@ -243,12 +243,6 @@ private:
         MatrixType& rStiffnessMatrix,
         const ProcessInfo& rCurrentProcessInfo) const;
 
-    /**
-     * @brief This is called during the assembling process in order to element surface normal
-     * @param rNormal The averaged surface normal
-     */
-    void CalculateAvgSurfUnitNormal(array_1d<double, 3>& rNormal) const;
-
     ///@}
 
 }; // Class HelmholtzElement

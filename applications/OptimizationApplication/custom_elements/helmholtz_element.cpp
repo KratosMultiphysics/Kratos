@@ -445,7 +445,7 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
     for (IndexType i_point = 0; i_point < number_of_gauss_points; ++i_point) {
 
         Matrix DN_DX;
-        mDataContainer.CalculateGaussPointStiffnessContribution(DN_DX, i_point, constant_data);
+        mDataContainer.CalculateShapeFunctionDerivatives(DN_DX, i_point, constant_data);
 
         const double W = integration_points[i_point].Weight() * gauss_pts_J_det[i_point];
         noalias(A_dirc) += W * helmholtz_radius * helmholtz_radius * prod(DN_DX, trans(DN_DX));
@@ -463,23 +463,6 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
     }
 
     KRATOS_CATCH("");
-}
-
-template<class TDataContainer>
-void HelmholtzElement<TDataContainer>::CalculateAvgSurfUnitNormal(array_1d<double, 3>& rNormal) const
-{
-    const auto& r_geom = GetGeometry();
-    const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
-    const auto& integration_points = r_geom.IntegrationPoints(integration_method);
-
-    rNormal.clear();
-
-    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
-        rNormal += r_geom.UnitNormal(point_number, integration_method);
-    }
-
-    rNormal /= integration_points.size();
-    rNormal /= MathUtils<double>::Norm3(rNormal);
 }
 
 // template instantiations

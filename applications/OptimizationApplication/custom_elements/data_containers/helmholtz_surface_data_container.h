@@ -95,7 +95,7 @@ public:
         noalias(rConstantData.mTangentProjectionMatrix) = id_matrix - outer_prod(normal, normal);
     }
 
-    void CalculateGaussPointStiffnessContribution(
+    void CalculateShapeFunctionDerivatives(
         Matrix& rdNdX,
         const IndexType IntegrationPoint,
         const ConstantDataContainer& rConstantData) const
