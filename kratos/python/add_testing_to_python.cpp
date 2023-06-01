@@ -36,11 +36,13 @@ void  AddTestingToPython(pybind11::module& m) {
         .def_static("SetVerbosity",&Testing::Tester::SetVerbosity)
         // Run methods
         .def_static("RunAllTestCases", &Testing::Tester::RunAllTestCases)
+        .def_static("RunAllDistributedTestCases", &Testing::Tester::RunAllDistributedTestCases)
         .def_static("RunTestSuite", &Testing::Tester::RunTestSuite)
         .def_static("RunTestCases", &Testing::Tester::RunTestCases)
 
         // Profile tests
         .def_static("ProfileAllTestCases", &Testing::Tester::ProfileAllTestCases)
+        .def_static("ProfileAllDistributedTestCases", &Testing::Tester::ProfileAllDistributedTestCases)
         .def_static("ProfileTestSuite", &Testing::Tester::ProfileTestSuite)
 
         // Utils

@@ -17,6 +17,7 @@
 #include <ostream>
 #include <string>
 #include <vector>
+#include <iterator>
 
 // Project includes
 #include "includes/define.h"
@@ -50,6 +51,16 @@ public:
     public:
         ///@name Type definitions
         ///@{
+
+        using difference_type = IndexType;
+
+        using value_type = double;
+
+        using pointer = double*;
+
+        using reference = double&;
+
+        using iterator_category = std::input_iterator_tag;
 
         KRATOS_CLASS_POINTER_DEFINITION(ExpressionIterator);
 
