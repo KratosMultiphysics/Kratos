@@ -8,6 +8,7 @@
 //                   license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl
+//                   Suneth Warnakulasuriya
 //
 
 // System includes
@@ -16,10 +17,11 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/define.h"
-#include "utilities/math_utils.h"
+#include "includes/variables.h"
 
 // Application incldues
+#include "custom_elements/data_containers/helmholtz_vector_surface_data_container.h"
+#include "custom_elements/data_containers/helmholtz_scalar_surface_data_container.h"
 #include "custom_utilities/entity_calculation_utils.h"
 #include "optimization_application_variables.h"
 
@@ -31,7 +33,8 @@ namespace Kratos {
 //************************************************************************************
 //************************************************************************************
 
-HelmholtzSurfaceElement::HelmholtzSurfaceElement(
+template<class TDataContainer>
+HelmholtzSurfaceElement<TDataContainer>::HelmholtzSurfaceElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
@@ -43,7 +46,8 @@ HelmholtzSurfaceElement::HelmholtzSurfaceElement(
 //************************************************************************************
 //************************************************************************************
 
-HelmholtzSurfaceElement::HelmholtzSurfaceElement(
+template<class TDataContainer>
+HelmholtzSurfaceElement<TDataContainer>::HelmholtzSurfaceElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
@@ -53,7 +57,8 @@ HelmholtzSurfaceElement::HelmholtzSurfaceElement(
     mpSolidGeometry = EntityCalculationUtils::CreateSolidGeometry(this->GetGeometry());
 }
 
-Element::Pointer HelmholtzSurfaceElement::Create(
+template<class TDataContainer>
+Element::Pointer HelmholtzSurfaceElement<TDataContainer>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
@@ -65,7 +70,8 @@ Element::Pointer HelmholtzSurfaceElement::Create(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer HelmholtzSurfaceElement::Create(
+template<class TDataContainer>
+Element::Pointer HelmholtzSurfaceElement<TDataContainer>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
@@ -76,50 +82,48 @@ Element::Pointer HelmholtzSurfaceElement::Create(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer HelmholtzSurfaceElement::Clone(
+template<class TDataContainer>
+Element::Pointer HelmholtzSurfaceElement<TDataContainer>::Clone(
     IndexType NewId,
-    NodesArrayType const& rThisNodes) const
+    const NodesArrayType& rThisNodes) const
 {
     KRATOS_TRY
 
-    HelmholtzSurfaceElement::Pointer p_new_elem =
+    HelmholtzSurfaceElement::Pointer p_new_cond =
         Kratos::make_intrusive<HelmholtzSurfaceElement>(
             NewId, GetGeometry().Create(rThisNodes), pGetProperties());
-    p_new_elem->SetData(this->GetData());
-    p_new_elem->Set(Flags(*this));
+    p_new_cond->SetData(this->GetData());
+    p_new_cond->Set(Flags(*this));
 
-    return p_new_elem;
+    return p_new_cond;
 
     KRATOS_CATCH("");
 }
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzSurfaceElement::CalculateLocalSystem(
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const auto& r_geometry = this->GetGeometry();
 
-    // Resizing as needed the LHS
-    const SizeType mat_size = number_of_nodes;
-
-    if (rLeftHandSideMatrix.size1() != mat_size) {
-        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+    if (rLeftHandSideMatrix.size1() != LocalSize) {
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }
 
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); // resetting LHS
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize); // resetting LHS
 
     // Resizing as needed the RHS
-    if (rRightHandSideVector.size() != mat_size) {
-        rRightHandSideVector.resize(mat_size, false);
+    if (rRightHandSideVector.size() != LocalSize) {
+        rRightHandSideVector.resize(LocalSize, false);
     }
 
-    rRightHandSideVector = ZeroVector(mat_size); // resetting RHS
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize); // resetting RHS
 
     MatrixType M;
     CalculateMassMatrix(M, rCurrentProcessInfo);
@@ -134,19 +138,27 @@ void HelmholtzSurfaceElement::CalculateLocalSystem(
         noalias(rLeftHandSideMatrix) += K;
     }
 
-    const SizeType number_of_points = r_geometry.size();
-    Vector nodal_vals(number_of_points);
     const bool is_integrated_field = rCurrentProcessInfo[HELMHOLTZ_INTEGRATED_FIELD];
-    for (SizeType node_element = 0; node_element < number_of_points; ++node_element) {
-        const auto& source = r_geometry[node_element].GetValue(HELMHOLTZ_SCALAR_SOURCE);
-        auto node_weight = r_geometry[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-        nodal_vals[node_element] = source;
-        if (is_integrated_field) {
-            nodal_vals[node_element] /= node_weight;
+
+    constexpr auto& source_variables_list = TDataContainer::SourceVariablesList;
+
+    BoundedVector<double, NumberOfNodes * DataDimension> nodal_vals;
+    IndexType local_index = 0;
+    for (IndexType node_element = 0; node_element < NumberOfNodes; node_element++) {
+        const auto& r_node = r_geometry[node_element];
+        for (IndexType d = 0; d < DataDimension; ++d) {
+            nodal_vals[local_index++] = r_node.GetValue(*source_variables_list[d]);
         }
     }
 
     if (is_integrated_field) {
+        IndexType local_index = 0;
+        for (IndexType node_element = 0; node_element < NumberOfNodes; node_element++) {
+            const auto node_weight = r_geometry[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+            for (IndexType d = 0; d < DataDimension; ++d) {
+                nodal_vals[local_index++] /= node_weight;
+            }
+        }
         noalias(rRightHandSideVector) += nodal_vals;
     } else if (is_inversed) {
         noalias(rRightHandSideVector) += prod(K + M, nodal_vals);
@@ -156,7 +168,7 @@ void HelmholtzSurfaceElement::CalculateLocalSystem(
 
     // apply drichlet BC
     Vector temp;
-    GetValuesVector(temp);
+    GetValuesVector(temp, 0);
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, temp);
 
     KRATOS_CATCH("")
@@ -164,25 +176,70 @@ void HelmholtzSurfaceElement::CalculateLocalSystem(
 
 //******************************************************************************
 //******************************************************************************
-void HelmholtzSurfaceElement::GetValuesVector(VectorType& rValues, int Step) const
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::GetValuesVector(
+    VectorType& rValues,
+    int Step) const
 {
-    const GeometryType& rgeom = this->GetGeometry();
-    const SizeType num_nodes = rgeom.PointsNumber();
-    const unsigned int local_size = num_nodes;
-
-    if (rValues.size() != local_size) {
-        rValues.resize(local_size, false);
+    if (rValues.size() != LocalSize) {
+         rValues.resize(LocalSize);
     }
 
-    SizeType index = 0;
-    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-        rValues[index++] = rgeom[i_node].FastGetSolutionStepValue(HELMHOLTZ_SCALAR, Step);
+    constexpr auto& r_variables_list = TDataContainer::TargetVariablesList;
+    const auto& r_geometry = this->GetGeometry();
+
+    IndexType local_index = 0;
+    if constexpr(DataDimension == 1) {
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            rValues[local_index++] = r_geometry[i].FastGetSolutionStepValue(*r_variables_list[0]);
+        }
+    } else if constexpr(DataDimension == 3) {
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            const auto& r_node = r_geometry[i];
+            for (IndexType d = 0; d < DataDimension; ++d) {
+                rValues[local_index++] = r_node.FastGetSolutionStepValue(*r_variables_list[d]);
+            }
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported data dimension. [ DataDimension = " << DataDimension
+                     << ".\n";
+    }
+}
+//******************************************************************************
+//******************************************************************************
+
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::Calculate(
+    const Variable<double>& rVariable,
+    double& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == ELEMENT_STRAIN_ENERGY) {
+        MatrixType K;
+        CalculateStiffnessMatrix(K, rCurrentProcessInfo);
+
+        auto& r_geometry = this->GetGeometry();
+
+        const unsigned int NumberOfNodes = r_geometry.size();
+        Vector nodal_vals(NumberOfNodes * 3);
+        for (unsigned int node_element = 0; node_element < NumberOfNodes; node_element++) {
+            nodal_vals[3 * node_element + 0] = r_geometry[node_element].X0();
+            nodal_vals[3 * node_element + 1] = r_geometry[node_element].Y0();
+            nodal_vals[3 * node_element + 2] = r_geometry[node_element].Z0();
+        }
+
+        rOutput = inner_prod(nodal_vals, prod(K, nodal_vals));
+    }
+    else {
+        auto& parentElement = this->GetValue(NEIGHBOUR_ELEMENTS);
+        parentElement[0].Calculate(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzSurfaceElement::CalculateLeftHandSide(
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -192,7 +249,8 @@ void HelmholtzSurfaceElement::CalculateLeftHandSide(
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzSurfaceElement::CalculateRightHandSide(
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -202,19 +260,36 @@ void HelmholtzSurfaceElement::CalculateRightHandSide(
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzSurfaceElement::EquationIdVector(
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    if (rResult.size() != number_of_nodes) {
-        rResult.resize(number_of_nodes, false);
+    if (rResult.size() != LocalSize) {
+         rResult.resize(LocalSize);
     }
 
-    for (unsigned int i = 0; i < number_of_nodes; i++) {
-        rResult[i] = GetGeometry()[i].GetDof(HELMHOLTZ_SCALAR).EquationId();
+    constexpr auto& r_variables_list = TDataContainer::TargetVariablesList;
+    const auto& r_geometry = this->GetGeometry();
+
+    IndexType local_index = 0;
+    if constexpr(DataDimension == 1) {
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            rResult[local_index++] = r_geometry[i].GetDof(*r_variables_list[0]).EquationId();
+        }
+    } else if constexpr(DataDimension == 3) {
+        const auto pos = this->GetGeometry()[0].GetDofPosition(*r_variables_list[0]);
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            const auto& r_node = r_geometry[i];
+            for (IndexType d = 0; d < DataDimension; ++d) {
+                rResult[local_index++] = r_node.GetDof(*r_variables_list[d], pos + d).EquationId();
+            }
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported data dimension. [ DataDimension = " << DataDimension
+                     << ".\n";
     }
 
     KRATOS_CATCH("")
@@ -222,20 +297,36 @@ void HelmholtzSurfaceElement::EquationIdVector(
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzSurfaceElement::GetDofList(
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
-    const auto number_of_nodes = GetGeometry().PointsNumber();
-
-    if (rElementalDofList.size() != number_of_nodes) {
-        rElementalDofList.resize(number_of_nodes);
+    if (rElementalDofList.size() != LocalSize) {
+         rElementalDofList.resize(LocalSize);
     }
 
-    for (SizeType i = 0; i < number_of_nodes; ++i) {
-        rElementalDofList[i] = GetGeometry()[i].pGetDof(HELMHOLTZ_SCALAR);
+    constexpr auto& r_variables_list = TDataContainer::TargetVariablesList;
+    const auto& r_geometry = this->GetGeometry();
+
+    IndexType local_index = 0;
+    if constexpr(DataDimension == 1) {
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            rElementalDofList[local_index++] = r_geometry[i].pGetDof(*r_variables_list[0]);
+        }
+    } else if constexpr(DataDimension == 3) {
+        const auto pos = this->GetGeometry()[0].GetDofPosition(*r_variables_list[0]);
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            const auto& r_node = r_geometry[i];
+            for (IndexType d = 0; d < DataDimension; ++d) {
+                rElementalDofList[local_index++] = r_node.pGetDof(*r_variables_list[d], pos + d);
+            }
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported data dimension. [ DataDimension = " << DataDimension
+                     << ".\n";
     }
 
     KRATOS_CATCH("")
@@ -243,21 +334,10 @@ void HelmholtzSurfaceElement::GetDofList(
 
 //************************************************************************************
 //************************************************************************************
-int HelmholtzSurfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+template<class TDataContainer>
+int HelmholtzSurfaceElement<TDataContainer>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
-
-    int check = Element::Check(rCurrentProcessInfo);
-
-    const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
-
-    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for (IndexType i = 0; i < number_of_nodes; i++) {
-        const NodeType& rnode = r_geometry[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HELMHOLTZ_SCALAR, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(HELMHOLTZ_SCALAR, rnode)
-    }
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_HELMHOLTZ_INVERSE))
         << "COMPUTE_HELMHOLTZ_INVERSE not defined in the ProcessInfo!" << std::endl;
@@ -268,103 +348,136 @@ int HelmholtzSurfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(HELMHOLTZ_RADIUS))
         << "HELMHOLTZ_RADIUS not defined in the ProcessInfo!" << std::endl;
 
-    return check;
+    constexpr auto& r_variables_list = TDataContainer::TargetVariablesList;
+
+    const auto& r_geometry = GetGeometry();
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for (IndexType i = 0; i < NumberOfNodes; ++i) {
+        const auto& r_node = r_geometry[i];
+        for (const auto p_variable : r_variables_list) {
+            const auto& r_variable = *p_variable;
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(r_variable, r_node)
+            KRATOS_CHECK_DOF_IN_NODE(r_variable, r_node)
+        }
+    }
+
+    return Element::Check(rCurrentProcessInfo);
 
     KRATOS_CATCH("");
 }
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzSurfaceElement::CalculateMassMatrix(
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    const auto& r_geom = GetGeometry();
-    SizeType number_of_nodes = r_geom.size();
-    SizeType mat_size = number_of_nodes;
-
-    // Clear matrix
-    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size) {
-        rMassMatrix.resize(mat_size, mat_size, false);
+    if (rMassMatrix.size1() != LocalSize || rMassMatrix.size2() != LocalSize) {
+        rMassMatrix.resize(LocalSize, LocalSize, false);
     }
 
-    noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
+    noalias(rMassMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
-    const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
-    const auto& integration_points = r_geom.IntegrationPoints(integration_method);
+    const auto& r_cond_geom = GetGeometry();
+    const auto& integration_method = r_cond_geom.GetDefaultIntegrationMethod();
+    const auto& integration_points = r_cond_geom.IntegrationPoints(integration_method);
 
     VectorType Ws;
     MatrixType Ns;
-    EntityCalculationUtils::CalculateSurfaceElementGaussPointData(Ws, Ns, r_geom, integration_method);
+    EntityCalculationUtils::CalculateSurfaceElementGaussPointData(Ws, Ns, r_cond_geom, integration_method);
 
     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+        const double integration_weight = Ws[point_number];
         const Vector& rN = row(Ns, point_number);
-        noalias(rMassMatrix) += Ws[point_number] * outer_prod(rN, rN);
+
+        const auto& NiNj_weight = outer_prod(rN, rN) * integration_weight;
+
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            const SizeType index_i = i * DataDimension;
+            for (IndexType j = 0; j < NumberOfNodes; ++j) {
+                const SizeType index_j = j * DataDimension;
+                for (IndexType k = 0; k < DataDimension; ++k) {
+                    rMassMatrix(index_i + k, index_j + k) += NiNj_weight(i, j);
+                }
+            }
+        }
     }
 
     KRATOS_CATCH("");
 }
-
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzSurfaceElement::CalculateStiffnessMatrix(
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::CalculateStiffnessMatrix(
     MatrixType& rStiffnessMatrix,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
     const auto& r_geom = GetGeometry();
-    SizeType dimension = r_geom.WorkingSpaceDimension();
-    SizeType number_of_nodes = r_geom.size();
-    SizeType mat_size = number_of_nodes;
 
-    // Clear matrix
-    if (rStiffnessMatrix.size1() != mat_size || rStiffnessMatrix.size2() != mat_size) {
-        rStiffnessMatrix.resize(mat_size, mat_size, false);
+    if (rStiffnessMatrix.size1() != LocalSize || rStiffnessMatrix.size2() != LocalSize) {
+        rStiffnessMatrix.resize(LocalSize, LocalSize, false);
     }
 
-    noalias(rStiffnessMatrix) = ZeroMatrix(mat_size, mat_size);
+    noalias(rStiffnessMatrix) = ZeroMatrix(LocalSize, LocalSize);
+
+    BoundedMatrix<double, NumberOfNodes, NumberOfNodes> A_dirc;
+    A_dirc.clear();
 
     // reading integration points and local gradients
     const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
     const auto& integration_points = r_geom.IntegrationPoints(integration_method);
-    const unsigned int NumGauss = integration_points.size();
+    const IndexType number_of_gauss_points = integration_points.size();
 
-    Vector GaussPtsJDet = ZeroVector(NumGauss);
-    r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
+    Vector gauss_pts_J_det = ZeroVector(number_of_gauss_points);
+    r_geom.DeterminantOfJacobian(gauss_pts_J_det, integration_method);
 
-    VectorType n_surf;
+    array_1d<double, 3> n_surf;
     CalculateAvgSurfUnitNormal(n_surf);
-    MatrixType id_matrix = IdentityMatrix(dimension, dimension);
-    MatrixType tangent_projection_matrix = id_matrix - outer_prod(n_surf, n_surf);
+    const BoundedMatrix<double, 3, 3>& id_matrix = IdentityMatrix(3, 3);
+    const BoundedMatrix<double, 3, 3>& tangent_projection_matrix = id_matrix - outer_prod(n_surf, n_surf);
 
-    for (SizeType i_point = 0; i_point < integration_points.size(); ++i_point) {
+    const double helmholtz_radius = rCurrentProcessInfo[HELMHOLTZ_RADIUS];
+    for (IndexType i_point = 0; i_point < number_of_gauss_points; ++i_point) {
+
         Matrix DN_DX;
-        EntityCalculationUtils::CalculateSurfaceElementShapeDerivatives(
-            DN_DX, *mpSolidGeometry, this->GetGeometry(), integration_method, i_point);
-        const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
+        EntityCalculationUtils::CalculateSurfaceElementShapeDerivatives(DN_DX, *mpSolidGeometry, r_geom, integration_method, i_point);
 
-        MatrixType DN_DX_t = prod(DN_DX, tangent_projection_matrix);
+        const double W = integration_points[i_point].Weight() * gauss_pts_J_det[i_point];
+        const BoundedMatrix<double, NumberOfNodes, 3>& dN_dX_t = prod(DN_DX, tangent_projection_matrix);
 
-        const double r_helmholtz = rCurrentProcessInfo[HELMHOLTZ_RADIUS];
-        noalias(rStiffnessMatrix) += IntToReferenceWeight * r_helmholtz *
-                                     r_helmholtz * prod(DN_DX_t, trans(DN_DX_t));
+        noalias(A_dirc) += W * helmholtz_radius * helmholtz_radius * prod(dN_dX_t, trans(dN_dX_t));
+    }
+
+    // contruct the stifness matrix in all dims
+    for (IndexType i = 0; i < NumberOfNodes; ++i) {
+        const SizeType index_i = i * DataDimension;
+        for (IndexType k = 0; k < NumberOfNodes; ++k) {
+            const SizeType index_k = k * DataDimension;
+            for (IndexType j = 0; j < DataDimension; ++j) {
+                rStiffnessMatrix(index_i + j, index_k + j) = A_dirc(i, k);
+            }
+        }
     }
 
     KRATOS_CATCH("");
 }
 
-void HelmholtzSurfaceElement::CalculateAvgSurfUnitNormal(VectorType& rNormal) const
+template<class TDataContainer>
+void HelmholtzSurfaceElement<TDataContainer>::CalculateAvgSurfUnitNormal(array_1d<double, 3>& rNormal) const
 {
     const auto& r_geom = GetGeometry();
     const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
     const auto& integration_points = r_geom.IntegrationPoints(integration_method);
 
-    rNormal.resize(3);
-    noalias(rNormal) = ZeroVector(3);
+    rNormal.clear();
+
     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
         rNormal += r_geom.UnitNormal(point_number, integration_method);
     }
@@ -372,5 +485,12 @@ void HelmholtzSurfaceElement::CalculateAvgSurfUnitNormal(VectorType& rNormal) co
     rNormal /= integration_points.size();
     rNormal /= MathUtils<double>::Norm3(rNormal);
 }
+
+// template instantiations
+template class HelmholtzSurfaceElement<HelmholtzScalarSurfaceDataContainer<3>>;
+template class HelmholtzSurfaceElement<HelmholtzScalarSurfaceDataContainer<4>>;
+
+template class HelmholtzSurfaceElement<HelmholtzVectorSurfaceDataContainer<3, 3>>;
+template class HelmholtzSurfaceElement<HelmholtzVectorSurfaceDataContainer<3, 4>>;
 
 } // Namespace Kratos

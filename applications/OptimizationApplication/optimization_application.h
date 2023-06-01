@@ -38,7 +38,10 @@
 #include "custom_elements/helmholtz_solid_shape_element.h"
 #include "custom_elements/helmholtz_vector_solid_element.h"
 #include "custom_elements/helmholtz_surface_element.h"
-#include "custom_elements/helmholtz_vector_surface_element.h"
+
+// Data containers
+#include "custom_elements/data_containers/helmholtz_scalar_surface_data_container.h"
+#include "custom_elements/data_containers/helmholtz_vector_surface_data_container.h"
 
 /* ADJOINT ELEMENTS */
 #include "custom_elements/adjoint_small_displacement_element.h"
@@ -214,10 +217,11 @@ namespace Kratos
 		const HelmholtzBulkElement mHelmholtzBulkTopology3D4N;
 
 		// Helmholtz elements
-		const HelmholtzSurfaceElement mHelmholtzSurfaceElement3D3N;
-		const HelmholtzSurfaceElement mHelmholtzSurfaceElement3D4N;
-		const HelmholtzVectorSurfaceElement mHelmholtzVectorSurfaceElement3D3N;
-		const HelmholtzVectorSurfaceElement mHelmholtzVectorSurfaceElement3D4N;
+		const HelmholtzSurfaceElement<HelmholtzScalarSurfaceDataContainer<3>> mHelmholtzSurfaceElement3D3N;
+		const HelmholtzSurfaceElement<HelmholtzScalarSurfaceDataContainer<4>> mHelmholtzSurfaceElement3D4N;
+		const HelmholtzSurfaceElement<HelmholtzVectorSurfaceDataContainer<3, 3>> mHelmholtzVectorSurfaceElement3D3N;
+		const HelmholtzSurfaceElement<HelmholtzVectorSurfaceDataContainer<3, 4>> mHelmholtzVectorSurfaceElement3D4N;
+
 		const HelmholtzSolidElement mHelmholtzSolidElement3D4N;
 		const HelmholtzSolidElement mHelmholtzSolidElement3D8N;
 		const HelmholtzVectorSolidElement mHelmholtzVectorSolidElement3D4N;

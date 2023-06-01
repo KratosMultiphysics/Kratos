@@ -8,6 +8,7 @@
 //                   license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl
+//                   Suneth Warnakulasuriya
 //
 
 #pragma once
@@ -32,21 +33,30 @@ namespace Kratos {
 /**
  * @class HelmholtzSurfaceElement
  * @ingroup OptimizationApplication
- * @brief Helmholtz filtering element for 3D geometries.
- * @details Implements Helmholtz surface PDEs which involve Laplace-Beltrami operations for filtering a scalar field on surface.
+ * @brief Helmholtz filtering element for geometries.
+ * @details Implements Helmholtz surface PDEs which involve Laplace-Beltrami operations for filtering a field on surface.
  * @author Reza Najian Asl
  */
+template<class TDataContainer>
 class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzSurfaceElement : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    using IndexType = std::size_t;
+
     using PointType = Node;
 
     using PointPtrType = Node::Pointer;
 
     using GeometryType = Geometry<PointType>;
+
+    static constexpr IndexType NumberOfNodes = TDataContainer::NumberOfNodes;
+
+    static constexpr IndexType DataDimension = TDataContainer::TargetVariablesList.size();
+
+    static constexpr IndexType LocalSize = NumberOfNodes * DataDimension;
 
     /// Counted pointer of HelmholtzSurfaceElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzSurfaceElement);
@@ -174,6 +184,16 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * @brief This is called during filtering to compute element strain energy
+     * @param rOutput The calculated variable
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
@@ -227,7 +247,7 @@ private:
      * @brief This is called during the assembling process in order to element surface normal
      * @param rNormal The averaged surface normal
      */
-    void CalculateAvgSurfUnitNormal(VectorType& rNormal) const;
+    void CalculateAvgSurfUnitNormal(array_1d<double, 3>& rNormal) const;
 
     ///@}
 
