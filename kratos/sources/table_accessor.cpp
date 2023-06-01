@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/table_accessor.h"
+#include "includes/properties.h"
 
 namespace Kratos
 {
@@ -34,8 +35,32 @@ double TableAccessor::GetValue(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    // KRATOS_ERROR << "You are calling the GetValue of the virtual Accessor class..." << std::endl;
-    return 0.0;
+    return GetValueFromTable(mInputVariable, rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double TableAccessor::GetValueFromTable(
+        const Variable<double> &rIndependentVariable,
+        const Variable<double> &rDependentVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo) const
+{
+    KRATOS_ERROR_IF_NOT(rGeometry[0].SolutionStepsDataHas(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the nodes of the Geometry to retrieve Table values." << std::endl;
+
+    // Compute the independent variable at the Gauss point
+    double independent_at_gauss = 0.0;
+    for (SizeType i = 0; i < rShapeFunctionVector.size(); ++i) {
+        const double nodal_value = rGeometry[i].FastGetSolutionStepValue(rIndependentVariable);
+        independent_at_gauss += nodal_value * rShapeFunctionVector[i];
+    }
+
+    // Retrieve the dependent variable from the table
+    const auto& r_table = rProperties.GetTable(rIndependentVariable, rDependentVariable);
+    return r_table.GetValue(independent_at_gauss);
 }
 
 /***********************************************************************************/

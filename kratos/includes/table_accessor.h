@@ -53,6 +53,8 @@ public:
     /// BaseType
     using BaseType = Accessor;
 
+    using SizeType = std::size_t;
+
     /// Pointer definition of TableAccessor
     KRATOS_CLASS_POINTER_DEFINITION(TableAccessor);
 
@@ -96,6 +98,18 @@ public:
         const Vector& rShapeFunctionVector,
         const ProcessInfo& rProcessInfo
         ) const override;
+
+    /**
+     * @brief This computes a material property according to a certain
+     * nodal Variable<double> table
+     */
+    double GetValueFromTable(
+        const Variable<double> &rIndependentVariable,
+        const Variable<double> &rDependentVariable,
+        const Properties& rProperties,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionVector,
+        const ProcessInfo& rProcessInfo) const;
 
 
     /**
