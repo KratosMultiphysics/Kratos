@@ -27,9 +27,9 @@ namespace Kratos::Testing {
 
 ModelPart& CreateCubeSkinModelPart(
     Model& rCurrentModel,
-    const double HalfX,
-    const double HalfY,
-    const double HalfZ
+    const double HalfX = 0.6,
+    const double HalfY = 0.9,
+    const double HalfZ = 0.3
     )
 {
     // Generate the cube skin
@@ -134,6 +134,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIBoundingBox, Krat
 
     Model current_model;
 
+    // Generate the cube coordinates
     const double cube_x = 0.6;
     const double cube_y = 0.9;
     const double cube_z = 0.3;
@@ -160,12 +161,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
 {
     Model current_model;
 
-    const double cube_x = 0.6;
-    const double cube_y = 0.9;
-    const double cube_z = 0.3;
-
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
@@ -184,37 +181,31 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchInRadius, K
 
     // 0.29 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
-    // Like the point is on the first rank the results should be empty in all partitions except the first one
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 0);
 
     // 0.3 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
-    // Like the point is on the first rank the results should be empty in all partitions except the first one
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 4);
 
     // 0.4 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
-    // Like the point is on the first rank the results should be empty in all partitions except the first one
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 4);
 
     // 0.6 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
-    // Like the point is on the first rank the results should be empty in all partitions except the first one
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 8);
 
     // 0.7 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
-    // Like the point is on the first rank the results should be empty in all partitions except the first one
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 8);
 
     // 0.9 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
-    // Like the point is on the first rank the results should be empty in all partitions except the first one
     KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
     KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 12);
 }
@@ -227,12 +218,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRa
 
     Model current_model;
 
-    const double cube_x = 0.6;
-    const double cube_y = 0.9;
-    const double cube_z = 0.3;
-
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
@@ -248,6 +235,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRa
         r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
+
+    // Cube coordinates
+    const double cube_z = 0.3;
 
     GeometricalObjectsBinsMPI::ResultTypeContainerMap results;
     bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
@@ -280,12 +270,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearest, Kr
 
     Model current_model;
 
-    const double cube_x = 0.6;
-    const double cube_y = 0.9;
-    const double cube_z = 0.3;
-
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
@@ -301,6 +287,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearest, Kr
         r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
+
+    // Cube coordinates
+    const double cube_z = 0.3;
 
     GeometricalObjectsBinsMPI::ResultTypeContainerMap results;
     bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
@@ -320,23 +309,35 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearest, Kr
     KRATOS_CHECK_EQUAL(id, 3);
 }
 
-// /** Checks bins empty search nearest 
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIEmptySearchNearest, KratosMPICoreFastSuite) 
-// {
-//     Model current_model;
+/** Checks bins empty search nearest 
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPIEmptySearchNearest, KratosMPICoreFastSuite) 
+{
+    Model current_model;
 
-//     // Generate the cube skin
-//     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
-//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+    // Generate the cube skin
+    ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-//     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
 
-//     Point center_point{0.0,0.0,0.0};
-//     auto result = bins.SearchNearest(center_point);
+    Point point{0.0,0.0,0.0};
 
-//     KRATOS_CHECK_IS_FALSE(result.IsObjectFound());
-// }
+    // Generate new model part
+    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
+    // We generate only in first rank
+    const int rank = r_data_comm.Rank();
+    if (rank == 0) {
+        r_point_model_part.CreateNewNode(1, 0.0,0.0,0.0);
+    }
+    auto& r_array_nodes = r_point_model_part.Nodes();
+
+    GeometricalObjectsBinsMPI::ResultTypeContainerMap results;
+    bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+
+    KRATOS_CHECK_EQUAL(results.NumberOfPointsResults(), 1);
+    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 0);
+}
 
 // /** Checks bins search is inside 
 // */
