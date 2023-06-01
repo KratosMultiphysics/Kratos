@@ -35,7 +35,7 @@ double TableAccessor::GetValue(
     const ProcessInfo& rProcessInfo
     ) const
 {
-    return GetValueFromTable(mInputVariable, rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
+    return GetValueFromTable(*mpInputVariable, rVariable, rProperties, rGeometry, rShapeFunctionVector, rProcessInfo);
 }
 
 /***********************************************************************************/

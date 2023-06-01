@@ -66,7 +66,7 @@ public:
     TableAccessor() = default;
 
     /// Custom constructor
-    TableAccessor(VariableType& rInputVariable) : mInputVariable(rInputVariable)
+    TableAccessor(const VariableType& rInputVariable) : mpInputVariable(std::make_shared<VariableType>(rInputVariable)) 
     {}
 
     /// Destructor.
@@ -75,7 +75,7 @@ public:
     /// Copy constructor
     TableAccessor(const TableAccessor& rOther) 
     : BaseType(rOther),
-        mInputVariable(rOther.mInputVariable) 
+        mpInputVariable(rOther.mpInputVariable) 
     {}
 
     ///@}
@@ -115,9 +115,9 @@ public:
     /**
      * @brief Returns the member input variable
      */
-    VariableType& GetInputVariable()
+    VariableType::Pointer GetInputVariable()
     {
-        return mInputVariable;
+        return mpInputVariable;
     }
 
     /**
@@ -157,20 +157,20 @@ private:
     ///@name Member Variables
     ///@{
 
-    VariableType mInputVariable;
+    VariableType::Pointer mpInputVariable;
 
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
-        rSerializer.save("InputVariable", mInputVariable);
+        rSerializer.save("InputVariable", mpInputVariable);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
-        rSerializer.load("InputVariable", mInputVariable);
+        rSerializer.load("InputVariable", mpInputVariable);
     }
 
 
