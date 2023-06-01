@@ -157,7 +157,7 @@ public:
      * @param Radius The radius to be checked
      * @param rResults The results of the search
      */
-    void SearchInRadius(
+    virtual void SearchInRadius(
         const Point& rPoint,
         const double Radius,
         ResultTypeContainer& rResults
@@ -241,7 +241,7 @@ public:
      * @param Radius The radius to be checked
      * @param rResults The results of the search
      */
-    void SearchNearestInRadius(
+    virtual void SearchNearestInRadius(
         const Point& rPoint,
         const double Radius,
         ResultTypeContainer& rResults
@@ -328,7 +328,7 @@ public:
      * @param rPoint The point to be checked
      * @param rResults The results of the search
     */
-    void SearchNearest(
+    virtual void SearchNearest(
         const Point& rPoint,
         ResultTypeContainer& rResults
         );
@@ -412,7 +412,7 @@ public:
      * @param rPoint The point to be checked
      * @param rResults The results of the search
      */
-    void SearchIsInside(
+    virtual void SearchIsInside(
         const Point& rPoint,
         ResultTypeContainer& rResults
         );
