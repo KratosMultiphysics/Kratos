@@ -20,9 +20,11 @@
 #include "add_accessors_to_python.h"
 #include "includes/define_python.h"
 #include "includes/accessor.h"
+#include "includes/table_accessor.h"
 #include "includes/properties.h"
 
-using AccessorBindType = std::unique_ptr<Kratos::Accessor>;
+using AccessorBindType      = std::unique_ptr<Kratos::Accessor>;
+// using TableAccessorBindType = std::unique_ptr<Kratos::TableAccessor>;
 
 PYBIND11_MAKE_OPAQUE(AccessorBindType);
 
@@ -38,6 +40,12 @@ void AddAccessorsToPython(py::module& m)
             return std::make_unique<Accessor>();
         })
         ;
+
+    // py::class_<TableAccessorBindType>(m, "TableAccessor")
+    //     .def_static("Create", []() { 
+    //         return std::make_unique<TableAccessor>();
+    //     })
+    //     ;
 }
 
 }  // namespace Kratos::Python.
