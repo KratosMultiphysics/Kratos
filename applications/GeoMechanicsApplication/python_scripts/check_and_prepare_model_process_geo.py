@@ -7,8 +7,8 @@ import KratosMultiphysics.GeoMechanicsApplication
 
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareModelProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
