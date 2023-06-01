@@ -22,13 +22,11 @@ class AlgorithmSteepestDescent(Algorithm):
         return Kratos.Parameters("""{
             "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
             "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
-            "model_part_name"   : "OptimizationModelPart",
             "objective"         : {},
             "controls"          : [],
             "echo_level"        : 0,
             "settings"          : {
                 "echo_level"      : 0,
-                "gradient_scaling": "inf_norm",
                 "line_search"     : {},
                 "conv_settings"   : {}
             }
@@ -39,19 +37,18 @@ class AlgorithmSteepestDescent(Algorithm):
         self.parameters = parameters
         self._optimization_problem = optimization_problem
 
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
         self.master_control = MasterControl() # Need to fill it with controls
-        self.__control_param_list = parameters["controls"]
 
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
 
-        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         settings = parameters["settings"]
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
 
-        self.gradient_scaling = settings["gradient_scaling"].GetString()
         self.echo_level = settings["echo_level"].GetInt()
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
@@ -75,6 +72,7 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__objective.GetReponse().Initialize()
         self.__objective.Initialize()
         self.__objective.Check()
+        self.master_control.Initialize()
         self.__control_field = self.master_control.GetControlField() # GetInitialControlFields() later
 
     def Finalize(self):
