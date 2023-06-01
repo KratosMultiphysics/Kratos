@@ -44,7 +44,7 @@ public:
 
     static Geometry<Node>::Pointer CreateSolidGeometry(const GeometryType& rSurfaceGeometry);
 
-    static void CalculateSurfaceElementGaussPointData(
+    static void CalculateElementGaussPointData(
         Vector& rGaussWeights,
         Matrix& rShapeFunctionValues,
         const GeometryType& rGeometry,

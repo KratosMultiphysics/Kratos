@@ -22,11 +22,13 @@
 // Application incldues
 #include "custom_elements/data_containers/helmholtz_vector_surface_data_container.h"
 #include "custom_elements/data_containers/helmholtz_scalar_surface_data_container.h"
+#include "custom_elements/data_containers/helmholtz_scalar_solid_data_container.h"
+#include "custom_elements/data_containers/helmholtz_vector_solid_data_container.h"
 #include "custom_utilities/entity_calculation_utils.h"
 #include "optimization_application_variables.h"
 
 // Include base h
-#include "custom_elements/helmholtz_surface_element.h"
+#include "custom_elements/helmholtz_element.h"
 
 namespace Kratos {
 
@@ -34,36 +36,36 @@ namespace Kratos {
 //************************************************************************************
 
 template<class TDataContainer>
-HelmholtzSurfaceElement<TDataContainer>::HelmholtzSurfaceElement(
+HelmholtzElement<TDataContainer>::HelmholtzElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    : Element(NewId, pGeometry),
+      mDataContainer(this->GetGeometry())
 {
     // DO NOT ADD DOFS HERE!!!
-    mpSolidGeometry = EntityCalculationUtils::CreateSolidGeometry(this->GetGeometry());
 }
 
 //************************************************************************************
 //************************************************************************************
 
 template<class TDataContainer>
-HelmholtzSurfaceElement<TDataContainer>::HelmholtzSurfaceElement(
+HelmholtzElement<TDataContainer>::HelmholtzElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    : Element(NewId, pGeometry, pProperties),
+      mDataContainer(this->GetGeometry())
 {
     // DO NOT ADD DOFS HERE!!!
-    mpSolidGeometry = EntityCalculationUtils::CreateSolidGeometry(this->GetGeometry());
 }
 
 template<class TDataContainer>
-Element::Pointer HelmholtzSurfaceElement<TDataContainer>::Create(
+Element::Pointer HelmholtzElement<TDataContainer>::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<HelmholtzSurfaceElement>(
+    return Kratos::make_intrusive<HelmholtzElement>(
         NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
@@ -71,26 +73,26 @@ Element::Pointer HelmholtzSurfaceElement<TDataContainer>::Create(
 /***********************************************************************************/
 
 template<class TDataContainer>
-Element::Pointer HelmholtzSurfaceElement<TDataContainer>::Create(
+Element::Pointer HelmholtzElement<TDataContainer>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<HelmholtzSurfaceElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<HelmholtzElement>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<class TDataContainer>
-Element::Pointer HelmholtzSurfaceElement<TDataContainer>::Clone(
+Element::Pointer HelmholtzElement<TDataContainer>::Clone(
     IndexType NewId,
     const NodesArrayType& rThisNodes) const
 {
     KRATOS_TRY
 
-    HelmholtzSurfaceElement::Pointer p_new_cond =
-        Kratos::make_intrusive<HelmholtzSurfaceElement>(
+    HelmholtzElement::Pointer p_new_cond =
+        Kratos::make_intrusive<HelmholtzElement>(
             NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
@@ -103,7 +105,7 @@ Element::Pointer HelmholtzSurfaceElement<TDataContainer>::Clone(
 //************************************************************************************
 //************************************************************************************
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::CalculateLocalSystem(
+void HelmholtzElement<TDataContainer>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
@@ -177,7 +179,7 @@ void HelmholtzSurfaceElement<TDataContainer>::CalculateLocalSystem(
 //******************************************************************************
 //******************************************************************************
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::GetValuesVector(
+void HelmholtzElement<TDataContainer>::GetValuesVector(
     VectorType& rValues,
     int Step) const
 {
@@ -209,7 +211,7 @@ void HelmholtzSurfaceElement<TDataContainer>::GetValuesVector(
 //******************************************************************************
 
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::Calculate(
+void HelmholtzElement<TDataContainer>::Calculate(
     const Variable<double>& rVariable,
     double& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -239,7 +241,7 @@ void HelmholtzSurfaceElement<TDataContainer>::Calculate(
 //************************************************************************************
 //************************************************************************************
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::CalculateLeftHandSide(
+void HelmholtzElement<TDataContainer>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -250,7 +252,7 @@ void HelmholtzSurfaceElement<TDataContainer>::CalculateLeftHandSide(
 //************************************************************************************
 //************************************************************************************
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::CalculateRightHandSide(
+void HelmholtzElement<TDataContainer>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -261,7 +263,7 @@ void HelmholtzSurfaceElement<TDataContainer>::CalculateRightHandSide(
 //************************************************************************************
 //************************************************************************************
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::EquationIdVector(
+void HelmholtzElement<TDataContainer>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -298,7 +300,7 @@ void HelmholtzSurfaceElement<TDataContainer>::EquationIdVector(
 //************************************************************************************
 //************************************************************************************
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::GetDofList(
+void HelmholtzElement<TDataContainer>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -335,7 +337,7 @@ void HelmholtzSurfaceElement<TDataContainer>::GetDofList(
 //************************************************************************************
 //************************************************************************************
 template<class TDataContainer>
-int HelmholtzSurfaceElement<TDataContainer>::Check(const ProcessInfo& rCurrentProcessInfo) const
+int HelmholtzElement<TDataContainer>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -370,7 +372,7 @@ int HelmholtzSurfaceElement<TDataContainer>::Check(const ProcessInfo& rCurrentPr
 /***********************************************************************************/
 
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::CalculateMassMatrix(
+void HelmholtzElement<TDataContainer>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -388,7 +390,7 @@ void HelmholtzSurfaceElement<TDataContainer>::CalculateMassMatrix(
 
     VectorType Ws;
     MatrixType Ns;
-    EntityCalculationUtils::CalculateSurfaceElementGaussPointData(Ws, Ns, r_cond_geom, integration_method);
+    EntityCalculationUtils::CalculateElementGaussPointData(Ws, Ns, r_cond_geom, integration_method);
 
     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
         const double integration_weight = Ws[point_number];
@@ -413,7 +415,7 @@ void HelmholtzSurfaceElement<TDataContainer>::CalculateMassMatrix(
 /***********************************************************************************/
 
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::CalculateStiffnessMatrix(
+void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
     MatrixType& rStiffnessMatrix,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -438,21 +440,17 @@ void HelmholtzSurfaceElement<TDataContainer>::CalculateStiffnessMatrix(
     Vector gauss_pts_J_det = ZeroVector(number_of_gauss_points);
     r_geom.DeterminantOfJacobian(gauss_pts_J_det, integration_method);
 
-    array_1d<double, 3> n_surf;
-    CalculateAvgSurfUnitNormal(n_surf);
-    const BoundedMatrix<double, 3, 3>& id_matrix = IdentityMatrix(3, 3);
-    const BoundedMatrix<double, 3, 3>& tangent_projection_matrix = id_matrix - outer_prod(n_surf, n_surf);
+    typename TDataContainer::ConstantDataContainer constant_data(this->GetGeometry(), integration_method);
+    mDataContainer.CalculateConstants(constant_data);
 
     const double helmholtz_radius = rCurrentProcessInfo[HELMHOLTZ_RADIUS];
     for (IndexType i_point = 0; i_point < number_of_gauss_points; ++i_point) {
 
         Matrix DN_DX;
-        EntityCalculationUtils::CalculateSurfaceElementShapeDerivatives(DN_DX, *mpSolidGeometry, r_geom, integration_method, i_point);
+        mDataContainer.CalculateShapeFunctionDerivatives(DN_DX, i_point, constant_data);
 
         const double W = integration_points[i_point].Weight() * gauss_pts_J_det[i_point];
-        const BoundedMatrix<double, NumberOfNodes, 3>& dN_dX_t = prod(DN_DX, tangent_projection_matrix);
-
-        noalias(A_dirc) += W * helmholtz_radius * helmholtz_radius * prod(dN_dX_t, trans(dN_dX_t));
+        noalias(A_dirc) += W * helmholtz_radius * helmholtz_radius * prod(DN_DX, trans(DN_DX));
     }
 
     // contruct the stifness matrix in all dims
@@ -470,7 +468,7 @@ void HelmholtzSurfaceElement<TDataContainer>::CalculateStiffnessMatrix(
 }
 
 template<class TDataContainer>
-void HelmholtzSurfaceElement<TDataContainer>::CalculateAvgSurfUnitNormal(array_1d<double, 3>& rNormal) const
+void HelmholtzElement<TDataContainer>::CalculateAvgSurfUnitNormal(array_1d<double, 3>& rNormal) const
 {
     const auto& r_geom = GetGeometry();
     const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
@@ -487,10 +485,16 @@ void HelmholtzSurfaceElement<TDataContainer>::CalculateAvgSurfUnitNormal(array_1
 }
 
 // template instantiations
-template class HelmholtzSurfaceElement<HelmholtzScalarSurfaceDataContainer<3>>;
-template class HelmholtzSurfaceElement<HelmholtzScalarSurfaceDataContainer<4>>;
+template class HelmholtzElement<HelmholtzScalarSurfaceDataContainer<3, 3>>;
+template class HelmholtzElement<HelmholtzScalarSurfaceDataContainer<3, 4>>;
 
-template class HelmholtzSurfaceElement<HelmholtzVectorSurfaceDataContainer<3, 3>>;
-template class HelmholtzSurfaceElement<HelmholtzVectorSurfaceDataContainer<3, 4>>;
+template class HelmholtzElement<HelmholtzVectorSurfaceDataContainer<3, 3>>;
+template class HelmholtzElement<HelmholtzVectorSurfaceDataContainer<3, 4>>;
+
+template class HelmholtzElement<HelmholtzScalarSolidDataContainer<3, 4>>;
+template class HelmholtzElement<HelmholtzScalarSolidDataContainer<3, 8>>;
+
+template class HelmholtzElement<HelmholtzVectorSolidDataContainer<3, 4>>;
+template class HelmholtzElement<HelmholtzVectorSolidDataContainer<3, 8>>;
 
 } // Namespace Kratos

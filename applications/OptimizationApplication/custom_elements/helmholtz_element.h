@@ -8,6 +8,7 @@
 //                   license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl
+//                   Suneth Warnakulasuriya
 //
 
 #pragma once
@@ -19,59 +20,69 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "utilities/integration_utilities.h"
-#include "utilities/geometry_utilities.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h"
-#include "optimization_application_variables.h"
 
+// Application includes
 
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
 /// Short class definition.
 /**
- * @class HelmholtzVectorSolidElement
+ * @class HelmholtzElement
  * @ingroup OptimizationApplication
- * @brief Helmholtz filtering element for 3D geometries.
- * @details Implements Helmholtz solid PDEs for filtering a vector field over solid domains. The current implementation filters all directions
- * independently using the same filter radius however can be extended by Constitutive laws
+ * @brief Helmholtz filtering element for geometries.
+ * @details Implements Helmholtz surface PDEs which involve Laplace-Beltrami operations for filtering a field on surface.
  * @author Reza Najian Asl
  */
-class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzVectorSolidElement
-    : public Element
+template<class TDataContainer>
+class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzElement : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of HelmholtzVectorSolidElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzVectorSolidElement);
+    using IndexType = std::size_t;
+
+    using PointType = Node;
+
+    using PointPtrType = Node::Pointer;
+
+    using GeometryType = Geometry<PointType>;
+
+    static constexpr IndexType NumberOfNodes = TDataContainer::NumberOfNodes;
+
+    static constexpr IndexType DataDimension = TDataContainer::TargetVariablesList.size();
+
+    static constexpr IndexType LocalSize = NumberOfNodes * DataDimension;
+
+    /// Counted pointer of HelmholtzElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(HelmholtzElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HelmholtzVectorSolidElement(
+    HelmholtzElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry);
-    HelmholtzVectorSolidElement(
+
+    HelmholtzElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~HelmholtzVectorSolidElement();
+    virtual ~HelmholtzElement() = default;
 
     ///@}
     ///@name Operations
     ///@{
 
-   /**
+    /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
      * @param pGeom The pointer to the geometry of the element
@@ -81,8 +92,7 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
+        PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief Creates a new element
@@ -94,8 +104,7 @@ public:
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-        ) const override;
+        PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief It creates a new element pointer and clones the previous element data
@@ -104,10 +113,9 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone (
+    Element::Pointer Clone(
         IndexType NewId,
-        NodesArrayType const& rThisNodes
-        ) const override;
+        const NodesArrayType& rThisNodes) const override;
 
     /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -116,8 +124,7 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -126,8 +133,7 @@ public:
      */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief Sets on rValues the nodal values
@@ -136,8 +142,7 @@ public:
      */
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0
-        ) const override;
+        int Step = 0) const override;
 
     /**
      * @brief This function provides a more general interface to the element.
@@ -149,8 +154,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This is called during the assembling process in order to calculate the elemental left hand side matrix only
@@ -159,29 +163,35 @@ public:
      */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-      * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector the elemental right hand side vector
-      * @param rCurrentProcessInfo the current process info instance
-      */
+     * @brief This is called during the assembling process in order to calculate the elemental right hand side vector only
+     * @param rRightHandSideVector the elemental right hand side vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-      * @brief This is called during the assembling process in order to calculate the elemental mass matrix
-      * @param rMassMatrix The elemental mass matrix
-      * @param rCurrentProcessInfo The current process info instance
-      */
+     * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+     * @param rMassMatrix The elemental mass matrix
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief This is called during filtering to compute element strain energy
+     * @param rOutput The calculated variable
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -190,17 +200,23 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo the current process info instance
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
 protected:
     // Protected default constructor necessary for serialization
-    HelmholtzVectorSolidElement() : Element()
+    HelmholtzElement() : Element(), mDataContainer(this->GetGeometry())
     {
     }
 
 private:
+    ///@name Private member variables
+    ///@{
+
+    TDataContainer mDataContainer;
+
+    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
@@ -216,25 +232,27 @@ private:
     }
 
     ///@}
-
     ///@name Private Operations
     ///@{
     /**
-      * @brief This is called during the assembling process in order to calculate stiffness matrix
-      * @param rStiffnessMatrix The stiffness matrix
-      * @param rCurrentProcessInfo The current process info instance
-      */
+     * @brief This is called during the assembling process in order to calculate stiffness matrix
+     * @param rStiffnessMatrix The stiffness matrix
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void CalculateStiffnessMatrix(
         MatrixType& rStiffnessMatrix,
         const ProcessInfo& rCurrentProcessInfo) const;
 
+    /**
+     * @brief This is called during the assembling process in order to element surface normal
+     * @param rNormal The averaged surface normal
+     */
+    void CalculateAvgSurfUnitNormal(array_1d<double, 3>& rNormal) const;
+
     ///@}
 
-}; // Class HelmholtzVectorSolidElement
+}; // Class HelmholtzElement
 
 ///@}
 
-}  // namespace Kratos.
-
-
-
+} // namespace Kratos.

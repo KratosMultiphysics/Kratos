@@ -51,7 +51,7 @@ Geometry<Node>::Pointer EntityCalculationUtils::CreateSolidGeometry(const Geomet
     return nullptr;
 }
 
-void EntityCalculationUtils::CalculateSurfaceElementGaussPointData(
+void EntityCalculationUtils::CalculateElementGaussPointData(
     Vector& rGaussWeights,
     Matrix& rShapeFunctionValues,
     const GeometryType& rGeometry,

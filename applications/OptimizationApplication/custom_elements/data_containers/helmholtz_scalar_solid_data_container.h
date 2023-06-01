@@ -30,7 +30,7 @@
 namespace Kratos {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class HelmholtzScalarSurfaceDataContainer {
+class HelmholtzScalarSolidDataContainer {
 public:
     ///@name Type definitions
     ///@{
@@ -53,7 +53,7 @@ public:
     {
         const GeometryType& mrGeometry;
         const GeometryData::IntegrationMethod& mrIntegrationMethod;
-        BoundedMatrix<double, 3, 3> mTangentProjectionMatrix;
+        GeometryType::ShapeFunctionsGradientsType mdNdXs;
 
         ConstantDataContainer(
             const GeometryType& rGeometry,
@@ -68,28 +68,14 @@ public:
     ///@name Life cycle
     ///@{
 
-    HelmholtzScalarSurfaceDataContainer(const Geometry<Node>& rGeometry)
-        : mpSolidGeometry(EntityCalculationUtils::CreateSolidGeometry(rGeometry))
+    HelmholtzScalarSolidDataContainer(const Geometry<Node>& rGeometry)
     {
     }
 
     void CalculateConstants(ConstantDataContainer& rConstantData) const
     {
-        const auto& integration_points = rConstantData.mrGeometry.IntegrationPoints(rConstantData.mrIntegrationMethod);
-
-        array_1d<double, 3> normal = ZeroVector(3);
-
-        for (IndexType point_number = 0;
-             point_number < integration_points.size(); ++point_number) {
-            normal += rConstantData.mrGeometry.UnitNormal(point_number, rConstantData.mrIntegrationMethod);
-        }
-
-        normal /= integration_points.size();
-        normal /= MathUtils<double>::Norm3(normal);
-
-        const BoundedMatrix<double, 3, 3>& id_matrix = IdentityMatrix(3, 3);
-
-        noalias(rConstantData.mTangentProjectionMatrix) = id_matrix - outer_prod(normal, normal);
+        Vector detJ;
+        rConstantData.mrGeometry.ShapeFunctionsIntegrationPointsGradients(rConstantData.mdNdXs, detJ, rConstantData.mrIntegrationMethod);
     }
 
     void CalculateShapeFunctionDerivatives(
@@ -97,18 +83,8 @@ public:
         const IndexType IntegrationPoint,
         const ConstantDataContainer& rConstantData) const
     {
-        Matrix DN_DX;
-        EntityCalculationUtils::CalculateSurfaceElementShapeDerivatives(DN_DX, *mpSolidGeometry, rConstantData.mrGeometry, rConstantData.mrIntegrationMethod, IntegrationPoint);
-        rdNdX = prod(DN_DX, rConstantData.mTangentProjectionMatrix);
+        rdNdX = rConstantData.mdNdXs[IntegrationPoint];
     }
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    const Geometry<Node>::Pointer mpSolidGeometry;
 
     ///@}
 };
