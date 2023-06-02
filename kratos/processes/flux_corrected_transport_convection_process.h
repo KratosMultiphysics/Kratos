@@ -454,12 +454,11 @@ private:
                 
                     // Calculate numerical flux from the fluxes along edges
                     // Note that this numerical flux corresponds to a Lax-Wendroff scheme
-                    const double F_ij = 0.5 * (f_i + f_j) - 0.5 * DeltaTime * (f_i - f_j) / D_ij;
+                    const double F_ij = (f_i + f_j) - DeltaTime * (f_i - f_j) / D_ij;
 
                     // Calculate nodal explicit low order contributions
                     const double diff_coeff = 0.0;
                     const double res_edge = D_ij * F_ij;
-                    // double delta_u_i_low = -res_edge;
                     // double delta_u_j_low = res_edge;
                     // double delta_u_i_low = -res_edge + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_i);
                     // double delta_u_j_low = res_edge + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_j);
