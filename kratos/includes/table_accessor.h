@@ -124,8 +124,8 @@ public:
      * nodal Variable<double> table
      */
     double GetValueFromTable(
-        const Variable<double> &rIndependentVariable,
-        const Variable<double> &rDependentVariable,
+        const Variable<double>& rIndependentVariable,
+        const Variable<double>& rDependentVariable,
         const Properties& rProperties,
         const GeometryType& rGeometry,
         const Vector& rShapeFunctionVector,
