@@ -23,7 +23,14 @@ namespace Kratos {
 class KRATOS_API(KRATOS_CORE) ExpressionInput
 {
 public:
+    /// @name  Life Cycle
+    /// @{
+
     virtual ~ExpressionInput() = default;
+
+    /// @}
+    /// @name Operations
+    /// @{
 
     virtual Expression::Pointer Execute() const = 0;
 
@@ -32,7 +39,12 @@ public:
         return this->Execute();
     }
 
+    /// @}
+
 protected:
+    /// @name Protected Operations
+    /// @{
+
     double EvaluateExpression(const Expression& rExpression,
                               Expression::IndexType EntityIndex,
                               Expression::IndexType EntityDataBeginIndex,
@@ -40,22 +52,36 @@ protected:
     {
         return rExpression.Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex);
     }
+
+    /// @}
 }; // class ExpressionInput
 
 
 class KRATOS_API(KRATOS_CORE) ExpressionOutput
 {
 public:
+    /// @name  Life Cycle
+    /// @{
+
     virtual ~ExpressionOutput() = default;
+
+    /// @}
+    /// @name Operations
+    /// @{
 
     virtual void Execute(const Expression& rExpression) = 0;
 
-    Expression::Pointer operator()(const Expression& rExpression)
+    void operator()(const Expression& rExpression)
     {
         this->Execute(rExpression);
     }
 
+    /// @}
+
 protected:
+    /// @name Protected Operations
+    /// @{
+
     double EvaluateExpression(const Expression& rExpression,
                               Expression::IndexType EntityIndex,
                               Expression::IndexType EntityDataBeginIndex,
@@ -63,6 +89,8 @@ protected:
     {
         return rExpression.Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex);
     }
+
+    /// @}
 }; // class ExpressionOutput
 
 
