@@ -21,10 +21,9 @@
 // Project includes
 #include "includes/define.h"
 
-
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Classes
@@ -91,7 +90,6 @@ public:
     /// Assignment operator.
     SpatialSearchResult& operator=(SpatialSearchResult const& /*Other*/) = default;
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -134,26 +132,6 @@ public:
     void SetDistance(const double TheDistance) {
         mDistance = TheDistance;
         mIsDistanceCalculated = true;
-    }
-
-    /// Getting if the object is found
-    bool GetIsObjectFound() const {
-        return mIsObjectFound;
-    }
-
-    /// Getting if the ibject is found
-    void SetIsObjectFound(const bool IsObjectFound) {
-        mIsObjectFound = IsObjectFound;
-    }
-
-    /// Getting if the distance is calculated
-    bool GetIsDistanceCalculated() const {
-        return mIsDistanceCalculated;
-    }
-
-    /// Setting if the distance is calculated
-    void SetIsDistanceCalculated(const bool IsDistanceCalculated) {
-        mIsDistanceCalculated = IsDistanceCalculated;
     }
 
     /// Getting if the object is found
