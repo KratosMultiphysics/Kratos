@@ -65,6 +65,9 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         root_model_part = model_parts_list[0].GetRootModelPart()
         _, self.model_part = ModelPartUtilities.UnionModelParts(root_model_part, model_parts_list, False)
 
+        with open(self.adjoint_analysis_file_name, 'r') as parameter_file:
+            self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
+
         file = open(self.measurement_data_file)
         self.measurement_data = json.load(file)
 
@@ -132,15 +135,13 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
         for variable, collective_expression in physical_variable_collective_expressions.items():
 
-            with open(self.adjoint_analysis_file_name, 'r') as parameter_file:
-                adjoint_parameters = Kratos.Parameters(parameter_file.read())
+            self.adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
 
-            adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
-
-            adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, adjoint_parameters)
+            adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
             adjoint_analysis.Run()
 
-            Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, self.adjoint_model.GetModelPart("Structure"), self.model["Structure"])
+            root_model_part_name = self.adjoint_model.GetModelPartNames()[0]
+            Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, self.adjoint_model[root_model_part_name], self.model[root_model_part_name])
 
             # now fill the collective expressions
 
