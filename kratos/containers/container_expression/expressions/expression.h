@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
+//                   Máté Kelemen
 //
 
 #pragma once
@@ -202,7 +203,9 @@ public:
     ///@}
 
 private:
-    friend class ExpressionIO;
+    friend class ExpressionInput;
+
+    friend class ExpressionOutput;
 
     ///@name Private member variables
     ///@{
@@ -235,6 +238,198 @@ private:
     ///@}
 };
 
+
+/// @name View Operators
+/// @{
+
+/** @brief Construct an expression containing a subset of the components of all items.
+ *
+ *  @details Slicing is done on each entitiy's data array, and not on the flattened
+ *           expression. For example:
+ *
+ *           Assume an @ref Expression of shape [5] and 2 entities with
+ *           the following data in the flattened representation:
+ *           @code
+ *           data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+ *                   <---- 1 ----> <----- 2 ----->
+ *           @endcode
+ *           Data for entity 1 is represented with <--1-->.
+ *
+ *           Let @code Offset = 1 @code and @code Stride = 3 @endcode. The resulting sliced expression
+ *           then represents the following data:
+ *
+ *           output_data = [2, 3, 4, 7, 8, 9]
+ *           output container shape = [3] = equal to Stride.
+ *
+ *           Slicing will always create a one dimensional array even if the input expression is multidimensional.
+ *           @see Reshape to reshape the one dimensional array to the desired shape if required.
+ *
+ *           This creates a lazy expression, hence it has a constant cost complexity irrespective of the data size.
+ *
+ *  @param Offset Index of the first component to begin slicing at.
+ *  @param Stride Number of components from the offset in the sliced item.
+ */
+Expression::Pointer Slice(std::size_t Offset, std::size_t Stride);
+
+/** @brief Construct an expression with identical data but interpreted with a new item shape.
+ *
+ *  @details Reshaping is done on each entitiy's data array, and not on the flattened
+ *           expression. For example:
+ *
+ *           Assume an @ref Expression of shape [2, 3] and 2 entities with
+ *           following data in the flattened representation:
+ *           @code
+ *           data = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+ *                   <-------- 1 --------->  <----------- 2 ----------->
+ *           @endcode
+ *           The underlying data of the reshaped expression is interpreted as follows:
+ *           @code
+ *           output_data = [[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]]
+ *           output container shape = [3, 2]
+ *           @endcode
+ *           This creates a lazy expression, hence it has a constant cost complexity irrespective of the data size.
+ *
+ *  @param rExpression Expression to reshape.
+ *  @param NewShapeBegin Iterator pointing to the first component of the new shape.
+ *  @param NewShapeEnd Iterator past the last component of the new shape.
+ */
+template <class TIterator, std::enable_if_t<std::is_same_v<typename std::iterator_traits<TIterator>::value_type,Expression::Pointer>,bool> = true>
+Expression::Pointer Reshape(TIterator NewShapeBegin,
+                            TIterator NewShapeEnd);
+
+/** @brief Construct an expression with identical data but interpreted with a new item shape.
+ *
+ *  @details Reshaping is done on each entitiy's data array, and not on the flattened
+ *           expression. For example:
+ *
+ *           Assume an @ref Expression of shape [2, 3] and 2 entities with
+ *           following data in the flattened representation:
+ *           @code
+ *           data = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]
+ *                   <-------- 1 --------->  <----------- 2 ----------->
+ *           @endcode
+ *           The underlying data of the reshaped expression is interpreted as follows:
+ *           @code
+ *           output_data = [[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]]
+ *           output container shape = [3, 2]
+ *           @endcode
+ *           This creates a lazy expression, hence it has a constant cost complexity irrespective of the data size.
+ *
+ *  @param rExpression Expression to reshape.
+ *  @param rNewShape New shape to used to reshape the existing expression.
+ */
+Expression::Pointer Reshape(const std::vector<std::size_t>& rNewShape);
+
+/** @brief Append the components of an expression to the current expression's components.
+ *
+ *  @details Each item in the combed expression contains all components of both the current
+ *           and the provided expression in order.
+ *
+ *           For example, assume the current expression has the following data with item shape [2]
+ *           and 3 items in total:
+ *           @code
+ *           data = [1, 2, 3, 4, 5, 6]
+ *                   ----  ----  ----
+ *           @endcode
+ *           Let @a rpOther contain the following data:
+ *           @code
+ *           rpOther = data{7, 8, 9} with 3 items, and item shape = []
+ *                          -  -  -
+ *           @endcode
+ *
+ *           The resulting expression has item shape [5] with 3 items:
+ *           @code
+ *           output_data = [1, 2, 7, 3, 4, 8, 5, 6, 9]
+ *                          -------  -------  -------
+ *           @endcode
+ *
+ *           This creates a lazy expression, hence it has a constant cost complexity irrespective of the
+ *           data size (The expression won't be evaluated unless @ref Expression::Evaluate is called).
+ *
+ *  @param rTarget Expression to comb components of other expressions into.
+ *  @param rpOther Expressions to comb components from.
+ */
+Expression::Pointer Comb(const Expression::Pointer& rpOther);
+
+/** @brief Append the components of a set of expressions to the current expression's components.
+ *
+ *  @details This method combines a set of expressions into the current one as explained in the following example:
+ *           All provided expressions in @a rOthers must have the same number of
+ *           items as the current expression. Combing is done in the following order:
+ *               1. Components of the current expression
+ *               2. Components of @a rOthers in the order of the input array
+ *
+ *           For example, assume the current expression has the following data with item shape [2]
+ *           and 3 items in total:
+ *           @code
+ *           data = [1, 2, 3, 4, 5, 6]
+ *                   ----  ----  ----
+ *           @endcode
+ *           Let @a rOthers contain the following expressions:
+ *           @code
+ *           rOthers[0] = data{7, 8, 9} with 3 items, and item shape = []
+ *                             -  -  -
+ *           @endcode
+ *           @code
+ *           rOthers[1] = data{10, 11, 12, 13, 14, 15} with 3 items, and item shape = [2]
+ *                             ------  ------  ------
+ *           @endcode
+ *
+ *           The resulting expression has item shape [5] with 3 items:
+ *           @code
+ *           output_data = [1, 2, 7, 10, 11, 3, 4, 8, 12, 13, 5, 6, 9, 14, 15]
+ *                          ---------------  ---------------  ---------------
+ *           @endcode
+ *
+ *           This creates a lazy expression, hence it has a constant cost complexity irrespective of the
+ *           data size (The expression won't be evaluated unless @ref Expression::Evaluate is called).
+ *
+ *  @param rTarget Expression to comb components of other expressions into.
+ *  @param rOthers Expressions to comb components from.
+ */
+Expression::Pointer Comb(const std::vector<Expression::Pointer>& rOthers);
+
+/** @brief Append the components of a set of expressions to the current expression's components.
+ *
+ *  @details This method combines a set of expressions into the current one as explained in the following example:
+ *           All provided expressions in @a rOthers must have the same number of
+ *           items as the current expression. Combing is done in the following order:
+ *               1. Components of the current expression
+ *               2. Components of @a rOthers in the order of the input array
+ *
+ *           For example, assume the current expression has the following data with item shape [2]
+ *           and 3 items in total:
+ *           @code
+ *           data = [1, 2, 3, 4, 5, 6]
+ *                   ----  ----  ----
+ *           @endcode
+ *           Let @a rOthers contain the following expressions:
+ *           @code
+ *           rOthers[0] = data{7, 8, 9} with 3 items, and item shape = []
+ *                             -  -  -
+ *           @endcode
+ *           @code
+ *           rOthers[1] = data{10, 11, 12, 13, 14, 15} with 3 items, and item shape = [2]
+ *                             ------  ------  ------
+ *           @endcode
+ *
+ *           The resulting expression has item shape [5] with 3 items:
+ *           @code
+ *           output_data = [1, 2, 7, 10, 11, 3, 4, 8, 12, 13, 5, 6, 9, 14, 15]
+ *                          ---------------  ---------------  ---------------
+ *           @endcode
+ *
+ *           This creates a lazy expression, hence it has a constant cost complexity irrespective of the
+ *           data size (The expression won't be evaluated unless @ref Expression::Evaluate is called).
+ *
+ *  @param rTarget Expression to comb components of other expressions into.
+ *  @param OthersBegin Iterator pointing to the first expression to comb components from.
+ *  @param OthersEnd Iterator past the last expression to comb components from.
+ */
+template <class TIterator>
+Expression::Pointer Comb(TIterator OthersBegin, TIterator OthersEnd);
+
+/// @}
 /// output stream functions
 inline std::ostream& operator<<(
     std::ostream& rOStream,

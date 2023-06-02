@@ -279,7 +279,7 @@ class TestContainerExpression(ABC):
         a.Read(Kratos.VELOCITY)
         b.Read(Kratos.PRESSURE)
 
-        c = a * b
+        c = a.Scale(b)
         c.Evaluate(Kratos.ACCELERATION)
 
         for entity in a.GetContainer():

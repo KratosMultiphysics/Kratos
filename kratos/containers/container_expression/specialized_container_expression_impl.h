@@ -162,7 +162,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, *rOther.mpExpression);
+    result.mpExpression = *this->mpExpression + *rOther.mpExpression;
     return result;
 }
 
@@ -174,7 +174,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, *rOther.mpExpression);
+    this->mpExpression = *this->mpExpression + *rOther.mpExpression;
     return *this;
 }
 
@@ -183,14 +183,14 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
 {
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
+    result.mpExpression = *this->mpExpression + Value;
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+=(const double Value)
 {
-    this->mpExpression = BinaryExpression<BinaryOperations::Addition>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
+    this->mpExpression = *this->mpExpression + Value;
     return *this;
 }
 
@@ -203,7 +203,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, *rOther.mpExpression);
+    result.mpExpression = *this->mpExpression - *rOther.mpExpression;
     return result;
 }
 
@@ -215,7 +215,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, *rOther.mpExpression);
+    this->mpExpression = *this->mpExpression - *rOther.mpExpression;
     return *this;
 }
 
@@ -223,14 +223,14 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
+    result.mpExpression = *this->mpExpression - Value;
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-=(const double Value)
 {
-    this->mpExpression = BinaryExpression<BinaryOperations::Substraction>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
+    this->mpExpression = *this->mpExpression - Value;
     return *this;
 }
 
@@ -243,7 +243,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, *rOther.mpExpression);
+    result.mpExpression = *this->mpExpression * (*rOther.mpExpression);
     return result;
 }
 
@@ -255,7 +255,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, *rOther.mpExpression);
+    this->mpExpression = *this->mpExpression * (*rOther.mpExpression);
     return *this;
 }
 
@@ -263,14 +263,14 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
+    result.mpExpression = *this->mpExpression * Value;
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*=(const double Value)
 {
-    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
+    this->mpExpression = *this->mpExpression * Value;
     return *this;
 }
 
@@ -283,7 +283,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Division>::Create(*this->mpExpression, *rOther.mpExpression);
+    result.mpExpression = *this->mpExpression / *rOther.mpExpression;
     return result;
 }
 
@@ -295,7 +295,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
         << "      Left operand data : " << *this << "\n"
         << "      Right operand data: " << rOther << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Division>::Create(*this->mpExpression, *rOther.mpExpression);
+    this->mpExpression = *this->mpExpression / *rOther.mpExpression;
     return *this;
 }
 
@@ -308,7 +308,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
         << "      Divisor           : " << Value << "\n";
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(1.0 / Value, this->GetContainer().size()));
+    result.mpExpression = *this->mpExpression / Value;
     return result;
 }
 
@@ -320,7 +320,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
         << "      Left operand data : " << *this << "\n"
         << "      Divisor           : " << Value << "\n";
 
-    this->mpExpression = BinaryExpression<BinaryOperations::Multiplication>::Create(*this->mpExpression, LiteralExpression<double>::Create(1.0 / Value, this->GetContainer().size()));
+    this->mpExpression = *this->mpExpression / Value;
     return *this;
 }
 
@@ -333,7 +333,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
         << "      Right operand data: " << rOther << "\n";
 
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Power>::Create(*this->mpExpression, *rOther.mpExpression);
+    result.mpExpression = Kratos::Pow(*this->mpExpression, *rOther.mpExpression);
     return result;
 }
 
@@ -341,7 +341,7 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Pow(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = BinaryExpression<BinaryOperations::Power>::Create(*this->mpExpression, LiteralExpression<double>::Create(Value, this->GetContainer().size()));
+    result.mpExpression = Kratos::Pow(*this->mpExpression, Value);
     return result;
 }
 

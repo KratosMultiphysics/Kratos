@@ -20,27 +20,32 @@
 namespace Kratos {
 
 
-class KRATOS_API(KRATOS_CORE) ExpressionIO
+class KRATOS_API(KRATOS_CORE) ExpressionInput
 {
 public:
-    ///@name Life cycle
-    ///@{
+    /// @name  Life Cycle
+    /// @{
 
-    virtual ~ExpressionIO() = default;
+    virtual ~ExpressionInput() = default;
 
-    ///@}
-    ///@name Public operations
-    ///@{
+    /// @}
+    /// @name Operations
+    /// @{
 
-    virtual Expression::Pointer Read() = 0;
+    virtual Expression::Pointer Execute() const = 0;
 
-    virtual void Write(const Expression& rExpression) = 0;
+    Expression::Pointer operator()() const
+    {
+        return this->Execute();
+    }
+
+    /// @}
 
     ///@}
 
 protected:
-    ///@name Protected operations
-    ///@{
+    /// @name Protected Operations
+    /// @{
 
     double EvaluateExpression(const Expression& rExpression,
                               Expression::IndexType EntityIndex,
@@ -50,8 +55,45 @@ protected:
         return rExpression.Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex);
     }
 
-    ///@}
-}; // class ExpressionIO
+    /// @}
+}; // class ExpressionInput
+
+
+class KRATOS_API(KRATOS_CORE) ExpressionOutput
+{
+public:
+    /// @name  Life Cycle
+    /// @{
+
+    virtual ~ExpressionOutput() = default;
+
+    /// @}
+    /// @name Operations
+    /// @{
+
+    virtual void Execute(const Expression& rExpression) = 0;
+
+    void operator()(const Expression& rExpression)
+    {
+        this->Execute(rExpression);
+    }
+
+    /// @}
+
+protected:
+    /// @name Protected Operations
+    /// @{
+
+    double EvaluateExpression(const Expression& rExpression,
+                              Expression::IndexType EntityIndex,
+                              Expression::IndexType EntityDataBeginIndex,
+                              Expression::IndexType ComponentIndex) const
+    {
+        return rExpression.Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex);
+    }
+
+    /// @}
+}; // class ExpressionOutput
 
 
 } // namespace Kratos
