@@ -12,9 +12,14 @@ import numpy as np
 
 class StructuralMechanicsAnalysisRFom(StructuralMechanicsAnalysis):
 
-    def __init__(self,model,project_parameters, hyper_reduction_element_selector = None):
+    def __init__(self,model,rom_project_parameters,fom_project_parameters, hyper_reduction_element_selector = None):
         KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'StructuralMechanicsAnalysisRFom\'", "class is deprecated. Use the \'RomAnalysis\' one instead.")
-        super().__init__(model,project_parameters)
+        self.svd_truncation_tolerance = rom_project_parameters["svd_truncation_tolerance"].GetDouble()
+        rom_project_parameters.RemoveValue("svd_truncation_tolerance")
+        self.rom_project_params = KratosMultiphysics.Parameters()
+        self.rom_project_params.AddValue("solver_settings", fom_project_parameters["solver_settings"])
+        self.rom_project_params["solver_settings"].AddValue("rom_settings", rom_project_parameters)
+        super().__init__(model,fom_project_parameters)
         self._is_rom = False
 
     #### Internal functions ####
@@ -27,13 +32,6 @@ class StructuralMechanicsAnalysisRFom(StructuralMechanicsAnalysis):
     def _CreateRomSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        with open('RomParameters.json') as rom_parameters:
-            rom_settings = KratosMultiphysics.Parameters(rom_parameters.read())
-            self.svd_truncation_tolerance = rom_settings["rom_settings"]["svd_truncation_tolerance"].GetDouble()
-            rom_settings["rom_settings"].RemoveValue("svd_truncation_tolerance")
-            self.rom_project_params = KratosMultiphysics.Parameters()
-            self.rom_project_params.AddValue("solver_settings", self.project_parameters["solver_settings"])
-            self.rom_project_params["solver_settings"].AddValue("rom_settings", rom_settings["rom_settings"])
         self.rom_solver = solver_wrapper.CreateSolverByParameters(self.model, self.rom_project_params["solver_settings"],self.project_parameters["problem_data"]["parallel_type"].GetString())
         self.n_nodal_unknowns = len(self.rom_project_params["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
 

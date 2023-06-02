@@ -231,9 +231,9 @@ public:
         return mNumberOfRomModes;
     } 
 
-    void SetNumberOfROMModes(SizeType n_mNumberOfRomModes) 
+    void SetNumberOfROMModes(SizeType NumberOfRomModes) 
     {
-        mNumberOfRomModes = n_mNumberOfRomModes;
+        mNumberOfRomModes = NumberOfRomModes;
     } 
 
     void ProjectToFineBasis(
@@ -257,7 +257,6 @@ public:
         TSystemVectorType& rDx,
         TSystemVectorType& rb) override
     {
-        SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
         // Call the base B&S InitializeSolutionStep
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
@@ -276,7 +275,9 @@ public:
     {
         KRATOS_TRY
 
-        SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
+        // Set number of rom modes if it is in the process info
+        if(rModelPart.GetProcessInfo().Has(NUM_ROM_BASIS))
+            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
 
         RomSystemMatrixType Arom = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
         RomSystemVectorType brom = ZeroVector(GetNumberOfROMModes());
@@ -635,7 +636,9 @@ protected:
     {
         KRATOS_TRY
 
-        SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
+        // Set number of rom modes if it is in the process info
+        if(rModelPart.GetProcessInfo().Has(NUM_ROM_BASIS))
+            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
 
         // Define a dense matrix to hold the reduced problem
         rA = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
@@ -699,7 +702,9 @@ protected:
     {
         KRATOS_TRY
 
-        SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
+        // Set number of rom modes if it is in the process info
+        if(rModelPart.GetProcessInfo().Has(NUM_ROM_BASIS))
+            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
 
         RomSystemVectorType dxrom(GetNumberOfROMModes());
         
@@ -752,7 +757,6 @@ private:
         TSchemeType& rScheme,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        SetNumberOfROMModes(rCurrentProcessInfo.GetValue(NUM_ROM_BASIS));
         if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE))
         {
             rPreAlloc.romA = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());

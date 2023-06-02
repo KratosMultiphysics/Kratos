@@ -26,16 +26,28 @@ class SteppingRomAnalysisExecutionPolicy(ExecutionPolicy):
         default_settings = Kratos.Parameters("""{
             "model_part_names" : [],
             "analysis_module"  : "KratosMultiphysics",
-            "analysis_type"    : "",
-            "analysis_settings": {}
+            "fom_analysis_type"    : "",
+            "fom_analysis_settings": {},
+            "rom_analysis_settings": {},
+            "update_rom_bases_frequency": 10
         }""")
         self.model = model
         self.parameters = parameters
         self.parameters.ValidateAndAssignDefaults(default_settings)
 
-        analysis_module = parameters["analysis_module"].GetString()
-        rom_analysis_type = parameters["analysis_type"].GetString() + "RFom"
-        analysis_settings = parameters["analysis_settings"]
+        self.rom_parameters = self.parameters["rom_analysis_settings"].Clone()["rom_settings"]
+
+        self.svd_truncation_tolerance = self.rom_parameters["svd_truncation_tolerance"].GetDouble()
+        self.update_rom_bases_frequency = self.parameters["update_rom_bases_frequency"].GetInt()
+
+        # Initialize the snapshots data list
+        self.snapshots_data_list = []
+        self.snapshot_variables_list = self.rom_parameters["nodal_unknowns"].GetStringArray()
+        self.n_nodal_unknowns = len(self.snapshot_variables_list)
+
+        analysis_module = self.parameters["analysis_module"].GetString()
+        rom_analysis_type = self.parameters["fom_analysis_type"].GetString() + "RFom"
+        fom_analysis_settings = self.parameters["fom_analysis_settings"]
 
         if analysis_module == "KratosMultiphysics":
             rom_analysis_module = GetClassModuleFromKratos(rom_analysis_type)
@@ -43,18 +55,12 @@ class SteppingRomAnalysisExecutionPolicy(ExecutionPolicy):
         self.model_parts = []
         rom_analysis_full_module = f"{rom_analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(rom_analysis_type)}"
 
-        self.rom_analysis: AnalysisStage = getattr(import_module(rom_analysis_full_module), rom_analysis_type)(self.model, analysis_settings.Clone())
+        self.rom_analysis: AnalysisStage = getattr(import_module(rom_analysis_full_module), rom_analysis_type)(self.model, self.rom_parameters, fom_analysis_settings.Clone())
         self.analysis = self.rom_analysis
 
         #TODO: get optimization iteration number from OptimizationProblem
         self.optimization_iteration = 0
 
-        # Initialize the snapshots data list
-        self.snapshots_data_list = []
-        self.snapshot_variables_list = ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","ROTATION_X","ROTATION_Y","ROTATION_Z"]
-        self.n_nodal_unknowns = len(self.snapshot_variables_list)
-        self.svd_truncation_tolerance = 1e-6
-        self.update_rom_bases_frequency = 10
         self.run_rom = False
 
     def GetAnalysisModelPart(self):
