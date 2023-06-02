@@ -30,16 +30,29 @@ void AddMPISearchStrategiesToPython(pybind11::module& m)
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
+    using ResultTypeContainer = SpatialSearchResultContainer<GeometricalObject>;
     using ResultTypeContainerMap = SpatialSearchResultContainerMap<GeometricalObject>;
 
     py::class_<GeometricalObjectsBinsMPI, GeometricalObjectsBinsMPI::Pointer, GeometricalObjectsBins>(m, "GeometricalObjectsBinsMPI")
     .def(py::init<ElementsContainerType&, const DataCommunicator&>())
     .def(py::init<ConditionsContainerType&, const DataCommunicator&>())
     .def("GetBoundingBox", &GeometricalObjectsBinsMPI::GetBoundingBox)
+    .def("SearchInRadius", [&](GeometricalObjectsBinsMPI& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        ResultTypeContainer results;
+        self.SearchInRadius(rPoint, Radius, results);
+        return results;
+    })
     .def("SearchInRadius", [&](GeometricalObjectsBinsMPI& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         ResultTypeContainerMap results; 
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
+        return results;
+    })
+    .def("SearchNearestInRadius", [&](GeometricalObjectsBinsMPI& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        ResultTypeContainer results;
+        self.SearchNearestInRadius(rPoint, Radius, results);
         return results;
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBinsMPI& self, const NodesContainerType& rNodes, const double Radius) {
@@ -48,10 +61,22 @@ void AddMPISearchStrategiesToPython(pybind11::module& m)
         self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, results);
         return results;
     })
+    .def("SearchNearest", [&](GeometricalObjectsBinsMPI& self, const Point& rPoint) {
+        // Perform the search
+        ResultTypeContainer results;
+        self.SearchNearest(rPoint, results);
+        return results;
+    })
     .def("SearchNearest", [&](GeometricalObjectsBinsMPI& self, const NodesContainerType& rNodes) {
         // Perform the search
         ResultTypeContainerMap results;
         self.SearchNearest(rNodes.begin(), rNodes.end(), results);
+        return results;
+    })
+    .def("SearchIsInside", [&](GeometricalObjectsBinsMPI& self, const Point& rPoint) {
+        // Perform the search
+        ResultTypeContainer results;
+        self.SearchIsInside(rPoint, results);
         return results;
     })
     .def("SearchIsInside", [&](GeometricalObjectsBinsMPI& self, const NodesContainerType& rNodes) {
