@@ -41,7 +41,6 @@ extern DenseVector<Matrix> mExactPorosityGradient;
 extern DenseVector<Matrix> mExactVector;
 extern DenseVector<Matrix> mExactScalarGradient;
 extern DenseVector<DenseVector<Matrix>> mExactVectorGradient;
-extern DenseVector<Matrix> mExactScalarGradient;
 /* Public functions *******************************************************/
 PlateauBumpPorositySolutionAndBodyForceProcess::PlateauBumpPorositySolutionAndBodyForceProcess(
     ModelPart& rModelPart)
