@@ -206,9 +206,6 @@ void PorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
 
         du222 = 2*u_char*std::pow(x2,2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))/alpha + 4*u_char*x2*(2*x2 - 2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))/alpha + 2*u_char*std::pow((1 - x2),2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))/alpha;
 
-        double velocity_norm = std::sqrt(r_u1 * r_u1 + r_u2 * r_u2);
-        double kappa = 1.0;
-
         sigma = ZeroMatrix(dim,dim);
 
         const double convective1 = r_u1 * du11 + r_u2 * du12;

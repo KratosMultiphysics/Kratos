@@ -229,7 +229,7 @@ void PlateauBumpTransientPorositySolutionTransientBodyForceProcess::SetBodyForce
                 r_u21 = std::cos(Globals::Pi * (time - delta_time)) * std::pow(u_char,2)*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/r_alpha;
             }
 
-            if ((t2 > std::numeric_limits<double>::epsilon()) & (1-t2 > std::numeric_limits<double>::epsilon())){
+            if ((t2 > std::numeric_limits<double>::epsilon()) && (1-t2 > std::numeric_limits<double>::epsilon())){
 
                 r_u12 = std::pow(u_char,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*(time-2.0*delta_time))/(alpha_max - (1 - std::exp(-1/((-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*(time-2.0*delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*(time-2.0*delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*(time-2.0*delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*(time-2.0*delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1/((-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*(time-2.0*delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*(time-2.0*delta_time)) + 1),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min));
 
@@ -249,7 +249,7 @@ void PlateauBumpTransientPorositySolutionTransientBodyForceProcess::SetBodyForce
 
         double t = (std::pow(c*(x1-x10),2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2)) + (std::pow((x2-x20)/c,2) - std::pow(a,2))/(std::pow(b,2) - std::pow(a,2));
 
-        if ((t > std::numeric_limits<double>::epsilon()) & (1-t > std::numeric_limits<double>::epsilon())){
+        if ((t > std::numeric_limits<double>::epsilon()) && (1-t > std::numeric_limits<double>::epsilon())){
 
             r_alpha = alpha_max - (1 - std::exp(-1/((-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2))))/(std::exp(-1/(1 - (-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) - (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2)))) + std::exp(-1/((-std::pow(a,2) + std::pow((x1 - x10),2)*std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2)) + (-std::pow(a,2) + std::pow((x2 - x20),2)/std::pow((squeeze_amplitude*std::sin(omega*time) + 1),2))/(-std::pow(a,2) + std::pow(b,2))))))*(alpha_max - alpha_min);
 
