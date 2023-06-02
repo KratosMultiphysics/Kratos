@@ -66,6 +66,11 @@ public:
 
         EdgeData(const EdgeData& rOther) = delete;
 
+        bool IsBoundary() const
+        {
+            return mIsBoundary;
+        }
+
         double GetLength() const
         {
             return mLength;
@@ -91,6 +96,11 @@ public:
             return mDNiNj;
         }
 
+        const array_1d<double,TDim>& GetConvectiveBoundary() const
+        {
+            return mNiNjNormal;
+        }
+
         void SetLength(const double Length)
         {
             mLength = Length;
@@ -110,13 +120,36 @@ public:
             }
         }
 
+        void AddConvectiveBoundaryValue(
+            const double FaceDomainSize,
+            const array_1d<double,3>& rUnitNormal)
+        {
+            // Face weight (length in 2D and 1/3 of the area in 3D)
+            double w_i;
+            if constexpr (TDim == 2) {
+                w_i = FaceDomainSize;
+            } else {
+                w_i = FaceDomainSize / 3.0;
+            }
+
+            // Convective boundary term (we take advantage of the fact that N_i = N_j = 0.5)
+            for (std::size_t d = 0; d < TDim; ++d) {
+                mNiNjNormal[d] += w_i * 0.25 * rUnitNormal[d];
+            }
+
+            // Set the boundary flag to true
+            mIsBoundary = true;
+        }
+
     private:
 
+        bool mIsBoundary = false; // flag to indicate if current flag belongs to a boundary
         double mLength = 0.0; // l_{ij}
         double mMij = 0.0; // N_{i}*N_{j}
         double mLij = 0.0; // grad(N_{i})^{T}*grad(N_{j})
         array_1d<double, TDim> mNiDNj = ZeroVector(TDim); // N_{i}*grad(N_{j})
         array_1d<double, TDim> mDNiNj = ZeroVector(TDim); // grad(N_{i})*N_{j}
+        array_1d<double, TDim> mNiNjNormal = ZeroVector(TDim); // NiNjn (or NiNin as N value is always 0.5)
     };
 
     /// Index type definition
@@ -125,6 +158,9 @@ public:
     /// Size type definition
     using SizeType = std::size_t;
 
+    /// Edge data container pointer type
+    using EdgeDataPointerType = std::unique_ptr<EdgeData>;
+
     /// Sparse graph definition
     using SparseGraphType = SparseGraph<IndexType>;
 
@@ -132,7 +168,7 @@ public:
     using IndicesVectorType = std::vector<IndexType>;
 
     /// CSR storage off-diagonal values vector definition
-    using EdgeDataVectorType = std::vector<std::unique_ptr<EdgeData>>;
+    using EdgeDataVectorType = std::vector<EdgeDataPointerType>;
 
     /// CSR storage mass matrices vector definition
     using MassMatrixVectorType = std::vector<double>;
@@ -371,7 +407,7 @@ private:
         const SparseGraphType& rEdgesSparseGraph)
     {
         // Resize values vector to the number of edges
-        KRATOS_ERROR_IF(mNumEdges == 0) << "No edges in model part '" << rModelPart.FullName() << "'" << std::endl;
+        KRATOS_ERROR_IF(mNumEdges == 0) << "No edges in model part '" << rModelPart.FullName() << "'." << std::endl;
         mEdgeData.resize(mNumEdges);
         mMassMatrixDiagonal.resize(rModelPart.NumberOfNodes());
         mLumpedMassMatrixDiagonal.resize(rModelPart.NumberOfNodes());
@@ -397,53 +433,91 @@ private:
                 for (IndexType j = i+1; j < NumNodes; ++j) {
                     const IndexType j_id = r_geom[j].Id();
 
-                    // Get ij-edge auxiliary ids (edges are stored being i the lowest nodal i and j the largest)
-                    const IndexType aux_i_id = std::min(i_id, j_id);
-                    const IndexType aux_j_id = std::max(i_id, j_id);
-
-                    // Check presence of current ij-edge in the sparse graph
-                    if (rEdgesSparseGraph.Has(aux_i_id, aux_j_id)) {
-
-                        // Get ij-edge auxiliary local ids
-                        // Note that these are set according to the "i lowest id" storage criterion
-                        IndexType aux_i;
-                        IndexType aux_j;
-                        if (i_id < j_id) {
-                            aux_i = i;
-                            aux_j = j;
-                        } else {
-                            aux_i = j;
-                            aux_j = i;
-                        }
-
-                        // Add the mass matrices diagonal (II) contributions
-                        // Note that in here we take advantage of the fact that there is an integration point at the mid of each edge
-                        const IndexType i_row_id = i_id - 1;
-                        const IndexType j_row_id = j_id - 1;
-                        const double aux_mass = 0.25 * domain_size / NumNodes;
-                        mMassMatrixDiagonal[i_row_id] += aux_mass;
-                        mMassMatrixDiagonal[j_row_id] += aux_mass;
-                        mLumpedMassMatrixDiagonal[i_row_id] += 2.0 * aux_mass;
-                        mLumpedMassMatrixDiagonal[j_row_id] += 2.0 * aux_mass;
-
-                        // Get position in the column indices vector as this is the same one to be used in the values vector
-                        const IndexType ij_col_index = GetColumVectorIndex(aux_i_id, aux_j_id);
-                        KRATOS_ERROR_IF(ij_col_index < 0) << "Column index cannot be found for ij-edge " << i_id << "-" << j_id << "." << std::endl;
-
-                        // If not created yet, create current edge data container
-                        // Note that we also set the length which is the same for all neighbour elements
-                        auto& rp_edge_data = mEdgeData[ij_col_index];
-                        if (rp_edge_data == nullptr) {
-                            rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
-                            rp_edge_data->SetLength(norm_2(r_geom[aux_i].Coordinates()-r_geom[aux_j].Coordinates()));
-                        }
-
-                        // Add current element off-diagonal (IJ) contributions
-                        rp_edge_data->AddOffDiagonalValues(domain_size, row(DNDX,aux_i), row(DNDX,aux_j));
+                    // Get ij-edge auxiliary local ids
+                    // Note that these are set according to the "i lowest id" storage criterion
+                    IndexType aux_i;
+                    IndexType aux_j;
+                    if (i_id < j_id) {
+                        aux_i = i;
+                        aux_j = j;
+                    } else {
+                        aux_i = j;
+                        aux_j = i;
                     }
+
+                    // Add the mass matrices diagonal (II) contributions
+                    // Note that in here we take advantage of the fact that there is an integration point at the mid of each edge
+                    const IndexType i_row_id = i_id - 1;
+                    const IndexType j_row_id = j_id - 1;
+                    const double aux_mass = 0.25 * domain_size / NumNodes;
+                    mMassMatrixDiagonal[i_row_id] += aux_mass;
+                    mMassMatrixDiagonal[j_row_id] += aux_mass;
+                    mLumpedMassMatrixDiagonal[i_row_id] += 2.0 * aux_mass;
+                    mLumpedMassMatrixDiagonal[j_row_id] += 2.0 * aux_mass;
+
+                    // If not created yet, create current edge data container
+                    // Note that we also set the length which is the same for all neighbour elements
+                    auto& rp_edge_data = pGetEdgeData(i_id, j_id);
+                    if (rp_edge_data == nullptr) {
+                        rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
+                        rp_edge_data->SetLength(norm_2(r_geom[aux_i].Coordinates()-r_geom[aux_j].Coordinates()));
+                    }
+
+                    // Add current element off-diagonal (IJ) contributions
+                    rp_edge_data->AddOffDiagonalValues(domain_size, row(DNDX,aux_i), row(DNDX,aux_j));
                 }
             }
         }
+
+        // Loop the conditions to calculate the normals in the boundary edges
+        // Note that in here we are assuming that current model part has conditions in the entire skin
+        KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfConditions() == 0) << "No conditions found in model part '" << rModelPart.FullName() << "'." << std::endl;
+        array_1d<double,3> unit_normal;
+        for (auto& r_condition : rModelPart.Conditions()) {
+            // Get condition data
+            const auto& r_geom = r_condition.GetGeometry();
+            CalculateUnitNormal(r_geom, unit_normal);
+            const double domain_size = r_geom.DomainSize();
+
+            // Loop condition edges
+            for (IndexType i = 0; i < TDim - 1; ++i) {
+                const IndexType i_id = r_geom[i].Id();
+                for (IndexType j = i + 1; j < TDim; ++j) {
+                    const IndexType j_id = r_geom[j].Id();
+
+                    // Get current edge data container
+                    auto& rp_edge_data = pGetEdgeData(i_id, j_id);
+                    rp_edge_data->AddConvectiveBoundaryValue(domain_size, unit_normal);
+                }
+            }
+        }
+    }
+
+    void CalculateUnitNormal(
+        const Geometry<Node>& rGeometry,
+        array_1d<double, 3>& rUnitNormal) const
+    {
+        if constexpr (TDim == 2) {
+            rUnitNormal[0] = rGeometry[1].Y() - rGeometry[0].Y();
+            rUnitNormal[1] = -(rGeometry[1].X() - rGeometry[0].X());
+            rUnitNormal[2] = 0.0;
+        } else {
+            array_1d<double, 3> v1, v2;
+            v1[0] = rGeometry[1].X() - rGeometry[0].X();
+            v1[1] = rGeometry[1].Y() - rGeometry[0].Y();
+            v1[2] = rGeometry[1].Z() - rGeometry[0].Z();
+
+            v2[0] = rGeometry[2].X() - rGeometry[0].X();
+            v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
+            v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
+
+            MathUtils<double>::CrossProduct(rUnitNormal, v1, v2);
+            rUnitNormal *= 0.5;
+        }
+
+        const double n_norm = norm_2(rUnitNormal);
+        KRATOS_WARNING_IF("EdgeBasedDataStructure", n_norm < 1.0e-12) << "Normal is close to zero." << std::endl;
+        rUnitNormal /= n_norm;
     }
 
     friend class Serializer;
@@ -473,6 +547,21 @@ private:
             }
         }
         return j_col_index;
+    }
+
+    EdgeDataPointerType& pGetEdgeData(
+        const IndexType GlobalIdI,
+        const IndexType GlobalIdJ)
+    {
+        // Get ij-edge auxiliary ids (edges are stored being i the lowest nodal i and j the largest)
+        const IndexType aux_i_id = std::min(GlobalIdI, GlobalIdJ);
+        const IndexType aux_j_id = std::max(GlobalIdI, GlobalIdJ);
+
+        // Get position in the column indices vector as this is the same one to be used in the values vector
+        const IndexType ij_col_index = GetColumVectorIndex(aux_i_id, aux_j_id);
+        KRATOS_ERROR_IF(ij_col_index < 0) << "Column index cannot be found for ij-edge " << GlobalIdI << "-" << GlobalIdJ << "." << std::endl;
+
+        return mEdgeData[ij_col_index];
     }
 
     ///@}

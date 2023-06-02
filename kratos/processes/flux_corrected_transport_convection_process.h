@@ -170,7 +170,6 @@ public:
 
         // Substepping loop according to max CFL
         IndexType step = 1;
-        const SizeType aux_size = mConvectedValues.size();
         while (time - prev_time > 1.0e-12) {
             // Evaluate current substep maximum allowable delta time
             const double dt = this->CalculateSubStepDeltaTime(prev_time, time);
@@ -193,8 +192,6 @@ public:
         }
 
         gid_io_convection.FinalizeResults();
-
-        KRATOS_WATCH(mConvectedValues)
 
         // Set final solution in the model part database
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
@@ -385,6 +382,8 @@ private:
             array_1d<double,TDim> F_i;
             array_1d<double,TDim> F_j;
             array_1d<double,TDim> d_ij;
+            array_1d<double,TDim> b_ij;
+            array_1d<double,TDim> b_node;
         };
 
         // Edge contributions assembly
@@ -400,6 +399,8 @@ private:
                 auto& F_i = rTLS.F_i;
                 auto& F_j = rTLS.F_j;
                 auto& d_ij = rTLS.d_ij;
+                auto& b_ij = rTLS.b_ij;
+                auto& b_node = rTLS.b_node;
 
                 // i-node nodal data
                 const double u_i = mSolution[iRow];
@@ -461,7 +462,22 @@ private:
 
                     // Calculate nodal explicit low order contributions
                     const double diff_coeff = 0.0;
-                    const double res_edge = D_ij * F_ij;
+                    double res_edge_i = -D_ij * F_ij;
+                    double res_edge_j = D_ij * F_ij;
+
+                    // If current edge belogs to a boundary, add the corresponding boundary integrals
+                    if (r_ij_edge_data.IsBoundary()) {
+                        // Get ij-edge boundary operators from CSR data structure
+                        const auto &r_N_N_normal = r_ij_edge_data.GetConvectiveBoundary();
+                        b_node = r_N_N_normal;
+                        b_ij = 0.5 * r_N_N_normal;
+
+                        // Add boundary contribution to the residual
+                        const double res_edge_bd = inner_prod(b_ij, F_i + F_j);
+                        res_edge_i -= res_edge_bd + inner_prod(b_node, F_i);
+                        res_edge_j += res_edge_bd + inner_prod(b_node, F_j);
+                    }
+
                     // double delta_u_j_low = res_edge;
                     // double delta_u_i_low = -res_edge + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_i);
                     // double delta_u_j_low = res_edge + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_j);
@@ -470,8 +486,8 @@ private:
                     //TODO: Implement this!
 
                     // Atomic additions
-                    AtomicAdd(mResidual[iRow], -res_edge);
-                    AtomicAdd(mResidual[j_node_id], res_edge);
+                    AtomicAdd(mResidual[iRow], res_edge_i);
+                    AtomicAdd(mResidual[j_node_id], res_edge_j);
                 }
             }
         });

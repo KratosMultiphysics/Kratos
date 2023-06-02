@@ -38,7 +38,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     Parameters mesher_parameters(R"({
         "number_of_divisions" : 50,
         "element_name" : "Element2D3N",
-        "create_skin_sub_model_part" : false
+        "condition_name" : "LineCondition",
+        "create_skin_sub_model_part" : true
     })");
     r_model_part.SetBufferSize(3);
     r_model_part.AddNodalSolutionStepVariable(DISTANCE);

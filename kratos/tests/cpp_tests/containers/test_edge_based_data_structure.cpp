@@ -38,7 +38,8 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     Parameters mesher_parameters(R"({
         "number_of_divisions" : 2,
         "element_name" : "Element2D3N",
-        "create_skin_sub_model_part" : false
+        "condition_name" : "LineCondition",
+        "create_skin_sub_model_part" : true
     })");
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
 
