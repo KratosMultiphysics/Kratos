@@ -245,11 +245,11 @@ bool GeometricalObjectsBins::PointIsInsideBoundingBox(const array_1d<double, 3>&
     // Get the bounding box points
     const auto& r_max_point = mBoundingBox.GetMaxPoint();
     const auto& r_min_point = mBoundingBox.GetMinPoint();
-    
-    // The Bounding Box should have some tolerance already!
-    if (rCoords[0] < r_max_point[0] && rCoords[0] > r_min_point[1])           // check x-direction
-        if (rCoords[1] < r_max_point[2] && rCoords[1] > r_min_point[3])       // check y-direction
-            if (rCoords[2] < r_max_point[4] && rCoords[2] > r_min_point[5])   // check z-direction
+
+    // The Bounding Box check
+    if (rCoords[0] < r_max_point[0] && rCoords[0] > r_min_point[0])           // check x-direction
+        if (rCoords[1] < r_max_point[1] && rCoords[1] > r_min_point[1])       // check y-direction
+            if (rCoords[2] < r_max_point[2] && rCoords[2] > r_min_point[2])   // check z-direction
                 return true;
     return false;
 }
@@ -262,15 +262,22 @@ bool GeometricalObjectsBins::PointIsInsideBoundingBoxWithTolerance(
     const double Tolerance
     )
 {
-    // Create the coords with tolerance
-    array_1d<double, 3> coords_with_tolerance(rCoords);
+    // Get the bounding box points
+    auto max_point = mBoundingBox.GetMaxPoint();
+    auto min_point = mBoundingBox.GetMinPoint();
     
     // Apply Tolerances
-    for (IndexType i=0; i<3; ++i) {
-        coords_with_tolerance[2 * i    ] += Tolerance;
-        coords_with_tolerance[2 * i + 1] -= Tolerance;
+    for (unsigned int i=0; i<3; ++i) {
+        max_point[i] += Tolerance;
+        min_point[i] -= Tolerance;
     }
-    return PointIsInsideBoundingBox(coords_with_tolerance);
+
+    // The Bounding Box check
+    if (rCoords[0] < max_point[0] && rCoords[0] > min_point[0])           // check x-direction
+        if (rCoords[1] < max_point[1] && rCoords[1] > min_point[1])       // check y-direction
+            if (rCoords[2] < max_point[2] && rCoords[2] > min_point[2])   // check z-direction
+                return true;
+    return false;
 }
 
 /***********************************************************************************/
