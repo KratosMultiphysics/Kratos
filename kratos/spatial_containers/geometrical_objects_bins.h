@@ -81,8 +81,8 @@ public:
             for (TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
                 mBoundingBox.Extend(i_object->GetGeometry().begin() , i_object->GetGeometry().end());
             }
+            mBoundingBox.Extend(Tolerance);
         }
-        mBoundingBox.Extend(Tolerance);
         CalculateCellSize(number_of_objects);
         mCells.resize(GetTotalNumberOfCells());
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);

@@ -279,9 +279,12 @@ bool GeometricalObjectsBins::PointIsInsideBoundingBoxWithTolerance(
     auto min_point = mBoundingBox.GetMinPoint();
     
     // Apply Tolerances
-    for (unsigned int i=0; i<3; ++i) {
-        max_point[i] += Tolerance;
-        min_point[i] -= Tolerance;
+    const double epsilon = std::numeric_limits<double>::epsilon();
+    if (norm_2(max_point) > epsilon && norm_2(min_point) > epsilon) {
+        for (unsigned int i=0; i<3; ++i) {
+            max_point[i] += Tolerance;
+            min_point[i] -= Tolerance;
+        }
     }
 
     // The Bounding Box check
