@@ -156,11 +156,13 @@ public:
      * @param rPoint The point to be checked
      * @param Radius The radius to be checked
      * @param rResults The results of the search
+     * @param SyncronizeResults If the results should be synchronized or not
      */
     virtual void SearchInRadius(
         const Point& rPoint,
         const double Radius,
-        ResultTypeContainer& rResults
+        ResultTypeContainer& rResults,
+        const bool SyncronizeResults = true
         );
 
     /**
@@ -240,11 +242,13 @@ public:
      * @param rPoint The point to be checked
      * @param Radius The radius to be checked
      * @param rResults The results of the search
+     * @param SyncronizeResults If the results should be synchronized or not
      */
     virtual void SearchNearestInRadius(
         const Point& rPoint,
         const double Radius,
-        ResultTypeContainer& rResults
+        ResultTypeContainer& rResults,
+        const bool SyncronizeResults = true
         );
 
     /**
@@ -327,10 +331,12 @@ public:
      * Result contains a flag is the object has been found or not.
      * @param rPoint The point to be checked
      * @param rResults The results of the search
+     * @param SyncronizeResults If the results should be synchronized or not
     */
     virtual void SearchNearest(
         const Point& rPoint,
-        ResultTypeContainer& rResults
+        ResultTypeContainer& rResults,
+        const bool SyncronizeResults = true
         );
 
     /**
@@ -411,10 +417,12 @@ public:
      * This method is a simplified and faster method of SearchNearest.
      * @param rPoint The point to be checked
      * @param rResults The results of the search
+     * @param SyncronizeResults If the results should be synchronized or not
      */
     virtual void SearchIsInside(
         const Point& rPoint,
-        ResultTypeContainer& rResults
+        ResultTypeContainer& rResults,
+        const bool SyncronizeResults = true
         );
 
     /**
