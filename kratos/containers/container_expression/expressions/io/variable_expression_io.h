@@ -69,6 +69,12 @@ public:
     class VariableExpressionInput : public ExpressionInput
     {
     public:
+        ///@name Type definitions
+        ///@{
+
+        KRATOS_CLASS_POINTER_DEFINITION(VariableExpressionInput);
+
+        ///@}
         ///@name Life cycle
         ///@{
 
@@ -119,6 +125,12 @@ public:
     class VariableExpressionOutput : public ExpressionOutput
     {
     public:
+        ///@name Type definitions
+        ///@{
+
+        KRATOS_CLASS_POINTER_DEFINITION(VariableExpressionOutput);
+
+        ///@}
         ///@name Life cycle
         ///@{
 
@@ -167,7 +179,7 @@ public:
     };
 
     ///@}
-    ///@name static operations
+    ///@name Public static operations
     ///@{
 
     static ModelPart::MeshType& GetMesh(
@@ -179,6 +191,7 @@ public:
         const MeshType& rMeshType);
 
     ///@}
+
 }; // class ExpressionIO
 
 
