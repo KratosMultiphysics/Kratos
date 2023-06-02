@@ -1,0 +1,13 @@
+{
+    "rom_settings": {
+        "nodal_unknowns": [
+            "DISPLACEMENT_X",
+            "DISPLACEMENT_Y",
+            "DISPLACEMENT_Z",
+            "ROTATION_X",
+            "ROTATION_Y",
+            "ROTATION_Z"
+        ],
+        "svd_truncation_tolerance": 1.0e-6
+    }
+}
