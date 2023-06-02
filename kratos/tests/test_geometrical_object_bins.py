@@ -59,7 +59,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
             if self.data_comm.Rank() == 0:
                 self.node = self.sub_model_part.CreateNewNode(100000, self.node_coordinates.X, self.node_coordinates.Y, self.node_coordinates.Z)
                 self.node.SetSolutionStepValue(KM.PARTITION_INDEX, 0)
-            ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.model_part)
+            ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.model_part, self.data_comm)
             ParallelFillCommunicator.Execute()
         else:
             self.node = self.sub_model_part.CreateNewNode(100000, self.node_coordinates.X, self.node_coordinates.Y, self.node_coordinates.Z)
