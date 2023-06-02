@@ -1,6 +1,8 @@
 # Import Python modules
 import json
 import numpy as np
+import os
+import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -76,13 +78,16 @@ class HRomTrainingUtility(object):
     def CalculateAndSaveHRomWeights(self):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
-        n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
-        self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
-        self.hyper_reduction_element_selector.Run()
+        # I am doing this for my revision (uncomment, this was to avoid the ECM to be performed.)
+        #################################
+        # n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
+        # self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+        # self.hyper_reduction_element_selector.Run()
 
-        # Save the HROM weights in the RomParameters.json
-        # Note that in here we are assuming this naming convention for the ROM json file
-        self.AppendHRomWeightsToRomParameters()
+        # # Save the HROM weights in the RomParameters.json
+        # # Note that in here we are assuming this naming convention for the ROM json file
+        # self.AppendHRomWeightsToRomParameters()
+        #################################
 
     def CreateHRomModelParts(self):
         # Get solver data
@@ -165,10 +170,25 @@ class HRomTrainingUtility(object):
         # Set up the residual snapshots matrix
         residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
 
+        # I am doing this for my revision
+        #################################
+        folder_path = "TrainningPhaseHROM"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        np.save(f"{folder_path}/ProjectedResidualsSnapshots.npy",residuals_snapshot_matrix)
+        #################################
+
         # Calculate the randomized and truncated SVD of the residual snapshots
-        u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
+        u,s,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
             residuals_snapshot_matrix,
             self.element_selection_svd_truncation_tolerance)
+        
+        # I am doing this for my revision
+        #################################
+        s = np.diag(s)
+        us = np.dot(u, s)
+        np.save(f"{folder_path}/ProjectedResidualBasis.npy",us)
+        #################################
 
         return u
 

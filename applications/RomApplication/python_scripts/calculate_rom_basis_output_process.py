@@ -1,6 +1,7 @@
 # Import Python modules
 import json
 import numpy
+import os 
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -172,8 +173,25 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         rom_basis_dict["hrom_settings"]["hrom_format"] = self.rom_basis_output_format
         n_nodal_unknowns = len(self.snapshot_variables_list)
 
+        # I am doing this for my revision
+        #################################
+        folder_path = "TrainningPhase1"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        
+        numpy.save(f"{folder_path}/SolutionSnapshots.npy", snapshots_matrix) #Note that I will modify this in my own python to add the mu to the name.
+        #################################
+
         # Calculate the randomized SVD of the snapshots matrix
-        u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+        u,s,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+        del(snapshots_matrix)
+
+        # I am doing this for my revision
+        #################################
+        s = numpy.diag(s)
+        us = numpy.dot(u, s)
+        numpy.save(f"{folder_path}/RightBasis.npy", us) #Note that I will modify this in my own python to add the mu to the name.
+        #################################
 
         # Save the nodal basis
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]

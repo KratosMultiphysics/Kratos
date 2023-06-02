@@ -99,10 +99,27 @@ class PetrovGalerkinTrainingUtility(object):
     def __CalculateResidualBasis(self, snapshots_matrix):
         if snapshots_matrix is None:
             snapshots_matrix = self._GetSnapshotsMatrix()
+
+        # I am doing this for my revision
+        #################################
+        folder_path = "TrainningPhase2"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        np.save(f"{folder_path}/ResidualsSnapshots.npy",snapshots_matrix)
+        #################################
+
         u_left,s_left,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
             snapshots_matrix,
             self.svd_truncation_tolerance)
         del(snapshots_matrix)
+
+        # I am doing this for my revision
+        #################################
+        s_left = np.diag(s_left)
+        us_left = np.dot(u_left, s_left)
+        np.save(f"{folder_path}/LeftBasis.npy",us_left)
+        #################################
+
         #Include Phi in the span of Psi
         if self.include_phi:
             #Read Galerkin modes from RomParameters.json
