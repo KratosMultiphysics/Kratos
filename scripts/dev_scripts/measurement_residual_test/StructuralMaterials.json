@@ -1,7 +1,7 @@
 {
   "properties": [
     {
-      "model_part_name": "Structure.Parts_AREAS",
+      "model_part_name": "Structure.all_nodes_elements_model_part",
       "properties_id": 1,
       "Material": {
         "constitutive_law": {

@@ -33,6 +33,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
             "measurement_data_file"          : "MeasurementData.json",
             "measurement_standard_deviation"  : 0.001,
             "perturbation_size"              : 1e-8,
+            "adjoint_analysis_settings_file_name": "adjoint_parameters.json",
             "evaluated_model_part_names"     : [
                 "PLEASE_PROVIDE_A_MODEL_PART_NAME"
             ]
@@ -45,8 +46,12 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         self.measurement_data_file = parameters["measurement_data_file"].GetString()
         self.measurement_std = parameters["measurement_standard_deviation"].GetDouble()
 
+        self.adjoint_analysis_file_name = parameters["adjoint_analysis_settings_file_name"].GetString()
+
         self.model = model
         self.model_part: Kratos.ModelPart = None
+        self.adjoint_model = Kratos.Model()
+
         self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_problem.GetExecutionPolicy(parameters["primal_analysis_name"].GetString())
 
         if len(self.model_part_names) == 0:
@@ -124,43 +129,20 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
         ###################################################################
 
-        adjoint_file_name = "/media/meister/localdata/GitRepos/Kratos_In_Progress_SysId/scripts/dev_scripts/measurement_residual_test/linear_shell_test_nodal_disp_adjoint_parameters.json"
-
-        with open(adjoint_file_name, 'r') as parameter_file:
-            adjoint_parameters = Kratos.Parameters(parameter_file.read())
-
-        model_adjoint = Kratos.Model()
-        adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, adjoint_parameters)
-
-        # model_adjoint.CreateModelPart("Structure.Test1")
-
-        # for node in list(intersected_model_part_map.values())[0].Nodes:
-        #     model_adjoint.GetModelPart("Structure.Test1").AddNode(node, node.Id)
-
-        adjoint_analysis.Run()
-
-        Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, model_adjoint.GetModelPart("Structure"), self.model["Structure"])
-
-        # for node in model_adjoint.GetModelPart("Structure").GetNodes():
-        #     print(f"Displacement: {node.GetSolutionStepValue(Kratos.DISPLACEMENT)}")
-        #     print(f"Displacement X: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)}")
-        #     print(f"Displacement Y: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)}")
-        #     print(f"Displacement Z: {node.GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)}")
-
-        elements = model_adjoint.GetModelPart("Structure").GetElements()
-        results = np.ndarray(shape=(len(elements), 1), dtype=np.float64)
-        for i, element in enumerate(elements):
-            results[i] = element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
-        print("aaaa", results)
-
-        elements = self.model["Structure"].GetElements()
-        results = np.ndarray(shape=(len(elements), 1), dtype=np.float64)
-        for i, element in enumerate(elements):
-            results[i] = element.GetValue(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
-        print("dddd", results)
-
-        # now fill the collective expressions
         for variable, collective_expression in physical_variable_collective_expressions.items():
+
+            with open(self.adjoint_analysis_file_name, 'r') as parameter_file:
+                adjoint_parameters = Kratos.Parameters(parameter_file.read())
+
+            adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
+
+            adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, adjoint_parameters)
+            adjoint_analysis.Run()
+
+            Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, self.adjoint_model.GetModelPart("Structure"), self.model["Structure"])
+
+            # now fill the collective expressions
+
             for expression in collective_expression.GetContainerExpressions():
                 if isinstance(expression, KratosOA.ContainerExpression.ElementPropertiesExpression):
                     element_data_expression = Kratos.ContainerExpression.ElementNonHistoricalExpression(expression.GetModelPart())
@@ -168,17 +150,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
                     expression.CopyFrom(element_data_expression)
                 else:
                     expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
-            # collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
-            # collective_expression.Read(results)
 
-        print(f"Collective results: {physical_variable_collective_expressions}")
-        for variable, collective_expression in physical_variable_collective_expressions.items():
-            print(variable)
-            for cexp in collective_expression.GetContainerExpressions():
-                print(cexp)
-                data = cexp.Evaluate()
-                print(data)
-        raise RuntimeError(1)
         #####################################################################
 
         # Likelihood Gradient

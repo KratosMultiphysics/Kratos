@@ -16,7 +16,7 @@ model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
 with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
     # creating the execution policy wrapper
     execution_policy_wrapper_settings = Kratos.Parameters("""{
-            "name"    : "primal",
+            "name"    : "primal_analysis",
             "module": "KratosMultiphysics.OptimizationApplication.execution_policies",
             "type": "stepping_analysis_execution_policy",
             "settings": {
@@ -29,18 +29,18 @@ with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
             },
             "pre_operations"           : [],
             "post_operations"          : [],
-            "log_in_file"              : true,
+            "log_in_file"              : false,
             "log_file_name"            : "structure.log"
         }""")
     execution_policy_decorator = ExecutionPolicyDecorator(model, execution_policy_wrapper_settings, optimization_problem)
     optimization_problem.AddComponent(execution_policy_decorator)
 
-    Kratos.ModelPartIO("rectangular_plate", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(model_part)
+    Kratos.ModelPartIO("model_file", Kratos.ModelPartIO.READ | Kratos.ModelPartIO.MESH_ONLY).ReadModelPart(model_part)
 
     # creating the response function wrapper
     response_function_settings = Kratos.Parameters("""{
             "evaluated_model_part_names": ["Structure"],
-            "primal_analysis_name"      : "primal",
+            "primal_analysis_name"      : "primal_analysis",
             "perturbation_size"         : 1e-8
         }""")
     response_function: MeasurementLikelihoodResponseFunction = MeasurementLikelihoodResponseFunction("measurement_residual", model, response_function_settings, optimization_problem)
@@ -50,14 +50,15 @@ with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
     response_function.Initialize()
 
     # now replace the properties
-    KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model["Structure.Parts_AREAS"], model_part.Elements)
+    KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model["Structure.all_nodes_elements_model_part"], model_part.Elements)
 
     execution_policy_decorator.Execute()
     ref_value = response_function.CalculateValue()
     print(f"Objective value {ref_value}")
 
-    sensitivity_expression = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(model_part)])
-    response_function.CalculateGradient({Kratos.YOUNG_MODULUS: sensitivity_expression})
-    for element in model_part.Elements:
-        print(f"Sensitivity: {element.Properties[KratosOA.YOUNG_MODULUS_SENSITIVITY]}")
-        print(f"Sensitivity: {element.Properties[StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY]}")
+    sensitivity_expressions = KratosOA.ContainerExpression.CollectiveExpressions(
+        [KratosOA.ContainerExpression.ElementPropertiesExpression(model_part), KratosOA.ContainerExpression.ElementPropertiesExpression(model_part)])
+    response_function.CalculateGradient({Kratos.YOUNG_MODULUS: sensitivity_expressions})
+    for expression in sensitivity_expressions.GetContainerExpressions():
+        data = expression.Evaluate()
+        print(data)

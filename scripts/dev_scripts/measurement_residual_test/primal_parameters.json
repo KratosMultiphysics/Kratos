@@ -1,6 +1,6 @@
 {
   "problem_data": {
-    "problem_name": "FEM_model",
+    "problem_name": "solve_forward_problem_system_identification",
     "parallel_type": "OpenMP",
     "echo_level": 0,
     "start_time": 0.0,
@@ -41,7 +41,20 @@
         "process_name": "AssignVectorVariableProcess",
         "Parameters": {
           "mesh_id": 0,
-          "model_part_name": "Structure.DISPLACEMENT_DIR_BC",
+          "model_part_name": "Structure.left_support_positions_model_part",
+          "variable_name": "DISPLACEMENT",
+          "value": [0.0, 0.0, 0.0],
+          "interval": [0.0, "End"]
+        }
+      },
+      {
+        "python_module": "assign_vector_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "help": "This process fixes the selected components of a given vector variable",
+        "process_name": "AssignVectorVariableProcess",
+        "Parameters": {
+          "mesh_id": 0,
+          "model_part_name": "Structure.right_support_positions_model_part",
           "variable_name": "DISPLACEMENT",
           "value": [0.0, 0.0, 0.0],
           "interval": [0.0, "End"]
@@ -57,7 +70,7 @@
         "process_name": "AssignModulusAndDirectionToConditionsProcess",
         "Parameters": {
           "mesh_id": 0,
-          "model_part_name": "Structure.PointLoad3D_NODES",
+          "model_part_name": "Structure.point_load_positions_model_part",
           "variable_name": "POINT_LOAD",
           "modulus": 10.0,
           "direction": [0.0, 1.0, 0],

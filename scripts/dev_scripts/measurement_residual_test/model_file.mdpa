@@ -365,7 +365,7 @@ Begin Conditions	PointLoadCondition3D1N
 	6	0	91
 End Conditions
 
-Begin SubModelPart	PointLoad3D_NODES
+Begin SubModelPart	point_load_positions_model_part
 	Begin SubModelPartData
 	End SubModelPartData
 	Begin SubModelPartTables
@@ -390,7 +390,7 @@ Begin SubModelPart	PointLoad3D_NODES
 	End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart	right_support
+Begin SubModelPart	right_support_positions_model_part
 	Begin SubModelPartData
 	End SubModelPartData
 	Begin SubModelPartTables
@@ -409,7 +409,7 @@ Begin SubModelPart	right_support
 	End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart	DISPLACEMENT_DIR_BC
+Begin SubModelPart	left_support_positions_model_part
 	Begin SubModelPartData
 	End SubModelPartData
 	Begin SubModelPartTables
@@ -421,12 +421,6 @@ Begin SubModelPart	DISPLACEMENT_DIR_BC
 		86
 		135
 		139
-		17
-		18
-		20
-		125
-		130
-		132
 	End SubModelPartNodes
 	Begin SubModelPartElements
 	End SubModelPartElements
@@ -444,7 +438,7 @@ Begin SubModelPart response_mp
     End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart	Parts_AREAS
+Begin SubModelPart	all_nodes_elements_model_part
 	Begin SubModelPartData
 	End SubModelPartData
 	Begin SubModelPartTables
