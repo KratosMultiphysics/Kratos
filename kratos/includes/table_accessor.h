@@ -55,6 +55,13 @@ public:
 
     using SizeType = std::size_t;
 
+    enum class InputVariableType
+    {
+        NodalHistorical = 0,
+        NodalNonHistorical = 1,
+        ElementalNonHistorical = 2
+    };
+
     /// Pointer definition of TableAccessor
     KRATOS_CLASS_POINTER_DEFINITION(TableAccessor);
 
@@ -66,8 +73,20 @@ public:
     TableAccessor() = default;
 
     /// Custom constructor
-    TableAccessor(const VariableType& rInputVariable) : mpInputVariable(std::make_shared<VariableType>(rInputVariable)) 
-    {}
+    TableAccessor(const VariableType& rInputVariable, const std::string& rInputVariableType = "nodal_historical") 
+        : mpInputVariable(std::make_shared<VariableType>(rInputVariable)) 
+    {
+        // We initialize the variable type only once
+        if (rInputVariableType == "nodal_historical") {
+            mInputVariableType = static_cast<int>(InputVariableType::NodalHistorical);
+        } else if (rInputVariableType == "nodal_non_historical") {
+            mInputVariableType = static_cast<int>(InputVariableType::NodalNonHistorical);
+        } else if (rInputVariableType == "elemental_non_historical") {
+            mInputVariableType = static_cast<int>(InputVariableType::ElementalNonHistorical);
+        } else {
+            KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : nodal_historical, nodal_non_historical and elemental_non_historical" << std::endl;
+        }
+    }
 
     /// Destructor.
     ~TableAccessor() = default;
@@ -75,7 +94,8 @@ public:
     /// Copy constructor
     TableAccessor(const TableAccessor& rOther) 
     : BaseType(rOther),
-        mpInputVariable(rOther.mpInputVariable) 
+        mpInputVariable(rOther.mpInputVariable),
+        mInputVariableType(rOther.mInputVariableType)
     {}
 
     ///@}
@@ -136,7 +156,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "TableAccessor" ;
@@ -158,6 +178,7 @@ private:
     ///@{
 
     VariableType::Pointer mpInputVariable;
+    int mInputVariableType = 0; // NodalHistorical by default
 
     friend class Serializer;
 
@@ -165,12 +186,14 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
         rSerializer.save("InputVariable", mpInputVariable);
+        rSerializer.save("InputVariableType", mInputVariableType);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
         rSerializer.load("InputVariable", mpInputVariable);
+        rSerializer.load("InputVariableType", mInputVariableType);
     }
 
 
