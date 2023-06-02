@@ -48,6 +48,9 @@
 #include "custom_conditions/helmholtz_surf_shape_condition.h"
 #include "custom_conditions/helmholtz_surface_shape_condition.h"
 
+/* CONSTITUTIVE LAWS */
+#include "custom_constitutive/helmholtz_jacobian_stiffened_3d.h"
+
 // ==============================================================================
 
 namespace Kratos
@@ -236,6 +239,9 @@ namespace Kratos
 		const HelmholtzSurfShapeCondition mHelmholtzSurfShapeCondition3D3N;
 		const HelmholtzSurfaceShapeCondition mHelmholtzSurfaceShapeCondition3D3N;
 		const HelmholtzSurfaceShapeCondition mHelmholtzSurfaceShapeCondition3D4N;
+
+		/* CONSTITUTIVE LAWS */
+		const HelmholtzJacobianStiffened3D mHelmholtzJacobianStiffened3D;
 
 		///@}
 		///@name Private Operators

@@ -243,6 +243,10 @@ namespace Kratos
 
         // Shape optimization conditions
         KRATOS_REGISTER_CONDITION("HelmholtzSurfShapeCondition3D3N", mHelmholtzSurfShapeCondition3D3N);
+
+        // Register linear elastics laws
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HelmholtzJacobianStiffened3D", mHelmholtzJacobianStiffened3D);
+
  	}
 
 }  // namespace Kratos.

@@ -33,6 +33,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_response_utilities_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 // ==============================================================================
 
@@ -54,6 +55,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
     AddCustomOptimizationAlgorithmToPython(m);
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomConstitutiveLawsToPython(m);
 
     auto response_utils = m.def_submodule("ResponseUtils");
     AddCustomResponseUtilitiesToPython(response_utils);
