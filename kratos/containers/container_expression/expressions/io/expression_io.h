@@ -20,14 +20,17 @@
 namespace Kratos {
 
 
-class KRATOS_API(KRATOS_CORE) ExpressionIO
+class KRATOS_API(KRATOS_CORE) ExpressionInput
 {
 public:
-    virtual ~ExpressionIO() = default;
+    virtual ~ExpressionInput() = default;
 
-    virtual Expression::Pointer Read() = 0;
+    virtual Expression::Pointer Execute() const = 0;
 
-    virtual void Write(const Expression& rExpression) = 0;
+    Expression::Pointer operator()() const
+    {
+        return this->Execute();
+    }
 
 protected:
     double EvaluateExpression(const Expression& rExpression,
@@ -37,7 +40,30 @@ protected:
     {
         return rExpression.Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex);
     }
-}; // class ExpressionIO
+}; // class ExpressionInput
+
+
+class KRATOS_API(KRATOS_CORE) ExpressionOutput
+{
+public:
+    virtual ~ExpressionOutput() = default;
+
+    virtual void Execute(const Expression& rExpression) = 0;
+
+    Expression::Pointer operator()(const Expression& rExpression)
+    {
+        this->Execute(rExpression);
+    }
+
+protected:
+    double EvaluateExpression(const Expression& rExpression,
+                              Expression::IndexType EntityIndex,
+                              Expression::IndexType EntityDataBeginIndex,
+                              Expression::IndexType ComponentIndex) const
+    {
+        return rExpression.Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex);
+    }
+}; // class ExpressionOutput
 
 
 } // namespace Kratos
