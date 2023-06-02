@@ -1436,7 +1436,6 @@ public:
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult[i].resize( 3, 3, false );
-            noalias( rResult[i] ) = ZeroMatrix( 3, 3 );
         }
 
         rResult[0]( 0, 0 ) = 0.0;

@@ -1382,11 +1382,8 @@ private:
      */
     ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        if ( rResult.size() != this->PointsNumber() )
-        {
-            // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp( this->PointsNumber() );
-            rResult.swap( temp );
+        if ( rResult.size() != this->PointsNumber() ) {
+            rResult.resize(this->PointsNumber());
         }
 
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
@@ -1395,35 +1392,35 @@ private:
             noalias( rResult[i] ) = ZeroMatrix( 3, 3 );
         }
 
-        double fx1 = 0.5 * ( rPoint[0] - 1 ) * rPoint[0];
-        double fx2 = 0.5 * ( rPoint[0] + 1 ) * rPoint[0];
-        double fx3 = 1 - rPoint[0] * rPoint[0];
-        double fy1 = 0.5 * ( rPoint[1] - 1 ) * rPoint[1];
-        double fy2 = 0.5 * ( rPoint[1] + 1 ) * rPoint[1];
-        double fy3 = 1 - rPoint[1] * rPoint[1];
-        double fz1 = 0.5 * ( rPoint[2] - 1 ) * rPoint[2];
-        double fz2 = 0.5 * ( rPoint[2] + 1 ) * rPoint[2];
-        double fz3 = 1 - rPoint[2] * rPoint[2];
+        const double fx1 = 0.5 * ( rPoint[0] - 1 ) * rPoint[0];
+        const double fx2 = 0.5 * ( rPoint[0] + 1 ) * rPoint[0];
+        const double fx3 = 1 - rPoint[0] * rPoint[0];
+        const double fy1 = 0.5 * ( rPoint[1] - 1 ) * rPoint[1];
+        const double fy2 = 0.5 * ( rPoint[1] + 1 ) * rPoint[1];
+        const double fy3 = 1 - rPoint[1] * rPoint[1];
+        const double fz1 = 0.5 * ( rPoint[2] - 1 ) * rPoint[2];
+        const double fz2 = 0.5 * ( rPoint[2] + 1 ) * rPoint[2];
+        const double fz3 = 1 - rPoint[2] * rPoint[2];
 
-        double gx1 = 0.5 * ( 2 * rPoint[0] - 1 );
-        double gx2 = 0.5 * ( 2 * rPoint[0] + 1 );
-        double gx3 = -2.0 * rPoint[0];
-        double gy1 = 0.5 * ( 2 * rPoint[1] - 1 );
-        double gy2 = 0.5 * ( 2 * rPoint[1] + 1 );
-        double gy3 = -2.0 * rPoint[1];
-        double gz1 = 0.5 * ( 2 * rPoint[2] - 1 );
-        double gz2 = 0.5 * ( 2 * rPoint[2] + 1 );
-        double gz3 = -2.0 * rPoint[2];
+        const double gx1 = 0.5 * ( 2 * rPoint[0] - 1 );
+        const double gx2 = 0.5 * ( 2 * rPoint[0] + 1 );
+        const double gx3 = -2.0 * rPoint[0];
+        const double gy1 = 0.5 * ( 2 * rPoint[1] - 1 );
+        const double gy2 = 0.5 * ( 2 * rPoint[1] + 1 );
+        const double gy3 = -2.0 * rPoint[1];
+        const double gz1 = 0.5 * ( 2 * rPoint[2] - 1 );
+        const double gz2 = 0.5 * ( 2 * rPoint[2] + 1 );
+        const double gz3 = -2.0 * rPoint[2];
 
-        double hx1 = 1.0;
-        double hx2 = 1.0;
-        double hx3 = -2.0;
-        double hy1 = 1.0;
-        double hy2 = 1.0;
-        double hy3 = -2.0;
-        double hz1 = 1.0;
-        double hz2 = 1.0;
-        double hz3 = -2.0;
+        const double hx1 = 1.0;
+        const double hx2 = 1.0;
+        const double hx3 = -2.0;
+        const double hy1 = 1.0;
+        const double hy2 = 1.0;
+        const double hy3 = -2.0;
+        const double hz1 = 1.0;
+        const double hz2 = 1.0;
+        const double hz3 = -2.0;
 
         rResult[0]( 0, 0 ) = hx1 * fy1 * fz1;
         rResult[0]( 0, 1 ) = gx1 * gy1 * fz1;
