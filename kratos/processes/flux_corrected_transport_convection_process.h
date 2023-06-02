@@ -170,6 +170,7 @@ public:
 
         // Substepping loop according to max CFL
         IndexType step = 1;
+        const SizeType aux_size = mConvectedValues.size();
         while (time - prev_time > 1.0e-12) {
             // Evaluate current substep maximum allowable delta time
             const double dt = this->CalculateSubStepDeltaTime(prev_time, time);
@@ -192,6 +193,8 @@ public:
         }
 
         gid_io_convection.FinalizeResults();
+
+        KRATOS_WATCH(mConvectedValues)
 
         // Set final solution in the model part database
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
@@ -451,7 +454,7 @@ private:
                     D_ij = std::sqrt(D_ij);
                     f_i /= D_ij;
                     f_j /= D_ij;
-                
+
                     // Calculate numerical flux from the fluxes along edges
                     // Note that this numerical flux corresponds to a Lax-Wendroff scheme
                     const double F_ij = (f_i + f_j) - DeltaTime * (f_i - f_j) / D_ij;
