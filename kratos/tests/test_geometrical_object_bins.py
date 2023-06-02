@@ -85,6 +85,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         node_results.SynchronizeAll(self.data_comm)   
         self.assertEqual(node_results.NumberOfGlobalResults(), 8)
         ids = node_results.GetResultIndices()
+        self.assertEqual(len(ids), 8)
         for id in ids:
             self.assertTrue(id in cond_id_ref)
 
@@ -102,9 +103,13 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         self.assertEqual(results.NumberOfPointsResults(), 1)
         node_results = results[self.node_coordinates]
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
+        # Local result
         if node_results.NumberOfLocalResults() == 1:
-            self.assertEqual(node_results[0].Id, 1) # Local result
-        self.assertEqual(node_results(0).Id, 1)     # Global result
+            self.assertEqual(node_results[0].Id, 1)
+        # Global result
+        ids = node_results.GetResultIndices()
+        self.assertEqual(len(ids), 1)
+        self.assertTrue(1 in ids)
 
     def test_GeometricalObjectsBins_SearchNearest(self):
         # One node search
@@ -118,9 +123,13 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         self.assertEqual(results.NumberOfPointsResults(), 1)
         node_results = results[self.node_coordinates] 
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
+        # Local result
         if node_results.NumberOfLocalResults() == 1:
-            self.assertEqual(node_results[0].Id, 1) # Local result
-        self.assertEqual(node_results(0).Id, 1)     # Global result
+            self.assertEqual(node_results[0].Id, 1)
+        # Global result
+        ids = node_results.GetResultIndices()
+        self.assertEqual(len(ids), 1)
+        self.assertTrue(1 in ids)
 
     def test_GeometricalObjectsBins_SearchIsInside(self):
         # One node search
