@@ -286,7 +286,7 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
 template <class TContainerType, class TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::SetDataToZero()
 {
-    mpExpression = LiteralExpression<double>::Create(0.0);
+    mpExpression = LiteralExpression<double>::Create(0.0, GetContainer().size());
 }
 
 template <class TContainerType, class TMeshType>

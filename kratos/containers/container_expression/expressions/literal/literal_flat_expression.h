@@ -41,9 +41,15 @@ public:
     ///@name Type definition
     ///@{
 
-    using DataType = TRawDataType;
-
     using Pointer = Kratos::intrusive_ptr<LiteralFlatExpression<TRawDataType>>;
+
+    using value_type = TRawDataType;
+
+    using size_type = std::size_t;
+
+    using iterator = TRawDataType*;
+
+    using const_iterator = TRawDataType const*;
 
     ///@}
     ///@name Life cycle
@@ -89,13 +95,19 @@ public:
 
     const std::vector<IndexType> GetItemShape() const override;
 
-    inline IndexType DataSize() const noexcept { return mData.DataSize(); }
+    IndexType size() const noexcept { return mData.size(); }
 
-    inline TRawDataType* begin() noexcept { return mData.begin(); }
+    iterator begin() noexcept { return mData.begin(); }
 
-    inline TRawDataType const* begin() const noexcept { return mData.begin(); }
+    iterator end() noexcept { return mData.end(); }
 
-    inline TRawDataType const* end() const noexcept { return mData.end(); }
+    const_iterator begin() const noexcept { return mData.begin(); }
+
+    const_iterator end() const noexcept { return mData.end(); }
+
+    const_iterator cbegin() const noexcept { return mData.begin(); }
+
+    const_iterator cend() const noexcept { return mData.end(); }
 
     std::string Info() const override;
 
@@ -146,13 +158,19 @@ protected:
         ///@name Operators
         ///@{
 
-        inline TRawDataType* begin() noexcept { return mpBegin; }
+        inline iterator begin() noexcept { return mpBegin; }
 
-        inline TRawDataType const* begin() const noexcept { return mpBegin; }
+        inline iterator end() noexcept { return mpBegin + mSize; }
 
-        inline TRawDataType const* end() const noexcept { return mpBegin + mSize; }
+        inline const_iterator begin() const noexcept { return mpBegin; }
 
-        inline IndexType DataSize() const noexcept { return mSize; }
+        inline const_iterator end() const noexcept { return mpBegin + mSize; }
+
+        inline const_iterator cbegin() const noexcept { return mpBegin; }
+
+        inline const_iterator cend() const noexcept { return mpBegin + mSize; }
+
+        inline IndexType size() const noexcept { return mSize; }
 
         ///@}
     private:
