@@ -167,7 +167,7 @@ void GeometricalObjectsBinsMPI::SearchIsInside(
     computed_rank = mrDataCommunicator.MinAll(computed_rank);
 
     // Get the solution from the computed_rank
-    if (computed_rank == GetRank()) {
+    if (computed_rank == current_rank) {
         // Add the local search
         rResults.AddResult(local_result);
     }
