@@ -69,7 +69,6 @@ class AlgorithmSteepestDescent(Algorithm):
     def Initialize(self):
         self.converged = False
         self.__obj_val = None
-        self.__objective.GetReponse().Initialize()
         self.__objective.Initialize()
         self.__objective.Check()
         self.master_control.Initialize()
