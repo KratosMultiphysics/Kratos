@@ -111,11 +111,11 @@ void GeometricalObjectsBinsMPI::SearchNearestInRadius(
     } local_min, global_min;
 
     local_min.value = local_distance;
-    local_min.rank = GetRank();
+    local_min.rank = current_rank;
     MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPIDataCommunicator::GetMPICommunicator(mrDataCommunicator));
 
     // Get the solution from the computed_rank
-    if (global_min.rank == GetRank()) {
+    if (global_min.rank == current_rank) {
         // Add the local search
         rResults.AddResult(local_result);
     }
