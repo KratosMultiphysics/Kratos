@@ -214,6 +214,7 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("Reshape", [](const container_type& rSelf, const std::vector<IndexType>& rShape) { return rSelf.Reshape(rShape); }, py::arg("shape"))
         .def("Comb", [](const container_type& rSelf, const typename container_type::BaseType& rOther) { return rSelf.Comb(rOther); }, py::arg("other_container_expression_to_combine_with"))
         .def("Comb", [](const container_type& rSelf, const std::vector<typename container_type::BaseType::Pointer>& rListOfOthersContainerExpressions) { return rSelf.Comb(rListOfOthersContainerExpressions); }, py::arg("other_container_expressions_list_to_combine_with"))
+        .def("Scale", [](const container_type& rSelf, const container_type& rOther){auto copy = rSelf; copy.SetExpression(Scale(rSelf.pGetExpression(), rOther.pGetExpression())); return copy;})
         .def("__add__", [](const container_type& rSelf, const container_type& rOther) { return rSelf + rOther; })
         .def("__iadd__", [](container_type& rSelf, const container_type& rOther) { rSelf = rSelf + rOther; return rSelf; })
         .def("__add__", [](const container_type& rSelf, const double Value) { return rSelf + Value; })
