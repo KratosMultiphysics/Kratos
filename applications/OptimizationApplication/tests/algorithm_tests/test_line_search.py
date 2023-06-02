@@ -15,6 +15,10 @@ class TestLineSearch(kratos_unittest.TestCase):
         cls.optimization_problem = OptimizationProblem()
         ComponentDataView("algorithm", cls.optimization_problem).SetDataBuffer(1)
 
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(cls.model_part)])
+        sensitivity.Read(Kratos.DENSITY)
+        ComponentDataView("algorithm", cls.optimization_problem).GetBufferedData()["search_direction"] = sensitivity
+
     @classmethod
     def CreateElements(cls):
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -32,18 +36,35 @@ class TestLineSearch(kratos_unittest.TestCase):
         properties[Kratos.THICKNESS] = 6.0
         cls.model_part.CreateNewElement("Element2D3N", 2, [4, 1, 3], properties)
 
-    def test_ConstantLineSearch(self):
+    def test_ConstantLineSearchInfNorm(self):
         line_search_settings = Kratos.Parameters("""{
             "type"              : "const_step",
             "gradient_scaling": "inf_norm",
             "init_step"          : 3.0
         }""")  
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
-        sensitivity.Read(Kratos.DENSITY)
-        ComponentDataView("algorithm", self.optimization_problem).GetBufferedData()["search_direction"] = sensitivity
         alpha = line_search.ComputeStep()
         self.assertEqual(alpha, 0.75)
+
+    def test_ConstantLineSearchL2Norm(self):
+        line_search_settings = Kratos.Parameters("""{
+            "type"              : "const_step",
+            "gradient_scaling": "l2_norm",
+            "init_step"          : 3.0
+        }""")  
+        line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
+        alpha = line_search.ComputeStep()
+        self.assertEqual(alpha, 0.6708203932499369)
+
+    def test_ConstantLineSearchNoneNorm(self):
+        line_search_settings = Kratos.Parameters("""{
+            "type"              : "const_step",
+            "gradient_scaling": "none",
+            "init_step"          : 3.0
+        }""")  
+        line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
+        alpha = line_search.ComputeStep()
+        self.assertEqual(alpha, 3.0)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
