@@ -41,9 +41,11 @@ Expression::Pointer Read(
         return std::visit([&rContainer, number_of_entities](auto pVariable) {
             using data_type = typename std::remove_const_t<std::remove_pointer_t<decltype(pVariable)>>::Type;
 
+            using raw_data_type = std::conditional_t<std::is_same_v<data_type, int>, int, double>;
+
             VariableExpressionDataIO<data_type> variable_flatten_data_io(TContainerDataIO::GetValue(*rContainer.begin(), *pVariable));
 
-            auto p_expression = LiteralFlatExpression<double>::Create(number_of_entities, variable_flatten_data_io.GetItemShape());
+            auto p_expression = LiteralFlatExpression<raw_data_type>::Create(number_of_entities, variable_flatten_data_io.GetItemShape());
             auto& r_expression = *p_expression;
 
             IndexPartition<IndexType>(number_of_entities).for_each([&rContainer, &pVariable, &variable_flatten_data_io, &r_expression](const IndexType Index) {
@@ -51,7 +53,8 @@ Expression::Pointer Read(
                     variable_flatten_data_io.Read(r_expression, Index, values);
                 });
 
-            return p_expression;
+            return Kratos::intrusive_ptr<Expression>(&r_expression);
+
         }, pVariable);
     }
 
@@ -230,6 +233,7 @@ ModelPart::MeshType& VariableExpressionIO::GetMesh()
     KRATOS_VARIABLE_EXPRESSION_IO_ENTITIES(ModelPart::ConditionsContainerType, __VA_ARGS__)                                                                                             \
     KRATOS_VARIABLE_EXPRESSION_IO_ENTITIES(ModelPart::ElementsContainerType, __VA_ARGS__)
 
+KRATOS_VARIABLE_EXPRESSION_IO(int)
 KRATOS_VARIABLE_EXPRESSION_IO(double)
 KRATOS_VARIABLE_EXPRESSION_IO(array_1d<double, 3>)
 KRATOS_VARIABLE_EXPRESSION_IO(array_1d<double, 4>)

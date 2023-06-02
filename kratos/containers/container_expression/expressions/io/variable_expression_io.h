@@ -34,6 +34,7 @@ public:
     ///@{
 
     using VariableType = std::variant<
+                                const Variable<int>*,
                                 const Variable<double>*,
                                 const Variable<array_1d<double, 3>>*,
                                 const Variable<array_1d<double, 4>>*,
