@@ -136,13 +136,10 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
     for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
         double& r_fluid_fraction = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
         r_fluid_fraction = porosity;
-        Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
-        r_permeability = ZeroMatrix(Dim, Dim);
     }
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
-        i->Initialize(r_process_info); // Initialize constitutive law
         const auto& rElem = *i;
         rElem.Check(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);

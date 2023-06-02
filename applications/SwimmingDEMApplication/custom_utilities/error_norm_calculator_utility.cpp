@@ -40,6 +40,9 @@ DenseVector<std::vector<double>> mExactScalar;
 DenseVector<Matrix> mExactVector;
 DenseVector<Matrix> mExactScalarGradient;
 DenseVector<DenseVector<Matrix>> mExactVectorGradient;
+DenseVector<std::vector<double>> mExactPorosity;
+DenseVector<Matrix> mExactBodyForce;
+DenseVector<Matrix> mExactPorosityGradient;
 
 void ErrorNormCalculator::ComputeDofsErrors(ModelPart& r_model_part)
 {

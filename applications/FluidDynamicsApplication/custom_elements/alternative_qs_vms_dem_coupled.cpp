@@ -24,9 +24,6 @@
 
 namespace Kratos
 {
-DenseVector<std::vector<double>> mExactPorosity;
-DenseVector<Matrix> mExactBodyForce;
-DenseVector<Matrix> mExactPorosityGradient;
 //////////////////////////Life cycle
 
 template< class TElementData >
