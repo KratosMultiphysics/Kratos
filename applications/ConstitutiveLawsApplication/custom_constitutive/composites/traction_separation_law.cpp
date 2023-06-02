@@ -132,15 +132,26 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
 
     if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_ONE) {
 
-        rValue.resize(r_combination_factors.size()+1, false);
-
-        noalias(rValue) = mDelaminationDamageModeOne;
+        rValue.resize(6, false);
+        Vector SortedmDelaminationDamageModeOne;
+        SortedmDelaminationDamageModeOne.resize(r_combination_factors.size()+1, false);
+        noalias(SortedmDelaminationDamageModeOne) = mDelaminationDamageModeOne;
+        std::sort(SortedmDelaminationDamageModeOne.begin(), SortedmDelaminationDamageModeOne.end(),std::greater<>());
+        for (int i = 0; i < 6; ++i) {
+            rValue[i] = SortedmDelaminationDamageModeOne[i];
+        }
         return rValue;
     } else if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
 
-        rValue.resize(r_combination_factors.size()+1, false);
-
-        noalias(rValue) = mDelaminationDamageModeTwo;
+        rValue.resize(6, false);
+        Vector SortedmDelaminationDamageModeTwo;
+        SortedmDelaminationDamageModeTwo.resize(r_combination_factors.size()+1, false);
+        noalias(SortedmDelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
+        std::sort(SortedmDelaminationDamageModeTwo.begin(), SortedmDelaminationDamageModeTwo.end(),std::greater<>());
+        for (int i = 0; i < 6; ++i) {
+            rValue[i] = SortedmDelaminationDamageModeTwo[i];
+        }
+        // KRATOS_WATCH(rValue);
         return rValue;
     } else {
         BaseType::GetValue(rThisVariable,rValue);
