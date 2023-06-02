@@ -755,7 +755,8 @@ public:
      * @brief Returns an iterator pointing to the beginning of the container.
      * @return An iterator pointing to the beginning of the container.
      */
-    iterator begin() {
+    iterator begin() 
+    {
         return iterator(mPointResults.begin());
     }
 
@@ -763,7 +764,8 @@ public:
      * @brief Returns an iterator pointing to the end of the container.
      * @return An iterator pointing to the end of the container.
      */
-    iterator end() {
+    iterator end() 
+    {
         return iterator(mPointResults.end());
     }
 
@@ -771,7 +773,8 @@ public:
      * @brief Returns a constant iterator pointing to the beginning of the container.
      * @return A constant iterator pointing to the beginning of the container.
      */
-    const_iterator begin() const {
+    const_iterator begin() const 
+    {
         return const_iterator(mPointResults.begin());
     }
 
@@ -779,7 +782,8 @@ public:
      * @brief Returns a constant iterator pointing to the end of the container.
      * @return A constant iterator pointing to the end of the container.
      */
-    const_iterator end() const {
+    const_iterator end() const 
+    {
         return const_iterator(mPointResults.end());
     }
 
@@ -810,6 +814,13 @@ public:
      * @details This method clears the containers
      */
     void Clear();
+
+    /**
+     * @brief Synchronize all container between partitions
+     * @details This method synchronizes all the container between partitions
+     * @param rDataCommunicator The data communicator
+     */
+    void SynchronizeAll(const DataCommunicator& rDataCommunicator);
 
     ///@}
     ///@name Input and output
