@@ -272,6 +272,18 @@ void SpatialSearchResultContainerMap<TObjectType>::Clear()
 /***********************************************************************************/
 
 template <class TObjectType>
+void SpatialSearchResultContainerMap<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
+{
+    // Synchronize all the results
+    for (auto& r_point_result : mPointResults) {
+        r_point_result.second.SynchronizeAll(rDataCommunicator);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 typename SpatialSearchResultContainerMap<TObjectType>::HashType SpatialSearchResultContainerMap<TObjectType>::Hash(const array_1d<double, 3>& rCoordinates) const
 {
     std::hash<array_1d<double, 3>> hasher;
