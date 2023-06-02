@@ -22,7 +22,7 @@
 #include "includes/accessor.h"
 #include "includes/properties.h"
 
-using AccessorBindType      = std::unique_ptr<Kratos::Accessor>;
+using AccessorBindType = std::unique_ptr<Kratos::Accessor>;
 
 PYBIND11_MAKE_OPAQUE(AccessorBindType);
 

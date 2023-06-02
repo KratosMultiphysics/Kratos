@@ -65,6 +65,7 @@ double TableAccessor::GetValueFromTable(
             independent_at_gauss += nodal_value * rShapeFunctionVector[i];
         }
     } else if (mInputVariableType == static_cast<int>(InputVariableType::ElementalNonHistorical)) {
+        KRATOS_ERROR_IF_NOT(rGeometry.Has(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the Geometry to retrieve Table values." << std::endl;
         independent_at_gauss = rGeometry.GetValue(rIndependentVariable);
     } else {
         KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : nodal_historical, nodal_non_historical and elemental_non_historical" << std::endl;
