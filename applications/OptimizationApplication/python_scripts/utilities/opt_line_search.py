@@ -15,7 +15,8 @@ class ConstStep(object):
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
             "type"              : "const_step",
-            "init_step"          : 0
+            "init_step"          : 0,
+            "gradient_scaling": "inf_norm"
         }""")
 
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -36,6 +37,7 @@ class ConstStep(object):
             step =  self.init_step
         msg = f"""\t Line Search info: 
             type          : constant 
-            value         : {step:0.6e}"""
+            unscaled_step : {self.init_step:0.6e}
+            scaled_step   : {step:0.6e}"""
         print(msg)
         return step

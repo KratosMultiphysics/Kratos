@@ -25,6 +25,7 @@
 // Project includes
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
+#include "includes/global_variables.h"
 
 namespace Kratos
 {
@@ -1817,6 +1818,12 @@ public:
                 break;
             series_term++;
         }
+    }
+
+
+    static double DegreesToRadians(double AngleInDegrees)
+    {
+        return (AngleInDegrees * Globals::Pi) / 180.0;
     }
 
     ///@}

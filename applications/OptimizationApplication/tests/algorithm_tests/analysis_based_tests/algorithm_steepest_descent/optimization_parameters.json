@@ -37,6 +37,15 @@
                     "Structure"
                 ]
             }
+        },
+        {
+            "name": "strain_energy",
+            "type": "linear_strain_energy_response_function",
+            "settings": {
+                "evaluated_model_part_names": ["Structure"],
+                "primal_analysis_name": "Structure_static",
+                "perturbation_size": 1e-8
+            }
         }
     ],
     "controls": [
@@ -47,18 +56,18 @@
                 "model_part_names": [
                     "Structure"
                 ],
-                "control_variable_name": "DENSITY"
+                "control_variable_name": "YOUNG_MODULUS"
             }
         }
     ],
     "algorithm_settings": {
         "type": "algorithm_steepest_descent",
         "settings": {
-            "gradient_scaling": "inf_norm",
             "echo_level": 0,
             "line_search": {
                 "type": "const_step",
-                "init_step": 100
+                "init_step": 1e9,
+                "gradient_scaling": "inf_norm"
             },
             "conv_settings": {
                 "type": "max_iter",
@@ -69,7 +78,7 @@
             "material_control"
         ],
         "objective": {
-            "response_name": "mass_Structure",
+            "response_name": "strain_energy",
             "type": "minimization",
             "scaling": 1.0
         }

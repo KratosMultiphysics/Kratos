@@ -35,6 +35,7 @@ class TestLineSearch(kratos_unittest.TestCase):
     def test_ConstantLineSearch(self):
         line_search_settings = Kratos.Parameters("""{
             "type"              : "const_step",
+            "gradient_scaling": "inf_norm",
             "init_step"          : 3.0
         }""")  
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)

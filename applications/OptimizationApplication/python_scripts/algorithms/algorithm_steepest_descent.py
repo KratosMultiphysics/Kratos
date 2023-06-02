@@ -22,13 +22,11 @@ class AlgorithmSteepestDescent(Algorithm):
         return Kratos.Parameters("""{
             "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
             "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
-            "model_part_name"   : "OptimizationModelPart",
             "objective"         : {},
             "controls"          : [],
             "echo_level"        : 0,
             "settings"          : {
                 "echo_level"      : 0,
-                "gradient_scaling": "inf_norm",
                 "line_search"     : {},
                 "conv_settings"   : {}
             }
@@ -39,19 +37,18 @@ class AlgorithmSteepestDescent(Algorithm):
         self.parameters = parameters
         self._optimization_problem = optimization_problem
 
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
         self.master_control = MasterControl() # Need to fill it with controls
-        self.__control_param_list = parameters["controls"]
 
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
 
-        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         settings = parameters["settings"]
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
 
-        self.gradient_scaling = settings["gradient_scaling"].GetString()
         self.echo_level = settings["echo_level"].GetInt()
 
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
@@ -75,6 +72,7 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__objective.GetReponse().Initialize()
         self.__objective.Initialize()
         self.__objective.Check()
+        self.master_control.Initialize()
         self.__control_field = self.master_control.GetControlField() # GetInitialControlFields() later
 
     def Finalize(self):
@@ -102,9 +100,12 @@ class AlgorithmSteepestDescent(Algorithm):
             with TimeLogger("Optimization", f" Start Iteration {self._optimization_problem.GetStep()}", f"End Iteration {self._optimization_problem.GetStep()}"):
 
                 with TimeLogger("Calculate objective value", "Start", "End"):
-                    print("begin", self.__control_field.Evaluate())
                     self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) 
                     algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
+                    algorithm_data.GetBufferedData()["rel_obj[%]"] = self.__objective.GetRelativeChange() * 100
+                    initial_value = self.__objective.GetInitialValue()
+                    if initial_value:
+                        algorithm_data.GetBufferedData()["abs_obj[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
                     print(self.__objective.GetInfo())
 
                 with TimeLogger("Calculate gradient", "Start", "End"):
@@ -127,8 +128,6 @@ class AlgorithmSteepestDescent(Algorithm):
                 self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
 
                 self._optimization_problem.AdvanceStep()
-
-                print("end", self.__control_field.Evaluate())
 
             self.Finalize()
     
