@@ -128,7 +128,64 @@ void Write(
 } // namespace VariableExpressionIOHelperUtilities
 
 template<class TDataType>
-VariableExpressionIO::VariableExpressionIO(
+VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const ContainerType& rContainerType,
+    const MeshType& rMeshType)
+    : mrModelPart(rModelPart),
+      mpVariable(&rVariable),
+      mContainerType(rContainerType),
+      mMeshType(rMeshType)
+{
+}
+
+template <class TDataType, class TMeshType>
+VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
+    const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
+    const Variable<TDataType>& rVariable,
+    const bool IsHistorical)
+    : VariableExpressionInput(
+        rContainer.GetModelPart(),
+        rVariable,
+        IsHistorical ? ContainerType::NodalHistorical : ContainerType::NodalNonHistorical,
+        std::is_same_v<TMeshType, Kratos::MeshType::Local> ? MeshType::Local : std::is_same_v<TMeshType, Kratos::MeshType::Interface> ? MeshType::Interface : MeshType::Ghost)
+{
+
+}
+
+template <class TContainerType, class TDataType, class TMeshType>
+VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
+    const ContainerExpression<TContainerType, TMeshType>& rContainer,
+    const Variable<TDataType>& rVariable)
+    : VariableExpressionInput(
+        rContainer.GetModelPart(),
+        rVariable,
+        std::is_same_v<TContainerType, ModelPart::ConditionsContainerType> ? ContainerType::ConditionNonHistorical : ContainerType::ElementNonHistorical,
+        std::is_same_v<TMeshType, Kratos::MeshType::Local> ? MeshType::Local : std::is_same_v<TMeshType, Kratos::MeshType::Interface> ? MeshType::Interface : MeshType::Ghost)
+{
+}
+
+Expression::Pointer VariableExpressionIO::VariableExpressionInput::Execute() const
+{
+    const auto& r_mesh = GetMesh(mrModelPart.GetCommunicator(), mMeshType);
+
+    switch (mContainerType) {
+        case ContainerType::NodalHistorical:
+            return VariableExpressionIOHelperUtilities::Read<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>>(r_mesh.Nodes(), mpVariable);
+        case ContainerType::NodalNonHistorical:
+            return VariableExpressionIOHelperUtilities::Read<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(r_mesh.Nodes(), mpVariable);
+        case ContainerType::ConditionNonHistorical:
+            return VariableExpressionIOHelperUtilities::Read<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(r_mesh.Conditions(), mpVariable);
+        case ContainerType::ElementNonHistorical:
+            return VariableExpressionIOHelperUtilities::Read<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(r_mesh.Elements(), mpVariable);
+    }
+
+    return nullptr;
+}
+
+template<class TDataType>
+VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
     ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const ContainerType& rContainerType,
@@ -141,11 +198,11 @@ VariableExpressionIO::VariableExpressionIO(
 }
 
 template <class TDataType, class TMeshType>
-VariableExpressionIO::VariableExpressionIO(
+VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
     ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
     const Variable<TDataType>& rVariable,
     const bool IsHistorical)
-    : VariableExpressionIO(
+    : VariableExpressionOutput(
         rContainer.GetModelPart(),
         rVariable,
         IsHistorical ? ContainerType::NodalHistorical : ContainerType::NodalNonHistorical,
@@ -155,10 +212,10 @@ VariableExpressionIO::VariableExpressionIO(
 }
 
 template <class TContainerType, class TDataType, class TMeshType>
-VariableExpressionIO::VariableExpressionIO(
+VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
     ContainerExpression<TContainerType, TMeshType>& rContainer,
     const Variable<TDataType>& rVariable)
-    : VariableExpressionIO(
+    : VariableExpressionOutput(
         rContainer.GetModelPart(),
         rVariable,
         std::is_same_v<TContainerType, ModelPart::ConditionsContainerType> ? ContainerType::ConditionNonHistorical : ContainerType::ElementNonHistorical,
@@ -166,71 +223,81 @@ VariableExpressionIO::VariableExpressionIO(
 {
 }
 
-Expression::Pointer VariableExpressionIO::Read()
-{
-    switch (mContainerType) {
-        case ContainerType::NodalHistorical:
-            return VariableExpressionIOHelperUtilities::Read<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>>(GetMesh().Nodes(), mpVariable);
-        case ContainerType::NodalNonHistorical:
-            return VariableExpressionIOHelperUtilities::Read<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(GetMesh().Nodes(), mpVariable);
-        case ContainerType::ConditionNonHistorical:
-            return VariableExpressionIOHelperUtilities::Read<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(GetMesh().Conditions(), mpVariable);
-        case ContainerType::ElementNonHistorical:
-            return VariableExpressionIOHelperUtilities::Read<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(GetMesh().Elements(), mpVariable);
-    }
-
-    return nullptr;
-}
-
-void VariableExpressionIO::Write(const Expression& rExpression)
+void VariableExpressionIO::VariableExpressionOutput::Execute(const Expression& rExpression)
 {
     auto& r_communicator = mrModelPart.GetCommunicator();
+    auto& r_mesh = GetMesh(r_communicator, mMeshType);
 
     switch (mContainerType) {
         case ContainerType::NodalHistorical:
-            VariableExpressionIOHelperUtilities::Write<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>>(GetMesh().Nodes(), r_communicator, rExpression, mpVariable);
+            VariableExpressionIOHelperUtilities::Write<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>>(r_mesh.Nodes(), r_communicator, rExpression, mpVariable);
             break;
         case ContainerType::NodalNonHistorical:
-            VariableExpressionIOHelperUtilities::Write<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(GetMesh().Nodes(), r_communicator, rExpression, mpVariable);
+            VariableExpressionIOHelperUtilities::Write<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(r_mesh.Nodes(), r_communicator, rExpression, mpVariable);
             break;
         case ContainerType::ConditionNonHistorical:
-            VariableExpressionIOHelperUtilities::Write<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(GetMesh().Conditions(), r_communicator, rExpression, mpVariable);
+            VariableExpressionIOHelperUtilities::Write<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(r_mesh.Conditions(), r_communicator, rExpression, mpVariable);
             break;
         case ContainerType::ElementNonHistorical:
-            VariableExpressionIOHelperUtilities::Write<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(GetMesh().Elements(), r_communicator, rExpression, mpVariable);
+            VariableExpressionIOHelperUtilities::Write<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>(r_mesh.Elements(), r_communicator, rExpression, mpVariable);
             break;
     }
 }
 
-ModelPart::MeshType& VariableExpressionIO::GetMesh()
+ModelPart::MeshType& VariableExpressionIO::GetMesh(
+    Communicator& rCommunicator,
+    const MeshType& rMeshType)
 {
-    switch (mMeshType) {
+    switch (rMeshType) {
         case MeshType::Local:
-            return mrModelPart.GetCommunicator().LocalMesh();
+            return rCommunicator.LocalMesh();
         case MeshType::Interface:
-            return mrModelPart.GetCommunicator().InterfaceMesh();
+            return rCommunicator.InterfaceMesh();
         case MeshType::Ghost:
-            return mrModelPart.GetCommunicator().GhostMesh();
+            return rCommunicator.GhostMesh();
     }
 
-    return mrModelPart.GetCommunicator().LocalMesh();
+    return rCommunicator.LocalMesh();
+}
+
+const ModelPart::MeshType& VariableExpressionIO::GetMesh(
+    const Communicator& rCommunicator,
+    const MeshType& rMeshType)
+{
+    switch (rMeshType) {
+        case MeshType::Local:
+            return rCommunicator.LocalMesh();
+        case MeshType::Interface:
+            return rCommunicator.InterfaceMesh();
+        case MeshType::Ghost:
+            return rCommunicator.GhostMesh();
+    }
+
+    return rCommunicator.LocalMesh();
 }
 
 // template instantiations
-#define KRATOS_VARIABLE_EXPRESSION_IO_NODES(...)                                                                                                                                     \
-    template VariableExpressionIO::VariableExpressionIO(ContainerExpression<ModelPart::NodesContainerType, Kratos::MeshType::Local>&, const Variable<__VA_ARGS__>&, const bool);     \
-    template VariableExpressionIO::VariableExpressionIO(ContainerExpression<ModelPart::NodesContainerType, Kratos::MeshType::Interface>&, const Variable<__VA_ARGS__>&, const bool); \
-    template VariableExpressionIO::VariableExpressionIO(ContainerExpression<ModelPart::NodesContainerType, Kratos::MeshType::Ghost>&, const Variable<__VA_ARGS__>&, const bool);
+#define KRATOS_VARIABLE_EXPRESSION_IO_NODES(...)                                                                                                                                                                        \
+    template VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(const ContainerExpression<ModelPart::NodesContainerType, Kratos::MeshType::Local>&, const Variable<__VA_ARGS__>&, const bool);      \
+    template VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(const ContainerExpression<ModelPart::NodesContainerType, Kratos::MeshType::Interface>&, const Variable<__VA_ARGS__>&, const bool);  \
+    template VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(const ContainerExpression<ModelPart::NodesContainerType, Kratos::MeshType::Ghost>&, const Variable<__VA_ARGS__>&, const bool);      \
+    template VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(ContainerExpression<ModelPart::NodesContainerType, Kratos::MeshType::Local>&, const Variable<__VA_ARGS__>&, const bool);          \
+    template VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(ContainerExpression<ModelPart::NodesContainerType, Kratos::MeshType::Interface>&, const Variable<__VA_ARGS__>&, const bool);      \
+    template VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(ContainerExpression<ModelPart::NodesContainerType, Kratos::MeshType::Ghost>&, const Variable<__VA_ARGS__>&, const bool);
 
-#define KRATOS_VARIABLE_EXPRESSION_IO_ENTITIES(ENTITY_TYPE, ...)                                                                                       \
-    template VariableExpressionIO::VariableExpressionIO(ContainerExpression<ENTITY_TYPE, Kratos::MeshType::Local>&, const Variable<__VA_ARGS__>&);     \
-    template VariableExpressionIO::VariableExpressionIO(ContainerExpression<ENTITY_TYPE, Kratos::MeshType::Interface>&, const Variable<__VA_ARGS__>&); \
-    template VariableExpressionIO::VariableExpressionIO(ContainerExpression<ENTITY_TYPE, Kratos::MeshType::Ghost>&, const Variable<__VA_ARGS__>&);
+#define KRATOS_VARIABLE_EXPRESSION_IO_ENTITIES(ENTITY_TYPE, ...)                                                                                                                            \
+    template VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(const ContainerExpression<ENTITY_TYPE, Kratos::MeshType::Local>&, const Variable<__VA_ARGS__>&);        \
+    template VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(const ContainerExpression<ENTITY_TYPE, Kratos::MeshType::Interface>&, const Variable<__VA_ARGS__>&);    \
+    template VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(const ContainerExpression<ENTITY_TYPE, Kratos::MeshType::Ghost>&, const Variable<__VA_ARGS__>&);        \
+    template VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(ContainerExpression<ENTITY_TYPE, Kratos::MeshType::Local>&, const Variable<__VA_ARGS__>&);            \
+    template VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(ContainerExpression<ENTITY_TYPE, Kratos::MeshType::Interface>&, const Variable<__VA_ARGS__>&);        \
+    template VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(ContainerExpression<ENTITY_TYPE, Kratos::MeshType::Ghost>&, const Variable<__VA_ARGS__>&);
 
-#define KRATOS_VARIABLE_EXPRESSION_IO(...)                                                                                                                                              \
-    template VariableExpressionIO::VariableExpressionIO(ModelPart&, const Variable<__VA_ARGS__>&, const VariableExpressionIO::ContainerType&, const VariableExpressionIO::MeshType&);   \
-    KRATOS_VARIABLE_EXPRESSION_IO_NODES(__VA_ARGS__)                                                                                                                                    \
-    KRATOS_VARIABLE_EXPRESSION_IO_ENTITIES(ModelPart::ConditionsContainerType, __VA_ARGS__)                                                                                             \
+#define KRATOS_VARIABLE_EXPRESSION_IO(...)                                                                                                                                                                              \
+    template VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(const ModelPart&, const Variable<__VA_ARGS__>&, const VariableExpressionIO::ContainerType&, const VariableExpressionIO::MeshType&); \
+    template VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(ModelPart&, const Variable<__VA_ARGS__>&, const VariableExpressionIO::ContainerType&, const VariableExpressionIO::MeshType&);     \
+    KRATOS_VARIABLE_EXPRESSION_IO_NODES(__VA_ARGS__)                                                                                                                                                                    \
+    KRATOS_VARIABLE_EXPRESSION_IO_ENTITIES(ModelPart::ConditionsContainerType, __VA_ARGS__)                                                                                                                             \
     KRATOS_VARIABLE_EXPRESSION_IO_ENTITIES(ModelPart::ElementsContainerType, __VA_ARGS__)
 
 KRATOS_VARIABLE_EXPRESSION_IO(int)

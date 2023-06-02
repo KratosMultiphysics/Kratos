@@ -23,10 +23,8 @@
 #include "containers/container_expression/variable_expression_data_io.h"
 #include "containers/container_expression/expressions/literal/literal_expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
-#include "containers/container_expression/expressions/binary/binary_expression.h"
-#include "containers/container_expression/expressions/unary/unary_slice_expression.h"
-#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
-#include "containers/container_expression/expressions/unary/unary_combine_expression.h"
+#include "containers/container_expression/expressions/arithmetic_operators.h"
+#include "containers/container_expression/expressions/view_operators.h"
 #include "containers/container_expression/expressions/io/variable_expression_io.h"
 
 namespace Kratos {
@@ -56,9 +54,9 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
     KRATOS_TRY
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        this->mpExpression = VariableExpressionIO(*this, rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>).Read();
+        this->mpExpression = VariableExpressionIO::VariableExpressionInput(*this, rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>).Execute();
     } else {
-        this->mpExpression = VariableExpressionIO(*this, rVariable).Read();
+        this->mpExpression = VariableExpressionIO::VariableExpressionInput(*this, rVariable).Execute();
     }
 
     KRATOS_CATCH("")
@@ -71,9 +69,9 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
     KRATOS_TRY
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        VariableExpressionIO(*this, rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>).Write(**this->mpExpression);
+        VariableExpressionIO::VariableExpressionOutput(*this, rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>).Execute(**this->mpExpression);
     } else {
-        VariableExpressionIO(*this, rVariable).Write(**this->mpExpression);
+        VariableExpressionIO::VariableExpressionOutput(*this, rVariable).Execute(**this->mpExpression);
     }
 
     KRATOS_CATCH("");
@@ -99,7 +97,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     const IndexType Stride) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = UnarySliceExpression::Create(*this->mpExpression, Offset, Stride);
+    result.mpExpression = Kratos::Slice(*this->mpExpression, Offset, Stride);
     return result;
 }
 
@@ -116,7 +114,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     TIteratorType End) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = UnaryReshapeExpression::Create(*this->mpExpression, Begin, End);
+    result.mpExpression = Kratos::Reshape(*this->mpExpression, Begin, End);
     return result;
 }
 
@@ -127,7 +125,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     std::vector<Expression::Pointer> expressions;
     expressions.push_back(this->pGetExpression());
     expressions.push_back(rOther.pGetExpression());
-    result.mpExpression = UnaryCombineExpression::Create(expressions.begin(), expressions.end());
+    result.mpExpression = Kratos::Comb(expressions.begin(), expressions.end());
     return result;
 }
 
@@ -149,7 +147,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     for (auto itr = Begin; itr != End; ++itr) {
         expressions.push_back((*itr)->pGetExpression());
     }
-    result.mpExpression = UnaryCombineExpression::Create(expressions.begin(), expressions.end());
+    result.mpExpression = Kratos::Comb(expressions.begin(), expressions.end());
     return result;
 }
 

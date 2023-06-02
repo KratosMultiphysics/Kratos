@@ -27,7 +27,7 @@
 namespace Kratos {
 
 
-class KRATOS_API(KRATOS_CORE) VariableExpressionIO: public ExpressionIO
+class KRATOS_API(KRATOS_CORE) VariableExpressionIO
 {
 public:
     ///@name Type definitions
@@ -42,8 +42,6 @@ public:
                                 const Variable<array_1d<double, 9>>*,
                                 const Variable<Vector>*,
                                 const Variable<Matrix>*>;
-
-    KRATOS_CLASS_POINTER_DEFINITION(VariableExpressionIO);
 
     ///}
     ///@name Public enums
@@ -65,56 +63,120 @@ public:
     };
 
     ///@}
-    ///@name Life cycle
+    ///@name Public classes
     ///@{
 
-    template<class TDataType>
-    VariableExpressionIO(
-        ModelPart& rModelPart,
-        const Variable<TDataType>& rVariable,
-        const ContainerType& rContainerType,
-        const MeshType& rMeshType = MeshType::Local);
+    class VariableExpressionInput : public ExpressionInput
+    {
+    public:
+        ///@name Life cycle
+        ///@{
 
-    template <class TDataType, class TMeshType = Kratos::MeshType::Local>
-    VariableExpressionIO(
-        ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
-        const Variable<TDataType>& rVariable,
-        const bool IsHistorical = false);
+        template<class TDataType>
+        VariableExpressionInput(
+            const ModelPart& rModelPart,
+            const Variable<TDataType>& rVariable,
+            const ContainerType& rContainerType,
+            const MeshType& rMeshType = MeshType::Local);
 
-    template <class TContainerType, class TDataType, class TMeshType = Kratos::MeshType::Local>
-    VariableExpressionIO(
-        ContainerExpression<TContainerType, TMeshType>& rContainer,
-        const Variable<TDataType>& rVariable);
+        template <class TDataType, class TMeshType = Kratos::MeshType::Local>
+        VariableExpressionInput(
+            const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
+            const Variable<TDataType>& rVariable,
+            const bool IsHistorical = false);
 
-    ~VariableExpressionIO() override = default;
+        template <class TContainerType, class TDataType, class TMeshType = Kratos::MeshType::Local>
+        VariableExpressionInput(
+            const ContainerExpression<TContainerType, TMeshType>& rContainer,
+            const Variable<TDataType>& rVariable);
+
+        ~VariableExpressionInput() override = default;
+
+        ///@}
+        ///@name Public operations
+        ///@{
+
+        Expression::Pointer Execute() const override;
+
+        ///@}
+
+    private:
+        ///@name Private member variables
+        ///@{
+
+        const ModelPart& mrModelPart;
+
+        const VariableType mpVariable;
+
+        const ContainerType mContainerType;
+
+        const MeshType mMeshType;
+
+        ///@}
+
+    };
+
+    class VariableExpressionOutput : public ExpressionOutput
+    {
+    public:
+        ///@name Life cycle
+        ///@{
+
+        template<class TDataType>
+        VariableExpressionOutput(
+            ModelPart& rModelPart,
+            const Variable<TDataType>& rVariable,
+            const ContainerType& rContainerType,
+            const MeshType& rMeshType = MeshType::Local);
+
+        template <class TDataType, class TMeshType = Kratos::MeshType::Local>
+        VariableExpressionOutput(
+            ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
+            const Variable<TDataType>& rVariable,
+            const bool IsHistorical = false);
+
+        template <class TContainerType, class TDataType, class TMeshType = Kratos::MeshType::Local>
+        VariableExpressionOutput(
+            ContainerExpression<TContainerType, TMeshType>& rContainer,
+            const Variable<TDataType>& rVariable);
+
+        ~VariableExpressionOutput() override = default;
+
+        ///@}
+        ///@name Public operations
+        ///@{
+
+        void Execute(const Expression& rExpression) override;
+
+        ///@}
+
+    private:
+        ///@name Private member variables
+        ///@{
+
+        ModelPart& mrModelPart;
+
+        const VariableType mpVariable;
+
+        const ContainerType mContainerType;
+
+        const MeshType mMeshType;
+
+        ///@}
+
+    };
 
     ///@}
-    ///@name Public operations
+    ///@name static operations
     ///@{
 
-    Expression::Pointer Read() override;
+    static ModelPart::MeshType& GetMesh(
+        Communicator& rCommunicator,
+        const MeshType& rMeshType);
 
-    void Write(const Expression& rExpression) override;
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    ModelPart& mrModelPart;
-
-    const VariableType mpVariable;
-
-    const ContainerType mContainerType;
-
-    const MeshType mMeshType;
-
-    ///@}
-    ///@name Private operations
-    ///@{
-
-    ModelPart::MeshType& GetMesh();
+    static const ModelPart::MeshType& GetMesh(
+        const Communicator& rCommunicator,
+        const MeshType& rMeshType);
 
     ///@}
 }; // class ExpressionIO
