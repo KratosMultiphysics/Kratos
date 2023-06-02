@@ -102,7 +102,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         self.assertEqual(results.NumberOfPointsResults(), 1)
         node_results = results[self.node_coordinates]
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
-        if self.data_comm.Rank() == 0:
+        if node_results.NumberOfLocalResults() == 1:
             self.assertEqual(node_results[0].Id, 1) # Local result
         self.assertEqual(node_results(0).Id, 1)     # Global result
 
@@ -118,7 +118,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         self.assertEqual(results.NumberOfPointsResults(), 1)
         node_results = results[self.node_coordinates] 
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
-        if self.data_comm.Rank() == 0:
+        if node_results.NumberOfLocalResults() == 1:
             self.assertEqual(node_results[0].Id, 1) # Local result
         self.assertEqual(node_results(0).Id, 1)     # Global result
 
