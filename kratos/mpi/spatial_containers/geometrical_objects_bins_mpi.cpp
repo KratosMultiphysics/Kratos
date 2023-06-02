@@ -54,24 +54,20 @@ BoundingBox<Point> GeometricalObjectsBinsMPI::GetBoundingBox() const
 void GeometricalObjectsBinsMPI::SearchInRadius(
     const Point& rPoint,
     const double Radius,
-    ResultTypeContainer& rResults
+    ResultTypeContainer& rResults,
+    const bool SyncronizeResults
     )
 {
-    // Find the partitions were point is inside
-    const int current_rank = GetRank();
-    std::vector<int> ranks = RansksPointIsInsideBoundingBoxWithTolerance(rPoint.Coordinates(), Radius);
-
-    // Generate a unorderded_set from the ranks
-    std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
-
     // Check if the point is inside the set
-    if (ranks_set.find(current_rank) != ranks_set.end()) {
+    if (BaseType::PointIsInsideBoundingBoxWithTolerance(rPoint, Radius)) {
         // Call local search
-        BaseType::SearchInRadius(rPoint, Radius, rResults);
+        BaseType::SearchInRadius(rPoint, Radius, rResults, false);
     }
 
-    // Synchronize
-    rResults.SynchronizeAll(mrDataCommunicator);
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(mrDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -80,21 +76,18 @@ void GeometricalObjectsBinsMPI::SearchInRadius(
 void GeometricalObjectsBinsMPI::SearchNearestInRadius(
     const Point& rPoint,
     const double Radius,
-    ResultTypeContainer& rResults
+    ResultTypeContainer& rResults,
+    const bool SyncronizeResults
     )
 {
     // Result to return
     ResultType local_result;
 
-    // Find the partitions were point is inside
+    // Get the rank
     const int current_rank = GetRank();
-    std::vector<int> ranks = RansksPointIsInsideBoundingBoxWithTolerance(rPoint.Coordinates(), Radius);
-
-    // Generate a unorderded_set from the ranks
-    std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
 
     // Check if the point is inside the set
-    if (ranks_set.find(current_rank) != ranks_set.end()) {
+    if (BaseType::PointIsInsideBoundingBoxWithTolerance(rPoint, Radius)) {
         // Call local search
         local_result = BaseType::SearchNearestInRadius(rPoint, Radius);
     }
@@ -120,8 +113,10 @@ void GeometricalObjectsBinsMPI::SearchNearestInRadius(
         rResults.AddResult(local_result);
     }
 
-    // Synchronize
-    rResults.SynchronizeAll(mrDataCommunicator);
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(mrDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -129,14 +124,15 @@ void GeometricalObjectsBinsMPI::SearchNearestInRadius(
 
 void GeometricalObjectsBinsMPI::SearchNearest(
     const Point& rPoint,
-    ResultTypeContainer& rResults
+    ResultTypeContainer& rResults,
+    const bool SyncronizeResults
     )
 {
     ResultType current_result;
     const auto bb = GetBoundingBox();
     const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
     const double max_radius= *std::max_element(box_size.begin(), box_size.end());
-    this->SearchNearestInRadius(rPoint, max_radius, rResults);
+    this->SearchNearestInRadius(rPoint, max_radius, rResults, SyncronizeResults);
 }
 
 /***********************************************************************************/
@@ -144,22 +140,19 @@ void GeometricalObjectsBinsMPI::SearchNearest(
 
 void GeometricalObjectsBinsMPI::SearchIsInside(
     const Point& rPoint,
-    ResultTypeContainer& rResults
+    ResultTypeContainer& rResults,
+    const bool SyncronizeResults
     )
 {
     // Result to return
     ResultType local_result;
 
-    // Find the partitions were point is inside
+    // Get the rank
     const int current_rank = GetRank();
-    std::vector<int> ranks = RansksPointIsInsideBoundingBox(rPoint.Coordinates());
-
-    // Generate a unorderded_set from the ranks
-    std::unordered_set<int> ranks_set(ranks.begin(), ranks.end());
 
     // Check if the point is inside the set
     int computed_rank = std::numeric_limits<int>::max();
-    if (ranks_set.find(current_rank) != ranks_set.end()) {
+    if (BaseType::PointIsInsideBoundingBox(rPoint)) {
         // Call local search
         local_result = BaseType::SearchIsInside(rPoint);
 
@@ -179,8 +172,10 @@ void GeometricalObjectsBinsMPI::SearchIsInside(
         rResults.AddResult(local_result);
     }
 
-    // Synchronize
-    rResults.SynchronizeAll(mrDataCommunicator);
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(mrDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
