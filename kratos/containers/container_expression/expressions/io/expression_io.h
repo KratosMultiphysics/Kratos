@@ -23,13 +23,25 @@ namespace Kratos {
 class KRATOS_API(KRATOS_CORE) ExpressionIO
 {
 public:
+    ///@name Life cycle
+    ///@{
+
     virtual ~ExpressionIO() = default;
+
+    ///@}
+    ///@name Public operations
+    ///@{
 
     virtual Expression::Pointer Read() = 0;
 
     virtual void Write(const Expression& rExpression) = 0;
 
+    ///@}
+
 protected:
+    ///@name Protected operations
+    ///@{
+
     double EvaluateExpression(const Expression& rExpression,
                               Expression::IndexType EntityIndex,
                               Expression::IndexType EntityDataBeginIndex,
@@ -37,6 +49,8 @@ protected:
     {
         return rExpression.Evaluate(EntityIndex, EntityDataBeginIndex, ComponentIndex);
     }
+
+    ///@}
 }; // class ExpressionIO
 
 
