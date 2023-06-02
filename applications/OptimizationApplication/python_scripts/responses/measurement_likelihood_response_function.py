@@ -31,7 +31,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         default_settings = Kratos.Parameters("""{
             "primal_analysis_name"           : "",
             "measurement_data_file"          : "MeasurementData.json",
-            "measurement_standard_deviation"  : 0.001,
+            "measurement_standard_deviation"  : 1,
             "perturbation_size"              : 1e-8,
             "adjoint_analysis_settings_file_name": "adjoint_parameters.json",
             "evaluated_model_part_names"     : [
@@ -110,16 +110,17 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
         objective_value = 0
         for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
-            measured_displacement = Kratos.Array3(sensor["measured_value"])
+            measured_displacement = sensor["measured_value"]
+            measured_direction = Kratos.Array3(sensor["measurement_direction_normal"])
 
             mesh_node = self.model_part.GetNode(sensor["mesh_node_id"])
             node_displacement = mesh_node.GetSolutionStepValue(Kratos.DISPLACEMENT)
+            in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
 
-            objective_value += (measured_displacement - node_displacement).norm_2()
+            objective_value += (measured_displacement-in_measurement_direction_projected_vector)**2
 
         objective_value *= 0.5 * 1/self.measurement_std
 
-        # return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_part)
         return objective_value
 
     def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:

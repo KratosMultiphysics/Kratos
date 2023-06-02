@@ -35,7 +35,8 @@ namespace Kratos
         std::string measurementFileName = ResponseSettings["measurement_file_name"].GetString();
 
         std::ifstream t(measurementFileName);
-        KRATOS_ERROR_IF_NOT(t.good() == 1) << "\n\nAdjointNodalDisplacementMeasurementResidualResponseFunction: The file "<<measurementFileName<<" which contains the measurement data was not found. Please use the parameter option 'measurement_file_name' to specify the path.\n\n" << std::endl;
+        KRATOS_ERROR_IF_NOT(t.good() == 1) << "\n\nAdjointNodalDisplacementMeasurementResidualResponseFunction: The file " << measurementFileName << " which contains the measurement data was not found. Please use the parameter option 'measurement_file_name' to specify the path.\n\n"
+                                           << std::endl;
 
         std::stringstream buffer;
         buffer << t.rdbuf();
@@ -125,7 +126,7 @@ namespace Kratos
                         {
                             measurement_value = sensor_data["measured_value"].GetDouble();
                             measurement_normal = sensor_data["measurement_direction_normal"].GetVector();
-                            simulated_displacement =response_part.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof);
+                            simulated_displacement = response_part.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof);
 
                             rResponseGradient[i] = (measurement_normal[0] * measurement_value) - simulated_displacement[0];
                             rResponseGradient[i + 1] = (measurement_normal[1] * measurement_value) - simulated_displacement[1];
@@ -254,7 +255,7 @@ namespace Kratos
             projected_simulated_response = inner_prod(measurement_normal, simulated_response_vector);
 
             measurement_difference = measurement_value - projected_simulated_response;
-            response_value += measurement_difference;
+            response_value += measurement_difference * measurement_difference;
         }
         response_value *= 0.5;
 
