@@ -196,10 +196,10 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
 
     // If we compute the tangent moduli or the stress
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
-        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) 
+        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
         {
         Vector& r_stress_vector       = rParametersValues.GetStressVector();
-        const Vector& r_strain_vector = rParametersValues.GetStrainVector();   
+        const Vector& r_strain_vector = rParametersValues.GetStrainVector();
         Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
         noalias(r_stress_vector)      = prod(r_constitutive_matrix, r_strain_vector);
@@ -218,15 +218,15 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         BoundedVectorType Spr = ZeroVector(3);
         BoundedVectorType kappa = ZeroVector(3);
         BoundedVectorType F     = ZeroVector(3);
-        BoundedMatrixVoigtType EffStiffnessMatrix = ZeroMatrix(6, 6); 
+        BoundedMatrixVoigtType EffStiffnessMatrix = ZeroMatrix(6, 6);
         BoundedMatrix3x6Type dEprdE = ZeroMatrix(3,6);
         BoundedMatrixType dkdEpr = ZeroMatrix(3,3);
         BoundedMatrix6x3Type dHdk   = ZeroMatrix(6,3);
 
         GetEigenValues(Spr, SprMax, STRESSES, r_stress_vector);
-        ManipulationOfZeroEntries(Spr, eps);         
+        ManipulationOfZeroEntries(Spr, eps);
         const double H = (SprMax < eps) ? 0.0 : 1.0;
-        double r=0.0; 
+        double r=0.0;
         GetStressWeightFactor(r,Spr);
         const double del_r = (r > 0 && r < 0.1) ? 1.0 : 0.0;
         double k0t, k0c;
@@ -241,6 +241,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
             k0c = (10./3.) * ft/E;
         }
         const double k0 = k0t  * H * (1-del_r) + (1.0- H + del_r) * k0c;
+        KRATOS_WATCH(k0)
         const double beta1 = beta1t  * H * (1-del_r) + (1.-H + del_r) * beta1c;
         const double beta2 = beta2t  * H * (1-del_r) + (1.-H + del_r) * beta2c;
         BoundedVectorType principal_strains = ZeroVector(3);
@@ -248,26 +249,29 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         GetEigenValues(principal_strains, Max_principal_strain, STRAIN, r_strain_vector);  //calculate prinicpal strains
         for(SizeType i = 0; i < Dimension; ++i) {
             kappa[i]       = std::max(fabs(principal_strains[i]),k0);
-            F[i]           = abs(principal_strains[i])-kappa[i];
+            F[i]           = fabs(principal_strains[i])-kappa[i];
         }
+        KRATOS_WATCH(kappa)
+        KRATOS_WATCH(F)
+        KRATOS_WATCH(principal_strains)
         //Compute damage in principal directions
         for (SizeType i = 0; i < Dimension; ++i) {
-            if (F[i] < 0) { 
+            if (F[i] < 0) {
                 damage_vector[i]=0.0;
             }else{
                 const double var1      = pow((k0/kappa[i]),beta1);
                 const double var2      = exp(-beta2*((kappa[i]-k0)/(k0)));
-                damage_vector[i] = 1.0 - var1 * var2;              
+                damage_vector[i] = 1.0 - var1 * var2;
             }
             if(damage_vector[i] < 0.0){
                 damage_vector[i] = 0.0;
             }
-        } 
+        }
         CalculateParameters(EffStiffnessMatrix, dEprdE, dkdEpr, rParametersValues, damage_vector);
+        noalias(r_stress_vector)       = prod(EffStiffnessMatrix,r_strain_vector);
         CalculatePartialDerivatives(dHdk, r_material_properties, damage_vector, k0, beta1, beta2, kappa);
         const BoundedMatrix3x6Type b = prod(dkdEpr, dEprdE);
         noalias(r_constitutive_matrix) = EffStiffnessMatrix + prod(dHdk, b);
-        noalias(r_stress_vector)       = prod(r_constitutive_matrix,r_strain_vector);
         KRATOS_WATCH(r_stress_vector);
         KRATOS_WATCH(damage_vector);
         rDamageVector = damage_vector;
@@ -310,13 +314,13 @@ void ElasticAnisotropicDamage::ComputedSprdS(
     const BoundedVectorType& PrincipalVector,
     const Variable<Vector>& rThisVariable
     )
-{   
+{
     KRATOS_TRY
     BoundedMatrixType indx = ZeroMatrix(3, 3);
     BoundedVectorVoigtType stress2;
     BoundedVectorVoigtType dSprdS_entries;
     BoundedVectorVoigtType dI1dS = ZeroVector(6);
-    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0; 
+    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0;
     indx(0,1)= indx(1,0)= indx(2,2)=1.0;
     indx(0,2)= indx(1,1)= indx(2,0)=2.0;
     BoundedMatrixType MatrixForm = ZeroMatrix(3, 3);
@@ -325,12 +329,12 @@ void ElasticAnisotropicDamage::ComputedSprdS(
     BoundedMatrixType stress(MatrixForm);
     stress = prod(stress, stress);
     stress2[0]= stress(0,0);
-    stress2[1]= stress(1,1); 
+    stress2[1]= stress(1,1);
     stress2[2]= stress(2,2);
     stress2[3]= stress(1,2);
-    stress2[4]= stress(0,2); 
+    stress2[4]= stress(0,2);
     stress2[5]= stress(0,1);
-    for(SizeType i = 0; i < Dimension; ++i){  
+    for(SizeType i = 0; i < Dimension; ++i){
         dSprdS_entries  = stress2 - ( PrincipalVector(indx(1,i)) + PrincipalVector(indx(2,i)) )*(VectorForm) + PrincipalVector(indx(1,i)) * PrincipalVector(indx(2,i)) * dI1dS;
         dSprdS_entries /=  (PrincipalVector(indx(0,i)) - PrincipalVector(indx(1,i)) ) * ( PrincipalVector(indx(0,i)) - PrincipalVector(indx(2,i)) );
         for(SizeType j = 0; j < VoigtSize; ++j){
@@ -338,7 +342,7 @@ void ElasticAnisotropicDamage::ComputedSprdS(
         }
         for(SizeType k = Dimension; k < VoigtSize; ++k){
             dSprdS(i,k) *= 2.;
-        }   
+        }
     }
     KRATOS_CATCH("")
 }
@@ -347,7 +351,7 @@ void ElasticAnisotropicDamage::ComputedSprdS(
 //************************************************************************************
 
 void ElasticAnisotropicDamage::GetStressWeightFactor(
-    double &w, 
+    double &w,
     const BoundedVectorType &s_pr) const
 {
     Vector N1(3);
@@ -386,9 +390,9 @@ Vector& ElasticAnisotropicDamage::CalculateValue(
 //***********************************************************************************
 
 void ElasticAnisotropicDamage::GetDamageEffectTensor(
-    BoundedMatrixVoigtType& DamageEffectTensor, 
+    BoundedMatrixVoigtType& DamageEffectTensor,
     const BoundedVectorType& DamageVector
-    
+
 )
 {
     KRATOS_TRY
@@ -412,15 +416,15 @@ void ElasticAnisotropicDamage::CalculateParameters(
     BoundedMatrixVoigtType& EffStiffnessMatrix,
     BoundedMatrix3x6Type& dEprdE,
     BoundedMatrixType& dkdEpr,
-    ConstitutiveLaw::Parameters& rParametersValues, 
+    ConstitutiveLaw::Parameters& rParametersValues,
     const BoundedVectorType& DamageVector
 )
 {
     KRATOS_TRY
 
     Matrix& r_constitutive_matrix = rParametersValues.GetConstitutiveMatrix();
-    const Vector& r_strain_vector = rParametersValues.GetStrainVector();   
-    const double eps = 1e-8;     
+    const Vector& r_strain_vector = rParametersValues.GetStrainVector();
+    const double eps = 1e-8;
     BoundedMatrixVoigtType M     = ZeroMatrix(6,6);
     BoundedMatrixVoigtType Inv_M = ZeroMatrix(6,6);
     BoundedVectorType principal_strains = ZeroVector(3);
@@ -431,17 +435,17 @@ void ElasticAnisotropicDamage::CalculateParameters(
     GetDamageEffectTensor(M, DamageVector);
     MathUtils<double>::InvertMatrix(M, Inv_M, det_M);
     const BoundedMatrixVoigtType a = prod(r_constitutive_matrix,trans(Inv_M));
-    EffStiffnessMatrix = prod(Inv_M,a);    
+    EffStiffnessMatrix = prod(Inv_M,a);
     GetEigenValues(principal_strains, Max_principal_strain, STRAIN, r_strain_vector);
     ManipulationOfZeroEntries(principal_strains, eps);
-    ComputedSprdS(dEprdE, r_strain_vector, principal_strains, STRAIN); 
-    for(SizeType i = 0; i < Dimension; ++i){  
+    ComputedSprdS(dEprdE, r_strain_vector, principal_strains, STRAIN);
+    for(SizeType i = 0; i < Dimension; ++i){
         if(DamageVector[i] > 0){
-            dkdEpr(i,i) = 1; 
-        } 
-    } 
+            dkdEpr(i,i) = 1;
+        }
+    }
 
-    KRATOS_CATCH("") 
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -451,9 +455,9 @@ void ElasticAnisotropicDamage::CalculatePartialDerivatives(
     BoundedMatrix6x3Type& dHdk,
     const Properties& rMaterialProperties,
     const BoundedVectorType& DamageVector,
-    const double Kappa0, 
-    const double Beta1, 
-    const double Beta2, 
+    const double Kappa0,
+    const double Beta1,
+    const double Beta2,
     const BoundedVectorType& Kappa
 )
 {
@@ -501,7 +505,7 @@ void ElasticAnisotropicDamage::ManipulationOfZeroEntries(
 
 void ElasticAnisotropicDamage::VectorToTensor(
     BoundedMatrixType& TensorForm,
-    const Vector& VectorForm, 
+    const Vector& VectorForm,
     const Variable<Vector>& rThisVariable
 )
 {
