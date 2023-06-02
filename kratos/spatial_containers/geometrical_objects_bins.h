@@ -568,15 +568,27 @@ protected:
     array_1d<double, 3>  mInverseOfCellSize;         /// The inverse of the size of each cell in each direction
     std::vector<CellType> mCells;                    /// The cells of the domain
 
-
     ///@}
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method checks if a point is inside any bounding box of the global bounding boxes
+     * @param rCoords The coordinates of the point
+     * @return True if the point is inside the bounding box
+     */
+    bool PointIsInsideBoundingBox(const array_1d<double, 3>& rCoords);
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+    /**
+     * @brief This method checks if a point is inside any bounding box of the global bounding boxes considering a certain tolerance
+     * @param rCoords The coordinates of the point
+     * @param Tolerance The tolerance
+     * @return True if the point is inside the bounding box
+     */
+    bool PointIsInsideBoundingBoxWithTolerance(
+        const array_1d<double, 3>& rCoords,
+        const double Tolerance
+        );
 
     /**
      * @brief Calculate the cell sizes to be as equilateral as possible and tries to approximate (roughly) the given number of cells
