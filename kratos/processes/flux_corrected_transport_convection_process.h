@@ -125,13 +125,13 @@ public:
         // Allocate auxiliary arrays
         // Note that we give the size such that the index matches the id of the corresponding node
         // Also note that this implies having a "fake" 0-id entry in the first position of the arrays
-        const SizeType aux_size = mpModelPart->NumberOfNodes() + 1;
-        mUpdateLowOrder.resize(aux_size);
-        mUpdateHighOrder.resize(aux_size);
-        mConvectedValues.resize(aux_size);
-        mConvectionValues.resize(aux_size);
-        mConvectedValuesOld.resize(aux_size);
-        mConvectionValuesOld.resize(aux_size);
+        mAuxSize = mpModelPart->NumberOfNodes() + 1;
+        mResidual.resize(mAuxSize);
+        mUpdateLowOrder.resize(mAuxSize);
+        mUpdateHighOrder.resize(mAuxSize);
+        mSolution.resize(mAuxSize);
+        mConvectionValues.resize(mAuxSize);
+        mConvectionValuesOld.resize(mAuxSize);
     }
 
     void Execute() override
@@ -155,8 +155,7 @@ public:
         IndexPartition<IndexType>(n_nodes).for_each([this](IndexType iNode){
             const auto it_node = mpModelPart->NodesBegin() + iNode;
             const IndexType i_node_id = it_node->Id();
-            mConvectedValues[i_node_id] = it_node->GetSolutionStepValue(*mpConvectedVar,1); //solution at n + dt
-            mConvectedValuesOld[i_node_id] = it_node->GetSolutionStepValue(*mpConvectedVar,1); //solution at n
+            mSolution[i_node_id] = it_node->GetSolutionStepValue(*mpConvectedVar,1); //solution at n
             mConvectionValues[i_node_id] = it_node->GetSolutionStepValue(*mpConvectionVar,1); //convective velocity at n
             mConvectionValuesOld[i_node_id] = it_node->GetSolutionStepValue(*mpConvectionVar,2); //convective velocity at n-1
         });
@@ -179,15 +178,10 @@ public:
             KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << "Substep " << step << " - \u0394t " << dt << std::endl;
             this->SolveSubStep(dt);
 
-            // Update solution
-            IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
-                mConvectedValuesOld[iNode] = mConvectedValues[iNode];
-            });
-
             // TODO:Remove after debugging
             IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
                 auto it_node = mpModelPart->NodesBegin() + iNode;
-                it_node->FastGetSolutionStepValue(*mpConvectedVar) = mConvectedValues[it_node->Id()];
+                it_node->FastGetSolutionStepValue(*mpConvectedVar) = mSolution[it_node->Id()];
             });
             gid_io_convection.WriteNodalResults(DISTANCE, mpModelPart->Nodes(), step, 0);
             gid_io_convection.WriteNodalResults(VELOCITY, mpModelPart->Nodes(), step, 0);
@@ -202,7 +196,7 @@ public:
         // Set final solution in the model part database
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
             auto it_node = mpModelPart->NodesBegin() + iNode;
-            it_node->FastGetSolutionStepValue(*mpConvectedVar) = mConvectedValues[it_node->Id()];
+            it_node->FastGetSolutionStepValue(*mpConvectedVar) = mSolution[it_node->Id()];
         });
 
         KRATOS_CATCH("")
@@ -210,11 +204,11 @@ public:
 
     void Clear() override
     {
+        mResidual.clear();
         mUpdateLowOrder.clear();
         mUpdateHighOrder.clear();
-        mConvectedValues.clear();
+        mSolution.clear();
         mConvectionValues.clear();
-        mConvectedValuesOld.clear();
         mConvectionValuesOld.clear();
         mpEdgeDataStructure->Clear();
     }
@@ -275,33 +269,35 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart* mpModelPart;
+    ModelPart* mpModelPart; /// Pointer to the background mesh model part
 
-	SizeType mEchoLevel;
+    SizeType mAuxSize; /// Size of the internal vector containers that equals the number of nodes plus one
 
-    double mMaxAllowedDt;
+    SizeType mEchoLevel; /// Level of information that is output
 
-    double mMaxAllowedCFL;
+    double mMaxAllowedDt; /// Maximum allowed time step for the substepping
 
-    bool mPerformInitialize = true;
+    double mMaxAllowedCFL; /// Maximum allowed CFL number for the substepping
 
-    const Variable<double>* mpConvectedVar = nullptr;
+    bool mPerformInitialize = true; /// Flag to indicate if the ExecuteInitialize is required to be done
 
-    const Variable<array_1d<double,3>>* mpConvectionVar = nullptr;
+    const Variable<double>* mpConvectedVar = nullptr; /// Pointer to the convected variable (e.g. DISTANCE)
+
+    const Variable<array_1d<double,3>>* mpConvectionVar = nullptr; /// Pointer to the convection variable (e.g. VELOCITY)
+
+    std::vector<double> mResidual; /// Auxiliary vector to assemble the edge residuals
+
+    std::vector<double> mSolution; /// Auxiliary vector containing the solution
 
     std::vector<double> mUpdateLowOrder;
 
     std::vector<double> mUpdateHighOrder;
 
-    std::vector<double> mConvectedValues;
+    std::vector<array_1d<double,3>> mConvectionValues; /// Auxiliary vector to store the convection variable values (e.g. VELOCITY) 
 
-    std::vector<double> mConvectedValuesOld;
+    std::vector<array_1d<double,3>> mConvectionValuesOld; /// Auxiliary vector to store the previous step convection variable values (e.g. VELOCITY)
 
-    std::vector<array_1d<double,3>> mConvectionValues;
-
-    std::vector<array_1d<double,3>> mConvectionValuesOld;
-
-    typename EdgeBasedDataStructure<TDim>::UniquePointer mpEdgeDataStructure;
+    typename EdgeBasedDataStructure<TDim>::UniquePointer mpEdgeDataStructure; /// Pointer to the edge-based data structure
 
     ///@}
     ///@name Private Operators
@@ -373,8 +369,9 @@ private:
         const auto& r_col_indices = mpEdgeDataStructure->GetColIndices();
         SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
 
-        // Initialize update containers for the edge assembly
-        IndexPartition<IndexType>(aux_n_rows).for_each([this](IndexType i){
+        // Initialize containers for the edge assembly
+        IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
+            mResidual[i] = 0.0;
             mUpdateLowOrder[i] = 0.0;
             mUpdateHighOrder[i] = 0.0;
         });
@@ -402,7 +399,7 @@ private:
                 auto& d_ij = rTLS.d_ij;
 
                 // i-node nodal data
-                const double u_i = mConvectedValuesOld[iRow];
+                const double u_i = mSolution[iRow];
                 const auto& r_i_vel = mConvectionValues[iRow]; //TODO: Use substep velocity
 
                 // i-node mass matrices diagonal contributions
@@ -419,8 +416,17 @@ private:
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    const double u_j = mConvectedValuesOld[j_node_id-1];
-                    const auto& r_j_vel = mConvectionValues[j_node_id-1]; //TODO: Use substep velocity
+                    const double u_j = mSolution[j_node_id];
+                    const auto& r_j_vel = mConvectionValues[j_node_id]; //TODO: Use substep velocity
+
+                    // // Laplacian problem
+                    // // TODO: Remove once we check that the explicit update is correct
+                    // const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
+                    // const double c_edge = r_ij_edge_data.GetOffDiagonalLaplacian();
+                    // const double res_edge = 0.1 * c_edge * (u_j - u_i);
+                    // KRATOS_WATCH(u_j)
+                    // KRATOS_WATCH(u_i)
+                    // KRATOS_WATCH(res_edge)
 
                     // j-node convective flux calculation
                     for (IndexType d = 0; d < TDim; ++d) {
@@ -452,26 +458,29 @@ private:
 
                     // Calculate nodal explicit low order contributions
                     const double diff_coeff = 0.0;
-                    const double res = D_ij * F_ij;
-                    double delta_u_i_low = res + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_i);
-                    double delta_u_j_low = res + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_j);
+                    const double res_edge = D_ij * F_ij;
+                    // double delta_u_i_low = -res_edge;
+                    // double delta_u_j_low = res_edge;
+                    // double delta_u_i_low = -res_edge + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_i);
+                    // double delta_u_j_low = res_edge + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_j);
 
                     // Calculate antidiffusive fluxes (high order contribution)
                     //TODO: Implement this!
 
                     // Atomic additions
-                    AtomicAdd(mUpdateLowOrder[iRow], delta_u_i_low);
-                    AtomicAdd(mUpdateLowOrder[j_node_id - 1], delta_u_j_low);
+                    AtomicAdd(mResidual[iRow], -res_edge);
+                    AtomicAdd(mResidual[j_node_id], res_edge);
                 }
             }
         });
 
-        // Do the explicit lumped mass matrix solve
+        // Do the explicit lumped mass matrix solve and apply the correction to current solution
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
-            IndexType i_node_id = mpModelPart->NodesBegin()->Id();
+            const auto it_node = mpModelPart->NodesBegin() + iNode;
+            const IndexType i_node_id = it_node->Id();
             const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
             const double solve_coeff = DeltaTime / M_l;
-            mConvectedValues[i_node_id] += solve_coeff * mUpdateLowOrder[i_node_id];
+            mSolution[i_node_id] += solve_coeff * mResidual[i_node_id];
         });
     }
 
