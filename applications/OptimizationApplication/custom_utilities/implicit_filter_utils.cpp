@@ -68,4 +68,16 @@ void ImplicitFilterUtils::SetBulkRadiusForShapeFiltering(
 
 }
 
+void ImplicitFilterUtils::AssignConstitutiveLaw(
+    ModelPart& rModelPart,
+    const ConstitutiveLaw& rReferenceConstitutiveLaw)
+{
+    ConstitutiveLaw::Pointer p_constitutive_law = rReferenceConstitutiveLaw.Clone();
+    Properties::Pointer p_new_property = rModelPart.CreateNewProperties(rModelPart.NumberOfProperties()+1);
+    p_new_property->SetValue(CONSTITUTIVE_LAW,p_constitutive_law);
+
+    block_for_each(rModelPart.Elements(), [&](ModelPart::ElementType& rElement) {
+        rElement.SetProperties(p_new_property);});
+}
+
 }

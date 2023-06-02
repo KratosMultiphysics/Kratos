@@ -245,7 +245,7 @@ private:
       * @param PointNumber The index of integration point
       * @param rCurrentProcessInfo The current process info instance
       */
-    MatrixType SetAndModifyConstitutiveLaw(
+    MatrixType CalculateConstitutiveLaw(
         const int PointNumber,
         const ProcessInfo& rCurrentProcessInfo) const;
 

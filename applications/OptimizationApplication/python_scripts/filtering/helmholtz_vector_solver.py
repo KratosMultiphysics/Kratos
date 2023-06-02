@@ -62,10 +62,7 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
             KM.ConnectivityPreserveModeler().GenerateModelPart(
                 self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidShapeElement3D4N","HelmholtzSurfaceShapeCondition3D3N")
 
-            # Create property for the solid shape element
-            properties = self.helmholtz_model_part.GetProperties(0)
-            cl = KOA.HelmholtzJacobianStiffened3DLaw()
-            properties.SetValue(KM.CONSTITUTIVE_LAW, cl)
+            KOA.ImplicitFilterUtils.AssignConstitutiveLaw(self.helmholtz_model_part,"HelmholtzJacobianStiffened3D")
 
             tmoc = KM.TetrahedralMeshOrientationCheck
             flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS

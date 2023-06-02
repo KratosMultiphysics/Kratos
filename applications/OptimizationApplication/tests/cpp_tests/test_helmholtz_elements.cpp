@@ -370,6 +370,8 @@ KRATOS_TEST_CASE_IN_SUITE(HelmholtzSolidShapeElement, KratosOptimizationFastSuit
 
     // // Set the element properties
     auto p_elem_prop = r_model_part.CreateNewProperties(0);
+    ConstitutiveLaw::Pointer p_constitutive_law = KratosComponents<ConstitutiveLaw>::Get("HelmholtzJacobianStiffened3D").Clone();
+    p_elem_prop->SetValue(CONSTITUTIVE_LAW,p_constitutive_law);
 
     // Set flags
     r_model_part.GetProcessInfo().SetValue(COMPUTE_HELMHOLTZ_INVERSE, false);

@@ -382,7 +382,7 @@ void HelmholtzSolidShapeElement::CalculateStiffnessMatrix(
 
         MatrixType B = CalculateBMatrix(i_point,rCurrentProcessInfo);
 
-        MatrixType constitutive_matrix = SetAndModifyConstitutiveLaw(i_point,rCurrentProcessInfo);
+        MatrixType constitutive_matrix = CalculateConstitutiveLaw(i_point,rCurrentProcessInfo);
         const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0;
 
         noalias(rStiffnessMatrix) += prod(trans(B), IntToReferenceWeight * Matrix(prod(constitutive_matrix, B)));
@@ -439,58 +439,41 @@ HelmholtzSolidShapeElement::CalculateBMatrix(
 //******************************************************************************
 //******************************************************************************
 HelmholtzSolidShapeElement::MatrixType
-HelmholtzSolidShapeElement::SetAndModifyConstitutiveLaw(
+HelmholtzSolidShapeElement::CalculateConstitutiveLaw(
     const int PointNumber, const ProcessInfo& rCurrentProcessInfo) const {
-  KRATOS_TRY;
+    KRATOS_TRY;
 
-  const GeometryType &rgeom = this->GetGeometry();
-  const IntegrationMethod this_integration_method = rgeom.GetDefaultIntegrationMethod();
-  const auto& r_integration_points = rgeom.IntegrationPoints(this_integration_method);
-  GeometryType::ShapeFunctionsGradientsType DN_De = rgeom.ShapeFunctionsLocalGradients(this_integration_method);
+    const GeometryType &rgeom = this->GetGeometry();
+    const IntegrationMethod this_integration_method = rgeom.GetDefaultIntegrationMethod();
+    const auto& r_integration_points = rgeom.IntegrationPoints(this_integration_method);
+    GeometryType::ShapeFunctionsGradientsType DN_De = rgeom.ShapeFunctionsLocalGradients(this_integration_method);
 
-  Matrix J0,InvJ0;
-  GeometryUtils::JacobianOnInitialConfiguration(rgeom, r_integration_points[PointNumber], J0);
-  double detJ0;
-  MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+    Matrix J0,InvJ0;
+    GeometryUtils::JacobianOnInitialConfiguration(rgeom, r_integration_points[PointNumber], J0);
+    double detJ0;
+    MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
 
-  // Stiffening of elements using Jacobian determinants and exponent between
-  // 0.0 and 2.0
-  const double r_helmholtz = rCurrentProcessInfo[HELMHOLTZ_BULK_RADIUS_SHAPE];
-  const double xi = 1.0; // 1.5 Exponent influences stiffening of smaller
-                         // elements; 0 = no stiffening
-  const double quotient = r_helmholtz / detJ0;
-  const double weighting_factor = std::pow(quotient, xi);
-  const double poisson_coefficient = 0.3;
+    // Stiffening of elements using Jacobian determinants and exponent between
+    // 0.0 and 2.0
+    const double r_helmholtz = rCurrentProcessInfo[HELMHOLTZ_BULK_RADIUS_SHAPE];
+    const double xi = 1.0; // 1.5 Exponent influences stiffening of smaller
+                            // elements; 0 = no stiffening
+    const double quotient = r_helmholtz / detJ0;
+    const double weighting_factor = std::pow(quotient, xi);
 
-    // std::cout<<"weighting_factor : "<<weighting_factor<<std::endl;
+    ConstitutiveLaw::Parameters cl_params(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    auto r_properties = cl_params.GetMaterialProperties();
+    r_properties.SetValue(YOUNG_MODULUS,weighting_factor);
+    r_properties.SetValue(POISSON_RATIO,0.3);
+    cl_params.SetMaterialProperties(r_properties);
 
-  // The ratio between lambda and mu affects relative stiffening against
-  // volume or shape change.
-  const double lambda =
-      weighting_factor * poisson_coefficient /
-      ((1 + poisson_coefficient) * (1 - 2 * poisson_coefficient));
-  const double mu = weighting_factor / (2 * (1 + poisson_coefficient));
+    MatrixType constitutive_matrix_tmp;
+    constitutive_matrix_tmp = GetProperties().GetValue( CONSTITUTIVE_LAW )->CalculateValue(cl_params,CONSTITUTIVE_MATRIX,constitutive_matrix_tmp);
 
-  MatrixType constitutive_matrix;
 
-  // stress = lambda*tr(strain tensor)*I + 2*mu*(strain tensor).
-  constitutive_matrix = ZeroMatrix(6, 6);
-  constitutive_matrix(0, 0) = lambda + 2 * mu;
-  constitutive_matrix(1, 1) = constitutive_matrix(0, 0);
-  constitutive_matrix(2, 2) = constitutive_matrix(0, 0);
-  constitutive_matrix(3, 3) = mu;
-  constitutive_matrix(4, 4) = mu;
-  constitutive_matrix(5, 5) = mu;
-  constitutive_matrix(0, 1) = lambda;
-  constitutive_matrix(1, 0) = lambda;
-  constitutive_matrix(0, 2) = lambda;
-  constitutive_matrix(2, 0) = lambda;
-  constitutive_matrix(1, 2) = lambda;
-  constitutive_matrix(2, 1) = lambda;
+    return constitutive_matrix_tmp;
 
-  return constitutive_matrix;
-
-  KRATOS_CATCH("");
+    KRATOS_CATCH("");
 }
 
 
