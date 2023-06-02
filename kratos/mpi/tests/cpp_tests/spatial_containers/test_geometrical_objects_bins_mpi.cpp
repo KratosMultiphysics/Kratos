@@ -307,8 +307,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRa
 
     Model current_model;
 
+    // Cube coordinates
+    const double cube_z = 0.3;
+
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
+    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
@@ -324,9 +327,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearestInRa
         r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
-
-    // Cube coordinates
-    const double cube_z = 0.3;
 
     GeometricalObjectsBinsMPI::ResultTypeContainerMap results;
     bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
@@ -359,9 +359,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearest, Kr
     constexpr double tolerance = 1e-12;
 
     Model current_model;
+    
+    // Cube coordinates
+    const double cube_z = 0.3;
 
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
+    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
     GeometricalObjectsBinsMPI bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
@@ -377,9 +380,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GeometricalObjectsBinsMPISearchNearest, Kr
         r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
     }
     auto& r_array_nodes = r_point_model_part.Nodes();
-
-    // Cube coordinates
-    const double cube_z = 0.3;
 
     GeometricalObjectsBinsMPI::ResultTypeContainerMap results;
     bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
