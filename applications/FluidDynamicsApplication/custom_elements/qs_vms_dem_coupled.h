@@ -330,10 +330,6 @@ protected:
                                             VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
-    void AddMassRHS(
-        VectorType& rRightHandSideVector,
-        TElementData& rData);
-
     void CalculateResistanceTensor(
         const TElementData& rData);
 
