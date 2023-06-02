@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <numeric>
 #include <sstream>
 
 // Project includes
@@ -129,7 +130,7 @@ void Read(
         << NumberOfEntities
         << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
 
-    rContainerExpression.SetExpression(CArrayCopyExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
+    rContainerExpression.SetExpression(CArrayExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 
     KRATOS_CATCH("");
 }
@@ -238,7 +239,7 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
         << NumberOfEntities
         << ", local container size = " << this->GetContainer().size() << " ].\n";
 
-    CArrayCopyExpressionOutput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute(**this->mpExpression);
+    CArrayExpressionOutput(pBegin, NumberOfEntities * std::accumulate(pShapeBegin, pShapeBegin+ShapeSize, 1, [](const int V1, const int V2) { return V1 * V2; })).Execute(**this->mpExpression);
 
     KRATOS_CATCH("");
 }

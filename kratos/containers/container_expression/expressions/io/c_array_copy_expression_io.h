@@ -24,7 +24,7 @@
 namespace Kratos {
 
 
-class KRATOS_API(KRATOS_CORE) CArrayCopyExpressionInput: public ExpressionInput
+class KRATOS_API(KRATOS_CORE) CArrayExpressionInput: public ExpressionInput
 {
 public:
     ///@name Type definitions
@@ -34,20 +34,20 @@ public:
 
     using RawArrayType = std::variant<int const*, double const*>;
 
-    KRATOS_CLASS_POINTER_DEFINITION(CArrayCopyExpressionInput);
+    KRATOS_CLASS_POINTER_DEFINITION(CArrayExpressionInput);
 
     ///@}
     ///@name  Life Cycle
     ///@{
 
     template<class TRawDataType>
-    CArrayCopyExpressionInput(
+    CArrayExpressionInput(
         TRawDataType const* pBegin,
         const int NumberOfEntities,
         int const* pShapeBegin,
         const int ShapeSize);
 
-    ~CArrayCopyExpressionInput() override = default;
+    ~CArrayExpressionInput() override = default;
 
     ///@}
     ///@name Operations
@@ -70,10 +70,10 @@ private:
     const int mShapeSize;
 
     ///@}
-}; // class CArrayCopyExpressionInput
+}; // class CArrayExpressionInput
 
 
-class KRATOS_API(KRATOS_CORE) CArrayCopyExpressionOutput: public ExpressionOutput
+class KRATOS_API(KRATOS_CORE) CArrayExpressionOutput: public ExpressionOutput
 {
 public:
     ///@name Type definitions
@@ -83,20 +83,18 @@ public:
 
     using RawArrayType = std::variant<int*, double*>;
 
-    KRATOS_CLASS_POINTER_DEFINITION(CArrayCopyExpressionOutput);
+    KRATOS_CLASS_POINTER_DEFINITION(CArrayExpressionOutput);
 
     ///@}
     ///@name  Life Cycle
     ///@{
 
     template<class TRawDataType>
-    CArrayCopyExpressionOutput(
+    CArrayExpressionOutput(
         TRawDataType* pBegin,
-        const int NumberOfEntities,
-        int const* pShapeBegin,
-        const int ShapeSize);
+        const int mSize);
 
-    ~CArrayCopyExpressionOutput() override = default;
+    ~CArrayExpressionOutput() override = default;
 
     ///@}
     ///@name Operations
@@ -112,14 +110,10 @@ private:
 
     RawArrayType mpCArray;
 
-    const int mNumberOfEntities;
-
-    int const * const mpShapeBegin;
-
-    const int mShapeSize;
+    const int mSize;
 
     ///@}
-}; // class CArrayCopyExpressionOutput
+}; // class CArrayExpressionOutput
 
 
 } // namespace Kratos

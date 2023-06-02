@@ -24,7 +24,7 @@
 namespace Kratos {
 
 template<class TRawDataType>
-CArrayCopyExpressionInput::CArrayCopyExpressionInput(
+CArrayExpressionInput::CArrayExpressionInput(
     TRawDataType const* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,
@@ -37,7 +37,7 @@ CArrayCopyExpressionInput::CArrayCopyExpressionInput(
 
 }
 
-Expression::Pointer CArrayCopyExpressionInput::Execute() const
+Expression::Pointer CArrayExpressionInput::Execute() const
 {
     KRATOS_TRY
 
@@ -66,37 +66,31 @@ Expression::Pointer CArrayCopyExpressionInput::Execute() const
 }
 
 template<class TRawDataType>
-CArrayCopyExpressionOutput::CArrayCopyExpressionOutput(
+CArrayExpressionOutput::CArrayExpressionOutput(
     TRawDataType* pBegin,
-    const int NumberOfEntities,
-    int const* pShapeBegin,
-    const int ShapeSize)
+    const int Size)
     : mpCArray(pBegin),
-      mNumberOfEntities(NumberOfEntities),
-      mpShapeBegin(pShapeBegin),
-      mShapeSize(ShapeSize)
+      mSize(Size)
 {
 
 }
 
-void CArrayCopyExpressionOutput::Execute(const Expression& rExpression)
+void CArrayExpressionOutput::Execute(const Expression& rExpression)
 {
     KRATOS_TRY
 
-    std::vector<IndexType> shape(mShapeSize);
-    std::copy(mpShapeBegin, mpShapeBegin + mShapeSize, shape.begin());
-
-    KRATOS_ERROR_IF_NOT(shape == rExpression.GetItemShape())
-        << "Shape mismatch. [ Requested shape  = " << shape
-        << ", available shape = " << rExpression.GetItemShape() << " ].\n";
-
     const IndexType flattened_size = rExpression.GetItemComponentCount();
+    const IndexType number_of_entities = rExpression.NumberOfEntities();
+
+    KRATOS_ERROR_IF_NOT(number_of_entities * flattened_size == static_cast<unsigned int>(mSize))
+        << "Shape mismatch. [ Requested size  = " << number_of_entities * flattened_size
+        << ", available size = " << mSize << " ].\n";
 
     std::visit([&](auto pBegin){
         using data_type = std::remove_const_t<std::remove_pointer_t<decltype(pBegin)>>;
 
         if constexpr(std::is_same_v<data_type, int>) {
-            IndexPartition<IndexType>(mNumberOfEntities).for_each([pBegin, flattened_size, &rExpression](const IndexType EntityIndex) {
+            IndexPartition<IndexType>(number_of_entities).for_each([pBegin, flattened_size, &rExpression](const IndexType EntityIndex) {
                 const IndexType entity_data_begin_index = EntityIndex * flattened_size;
                 int* p_input_data_begin = pBegin + entity_data_begin_index;
                 for (IndexType i = 0; i < flattened_size; ++i) {
@@ -104,7 +98,7 @@ void CArrayCopyExpressionOutput::Execute(const Expression& rExpression)
                 }
             });
         } else {
-            IndexPartition<IndexType>(mNumberOfEntities).for_each([pBegin, flattened_size, &rExpression](const IndexType EntityIndex) {
+            IndexPartition<IndexType>(number_of_entities).for_each([pBegin, flattened_size, &rExpression](const IndexType EntityIndex) {
                 const IndexType entity_data_begin_index = EntityIndex * flattened_size;
                 double* p_input_data_begin = pBegin + entity_data_begin_index;
                 for (IndexType i = 0; i < flattened_size; ++i) {
@@ -118,10 +112,10 @@ void CArrayCopyExpressionOutput::Execute(const Expression& rExpression)
 }
 
 // template instantiations
-template CArrayCopyExpressionInput::CArrayCopyExpressionInput(int const*, const int, int const*, const int);
-template CArrayCopyExpressionInput::CArrayCopyExpressionInput(double const*, const int, int const*, const int);
+template CArrayExpressionInput::CArrayExpressionInput(int const*, const int, int const*, const int);
+template CArrayExpressionInput::CArrayExpressionInput(double const*, const int, int const*, const int);
 
-template CArrayCopyExpressionOutput::CArrayCopyExpressionOutput(int*, const int, int const*, const int);
-template CArrayCopyExpressionOutput::CArrayCopyExpressionOutput(double*, const int, int const*, const int);
+template CArrayExpressionOutput::CArrayExpressionOutput(int*, const int);
+template CArrayExpressionOutput::CArrayExpressionOutput(double*, const int);
 
 } // namespace Kratos
