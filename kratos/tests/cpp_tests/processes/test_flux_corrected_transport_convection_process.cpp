@@ -68,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     // Set nodal values
     const double a = 1.0; // height
     const double c = 0.1; // width
-    const double b = 0.0; // center
+    // const double b = 0.0; // center
     const double b_x = 0.15; // x-coordinate of the center
     const double b_y = 0.15; // y-coordinate of the center
     // auto dist_func = [&](Node& rNode){return rNode.X() - 0.5;};

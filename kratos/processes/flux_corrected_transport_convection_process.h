@@ -407,8 +407,8 @@ private:
                 const auto& r_i_vel = mConvectionValues[iRow]; //TODO: Use substep velocity
 
                 // i-node mass matrices diagonal contributions
-                const double M_c = mpEdgeDataStructure->GetMassMatrixDiagonal(iRow);
-                const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(iRow);
+                const double M_c_i = mpEdgeDataStructure->GetMassMatrixDiagonal(iRow);
+                const double M_l_i = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(iRow);
 
                 // i-node convective flux calculation
                 for (IndexType d = 0; d < TDim; ++d) {
@@ -422,6 +422,10 @@ private:
                     IndexType j_node_id = *(i_col_begin + j_node);
                     const double u_j = mSolution[j_node_id];
                     const auto& r_j_vel = mConvectionValues[j_node_id]; //TODO: Use substep velocity
+
+                    // j-node mass matrices diagonal contributions
+                    const double M_c_j = mpEdgeDataStructure->GetMassMatrixDiagonal(j_node_id);
+                    const double M_l_j = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(j_node_id);
 
                     // // Laplacian problem
                     // // TODO: Remove once we check that the explicit update is correct
@@ -441,6 +445,7 @@ private:
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                     const auto& r_Ni_DNj = r_ij_edge_data.GetOffDiagonalConvective();
                     const auto& r_DNi_Nj = r_ij_edge_data.GetOffDiagonalConvectiveTranspose();
+                    const double M_c_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
                     d_ij = 0.5 * (r_DNi_Nj - r_Ni_DNj);
 
                     // Calculate fluxes along edges
@@ -460,12 +465,11 @@ private:
                     // Note that this numerical flux corresponds to a Lax-Wendroff scheme
                     const double F_ij = (f_i + f_j) - DeltaTime * (f_i - f_j) / D_ij;
 
-                    // Calculate nodal explicit low order contributions
-                    const double diff_coeff = 0.0;
+                    // Calculate convection volume residual
                     double res_edge_i = -D_ij * F_ij;
                     double res_edge_j = D_ij * F_ij;
 
-                    // If current edge belogs to a boundary, add the corresponding boundary integrals
+                    // If current edge belogs to a boundary, add the corresponding convection boundary integrals
                     if (r_ij_edge_data.IsBoundary()) {
                         // Get ij-edge boundary operators from CSR data structure
                         const auto &r_N_N_normal = r_ij_edge_data.GetConvectiveBoundary();
@@ -478,9 +482,10 @@ private:
                         res_edge_j += res_edge_bd + inner_prod(b_node, F_j);
                     }
 
-                    // double delta_u_j_low = res_edge;
-                    // double delta_u_i_low = -res_edge + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_i);
-                    // double delta_u_j_low = res_edge + diff_coeff * (M_c * u_i + M_c * u_j - M_l * u_j);
+                    // Add low order scheme diffusion
+                    const double diff_coeff = 0.1;
+                    res_edge_i += diff_coeff * (M_c_i*u_i + M_c_ij*u_j - M_l_i*u_i);
+                    res_edge_j += diff_coeff * (M_c_j*u_j + M_c_ij*u_i - M_l_j*u_j);
 
                     // Calculate antidiffusive fluxes (high order contribution)
                     //TODO: Implement this!
