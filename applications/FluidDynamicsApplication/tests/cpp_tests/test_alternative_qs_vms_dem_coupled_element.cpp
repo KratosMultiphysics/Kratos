@@ -145,7 +145,6 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
         i->Initialize(r_process_info); // Initialize constitutive law
         const auto& rElem = *i;
         rElem.Check(r_process_info);
-        i->InitializeNonLinearIteration(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
         for (unsigned int j = 0; j < output.size(); j++) {
