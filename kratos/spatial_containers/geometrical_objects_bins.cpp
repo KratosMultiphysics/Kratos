@@ -240,6 +240,42 @@ void GeometricalObjectsBins::SearchIsInside(
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool GeometricalObjectsBins::PointIsInsideBoundingBox(const array_1d<double, 3>& rCoords)
+{
+    // Get the bounding box points
+    const auto& r_max_point = mBoundingBox.GetMaxPoint();
+    const auto& r_min_point = mBoundingBox.GetMinPoint();
+    
+    // The Bounding Box should have some tolerance already!
+    if (rCoords[0] < r_max_point[0] && rCoords[0] > r_min_point[1])           // check x-direction
+        if (rCoords[1] < r_max_point[2] && rCoords[1] > r_min_point[3])       // check y-direction
+            if (rCoords[2] < r_max_point[4] && rCoords[2] > r_min_point[5])   // check z-direction
+                return true;
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometricalObjectsBins::PointIsInsideBoundingBoxWithTolerance(
+    const array_1d<double, 3>& rCoords,
+    const double Tolerance
+    )
+{
+    // Create the coords with tolerance
+    array_1d<double, 3> coords_with_tolerance(rCoords);
+    
+    // Apply Tolerances
+    for (IndexType i=0; i<3; ++i) {
+        coords_with_tolerance[2 * i    ] += Tolerance;
+        coords_with_tolerance[2 * i + 1] -= Tolerance;
+    }
+    return PointIsInsideBoundingBox(coords_with_tolerance);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void GeometricalObjectsBins::CalculateCellSize(const std::size_t NumberOfCells)
 {
     const std::size_t avarage_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
