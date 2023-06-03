@@ -908,7 +908,7 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
     // std::vector<double> mp_mass(1);
     double mp_volume = 0;
     double mp_mass = 0;
-    std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
+    //std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
 //     std::vector<array_1d<double, 3>> volume_force = { ZeroVector(3) };
 //     Vector mp_volume_acceleration = ZeroVector(3);
 //     Vector volume_force = ZeroVector(3);
@@ -919,7 +919,6 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
 
     GeneralVariables Variables;
     this-> InitializeGeneralVariables(Variables,rCurrentProcessInfo);
-
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -947,20 +946,24 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
     // Loop over the material points that fall in each grid element
     for (unsigned int PointNumber = 0; PointNumber < particles_per_element; PointNumber++)
     {
-        //UpdatedLagrangian::SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
+        //acceleration = KratosMultiphysics.KratosGlobals.GetVariable( MP_VOLUME_ACCELERATION )
         //std::vector<array_1d<double, 3>> mp_volume_acceleration = { ZeroVector(3) };
-        MPMUpdatedLagrangian::CalculateOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
-        mp_volume =  int_volumes[PointNumber];
-        mp_mass   = int_volumes[PointNumber]*density;
+        //CalculateOnIntegrationPoints(acceleration, mp_volume_acceleration, rCurrentProcessInfo);
+        //CalculateOnIntegrationPoints(MP_MASS, mp_mass, rCurrentProcessInfo);
 
-        //Vector volume_force = mMP.volume_acceleration * mMP.mass;
+        //MPMUpdatedLagrangian::CalculateOnIntegrationPoints(MP_VOLUME_ACCELERATION, mp_volume_acceleration, rCurrentProcessInfo);
+         mp_volume = int_volumes[PointNumber];
+         mp_mass   = int_volumes[PointNumber]*density;
+
         Vector volume_force = ZeroVector(3);
-
+        volume_force =  Variables.BodyForceMP * mp_mass;
+         //std::cout << "volume_force" << volume_force << "\n";
         //for(unsigned int k = 0; k<3; k++) volume_force[k] = mp_mass * mp_volume_acceleration[k];
 
         Vector MomentumRes = ZeroVector(3);
         double ConservRes = 0.0;
         this->ComputeResidual(Variables,volume_force,MomentumRes,ConservRes);
+
 
         // Loop over the nodes
         for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -995,7 +998,7 @@ void MPMUpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Ve
     GeometryType& r_geometry = this->GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
-    for (unsigned int k = 0; k < dimension; ++k) rResidualU[k] = rVolumeForce[k] + rVariables.PressureGradient[k];
+    for (unsigned int k = 0; k < dimension; ++k) rResidualU[k] = +rVolumeForce[k] - rVariables.PressureGradient[k];
     rResidualP =   - rVariables.PressureGP/rVariables.BulkModulus + (rVariables.detFT*rVariables.detF0-1);
 
 }
