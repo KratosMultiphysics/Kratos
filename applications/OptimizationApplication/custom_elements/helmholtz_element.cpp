@@ -435,27 +435,11 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
     Vector gauss_pts_J_det = ZeroVector(number_of_gauss_points);
     r_geom.DeterminantOfJacobian(gauss_pts_J_det, integration_method);
 
-    typename TDataContainer::ConstantDataContainer constant_data(this->GetGeometry(), integration_method);
-    mDataContainer.CalculateConstants(constant_data);
+    typename TDataContainer::ConstantDataContainer constant_data(this->GetGeometry(), integration_method, rCurrentProcessInfo);
 
-    const double helmholtz_radius = rCurrentProcessInfo[HELMHOLTZ_RADIUS];
     for (IndexType i_point = 0; i_point < number_of_gauss_points; ++i_point) {
-
-        Matrix DN_DX;
-        mDataContainer.CalculateShapeFunctionDerivatives(DN_DX, i_point, constant_data);
-
         const double W = integration_points[i_point].Weight() * gauss_pts_J_det[i_point];
-        const BoundedMatrix<double, NumberOfNodes, NumberOfNodes>& A_dirc = W * helmholtz_radius * helmholtz_radius * prod(DN_DX, trans(DN_DX));
-
-        for (IndexType i = 0; i < NumberOfNodes; ++i) {
-            const SizeType index_i = i * DataDimension;
-            for (IndexType k = 0; k < NumberOfNodes; ++k) {
-                const SizeType index_k = k * DataDimension;
-                for (IndexType j = 0; j < DataDimension; ++j) {
-                    rStiffnessMatrix(index_i + j, index_k + j) += A_dirc(i, k);
-                }
-            }
-        }
+        mDataContainer.CalculateStiffnessGaussPointContributions(rStiffnessMatrix, W, i_point, constant_data);
     }
 
     KRATOS_CATCH("");

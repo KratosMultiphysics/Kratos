@@ -20,6 +20,7 @@
 // Project includes
 #include "geometries/geometry.h"
 #include "includes/node.h"
+#include "includes/process_info.h"
 
 // Application includes
 #include "custom_utilities/entity_calculation_utils.h"
@@ -56,13 +57,18 @@ public:
         const GeometryType& mrGeometry;
         const GeometryData::IntegrationMethod& mrIntegrationMethod;
         GeometryType::ShapeFunctionsGradientsType mdNdXs;
+        double mHelmholtzRadius;
 
         ConstantDataContainer(
             const GeometryType& rGeometry,
-            const GeometryData::IntegrationMethod& rIntegrationMethod)
+            const GeometryData::IntegrationMethod& rIntegrationMethod,
+            const ProcessInfo& rProcessInfo)
             : mrGeometry(rGeometry),
               mrIntegrationMethod(rIntegrationMethod)
         {
+            Vector detJ;
+            mrGeometry.ShapeFunctionsIntegrationPointsGradients(mdNdXs, detJ, mrIntegrationMethod);
+            mHelmholtzRadius = rProcessInfo[HELMHOLTZ_RADIUS];
         }
     };
 
@@ -74,18 +80,24 @@ public:
     {
     }
 
-    void CalculateConstants(ConstantDataContainer& rConstantData) const
-    {
-        Vector detJ;
-        rConstantData.mrGeometry.ShapeFunctionsIntegrationPointsGradients(rConstantData.mdNdXs, detJ, rConstantData.mrIntegrationMethod);
-    }
-
-    void CalculateShapeFunctionDerivatives(
-        Matrix& rdNdX,
+    void CalculateStiffnessGaussPointContributions(
+        Matrix& rStiffnessMatrix,
+        const double W,
         const IndexType IntegrationPoint,
         const ConstantDataContainer& rConstantData) const
     {
-        rdNdX = rConstantData.mdNdXs[IntegrationPoint];
+        const Matrix& rdNdX = rConstantData.mdNdXs[IntegrationPoint];
+        const BoundedMatrix<double, NumberOfNodes, NumberOfNodes>& A_dirc = W * rConstantData.mHelmholtzRadius * rConstantData.mHelmholtzRadius * prod(rdNdX, trans(rdNdX));
+
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            const IndexType index_i = i * NumberOfVariables;
+            for (IndexType k = 0; k < NumberOfNodes; ++k) {
+                const IndexType index_k = k * NumberOfVariables;
+                for (IndexType j = 0; j < NumberOfVariables; ++j) {
+                    rStiffnessMatrix(index_i + j, index_k + j) += A_dirc(i, k);
+                }
+            }
+        }
     }
 
     ///@}
