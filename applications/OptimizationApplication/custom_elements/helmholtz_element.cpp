@@ -439,7 +439,7 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
 
     for (IndexType i_point = 0; i_point < number_of_gauss_points; ++i_point) {
         const double W = integration_points[i_point].Weight() * gauss_pts_J_det[i_point];
-        mDataContainer.CalculateStiffnessGaussPointContributions(rStiffnessMatrix, W, i_point, constant_data);
+        mDataContainer.AddStiffnessGaussPointContributions(rStiffnessMatrix, W, i_point, constant_data);
     }
 
     KRATOS_CATCH("");

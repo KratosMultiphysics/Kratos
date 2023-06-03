@@ -80,7 +80,7 @@ public:
     {
     }
 
-    void CalculateStiffnessGaussPointContributions(
+    void AddStiffnessGaussPointContributions(
         Matrix& rStiffnessMatrix,
         const double W,
         const IndexType IntegrationPoint,
