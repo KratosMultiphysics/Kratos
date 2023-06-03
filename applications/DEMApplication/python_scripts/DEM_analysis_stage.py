@@ -522,6 +522,31 @@ class DEMAnalysisStage(AnalysisStage):
                 if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
                     self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
+        if "BoundingBoxMoveOption" in self.DEM_parameters.keys():
+            if self.DEM_parameters["BoundingBoxMoveOption"].GetBool():
+                self.UpdateSearchStartegyAndCPlusPlusStrategy()
+                self.procedures.UpdateBoundingBox(self.spheres_model_part, self.creator_destructor)
+        
+
+    def UpdateSearchStartegyAndCPlusPlusStrategy(self):
+
+        move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
+
+        BoundingBoxMinX_update = self.DEM_parameters["BoundingBoxMinX"].GetDouble() + self.time * move_velocity
+        BoundingBoxMinY_update = self.DEM_parameters["BoundingBoxMinY"].GetDouble() + self.time * move_velocity
+        BoundingBoxMinZ_update = self.DEM_parameters["BoundingBoxMinZ"].GetDouble() + self.time * move_velocity
+        BoundingBoxMaxX_update = self.DEM_parameters["BoundingBoxMaxX"].GetDouble() - self.time * move_velocity
+        BoundingBoxMaxY_update = self.DEM_parameters["BoundingBoxMaxY"].GetDouble() - self.time * move_velocity
+        BoundingBoxMaxZ_update = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble() - self.time * move_velocity
+
+        self._GetSolver().search_strategy = OMP_DEMSearch(BoundingBoxMinX_update,
+                                                        BoundingBoxMinY_update,
+                                                        BoundingBoxMinZ_update,
+                                                        BoundingBoxMaxX_update,
+                                                        BoundingBoxMaxY_update,
+                                                        BoundingBoxMaxZ_update)
+        self._GetSolver().UpdateCPlusPlusStrategy()
+
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
         self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.cluster_model_part, is_time_to_print)

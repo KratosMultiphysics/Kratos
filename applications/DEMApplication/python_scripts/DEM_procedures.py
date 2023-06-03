@@ -814,6 +814,23 @@ class Procedures():
         creator_destructor.SetHighNode(b_box_high)
         creator_destructor.CalculateSurroundingBoundingBox(spheres_model_part, clusters_model_part, rigid_faces_model_part, dem_inlet_model_part, self.bounding_box_enlargement_factor, self.automatic_bounding_box_OPTION)
 
+    def UpdateBoundingBox(self, spheres_model_part, creator_destructor):
+
+        time = spheres_model_part.ProcessInfo.GetValue(TIME)
+        move_velocity = self.DEM_parameters["BoundingBoxMoveVelocity"].GetDouble()
+        
+        b_box_low = Array3()
+        b_box_high = Array3()
+        b_box_low[0] = self.b_box_minX + time * move_velocity
+        b_box_low[1] = self.b_box_minY + time * move_velocity
+        b_box_low[2] = self.b_box_minZ + time * move_velocity
+        b_box_high[0] = self.b_box_maxX - time * move_velocity
+        b_box_high[1] = self.b_box_maxY - time * move_velocity
+        b_box_high[2] = self.b_box_maxZ - time * move_velocity
+        creator_destructor.SetLowNode(b_box_low)
+        creator_destructor.SetHighNode(b_box_high)
+        creator_destructor.UpdateSurroundingBoundingBox(spheres_model_part)
+    
     def DeleteFiles(self):
         files_to_delete_list = glob('*.time')
         for to_erase_file in files_to_delete_list:

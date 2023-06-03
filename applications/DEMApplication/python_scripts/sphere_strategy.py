@@ -305,8 +305,8 @@ class ExplicitStrategy():
         self.settings.contact_model_part = self.contact_model_part
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part
-        self.settings.cluster_model_part = self.cluster_model_part
-
+        self.settings.cluster_model_part = self.cluster_model_part  
+    
     def CheckMomentumConservation(self):
 
         previous_discontinuum_constitutive_law_string = ""
@@ -334,6 +334,17 @@ class ExplicitStrategy():
     def CreateCPlusPlusStrategy(self):
 
         self.SetVariablesAndOptions()
+
+        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+            self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                              self.search_strategy, self.solver_settings)
+        else:
+            self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                             self.delta_option, self.creator_destructor, self.dem_fem_search,
+                                                             self.search_strategy, self.solver_settings)
+            
+    def UpdateCPlusPlusStrategy(self):
 
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,

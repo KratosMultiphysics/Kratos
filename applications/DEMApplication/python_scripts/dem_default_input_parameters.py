@@ -18,6 +18,8 @@ def GetDefaultInputParameters():
             "BoundingBoxMinX"                  : -10.0,
             "BoundingBoxMinY"                  : -10.0,
             "BoundingBoxMinZ"                  : -10.0,
+            "BoundingBoxMoveOption"            : false,
+            "BoundingBoxMoveVelocity"          : 0.001,
             "dem_inlet_option"                 : true,
             "dem_inlets_settings"              : {},
             "seed"                             : 42,
