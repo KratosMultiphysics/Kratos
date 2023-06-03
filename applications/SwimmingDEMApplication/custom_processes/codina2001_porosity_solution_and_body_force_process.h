@@ -11,8 +11,7 @@
 //
 //
 
-#ifndef KRATOS_CODINA2001_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
-#define KRATOS_CODINA2001_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
+#pragma once
 
 // System includes
 #include <string>
@@ -58,16 +57,13 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Node type (default is: Node<3>)
-    typedef Node NodeType;
+    using NodeType = Node;
 
-    /// Geometry type (using with given NodeType)
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
-    /// Definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    using ShapeFunctionDerivativesArrayType = GeometryType::ShapeFunctionsGradientsType;
 
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    using NodesArrayType = Geometry<NodeType>::PointsArrayType;
 
     /// Pointer definition of Codina2001PorositySolutionAndBodyForceProcess
     KRATOS_CLASS_POINTER_DEFINITION(Codina2001PorositySolutionAndBodyForceProcess);
@@ -216,5 +212,3 @@ private:
 ///@} addtogroup block
 
 };  // namespace Kratos.
-
-#endif // KRATOS_CODINA2001_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H

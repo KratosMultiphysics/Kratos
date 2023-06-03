@@ -88,14 +88,14 @@ void AlternativeQSVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCu
     if (mPreviousVelocity.size() != number_of_gauss_points)
     {
         mPreviousVelocity.resize(number_of_gauss_points);
-        for (unsigned int g = 0; g < number_of_gauss_points; g++)
+        for (IndexType g = 0; g < number_of_gauss_points; g++)
             mPreviousVelocity[g] = ZeroVector(Dim);
     }
 
     if (mPredictedSubscaleVelocity.size() != number_of_gauss_points)
     {
         mPredictedSubscaleVelocity.resize(number_of_gauss_points);
-        for (unsigned int g = 0; g < number_of_gauss_points; g++)
+        for (IndexType g = 0; g < number_of_gauss_points; g++)
             mPredictedSubscaleVelocity[g] = ZeroVector(Dim);
     }
     // The prediction is updated before each non-linear iteration:
@@ -105,9 +105,9 @@ void AlternativeQSVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCu
     // and we want to keep the loaded values in that case.
     if (mViscousResistanceTensor.size() != number_of_gauss_points)
     {
-        mViscousResistanceTensor.resize(number_of_gauss_points);
-        for (unsigned int g = 0; g < number_of_gauss_points; g++)
-            mViscousResistanceTensor[g] = ZeroMatrix(Dim,Dim);
+        mViscousResistanceTensor.resize(number_of_gauss_points, false);
+        for (IndexType g = 0; g < number_of_gauss_points; g++)
+            noalias(mViscousResistanceTensor[g]) = ZeroMatrix(Dim,Dim);
     }
 }
 
@@ -133,7 +133,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
     double DetJ;
     double DetA;
     const ShapeFunctionDerivativesArrayType DN_De = r_geometry.ShapeFunctionsLocalGradients(integration_method);
-    for ( unsigned int g = 0; g < IntegrationPoints.size(); g++ ){
+    for (IndexType g = 0; g < IntegrationPoints.size(); g++ ){
 
         DenseVector<Matrix> aux;
 
@@ -159,11 +159,11 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
         r_geometry.Jacobian(J,g,integration_method);
         MathUtils<double>::InvertMatrix( J, Jinv, DetJ );
 
-        DN_DX = prod(DN_De[g],Jinv);
+        noalias(DN_DX) = prod(DN_De[g],Jinv);
 
         if(Dim == 2){
-            A = ZeroMatrix(3,3);
-            Ainv = ZeroMatrix(3,3);
+            A.resize(3,3,false);
+            Ainv.resize(3,3,false);
 
             A(0,0) = J(0,0) * J(0,0);
             A(0,1) = J(1,0) * J(1,0);
@@ -178,8 +178,8 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
             A(2,2) = J(0,0) * J(1,1) + J(0,1) * J(1,0);
         }
         else if(Dim == 3){
-            A = ZeroMatrix(6,6);
-            Ainv = ZeroMatrix(6,6);
+            A.resize(6,6,false);
+            Ainv.resize(6,6,false);
 
             A(0,0) = J(0,0) * J(0,0);
             A(0,1) = J(1,0) * J(1,0);
@@ -227,8 +227,8 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
 
         MathUtils<double>::InvertMatrix( A, Ainv, DetA );
         DenseVector<Matrix> H(r_geometry.WorkingSpaceDimension());
-        for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); d++)
-            H[d] = ZeroMatrix(r_geometry.LocalSpaceDimension(),r_geometry.LocalSpaceDimension());
+        for (IndexType d = 0; d < r_geometry.WorkingSpaceDimension(); d++)
+            noalias(H[d]) = ZeroMatrix(r_geometry.LocalSpaceDimension(),r_geometry.LocalSpaceDimension());
 
         for (IndexType p = 0; p < r_geometry.PointsNumber(); ++p) {
             const array_1d<double, 3>& r_coordinates = r_geometry[p].Coordinates();
@@ -242,7 +242,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
             H[1](1,0) += r_coordinates[1] * DDN_DDe[p](1,0);
             H[1](1,1) += r_coordinates[1] * DDN_DDe[p](1,1);
 
-            if(Dim == 3){
+            if constexpr(Dim == 3){
                 H[0](0,2) += r_coordinates[0] * DDN_DDe[p](0,2);
                 H[0](1,2) += r_coordinates[0] * DDN_DDe[p](1,2);
                 H[0](2,0) += r_coordinates[0] * DDN_DDe[p](2,0);
@@ -269,16 +269,16 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
 
         for (IndexType p = 0; p < r_geometry.PointsNumber(); ++p) {
             Vector result, rhs;
-            if (Dim == 2){
-                rhs = ZeroVector(3);
-                result = ZeroVector(3);
+            if constexpr (Dim == 2){
+                rhs.resize(3);
+                result.resize(3);
                 rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0);
                 rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1);
                 rhs[2] = DDN_DDe[p](0,1) - DN_DX(p,0) * H[0](0,1) - DN_DX(p,1) * H[1](0,1);
             }
-            else if (Dim == 3){
-                rhs = ZeroVector(6);
-                result = ZeroVector(6);
+            else if constexpr (Dim == 3){
+                rhs.resize(6);
+                result.resize(6);
                 rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0) - DN_DX(p,2) * H[2](0,0);
                 rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1) - DN_DX(p,2) * H[2](1,1);
                 rhs[2] = DDN_DDe[p](2,2) - DN_DX(p,0) * H[0](2,2) - DN_DX(p,1) * H[1](2,2) - DN_DX(p,2) * H[2](2,2);
@@ -289,7 +289,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
 
             aux[p].resize(r_geometry.WorkingSpaceDimension(), r_geometry.WorkingSpaceDimension(), false );
 
-            result = prod(Ainv, rhs);
+            noalias(result) = prod(Ainv, rhs);
 
             aux[p](0,0) = result[0];
             aux[p](1,1) = result[1];
@@ -308,7 +308,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
             }
         }
 
-        rDDN_DDX[g] = aux;
+        noalias(rDDN_DDX[g]) = aux;
     }
 }
 
@@ -331,7 +331,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::CalculateOnIntegrationPoints(
         rOutput.resize(number_of_integration_points);
     TElementData data;
     data.Initialize(*this, rCurrentProcessInfo);
-    for (unsigned int g = 0; g < number_of_integration_points; g++ ) {
+    for (IndexType g = 0; g < number_of_integration_points; g++ ) {
         data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),shape_derivatives[g]);
         if (rVariable == PRESSURE) {
             const auto& r_pressure = data.Pressure;
@@ -362,14 +362,14 @@ void AlternativeQSVMSDEMCoupled<TElementData>::CalculateOnIntegrationPoints(
     TElementData data;
     data.Initialize(*this, rCurrentProcessInfo);
 
-    for (unsigned int g = 0; g < number_of_integration_points; g++ ) {
+    for (IndexType g = 0; g < number_of_integration_points; g++ ) {
         data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),shape_derivatives[g]);
         Matrix value = ZeroMatrix(Dim, Dim);
         if (rVariable == VELOCITY_GRADIENT) {
             const auto& r_velocity = data.Velocity;
-            for (unsigned int i = 0; i < NumNodes; i++) {
-                for (unsigned int d = 0; d < Dim; d++) {
-                    for (unsigned int e = 0; e < Dim; e++)
+            for (IndexType i = 0; i < NumNodes; i++) {
+                for (IndexType d = 0; d < Dim; d++) {
+                    for (IndexType e = 0; e < Dim; e++)
                         value(d,e) += data.DN_DX(i,d) * r_velocity(i,e);
                 }
             }
@@ -457,19 +457,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::Calculate(
             this->MomentumProjTerm(data, convective_velocity, MomentumRes);
             this->MassProjTerm(data,MassRes);
 
-        //     for (unsigned int i = 0; i < NumNodes; i++)
-        //     {
-        //         array_1d<double,3>& momentum_rhs = this->GetGeometry()[i].GetValue(ADVPROJ);
-        //         VectorType MassRHS = this->GetGeometry()[i].GetValue(DIVPROJ);
-
-        //         double W = data.Weight*data.N[i];
-        //         unsigned int row = i*Dim;
-        //         for (unsigned int d = 0; d < Dim; d++)
-        //             momentum_rhs[row+d] += W*MomentumRes[d];
-        //         NodalArea[i] += W;
-        //         MassRHS[i] += W*MassRes;
-        //         }
-        // }
         /* Projections of the elemental residual are computed with
             * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
         */
@@ -647,11 +634,11 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
 
     for (unsigned int i = 0; i < NumNodes; i++) {
         const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-        sigma_U = ZeroVector(Dim);
-        grad_div_u = ZeroVector(Dim);
-        sym_gradient_u = ZeroMatrix(Dim, Dim);
-        grad_alpha_sym_grad_u = ZeroVector(Dim);
-        div_sym_grad_u = ZeroVector(Dim);
+        noalias(sigma_U) = ZeroVector(Dim);
+        noalias(grad_div_u) = ZeroVector(Dim);
+        noalias(sym_gradient_u) = ZeroMatrix(Dim, Dim);
+        noalias(grad_alpha_sym_grad_u) = ZeroVector(Dim);
+        noalias(div_sym_grad_u) = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
@@ -665,7 +652,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
                 else
                     div_sym_grad_u[d] += 1.0/2.0 * (rData.DDN_DDX[i](e,d) * r_velocities(i,e) + rData.DDN_DDX[i](e,e) * r_velocities(i,d));
             }
-            rResidual[d] += density * (/*rData.N[i] * r_body_forces(i,d)*/ - fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) + 2.0 * grad_alpha_sym_grad_u[d] * viscosity - 2.0 / 3.0 * viscosity * fluid_fraction_gradient[d] * div_u + 2.0 * fluid_fraction * viscosity * div_sym_grad_u[d] - 2.0/3.0 * fluid_fraction * viscosity * grad_div_u[d] - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
+            rResidual[d] += density * (- fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) + 2.0 * grad_alpha_sym_grad_u[d] * viscosity - 2.0 / 3.0 * viscosity * fluid_fraction_gradient[d] * div_u + 2.0 * fluid_fraction * viscosity * div_sym_grad_u[d] - 2.0/3.0 * fluid_fraction * viscosity * grad_div_u[d] - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
             }
         }
     for (unsigned int d = 0; d < Dim; d++)
@@ -698,10 +685,10 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     Vector grad_alpha_sym_grad_u, grad_div_u, div_sym_grad_u;
     BoundedMatrix<double,Dim,Dim> sym_gradient_u;
     for (unsigned int i = 0; i < NumNodes; i++) {
-        grad_div_u = ZeroVector(Dim);
-        sym_gradient_u = ZeroMatrix(Dim, Dim);
-        grad_alpha_sym_grad_u = ZeroVector(Dim);
-        div_sym_grad_u = ZeroVector(Dim);
+        noalias(grad_div_u) = ZeroVector(Dim);
+        noalias(sym_gradient_u) = ZeroMatrix(Dim, Dim);
+        noalias(grad_alpha_sym_grad_u) = ZeroVector(Dim);
+        noalias(div_sym_grad_u) = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
@@ -923,11 +910,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     //const auto& rGeom = this->GetGeometry();
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N); // Force per unit of volume
-
-
-    // const array_1d<double,3> convective_velocity =
-    //     this->GetAtCoordinate(rData.Velocity, rData.N) -
-    //     this->GetAtCoordinate(rData.MeshVelocity, rData.N);
 
     const array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
     array_1d<double,3> velocity = this->GetAtCoordinate(rData.Velocity,rData.N);
@@ -1279,27 +1261,8 @@ void AlternativeQSVMSDEMCoupled<TElementData>::CalculateResistanceTensor(
     const TElementData& rData)
 {
     BoundedMatrix<double,Dim,Dim>& rsigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
-    // typename TElementData::NodalVectorData variable_db;
-    // const auto& rGeom = this->GetGeometry();
-    // for (unsigned int i = 0; i < NumNodes; i++)
-    //     for (unsigned int d = 0; d < Dim; d++)
-    //         variable_db(i,d) = rGeom[i].FastGetSolutionStepValue(ACCELERATION)[d];
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
 
-    // const auto imposed_velocity = this->GetAtCoordinate(rData.Velocity, rData.N);
-    // //const auto imposed_velocity = this->GetAtCoordinate(variable_db, rData.N);
-    // const double porosity = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-    // const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-    // double kappa = (1 - porosity)/porosity;
-    // //double kappa = 1.0;
-    // double velocity_modulus = 0.0;
-
-    // for (unsigned int d = 0; d < Dim; d++)
-    //     velocity_modulus += imposed_velocity[d] * imposed_velocity[d];
-
-    // double velocity_norm = std::sqrt(velocity_modulus);
-    // for (unsigned int d = 0; d < Dim; d++)
-        //rsigma(d,d) = (viscosity * 150.0 * std::pow(kappa,2) + 1.75 * kappa * velocity_norm);
     rsigma = permeability;
 }
 
@@ -1640,14 +1603,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::SubscalePressure(
 {
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
-    //const auto& rGeom = this->GetGeometry();
-    //typename TElementData::NodalVectorData variable_db;
-    // for (unsigned int i = 0; i < NumNodes; i++)
-    //     for (unsigned int d = 0; d < Dim; d++)
-    //         variable_db(i,d) = rGeom[i].FastGetSolutionStepValue(ACCELERATION)[d];
-    // const array_1d<double, 3> convective_velocity =
-    //     this->GetAtCoordinate(variable_db, rData.N) -
-    //     this->GetAtCoordinate(rData.MeshVelocity, rData.N);
     const array_1d<double, 3> convective_velocity =
         this->GetAtCoordinate(rData.Velocity, rData.N) -
         this->GetAtCoordinate(rData.MeshVelocity, rData.N);

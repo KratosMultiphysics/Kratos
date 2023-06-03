@@ -213,8 +213,8 @@ public:
         VectorType MassProjectionRHS = ZeroVector(number_of_nodes);
         VectorType MomentumProjectionRHS = ZeroVector(number_of_nodes*dimension);
         if (mMassMatrixAlreadyComputed == false){
-            mGlobalDivProjMassMatrix = ZeroMatrix(number_of_nodes,number_of_nodes);
-            mGlobalAdvProjMassMatrix = ZeroMatrix(number_of_nodes*dimension,number_of_nodes*dimension);
+            noalias(mGlobalDivProjMassMatrix) = ZeroMatrix(number_of_nodes,number_of_nodes);
+            noalias(mGlobalAdvProjMassMatrix) = ZeroMatrix(number_of_nodes*dimension,number_of_nodes*dimension);
             #pragma omp for schedule(guided, 512)
             for (int e = 0; e < number_of_elements; e++){
             ModelPart::ElementsContainerType::iterator it_elem = rModelPart.ElementsBegin() + e;
