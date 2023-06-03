@@ -233,8 +233,8 @@ std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBox(const
     const auto it_begin = mGlobalBoundingBoxes.begin();
     for (int i = 0; i < world_size; ++i) {
         auto vec_it = it_begin + 6 * i;
-        for (size_t i = 0; i < 6; ++i, ++vec_it) {
-            local_bb[i] = *vec_it;
+        for (unsigned int j = 0; j < 6; ++j, ++vec_it) {
+            local_bb[j] = *vec_it;
         }
         if (MPISearchUtilities::PointIsInsideBoundingBox(local_bb, rCoords)) {
             ranks.push_back(i);
@@ -260,8 +260,8 @@ std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBoxWithTo
     const auto it_begin = bb_tolerance.begin();
     for (int i = 0; i < world_size; ++i) {
         auto vec_it = it_begin + 6 * i;
-        for (size_t i = 0; i < 6; ++i, ++vec_it) {
-            local_bb[i] = *vec_it;
+        for (unsigned int j = 0; j < 6; ++j, ++vec_it) {
+            local_bb[j] = *vec_it;
         }
         if (MPISearchUtilities::PointIsInsideBoundingBox(local_bb, rCoords)) {
             ranks.push_back(i);
