@@ -21,7 +21,6 @@ import test_mpi_processes
 import test_distributed_model_part_initializer
 import test_distributed_import_model_part_utility
 import test_distributed_sparse_matrices
-import test_geometrical_object_bins
 
 # importing OpenMP tests in MPI scope.
 with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
@@ -33,6 +32,7 @@ with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
     import test_variable_redistribution
     import test_container_expression
     from test_model_part_operation_utilities import TestModelPartOperationUtilities
+    import test_geometrical_object_bins
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
