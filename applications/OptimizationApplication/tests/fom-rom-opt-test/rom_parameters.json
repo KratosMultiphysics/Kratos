@@ -1,4 +1,6 @@
 {
+    "projection_strategy" : "galerkin",
+    "assembling_strategy" : "elemental",
     "rom_settings": {
         "nodal_unknowns": [
             "DISPLACEMENT_X",
@@ -7,7 +9,6 @@
             "ROTATION_X",
             "ROTATION_Y",
             "ROTATION_Z"
-        ],
-        "svd_truncation_tolerance": 1.0e-6
+        ]
     }
 }

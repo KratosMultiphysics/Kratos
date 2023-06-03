@@ -4,22 +4,21 @@ from numpy import linalg as LA
 import json
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 import KratosMultiphysics.RomApplication as ROM
-from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+import KratosMultiphysics.RomApplication.fom_rom_analysis
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ExecutionPolicy:
     if not parameters.Has("name"):
-        raise RuntimeError(f"SteppingRomAnalysisExecutionPolicy instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"SteppingFomRomAnalysisExecutionPolicy instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"SteppingRomAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"SteppingFomRomAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return SteppingRomAnalysisExecutionPolicy(parameters["name"].GetString(), model, parameters["settings"])
+    return SteppingFomRomAnalysisExecutionPolicy(parameters["name"].GetString(), model, parameters["settings"])
 
-class SteppingRomAnalysisExecutionPolicy(ExecutionPolicy):
+class SteppingFomRomAnalysisExecutionPolicy(ExecutionPolicy):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
         super().__init__(name)
 
@@ -29,45 +28,48 @@ class SteppingRomAnalysisExecutionPolicy(ExecutionPolicy):
             "fom_analysis_type"    : "",
             "fom_analysis_settings": {},
             "rom_analysis_settings": {},
-            "update_rom_bases_frequency": 10
+            "update_rom_bases_frequency": 10,
+            "svd_truncation_tolerance": 1.0e-6
         }""")
         self.model = model
         self.parameters = parameters
         self.parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.rom_parameters = self.parameters["rom_analysis_settings"].Clone()["rom_settings"]
+        self.rom_parameters = self.parameters["rom_analysis_settings"].Clone()
 
-        self.svd_truncation_tolerance = self.rom_parameters["svd_truncation_tolerance"].GetDouble()
+        self.svd_truncation_tolerance = self.parameters["svd_truncation_tolerance"].GetDouble()
         self.update_rom_bases_frequency = self.parameters["update_rom_bases_frequency"].GetInt()
 
         # Initialize the snapshots data list
         self.snapshots_data_list = []
-        self.snapshot_variables_list = self.rom_parameters["nodal_unknowns"].GetStringArray()
+        self.snapshot_variables_list = self.rom_parameters["rom_settings"]["nodal_unknowns"].GetStringArray()
         self.n_nodal_unknowns = len(self.snapshot_variables_list)
 
         analysis_module = self.parameters["analysis_module"].GetString()
-        rom_analysis_type = self.parameters["fom_analysis_type"].GetString() + "RFom"
+        rom_analysis_type = self.parameters["fom_analysis_type"].GetString()
         fom_analysis_settings = self.parameters["fom_analysis_settings"]
 
         if analysis_module == "KratosMultiphysics":
             rom_analysis_module = GetClassModuleFromKratos(rom_analysis_type)
 
-        self.model_parts = []
         rom_analysis_full_module = f"{rom_analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(rom_analysis_type)}"
 
-        self.rom_analysis: AnalysisStage = getattr(import_module(rom_analysis_full_module), rom_analysis_type)(self.model, self.rom_parameters, fom_analysis_settings.Clone())
-        self.analysis = self.rom_analysis
+        analysis_stage_class = getattr(import_module(rom_analysis_full_module), rom_analysis_type)
 
+        instance_factory = Kratos.RomApplication.fom_rom_analysis.CreateFomRomAnalysisInstance
+        self.analysis = instance_factory(analysis_stage_class, self.model, fom_analysis_settings.Clone(), self.rom_parameters)
+
+        #some initializations
         #TODO: get optimization iteration number from OptimizationProblem
         self.optimization_iteration = 0
-
         self.run_rom = False
+        self.model_parts = []
 
     def GetAnalysisModelPart(self):
-        return self.rom_analysis._GetSolver().GetComputingModelPart()
+        return self.analysis._GetSolver().GetComputingModelPart()
 
     def Initialize(self):
-        self.rom_analysis.Initialize()
+        self.analysis.Initialize()
 
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
@@ -93,7 +95,7 @@ class SteppingRomAnalysisExecutionPolicy(ExecutionPolicy):
             self.run_rom = False
         elif self.optimization_iteration % self.update_rom_bases_frequency == 0.0:
             self.AddToSnapshotMatrix()
-            self.rom_analysis.UpdateRomBases(self._GetSnapshotsMatrix())
+            self.analysis.UpdateRomBases(self._GetSnapshotsMatrix(),self.svd_truncation_tolerance)
             self.run_rom = True
         elif self.update_rom_bases_frequency - (self.optimization_iteration % self.update_rom_bases_frequency) == 1:
             self.run_rom = False
@@ -101,9 +103,9 @@ class SteppingRomAnalysisExecutionPolicy(ExecutionPolicy):
             self.run_rom = True
 
         if self.run_rom:
-            self.rom_analysis.SetSolverToRom()
+            self.analysis.SetSolverToRom()
         else:
-            self.rom_analysis.SetSolverToFom()
+            self.analysis.SetSolverToFom()
 
     def RunAnalysis(self):
 
@@ -122,13 +124,13 @@ class SteppingRomAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_analysis[index] - 1)
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
 
-        self.rom_analysis.time = self.rom_analysis._GetSolver().AdvanceInTime(self.rom_analysis.time)
-        self.rom_analysis.InitializeSolutionStep()
-        self.rom_analysis._GetSolver().Predict()
-        self.rom_analysis._GetSolver().SolveSolutionStep()
+        self.analysis.time = self.analysis._GetSolver().AdvanceInTime(self.analysis.time)
+        self.analysis.InitializeSolutionStep()
+        self.analysis._GetSolver().Predict()
+        self.analysis._GetSolver().SolveSolutionStep()
 
-        self.rom_analysis.FinalizeSolutionStep()
-        self.rom_analysis.OutputSolutionStep()
+        self.analysis.FinalizeSolutionStep()
+        self.analysis.OutputSolutionStep()
 
         # Clear results or modifications on model parts
         for index, model_part in enumerate(self.model_parts):
