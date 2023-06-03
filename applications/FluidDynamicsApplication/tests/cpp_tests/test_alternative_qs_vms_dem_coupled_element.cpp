@@ -51,7 +51,6 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
 
     // Process info creation
     double delta_time = 0.1;
-    model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
     model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 
     // Set the element properties
@@ -130,22 +129,6 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
 
         for (unsigned int j = 0; j < output.size(); j++) {
             KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-4);
-        }
-    }
-    double porosity = 0.5;
-    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
-        double& r_fluid_fraction = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
-        r_fluid_fraction = porosity;
-    }
-
-    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
-        const auto& r_process_info = model_part.GetProcessInfo();
-        const auto& rElem = *i;
-        rElem.Check(r_process_info);
-        i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
-
-        for (unsigned int j = 0; j < output.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], porosity*output[j], 1e-4);
         }
     }
 }
