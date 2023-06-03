@@ -427,9 +427,6 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
 
     noalias(rStiffnessMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
-    BoundedMatrix<double, NumberOfNodes, NumberOfNodes> A_dirc;
-    A_dirc.clear();
-
     // reading integration points and local gradients
     const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
     const auto& integration_points = r_geom.IntegrationPoints(integration_method);
@@ -448,16 +445,15 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
         mDataContainer.CalculateShapeFunctionDerivatives(DN_DX, i_point, constant_data);
 
         const double W = integration_points[i_point].Weight() * gauss_pts_J_det[i_point];
-        noalias(A_dirc) += W * helmholtz_radius * helmholtz_radius * prod(DN_DX, trans(DN_DX));
-    }
+        const BoundedMatrix<double, NumberOfNodes, NumberOfNodes>& A_dirc = W * helmholtz_radius * helmholtz_radius * prod(DN_DX, trans(DN_DX));
 
-    // contruct the stifness matrix in all dims
-    for (IndexType i = 0; i < NumberOfNodes; ++i) {
-        const SizeType index_i = i * DataDimension;
-        for (IndexType k = 0; k < NumberOfNodes; ++k) {
-            const SizeType index_k = k * DataDimension;
-            for (IndexType j = 0; j < DataDimension; ++j) {
-                rStiffnessMatrix(index_i + j, index_k + j) = A_dirc(i, k);
+        for (IndexType i = 0; i < NumberOfNodes; ++i) {
+            const SizeType index_i = i * DataDimension;
+            for (IndexType k = 0; k < NumberOfNodes; ++k) {
+                const SizeType index_k = k * DataDimension;
+                for (IndexType j = 0; j < DataDimension; ++j) {
+                    rStiffnessMatrix(index_i + j, index_k + j) += A_dirc(i, k);
+                }
             }
         }
     }
