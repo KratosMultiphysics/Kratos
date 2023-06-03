@@ -1389,7 +1389,6 @@ private:
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult[i].resize( 3, 3, false );
-            noalias( rResult[i] ) = ZeroMatrix( 3, 3 );
         }
 
         const double fx1 = 0.5 * ( rPoint[0] - 1 ) * rPoint[0];
