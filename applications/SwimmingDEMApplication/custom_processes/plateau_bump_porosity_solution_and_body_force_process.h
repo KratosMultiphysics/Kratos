@@ -11,8 +11,7 @@
 //
 //
 
-#ifndef KRATOS_PLATEAU_BUMP_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
-#define KRATOS_PLATEAU_BUMP_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H
+#pragma once
 
 // System includes
 #include <string>
@@ -35,7 +34,14 @@ namespace Kratos
 
 ///@name Kratos Globals
 ///@{
-
+    extern DenseVector<std::vector<double>> mExactScalar;
+    extern DenseVector<std::vector<double>> mExactPorosity;
+    extern DenseVector<std::vector<double>> mExactPorosityRate;
+    extern DenseVector<Matrix> mExactBodyForce;
+    extern DenseVector<Matrix> mExactPorosityGradient;
+    extern DenseVector<Matrix> mExactVector;
+    extern DenseVector<Matrix> mExactScalarGradient;
+    extern DenseVector<DenseVector<Matrix>> mExactVectorGradient;
 ///@}
 ///@name Type Definitions
 ///@{
@@ -224,5 +230,3 @@ private:
 ///@} addtogroup block
 
 };  // namespace Kratos.
-
-#endif // KRATOS_PLATEAU_BUMP_POROSITY_SOLUTION_AND_BODY_FORCE_PROCESS_H

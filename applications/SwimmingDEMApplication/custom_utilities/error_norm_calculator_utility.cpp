@@ -29,6 +29,7 @@
 #include "swimming_DEM_application.h"
 #include "swimming_dem_application_variables.h"
 #include "custom_utilities/error_norm_calculator_utility.h"
+#include "custom_processes/plateau_bump_porosity_solution_and_body_force_process.h"
 
 // Other applications includes
 #include "fluid_dynamics_application_variables.h"
@@ -36,13 +37,13 @@
 
 namespace Kratos
 {
-DenseVector<std::vector<double>> mExactScalar;
-DenseVector<Matrix> mExactVector;
-DenseVector<Matrix> mExactScalarGradient;
-DenseVector<DenseVector<Matrix>> mExactVectorGradient;
-DenseVector<std::vector<double>> mExactPorosity;
-DenseVector<Matrix> mExactBodyForce;
-DenseVector<Matrix> mExactPorosityGradient;
+// DenseVector<std::vector<double>> mExactScalar;
+// DenseVector<Matrix> mExactVector;
+// DenseVector<Matrix> mExactScalarGradient;
+// DenseVector<DenseVector<Matrix>> mExactVectorGradient;
+// DenseVector<std::vector<double>> mExactPorosity;
+// DenseVector<Matrix> mExactBodyForce;
+// DenseVector<Matrix> mExactPorosityGradient;
 
 void ErrorNormCalculator::ComputeDofsErrors(ModelPart& r_model_part)
 {

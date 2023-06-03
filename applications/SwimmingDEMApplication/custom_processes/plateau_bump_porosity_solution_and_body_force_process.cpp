@@ -33,14 +33,16 @@
 
 namespace Kratos
 {
-extern DenseVector<std::vector<double>> mExactScalar;
-extern DenseVector<std::vector<double>> mExactPorosity;
-extern DenseVector<std::vector<double>> mExactPorosityRate;
-extern DenseVector<Matrix> mExactBodyForce;
-extern DenseVector<Matrix> mExactPorosityGradient;
-extern DenseVector<Matrix> mExactVector;
-extern DenseVector<Matrix> mExactScalarGradient;
-extern DenseVector<DenseVector<Matrix>> mExactVectorGradient;
+
+DenseVector<std::vector<double>> mExactScalar;
+DenseVector<std::vector<double>> mExactPorosity;
+DenseVector<std::vector<double>> mExactPorosityRate;
+DenseVector<Matrix> mExactBodyForce;
+DenseVector<Matrix> mExactPorosityGradient;
+DenseVector<Matrix> mExactVector;
+DenseVector<Matrix> mExactScalarGradient;
+DenseVector<DenseVector<Matrix>> mExactVectorGradient;
+
 /* Public functions *******************************************************/
 PlateauBumpPorositySolutionAndBodyForceProcess::PlateauBumpPorositySolutionAndBodyForceProcess(
     ModelPart& rModelPart)
