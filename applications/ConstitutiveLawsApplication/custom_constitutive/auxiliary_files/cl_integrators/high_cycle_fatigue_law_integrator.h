@@ -207,7 +207,7 @@ public:
                     rResidualStressDamage = 1.0 - current_integrated_stress / ResidualUniaxialStress;
 					break;
                 } else {
-                    rResidualStressDamage = 0;
+                    rResidualStressDamage = 0.0;
                 }
             }
         } else {
@@ -215,7 +215,7 @@ public:
                 rResidualStressDamage = 1.0 - ultimate_stress / ResidualUniaxialStress;
 
             } else {
-                rResidualStressDamage = 0;
+                rResidualStressDamage = 0.0;
             }
         }
     }

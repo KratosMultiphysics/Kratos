@@ -491,7 +491,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         // }
 
         double residual_stress_sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_residual_stress_vector);
-        if (residual_stress_sign_factor > 0) {
+        if (residual_stress_sign_factor > 0.0) {
             uniaxial_residual_stress *= residual_stress_damage;
             // KRATOS_WATCH(residual_stress_vector)
             // KRATOS_WATCH(uniaxial_residual_stress)
