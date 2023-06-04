@@ -633,11 +633,11 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
 
     for (unsigned int i = 0; i < NumNodes; i++) {
         const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-        noalias(sigma_U) = ZeroVector(Dim);
-        noalias(grad_div_u) = ZeroVector(Dim);
-        noalias(sym_gradient_u) = ZeroMatrix(Dim, Dim);
-        noalias(grad_alpha_sym_grad_u) = ZeroVector(Dim);
-        noalias(div_sym_grad_u) = ZeroVector(Dim);
+        sigma_U = ZeroVector(Dim);
+        grad_div_u = ZeroVector(Dim);
+        sym_gradient_u = ZeroMatrix(Dim, Dim);
+        grad_alpha_sym_grad_u = ZeroVector(Dim);
+        div_sym_grad_u = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
@@ -729,7 +729,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddMassStabilization(
     AGradN *= density;
 
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-    array_1d<double,3> fluid_fraction_gradient = ZeroVector(Dim);
+    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
     for (unsigned int i = 0; i < NumNodes; i++)
         for (unsigned int d = 0; d < Dim; d++)
             fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];

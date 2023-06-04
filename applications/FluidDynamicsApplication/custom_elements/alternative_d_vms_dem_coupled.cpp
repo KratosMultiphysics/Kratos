@@ -661,11 +661,11 @@ void AlternativeDVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
 
     for (unsigned int i = 0; i < NumNodes; i++) {
         const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-        noalias(sigma_U) = ZeroVector(Dim);
-        noalias(grad_div_u) = ZeroVector(Dim);
-        noalias(sym_gradient_u) = ZeroMatrix(Dim, Dim);
-        noalias(grad_alpha_sym_grad_u) = ZeroVector(Dim);
-        noalias(div_sym_grad_u) = ZeroVector(Dim);
+        sigma_U = ZeroVector(Dim);
+        grad_div_u = ZeroVector(Dim);
+        sym_gradient_u = ZeroMatrix(Dim, Dim);
+        grad_alpha_sym_grad_u = ZeroVector(Dim);
+        div_sym_grad_u = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
@@ -701,7 +701,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
-    array_1d<double,3> fluid_fraction_gradient = ZeroVector(Dim);
+    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
     for (unsigned int i = 0; i < NumNodes; i++)
         for (unsigned int d = 0; d < Dim; d++)
             fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
@@ -1700,22 +1700,20 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
 {
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction,rData.N);
-
-    array_1d<double,3> predicted_subscale_velocity = ZeroVector(3);
+    array_1d<double,Dim> predicted_subscale_velocity = ZeroVector(Dim);
 
     const array_1d<double,Dim>& r_old_subscale_velocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
 
-    array_1d<double, 3> previous_velocity = mPreviousVelocity[rData.IntegrationPointIndex];
+    array_1d<double, Dim> previous_velocity = mPreviousVelocity[rData.IntegrationPointIndex];
 
     //for (size_t i = 0; i < NumNodes; i++) {
-    array_1d<double, 3> subscale_velocity_on_previous_iteration = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
+    array_1d<double, Dim> subscale_velocity_on_previous_iteration = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
         // for (size_t d = 0; d < Dim; d++) {
         //     previous_subscale_velocity[d] += subscale_velocity_on_previous_iteration[d];
         // }
     //}
 
-    array_1d<double,3> v_d = ZeroVector(Dim);
-
+    array_1d<double,3> v_d = ZeroVector(3);
     for (unsigned int d = 0; d < Dim; d++)
         v_d[d] = previous_velocity[d] + subscale_velocity_on_previous_iteration[d];
 
@@ -1728,7 +1726,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
         this->AlgebraicMomentumResidual(rData,v_d,static_residual);
     else
         this->OrthogonalMomentumResidual(rData,v_d,static_residual);
-
 
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
@@ -1760,7 +1757,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
     //BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     //double det_permeability = MathUtils<double>::Det(permeability);
     //MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
-    array_1d<double,3> fluid_fraction_gradient = ZeroVector(Dim);
+    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
     for (unsigned int i = 0; i < NumNodes; i++)
         for (unsigned int d = 0; d < Dim; d++)
             fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
