@@ -264,13 +264,12 @@ void AlternativeDVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
         ShapeFunctionsSecondDerivativesType DDN_DDe;
         r_geometry.ShapeFunctionsSecondDerivatives(DDN_DDe, local_point_coordinates);
 
-
         Matrix A, Ainv;
 
         r_geometry.Jacobian(J,g,integration_method);
         MathUtils<double>::InvertMatrix( J, Jinv, DetJ );
 
-        noalias(DN_DX) = prod(DN_De[g],Jinv);
+        DN_DX = prod(DN_De[g],Jinv);
 
         if(Dim == 2){
             A.resize(3,3,false);
@@ -338,8 +337,8 @@ void AlternativeDVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
 
         MathUtils<double>::InvertMatrix( A, Ainv, DetA );
         DenseVector<Matrix> H(r_geometry.WorkingSpaceDimension());
-        for (IndexType d = 0; d < r_geometry.WorkingSpaceDimension(); ++d)
-            noalias(H[d]) = ZeroMatrix(r_geometry.LocalSpaceDimension(),r_geometry.LocalSpaceDimension());
+        for (unsigned int d = 0; d < r_geometry.WorkingSpaceDimension(); ++d)
+            H[d] = ZeroMatrix(r_geometry.LocalSpaceDimension(),r_geometry.LocalSpaceDimension());
 
         for (IndexType p = 0; p < r_geometry.PointsNumber(); ++p) {
             const array_1d<double, 3>& r_coordinates = r_geometry[p].Coordinates();
@@ -418,8 +417,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
                 aux[p](1,2) = result[4];
             }
         }
-
-        noalias(rDDN_DDX[g]) = aux;
+        rDDN_DDX[g] = aux;
     }
 }
 
@@ -1214,6 +1212,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddReactionStabilization(
     for (unsigned int i = 0; i < NumNodes; i++)
         for (unsigned int d = 0; d < Dim; d++)
             fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
 
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];

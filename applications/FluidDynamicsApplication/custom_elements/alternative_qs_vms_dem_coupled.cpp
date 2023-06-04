@@ -153,7 +153,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
         ShapeFunctionsSecondDerivativesType DDN_DDe;
         r_geometry.ShapeFunctionsSecondDerivatives(DDN_DDe, local_point_coordinates);
 
-
         Matrix A, Ainv;
 
         r_geometry.Jacobian(J,g,integration_method);
@@ -228,7 +227,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
         MathUtils<double>::InvertMatrix( A, Ainv, DetA );
         DenseVector<Matrix> H(r_geometry.WorkingSpaceDimension());
         for (IndexType d = 0; d < r_geometry.WorkingSpaceDimension(); d++)
-            noalias(H[d]) = ZeroMatrix(r_geometry.LocalSpaceDimension(),r_geometry.LocalSpaceDimension());
+            H[d] = ZeroMatrix(r_geometry.LocalSpaceDimension(),r_geometry.LocalSpaceDimension());
 
         for (IndexType p = 0; p < r_geometry.PointsNumber(); ++p) {
             const array_1d<double, 3>& r_coordinates = r_geometry[p].Coordinates();
@@ -308,7 +307,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::GetShapeSecondDerivatives(
             }
         }
 
-        noalias(rDDN_DDX[g]) = aux;
+        rDDN_DDX[g] = aux;
     }
 }
 
@@ -783,15 +782,10 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddReactionStabilization(
 {
 
     const double density = this->GetAtCoordinate(rData.Density, rData.N);
-
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
-    const array_1d<double, 3> convective_velocity =
-        this->GetAtCoordinate(rData.Velocity, rData.N) -
-        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
-
+    const array_1d<double, 3> convective_velocity = this->FullConvectiveVelocity(rData);
     this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
-
     array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce, rData.N);
 
     Vector AGradN;
@@ -800,7 +794,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddReactionStabilization(
     AGradN *= density;
 
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-    array_1d<double,3> fluid_fraction_gradient = ZeroVector(Dim);
+    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
     for (unsigned int i = 0; i < NumNodes; i++)
         for (unsigned int d = 0; d < Dim; d++)
             fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
@@ -1167,11 +1161,9 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
         double Q = rData.N[i] * (mass_source - fluid_fraction_rate);
         rLocalRHS[row+Dim] += rData.Weight * (QAlphaF + Q); // Grad(q) * TauOne * (Density * BodyForce)
     }
-
     // Adding reactive terms to the stabilization
     if(!rData.UseOSS)
         this->AddReactionStabilization(rData,LHS,rLocalRHS);
-
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
