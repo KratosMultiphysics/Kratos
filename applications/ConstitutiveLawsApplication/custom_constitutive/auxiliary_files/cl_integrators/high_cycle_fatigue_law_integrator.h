@@ -175,8 +175,53 @@ public:
         return MinStress / MaxStress;
     }
 
+
     /**
-     * @brief This method returns de the material ultimate stress.
+     * @brief This method returns the damage corresponding to the damage induced by the residual stress.
+     * @param ResidualUniaxialStress Residual uniaxial stress.
+     * @param rResidualStressDamage Damage of the residual stress.
+     * @param rMaterialParameters Material properties.
+     */
+    static void IntegrateResidualStressVector(const double ResidualUniaxialStress,
+                                              double& rResidualStressDamage,
+                                              const Properties& rMaterialParameters)
+    {
+        double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+        // const double yield_stress = ultimate_stress;
+        const double E = rMaterialParameters[YOUNG_MODULUS];
+        const Vector& strain_damage_curve = rMaterialParameters[STRAIN_DAMAGE_CURVE];
+        const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE];
+
+        const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+
+        const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+        if (softening_type == curve_by_points) {
+            const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
+            const SizeType curve_points = stress_damage_curve.size() - 1;
+
+            ultimate_stress = 0.0;
+            for (IndexType i = 1; i <= curve_points; ++i) {
+                if (ResidualUniaxialStress < strain_damage_curve[i] * E) {
+                    const double current_integrated_stress = stress_damage_curve[i-1] + (ResidualUniaxialStress / E - strain_damage_curve[i-1])
+                        * (stress_damage_curve[i] - stress_damage_curve[i-1]) / (strain_damage_curve[i] - strain_damage_curve[i-1]);
+                    rResidualStressDamage = 1.0 - current_integrated_stress / ResidualUniaxialStress;
+					break;
+                } else {
+                    rResidualStressDamage = 0;
+                }
+            }
+        } else {
+            if (ResidualUniaxialStress > ultimate_stress){
+                rResidualStressDamage = 1.0 - ultimate_stress / ResidualUniaxialStress;
+
+            } else {
+                rResidualStressDamage = 0;
+            }
+        }
+    }
+
+    /**
+     * @brief This method returns the material ultimate stress.
      * @param rUltimateStress Material ultimate stress.
      * @param MaterialParameters Material properties.
      */

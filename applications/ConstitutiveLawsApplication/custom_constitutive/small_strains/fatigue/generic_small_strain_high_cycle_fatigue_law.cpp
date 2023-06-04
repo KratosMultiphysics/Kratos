@@ -471,7 +471,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
     }
     
-    array_1d<double, VoigtSize> residual_stress_vector;
+    array_1d<double, VoigtSize> predictive_residual_stress_vector;
     array_1d<double, VoigtSize> predictive_stress_vector;
     // We compute the stress
     if(r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
@@ -479,14 +479,20 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         // S00
         double uniaxial_residual_stress;
         double ultimate_stress = mUltimateStress;
+        double residual_stress_damage;
 
-        residual_stress_vector = ZeroVector(VoigtSize);
-        this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(residual_stress_vector);
-        double residual_stress_sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(residual_stress_vector);
+        predictive_residual_stress_vector = ZeroVector(VoigtSize);
+        this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_residual_stress_vector);
+        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_residual_stress_vector, r_strain_vector, uniaxial_residual_stress, rValues);
+        HighCycleFatigueLawIntegrator<6>::IntegrateResidualStressVector(uniaxial_residual_stress, residual_stress_damage, rValues.GetMaterialProperties());
+        
+        // if (residual_stress_damage > 0.0) {
+        //     KRATOS_WATCH(residual_stress_damage)
+        // }
 
+        double residual_stress_sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_residual_stress_vector);
         if (residual_stress_sign_factor > 0) {
-            TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(residual_stress_vector, r_strain_vector, uniaxial_residual_stress, rValues);
-            uniaxial_residual_stress = (uniaxial_residual_stress < ultimate_stress) ? uniaxial_residual_stress : ultimate_stress;
+            uniaxial_residual_stress *= residual_stress_damage;
             // KRATOS_WATCH(residual_stress_vector)
             // KRATOS_WATCH(uniaxial_residual_stress)
         } else {
