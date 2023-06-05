@@ -2,6 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+import math
 
 def CreateLineSearch(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     type = parameters["type"].GetString()
@@ -36,10 +37,10 @@ class ConstStep(object):
         elif self.__gradient_scaling == "l2_norm":
             norm = KratosOA.ContainerExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
         elif self.__gradient_scaling == "none":
-            norm = 0.0
+            norm = 1.0
         else:
             raise RuntimeError("\"gradient_scaling\" has unknown type.")
-        if norm:
+        if not math.isclose(norm, 0.0, abs_tol=1e-16):
             step = self.init_step / norm
         else:
             step =  self.init_step
