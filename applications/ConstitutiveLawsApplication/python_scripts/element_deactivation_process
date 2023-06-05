@@ -45,12 +45,23 @@ class ElementDeactivationProcess(KM.Process):
             raise RuntimeError('MPI not supported yet')
 
     def ExecuteFinalizeSolutionStep(self):
-        for element in self.model_part.Elements:
-            variable_elemental_data = element.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)
 
-            if self.average_variable_over_ip:
+        if self.average_variable_over_ip: # The average > threshold
+            for element in self.model_part.Elements:
+                variable_elemental_data = element.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)
+
                 average_data = 0.0
                 for entry in variable_elemental_data:
                     average_data += entry
-                if average_data / len(variable_elemental_data) > self.variable_threshold:
+                if average_data / len(variable_elemental_data) >= self.variable_threshold:
+                    element.Set(KM.ACTIVE, False)
+        else: # All IP values > threshold
+            for element in self.model_part.Elements:
+                variable_elemental_data = element.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)
+                number_failed_ip = 0
+
+                for entry in variable_elemental_data:
+                    if entry >= self.variable_threshold:
+                        number_failed_ip += 1
+                if number_failed_ip == len(variable_elemental_data):
                     element.Set(KM.ACTIVE, False)
