@@ -187,7 +187,7 @@ public:
                                               const Properties& rMaterialParameters)
     {
         double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
-        // const double yield_stress = ultimate_stress;
+        const double yield_stress = ultimate_stress;
         const double E = rMaterialParameters[YOUNG_MODULUS];
         const Vector& strain_damage_curve = rMaterialParameters[STRAIN_DAMAGE_CURVE];
         const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE];
@@ -201,7 +201,7 @@ public:
 
             ultimate_stress = 0.0;
             for (IndexType i = 1; i <= curve_points; ++i) {
-                if (ResidualUniaxialStress < strain_damage_curve[i] * E) {
+                if (ResidualUniaxialStress > yield_stress && ResidualUniaxialStress < strain_damage_curve[i] * E) {
                     const double current_integrated_stress = stress_damage_curve[i-1] + (ResidualUniaxialStress / E - strain_damage_curve[i-1])
                         * (stress_damage_curve[i] - stress_damage_curve[i-1]) / (strain_damage_curve[i] - strain_damage_curve[i-1]);
                     rResidualStressDamage = 1.0 - current_integrated_stress / ResidualUniaxialStress;
