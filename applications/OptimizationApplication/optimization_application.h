@@ -8,25 +8,17 @@
 //					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
-//
+//                   Suneth Warnakulasuriya
 
-#if !defined(KRATOS_OPTIMIZATION_APPLICATION_H_INCLUDED )
-#define  KRATOS_OPTIMIZATION_APPLICATION_H_INCLUDED
+#pragma once
 
-// ------------------------------------------------------------------------------
 // System includes
-// ------------------------------------------------------------------------------
-
 #include <string>
 #include <iostream>
 
-// ------------------------------------------------------------------------------
 // External includes
-// ------------------------------------------------------------------------------
 
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
 #include "includes/kratos_application.h"
 
 /* ELEMENTS */
@@ -36,7 +28,7 @@
 #include "custom_elements/helmholtz_bulk_element.h"
 #include "custom_elements/helmholtz_element.h"
 
-// Data containers
+/* ELEMENT DATA CONTAINERS*/
 #include "custom_elements/data_containers/helmholtz_surface_data_container.h"
 #include "custom_elements/data_containers/helmholtz_solid_data_container.h"
 #include "custom_elements/data_containers/helmholtz_solid_shape_data_container.h"
@@ -51,27 +43,8 @@
 /* CONSTITUTIVE LAWS */
 #include "custom_constitutive/helmholtz_jacobian_stiffened_3d.h"
 
-// ==============================================================================
-
 namespace Kratos
 {
-
-	///@name Kratos Globals
-	///@{
-
-	///@}
-	///@name Type Definitions
-	///@{
-
-	///@}
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions
-	///@{
-
-	///@}
 	///@name Kratos Classes
 	///@{
 
@@ -83,7 +56,6 @@ namespace Kratos
 	public:
 		///@name Type Definitions
 		///@{
-
 
 		/// Pointer definition of KratosOptimizationApplication
 		KRATOS_CLASS_POINTER_DEFINITION(KratosOptimizationApplication);
@@ -98,29 +70,16 @@ namespace Kratos
 		/// Destructor.
 		~KratosOptimizationApplication() override {}
 
+		KratosOptimizationApplication& operator=(KratosOptimizationApplication const& rOther) = delete;
 
-		///@}
-		///@name Operators
-		///@{
-
+		/// Copy constructor.
+		KratosOptimizationApplication(KratosOptimizationApplication const& rOther) = delete;
 
 		///@}
 		///@name Operations
 		///@{
 
 	    void Register() override;
-
-
-
-		///@}
-		///@name Access
-		///@{
-
-
-		///@}
-		///@name Inquiry
-		///@{
-
 
 		///@}
 		///@name Input and output
@@ -140,82 +99,35 @@ namespace Kratos
 		}
 
 		///// Print object's data.
-       void PrintData(std::ostream& rOStream) const override
-      {
-      	KRATOS_WATCH("in my application");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
-
-
-		///@}
-		///@name Friends
-		///@{
-
-
-		///@}
-
-	protected:
-		///@name Protected static Member Variables
-		///@{
-
-
-		///@}
-		///@name Protected member Variables
-		///@{
-
-
-		///@}
-		///@name Protected Operators
-		///@{
-
-
-		///@}
-		///@name Protected Operations
-		///@{
-
-
-		///@}
-		///@name Protected  Access
-		///@{
-
-
-		///@}
-		///@name Protected Inquiry
-		///@{
-
-
-		///@}
-		///@name Protected LifeCycle
-		///@{
-
+		void PrintData(std::ostream& rOStream) const override
+		{
+			KRATOS_WATCH("in my application");
+			KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+			rOStream << "Variables:" << std::endl;
+			KratosComponents<VariableData>().PrintData(rOStream);
+			rOStream << std::endl;
+			rOStream << "Elements:" << std::endl;
+			KratosComponents<Element>().PrintData(rOStream);
+			rOStream << std::endl;
+			rOStream << "Conditions:" << std::endl;
+			KratosComponents<Condition>().PrintData(rOStream);
+		}
 
 		///@}
 
 	private:
-		///@name Static Member Variables
-		///@{
-
-
-
-		//       static const ApplicationCondition  msApplicationCondition;
-
-		///@}
 		///@name Member Variables
 		///@{
+
 		/* ELEMENTS */
 
 		const HelmholtzSurfShapeElement mHelmholtzSurfShape3D3N;
 		const HelmholtzSurfThicknessElement mHelmholtzSurfThickness3D3N;
 		const HelmholtzBulkShapeElement mHelmholtzBulkShape3D4N;
 		const HelmholtzBulkElement mHelmholtzBulkTopology3D4N;
+
+		/* ADJ ELEMENTS */
+		const AdjointSmallDisplacementElement mAdjointSmallDisplacementElement3D4N;
 
 		// Helmholtz elements
 		const HelmholtzElement<HelmholtzSurfaceDataContainer<3, 3, 1>> mHelmholtzSurfaceElement3D3N;
@@ -231,9 +143,6 @@ namespace Kratos
 		const HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 4>> mHelmholtzSolidShapeElement3D4N;
 		const HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 8>> mHelmholtzSolidShapeElement3D8N;
 
-		/* ADJ ELEMENTS */
-		const AdjointSmallDisplacementElement mAdjointSmallDisplacementElement3D4N;
-
 		/* CONDITIONS*/
 		// Surface conditions
 		const HelmholtzSurfShapeCondition mHelmholtzSurfShapeCondition3D3N;
@@ -244,56 +153,11 @@ namespace Kratos
 		const HelmholtzJacobianStiffened3D mHelmholtzJacobianStiffened3D;
 
 		///@}
-		///@name Private Operators
-		///@{
-
-
-		///@}
-		///@name Private Operations
-		///@{
-
-
-		///@}
-		///@name Private  Access
-		///@{
-
-
-		///@}
-		///@name Private Inquiry
-		///@{
-
-
-		///@}
-		///@name Un accessible methods
-		///@{
-
-		/// Assignment operator.
-		KratosOptimizationApplication& operator=(KratosOptimizationApplication const& rOther);
-
-		/// Copy constructor.
-		KratosOptimizationApplication(KratosOptimizationApplication const& rOther);
-
-
-		///@}
 
 	}; // Class KratosOptimizationApplication
 
 	///@}
 
-
-	///@name Type Definitions
-	///@{
-
-
-	///@}
-	///@name Input and output
-	///@{
-
-	///@}
-
-
 }  // namespace Kratos.
-
-#endif // KRATOS_OPTIMIZATION_APPLICATION_H_INCLUDED  defined
 
 
