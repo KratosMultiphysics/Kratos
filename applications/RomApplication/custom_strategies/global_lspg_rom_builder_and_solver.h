@@ -171,8 +171,12 @@ public:
             this->InitializeHROMWeights(rModelPart);
         }
 
-        auto dof_queue = this->ExtractDofSet(pScheme, rModelPart);
+        // Compute the complementary mesh for HROM
+        // if (this->mHromSimulation)
+        //     ComputeComplementaryElementsAndConditions(rModelPart);
 
+        auto dof_queue = this->ExtractDofSet(pScheme, rModelPart);
+        
         // Fill a sorted auxiliary array of with the DOFs set
         KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
         auto dof_array = this->SortAndRemoveDuplicateDofs(dof_queue);
@@ -202,7 +206,45 @@ public:
 #endif
         KRATOS_CATCH("");
     } 
-    
+
+    // TODO: Parallel Utilities
+    void ComputeComplementaryElementsAndConditions(ModelPart& rModelPart) 
+    {
+        // Creating a standard vector of IDs from the selected elements and conditions
+        std::vector<unsigned int> selectedElementIds;
+        for (const auto& element: this->mSelectedElements) {
+            selectedElementIds.push_back(element.Id());
+        }
+
+        std::vector<unsigned int> selectedConditionIds;
+        for (const auto& condition: this->mSelectedConditions) {
+            selectedConditionIds.push_back(condition.Id());
+        }
+
+        // Compute complementary elements
+        for (auto& p_element : rModelPart.Elements().GetContainer())
+        {
+            auto found_element = std::find(selectedElementIds.begin(), selectedElementIds.end(), p_element->Id());
+
+            // If the element is not found in selectedElementIds, add it to mComplementaryElements.
+            if (found_element == selectedElementIds.end()) {
+                mComplementaryElements.push_back(p_element);;
+            }
+        }
+
+        // Compute complementary conditions
+        for (auto& p_condition : rModelPart.Conditions().GetContainer())
+        {
+            auto found_condition = std::find(selectedConditionIds.begin(), selectedConditionIds.end(), p_condition->Id());
+
+            // If the condition is not found in selectedConditionIds, add it to mComplementaryConditions.
+            if (found_condition == selectedConditionIds.end()) {
+                mComplementaryConditions.push_back(p_condition);
+            }
+        }
+    }
+
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -318,6 +360,8 @@ protected:
     ///@{
 
     SizeType mNodalDofs;
+    ElementsArrayType mComplementaryElements;
+    ConditionsArrayType mComplementaryConditions;
     bool mTrainPetrovGalerkinFlag = false;
 
     ///@}
@@ -519,52 +563,57 @@ protected:
 
         //////////
         //BUILD COMPLETE OPERATOR FOR HROM 
-        AssemblyTLS assembly_tls_container_left;
-        Matrix rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
-        Vector rb_left = ZeroVector(BaseType::GetEquationSystemSize());
-        const auto& r_elements_left = rModelPart.Elements();
-        // auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
-
-        if(!r_elements_left.empty())
-        {
-            block_for_each(r_elements_left, assembly_tls_container_left, 
-                [&](Element& r_element, AssemblyTLS& r_thread_prealloc_left)
-            {
-                CalculateLocalContributionLSPG(r_element, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
-            });
-        }
-
-
-        auto& r_conditions_left = rModelPart.Conditions();
-        // auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
-
-        if(!r_conditions_left.empty())
-        {
-            block_for_each(r_conditions_left, assembly_tls_container_left, 
-                [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc_left)
-            {
-                CalculateLocalContributionLSPG(r_condition, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
-            });
-        }
-        
+        Matrix rA_left;
+        Vector rb_left;
         if (this->mHromSimulation){
-            // Initialize the mask vector with zeros
-            Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
+            // rA_left = rA;
+            // rb_left = rb;  
+            AssemblyTLS assembly_tls_container_left;
+            rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
+            rb_left = ZeroVector(BaseType::GetEquationSystemSize());
+            const auto& r_elements_left = rModelPart.Elements();
+            // auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
+            // auto& r_elements_left = mComplementaryElements;
 
-            // Build the mask vector for selected elements and conditions
-            BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
-            int non_zero_entries_vector = 0;
-            for (unsigned int i = 0; i < hrom_dof_mask_vector.size(); i++){
-                if (hrom_dof_mask_vector[i] != 0){
-                    non_zero_entries_vector += 1;
-                }
+            if(!r_elements_left.empty())
+            {
+                block_for_each(r_elements_left, assembly_tls_container_left, 
+                    [&](Element& r_element, AssemblyTLS& r_thread_prealloc_left)
+                {
+                    CalculateLocalContributionLSPG(r_element, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
+                });
             }
 
-            // Zero out rows in the matrix that correspond to zero in the mask vector
-            ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
-        }
-        ////////
+            const auto& r_conditions_left = rModelPart.Conditions();
+            // auto& r_conditions_left = mComplementaryConditions;
+            // auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
+            if(!r_conditions_left.empty())
+            {
+                block_for_each(r_conditions_left, assembly_tls_container_left, 
+                    [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc_left)
+                {
+                    CalculateLocalContributionLSPG(r_condition, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
+                });
+            }
+            
+            // if (this->mHromSimulation){
+            //     // Initialize the mask vector with zeros
+            //     Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
 
+            //     // Build the mask vector for selected elements and conditions
+            //     BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
+            //     int non_zero_entries_vector = 0;
+            //     for (unsigned int i = 0; i < hrom_dof_mask_vector.size(); i++){
+            //         if (hrom_dof_mask_vector[i] != 0){
+            //             non_zero_entries_vector += 1;
+            //         }
+            //     }
+
+            //     // Zero out rows in the matrix that correspond to zero in the mask vector
+            //     ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
+            // }
+            ////////
+        }
 
         const auto projection_timer = BuiltinTimer();
 
@@ -573,12 +622,18 @@ protected:
 
         // Create the Eigen matrix using the buffer
         Eigen::Map<EigenDynamicMatrix> eigen_matrix(rA.data().begin(), rA.size1(), rA.size2());
-        Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
         Eigen::Map<EigenDynamicVector> eigen_vector(rb.data().begin(), rb.size());
 
-        // Compute the matrix multiplication
-        mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
-        mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
+        if (this->mHromSimulation){
+            Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
+            mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
+            mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
+        }
+        else{
+            // Compute the matrix multiplication
+            mA_eigen = eigen_matrix.transpose() * eigen_matrix;
+            mb_eigen = eigen_matrix.transpose() * eigen_vector;
+        }
         
         KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Projection time: " << projection_timer.ElapsedSeconds() << std::endl;
         time_rom_system_contruction += assembling_timer.ElapsedSeconds();
