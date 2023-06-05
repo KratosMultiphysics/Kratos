@@ -363,6 +363,7 @@ public:
     ///@name Public operators
     ///@{
 
+    ContainerExpression Slice(IndexType Offset, IndexType Stride) const;
 
     ContainerExpression& operator+=(const double Value);
 

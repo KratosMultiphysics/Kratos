@@ -91,6 +91,7 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
 
     using container_expression_holder_base = ContainerExpression<TContainerType>;
     py::class_<container_expression_holder_base, typename container_expression_holder_base::Pointer>(m, rName.c_str())
+        .def(py::init<ModelPart&>(), py::arg("model_part"))
         .def("CopyFrom", &container_expression_holder_base::CopyFrom, py::arg("origin_container_expression"))
         .def("MoveFrom", [](container_expression_holder_base& rSelf, py::array_t<int>& rData){
             KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
@@ -127,6 +128,7 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
         .def("GetContainer", py::overload_cast<>(&container_expression_holder_base::GetContainer), py::return_value_policy::reference)
         .def("GetItemShape", &container_expression_holder_base::GetItemShape)
         .def("GetItemComponentCount", &container_expression_holder_base::GetItemComponentCount)
+        .def("Slice", &container_expression_holder_base::Slice)
         .def("PrintData", &container_expression_holder_base::PrintData)
         .def("__str__", &container_expression_holder_base::Info)
         ;

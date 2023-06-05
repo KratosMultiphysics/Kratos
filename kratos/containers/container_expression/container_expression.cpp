@@ -14,6 +14,7 @@
 #include <sstream>
 
 // Project includes
+#include "containers/container_expression/expressions/unary/unary_slice_expression.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
@@ -379,6 +380,20 @@ std::string ContainerExpression<TContainerType, TMeshType>::PrintData() const
     msg << this->Info();
     return msg.str();
 }
+
+
+template <class TContainer, class TMesh>
+ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Slice(IndexType Offset, IndexType Stride) const
+{
+    auto copy = *this;
+    copy.SetExpression(UnarySliceExpression::Create(
+        this->pGetExpression(),
+        Offset,
+        Stride
+    ));
+    return copy;
+}
+
 
 #define KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(OPERATOR_NAME)                \
     template <class TContainerType, class TMeshType>                                     \
