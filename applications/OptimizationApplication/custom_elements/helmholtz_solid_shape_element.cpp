@@ -445,31 +445,16 @@ HelmholtzSolidShapeElement::CalculateConstitutiveLaw(
 
     const GeometryType &rgeom = this->GetGeometry();
     const IntegrationMethod this_integration_method = rgeom.GetDefaultIntegrationMethod();
-    const auto& r_integration_points = rgeom.IntegrationPoints(this_integration_method);
     GeometryType::ShapeFunctionsGradientsType DN_De = rgeom.ShapeFunctionsLocalGradients(this_integration_method);
+    const Matrix& Ncontainer = rgeom.ShapeFunctionsValues(this_integration_method);
 
-    Matrix J0,InvJ0;
-    GeometryUtils::JacobianOnInitialConfiguration(rgeom, r_integration_points[PointNumber], J0);
-    double detJ0;
-    MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
-
-    // Stiffening of elements using Jacobian determinants and exponent between
-    // 0.0 and 2.0
-    const double r_helmholtz = rCurrentProcessInfo[HELMHOLTZ_BULK_RADIUS_SHAPE];
-    const double xi = 1.0; // 1.5 Exponent influences stiffening of smaller
-                            // elements; 0 = no stiffening
-    const double quotient = r_helmholtz / detJ0;
-    const double weighting_factor = std::pow(quotient, xi);
-
-    ConstitutiveLaw::Parameters cl_params(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters cl_params(GetGeometry(), GetProperties(), rCurrentProcessInfo);
     auto r_properties = cl_params.GetMaterialProperties();
-    r_properties.SetValue(YOUNG_MODULUS,weighting_factor);
-    r_properties.SetValue(POISSON_RATIO,0.3);
     cl_params.SetMaterialProperties(r_properties);
+    cl_params.SetShapeFunctionsValues(row(Ncontainer, PointNumber));
 
     MatrixType constitutive_matrix_tmp;
-    constitutive_matrix_tmp = GetProperties().GetValue( CONSTITUTIVE_LAW )->CalculateValue(cl_params,CONSTITUTIVE_MATRIX,constitutive_matrix_tmp);
-
+    constitutive_matrix_tmp = GetProperties().GetValue(CONSTITUTIVE_LAW)->CalculateValue(cl_params, CONSTITUTIVE_MATRIX, constitutive_matrix_tmp);
 
     return constitutive_matrix_tmp;
 
