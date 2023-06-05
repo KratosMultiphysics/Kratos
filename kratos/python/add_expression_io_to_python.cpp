@@ -12,21 +12,71 @@
 
 // System includes
 #include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
+#include <pybind11/stl.h>
+#include <pybind11/operators.h>
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "add_expression_io_to_python.h"
+#include "includes/define_python.h"
+#include "containers/container_expression/expressions/expression.h"
 #include "containers/container_expression/expressions/io/expression_io.h"
 #include "containers/container_expression/expressions/io/variable_expression_io.h"
 #include "containers/container_expression/expressions/io/c_array_copy_expression_io.h"
 #include "containers/container_expression/expressions/io/c_array_move_expression_input.h"
-#include <bits/utility.h>
+#include "containers/container_expression/expressions/literal/literal_expression.h"
+#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "containers/container_expression/expressions/arithmetic_operators.h"
+#include "containers/container_expression/expressions/view_operators.h"
 
 
 namespace Kratos::Python {
 
 
 namespace Detail {
+
+
+class ExpressionTrampoline final : public Expression
+{
+public:
+    using Expression::Expression;
+
+    using Expression::IndexType;
+
+    double Evaluate(const IndexType EntityIndex,
+                    const IndexType EntityDataBeginIndex,
+                    const IndexType ComponentIndex) const override
+    {
+        PYBIND11_OVERRIDE_PURE(
+            double,                 /*return type*/
+            Expression,             /*base type*/
+            Evaluate,               /*function name*/
+            EntityIndex,
+            EntityDataBeginIndex,
+            ComponentIndex
+        );
+    }
+
+    const std::vector<IndexType> GetItemShape() const override
+    {
+        PYBIND11_OVERRIDE_PURE(
+            const std::vector<IndexType>,   /*return type*/
+            Expression,                     /*base type*/
+            GetItemShape                    /*function name*/
+        );
+    }
+
+    std::string Info() const override
+    {
+        PYBIND11_OVERRIDE_PURE(
+            std::string,    /*return type*/
+            Expression,     /*base type*/
+            Info            /*function name*/
+        );
+    }
+}; // class ExpressionTrampoline
+
+
 class ExpressionInputTrampoline final : public ExpressionInput
 {
 public:
@@ -39,6 +89,7 @@ public:
         );
     }
 }; // class ExpressionInputTrampoline
+
 
 class ExpressionOutputTrampoline final : public ExpressionOutput
 {
@@ -53,28 +104,65 @@ public:
     }
 }; // class ExpressionOutputTrampoline
 
-template <class TVariant>
-struct DerefVariant {};
 
-template <class ...TPointers>
-struct DerefVariant<std::variant<TPointers...>>
-{
-    using type = std::variant<typename std::pointer_traits<TPointers>::element_type*...>;
-};
 } // namespace Detail
 
 
 void AddExpressionIOToPython(pybind11::module& rModule)
 {
-    pybind11::class_<ExpressionInput, Detail::ExpressionInputTrampoline>(rModule, "ExpressionInput")
-        .def("Execute", &ExpressionInput::Execute)
+    pybind11::class_<Expression, Expression::Pointer, Detail::ExpressionTrampoline>(rModule, "Expression")
+        .def("GetItemShape", &Expression::GetItemShape)
+        .def("NumberOfEntities", &Expression::NumberOfEntities)
+        .def("GetItemComponentCount", &Expression::GetItemComponentCount)
+        .def("__add__", [](Expression::Pointer pLeft, double Right) {return pLeft + Right;})
+        //.def("__add__", [](double Left, Expression::Pointer pRight) {return Left + pRight;})
+        .def("__add__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return pLeft + pRight;})
+        .def("__sub__", [](Expression::Pointer pLeft, double Right) {return pLeft - Right;})
+        //.def("__sub__", [](double Left, Expression::Pointer pRight) {return Left - pRight;})
+        .def("__sub__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return pLeft - pRight;})
+        .def("__mul__", [](Expression::Pointer pLeft, double Right) {return pLeft * Right;})
+        //.def("__mul__", [](double Left, Expression::Pointer pRight) {retmatekelemenurn Left * pRight;})
+        .def("__mul__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return pLeft * pRight;})
+        .def("__truediv__", [](Expression::Pointer pLeft, double Right) {return pLeft / Right;})
+        //.def("__truediv__", [](double Left, Expression::Pointer pRight) {return Left / pRight;})
+        .def("__truediv__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return pLeft / pRight;})
+        .def("__pow__", [](Expression::Pointer pLeft, double Right) {return Pow(pLeft, Right);})
+        .def("__pow__", [](Expression::Pointer pLeft, Expression::Pointer pRight) {return Pow(pLeft, pRight);})
+        .def("__neg__", [](Expression::Pointer pOperand) {return -1.0 * pOperand;})
+        .def("__str__", &Expression::Info)
         ;
 
-    pybind11::class_<ExpressionOutput, Detail::ExpressionOutputTrampoline>(rModule, "ExpressionOutput")
-        .def("Execute", &ExpressionOutput::Execute)
+    pybind11::class_<LiteralExpression<double>, Kratos::intrusive_ptr<LiteralExpression<double>>, Expression>(rModule, "LiteralExpression")
+        .def_static("Create",
+                    LiteralExpression<double>::Create,
+                    pybind11::arg("value"),
+                    pybind11::arg("number_of_entities"))
+        ;
+
+    pybind11::class_<LiteralFlatExpression<double>, Kratos::intrusive_ptr<LiteralFlatExpression<double>>, Expression>(rModule, "LiteralFlatExpression")
+        .def_static("Create", [](pybind11::array_t<double>& rArray,
+                                 std::size_t NumberOfItems,
+                                 const std::vector<std::size_t>& rShape) {
+                                    return LiteralFlatExpression<double>::Create(
+                                        rArray.mutable_data(),
+                                        NumberOfItems,
+                                        rShape
+                                    );
+                                 },
+                    pybind11::arg("array"),
+                    pybind11::arg("number_of_items_in _array"),
+                    pybind11::arg("item_shape"))
         ;
 
     auto variable_expression_io = rModule.def_submodule("VariableExpressionIO");
+
+    pybind11::class_<ExpressionInput, Detail::ExpressionInputTrampoline>(variable_expression_io, "ExpressionInput")
+        .def("Execute", &ExpressionInput::Execute)
+        ;
+
+    pybind11::class_<ExpressionOutput, Detail::ExpressionOutputTrampoline>(variable_expression_io, "ExpressionOutput")
+        .def("Execute", &ExpressionOutput::Execute)
+        ;
 
     pybind11::enum_<VariableExpressionIO::ContainerType>(variable_expression_io, "ContainerType")
         .value("NodalHistorical", VariableExpressionIO::NodalHistorical)
@@ -90,21 +178,6 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         ;
 
     pybind11::class_<VariableExpressionIO::VariableExpressionInput, ExpressionInput>(variable_expression_io, "Input")
-        //.def(pybind11::init([](const ModelPart& rModelPart,
-        //                       const VariableExpressionIO::VariableType& rVariable,
-        //                       const VariableExpressionIO::ContainerType& rContainerType,
-        //                       const VariableExpressionIO::MeshType& rMeshType) {
-        //                        return std::visit([&](const auto& rVar){return VariableExpressionIO::VariableExpressionInput(
-        //                            rModelPart,
-        //                            *rVar,
-        //                            rContainerType,
-        //                            rMeshType
-        //                        );}, rVariable);
-        //                    }),
-        //     pybind11::arg("model_part"),
-        //     pybind11::arg("variable"),
-        //     pybind11::arg("container_type"),
-        //     pybind11::arg("mesh_type") = VariableExpressionIO::Local)
         .def(pybind11::init<const ModelPart&,
                             const VariableExpressionIO::VariableType&,
                             const VariableExpressionIO::ContainerType&,
