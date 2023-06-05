@@ -22,6 +22,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return AlgorithmSystemIdentification(model, parameters, optimization_problem)
 
+
 class AlgorithmSystemIdentification(ABC):
     def __init__(self, optimization_problem: OptimizationProblem) -> None:
         self._optimization_problem = optimization_problem
@@ -41,12 +42,12 @@ class AlgorithmSystemIdentification(ABC):
             }
         }""")
 
-    def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         self.model = model
         self.parameters = parameters
         self._optimization_problem = optimization_problem
 
-        self.master_control = MasterControl() # Need to fill it with controls
+        self.master_control = MasterControl()  # Need to fill it with controls
         self.__control_param_list = parameters["controls"]
 
         for control_param in self.__control_param_list.values():
@@ -86,15 +87,15 @@ class AlgorithmSystemIdentification(ABC):
         self.__objective.GetReponse().Initialize()
         self.__objective.Initialize()
         self.__objective.Check()
-        self.__control_field = self.master_control.GetControlField() # GetInitialControlFields() later
+        self.__control_field = self.master_control.GetControlField()  # GetInitialControlFields() later
 
     def Finalize(self):
         pass
 
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.ContainerExpression.CollectiveExpressions:
 
-        gauss_newton_likelihood = obj_grad * self.__obj_val # This is a vector
-        gauss_newton_gradient = obj_grad * obj_grad # This is subpost to be a matrix
+        gauss_newton_likelihood = obj_grad * self.__obj_val  # This is a vector
+        gauss_newton_gradient = obj_grad * obj_grad  # This is subpost to be a matrix
 
         search_direction = ssl.lsmr(
             gauss_newton_gradient,
@@ -123,7 +124,7 @@ class AlgorithmSystemIdentification(ABC):
             with TimeLogger("Optimization", f" Start Iteration {self._optimization_problem.GetStep()}", f"End Iteration {self._optimization_problem.GetStep()}"):
 
                 with TimeLogger("Calculate objective value", "Start", "End"):
-                    self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) # Updates parameters based on the new parameters in self.__control_field
+                    self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)  # Updates parameters based on the new parameters in self.__control_field
                     algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
                     print(self.__objective.GetInfo())
 
@@ -158,13 +159,3 @@ class AlgorithmSystemIdentification(ABC):
             return self.__obj_val
         else:
             raise RuntimeError("Optimization problem hasn't been solved.")
-
-
-
-class AlgorithmSteepestDescent(Algorithm):
-    """
-        A classical steepest descent algorithm to solve unconstrainted optimization problems.
-    """
-
-
-

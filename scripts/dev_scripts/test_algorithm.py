@@ -1,0 +1,22 @@
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+
+import KratosMultiphysics.KratosUnittest as kratos_unittest
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
+from KratosMultiphysics.OptimizationApplication.responses.measurement_likelihood_response_function import MeasurementLikelihoodResponseFunction
+from KratosMultiphysics.OptimizationApplication.controls.material.material_properties_control_system_identification import MaterialPropertiesControlSystemIdentification
+from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_system_identification import AlgorithmSystemIdentification
+
+
+model = Kratos.Model()
+model_part = model.CreateModelPart("Structure")
+model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 3
+
+
+parameters = Kratos.Parameters("./measurement_residual_test/opt_parameters.json")
+problem = OptimizationProblem(echo_level=4)
+algorithm = AlgorithmSystemIdentification(model, parameters, problem)
+result = algorithm.SolveOptimizationProblem()
+print("Optimization problem solved: {result}")
