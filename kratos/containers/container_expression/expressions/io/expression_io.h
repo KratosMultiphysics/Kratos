@@ -41,6 +41,7 @@ public:
 
     /// @}
 
+
 protected:
     /// @name Protected Operations
     /// @{

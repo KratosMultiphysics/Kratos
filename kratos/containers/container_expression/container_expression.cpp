@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <numeric>
 #include <sstream>
 
 // Project includes
@@ -20,6 +21,8 @@
 #include "utilities/parallel_utilities.h"
 #include "containers/container_expression/expressions/literal/literal_expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "containers/container_expression/expressions/io/c_array_copy_expression_io.h"
+#include "containers/container_expression/expressions/io/c_array_move_expression_input.h"
 #include "containers/container_expression/expressions/arithmetic_operators.h"
 
 // Include base h
@@ -123,30 +126,13 @@ void Read(
 {
     KRATOS_TRY
 
-    const IndexType number_of_entities = NumberOfEntities;
-
-    KRATOS_ERROR_IF_NOT(number_of_entities == rContainerExpression.GetContainer().size())
+    KRATOS_ERROR_IF_NOT(static_cast<unsigned int>(NumberOfEntities) == rContainerExpression.GetContainer().size())
         << "Number of entities does not match with the local container size. [ "
            "NumberOfEntities = "
         << NumberOfEntities
         << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
 
-    // Convert int indices to IndexType
-    std::vector<IndexType> shape(ShapeSize);
-    std::copy(pShapeBegin,
-              pShapeBegin + ShapeSize,
-              shape.begin());
-
-    auto p_expression = LiteralFlatExpression<TRawDataType>::Create(number_of_entities, shape);
-    rContainerExpression.SetExpression(p_expression);
-    TRawDataType* data_itr = p_expression->begin();
-
-    const IndexType flattened_size = rContainerExpression.GetExpression().GetItemComponentCount();
-    const IndexType total_size = number_of_entities * flattened_size;
-
-    IndexPartition<IndexType>(total_size).for_each([pBegin, data_itr](const IndexType Index) {
-        data_itr[Index] = pBegin[Index];
-    });
+    rContainerExpression.SetExpression(CArrayExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 
     KRATOS_CATCH("");
 }
@@ -161,19 +147,13 @@ void MoveFrom(
 {
     KRATOS_TRY
 
-    const IndexType number_of_entities = NumberOfEntities;
-
-    KRATOS_ERROR_IF_NOT(number_of_entities == rContainerExpression.GetContainer().size())
+    KRATOS_ERROR_IF_NOT(static_cast<unsigned int>(NumberOfEntities) == rContainerExpression.GetContainer().size())
         << "Number of entities does not match with the local container size. [ "
            "NumberOfEntities = "
         << NumberOfEntities
         << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
 
-    std::vector<IndexType> shape(ShapeSize);
-    std::copy(pShapeBegin, pShapeBegin + ShapeSize, shape.begin());
-
-    auto p_expression = LiteralFlatExpression<TRawDataType>::Create(pBegin, number_of_entities, shape);
-    rContainerExpression.SetExpression(p_expression);
+    rContainerExpression.SetExpression(CArrayMoveExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 
     KRATOS_CATCH("");
 }
@@ -255,32 +235,13 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
 {
     KRATOS_TRY
 
-    const IndexType number_of_entities = NumberOfEntities;
-
-    KRATOS_ERROR_IF_NOT(number_of_entities == this->GetContainer().size())
+    KRATOS_ERROR_IF_NOT(static_cast<unsigned int>(NumberOfEntities) == this->GetContainer().size())
         << "Number of entities does not match with the local container size. [ "
            "NumberOfEntities = "
         << NumberOfEntities
         << ", local container size = " << this->GetContainer().size() << " ].\n";
 
-    const auto& r_expression = this->GetExpression();
-
-    std::vector<IndexType> shape(ShapeSize);
-    std::copy(pShapeBegin, pShapeBegin + ShapeSize, shape.begin());
-
-    KRATOS_ERROR_IF_NOT(shape == r_expression.GetItemShape())
-        << "Shape mismatch. [ Requested shape  = " << shape
-        << ", available shape = " << r_expression.GetItemShape() << " ].\n";
-
-    const IndexType flattened_size = r_expression.GetItemComponentCount();
-
-    IndexPartition<IndexType>(number_of_entities).for_each([pBegin, flattened_size, &r_expression](const IndexType EntityIndex) {
-        const IndexType entity_data_begin_index = EntityIndex * flattened_size;
-        double* p_input_data_begin = pBegin + entity_data_begin_index;
-        for (IndexType i = 0; i < flattened_size; ++i) {
-            *(p_input_data_begin+i) = r_expression.Evaluate(EntityIndex, entity_data_begin_index, i);
-        }
-    });
+    CArrayExpressionOutput(pBegin, NumberOfEntities * std::accumulate(pShapeBegin, pShapeBegin+ShapeSize, 1, [](const int V1, const int V2) { return V1 * V2; })).Execute(**this->mpExpression);
 
     KRATOS_CATCH("");
 }
