@@ -231,7 +231,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # Once simulation is completed, calculate and save the HROM weights
             if self.train_hrom and not self.rom_manager:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
-                self.__hrom_training_utility.CreateHRomModelParts()
+                # self.__hrom_training_utility.CreateHRomModelParts()
                 
             # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
             if self.train_petrov_galerkin:
