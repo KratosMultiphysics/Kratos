@@ -1435,49 +1435,8 @@ public:
 
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult[i].resize( 3, 3, false );
+            rResult[i] = ZeroMatrix(3,3);
         }
-
-        rResult[0]( 0, 0 ) = 0.0;
-        rResult[0]( 0, 1 ) = 0.0;
-        rResult[0]( 0, 2 ) = 0.0;
-        rResult[0]( 1, 0 ) = 0.0;
-        rResult[0]( 1, 1 ) = 0.0;
-        rResult[0]( 1, 2 ) = 0.0;
-        rResult[0]( 2, 0 ) = 0.0;
-        rResult[0]( 2, 1 ) = 0.0;
-        rResult[0]( 2, 2 ) = 0.0;
-
-
-        rResult[1]( 0, 0 ) = 0.0;
-        rResult[1]( 0, 1 ) = 0.0;
-        rResult[1]( 0, 2 ) = 0.0;
-        rResult[1]( 1, 0 ) = 0.0;
-        rResult[1]( 1, 1 ) = 0.0;
-        rResult[1]( 1, 2 ) = 0.0;
-        rResult[1]( 2, 0 ) = 0.0;
-        rResult[1]( 2, 1 ) = 0.0;
-        rResult[1]( 2, 2 ) = 0.0;
-
-        rResult[2]( 0, 0 ) = 0.0;
-        rResult[2]( 0, 1 ) = 0.0;
-        rResult[2]( 0, 2 ) = 0.0;
-        rResult[2]( 1, 0 ) = 0.0;
-        rResult[2]( 1, 1 ) = 0.0;
-        rResult[2]( 1, 2 ) = 0.0;
-        rResult[2]( 2, 0 ) = 0.0;
-        rResult[2]( 2, 1 ) = 0.0;
-        rResult[2]( 2, 2 ) = 0.0;
-
-        rResult[3]( 0, 0 ) = 0.0;
-        rResult[3]( 0, 1 ) = 0.0;
-        rResult[3]( 0, 2 ) = 0.0;
-        rResult[3]( 1, 0 ) = 0.0;
-        rResult[3]( 1, 1 ) = 0.0;
-        rResult[3]( 1, 2 ) = 0.0;
-        rResult[3]( 2, 0 ) = 0.0;
-        rResult[3]( 2, 1 ) = 0.0;
-        rResult[3]( 2, 2 ) = 0.0;
 
         return rResult;
     }
