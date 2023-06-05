@@ -755,7 +755,7 @@ void DVMS<TElementData>::SubscalePressure(
     // Old mass residual for dynamic pressure subscale
     // Note: Residual is defined as -Div(u) [- Projection (if OSS)]
     double old_residual = 0.0;
-    const Geometry<Node<3>>& r_geometry = this->GetGeometry();
+    const Geometry<Node>& r_geometry = this->GetGeometry();
     for (unsigned int a = 0; a < NumNodes; a++) {
         const array_1d<double,3>& r_old_velocity = r_geometry[a].FastGetSolutionStepValue(VELOCITY,1);
         double old_divergence_projection = r_geometry[a].FastGetSolutionStepValue(DIVPROJ,1);

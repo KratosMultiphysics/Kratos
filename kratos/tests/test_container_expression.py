@@ -22,6 +22,8 @@ class TestContainerExpression(ABC):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PENALTY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PK2_STRESS_TENSOR)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.STEP)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.STATIONARY)
         with kratos_unittest.WorkFolderScope(".", __file__, True):
             ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
 
@@ -373,6 +375,7 @@ class TestContainerExpression(ABC):
                     self.assertEqual(v[i, j], numpy_array[i_entity, i, j] * 2)
 
     def test_NumpyMoveFrom(self):
+        # double move check
         a = self._GetSpecializedContainerExpression()
 
         numpy_array = numpy.arange(0.0, len(a.GetContainer()))
@@ -390,41 +393,130 @@ class TestContainerExpression(ABC):
             v = self._GetValue(entity, Kratos.DENSITY)
             self.assertEqual(v, numpy_array[i], 12)
 
+        # int move check
+        a = self._GetSpecializedContainerExpression()
+
+        numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
+        a.MoveFrom(numpy_array)
+        a.Evaluate(Kratos.STEP)
+
+        for i, entity in enumerate(a.GetContainer()):
+            v = self._GetValue(entity, Kratos.STEP)
+            self.assertEqual(v, numpy_array[i], 12)
+
+        numpy_array[:] = numpy_array + 1
+
+        a.Evaluate(Kratos.STATIONARY)
+        for i, entity in enumerate(a.GetContainer()):
+            v = self._GetValue(entity, Kratos.STATIONARY)
+            self.assertEqual(v, numpy_array[i], 12)
+
     def test_NumpyForbiddenCasts(self):
         a = self._GetSpecializedContainerExpression()
 
-        with self.assertRaises(RuntimeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()))
-            a.Read(numpy_array)
-
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.float32)
             a.Read(numpy_array)
 
-        with self.assertRaises(RuntimeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
-            a.Read(numpy_array)
-
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int64)
             a.Read(numpy_array)
 
-        with self.assertRaises(RuntimeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()))
-            a.MoveFrom(numpy_array)
-
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.float32)
             a.MoveFrom(numpy_array)
 
-        with self.assertRaises(RuntimeError):
-            numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int32)
-            a.MoveFrom(numpy_array)
-
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, len(a.GetContainer()), dtype=numpy.int64)
             a.MoveFrom(numpy_array)
 
+    def test_Slice(self):
+        a = self._GetSpecializedContainerExpression()
+        a.Read(Kratos.INITIAL_STRAIN)
+
+        sliced = a.Slice(2, 3)
+        sliced *= 2.0
+        sliced.Evaluate(Kratos.ACCELERATION)
+
+        for entity in a.GetContainer():
+            original_value = self._GetValue(entity, Kratos.INITIAL_STRAIN)
+            new_array = Kratos.Array3([original_value[2], original_value[3], original_value[4]])
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.ACCELERATION), new_array * 2, 12)
+
+    def test_Reshape(self):
+        a = self._GetSpecializedContainerExpression()
+        a.Read(Kratos.INITIAL_STRAIN)
+
+        reshaped = a.Reshape([2, 3])
+        reshaped *= 2.0
+        reshaped.Evaluate(Kratos.PK2_STRESS_TENSOR)
+
+        for entity in a.GetContainer():
+            original_value = self._GetValue(entity, Kratos.INITIAL_STRAIN)
+            new_matrix = Kratos.Matrix(2, 3)
+            new_matrix[0, 0] = original_value[0]
+            new_matrix[0, 1] = original_value[1]
+            new_matrix[0, 2] = original_value[2]
+            new_matrix[1, 0] = original_value[3]
+            new_matrix[1, 1] = original_value[4]
+            new_matrix[1, 2] = original_value[5]
+            self.assertMatrixAlmostEqual(self._GetValue(entity, Kratos.PK2_STRESS_TENSOR), new_matrix * 2, 12)
+
+    def test_Comb(self):
+        a = self._GetSpecializedContainerExpression()
+        a.Read(Kratos.PRESSURE)
+        b = self._GetSpecializedContainerExpression()
+        b.Read(Kratos.VELOCITY)
+
+        combed = a.Comb(b)
+        combed *= 2.0
+        combed.Evaluate(Kratos.PENALTY)
+
+        for entity in a.GetContainer():
+            original_p = self._GetValue(entity, Kratos.PRESSURE)
+            original_v = self._GetValue(entity, Kratos.VELOCITY)
+            new_vector = Kratos.Vector(4)
+            new_vector[0] = original_p
+            new_vector[1] = original_v[0]
+            new_vector[2] = original_v[1]
+            new_vector[3] = original_v[2]
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), new_vector * 2, 12)
+
+        combed = a.Comb([b, a])
+        combed *= 2.0
+        combed.Evaluate(Kratos.PENALTY)
+
+        for entity in a.GetContainer():
+            original_p = self._GetValue(entity, Kratos.PRESSURE)
+            original_v = self._GetValue(entity, Kratos.VELOCITY)
+            new_vector = Kratos.Vector(5)
+            new_vector[0] = original_p
+            new_vector[1] = original_v[0]
+            new_vector[2] = original_v[1]
+            new_vector[3] = original_v[2]
+            new_vector[4] = original_p
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), new_vector * 2, 12)
+
+    def test_SliceCombReshape(self):
+        a = self._GetSpecializedContainerExpression()
+        a.Read(Kratos.INITIAL_STRAIN)
+
+        (a.Comb([a.Slice(2, 2), a.Slice(3, 2)]) * 2).Reshape([5, 2]).Evaluate(Kratos.PK2_STRESS_TENSOR)
+
+        for entity in a.GetContainer():
+            original_value = self._GetValue(entity, Kratos.INITIAL_STRAIN)
+            new_matrix = Kratos.Matrix(5, 2)
+            new_matrix[0, 0] = original_value[0]
+            new_matrix[0, 1] = original_value[1]
+            new_matrix[1, 0] = original_value[2]
+            new_matrix[1, 1] = original_value[3]
+            new_matrix[2, 0] = original_value[4]
+            new_matrix[2, 1] = original_value[5]
+            new_matrix[3, 0] = original_value[2]
+            new_matrix[3, 1] = original_value[3]
+            new_matrix[4, 0] = original_value[3]
+            new_matrix[4, 1] = original_value[4]
+            self.assertMatrixAlmostEqual(self._GetValue(entity, Kratos.PK2_STRESS_TENSOR), new_matrix * 2, 12)
 
     def test_GetContainer(self):
         a = self._GetSpecializedContainerExpression()

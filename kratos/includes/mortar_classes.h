@@ -34,7 +34,7 @@ namespace Kratos
 
     // Point and nodes defines
     typedef Point                                                PointType;
-    typedef Node<3>                                               NodeType;
+    typedef Node                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
 
     // Type definition for integration methods

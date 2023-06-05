@@ -297,7 +297,7 @@ namespace Kratos
 	if( (conditions_begin + fc)->Is(TO_ERASE) )
 	  std::cout<<" ERROR: condition to erase present "<<std::endl;
 
-	Geometry< Node<3> >& rGeometry = (conditions_begin + fc)->GetGeometry();
+	Geometry< Node >& rGeometry = (conditions_begin + fc)->GetGeometry();
 
 	for (int nd=0;nd<3;nd++)
 	  {
@@ -322,7 +322,7 @@ namespace Kratos
 
 
     double inside_factor = 2;
-    Geometry< Node<3> >& rGeometry = (conditions_begin)->GetGeometry();
+    Geometry< Node >& rGeometry = (conditions_begin)->GetGeometry();
     array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL);
 
     std::cout<<" Normal [NodeId= "<<rGeometry[0].Id()<<"] "<<Normal<<std::endl;

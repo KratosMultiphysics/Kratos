@@ -59,9 +59,9 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
-	typedef Node<3> NodeType;
+	typedef Node NodeType;
 
-	typedef Geometry< Node<3> > GeometryType;
+	typedef Geometry< Node > GeometryType;
 
     typedef DenseVector<Vector> Second_Order_Tensor;
 

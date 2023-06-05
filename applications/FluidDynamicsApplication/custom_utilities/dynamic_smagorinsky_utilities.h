@@ -391,8 +391,8 @@ private:
         {
             if( itNode->GetValue(FATHER_NODES).size() == 2 )
             {
-                Node<3>& rParent1 = itNode->GetValue(FATHER_NODES)[0];
-                Node<3>& rParent2 = itNode->GetValue(FATHER_NODES)[1];
+                Node& rParent1 = itNode->GetValue(FATHER_NODES)[0];
+                Node& rParent2 = itNode->GetValue(FATHER_NODES)[1];
 
                 itNode->GetValue(COARSE_VELOCITY) = 0.5 * ( rParent1.FastGetSolutionStepValue(VELOCITY) + rParent2.FastGetSolutionStepValue(VELOCITY) );
             }
