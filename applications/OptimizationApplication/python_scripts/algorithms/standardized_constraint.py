@@ -141,13 +141,16 @@ class StandardizedConstraint(ResponseRoutine):
         return self.GetStandardizedValue() / self.GetStandardizedReferenceValue() - 1.0 if abs(self.GetStandardizedReferenceValue()) > 1e-12 else self.GetStandardizedValue()
 
     def GetInfo(self) -> str:
-        msg = "\tConstraint info:"
-        msg += f"\n\t\t name             : {self.GetReponse().GetName()}"
-        msg += f"\n\t\t value            : {self.GetValue():0.6e}"
-        msg += f"\n\t\t type             : {self.__constraint_type}"
-        msg += f"\n\t\t ref_value        : {self.GetStandardizedReferenceValue():0.6e}"
-        msg += f"\n\t\t abs_change       : {self.GetAbsoluteChange():0.6e}"
-        msg += f"\n\t\t rel_change [%]   : {self.GetRelativeChange() * 100.0:0.6e}"
-        msg += f"\n\t\t abs_violation    : {self.GetAbsoluteViolation():0.6e}"
-        msg += f"\n\t\t rel_violation [%]: {self.GetRelativeViolation() * 100.0:0.6e}"
+        msg = f"""\t Constraint info: 
+            name             : {self.GetReponse().GetName()}
+            type             : {self.__constraint_type} 
+            value            : {self.GetValue():0.6e} 
+            abs_change       : {self.GetAbsoluteChange():0.6e} 
+            rel_change [%]   : {self.GetRelativeChange() * 100.0:0.6e}
+            abs_violation    : {self.GetAbsoluteViolation():0.6e}"""
+        init_value = self.GetInitialValue()
+        if init_value:
+            msg = f"{msg} \n\t    abs_change [%]: {self.GetAbsoluteChange()/init_value * 100:0.6e} "
+        if self.GetStandardizedReferenceValue():
+            msg = f"{msg} \n\t    rel_violation [%]: {self.GetRelativeViolation() * 100:0.6e} "
         return msg
