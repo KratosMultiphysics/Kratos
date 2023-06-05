@@ -17,9 +17,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "containers/container_expression/specialized_container_expression.h"
-#include "containers/container_expression/container_data_io.h"
-#include "containers/container_expression/container_expression.h"
 
 // Application includes
 
@@ -41,11 +38,9 @@ public:
     ///@name Static operations
     ///@{
 
-    static void CalculateNodeNeighbourCount(
-        ModelPart& rModelPart);
+    static void CalculateNodeNeighbourCount(ModelPart& rModelPart);
 
-    static void SetBulkRadiusForShapeFiltering(
-        ModelPart& rModelPart);
+    static void SetBulkRadiusForShapeFiltering(ModelPart& rModelPart);
 
     static void AssignProperties(
         ModelPart& rModelPart,
