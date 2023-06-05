@@ -95,6 +95,12 @@ public:
     ///@name Life cycle
     ///#{
 
+    /// Constructor with the model part
+    ContainerExpression(ModelPart& rModelPart);
+
+    /// Copy constructor
+    ContainerExpression(const ContainerExpression& rOther);
+
     virtual ~ContainerExpression() = default;
 
     ///@}
@@ -354,17 +360,76 @@ public:
     std::string PrintData() const;
 
     ///@}
-protected:
-    ///@name Life cycle
+    ///@name Public operators
     ///@{
 
-    /// Constructor with the model part
-    ContainerExpression(ModelPart& rModelPart);
 
-    /// Copy constructor
-    ContainerExpression(const ContainerExpression& rOther);
+    ContainerExpression& operator+=(const double Value);
+
+    ContainerExpression& operator+=(const ContainerExpression& Value);
+
+    ContainerExpression& operator-=(const double Value);
+
+    ContainerExpression& operator-=(const ContainerExpression& Value);
+
+    ContainerExpression& operator*=(const double Value);
+
+    ContainerExpression& operator*=(const ContainerExpression& Value);
+
+    ContainerExpression& operator/=(const double Value);
+
+    ContainerExpression& operator/=(const ContainerExpression& Value);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator+(const ContainerExpression<T1, T2>& rLeft, const double Right);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator+(const double Left, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator+(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator-(const ContainerExpression<T1, T2>& rLeft, const double Right);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator-(const double Left, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator-(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator*(const ContainerExpression<T1, T2>& rLeft, const double Right);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator*(const double Left, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator*(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator/(const ContainerExpression<T1, T2>& rLeft, const double Right);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator/(const double Left, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator/(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> Pow(const double Base, const ContainerExpression<T1, T2>& rExponent);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> Pow(const ContainerExpression<T1, T2>& rBase, const double Exponent);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> Pow(const ContainerExpression<T1, T2>& rBase, const ContainerExpression<T1, T2>& rExponent);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> Scale(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
 
     ///@}
+protected:
     ///@name Protected member variables
     ///@{
 
