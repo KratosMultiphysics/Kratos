@@ -70,7 +70,8 @@ class HelmholtzSolverBase(PythonSolver):
                 "block_size": 1,
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
-            }
+            },
+            "material_properties": {}
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
@@ -114,7 +115,7 @@ class HelmholtzSolverBase(PythonSolver):
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
-        self._ImportModelPart(self.original_model_part,self.settings["model_import_settings"])
+        self._ImportModelPart(self.original_model_part, self.settings["model_import_settings"])
 
     def GetComputingModelPart(self):
         return self.helmholtz_model_part
@@ -165,4 +166,7 @@ class HelmholtzSolverBase(PythonSolver):
                                                               False,
                                                               False,
                                                               False)
+
+    def _AssignProperties(self, parameters: KratosMultiphysics.Parameters):
+        KOA.ImplicitFilterUtils.AssignProperties(self.GetComputingModelPart(), parameters)
 
