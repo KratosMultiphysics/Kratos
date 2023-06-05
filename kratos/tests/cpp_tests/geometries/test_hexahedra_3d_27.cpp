@@ -160,4 +160,11 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27BoxIntersection, KratosCoreGeometriesFast
     KRATOS_CHECK_IS_FALSE(hexahedron->HasIntersection(Point(1.1,1.1,1.1), Point(2.1,2.1,2.1)));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27AverageEdgeLength, KratosCoreGeometriesFastSuite)
+{
+    auto hexahedron = GenerateCanonicalHexahedra3D27();
+
+    KRATOS_CHECK_NEAR(hexahedron->AverageEdgeLength(), 1.0, TOLERANCE);
+}
+
 }  // namespace Kratos::Testing.
