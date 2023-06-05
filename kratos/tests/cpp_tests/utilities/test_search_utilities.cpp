@@ -23,7 +23,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(SearchUtilities_PointIsInsideBoundingBox, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesPointIsInsideBoundingBox, KratosCoreFastSuite)
 {
     const SearchUtilities::BoundingBoxType bounding_box {10.5, -2.8, 3.89, -77.6, 4.64, 2.3};
     // xmax, xmin,  ymax, ymin,  zmax, zmin
@@ -45,7 +45,7 @@ double GetBBoxValue(const int Index, const double Factor, const double Offset)
     return static_cast<double>(Index)*Factor - Offset;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SearchUtilities_ComputeBoundingBoxWithTol, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithTolerance, KratosCoreFastSuite)
 {
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
@@ -74,6 +74,29 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilities_ComputeBoundingBoxWithTol, KratosCoreF
 
     for (int i=1; i<num_entries; i+=2)
         KRATOS_CHECK_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) - tolerance), 1e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithToleranceCheckingNullBB, KratosCoreFastSuite)
+{
+    std::vector<double> bboxes_wrong_size(5);
+    std::vector<double> bboxes_with_tol;
+
+    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(bboxes_wrong_size, 1.235, bboxes_with_tol),
+        "Error: Bounding Boxes size has to be a multiple of 6!");
+
+    // Cretae a vector containing the fake bboxes
+    const int num_entries = 24;
+    std::vector<double> bboxes(num_entries, 0.0);
+
+    const double tolerance = 5.478;
+
+    SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(bboxes,
+                                                       tolerance,
+                                                       bboxes_with_tol);
+    // Check that the bboxes are all zero
+    for (int i=0; i<num_entries; ++i) {
+        KRATOS_CHECK_DOUBLE_EQUAL(bboxes_with_tol[i], 0.0);
+    }
 }
 
 }  // namespace Kratos::Testing
