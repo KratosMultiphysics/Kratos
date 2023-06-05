@@ -81,20 +81,8 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
             KM.TetrahedralMeshOrientationCheck(self.helmholtz_model_part, False, flags).Execute()
         else:
             if is_surface:
-                if num_elems_nodes == 3:
-                    KM.ConnectivityPreserveModeler().GenerateModelPart(
-                            self.original_model_part, self.helmholtz_model_part, "HelmholtzVectorSurfaceElement3D3N")
-                elif num_elems_nodes == 4:
-                    KM.ConnectivityPreserveModeler().GenerateModelPart(
-                            self.original_model_part, self.helmholtz_model_part, "HelmholtzVectorSurfaceElement3D4N")
+                element_name = f"HelmholtzVectorSurfaceElement3D{num_elems_nodes}N"
             else:
-                if num_elems_nodes == 4:
-                    KM.ConnectivityPreserveModeler().GenerateModelPart(
-                            self.original_model_part, self.helmholtz_model_part, "HelmholtzVectorSolidElement3D4N")
-                elif num_elems_nodes == 8:
-                    KM.ConnectivityPreserveModeler().GenerateModelPart(
-                            self.original_model_part, self.helmholtz_model_part, "HelmholtzVectorSolidElement3D8N")
+                element_name = f"HelmholtzVectorSolidElement3D{num_elems_nodes}N"
 
-
-
-
+            KM.ConnectivityPreserveModeler().GenerateModelPart(self.original_model_part, self.helmholtz_model_part, element_name)
