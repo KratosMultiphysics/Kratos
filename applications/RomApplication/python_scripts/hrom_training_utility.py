@@ -175,7 +175,7 @@ class HRomTrainingUtility(object):
         folder_path = "TrainningPhaseHROM"
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-        np.save(f"{folder_path}/ProjectedResidualsSnapshots.npy",residuals_snapshot_matrix)
+        # np.save(f"{folder_path}/ProjectedResidualsSnapshots.npy",residuals_snapshot_matrix)
         #################################
 
         # Calculate the randomized and truncated SVD of the residual snapshots
