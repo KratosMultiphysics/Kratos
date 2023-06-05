@@ -102,6 +102,19 @@ public:
         std::vector<double>& rBoundingBoxesWithTolerance
         );
 
+    /**
+     * @brief Compute the bounding boxes of the given bounding boxes from a given tolerance, additionally checking if the bounding boxes are initialized
+     * @details This method is used when the bounding boxes are not initialized
+     * @param rBoundingBoxes The bounding boxes
+     * @param Tolerance The tolerance
+     * @param rBoundingBoxesWithTolerance The resulting bounding boxes with the applied tolerance
+     */
+    static void ComputeBoundingBoxesWithToleranceCheckingNullBB(
+        const std::vector<double>& rBoundingBoxes,
+        const double Tolerance,
+        std::vector<double>& rBoundingBoxesWithTolerance
+        );
+
     ///@}
 };
 
