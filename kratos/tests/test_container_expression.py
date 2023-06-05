@@ -443,6 +443,9 @@ class TestContainerExpression(ABC):
             new_array = Kratos.Array3([original_value[2], original_value[3], original_value[4]])
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.ACCELERATION), new_array * 2, 12)
 
+        expression = self._GetContainerExpression()
+        # todo
+
     def test_Reshape(self):
         a = self._GetSpecializedContainerExpression()
         a.Read(Kratos.INITIAL_STRAIN)
@@ -527,6 +530,10 @@ class TestContainerExpression(ABC):
         pass
 
     @abstractmethod
+    def _GetContainerExpression(self) -> Union[Kratos.ContainerExpression.NodalExpression, Kratos.ContainerExpression.ElementExpression, Kratos.ContainerExpression.ConditionExpression]:
+        pass
+
+    @abstractmethod
     def _GetContainer(self) -> Union[Kratos.NodesArray, Kratos.ConditionsArray, Kratos.ElementsArray]:
         pass
 
@@ -568,6 +575,10 @@ class TestHistoricalContainerExpression(kratos_unittest.TestCase, TestContainerE
     def _GetSpecializedContainerExpression(self):
         return Kratos.ContainerExpression.HistoricalExpression(self.model_part)
 
+    @abstractmethod
+    def _GetContainerExpression(self) -> Kratos.ContainerExpression.NodalExpression:
+        return Kratos.ContainerExpression.NodalExpression(self.model_part)
+
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Nodes
 
@@ -608,6 +619,9 @@ class TestNodalContainerExpression(kratos_unittest.TestCase, TestContainerExpres
     def _GetSpecializedContainerExpression(self):
         return Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
 
+    def _GetContainerExpression(self) -> Kratos.ContainerExpression.NodalExpression:
+        return Kratos.ContainerExpression.NodalExpression(self.model_part)
+
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Nodes
 
@@ -622,6 +636,9 @@ class TestConditionContainerExpression(kratos_unittest.TestCase, TestContainerEx
     def _GetSpecializedContainerExpression(self):
         return Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
 
+    def _GetContainerExpression(self) -> Kratos.ContainerExpression.ConditionExpression:
+        return Kratos.ContainerExpression.ConditionExpression(self.model_part)
+
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Conditions
 
@@ -635,6 +652,9 @@ class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpr
 
     def _GetSpecializedContainerExpression(self):
         return Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+
+    def _GetContainerExpression(self):
+        return Kratos.ContainerExpression.ElementExpression(self.model_part)
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Elements
