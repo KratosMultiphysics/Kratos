@@ -575,7 +575,6 @@ class TestHistoricalContainerExpression(kratos_unittest.TestCase, TestContainerE
     def _GetSpecializedContainerExpression(self):
         return Kratos.ContainerExpression.HistoricalExpression(self.model_part)
 
-    @abstractmethod
     def _GetContainerExpression(self) -> Kratos.ContainerExpression.NodalExpression:
         return Kratos.ContainerExpression.NodalExpression(self.model_part)
 
