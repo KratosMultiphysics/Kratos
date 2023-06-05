@@ -14,7 +14,6 @@
 #include <cmath>
 
 // External includes
-#include "mpi.h"
 
 // Project includes
 #include "includes/exception.h"
