@@ -139,32 +139,29 @@ Expression::ExpressionIterator Expression::cend() const
     return end();
 }
 
-#define KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(OPERATOR_NAME, OPERATOR_CLASS)                              \
-    Expression::Pointer OPERATOR_NAME(const Expression::Pointer& rpLeft, double Right)                       \
-    {                                                                                                        \
-        return BinaryExpression<OPERATOR_CLASS>::Create(                                                     \
-            rpLeft,                                                                                          \
-            LiteralExpression<double>::Create(Right, rpLeft->NumberOfEntities())                             \
-        );                                                                                                   \
-    }                                                                                                        \
-                                                                                                             \
-    Expression::Pointer OPERATOR_NAME(double Left, const Expression::Pointer& rpRight)                       \
-    {                                                                                                        \
-        return BinaryExpression<OPERATOR_CLASS>::Create(                                                     \
-            LiteralExpression<double>::Create(Left, rpRight->NumberOfEntities()),                            \
-            rpRight                                                                                          \
-        );                                                                                                   \
-    }                                                                                                        \
-                                                                                                             \
-    Expression::Pointer OPERATOR_NAME(const Expression::Pointer& rpLeft, const Expression::Pointer& rpRight) \
-    {                                                                                                        \
-        KRATOS_ERROR_IF_NOT(                                                                                 \
-            rpLeft->NumberOfEntities() * rpLeft->GetItemComponentCount()                                     \
-            == rpRight->NumberOfEntities() * rpRight->GetItemComponentCount()                                \
-        ) << "Operand size mismatch in binary operator: " << #OPERATOR_NAME << "!\n"                         \
-          << "Left operand: " << *rpLeft << '\n'                                                             \
-          << "Right operand: " << *rpRight;                                                                  \
-        return BinaryExpression<OPERATOR_CLASS>::Create(rpLeft, rpRight);                                    \
+#define KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(OPERATOR_NAME, OPERATOR_CLASS)              \
+    Expression::Pointer OPERATOR_NAME(const Expression::Pointer& rpLeft, const double Right) \
+    {                                                                                        \
+        return BinaryExpression<OPERATOR_CLASS>::Create(                                     \
+            rpLeft, LiteralExpression<double>::Create(Right, rpLeft->NumberOfEntities()));   \
+    }                                                                                        \
+                                                                                             \
+    Expression::Pointer OPERATOR_NAME(const double Left, const Expression::Pointer& rpRight) \
+    {                                                                                        \
+        return BinaryExpression<OPERATOR_CLASS>::Create(                                     \
+            LiteralExpression<double>::Create(Left, rpRight->NumberOfEntities()), rpRight);  \
+    }                                                                                        \
+                                                                                             \
+    Expression::Pointer OPERATOR_NAME(const Expression::Pointer& rpLeft,                     \
+                                      const Expression::Pointer& rpRight)                    \
+    {                                                                                        \
+        KRATOS_ERROR_IF_NOT(                                                                 \
+            rpLeft->NumberOfEntities() * rpLeft->GetItemComponentCount() ==                  \
+            rpRight->NumberOfEntities() * rpRight->GetItemComponentCount())                  \
+            << "Operand size mismatch in binary operator: " << #OPERATOR_NAME << "!\n"       \
+            << "Left operand: " << *rpLeft << '\n'                                           \
+            << "Right operand: " << *rpRight;                                                \
+        return BinaryExpression<OPERATOR_CLASS>::Create(rpLeft, rpRight);                    \
     }
 
 KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(operator+, BinaryOperations::Addition)
@@ -174,6 +171,8 @@ KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(operator-, BinaryOperations::Substracti
 KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(operator*, BinaryOperations::Multiplication)
 
 KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(operator/, BinaryOperations::Division)
+
+KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR(Pow, BinaryOperations::Power)
 
 #undef KRATOS_DEFINE_BINARY_EXPRESSION_OPERATOR
 
@@ -191,19 +190,6 @@ Expression::Pointer Scale(const Expression::Pointer& rpLeft, const Expression::P
         rpLeft,
         rpRight
     );
-}
-
-Expression::Pointer Pow(const Expression::Pointer& rpBase, double Exponent)
-{
-    return BinaryExpression<BinaryOperations::Power>::Create(
-        rpBase,
-        LiteralExpression<double>::Create(Exponent, rpBase->NumberOfEntities())
-    );
-}
-
-Expression::Pointer Pow(const Expression::Pointer& rpBase, const Expression::Pointer& rpExponent)
-{
-    return BinaryExpression<BinaryOperations::Power>::Create(rpBase, rpExponent);
 }
 
 } // namespace Kratos
