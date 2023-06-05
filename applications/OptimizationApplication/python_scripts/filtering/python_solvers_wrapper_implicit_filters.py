@@ -44,7 +44,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
 def CreateSolver(model, custom_settings):
 
-    if (type(model) != KratosMultiphysics.Model):
+    if isinstance(model, KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")#
 
     if (type(custom_settings) != KratosMultiphysics.Parameters):
