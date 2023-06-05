@@ -25,6 +25,7 @@
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/expressions/arithmetic_operators.h"
 #include "containers/container_expression/expressions/view_operators.h"
+#include "containers/container_expression/expressions/io/variable_expression_io.h"
 
 namespace Kratos {
 
@@ -52,29 +53,10 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
 {
     KRATOS_TRY
 
-    const auto& r_container = this->GetContainer();
-    const IndexType number_of_entities = r_container.size();
-
-    using raw_data_type = std::conditional_t<
-                            std::is_same_v<TDataType, char>, char,
-                            std::conditional_t<
-                                std::is_same_v<TDataType, int>, int,
-                                double
-                            >
-                          >;
-
-    if (number_of_entities != 0) {
-        // initialize the shape with the first entity value
-        VariableExpressionDataIO<TDataType> variable_flatten_data_io(TContainerDataIO::GetValue(*r_container.begin(), rVariable));
-
-        auto p_expression = LiteralFlatExpression<raw_data_type>::Create(number_of_entities, variable_flatten_data_io.GetItemShape());
-        auto& r_expression = *p_expression;
-        this->mpExpression = p_expression;
-
-        IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &variable_flatten_data_io, &r_expression](const IndexType Index){
-            const auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
-            variable_flatten_data_io.Read(r_expression, Index, values);
-        });
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        this->mpExpression = VariableExpressionIO::VariableExpressionInput(*this, rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>).Execute();
+    } else {
+        this->mpExpression = VariableExpressionIO::VariableExpressionInput(*this, rVariable).Execute();
     }
 
     KRATOS_CATCH("")
@@ -86,55 +68,10 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
 {
     KRATOS_TRY
 
-    auto& r_container = this->GetContainer();
-    const IndexType number_of_entities = r_container.size();
-
-    if (number_of_entities > 0) {
-        const auto& r_expression = this->GetExpression();
-
-        VariableExpressionDataIO<TDataType> variable_flatten_data_io(r_expression.GetItemShape());
-
-        // initialize the container variables first
-        if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-            // initializes ghost nodes as for the later synchronization
-            // only, the nodal non historical values needs to be set unless
-            // they are properly initialized. Otherwise, in synchronization, the variables will
-            // not be there in the ghost nodes hence seg faults.
-
-            // the vectors and matrices needs to be initialized in historical and non-historical
-            // data containers because they need to be initialized with the correct size for synchronization
-            if constexpr(std::is_same_v<TDataType, Vector> || std::is_same_v<TDataType, Matrix>) {
-                TDataType dummy_value{};
-                variable_flatten_data_io.Assign(dummy_value, r_expression, 0);
-                if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>) {
-                    VariableUtils().SetVariable(rVariable, dummy_value, this->GetModelPart().GetCommunicator().GhostMesh().Nodes());
-                } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
-                    VariableUtils().SetNonHistoricalVariable(rVariable, dummy_value, this->GetModelPart().GetCommunicator().GhostMesh().Nodes());
-                }
-            } else {
-                // if it is a static type, then it only needs to be initialized in the non-historical container with zeros.
-                // historical container should be initialized with the default values when the container is created.
-                if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
-                    VariableUtils().SetNonHistoricalVariableToZero(rVariable, this->GetModelPart().GetCommunicator().GhostMesh().Nodes());
-                }
-            }
-        }
-
-        IndexPartition<IndexType>(number_of_entities).for_each(TDataType{}, [&r_container, &rVariable, &r_expression, &variable_flatten_data_io](const IndexType Index, TDataType& rValue){
-            variable_flatten_data_io.Assign(rValue, r_expression, Index);
-            TContainerDataIO::SetValue(*(r_container.begin() + Index), rVariable, rValue);
-        });
-
-        if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-            // synchronize nodal values
-            auto& r_communicator = this->GetModelPart().GetCommunicator();
-
-            if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>) {
-                r_communicator.SynchronizeVariable(rVariable);
-            } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
-                r_communicator.SynchronizeNonHistoricalVariable(rVariable);
-            }
-        }
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        VariableExpressionIO::VariableExpressionOutput(*this, rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>).Execute(**this->mpExpression);
+    } else {
+        VariableExpressionIO::VariableExpressionOutput(*this, rVariable).Execute(**this->mpExpression);
     }
 
     KRATOS_CATCH("");
