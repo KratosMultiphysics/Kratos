@@ -88,7 +88,7 @@ void BoussinesqCondition<TNumNodes>::AddDispersionProjection(
 
 
 template<std::size_t TNumNodes>
-void BoussinesqCondition<TNumNodes>::CalculateGaussPointStiffnessContribution(
+void BoussinesqCondition<TNumNodes>::CalculateShapeFunctionDerivatives(
     Matrix& rDN_DX,
     const GeometryType& rParentGeometry,
     const Point& rPoint)
@@ -148,7 +148,7 @@ void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessI
         const array_1d<double,TNumNodes> N = row(N_container, g);
 
         this->CalculateGaussPointData(data, g, N);
-        CalculateGaussPointStiffnessContribution(DN_DX, parent_geom, point);
+        CalculateShapeFunctionDerivatives(DN_DX, parent_geom, point);
         AddDispersionProjection(dispersion_h, dispersion_u, parent_geom, data, N, DN_DX, weight);
     }
 
