@@ -139,7 +139,14 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("GetResultCoordinates", [&](ContainerType& self) {
         return MatrixToPyList(self.GetResultCoordinates());
     })
-
+    .def("__getitem__", [](ContainerType& self, const std::size_t Index) {
+        return *(self.GetLocalPointers().GetContainer().begin() + Index);
+    })
+    .def("__call__", [](ContainerType& self, const std::size_t Index) {
+        // Check if the communicator has been created
+        KRATOS_ERROR_IF(self.GetGlobalPointerCommunicator() == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
+        return *(self.GetGlobalPointers().GetContainer().begin() + Index);
+    })
     .def("__iter__", [](ContainerType& self) {
         return pybind11::make_iterator(self.begin(), self.end());
     }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
@@ -148,12 +155,6 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {  
         cls.def("AddResult", [](ContainerType& self, SpatialSearchResult<TObjectType>& rObject) {
             self.AddResult(rObject);
-        });
-        cls.def("__getitem__", [](ContainerType& self, const std::size_t Index) {
-            return self[Index];
-        });
-        cls.def("__call__", [](ContainerType& self, const std::size_t Index) {
-            return self(Index);
         });
     }
 }
