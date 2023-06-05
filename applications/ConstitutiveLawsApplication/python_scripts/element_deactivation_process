@@ -27,10 +27,19 @@ class ElementDeactivationProcess(KM.Process):
 
         default_settings = KM.Parameters("""
         {
-            "help"                       : "This process deactivates elements that satisfy a predefined threshold of a Variable",
-            "mesh_id"                    : 0,
-            "model_part_name"            : "please_specify_model_part_name",
-            "variable_name"              : "SPECIFY_VARIABLE_NAME",
-            "variable_maximum_threshold" : 0.9999
+            "help"                        : "This process deactivates elements that satisfy a predefined threshold of a Variable",
+            "mesh_id"                     : 0,
+            "model_part_name"             : "please_specify_model_part_name",
+            "variable_name"               : "DAMAGE",
+            "variable_maximum_threshold"  : 0.9999,
+            "average_calculation_over_ip" : true
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
+
+        self.variable = KM.KratosGlobals.GetVariable(settings["variable_name"].GetString())
+        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.variable_threshold = settings["variable_maximum_threshold"].GetDouble()
+        self.average_variable_over_ip = settings["average_calculation_over_ip"].GetBool()
+
+        if self.model_part.IsDistributed():
+            raise RuntimeError('MPI not supported yet')
