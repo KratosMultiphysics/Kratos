@@ -187,8 +187,10 @@ class PointOutputProcess(KratosMultiphysics.OutputProcess):
             file_header = GetFileHeader(self.params["search_configuration"].GetString(),
                 entity_type, found_id, self.point, self.output_variables[0])
 
-            self.output_file.append(TimeBasedAsciiFileWriterUtility(
-                self.model_part, file_handler_params, file_header).file)
+            new_file = TimeBasedAsciiFileWriterUtility(
+                self.model_part, file_handler_params, file_header).file
+            new_file.close()
+            self.output_file.append(new_file)
 
 
     def __CheckVariableIsSolutionStepVariable(self, var):
