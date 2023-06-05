@@ -357,6 +357,21 @@ public:
     }
 
     /**
+     * @brief Add a result to the container
+     * @param pResult The result to be added
+     */
+    void AddResult(TObjectType* pResult);
+
+    /**
+     * @brief Pushes back a result to the container
+     * @param pResult The result to be added
+     */
+    void push_back(TObjectType* pResult)
+    {
+        AddResult(pResult);
+    }
+
+    /**
      * @brief Clear the containers
      * @details This method clears the containers
      */
