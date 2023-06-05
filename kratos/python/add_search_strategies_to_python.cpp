@@ -30,6 +30,42 @@ namespace Kratos::Python
 {
 
 /**
+ * @brief Converts a vector to a Python list using pybind11.
+ * @details This function is generic enough to be moved to a more general place.
+ * @tparam T The type of the vector.
+ * @param results The vector to convert.
+ * @return The converted Python list.
+ */
+template<typename T>
+pybind11::list VectorToPyList(const T& results) {
+    pybind11::list list_results;
+    for (auto& r_result : results) {
+        list_results.append(r_result);
+    }
+    return list_results;
+}
+
+/**
+ * @brief Converts a matrix to a nested Python list using pybind11.
+ * @details This function is generic enough to be moved to a more general place.
+ * @tparam T The type of the matrix.
+ * @param results The matrix to convert.
+ * @return The converted nested Python list.
+ */
+template<typename T>
+pybind11::list MatrixToPyList(const T& results) {
+    pybind11::list list_results;
+    for (auto& r_result : results) {
+        pybind11::list i_list_results;
+        for (auto& r_sub_result : r_result) {
+            i_list_results.append(r_sub_result);
+        }
+        list_results.append(i_list_results);
+    }
+    return list_results;
+}
+
+/**
  * @brief Generates a list of lists from a vector of vectors
  * @param rList The list to be filled
  * @param rVector The vector of vectors to be copied
@@ -73,6 +109,79 @@ void CopyRadiusArrayToPython(
         rRadiusArray[i] = rListOfRadius[i].cast<double>();
         //rRadiusArray[i] = rListOfRadius[i];
     });
+}
+
+/**
+ * @brief Binds a SpatialSearchResultContainer class to Python using pybind11.
+ * @tparam TObjectType The type of object stored in the container.
+ * @param m The pybind11 module to bind the class to.
+ * @param rClassName The name of the class.
+ */
+template<typename TObjectType>
+void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rClassName) {
+    using ContainerType = SpatialSearchResultContainer<TObjectType>;
+    auto cls = pybind11::class_<ContainerType, typename ContainerType::Pointer>(m, rClassName.c_str())
+    .def(pybind11::init<>())
+    .def("IsObjectFound", &ContainerType::IsObjectFound)
+    .def("NumberOfLocalResults", &ContainerType::NumberOfLocalResults)
+    .def("NumberOfGlobalResults", &ContainerType::NumberOfGlobalResults)
+    .def("AddResult", [](ContainerType& self, TObjectType* pObject) {
+        self.AddResult(pObject);
+    })
+    .def("Clear", &ContainerType::Clear)
+    .def("SynchronizeAll", &ContainerType::SynchronizeAll)
+    .def("GetResultShapeFunctions", [&](ContainerType& self, const array_1d<double, 3>& rPoint) {
+        return VectorToPyList(self.GetResultShapeFunctions(rPoint));
+    })
+    .def("GetResultIndices", [&](ContainerType& self) {
+        return VectorToPyList(self.GetResultIndices());
+    })
+    .def("GetResultCoordinates", [&](ContainerType& self) {
+        return MatrixToPyList(self.GetResultCoordinates());
+    })
+
+    .def("__iter__", [](ContainerType& self) {
+        return pybind11::make_iterator(self.begin(), self.end());
+    }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
+
+    // Add the specific methods for the GeometricalObject
+    if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {  
+        cls.def("AddResult", [](ContainerType& self, SpatialSearchResult<TObjectType>& rObject) {
+            self.AddResult(rObject);
+        });
+        cls.def("__getitem__", [](ContainerType& self, const std::size_t Index) {
+            return self[Index];
+        });
+        cls.def("__call__", [](ContainerType& self, const std::size_t Index) {
+            return self(Index);
+        });
+    }
+}
+
+/**
+ * @brief Binds a SpatialSearchResultContainerMap to a Python module.
+ * @tparam T The type parameter of the SpatialSearchResultContainerMap.
+ * @param m The Python module to bind the class to.
+ * @param rClassName The name of the class in Python.
+ */
+template<typename T>
+void BindSpatialSearchResultContainerMap(pybind11::module& m, const std::string& rClassName) {
+    using ContainerMapType = SpatialSearchResultContainerMap<T>;
+    pybind11::class_<ContainerMapType, typename ContainerMapType::Pointer>(m, rClassName.c_str())
+    .def(pybind11::init<>())
+    .def("NumberOfPointsResults", &ContainerMapType::NumberOfPointsResults)
+    .def("InitializeResult", &ContainerMapType::InitializeResult)
+    .def("HasResult", &ContainerMapType::HasResult)
+    .def("Clear", &ContainerMapType::Clear)
+    .def("__getitem__", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
+        return self[rCoordinates];
+    })
+    .def("__call__", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
+        return self(rCoordinates);
+    })
+    .def("__iter__", [](ContainerMapType& self) {
+        return pybind11::make_iterator(self.begin(), self.end());
+    }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
 }
 
 void AddSearchStrategiesToPython(pybind11::module& m)
@@ -694,94 +803,30 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def(py::init<Parameters>())
     ;
 
-    using ResultType = SpatialSearchResult<GeometricalObject>;
+    using ResultTypeGeometricalObject = SpatialSearchResult<GeometricalObject>;
 
-    py::class_<ResultType, ResultType::Pointer>(m, "ResultType")
+    py::class_<ResultTypeGeometricalObject, ResultTypeGeometricalObject::Pointer>(m, "ResultTypeGeometricalObject")
     .def(py::init< >())
     .def(py::init<GeometricalObject*>())
-    .def("Reset", &ResultType::Reset)
-    .def("Get", [&](ResultType& self) {return self.Get().get();})
-    .def("Set", &ResultType::Set)
-    .def("GetDistance", &ResultType::GetDistance)
-    .def("SetDistance", &ResultType::SetDistance)
-    .def("IsObjectFound", &ResultType::IsObjectFound)
-    .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
+    .def("Reset", &ResultTypeGeometricalObject::Reset)
+    .def("Get", [&](ResultTypeGeometricalObject& self) {return self.Get().get();})
+    .def("Set", &ResultTypeGeometricalObject::Set)
+    .def("GetDistance", &ResultTypeGeometricalObject::GetDistance)
+    .def("SetDistance", &ResultTypeGeometricalObject::SetDistance)
+    .def("IsObjectFound", &ResultTypeGeometricalObject::IsObjectFound)
+    .def("IsDistanceCalculated", &ResultTypeGeometricalObject::IsDistanceCalculated)
     ;
 
-    using ResultTypeContainer = SpatialSearchResultContainer<GeometricalObject>;
+    // Containers
+    BindSpatialSearchResultContainer<Node>(m, "ResultTypeContainerNode");
+    BindSpatialSearchResultContainer<GeometricalObject>(m, "ResultTypeContainerGeometricalObject");
 
-    py::class_<ResultTypeContainer, ResultTypeContainer::Pointer>(m, "ResultTypeContainer")
-    .def(py::init< >())
-    .def("IsObjectFound", &ResultTypeContainer::IsObjectFound)
-    .def("NumberOfLocalResults", &ResultTypeContainer::NumberOfLocalResults)
-    .def("NumberOfGlobalResults", &ResultTypeContainer::NumberOfGlobalResults)
-    .def("AddResult", &ResultTypeContainer::AddResult)
-    .def("Clear", &ResultTypeContainer::Clear)
-    .def("SynchronizeAll", &ResultTypeContainer::SynchronizeAll)
-    .def("GetResultShapeFunctions", [&](ResultTypeContainer& self, const array_1d<double, 3>& rPoint) {
-        auto results = self.GetResultShapeFunctions(rPoint);
+    // Containers map
+    BindSpatialSearchResultContainerMap<Node>(m, "ResultTypeContainerMapNode");
+    BindSpatialSearchResultContainerMap<GeometricalObject>(m, "ResultTypeContainerMapGeometricalObject");
 
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            list_results.append(r_result);
-        }
-        return list_results;
-    })
-    .def("GetResultIndices", [&](ResultTypeContainer& self) {
-        std::vector<std::size_t> results = self.GetResultIndices();
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            list_results.append(r_result);
-        }
-        return list_results;
-    })
-    .def("GetResultCoordinates", [&](ResultTypeContainer& self) {
-        auto results = self.GetResultCoordinates();
-
-        // Copy the results to the python list
-        py::list list_results;
-        for (auto& r_result : results) {
-            py::list i_list_results;
-            for (auto& r_sub_result : r_result) {
-                i_list_results.append(r_sub_result);
-            }
-            list_results.append(i_list_results);
-        }
-        return list_results;
-    })
-    .def("__getitem__", [&](ResultTypeContainer& self, const std::size_t Index) {
-        return self[Index];
-    })
-    .def("__call__", [&](ResultTypeContainer& self, const std::size_t Index) {
-        return self(Index);
-    })
-    .def("__iter__", [](ResultTypeContainer& self) {
-        return py::make_iterator(self.begin(), self.end());
-    }, py::keep_alive<0, 1>()) /* Keep object alive while iterator is used */
-    ;
-
-    using ResultTypeContainerMap = SpatialSearchResultContainerMap<GeometricalObject>;
-
-    py::class_<ResultTypeContainerMap, ResultTypeContainerMap::Pointer>(m, "ResultTypeContainerMap")
-    .def(py::init< >())
-    .def("NumberOfPointsResults", &ResultTypeContainerMap::NumberOfPointsResults)
-    .def("InitializeResult", &ResultTypeContainerMap::InitializeResult)
-    .def("HasResult", &ResultTypeContainerMap::HasResult)
-    .def("Clear", &ResultTypeContainerMap::Clear)
-    .def("__getitem__", [&](ResultTypeContainerMap& self, const array_1d<double, 3>& rCoordinates) {
-        return self[rCoordinates];
-    })
-    .def("__call__", [&](ResultTypeContainerMap& self, const array_1d<double, 3>& rCoordinates) {
-        return self(rCoordinates);
-    })
-    .def("__iter__", [](ResultTypeContainerMap& self) {
-        return py::make_iterator(self.begin(), self.end());
-    }, py::keep_alive<0, 1>()) /* Keep object alive while iterator is used */
-    ;
-
+    using ResultTypeContainerGeometricalObject = SpatialSearchResultContainer<GeometricalObject>;
+    using ResultTypeContainerMapGeometricalObject = SpatialSearchResultContainerMap<GeometricalObject>;
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
@@ -795,49 +840,49 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("GetTotalNumberOfCells", &GeometricalObjectsBins::GetTotalNumberOfCells)
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
         // Perform the search
-        ResultTypeContainer results;
+        ResultTypeContainerGeometricalObject results;
         self.SearchInRadius(rPoint, Radius, results);
         return results;
     })
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        ResultTypeContainerMap results; 
+        ResultTypeContainerMapGeometricalObject results; 
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
         return results;
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
         // Perform the search
-        ResultTypeContainer results;
+        ResultTypeContainerGeometricalObject results;
         self.SearchNearestInRadius(rPoint, Radius, results);
         return results;
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        ResultTypeContainerMap results;
+        ResultTypeContainerMapGeometricalObject results;
         self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, results);
         return results;
     })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const Point& rPoint) {
         // Perform the search
-        ResultTypeContainer results;
+        ResultTypeContainerGeometricalObject results;
         self.SearchNearest(rPoint, results);
         return results;
     })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        ResultTypeContainerMap results;
+        ResultTypeContainerMapGeometricalObject results;
         self.SearchNearest(rNodes.begin(), rNodes.end(), results);
         return results;
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const Point& rPoint) {
         // Perform the search
-        ResultTypeContainer results;
+        ResultTypeContainerGeometricalObject results;
         self.SearchIsInside(rPoint, results);
         return results;
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        ResultTypeContainerMap results;
+        ResultTypeContainerMapGeometricalObject results;
         self.SearchIsInside(rNodes.begin(), rNodes.end(), results);
         return results;
     })

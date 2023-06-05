@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/data_communicator.h"
+#include "includes/node.h"
 #include "includes/geometrical_object.h"
 #include "utilities/global_pointer_utilities.h"
 #include "spatial_containers/spatial_search_result_container.h"
@@ -107,12 +108,22 @@ std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFun
 
     // Call Apply to get the proxy
     auto proxy = this->Apply([&rPoint](GlobalPointer<TObjectType>& rGP) -> Vector {
-        auto& r_geometry = rGP->GetGeometry();
-        Vector N(r_geometry.size());
-        array_1d<double, 3> local_coordinates;
-        r_geometry.PointLocalCoordinates(local_coordinates, rPoint);
-        r_geometry.ShapeFunctionsValues(N, local_coordinates);
-        return N;
+        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {   
+            auto& r_geometry = rGP->GetGeometry();
+            Vector N(r_geometry.size());
+            array_1d<double, 3> local_coordinates;
+            r_geometry.PointLocalCoordinates(local_coordinates, rPoint);
+            r_geometry.ShapeFunctionsValues(N, local_coordinates);
+            return N;
+        } else if constexpr (std::is_same<TObjectType, Node>::value) {   
+            KRATOS_ERROR << "Nodes do not provide shape functions. Not possible to compute shape functions for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << std::endl;
+            Vector N;
+            return N;
+        } else {   
+            KRATOS_ERROR << "Not implemented yet. Not possible to compute shape functions for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << std::endl;
+            Vector N;
+            return N;
+        }
     });
 
     // Get the shape functions
@@ -166,12 +177,21 @@ std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObje
 
     // Call Apply to get the proxy
     auto proxy = this->Apply([](GlobalPointer<TObjectType>& rGP) -> std::vector<array_1d<double, 3>> {
-        auto& r_geometry = rGP->GetGeometry();
-        std::vector<array_1d<double, 3>> coordinates(r_geometry.size());
-        for (unsigned int i = 0; i < r_geometry.size(); ++i) {
-            coordinates[i] = r_geometry[i].Coordinates();
+        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {   
+            auto& r_geometry = rGP->GetGeometry();
+            std::vector<array_1d<double, 3>> coordinates(r_geometry.size());
+            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
+                coordinates[i] = r_geometry[i].Coordinates();
+            }
+            return coordinates;
+        } else if constexpr (std::is_same<TObjectType, Node>::value) {   
+            std::vector<array_1d<double, 3>> coordinates(1, rGP->Coordinates());
+            return coordinates;
+        } else {   
+            KRATOS_ERROR << "Not implemented yet" << std::endl;
+            std::vector<array_1d<double, 3>> coordinates;
+            return coordinates;
         }
-        return coordinates;
     });
 
     // Get the coordinates
@@ -242,6 +262,7 @@ void SpatialSearchResultContainer<TObjectType>::load(Serializer& rSerializer)
 /***********************************************************************************/
 
 /// Template instantiation
+template class SpatialSearchResultContainer<Node>;
 template class SpatialSearchResultContainer<GeometricalObject>;
 
 /***********************************************************************************/
@@ -358,6 +379,7 @@ void SpatialSearchResultContainerMap<TObjectType>::load(Serializer& rSerializer)
 /***********************************************************************************/
 
 /// Template instantiation
+template class SpatialSearchResultContainerMap<Node>;
 template class SpatialSearchResultContainerMap<GeometricalObject>;
 
 }  // namespace Kratos
