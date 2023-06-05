@@ -20,6 +20,7 @@
 #include "includes/variables.h"
 
 // Application incldues
+#include "custom_elements/data_containers/helmholtz_solid_shape_data_container.h"
 #include "custom_elements/data_containers/helmholtz_surface_data_container.h"
 #include "custom_elements/data_containers/helmholtz_solid_data_container.h"
 #include "custom_utilities/entity_calculation_utils.h"
@@ -457,5 +458,8 @@ template class HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 1>>;
 
 template class HelmholtzElement<HelmholtzSolidDataContainer<3, 4, 3>>;
 template class HelmholtzElement<HelmholtzSolidDataContainer<3, 8, 3>>;
+
+template class HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 4>>;
+template class HelmholtzElement<HelmholtzSolidShapeDataContainer<3, 8>>;
 
 } // Namespace Kratos
