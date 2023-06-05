@@ -85,6 +85,12 @@ public:
             const ContainerType& rContainerType,
             const MeshType& rMeshType = MeshType::Local);
 
+        VariableExpressionInput(
+            const ModelPart& rModelPart,
+            const VariableType& rVariable,
+            const ContainerType& rContainerType,
+            const MeshType& rMeshType = MeshType::Local);
+
         template <class TDataType, class TMeshType = Kratos::MeshType::Local>
         VariableExpressionInput(
             const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,

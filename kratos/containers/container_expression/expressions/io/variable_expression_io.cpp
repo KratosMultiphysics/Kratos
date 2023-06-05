@@ -34,6 +34,18 @@ VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
 {
 }
 
+VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
+    const ModelPart& rModelPart,
+    const VariableType& rVariable,
+    const ContainerType& rContainerType,
+    const MeshType& rMeshType)
+    : mrModelPart(rModelPart),
+      mpVariable(rVariable),
+      mContainerType(rContainerType),
+      mMeshType(rMeshType)
+{
+}
+
 template <class TDataType, class TMeshType>
 VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
     const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
