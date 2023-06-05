@@ -17,7 +17,11 @@ with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
     Kratos.ReadMaterialsUtility(material_settings, model)
 parameters = Kratos.Parameters("""{
     "model_part_names"      : ["Structure.all_nodes_elements_model_part"],
-    "control_variable_name" : "YOUNG_MODULUS"
+    "control_variable_name" : "YOUNG_MODULUS",
+        "mapping_options":{
+            "use_constant_multiplication_factor": true,
+            "constant_multiplication_factor" : 10.0
+        }
 }""")
 properties_control = MaterialPropertiesControlSystemIdentification("system_identification_control", model, parameters)
 
