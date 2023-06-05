@@ -94,7 +94,7 @@ public:
 class ExpressionOutputTrampoline final : public ExpressionOutput
 {
 public:
-    void Execute(const Expression& rExpression)
+    void Execute(const Expression& rExpression) override
     {
         PYBIND11_OVERRIDE_PURE(
             void,               /*return type*/
