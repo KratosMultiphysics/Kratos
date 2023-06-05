@@ -52,6 +52,18 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResult<TO
 /***********************************************************************************/
 
 template <class TObjectType>
+void SpatialSearchResultContainer<TObjectType>::AddResult(TObjectType* pResult)
+{
+    // Check if the object has been found (not nullptr)
+    if (pResult != nullptr) {
+        mLocalPointers.push_back(pResult);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::Clear()
 {
     // Clear pointer
