@@ -380,7 +380,7 @@ ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Sl
         const ContainerExpression<TContainerType, TMeshType>& rLeft,                     \
         const ContainerExpression<TContainerType, TMeshType>& rRight)                    \
     {                                                                                    \
-        ContainerExpression<TContainerType, TMeshType> result(*rRight.mpModelPart);      \
+        ContainerExpression<TContainerType, TMeshType> result(*rLeft.mpModelPart);       \
         result.SetExpression(Kratos::OPERATOR_NAME(rLeft.pGetExpression(),               \
                                                    rRight.pGetExpression()));            \
         return result;                                                                   \
