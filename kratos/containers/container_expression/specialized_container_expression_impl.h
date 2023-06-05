@@ -270,21 +270,14 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Pow(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
-    KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
-        << "Mismatching model parts found with different number of entities in substraction operation.\n"
-        << "      Left operand data : " << *this << "\n"
-        << "      Right operand data: " << rOther << "\n";
-
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = Kratos::Pow(*this->mpExpression, *rOther.mpExpression);
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Pow(static_cast<BaseType>(*this), static_cast<BaseType>(rOther)));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Pow(const double Value) const
 {
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = Kratos::Pow(*this->mpExpression, Value);
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Pow(static_cast<BaseType>(*this), Value));
     return result;
 }
 

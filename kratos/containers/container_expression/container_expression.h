@@ -23,9 +23,9 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "containers/container_expression/expressions/expression.h"
+#include "containers/container_expression/container_expression_arithmetic_operators.h"
 
 namespace Kratos {
-
 ///@name Kratos Classes
 ///@{
 
