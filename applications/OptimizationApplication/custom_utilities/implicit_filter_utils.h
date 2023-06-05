@@ -47,10 +47,9 @@ public:
     static void SetBulkRadiusForShapeFiltering(
         ModelPart& rModelPart);
 
-    static void AssignConstitutiveLaw(
-        ModelPart& ModelPart,
-        const ConstitutiveLaw& rReferenceConstitutiveLaw
-    );
+    static void AssignProperties(
+        ModelPart& rModelPart,
+        Parameters PropertiesParams);
 
     ///@}
 };
