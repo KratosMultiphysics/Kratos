@@ -18,7 +18,7 @@
 // Project includes
 #include "input_output/vtk_output.h"
 #include "mpi/includes/mpi_data_communicator.h"
-#include "mpi/utilities/mpi_search_utilities.h"
+#include "utilities/search_utilities.h"
 #include "mpi/spatial_containers/geometrical_objects_bins_mpi.h"
 
 namespace Kratos
@@ -236,7 +236,7 @@ std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBox(const
         for (unsigned int j = 0; j < 6; ++j, ++vec_it) {
             local_bb[j] = *vec_it;
         }
-        if (MPISearchUtilities::PointIsInsideBoundingBox(local_bb, rCoords)) {
+        if (SearchUtilities::PointIsInsideBoundingBox(local_bb, rCoords)) {
             ranks.push_back(i);
         }
     }
@@ -256,14 +256,14 @@ std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBoxWithTo
     const int world_size = GetWorldSize();
     std::array<double, 6> local_bb;
     std::vector<double> bb_tolerance(mGlobalBoundingBoxes.size());
-    MPISearchUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes, Tolerance, bb_tolerance);
+    SearchUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes, Tolerance, bb_tolerance);
     const auto it_begin = bb_tolerance.begin();
     for (int i = 0; i < world_size; ++i) {
         auto vec_it = it_begin + 6 * i;
         for (unsigned int j = 0; j < 6; ++j, ++vec_it) {
             local_bb[j] = *vec_it;
         }
-        if (MPISearchUtilities::PointIsInsideBoundingBox(local_bb, rCoords)) {
+        if (SearchUtilities::PointIsInsideBoundingBox(local_bb, rCoords)) {
             ranks.push_back(i);
         }
     }
