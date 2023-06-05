@@ -73,12 +73,21 @@ class TemporalController(Controller):
         self.current_time = 0.0
         self.current_step = 0
 
+    def ExecuteOperation(self) -> None:
+        super().ExecuteOperation()
+        self.current_time = 0.0
+        self.current_step = 0
+
     def IsExecuteStep(self) -> bool:
         """!@brief Return true if the current step/time is a multiple of the output frequency.
         @detail Relative errors are compared against an epsilon, which is much larger than
         the machine epsilon, and include a lower bound based on
         https://github.com/chromium/chromium, cc::IsNearlyTheSame.
         """
+        delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.current_time += delta_time
+        self.current_step += 1
+
         if self.current_step == self.step_frequency:
             return True
         if self.current_time > self.time_frequency:
@@ -93,13 +102,8 @@ class TemporalController(Controller):
         # TODO: separately keeping track of steps and time internally is not a good
         # idea. What happens if the solution process involves jumping back and forth
         # in time (restarts, checkpointing)? @matekelemen
-        delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        self.current_time += delta_time
-        self.current_step += 1
         if self.IsExecuteStep():
             self.ExecuteOperation()
-            self.current_time = 0.0
-            self.current_step = 0
 ##!@}
 
 
