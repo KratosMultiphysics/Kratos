@@ -1,0 +1,36 @@
+
+import KratosMultiphysics as KM
+
+def Factory(settings, Model):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    return ElementDeactivationProcess(Model, settings["Parameters"])
+
+class ElementDeactivationProcess(KM.Process):
+    """This process deactivates elements according to a defined integration point variable threshold
+
+    Only the member variables listed below should be accessed directly.
+
+    Public member variables:
+    Model -- the container of the different model parts.
+    settings -- Kratos parameters containing solver settings.
+    """
+
+    def __init__(self, Model, settings):
+        """ The default constructor of the class
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        Model -- the container of the different model parts.
+        settings -- Kratos parameters containing solver settings.
+        """
+        super().__init__()
+
+        default_settings = KM.Parameters("""
+        {
+            "help"                       : "This process deactivates elements that satisfy a predefined threshold of a Variable",
+            "mesh_id"                    : 0,
+            "model_part_name"            : "please_specify_model_part_name",
+            "variable_name"              : "SPECIFY_VARIABLE_NAME",
+            "variable_maximum_threshold" : 0.9999
+        }""")
+        settings.ValidateAndAssignDefaults(default_settings)
