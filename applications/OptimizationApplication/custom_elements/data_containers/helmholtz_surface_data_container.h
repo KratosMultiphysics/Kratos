@@ -54,12 +54,11 @@ public:
     ///@name Public classes
     ///@{
 
-    struct ConstantDataContainer
+    class ConstantDataContainer
     {
-        const GeometryType& mrGeometry;
-        const GeometryData::IntegrationMethod& mrIntegrationMethod;
-        BoundedMatrix<double, 3, 3> mTangentProjectionMatrix;
-        double mHelmholtzRadius;
+    public:
+        ///@name Life cycle
+        ///@{
 
         ConstantDataContainer(
             const Element& rElement,
@@ -85,6 +84,28 @@ public:
 
             noalias(mTangentProjectionMatrix) = id_matrix - outer_prod(normal, normal);
         }
+
+        ///@}
+
+    private:
+        ///@name Private member variables
+        ///@{
+
+        const GeometryType& mrGeometry;
+
+        const GeometryData::IntegrationMethod& mrIntegrationMethod;
+
+        BoundedMatrix<double, 3, 3> mTangentProjectionMatrix;
+
+        double mHelmholtzRadius;
+
+        ///@}
+        ///@name Friend classes
+        ///@{
+
+        friend class HelmholtzSurfaceDataContainer;
+
+        ///@}
     };
 
     ///@}

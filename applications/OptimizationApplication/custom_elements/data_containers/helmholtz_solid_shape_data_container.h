@@ -56,14 +56,11 @@ public:
     ///@name Public classes
     ///@{
 
-    struct ConstantDataContainer
+    class ConstantDataContainer
     {
-        const Element& mrElement;
-        const GeometryData::IntegrationMethod& mrIntegrationMethod;
-        const ProcessInfo& mrProcessInfo;
-        GeometryType::ShapeFunctionsGradientsType mdNdXs;
-        Matrix mNs;
-        double mHelmholtzRadius;
+    public:
+        ///@name Life cycle
+        ///@{
 
         ConstantDataContainer(
             const Element& rElement,
@@ -76,8 +73,31 @@ public:
             Vector detJ;
             mNs = mrElement.GetGeometry().ShapeFunctionsValues(rIntegrationMethod);
             mrElement.GetGeometry().ShapeFunctionsIntegrationPointsGradients(mdNdXs, detJ, mrIntegrationMethod);
-            mHelmholtzRadius = rProcessInfo[HELMHOLTZ_BULK_RADIUS_SHAPE];
         }
+
+        ///@}
+
+    private:
+        ///@name Private member variables
+        ///@{
+
+        const Element& mrElement;
+
+        const GeometryData::IntegrationMethod& mrIntegrationMethod;
+
+        const ProcessInfo& mrProcessInfo;
+
+        GeometryType::ShapeFunctionsGradientsType mdNdXs;
+
+        Matrix mNs;
+
+        ///@}
+        ///@name Friend classes
+        ///@{
+
+        friend class HelmholtzSolidShapeDataContainer;
+
+        ///@}
     };
 
     ///@}
