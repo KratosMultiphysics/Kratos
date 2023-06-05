@@ -7,8 +7,7 @@ import KratosMultiphysics.OptimizationApplication as KOA
 # Import baseclass
 from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_solver_base import HelmholtzSolverBase
 
-
-def CreateSolver(model, custom_settings):
+def CreateSolver(model: KM.Model, custom_settings: KM.Parameters):
     return HelmholtzScalarSolver(model, custom_settings)
 
 class HelmholtzScalarSolver(HelmholtzSolverBase):

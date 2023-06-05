@@ -1,7 +1,7 @@
 import KratosMultiphysics
 from importlib import import_module
 
-def CreateSolverByParameters(model, solver_settings, parallelism):
+def CreateSolverByParameters(model: KratosMultiphysics.Model, solver_settings: KratosMultiphysics.Parameters, parallelism: str):
 
     filter_type = solver_settings["filter_type"].GetString()
 
@@ -42,12 +42,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     return solver
 
-def CreateSolver(model, custom_settings):
+def CreateSolver(model: KratosMultiphysics.Model, custom_settings: KratosMultiphysics.Parameters):
 
-    if isinstance(model, KratosMultiphysics.Model):
+    if not isinstance(model, KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")#
 
-    if (type(custom_settings) != KratosMultiphysics.Parameters):
+    if not isinstance(custom_settings, KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     solver_settings = custom_settings["solver_settings"]

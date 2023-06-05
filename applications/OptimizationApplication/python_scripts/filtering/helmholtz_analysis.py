@@ -1,8 +1,8 @@
 # Importing Kratos
 import KratosMultiphysics as KM
+import KratosMultiphysics.OptimizationApplication as KOA
 import KratosMultiphysics.OptimizationApplication.filtering.python_solvers_wrapper_implicit_filters as implicit_filter_solvers
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
-import KratosMultiphysics.OptimizationApplication as KOA
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -12,7 +12,7 @@ class HelmholtzAnalysis(AnalysisStage):
     This class is the main-script of the implicit filtering analysis
     It can be imported and used as "black-box"
     """
-    def __init__(self, model, project_parameters):
+    def __init__(self, model: KM.Model, project_parameters: KM.Parameters):
 
         self.initialized = False
         super().__init__(model, project_parameters)
@@ -28,7 +28,7 @@ class HelmholtzAnalysis(AnalysisStage):
     def _GetComputingModelPart(self):
         return self._GetSolver().GetComputingModelPart()
 
-    def _SetSolverMode(self, invers_mode=False):
+    def _SetSolverMode(self, invers_mode:bool = False):
         self._GetComputingModelPart().ProcessInfo.SetValue(KOA.COMPUTE_HELMHOLTZ_INVERSE, invers_mode)
 
     def _SetHelmHoltzSourceMode(self, integrated_field=False):
@@ -36,13 +36,13 @@ class HelmholtzAnalysis(AnalysisStage):
 
     def _AssignDataExpressionToNodalSource(self, data_exp: ContainerExpressionTypes):
         mapped_values = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
-        if type(data_exp) == KM.ContainerExpression.NodalNonHistoricalExpression:
+        if isinstance(data_exp, KM.ContainerExpression.NodalNonHistoricalExpression):
             mapped_values = data_exp
-        elif type(data_exp) == KM.ContainerExpression.ElementNonHistoricalExpression:
+        elif isinstance(data_exp, KM.ContainerExpression.ElementNonHistoricalExpression):
             neighbour_elems = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
             KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourElements(neighbour_elems)
             KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_elems)
-        elif type(data_exp) == KM.ContainerExpression.ConditionNonHistoricalExpression:
+        elif isinstance(data_exp, KM.ContainerExpression.ConditionNonHistoricalExpression):
             neighbour_conds = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
             KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourConditions(neighbour_conds)
             KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_conds)
@@ -53,9 +53,7 @@ class HelmholtzAnalysis(AnalysisStage):
         else:
             mapped_values.Evaluate(KOA.HELMHOLTZ_SCALAR_SOURCE)
 
-
     def _AssignNodalSolutionToDataExpression(self, output_data_exp_type):
-
         nodal_solution_field = KM.ContainerExpression.HistoricalExpression(self._GetComputingModelPart())
         filter_type = self._GetSolver().settings["filter_type"].GetString()
         if filter_type == "bulk_surface_shape" or filter_type == "general_vector":

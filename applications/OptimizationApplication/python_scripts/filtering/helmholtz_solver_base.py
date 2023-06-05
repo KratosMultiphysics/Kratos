@@ -5,14 +5,13 @@ import KratosMultiphysics.OptimizationApplication as KOA
 # Other imports
 from KratosMultiphysics.python_solver import PythonSolver
 
-
 class HelmholtzSolverBase(PythonSolver):
     """The base class for Helmholtz-based solvers.
 
     This class defines the user interface to Helmholtz solvers.
 
     """
-    def __init__(self, model, custom_settings):
+    def __init__(self, model: KratosMultiphysics.Model, custom_settings: KratosMultiphysics.Parameters):
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
 
@@ -42,7 +41,7 @@ class HelmholtzSolverBase(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
 
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type"           : "helmholtz_solver_base",
             "domain_size"           : -1,
@@ -78,7 +77,7 @@ class HelmholtzSolverBase(PythonSolver):
 
     #### Public user interface functions ####
 
-    def AdvanceInTime(self, current_time):
+    def AdvanceInTime(self, current_time) -> float:
         dt = self.settings["time_stepping"]["time_step"].GetDouble()
         new_time = current_time + dt
         self.helmholtz_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
@@ -120,6 +119,8 @@ class HelmholtzSolverBase(PythonSolver):
     def GetComputingModelPart(self):
         return self.helmholtz_model_part
 
+    #### Protected functions ####
+
     #### Specific internal functions ####
 
     def _GetScheme(self):
@@ -141,8 +142,6 @@ class HelmholtzSolverBase(PythonSolver):
         if not hasattr(self, '_solution_strategy'):
             self._solution_strategy = self._CreateSolutionStrategy()
         return self._solution_strategy
-
-    #### Private functions ####
 
     def _CreateBuilderAndSolver(self):
         linear_solver = self._GetLinearSolver()

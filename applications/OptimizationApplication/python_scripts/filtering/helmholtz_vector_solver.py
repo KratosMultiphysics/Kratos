@@ -7,12 +7,11 @@ import KratosMultiphysics.OptimizationApplication as KOA
 # Import baseclass
 from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_solver_base import HelmholtzSolverBase
 
-
 def CreateSolver(model, custom_settings):
     return HelmholtzVectorSolver(model, custom_settings)
 
 class HelmholtzVectorSolver(HelmholtzSolverBase):
-    def __init__(self, model, custom_settings):
+    def __init__(self, model: KM.Model, custom_settings: KM.Parameters):
         super().__init__(model, custom_settings)
         if self.settings["filter_type"].GetString() == "bulk_surface_shape":
             self.bulk_surface_shape_filter = True
