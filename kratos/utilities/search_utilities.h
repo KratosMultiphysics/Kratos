@@ -42,13 +42,13 @@ namespace Kratos
 ///@{
 
 /**
- * @class MPISearchUtilities
+ * @class SearchUtilities
  * @ingroup KratosMPI
  * @brief MPI utilities for searching geometrical objects
  * @details Original implementation from MappingUtilities 
  * @author Philipp Bucher (moved by Vicente Mataix Ferrandiz)
  */
-class MPISearchUtilities
+class SearchUtilities
 {
 public:
     ///@name Type Definitions
@@ -83,8 +83,8 @@ public:
         )
     {
         // The Bounding Box should have some tolerance already!
-        if (rCoords[0] < rBoundingBox[0] && rCoords[0] > rBoundingBox[1])   // check x-direction
-            if (rCoords[1] < rBoundingBox[2] && rCoords[1] > rBoundingBox[3])   // check y-direction
+        if (rCoords[0] < rBoundingBox[0] && rCoords[0] > rBoundingBox[1])           // check x-direction
+            if (rCoords[1] < rBoundingBox[2] && rCoords[1] > rBoundingBox[3])       // check y-direction
                 if (rCoords[2] < rBoundingBox[4] && rCoords[2] > rBoundingBox[5])   // check z-direction
                     return true;
         return false;
@@ -101,29 +101,6 @@ public:
         const double Tolerance,
         std::vector<double>& rBoundingBoxesWithTolerance
         );
-
-    /**
-     * @brief This method exchanges data asynchronously
-     * @tparam TDataType The type of data to be exchanged
-     * @param rSendBuffer The send buffer
-     * @param rRecvBuffer The receive buffer
-     * @param CommRank The rank of the current processor
-     * @param CommSize The size of the communicator
-     * @param rSendSizes The size of the send buffer
-     * @param rRecvSizes The size of the receive buffer
-     * @return 0 if the operation was successful
-     * @todo This method should be moved to the communicator
-     */
-    template<typename TDataType>
-    static int ExchangeDataAsync(
-        const std::vector<std::vector<TDataType>>& rSendBuffer,
-        std::vector<std::vector<TDataType>>& rRecvBuffer,
-        const int CommRank,
-        const int CommSize,
-        const std::vector<int>& rSendSizes,
-        std::vector<int>& rRecvSizes
-        );
-
 
     ///@}
 };

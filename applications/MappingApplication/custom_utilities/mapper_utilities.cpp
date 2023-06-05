@@ -23,7 +23,7 @@
 #include "utilities/reduction_utilities.h"
 #include "mapper_utilities.h"
 #include "mapping_application_variables.h"
-#include "mpi/utilities/mpi_search_utilities.h"
+#include "utilities/search_utilities.h"
 
 namespace Kratos {
 namespace MapperUtilities {
@@ -332,7 +332,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 
             if (!rp_local_sys->IsDoneSearching()) {
                 const auto& r_coords = rp_local_sys->Coordinates();
-                if (MPISearchUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
+                if (SearchUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
                     // These push_backs are threadsafe bcs only one vector is accessed per thread!
                     r_rank_buffer.push_back(static_cast<double>(i_local_sys)); // this it the "mSourceLocalSystemIndex" of the MapperInterfaceInfo
                     r_rank_buffer.push_back(r_coords[0]);

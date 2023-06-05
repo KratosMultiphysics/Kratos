@@ -18,14 +18,14 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/point.h"
-#include "mpi/utilities/mpi_search_utilities.h"
+#include "utilities/search_utilities.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesMPI_PointIsInsideBoundingBox, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SearchUtilities_PointIsInsideBoundingBox, KratosCoreFastSuite)
 {
-    const MPISearchUtilities::BoundingBoxType bounding_box {10.5, -2.8, 3.89, -77.6, 4.64, 2.3};
+    const SearchUtilities::BoundingBoxType bounding_box {10.5, -2.8, 3.89, -77.6, 4.64, 2.3};
     // xmax, xmin,  ymax, ymin,  zmax, zmin
 
     const Point p_out_x(10.6, 1.0, 3.8);
@@ -33,11 +33,11 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesMPI_PointIsInsideBoundingBox, KratosMPI
     const Point p_out_z(10.1, 1.0, -3.8);
     const Point p_in(10.0, -30.78, 3.7);
 
-    KRATOS_CHECK_IS_FALSE(MPISearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_x));
-    KRATOS_CHECK_IS_FALSE(MPISearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_y));
-    KRATOS_CHECK_IS_FALSE(MPISearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_z));
+    KRATOS_CHECK_IS_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_x));
+    KRATOS_CHECK_IS_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_y));
+    KRATOS_CHECK_IS_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_z));
 
-    KRATOS_CHECK(MPISearchUtilities::PointIsInsideBoundingBox(bounding_box, p_in));
+    KRATOS_CHECK(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_in));
 }
 
 double GetBBoxValue(const int Index, const double Factor, const double Offset)
@@ -45,12 +45,12 @@ double GetBBoxValue(const int Index, const double Factor, const double Offset)
     return static_cast<double>(Index)*Factor - Offset;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesMPI_ComputeBoundingBoxWithTol, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SearchUtilities_ComputeBoundingBoxWithTol, KratosCoreFastSuite)
 {
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MPISearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
+    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes
@@ -65,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesMPI_ComputeBoundingBoxWithTol, KratosMP
 
     const double tolerance = 5.478;
 
-    MPISearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes,
+    SearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes,
                                                        tolerance,
                                                        bboxes_with_tol);
 
