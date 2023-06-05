@@ -11,7 +11,6 @@ from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_solver_base 
 def CreateSolver(model, custom_settings):
     return HelmholtzVectorSolver(model, custom_settings)
 
-
 class HelmholtzVectorSolver(HelmholtzSolverBase):
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
@@ -62,7 +61,20 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
             KM.ConnectivityPreserveModeler().GenerateModelPart(
                 self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidShapeElement3D4N","HelmholtzSurfaceShapeCondition3D3N")
 
-            KOA.ImplicitFilterUtils.AssignConstitutiveLaw(self.helmholtz_model_part,"HelmholtzJacobianStiffened3D")
+            material_properties = self.settings["material_properties"]
+            defaults = KM.Parameters("""{
+                "properties_id": 1,
+                "Material": {
+                    "constitutive_law": {
+                        "name": "HelmholtzJacobianStiffened3D"
+                    },
+                    "Variables": {
+                        "POISSON_RATIO": 0.3
+                    }
+                }
+            }""")
+            material_properties.RecursivelyAddMissingParameters(defaults)
+            self._AssignProperties(material_properties)
 
             tmoc = KM.TetrahedralMeshOrientationCheck
             flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
