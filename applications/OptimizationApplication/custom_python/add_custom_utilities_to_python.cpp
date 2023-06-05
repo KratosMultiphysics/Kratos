@@ -253,10 +253,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     m.def_submodule("ImplicitFilterUtils")
         .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount, py::arg("input_model_part"))
         .def("SetBulkRadiusForShapeFiltering", &ImplicitFilterUtils::SetBulkRadiusForShapeFiltering, py::arg("input_model_part"))
-
-        .def("AssignConstitutiveLaw",
-            [] ( ModelPart& model_part, const std::string& rConstitutiveLawName)
-            {ImplicitFilterUtils::AssignConstitutiveLaw(model_part, KratosComponents<ConstitutiveLaw>::Get(rConstitutiveLawName));})
+        .def("AssignProperties", &ImplicitFilterUtils::AssignProperties, py::arg("model_part"), py::arg("properties_parameters"))
         ;
 
 }
