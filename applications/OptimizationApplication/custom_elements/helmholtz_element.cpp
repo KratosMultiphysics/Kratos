@@ -435,7 +435,7 @@ void HelmholtzElement<TDataContainer>::CalculateStiffnessMatrix(
     Vector gauss_pts_J_det = ZeroVector(number_of_gauss_points);
     r_geom.DeterminantOfJacobian(gauss_pts_J_det, integration_method);
 
-    typename TDataContainer::ConstantDataContainer constant_data(this->GetGeometry(), integration_method, rCurrentProcessInfo);
+    typename TDataContainer::ConstantDataContainer constant_data(*this, integration_method, rCurrentProcessInfo);
 
     for (IndexType i_point = 0; i_point < number_of_gauss_points; ++i_point) {
         const double W = integration_points[i_point].Weight() * gauss_pts_J_det[i_point];

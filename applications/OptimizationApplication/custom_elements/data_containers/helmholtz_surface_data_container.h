@@ -20,6 +20,7 @@
 // Project includes
 #include "geometries/geometry.h"
 #include "includes/node.h"
+#include "includes/element.h"
 #include "includes/process_info.h"
 #include "utilities/math_utils.h"
 
@@ -61,10 +62,10 @@ public:
         double mHelmholtzRadius;
 
         ConstantDataContainer(
-            const GeometryType& rGeometry,
+            const Element& rElement,
             const GeometryData::IntegrationMethod& rIntegrationMethod,
             const ProcessInfo& rProcessInfo)
-            : mrGeometry(rGeometry),
+            : mrGeometry(rElement.GetGeometry()),
               mrIntegrationMethod(rIntegrationMethod)
         {
             mHelmholtzRadius = rProcessInfo[HELMHOLTZ_RADIUS];
