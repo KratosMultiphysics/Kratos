@@ -134,11 +134,10 @@ class PointOutputProcess(KratosMultiphysics.OutputProcess):
                     out += " " + format(value,self.format)
 
             out += "\n"
-            f.write(out)
+            with open(f.name,'a') as file:
+                file.write(out)
 
-    def ExecuteFinalize(self):
-        for f in self.output_file:
-            f.close()
+
 
     def __SearchPoint(self):
         # retrieving the entity type
