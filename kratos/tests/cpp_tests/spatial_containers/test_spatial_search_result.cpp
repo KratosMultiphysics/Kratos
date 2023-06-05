@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultDefaultConstruction, KratosCoreFast
     auto result = SpatialSearchResult<GeometricalObject>();
     KRATOS_CHECK_EQUAL(result.IsObjectFound(), false);
     KRATOS_CHECK_EQUAL(result.IsDistanceCalculated(), false);
-    //KRATOS_CHECK_EQUAL(result.Get(), nullptr); // operator== does not work with GlobalPointer nullptr
+    KRATOS_CHECK_EQUAL(result.Get(), nullptr);
     KRATOS_CHECK_EQUAL(result.GetDistance(), 0.0);
 }
 
