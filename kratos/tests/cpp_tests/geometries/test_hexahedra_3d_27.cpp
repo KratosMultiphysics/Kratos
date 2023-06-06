@@ -32,34 +32,34 @@ using Hexa27GeometryPtrType = Hexa27GeometryType::Pointer;
  */
 Hexa27GeometryPtrType GenerateCanonicalHexahedra3D27()
 {
-  auto p0  = GeneratePoint<Node>(0.0, 0.0, 0.0);
-  auto p1  = GeneratePoint<Node>(1.0, 0.0, 0.0);
-  auto p2  = GeneratePoint<Node>(1.0, 1.0, 0.0);
-  auto p3  = GeneratePoint<Node>(0.0, 1.0, 0.0);
-  auto p4  = GeneratePoint<Node>(0.0, 0.0, 1.0);
-  auto p5  = GeneratePoint<Node>(1.0, 0.0, 1.0);
-  auto p6  = GeneratePoint<Node>(1.0, 1.0, 1.0);
-  auto p7  = GeneratePoint<Node>(0.0, 1.0, 1.0);
-  auto p8  = GeneratePoint<Node>(0.5, 0.0, 0.0);
-  auto p9  = GeneratePoint<Node>(1.0, 0.5, 0.0);
-  auto p10 = GeneratePoint<Node>(0.5, 1.0, 0.0);
-  auto p11 = GeneratePoint<Node>(0.0, 0.5, 0.0);
-  auto p12 = GeneratePoint<Node>(0.0, 0.0, 0.5);
-  auto p13 = GeneratePoint<Node>(1.0, 0.0, 0.5);
-  auto p14 = GeneratePoint<Node>(1.0, 1.0, 0.5);
-  auto p15 = GeneratePoint<Node>(0.0, 1.0, 0.5);
-  auto p16 = GeneratePoint<Node>(0.5, 0.0, 1.0);
-  auto p17 = GeneratePoint<Node>(1.0, 0.5, 1.0);
-  auto p18 = GeneratePoint<Node>(0.5, 1.0, 1.0);
-  auto p19 = GeneratePoint<Node>(0.0, 0.5, 1.0);
-  auto p20 = GeneratePoint<Node>(0.5, 0.5, 0.0);
-  auto p21 = GeneratePoint<Node>(0.5, 0.0, 0.5);
-  auto p22 = GeneratePoint<Node>(1.0, 0.5, 0.5);
-  auto p23 = GeneratePoint<Node>(0.5, 1.0, 0.5);
-  auto p24 = GeneratePoint<Node>(0.0, 0.5, 0.5);
-  auto p25 = GeneratePoint<Node>(0.5, 0.5, 1.0);
-  auto p26 = GeneratePoint<Node>(0.5, 0.5, 0.5);
-  return Hexa27GeometryPtrType(new Hexa27GeometryType(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26));
+    auto p0  = GeneratePoint<Node>(0.0, 0.0, 0.0);
+    auto p1  = GeneratePoint<Node>(1.0, 0.0, 0.0);
+    auto p2  = GeneratePoint<Node>(1.0, 1.0, 0.0);
+    auto p3  = GeneratePoint<Node>(0.0, 1.0, 0.0);
+    auto p4  = GeneratePoint<Node>(0.0, 0.0, 1.0);
+    auto p5  = GeneratePoint<Node>(1.0, 0.0, 1.0);
+    auto p6  = GeneratePoint<Node>(1.0, 1.0, 1.0);
+    auto p7  = GeneratePoint<Node>(0.0, 1.0, 1.0);
+    auto p8  = GeneratePoint<Node>(0.5, 0.0, 0.0);
+    auto p9  = GeneratePoint<Node>(1.0, 0.5, 0.0);
+    auto p10 = GeneratePoint<Node>(0.5, 1.0, 0.0);
+    auto p11 = GeneratePoint<Node>(0.0, 0.5, 0.0);
+    auto p12 = GeneratePoint<Node>(0.0, 0.0, 0.5);
+    auto p13 = GeneratePoint<Node>(1.0, 0.0, 0.5);
+    auto p14 = GeneratePoint<Node>(1.0, 1.0, 0.5);
+    auto p15 = GeneratePoint<Node>(0.0, 1.0, 0.5);
+    auto p16 = GeneratePoint<Node>(0.5, 0.0, 1.0);
+    auto p17 = GeneratePoint<Node>(1.0, 0.5, 1.0);
+    auto p18 = GeneratePoint<Node>(0.5, 1.0, 1.0);
+    auto p19 = GeneratePoint<Node>(0.0, 0.5, 1.0);
+    auto p20 = GeneratePoint<Node>(0.5, 0.5, 0.0);
+    auto p21 = GeneratePoint<Node>(0.5, 0.0, 0.5);
+    auto p22 = GeneratePoint<Node>(1.0, 0.5, 0.5);
+    auto p23 = GeneratePoint<Node>(0.5, 1.0, 0.5);
+    auto p24 = GeneratePoint<Node>(0.0, 0.5, 0.5);
+    auto p25 = GeneratePoint<Node>(0.5, 0.5, 1.0);
+    auto p26 = GeneratePoint<Node>(0.5, 0.5, 0.5);
+    return Hexa27GeometryPtrType(new Hexa27GeometryType(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26));
 }
 
 /** Checks if the number of edges is correct.
@@ -67,9 +67,9 @@ Hexa27GeometryPtrType GenerateCanonicalHexahedra3D27()
  */
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27EdgesNumber, KratosCoreGeometriesFastSuite)
 {
-  auto geom = GenerateCanonicalHexahedra3D27();
+    auto geom = GenerateCanonicalHexahedra3D27();
 
-  KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 12);
+    KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 12);
 }
 
 /** Checks if the number of faces is correct.
@@ -77,9 +77,9 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27EdgesNumber, KratosCoreGeometriesFastSuit
  */
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27FacesNumber, KratosCoreGeometriesFastSuite)
 {
-  auto geom = GenerateCanonicalHexahedra3D27();
+    auto geom = GenerateCanonicalHexahedra3D27();
 
-  KRATOS_CHECK_EQUAL(geom->FacesNumber(), 6);
+    KRATOS_CHECK_EQUAL(geom->FacesNumber(), 6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Jacobian, KratosCoreGeometriesFastSuite)
@@ -106,9 +106,9 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Jacobian, KratosCoreGeometriesFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Length, KratosCoreGeometriesFastSuite)
 {
-  auto geom = GenerateCanonicalHexahedra3D27();
+    auto geom = GenerateCanonicalHexahedra3D27();
 
-  KRATOS_CHECK_NEAR(geom->Length(), 0.353553, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->Length(), 0.353553, TOLERANCE);
 }
 
 /** Checks if the area of the hexahedra is calculated correctly.
@@ -116,9 +116,9 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Length, KratosCoreGeometriesFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Area, KratosCoreGeometriesFastSuite)
 {
-  auto geom = GenerateCanonicalHexahedra3D27();
+    auto geom = GenerateCanonicalHexahedra3D27();
 
-  KRATOS_CHECK_NEAR(geom->Area(), 1.0, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->Area(), 1.0, TOLERANCE);
 }
 
 /** Checks if the volume of the hexahedra is calculated correctly.
@@ -127,9 +127,9 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Area, KratosCoreGeometriesFastSuite)
  */
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27Volume, KratosCoreGeometriesFastSuite)
 {
-  auto geom = GenerateCanonicalHexahedra3D27();
+    auto geom = GenerateCanonicalHexahedra3D27();
 
-  KRATOS_CHECK_NEAR(geom->Volume(), 1.0, TOLERANCE);
+    KRATOS_CHECK_NEAR(geom->Volume(), 1.0, TOLERANCE);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D27ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite)
