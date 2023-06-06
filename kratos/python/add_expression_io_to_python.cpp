@@ -187,6 +187,17 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("container_type"),
              pybind11::arg("mesh_type") = VariableExpressionIO::Local)
         ;
+
+    pybind11::class_<VariableExpressionIO::VariableExpressionOutput, ExpressionOutput>(variable_expression_io, "Output")
+        .def(pybind11::init<ModelPart&,
+                            const VariableExpressionIO::VariableType&,
+                            const VariableExpressionIO::ContainerType&,
+                            const VariableExpressionIO::MeshType&>(),
+             pybind11::arg("model_part"),
+             pybind11::arg("variable"),
+             pybind11::arg("container_type"),
+             pybind11::arg("mesh_type") = VariableExpressionIO::Local)
+        ;
 }
 
 
