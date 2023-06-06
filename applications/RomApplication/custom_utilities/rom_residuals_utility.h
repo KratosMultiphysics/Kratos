@@ -270,6 +270,19 @@ namespace Kratos
                     const std::size_t ndofs = assembly_tls_container.dofs.size();
                     ResizeIfNeeded(assembly_tls_container.phiJE, ndofs, mRomDofs);
                     RomAuxiliaryUtilities::GetPhiJElemental(assembly_tls_container.phiJE, assembly_tls_container.dofs, rPhiJ);
+                    // KRATOS_WATCH("---------------------")
+                    // KRATOS_WATCH(r_element->Id())
+                    // Element::DofsVectorType elem_dofs;
+                    // r_element->GetDofList(elem_dofs, r_current_process_info);
+                    // for(IndexType i = 0; i < elem_dofs.size(); ++i)
+                    // {
+                    //     const auto& r_dof = *elem_dofs[i];
+                    //     KRATOS_WATCH(r_dof)
+                    // }
+                    // KRATOS_WATCH(assembly_tls_container.phiJE)
+                    // KRATOS_WATCH(rPhiJ)
+                    // KRATOS_WATCH("---------------------")
+
 
                     #pragma omp critical
                     {
