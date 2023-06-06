@@ -72,6 +72,8 @@
 #include "custom_constitutive/non_local_elastic_isotropic_damage.h"
 #include "custom_constitutive/elastic_local_anisotropic_damage_3d.h"
 #include "custom_constitutive/elastic_isotropic_damage_3d_nonlocal_equivalent_strain.h"
+#include "custom_constitutive/elastic_anisotropic_damage_3d_nonlocal_equivalent_strain.h"
+
 
 
 // Integrators
@@ -284,6 +286,7 @@ private:
     const NonLocalElasticIsotropicDamage mNonLocalElasticIsotropicDamage;
     const ElasticAnisotropicDamage mElasticAnisotropicDamage;
     const ElasticIsotropicDamage3DNonLocalEquivalentStrain mElasticIsotropicDamage3DNonLocalEquivalentStrain;
+    const ElasticAnisotropicDamage3DNonLocalEquivalentStrain mElasticAnisotropicDamage3DNonLocalEquivalentStrain;
 
     // Damage and plasticity laws
     const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;
