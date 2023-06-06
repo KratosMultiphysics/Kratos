@@ -329,9 +329,9 @@ public:
 
     SpecializedContainerExpression& operator/=(const double Value);
 
-    SpecializedContainerExpression Pow(const SpecializedContainerExpression& rOther) const;
+    SpecializedContainerExpression Power(const SpecializedContainerExpression& rOther) const;
 
-    SpecializedContainerExpression Pow(const double Value) const;
+    SpecializedContainerExpression Power(const double Value) const;
 
     ///@}
     ///@name Input and output

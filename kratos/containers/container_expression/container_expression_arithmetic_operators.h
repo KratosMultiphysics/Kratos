@@ -61,13 +61,13 @@ template<class TContainerType, class TMeshType>
 ContainerExpression<TContainerType, TMeshType> operator/(const ContainerExpression<TContainerType, TMeshType>& rLeft, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 template<class TContainerType, class TMeshType>
-ContainerExpression<TContainerType, TMeshType> Pow(const double Base, const ContainerExpression<TContainerType, TMeshType>& rExponent);
+ContainerExpression<TContainerType, TMeshType> Power(const double Base, const ContainerExpression<TContainerType, TMeshType>& rExponent);
 
 template<class TContainerType, class TMeshType>
-ContainerExpression<TContainerType, TMeshType> Pow(const ContainerExpression<TContainerType, TMeshType>& rBase, const double Exponent);
+ContainerExpression<TContainerType, TMeshType> Power(const ContainerExpression<TContainerType, TMeshType>& rBase, const double Exponent);
 
 template<class TContainerType, class TMeshType>
-ContainerExpression<TContainerType, TMeshType> Pow(const ContainerExpression<TContainerType, TMeshType>& rBase, const ContainerExpression<TContainerType, TMeshType>& rExponent);
+ContainerExpression<TContainerType, TMeshType> Power(const ContainerExpression<TContainerType, TMeshType>& rBase, const ContainerExpression<TContainerType, TMeshType>& rExponent);
 
 /// @}
 

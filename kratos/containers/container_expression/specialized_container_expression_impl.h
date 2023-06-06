@@ -268,16 +268,16 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Pow(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Power(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Pow(static_cast<BaseType>(*this), static_cast<BaseType>(rOther)));
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Power(static_cast<BaseType>(*this), static_cast<BaseType>(rOther)));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, class TMeshType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Pow(const double Value) const
+SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Power(const double Value) const
 {
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Pow(static_cast<BaseType>(*this), Value));
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Power(static_cast<BaseType>(*this), Value));
     return result;
 }
 
