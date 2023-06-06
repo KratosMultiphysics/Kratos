@@ -28,6 +28,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/dense_householder_qr_decomposition.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 /* Application includes */
 #include "rom_application_variables.h"
@@ -172,8 +173,10 @@ public:
         }
 
         // Compute the complementary mesh for HROM
-        // if (this->mHromSimulation)
-        //     ComputeComplementaryElementsAndConditions(rModelPart);
+        if (this->mHromSimulation){
+            FindNeighbouringElementsAndConditions(rModelPart);
+            // ComputeComplementaryElementsAndConditions(rModelPart);
+        }
 
         auto dof_queue = this->ExtractDofSet(pScheme, rModelPart);
         
@@ -206,6 +209,139 @@ public:
 #endif
         KRATOS_CATCH("");
     } 
+
+    void FindNeighbouringElementsAndConditions(ModelPart& rModelPart) 
+    {
+        mNeighbouringAndSelectedElements.clear();
+        mNeighbouringAndSelectedConditions.clear();
+
+        // Create sets for storing Ids
+        std::set<int> selected_element_ids;
+        std::set<int> selected_condition_ids;
+
+        FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+        find_nodal_elements_neighbours_process.Execute();
+        FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rModelPart);
+        find_nodal_conditions_neighbours_process.Execute();
+
+        for (auto it_elem = this->mSelectedElements.ptr_begin(); it_elem != this->mSelectedElements.ptr_end(); ++it_elem) {
+            mNeighbouringAndSelectedElements.push_back(*it_elem);
+            selected_element_ids.insert((*it_elem)->Id());
+
+            const auto& r_geom = (*it_elem)->GetGeometry();
+            const SizeType n_nodes = r_geom.PointsNumber();
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                NodeType::Pointer p_node = r_geom(i_node);
+                auto& neighbour_elements = p_node->GetValue(NEIGHBOUR_ELEMENTS);
+                for (auto& neighbor_elem : neighbour_elements.GetContainer()) {
+                    if(selected_element_ids.find(neighbor_elem->Id()) == selected_element_ids.end()) {
+                        mNeighbouringAndSelectedElements.push_back(&*neighbor_elem);
+                        selected_element_ids.insert(neighbor_elem->Id());
+                    }
+                }
+
+                // Check and add neighbouring conditions
+                auto& neighbour_conditions = p_node->GetValue(NEIGHBOUR_CONDITIONS);
+                for (auto& neighbor_cond : neighbour_conditions.GetContainer()) {
+                    if(selected_condition_ids.find(neighbor_cond->Id()) == selected_condition_ids.end()) {
+                        mNeighbouringAndSelectedConditions.push_back(&*neighbor_cond);
+                        selected_condition_ids.insert(neighbor_cond->Id());
+                    }
+                }
+            }
+        }
+
+        for (auto it_cond = this->mSelectedConditions.ptr_begin(); it_cond != this->mSelectedConditions.ptr_end(); ++it_cond) {
+            mNeighbouringAndSelectedConditions.push_back(*it_cond);
+            selected_condition_ids.insert((*it_cond)->Id());
+
+            const auto& r_geom = (*it_cond)->GetGeometry();
+            const SizeType n_nodes = r_geom.PointsNumber();
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                NodeType::Pointer p_node = r_geom(i_node);
+                auto& neighbour_conditions = p_node->GetValue(NEIGHBOUR_CONDITIONS);
+                for (auto& neighbor_cond : neighbour_conditions.GetContainer()) {
+                    if(selected_condition_ids.find(neighbor_cond->Id()) == selected_condition_ids.end()) {
+                        mNeighbouringAndSelectedConditions.push_back(&*neighbor_cond);
+                        selected_condition_ids.insert(neighbor_cond->Id());
+                    }
+                }
+
+                // Check and add neighbouring elements
+                auto& neighbour_elements = p_node->GetValue(NEIGHBOUR_ELEMENTS);
+                for (auto& neighbor_elem : neighbour_elements.GetContainer()) {
+                    if(selected_element_ids.find(neighbor_elem->Id()) == selected_element_ids.end()) {
+                        mNeighbouringAndSelectedElements.push_back(&*neighbor_elem);
+                        selected_element_ids.insert(neighbor_elem->Id());
+                    }
+                }
+            }
+        }
+
+        std::unordered_map<int, Element::Pointer> unique_elements_map;
+        for (const auto& elem : mNeighbouringAndSelectedElements) {
+            unique_elements_map[elem.Id()] = intrusive_ptr<Element>(const_cast<Element*>(&elem));
+        }
+        mNeighbouringAndSelectedElements.clear();
+        for (const auto& pair : unique_elements_map) {
+            mNeighbouringAndSelectedElements.push_back(pair.second);
+        }
+
+        std::unordered_map<int, Condition::Pointer> unique_conditions_map;
+        for (const auto& cond : mNeighbouringAndSelectedConditions) {
+            unique_conditions_map[cond.Id()] = intrusive_ptr<Condition>(const_cast<Condition*>(&cond));
+        }
+        mNeighbouringAndSelectedConditions.clear();
+        for (const auto& pair : unique_conditions_map) {
+            mNeighbouringAndSelectedConditions.push_back(pair.second);
+        }
+
+
+        for (auto elem : this->mSelectedElements) {
+        std::cout << elem.Id() << " ";
+        }
+        std::cout << std::endl;
+
+        for (auto elem : this->mNeighbouringAndSelectedElements) {
+            std::cout << elem.Id() << " ";
+        }
+        std::cout << std::endl;
+
+        for (auto cond : this->mSelectedConditions) {
+            std::cout << cond.Id() << " ";
+        }
+        std::cout << std::endl;
+
+        for (auto cond : this->mNeighbouringAndSelectedConditions) {
+            std::cout << cond.Id() << " ";
+        }
+        std::cout << std::endl;
+    }
+
+
+    void CheckForDuplicates() 
+    {
+        std::set<int> element_ids;
+        std::set<int> condition_ids;
+
+        for(auto& elem : mNeighbouringAndSelectedElements) {
+            element_ids.insert(elem.Id());
+        }
+
+        for(auto& cond : mNeighbouringAndSelectedConditions) {
+            condition_ids.insert(cond.Id());
+        }
+
+        if(element_ids.size() != mNeighbouringAndSelectedElements.size()) {
+            std::cout << "There are duplicate elements in mNeighbouringAndSelectedElements." << std::endl;
+        }
+
+        if(condition_ids.size() != mNeighbouringAndSelectedConditions.size()) {
+            std::cout << "There are duplicate conditions in mNeighbouringAndSelectedConditions." << std::endl;
+        }
+    }
+
+
 
     // TODO: Parallel Utilities
     void ComputeComplementaryElementsAndConditions(ModelPart& rModelPart) 
@@ -362,6 +498,8 @@ protected:
     SizeType mNodalDofs;
     ElementsArrayType mComplementaryElements;
     ConditionsArrayType mComplementaryConditions;
+    ElementsArrayType mNeighbouringAndSelectedElements;
+    ConditionsArrayType mNeighbouringAndSelectedConditions;
     bool mTrainPetrovGalerkinFlag = false;
 
     ///@}
@@ -405,109 +543,6 @@ protected:
             rMat.resize(Rows, Cols, false);
         }
     };
-
-    
-    // void BuildROM(
-    //     typename TSchemeType::Pointer pScheme,
-    //     ModelPart &rModelPart,
-    //     LSPGSystemMatrixType &rA,
-    //     LSPGSystemVectorType &rb) override
-    // {
-    //     KRATOS_TRY
-    //     // Define a dense matrix to hold the reduced problem
-    //     rA = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
-    //     rb = ZeroVector(BaseType::GetEquationSystemSize());
-
-    //     // Build the system matrix by looping over elements and conditions and assembling to A
-    //     KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-    //     // Get ProcessInfo from main model part
-    //     const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-
-    //     // Assemble all entities
-    //     const auto assembling_timer = BuiltinTimer();
-
-    //     AssemblyTLS assembly_tls_container;
-
-    //     const auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
-    //     const auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
-
-    //     #pragma omp parallel firstprivate(assembly_tls_container)
-    //     {
-    //         #pragma omp for
-    //         for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-    //             auto& r_element = *(r_elements.begin() + i);
-    //             CalculateLocalContributionLSPG(r_element, rA, rb, assembly_tls_container, *pScheme, r_current_process_info, true);
-    //         }
-            
-    //         #pragma omp for
-    //         for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
-    //             auto& r_condition = *(r_conditions.begin() + i);
-    //             CalculateLocalContributionLSPG(r_condition, rA, rb, assembly_tls_container, *pScheme, r_current_process_info, true);
-    //         }
-    //     }
-
-    //     //////////
-    //     //BUILD COMPLETE OPERATOR FOR HROM 
-    //     AssemblyTLS assembly_tls_container_left;
-    //     Matrix rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
-    //     Vector rb_left = ZeroVector(BaseType::GetEquationSystemSize());
-    //     const auto& r_elements_left = rModelPart.Elements();
-    //     const auto& r_conditions_left = rModelPart.Conditions();
-
-    //     #pragma omp parallel firstprivate(assembly_tls_container_left)
-    //     {
-    //         #pragma omp for
-    //         for (int i = 0; i < static_cast<int>(r_elements_left.size()); ++i) {
-    //             auto& r_element = *(r_elements_left.begin() + i);
-    //             CalculateLocalContributionLSPG(r_element, rA_left, rb_left, assembly_tls_container_left, *pScheme, r_current_process_info, false);
-    //         }
-            
-    //         #pragma omp for
-    //         for (int i = 0; i < static_cast<int>(r_conditions_left.size()); ++i) {
-    //             auto& r_condition = *(r_conditions_left.begin() + i);
-    //             CalculateLocalContributionLSPG(r_condition, rA_left, rb_left, assembly_tls_container_left, *pScheme, r_current_process_info, false);
-    //         }
-    //     }
-
-    //     // if (this->mHromSimulation){
-    //     //     // Initialize the mask vector with zeros
-    //     //     Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
-
-    //     //     // Build the mask vector for selected elements and conditions
-    //     //     BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
-
-    //     //     // Zero out rows in the matrix that correspond to zero in the mask vector
-    //     //     ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
-    //     // }
-    //     // ////////
-
-    //     const auto projection_timer = BuiltinTimer();
-
-    //     using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-    //     using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-
-    //     // Create the Eigen matrix using the buffer
-    //     Eigen::Map<EigenDynamicMatrix> eigen_matrix(rA.data().begin(), rA.size1(), rA.size2());
-    //     Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
-    //     Eigen::Map<EigenDynamicVector> eigen_vector(rb.data().begin(), rb.size());
-
-    //     // Compute the matrix multiplication
-    //     mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
-    //     mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
-        
-    //     KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Projection time: " << projection_timer.ElapsedSeconds() << std::endl;
-    //     double time = assembling_timer.ElapsedSeconds();
-    //     KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << time << std::endl;
-    //     std::string filename = "Time_comparison/Building_time_qr_ublas_" + std::to_string(this->GetNumberOfROMModes()) + ".txt";
-    //     std::ofstream outfile(filename);
-    //     outfile << time;
-    //     outfile.close();
-    //     KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
-
-    //     KRATOS_CATCH("")
-    // }
 
 
     /**
@@ -571,7 +606,8 @@ protected:
             AssemblyTLS assembly_tls_container_left;
             rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
             rb_left = ZeroVector(BaseType::GetEquationSystemSize());
-            const auto& r_elements_left = rModelPart.Elements();
+            // const auto& r_elements_left = rModelPart.Elements();
+            auto& r_elements_left = mNeighbouringAndSelectedElements;
             // auto& r_elements_left = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
             // auto& r_elements_left = mComplementaryElements;
 
@@ -584,7 +620,8 @@ protected:
                 });
             }
 
-            const auto& r_conditions_left = rModelPart.Conditions();
+            // const auto& r_conditions_left = rModelPart.Conditions();
+            auto& r_conditions_left = mNeighbouringAndSelectedConditions;
             // auto& r_conditions_left = mComplementaryConditions;
             // auto& r_conditions_left = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
             if(!r_conditions_left.empty())
@@ -595,18 +632,15 @@ protected:
                     CalculateLocalContributionLSPG(r_condition, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
                 });
             }
-            
-            if (this->mHromSimulation){
-                // Initialize the mask vector with zeros
-                Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
 
-                // Build the mask vector for selected elements and conditions
-                BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
+            // Initialize the mask vector with zeros
+            Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
 
-                // Zero out rows in the matrix that correspond to zero in the mask vector
-                ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
-            }
-            ////////
+            // Build the mask vector for selected elements and conditions
+            BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
+
+            // Zero out rows in the matrix that correspond to zero in the mask vector
+            ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
         }
 
         const auto projection_timer = BuiltinTimer();
@@ -620,8 +654,8 @@ protected:
 
         if (this->mHromSimulation){
             Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
-            KRATOS_WATCH(eigen_matrix)
-            KRATOS_WATCH(eigen_matrix_left)
+            // KRATOS_WATCH(eigen_matrix)
+            // KRATOS_WATCH(eigen_matrix_left)
             mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
             mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
         }
@@ -846,8 +880,15 @@ private:
         const auto &r_geom = rEntity.GetGeometry();
         RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, this->mMapPhi);
 
-        noalias(rPreAlloc.romA) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
+        // if (rHromWeightFlag){
+        //     const double hrom_weight = this->mHromSimulation ? rEntity.GetValue(HROM_WEIGHT) : 1.0;
+        //     noalias(rPreAlloc.romA) = prod(rPreAlloc.lhs, rPreAlloc.phiE) * hrom_weight;
+        // }
+        // else{
+        //     noalias(rPreAlloc.romA) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
+        // }
 
+        noalias(rPreAlloc.romA) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
 
         // Assembly
         for(SizeType row=0; row < ndofs; ++row)
