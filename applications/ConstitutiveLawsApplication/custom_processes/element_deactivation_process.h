@@ -5,11 +5,10 @@
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
 //                                                                                         |_|   |_|
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo
-//
 //
 
 #pragma once
@@ -31,17 +30,19 @@ namespace Kratos
  * We currently suport double and Vector variable types
  * @author Alejandro Cornejo
 */
-
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElementDeactivationProcess
     : public Process
 {
-
-    using IndexType = std::size_t;
-
 public:
+    ///@name Type Definitions
+    ///@{
+    using IndexType = std::size_t;
 
     KRATOS_CLASS_POINTER_DEFINITION(ElementDeactivationProcess);
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /// Constructor
     ElementDeactivationProcess(
@@ -49,9 +50,12 @@ public:
         Parameters ThisParameters = Parameters(R"({})")
         );
 
-
     /// Destructor
     ~ElementDeactivationProcess() override = default;
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * @brief This function is designed for being called at the beginning of the computations
@@ -63,6 +67,10 @@ public:
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const override;
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -81,10 +89,15 @@ public:
     {
     }
 
-
+    ///@}
 protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-    /// Member Variables
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
     ModelPart& mrThisModelPart;
     Parameters mThisParameters;
@@ -92,14 +105,19 @@ protected:
     double mThreshold;
     bool mAverageOverIP = true;
 
+    ///@}
 private:
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
     /// Assignment operator.
     ElementDeactivationProcess& operator=(ElementDeactivationProcess const& rOther);
 
     /// Copy constructor.
     //ElementDeactivationProcess(ElementDeactivationProcess const& rOther);
-
+    
+    ///@}
 }; // Class ElementDeactivationProcess
 
 /// input stream function

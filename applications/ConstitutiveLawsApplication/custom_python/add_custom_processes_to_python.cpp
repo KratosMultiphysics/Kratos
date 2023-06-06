@@ -15,7 +15,6 @@
 
 // External includes
 
-
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
 #include "constitutive_laws_application_variables.h"

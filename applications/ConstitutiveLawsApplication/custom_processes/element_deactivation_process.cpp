@@ -5,8 +5,8 @@
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
 //                                                                                         |_|   |_|
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //
@@ -15,8 +15,6 @@
 // System includes
 
 // External includes
-
-
 
 // Project includes
 #include "includes/model_part.h"
@@ -47,7 +45,7 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
 
     if (KratosComponents<Variable<double>>::Has(mVariableName)) {
         // double type variable
-        const auto &r_variable = KratosComponents<Variable<double>>::Get(mVariableName);
+        const auto& r_variable = KratosComponents<Variable<double>>::Get(mVariableName);
 
         block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
             std::vector<double> element_data;
@@ -71,7 +69,7 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
             }
         });
     } else if (KratosComponents<Variable<Vector>>::Has(mVariableName)) {
-        const auto &r_variable = KratosComponents<Variable<Vector>>::Get(mVariableName);
+        const auto& r_variable = KratosComponents<Variable<Vector>>::Get(mVariableName);
         block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
             std::vector<Vector> element_data;
             rElement.CalculateOnIntegrationPoints(r_variable, element_data, mrThisModelPart.GetProcessInfo());

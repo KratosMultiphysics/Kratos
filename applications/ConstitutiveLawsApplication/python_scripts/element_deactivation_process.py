@@ -1,4 +1,3 @@
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.ConstitutiveLawsApplication as CLApp
 
