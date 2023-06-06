@@ -73,12 +73,14 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
         block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
             std::vector<Vector> element_data;
             rElement.CalculateOnIntegrationPoints(r_variable, element_data, mrThisModelPart.GetProcessInfo());
+            const IndexType number_ip = element_data.size();
 
             if (mAverageOverIP) {
                 IndexType counter = 0;
                 const IndexType vector_size = element_data[0].size();
+                
                 double average_value = 0.0;
-                for (IndexType ip = 0; ip < element_data.size(); ++ip) {
+                for (IndexType ip = 0; ip < number_ip; ++ip) {
                     for (IndexType component = 0; component < vector_size; ++component) {
                         average_value += (element_data[ip])[component];
                         counter++;
@@ -87,19 +89,22 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
                 if (average_value / counter >= mThreshold)
                     rElement.Set(ACTIVE, false);
             } else {
-                
+                IndexType counter = 0;
+                const IndexType vector_size = element_data[0].size();
+                double average_value = 0.0;
+                for (IndexType ip = 0; ip < number_ip; ++ip) {
+                    for (IndexType component = 0; component < vector_size; ++component) {
+                        if ((element_data[ip])[component] >= mThreshold)
+                            counter++;
+                    }
+                }
+                if (counter == number_ip*vector_size)
+                    rElement.Set(ACTIVE, false);
             }
-
         });
     } else {
         KRATOS_ERROR << "The type of variable is not double nor Vector, which are the ones supported yet" << std::endl;
     }
-
-
-
-
-
-
     KRATOS_CATCH("")
 
 }
