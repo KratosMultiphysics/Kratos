@@ -332,4 +332,40 @@ KRATOS_TEST_CASE_IN_SUITE(Line3D3ShapeFunctionsLocalGradients, KratosCoreGeometr
     TestAllShapeFunctionsLocalGradients(*p_p_geom_nodes);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(Line3D3PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+    auto p0 = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
+    auto p1 = Kratos::make_shared<Point>(1.0, 1.0, 1.0);
+    auto p2 = Kratos::make_shared<Point>(-0.2, 0.5, 0.7);
+    auto geometry = Line3D3<Point>(p0, p1, p2);
+
+    array_1d<double, 3> result(3, 0.0);
+    array_1d<double, 3> expected{0.7, 0.0, 0.0};
+    Vector shapes;
+    geometry.ShapeFunctionsValues(shapes, expected);
+    Point p(shapes[0]*(*p0) + shapes[1]*(*p1) + shapes[2]*(*p2));
+
+    geometry.PointLocalCoordinates(result, p);
+    KRATOS_CHECK_VECTOR_NEAR(result, expected, TOLERANCE);
+
+    array_1d<double, 3> local0{-1.0, 0.0, 0.0};
+    geometry.PointLocalCoordinates(result, *p0);
+    KRATOS_CHECK_VECTOR_NEAR(result, local0, TOLERANCE);
+
+    array_1d<double, 3> local1{1.0, 0.0, 0.0};
+    geometry.PointLocalCoordinates(result, *p1);
+    KRATOS_CHECK_VECTOR_NEAR(result, local1, TOLERANCE);
+
+    array_1d<double, 3> local2{0.0, 0.0, 0.0};
+    geometry.PointLocalCoordinates(result, *p2);
+    KRATOS_CHECK_VECTOR_NEAR(result, local2, TOLERANCE);
+
+    // This one should delegate to line3D2
+    auto pl = Kratos::make_shared<Point>(0.5, 0.5, 0.5);
+    auto px = Kratos::make_shared<Point>(0.75, 0.75, 0.75);
+    auto flat_geometry = Line3D3<Point>(p0, p1, pl);
+    flat_geometry.PointLocalCoordinates(result, *px);
+    array_1d<double,3> expected_flat{0.5, 0.0, 0.0};
+    KRATOS_CHECK_VECTOR_NEAR(result, expected_flat, TOLERANCE);
+}
+
 } // namespace Kratos::Testing.
