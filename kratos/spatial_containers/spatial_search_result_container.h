@@ -404,6 +404,22 @@ public:
     }
 
     /**
+     * @brief Retrieves the global distances
+     * @return A vector containing all the distances
+     */
+    std::vector<double>& GetDistances()
+    {
+        // Check if the communicator has been created
+        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+        // Manually resize the vector if it is empty
+        if (mGlobalDistances.size() == 0) {
+            mGlobalDistances.resize(mGlobalPointers.size(), 0.0);
+        }
+        // Return the vector
+        return mGlobalDistances;
+    }
+
+    /**
      * @brief Considers the global pointer communicator to get the shape functions of the resulting object
      * @param rPoint The point coordinates
      * @return A vector containing all the shape functions
@@ -431,7 +447,8 @@ public:
      * This method returns a reference to the LocalPointerVector mLocalPointers.
      * @return A reference to the LocalPointerVector mLocalPointers.
      */
-    LocalPointerVector& GetLocalPointers() {
+    LocalPointerVector& GetLocalPointers() 
+    {
         return mLocalPointers;
     }
 
@@ -440,7 +457,8 @@ public:
      * This method returns a reference to the GlobalPointersVector mGlobalPointers.
      * @return A reference to the GlobalPointersVector mGlobalPointers.
      */
-    GlobalPointersVector<TObjectType>& GetGlobalPointers() {
+    GlobalPointersVector<TObjectType>& GetGlobalPointers() 
+    {
         return mGlobalPointers;
     }
 
@@ -449,16 +467,28 @@ public:
      * This method returns a reference to the std::unordered_map mLocalDistances.
      * @return A reference to the std::unordered_map mLocalDistances.
      */
-    std::unordered_map<IndexType, double>& GetLocalDistances() {
+    std::unordered_map<IndexType, double>& GetLocalDistances() 
+    {
         return mLocalDistances;
     }
 
+    /**
+     * @brief Accessor for mGlobalDistances.
+     * This method returns a reference to the std::vector mGlobalDistances.
+     * @return A reference to the std::vector mGlobalDistances.
+     */
+    std::vector<double>& GetGlobalDistances() 
+    {
+        return mGlobalDistances;
+    }
+ 
     /**
      * @brief Accessor for mpGlobalPointerCommunicator.
      * This method returns the PointerCommunicatorPointer mpGlobalPointerCommunicator.
      * @return The PointerCommunicatorPointer mpGlobalPointerCommunicator.
      */
-    PointerCommunicatorPointer GetGlobalPointerCommunicator() {
+    PointerCommunicatorPointer GetGlobalPointerCommunicator() 
+    {
         return mpGlobalPointerCommunicator;
     }
 
@@ -483,6 +513,7 @@ private:
     LocalPointerVector mLocalPointers;                                /// Local pointers of the container
     GPVector mGlobalPointers;                                         /// Global pointers of the container
     std::unordered_map<IndexType, double> mLocalDistances;            /// The local distances 
+    std::vector<double> mGlobalDistances;                             /// The global distances
     PointerCommunicatorPointer mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator 
 
     ///@}
