@@ -1,6 +1,6 @@
 {
   "module": "KratosMultiphysics.OptimizationApplication.algorithms",
-  "type": "AlgorithmSystemIdentification",
+  "type": "system_identification",
   "model_part_name": "Structure",
   "objective": {
     "response_name": "MeasurementLikelihoodResponseFunction",
@@ -20,6 +20,14 @@
   "echo_level": 0,
   "settings": {
     "echo_level": 0,
-    "conv_settings": {}
+    "line_search": {
+      "type": "const_step",
+      "init_step": 0.1,
+      "gradient_scaling": "inf_norm"
+    },
+    "conv_settings": {
+      "type": "max_iter",
+      "max_iter": 2
+    }
   }
 }
