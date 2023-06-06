@@ -15,15 +15,16 @@
 #include <sstream>
 
 // Project includes
-#include "containers/container_expression/expressions/unary/unary_slice_expression.h"
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "utilities/parallel_utilities.h"
+#include "containers/container_expression/expressions/unary/unary_combine_expression.h"
+#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
+#include "containers/container_expression/expressions/unary/unary_slice_expression.h"
 #include "containers/container_expression/expressions/literal/literal_expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/expressions/io/c_array_copy_expression_io.h"
 #include "containers/container_expression/expressions/io/c_array_move_expression_input.h"
 #include "containers/container_expression/expressions/arithmetic_operators.h"
+#include "containers/container_expression/expressions/view_operators.h"
 
 // Include base h
 #include "container_expression.h"
@@ -174,6 +175,14 @@ ContainerExpression<TContainerType, TMeshType>::ContainerExpression(
       mpModelPart(rOther.mpModelPart)
 {
 }
+
+template <class TContainer, class TMesh>
+ContainerExpression<TContainer,TMesh>& ContainerExpression<TContainer,TMesh>::operator=(const ContainerExpression& rOther)
+{
+    this->SetExpression(rOther.pGetExpression());
+    return *this;
+}
+
 template <class TContainerType, class TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::CopyFrom(
     const ContainerExpression<TContainerType, TMeshType>& rOther)
@@ -346,6 +355,7 @@ std::string ContainerExpression<TContainerType, TMeshType>::PrintData() const
 template <class TContainer, class TMesh>
 ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Slice(IndexType Offset, IndexType Stride) const
 {
+    KRATOS_TRY
     auto copy = *this;
     copy.SetExpression(UnarySliceExpression::Create(
         this->pGetExpression(),
@@ -353,6 +363,66 @@ ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Sl
         Stride
     ));
     return copy;
+    KRATOS_CATCH("");
+}
+
+
+template <class TContainer, class TMesh>
+ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Reshape(const std::vector<IndexType>& rNewShape) const
+{
+    KRATOS_TRY
+    auto copy = *this;
+    copy.SetExpression(Kratos::Reshape(
+        this->pGetExpression(),
+        rNewShape.begin(),
+        rNewShape.end()
+    ));
+    return copy;
+    KRATOS_CATCH("");
+}
+
+
+template <class TContainer, class TMesh>
+ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Comb(const ContainerExpression& rOther) const
+{
+    KRATOS_TRY
+    auto copy = *this;
+
+    Expression::ConstPointer expressions[] = {
+        this->pGetExpression(),
+        rOther.pGetExpression()
+    };
+    copy.SetExpression(Kratos::Comb(
+        expressions,
+        expressions + 2
+    ));
+
+    return copy;
+    KRATOS_CATCH("");
+}
+
+
+template <class TContainer, class TMesh>
+ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Comb(const std::vector<ContainerExpression::Pointer>& rOthers) const
+{
+    KRATOS_TRY
+    auto copy = *this;
+
+    // Collect expressions from the provided container expressions
+    std::vector<Expression::ConstPointer> expressions {this->pGetExpression()};
+    expressions.reserve(rOthers.size() + 1);
+    std::transform(rOthers.begin(),
+                   rOthers.end(),
+                   std::back_inserter(expressions),
+                   [](const auto& rpOther) {return rpOther->pGetExpression();});
+
+    copy.SetExpression(Kratos::Comb(
+        expressions.begin(),
+        expressions.end()
+    ));
+
+    return copy;
+    KRATOS_CATCH("");
 }
 
 
