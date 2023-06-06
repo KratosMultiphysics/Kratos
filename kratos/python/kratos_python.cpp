@@ -40,6 +40,7 @@
 #include "add_controllers_to_python.h"
 #include "add_operations_to_python.h"
 #include "add_processes_to_python.h"
+#include "add_properties_to_python.h"
 #include "add_model_to_python.h"
 #include "add_io_to_python.h"
 #include "add_mesh_to_python.h"
@@ -74,6 +75,7 @@
 #include "add_sparse_matrices_to_python.h"
 #include "add_registry_to_python.h"
 #include "add_container_expression_to_python.h"
+#include "add_accessors_to_python.h"
 
 namespace Kratos::Python
 {
@@ -99,6 +101,7 @@ PYBIND11_MODULE(Kratos, m)
     AddDofsToPython(m);
     AddNodeToPython(m);
     AddPropertiesToPython(m);
+    AddAccessorsToPython(m);
     AddMeshToPython(m);
     AddQuaternionToPython(m);
 
