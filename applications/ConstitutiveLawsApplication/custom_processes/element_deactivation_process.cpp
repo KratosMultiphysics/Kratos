@@ -23,6 +23,7 @@
 
 namespace Kratos
 {
+
 ElementDeactivationProcess::ElementDeactivationProcess(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
@@ -47,7 +48,7 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
 
 
     KRATOS_CATCH("")
-    }
+
 }
 
 /***********************************************************************************/
