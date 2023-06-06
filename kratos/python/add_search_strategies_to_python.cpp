@@ -75,8 +75,8 @@ void CopyRadiusArrayToPython(
 }
 
 /**
- * @brief Copies a Python list of radii to a C++ radius array.
- * @param rListOfRadius list of radii to copy
+ * @brief Copies a Python list of radius to a C++ radius array.
+ * @param rListOfRadius list of radius to copy
  * @return Radius array with copied radius
  */
 SpatialSearch::RadiusArrayType CopyRadiusArrayToPython(const pybind11::list& rListOfRadius)
