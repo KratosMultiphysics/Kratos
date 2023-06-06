@@ -103,6 +103,18 @@ VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
 {
 }
 
+VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
+    ModelPart& rModelPart,
+    const VariableType& rVariable,
+    const ContainerType& rContainerType,
+    const MeshType& rMeshType)
+    : mrModelPart(rModelPart),
+      mpVariable(rVariable),
+      mContainerType(rContainerType),
+      mMeshType(rMeshType)
+{
+}
+
 template <class TDataType, class TMeshType>
 VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
     ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
@@ -131,6 +143,7 @@ VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
 
 void VariableExpressionIO::VariableExpressionOutput::Execute(const Expression& rExpression)
 {
+    KRATOS_TRY
     auto& r_communicator = mrModelPart.GetCommunicator();
     auto& r_mesh = GetMesh(r_communicator, mMeshType);
 
@@ -148,6 +161,7 @@ void VariableExpressionIO::VariableExpressionOutput::Execute(const Expression& r
             VariableExpressionIOUtils::WriteFromExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), r_communicator, rExpression, mpVariable);
             break;
     }
+    KRATOS_CATCH("");
 }
 
 ModelPart::MeshType& VariableExpressionIO::GetMesh(
