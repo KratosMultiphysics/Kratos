@@ -159,7 +159,7 @@ class HRomTrainingUtility(object):
         default_settings = KratosMultiphysics.Parameters("""{
             "hrom_format": "numpy",
             "element_selection_type": "empirical_cubature",
-            "element_selection_svd_truncation_tolerance": 1.0e-6,
+            "element_selection_svd_truncation_tolerance": 0.0,
             "echo_level" : 0,
             "create_hrom_visualization_model_part" : true,
             "projection_strategy": "galerkin"
