@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/exception.h"
 #include "utilities/search_utilities.h"
 
 namespace Kratos
@@ -30,7 +29,7 @@ void SearchUtilities::ComputeBoundingBoxesWithTolerance(
 {
     const SizeType size_vec = rBoundingBoxes.size();
 
-    KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0) << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
+    KRATOS_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0) << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 
     if (rBoundingBoxesWithTolerance.size() != size_vec) {
         rBoundingBoxesWithTolerance.resize(size_vec);
@@ -57,7 +56,7 @@ void SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(
 {
     const SizeType size_vec = rBoundingBoxes.size();
 
-    KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0) << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
+    KRATOS_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0) << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 
     if (rBoundingBoxesWithTolerance.size() != size_vec) {
         rBoundingBoxesWithTolerance.resize(size_vec);
