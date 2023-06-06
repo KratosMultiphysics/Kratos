@@ -128,6 +128,9 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("AddResult", [](ContainerType& self, TObjectType* pObject) {
         self.AddResult(pObject);
     })
+    .def("AddResult", [](ContainerType& self, TObjectType* pObject, const double Distance) {
+        self.AddResult(pObject, Distance);
+    })
     .def("Clear", &ContainerType::Clear)
     .def("SynchronizeAll", &ContainerType::SynchronizeAll)
     .def("GetDistances", [&](ContainerType& self) {
