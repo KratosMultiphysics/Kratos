@@ -123,6 +123,22 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
 /***********************************************************************************/
 
 template <class TObjectType>
+std::vector<double>& SpatialSearchResultContainer<TObjectType>::GetDistances()
+{
+    // Check if the communicator has been created
+    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+    // Manually resize the vector if it is empty
+    if (mGlobalDistances.size() == 0) {
+        mGlobalDistances.resize(mGlobalPointers.size(), 0.0);
+    }
+    // Return the vector
+    return mGlobalDistances;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFunctions(const array_1d<double, 3>& rPoint)
 {
     // Check if the communicator has been created
