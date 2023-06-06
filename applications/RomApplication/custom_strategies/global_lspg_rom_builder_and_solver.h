@@ -572,7 +572,7 @@ protected:
             rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
             rb_left = ZeroVector(BaseType::GetEquationSystemSize());
             const auto& r_elements_left = rModelPart.Elements();
-            // auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
+            // auto& r_elements_left = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
             // auto& r_elements_left = mComplementaryElements;
 
             if(!r_elements_left.empty())
@@ -586,7 +586,7 @@ protected:
 
             const auto& r_conditions_left = rModelPart.Conditions();
             // auto& r_conditions_left = mComplementaryConditions;
-            // auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
+            // auto& r_conditions_left = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
             if(!r_conditions_left.empty())
             {
                 block_for_each(r_conditions_left, assembly_tls_container_left, 
@@ -596,22 +596,16 @@ protected:
                 });
             }
             
-            // if (this->mHromSimulation){
-            //     // Initialize the mask vector with zeros
-            //     Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
+            if (this->mHromSimulation){
+                // Initialize the mask vector with zeros
+                Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
 
-            //     // Build the mask vector for selected elements and conditions
-            //     BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
-            //     int non_zero_entries_vector = 0;
-            //     for (unsigned int i = 0; i < hrom_dof_mask_vector.size(); i++){
-            //         if (hrom_dof_mask_vector[i] != 0){
-            //             non_zero_entries_vector += 1;
-            //         }
-            //     }
+                // Build the mask vector for selected elements and conditions
+                BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
 
-            //     // Zero out rows in the matrix that correspond to zero in the mask vector
-            //     ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
-            // }
+                // Zero out rows in the matrix that correspond to zero in the mask vector
+                ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
+            }
             ////////
         }
 
@@ -626,6 +620,8 @@ protected:
 
         if (this->mHromSimulation){
             Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
+            KRATOS_WATCH(eigen_matrix)
+            KRATOS_WATCH(eigen_matrix_left)
             mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
             mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
         }
@@ -721,7 +717,8 @@ protected:
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
         dxrom_eigen = mA_eigen.colPivHouseholderQr().solve(mb_eigen);
-
+        // KRATOS_WATCH(mA_eigen)
+        // KRATOS_WATCH(dxrom_eigen)
         time_rom_system_solving+= solving_timer.ElapsedSeconds();
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
