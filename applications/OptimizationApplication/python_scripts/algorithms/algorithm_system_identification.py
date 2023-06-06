@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 import scipy.sparse.linalg as ssl
+import numpy as np
 
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
@@ -23,7 +24,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
     return AlgorithmSystemIdentification(model, parameters, optimization_problem)
 
 
-class AlgorithmSystemIdentification(ABC):
+class AlgorithmSystemIdentification(Algorithm):
     def __init__(self, optimization_problem: OptimizationProblem) -> None:
         self._optimization_problem = optimization_problem
 
@@ -88,16 +89,31 @@ class AlgorithmSystemIdentification(ABC):
 
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.ContainerExpression.CollectiveExpressions:
 
-        gauss_newton_likelihood = obj_grad * self.__obj_val  # This is a vector
-        gauss_newton_gradient = obj_grad * obj_grad  # This is subpost to be a matrix
+        search_direction = None
 
-        search_direction = ssl.lsmr(
-            gauss_newton_gradient,
-            gauss_newton_likelihood,
-            damp=0.0,
-        )[0]
+        for container_expression in obj_grad.GetContainerExpressions():
 
-        return search_direction
+            elements = container_expression.GetModelPart().Elements
+            gradient_vector = np.ndarray(shape=(len(elements), 1))
+
+            for i, element in enumerate(elements):
+                gradient_vector[i] = element.GetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY)
+
+            if search_direction == None:
+                search_direction = np.zeros(shape=(len(elements)))
+
+            gauss_newton_likelihood = gradient_vector * self.GetCurrentObjValue()
+            gauss_newton_gradient = gradient_vector@gradient_vector.T
+
+            search_direction += ssl.lsmr(
+                gauss_newton_gradient,
+                gauss_newton_likelihood,
+                damp=0.0,
+            )[0]
+
+            container_expression.Read(search_direction)
+
+        return obj_grad
 
     def GetCurrentObjValue(self) -> float:
         return self.__obj_val
