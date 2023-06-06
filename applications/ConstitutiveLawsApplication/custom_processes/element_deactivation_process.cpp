@@ -55,7 +55,7 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
                 double average_value = element_data[0];
                 for (IndexType i = 1; i < element_data.size(); ++i)
                     average_value += element_data[i];
-                
+
                 if (average_value >= mThreshold)
                     rElement.Set(ACTIVE, false);
             } else {
@@ -69,7 +69,28 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
             }
         });
     } else if (KratosComponents<Variable<Vector>>::Has(mVariableName)) {
+        const auto &r_variable = KratosComponents<Variable<Vector>>::Get(mVariableName);
+        block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
+            std::vector<Vector> element_data;
+            rElement.CalculateOnIntegrationPoints(r_variable, element_data, mrThisModelPart.GetProcessInfo());
 
+            if (mAverageOverIP) {
+                IndexType counter = 0;
+                const IndexType vector_size = element_data[0].size();
+                double average_value = 0.0;
+                for (IndexType ip = 0; ip < element_data.size(); ++ip) {
+                    for (IndexType component = 0; component < vector_size; ++component) {
+                        average_value += (element_data[ip])[component];
+                        counter++;
+                    }
+                }
+                if (average_value / counter >= mThreshold)
+                    rElement.Set(ACTIVE, false);
+            } else {
+                
+            }
+
+        });
     } else {
         KRATOS_ERROR << "The type of variable is not double nor Vector, which are the ones supported yet" << std::endl;
     }
