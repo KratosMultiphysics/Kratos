@@ -407,17 +407,7 @@ public:
      * @brief Retrieves the global distances
      * @return A vector containing all the distances
      */
-    std::vector<double>& GetDistances()
-    {
-        // Check if the communicator has been created
-        KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-        // Manually resize the vector if it is empty
-        if (mGlobalDistances.size() == 0) {
-            mGlobalDistances.resize(mGlobalPointers.size(), 0.0);
-        }
-        // Return the vector
-        return mGlobalDistances;
-    }
+    std::vector<double>& GetDistances();
 
     /**
      * @brief Considers the global pointer communicator to get the shape functions of the resulting object
