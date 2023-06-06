@@ -23,9 +23,7 @@
 
 namespace Kratos::Testing
 {
-using PointType = Node<3>;
-using PointPtrType = Node<3>::Pointer;
-using Hexa27GeometryType = Hexahedra3D27<PointType>;
+using Hexa27GeometryType = Hexahedra3D27<Node>;
 using Hexa27GeometryPtrType = Hexa27GeometryType::Pointer;
 
 /** Generates a sample Hexahedra3D27.
@@ -34,33 +32,33 @@ using Hexa27GeometryPtrType = Hexa27GeometryType::Pointer;
  */
 Hexa27GeometryPtrType GenerateCanonicalHexahedra3D27()
 {
-  auto p0  = GeneratePoint<PointType>(0.0, 0.0, 0.0);
-  auto p1  = GeneratePoint<PointType>(1.0, 0.0, 0.0);
-  auto p2  = GeneratePoint<PointType>(1.0, 1.0, 0.0);
-  auto p3  = GeneratePoint<PointType>(0.0, 1.0, 0.0);
-  auto p4  = GeneratePoint<PointType>(0.0, 0.0, 1.0);
-  auto p5  = GeneratePoint<PointType>(1.0, 0.0, 1.0);
-  auto p6  = GeneratePoint<PointType>(1.0, 1.0, 1.0);
-  auto p7  = GeneratePoint<PointType>(0.0, 1.0, 1.0);
-  auto p8  = GeneratePoint<PointType>(0.5, 0.0, 0.0);
-  auto p9  = GeneratePoint<PointType>(1.0, 0.5, 0.0);
-  auto p10 = GeneratePoint<PointType>(0.5, 1.0, 0.0);
-  auto p11 = GeneratePoint<PointType>(0.0, 0.5, 0.0);
-  auto p12 = GeneratePoint<PointType>(0.0, 0.0, 0.5);
-  auto p13 = GeneratePoint<PointType>(1.0, 0.0, 0.5);
-  auto p14 = GeneratePoint<PointType>(1.0, 1.0, 0.5);
-  auto p15 = GeneratePoint<PointType>(0.0, 1.0, 0.5);
-  auto p16 = GeneratePoint<PointType>(0.5, 0.0, 1.0);
-  auto p17 = GeneratePoint<PointType>(1.0, 0.5, 1.0);
-  auto p18 = GeneratePoint<PointType>(0.5, 1.0, 1.0);
-  auto p19 = GeneratePoint<PointType>(0.0, 0.5, 1.0);
-  auto p20 = GeneratePoint<PointType>(0.5, 0.5, 0.0);
-  auto p21 = GeneratePoint<PointType>(0.5, 0.0, 0.5);
-  auto p22 = GeneratePoint<PointType>(1.0, 0.5, 0.5);
-  auto p23 = GeneratePoint<PointType>(0.5, 1.0, 0.5);
-  auto p24 = GeneratePoint<PointType>(0.0, 0.5, 0.5);
-  auto p25 = GeneratePoint<PointType>(0.5, 0.5, 1.0);
-  auto p26 = GeneratePoint<PointType>(0.5, 0.5, 0.5);
+  auto p0  = GeneratePoint<Node>(0.0, 0.0, 0.0);
+  auto p1  = GeneratePoint<Node>(1.0, 0.0, 0.0);
+  auto p2  = GeneratePoint<Node>(1.0, 1.0, 0.0);
+  auto p3  = GeneratePoint<Node>(0.0, 1.0, 0.0);
+  auto p4  = GeneratePoint<Node>(0.0, 0.0, 1.0);
+  auto p5  = GeneratePoint<Node>(1.0, 0.0, 1.0);
+  auto p6  = GeneratePoint<Node>(1.0, 1.0, 1.0);
+  auto p7  = GeneratePoint<Node>(0.0, 1.0, 1.0);
+  auto p8  = GeneratePoint<Node>(0.5, 0.0, 0.0);
+  auto p9  = GeneratePoint<Node>(1.0, 0.5, 0.0);
+  auto p10 = GeneratePoint<Node>(0.5, 1.0, 0.0);
+  auto p11 = GeneratePoint<Node>(0.0, 0.5, 0.0);
+  auto p12 = GeneratePoint<Node>(0.0, 0.0, 0.5);
+  auto p13 = GeneratePoint<Node>(1.0, 0.0, 0.5);
+  auto p14 = GeneratePoint<Node>(1.0, 1.0, 0.5);
+  auto p15 = GeneratePoint<Node>(0.0, 1.0, 0.5);
+  auto p16 = GeneratePoint<Node>(0.5, 0.0, 1.0);
+  auto p17 = GeneratePoint<Node>(1.0, 0.5, 1.0);
+  auto p18 = GeneratePoint<Node>(0.5, 1.0, 1.0);
+  auto p19 = GeneratePoint<Node>(0.0, 0.5, 1.0);
+  auto p20 = GeneratePoint<Node>(0.5, 0.5, 0.0);
+  auto p21 = GeneratePoint<Node>(0.5, 0.0, 0.5);
+  auto p22 = GeneratePoint<Node>(1.0, 0.5, 0.5);
+  auto p23 = GeneratePoint<Node>(0.5, 1.0, 0.5);
+  auto p24 = GeneratePoint<Node>(0.0, 0.5, 0.5);
+  auto p25 = GeneratePoint<Node>(0.5, 0.5, 1.0);
+  auto p26 = GeneratePoint<Node>(0.5, 0.5, 0.5);
   return Hexa27GeometryPtrType(new Hexa27GeometryType(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26));
 }
 
