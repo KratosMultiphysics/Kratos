@@ -443,13 +443,13 @@ public:
     friend ContainerExpression<T1, T2> operator/(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
 
     template<class T1, class T2>
-    friend ContainerExpression<T1, T2> Pow(const double Base, const ContainerExpression<T1, T2>& rExponent);
+    friend ContainerExpression<T1, T2> Power(const double Base, const ContainerExpression<T1, T2>& rExponent);
 
     template<class T1, class T2>
-    friend ContainerExpression<T1, T2> Pow(const ContainerExpression<T1, T2>& rBase, const double Exponent);
+    friend ContainerExpression<T1, T2> Power(const ContainerExpression<T1, T2>& rBase, const double Exponent);
 
     template<class T1, class T2>
-    friend ContainerExpression<T1, T2> Pow(const ContainerExpression<T1, T2>& rBase, const ContainerExpression<T1, T2>& rExponent);
+    friend ContainerExpression<T1, T2> Power(const ContainerExpression<T1, T2>& rBase, const ContainerExpression<T1, T2>& rExponent);
 
     template<class T1, class T2>
     friend ContainerExpression<T1, T2> Scale(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
