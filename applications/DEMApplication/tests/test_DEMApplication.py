@@ -106,7 +106,6 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
-    nightSuite.addTests(smallSuite)
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
     nightSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchA"))
@@ -117,6 +116,8 @@ def AssembleTestSuites():
     nightSuite.addTest(Chung_Ooi_test_2.ChungOoiTest2("test_Run"))
     nightSuite.addTest(Chung_Ooi_test_3.ChungOoiTest3("test_Run"))
     nightSuite.addTest(Chung_Ooi_test_4.ChungOoiTest4("test_Run"))
+
+    nightSuite.addTests(smallSuite)
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
