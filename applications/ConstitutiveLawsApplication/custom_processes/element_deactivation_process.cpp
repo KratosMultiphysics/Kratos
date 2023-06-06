@@ -43,7 +43,6 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY
 
-
     if (KratosComponents<Variable<double>>::Has(mVariableName)) {
         // double type variable
         const auto &r_variable = KratosComponents<Variable<double>>::Get(mVariableName);
@@ -59,9 +58,15 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
                 
                 if (average_value >= mThreshold)
                     rElement.Set(ACTIVE, false);
+            } else {
+                IndexType failed_ip_counter = 0;
+                for (IndexType i = 0; i < element_data.size(); ++i) {
+                    if (element_data[i] >= mThreshold)
+                        failed_ip_counter++;
+                }
+                if (failed_ip_counter == element_data.size())
+                    rElement.Set(ACTIVE, false);
             }
-
-
         });
     } else if (KratosComponents<Variable<Vector>>::Has(mVariableName)) {
 
