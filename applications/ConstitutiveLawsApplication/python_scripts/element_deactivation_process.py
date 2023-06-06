@@ -27,8 +27,6 @@ class ElementDeactivationProcess(KM.Process):
 
         default_settings = KM.Parameters("""
         {
-            "help"                        : "This process deactivates elements that satisfy a predefined threshold of a Variable",
-            "mesh_id"                     : 0,
             "model_part_name"             : "please_specify_model_part_name",
             "variable_name"               : "DAMAGE",
             "variable_maximum_threshold"  : 0.9999,
