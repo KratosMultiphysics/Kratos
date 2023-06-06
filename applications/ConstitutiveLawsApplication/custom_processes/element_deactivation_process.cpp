@@ -91,7 +91,6 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
             } else {
                 IndexType counter = 0;
                 const IndexType vector_size = element_data[0].size();
-                double average_value = 0.0;
                 for (IndexType ip = 0; ip < number_ip; ++ip) {
                     for (IndexType component = 0; component < vector_size; ++component) {
                         if ((element_data[ip])[component] >= mThreshold)
