@@ -42,7 +42,7 @@ namespace Kratos {
 
 namespace VtuOutputHelperUtilities {
 
-Expression::Pointer CreatePositionsExpression(
+Expression::ConstPointer CreatePositionsExpression(
     const ModelPart::NodesContainerType& rNodes,
     const bool IsInitialConfiguration)
 {
@@ -74,7 +74,7 @@ XmlExpressionElement::Pointer CreateDataArrayElement(
     const std::string& rDataArrayName,
     const std::vector<const Expression*>& rExpressions)
 {
-    std::vector<Expression::Pointer> expressions;
+    std::vector<Expression::ConstPointer> expressions;
     for (const auto& p_expression : rExpressions) {
         if (p_expression) {
             expressions.push_back(p_expression);

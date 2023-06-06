@@ -43,8 +43,8 @@ std::string GetItemShape(const std::vector<IndexType>& rShape)
 
 template <class TOperationType>
 BinaryExpression<TOperationType>::BinaryExpression(
-    Expression::Pointer pLeft,
-    Expression::Pointer pRight)
+    Expression::ConstPointer pLeft,
+    Expression::ConstPointer pRight)
     : Expression(pLeft->NumberOfEntities()),
       mpLeft(pLeft),
       mpRight(pRight)
@@ -78,8 +78,8 @@ BinaryExpression<TOperationType>::BinaryExpression(
 
 template <class TOperationType>
 Expression::Pointer BinaryExpression<TOperationType>::Create(
-    Expression::Pointer pLeft,
-    Expression::Pointer pRight)
+    Expression::ConstPointer pLeft,
+    Expression::ConstPointer pRight)
 {
     return Kratos::make_intrusive<BinaryExpression<TOperationType>>(std::move(pLeft), std::move(pRight));
 }

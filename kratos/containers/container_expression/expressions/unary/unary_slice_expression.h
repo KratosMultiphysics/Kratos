@@ -13,9 +13,7 @@
 #pragma once
 
 // System includes
-#include <cmath>
 #include <string>
-#include <vector>
 
 // Project includes
 #include "containers/container_expression/expressions/expression.h"
@@ -25,18 +23,13 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-namespace BinaryOperations
-{
-    struct Addition       { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 + V2; } };
-    struct Substraction   { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 - V2; } };
-    struct Multiplication { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 * V2; } };
-    struct Division       { static inline constexpr double Evaluate(const double V1, const double V2) { return V1 / V2; } };
-    struct Power          { static inline           double Evaluate(const double V1, const double V2) { return std::pow(V1, V2); } };
-}
-
-
-template <class TOperationType>
-class KRATOS_API(KRATOS_CORE) BinaryExpression : public Expression {
+/**
+ * @brief Unary slice expression used to represent a slicing lazy expression of a given input expression.
+ *
+ * @details This expression slices the input expression's entity values with an offset and stride (length of components).
+ *
+ */
+class KRATOS_API(KRATOS_CORE) UnarySliceExpression : public Expression {
 public:
     ///@name Type definitions
     ///@{
@@ -47,17 +40,19 @@ public:
     ///@name Life cycle
     ///@{
 
-    BinaryExpression(
-        Expression::ConstPointer pLeft,
-        Expression::ConstPointer pRight);
+    UnarySliceExpression(
+        Expression::ConstPointer pExpression,
+        const IndexType Offset,
+        const IndexType Stride);
 
     ///@}
     ///@name Public operations
     ///@{
 
     static Expression::Pointer Create(
-        Expression::ConstPointer pLeft,
-        Expression::ConstPointer pRight);
+        Expression::ConstPointer pExpression,
+        const IndexType Offset,
+        const IndexType Stride);
 
     double Evaluate(
         const IndexType EntityIndex,
@@ -73,9 +68,13 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const Expression::ConstPointer mpLeft;
+    const Expression::ConstPointer mpSourceExpression;
 
-    const Expression::ConstPointer mpRight;
+    const IndexType mOffset;
+
+    const IndexType mStride;
+
+    const IndexType mSourceStride;
 
     ///@}
 };

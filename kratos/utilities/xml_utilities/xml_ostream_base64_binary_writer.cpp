@@ -30,7 +30,7 @@ namespace XmlOStreamBase64BinaryWriterHelperUtilities
 template <class TExpressionType>
 void WriteExpression(
     std::ostream& rOStream,
-    const std::vector<Expression::Pointer>& rExpressions)
+    const std::vector<Expression::ConstPointer>& rExpressions)
 {
     std::vector<const TExpressionType*> transformed_expressions(rExpressions.size());
     std::transform(rExpressions.begin(), rExpressions.end(),
@@ -61,7 +61,7 @@ XmlOStreamBase64BinaryWriter::XmlOStreamBase64BinaryWriter(std::ostream& rOStrea
 }
 
 void XmlOStreamBase64BinaryWriter::WriteExpressions(
-    const std::vector<Expression::Pointer>& rExpressions,
+    const std::vector<Expression::ConstPointer>& rExpressions,
     const std::string& rTabbing)
 {
     mrOStream << " format=\"binary\">\n" << rTabbing << "  ";

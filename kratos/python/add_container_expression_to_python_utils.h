@@ -91,6 +91,7 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
 
     using container_expression_holder_base = ContainerExpression<TContainerType>;
     py::class_<container_expression_holder_base, typename container_expression_holder_base::Pointer>(m, rName.c_str())
+        .def(py::init<ModelPart&>(), py::arg("model_part"))
         .def("CopyFrom", &container_expression_holder_base::CopyFrom, py::arg("origin_container_expression"))
         .def("MoveFrom", [](container_expression_holder_base& rSelf, py::array_t<int>& rData){
             KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
@@ -122,9 +123,51 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
                            shape.data(),
                            shape.size());
         }, py::arg("numpy_double_array").noconvert())
+        .def("SetExpression", &container_expression_holder_base::SetExpression)
         .def("HasExpression", &container_expression_holder_base::HasExpression)
+        .def("GetExpression", &container_expression_holder_base::pGetExpression)
         .def("GetModelPart", py::overload_cast<>(&container_expression_holder_base::GetModelPart), py::return_value_policy::reference)
         .def("GetContainer", py::overload_cast<>(&container_expression_holder_base::GetContainer), py::return_value_policy::reference)
+        .def("GetItemShape", &container_expression_holder_base::GetItemShape)
+        .def("GetItemComponentCount", &container_expression_holder_base::GetItemComponentCount)
+        .def("Slice",
+             &container_expression_holder_base::Slice,
+             py::arg("offset"),
+             py::arg("stride"))
+        .def("Reshape",
+             &container_expression_holder_base::Reshape,
+             py::arg("new_shape"))
+        .def("Comb",
+             [](container_expression_holder_base& rSelf,
+                const container_expression_holder_base& rOther)
+                {return rSelf.Comb(rOther);},
+             py::arg("other"))
+        .def("Comb",
+             [](container_expression_holder_base& rSelf,
+                const std::vector<typename container_expression_holder_base::Pointer>& rOthers)
+                {return rSelf.Comb(rOthers);},
+             py::arg("others"))
+        .def("__add__", [](const container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { return rSelf + rOther; })
+        .def("__iadd__", [](container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { rSelf = rSelf + rOther; return rSelf; })
+        .def("__add__", [](const container_expression_holder_base& rSelf, const double Value) { return rSelf + Value; })
+        .def("__iadd__", [](container_expression_holder_base& rSelf, const double Value) { rSelf = rSelf + Value; return rSelf; })
+        .def("__sub__", [](const container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { return rSelf - rOther; })
+        .def("__isub__", [](container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { rSelf = rSelf - rOther; return rSelf; })
+        .def("__sub__", [](const container_expression_holder_base& rSelf, const double Value) { return rSelf - Value; })
+        .def("__isub__", [](container_expression_holder_base& rSelf, const double Value) { rSelf = rSelf - Value; return rSelf; })
+        .def("__mul__", [](const container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { return rSelf * rOther; })
+        .def("__imul__", [](container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { rSelf = rSelf * rOther; return rSelf; })
+        .def("__mul__", [](const container_expression_holder_base& rSelf, const double Value) { return rSelf * Value; })
+        .def("__imul__", [](container_expression_holder_base& rSelf, const double Value) { rSelf = rSelf * Value; return rSelf; })
+        .def("__truediv__", [](const container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { return rSelf / rOther; })
+        .def("__itruediv__", [](container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { rSelf = rSelf / rOther; return rSelf; })
+        .def("__truediv__", [](const container_expression_holder_base& rSelf, const double Value) { return rSelf / Value; })
+        .def("__itruediv__", [](container_expression_holder_base& rSelf, const double Value) { rSelf = rSelf / Value; return rSelf; })
+        .def("__pow__", [](container_expression_holder_base& rSelf, const container_expression_holder_base& rInput) { container_expression_holder_base result(rSelf.GetModelPart()); result = Pow(rSelf, rInput); return result; })
+        .def("__ipow__", [](container_expression_holder_base& rSelf, const container_expression_holder_base& rInput) { rSelf = Pow(rSelf, rInput); return rSelf; })
+        .def("__pow__", [](container_expression_holder_base& rSelf, const double Value) { container_expression_holder_base result(rSelf.GetModelPart()); result = Pow(rSelf, Value); return result; })
+        .def("__ipow__", [](container_expression_holder_base& rSelf, const double Value) { rSelf = Pow(rSelf, Value); return rSelf; })
+        .def("__neg__", [](container_expression_holder_base& rSelf) { return rSelf *= -1.0; })
         .def("PrintData", &container_expression_holder_base::PrintData)
         .def("__str__", &container_expression_holder_base::Info)
         ;
@@ -208,6 +251,11 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("SetZero", &container_type::template SetZero<Vector>, py::arg("Vector_variable"))
         .def("SetZero", &container_type::template SetZero<Matrix>, py::arg("Matrix_variable"))
         .def("Clone", &container_type::Clone)
+        .def("Slice", &container_type::Slice, py::arg("offset"), py::arg("stride"))
+        .def("Reshape", [](const container_type& rSelf, const std::vector<IndexType>& rShape) { return rSelf.Reshape(rShape); }, py::arg("shape"))
+        .def("Comb", [](const container_type& rSelf, const typename container_type::BaseType& rOther) { return rSelf.Comb(rOther); }, py::arg("other_container_expression_to_combine_with"))
+        .def("Comb", [](const container_type& rSelf, const std::vector<typename container_type::BaseType::Pointer>& rListOfOthersContainerExpressions) { return rSelf.Comb(rListOfOthersContainerExpressions); }, py::arg("other_container_expressions_list_to_combine_with"))
+        .def("Scale", [](const container_type& rSelf, const container_type& rOther){auto copy = rSelf; copy.SetExpression(Scale(rSelf.pGetExpression(), rOther.pGetExpression())); return copy;})
         .def("__add__", [](const container_type& rSelf, const container_type& rOther) { return rSelf + rOther; })
         .def("__iadd__", [](container_type& rSelf, const container_type& rOther) { rSelf = rSelf + rOther; return rSelf; })
         .def("__add__", [](const container_type& rSelf, const double Value) { return rSelf + Value; })
