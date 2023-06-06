@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <numeric>
 #include <functional>
 
 // External includes
@@ -73,11 +74,14 @@ void SpatialSearchResultContainer<TObjectType>::Clear()
     // Clear local pointers
     mLocalPointers.clear();
 
-    // Clear distances
+    // Clear local distances
     mLocalDistances.clear();
 
     // Clear global pointers
     mGlobalPointers.clear();
+
+    // Clear global distances
+    mGlobalDistances.clear();
 }
 
 /***********************************************************************************/
@@ -88,6 +92,28 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
 {
     // Synchronize local pointers to global pointers
     mGlobalPointers = GlobalPointerUtilities::GlobalRetrieveGlobalPointers(mLocalPointers, rDataCommunicator);
+
+    // Synchronize local distances to global distances
+    std::vector<double> local_values;
+    for (const auto& r_pair : mLocalDistances) {
+        local_values.push_back(r_pair.second);
+    }
+
+    // MPI information
+    const int world_size = rDataCommunicator.Size();
+
+    // Generate vectors with sizes for AllGatherv
+    std::vector<int> recv_sizes(world_size);
+    std::vector<int> send_points_per_partition(1, mLocalPointers.size());
+    rDataCommunicator.AllGather(send_points_per_partition, recv_sizes);
+    std::vector<int> recv_offsets(world_size, 0);
+    for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+        recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
+    }
+
+    // Invoque AllGatherv
+    mGlobalDistances.resize(std::accumulate(recv_sizes.begin(), recv_sizes.end(), 0));
+    rDataCommunicator.AllGatherv(local_values, mGlobalDistances, recv_sizes, recv_offsets);
 
     // Generate the communicator
     mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicator<TObjectType>>(rDataCommunicator, mGlobalPointers.ptr_begin(), mGlobalPointers.ptr_end());
@@ -243,6 +269,7 @@ void SpatialSearchResultContainer<TObjectType>::save(Serializer& rSerializer) co
     rSerializer.save("LocalPointers", mLocalPointers);
     rSerializer.save("GlobalPointers", mGlobalPointers);
     rSerializer.save("LocalDistances", mLocalDistances);
+    rSerializer.save("GlobalDistances", mGlobalDistances);
     //rSerializer.save("GlobalPointerCommunicator", mpGlobalPointerCommunicator); // Not necessary, is created and filled during use
 }
 
@@ -255,6 +282,7 @@ void SpatialSearchResultContainer<TObjectType>::load(Serializer& rSerializer)
     rSerializer.load("LocalPointers", mLocalPointers);
     rSerializer.load("GlobalPointers", mGlobalPointers);
     rSerializer.load("LocalDistances", mLocalDistances);
+    rSerializer.load("GlobalDistances", mGlobalDistances);
     //rSerializer.load("GlobalPointerCommunicator", mpGlobalPointerCommunicator); // Not necessary, is created and filled during use
 }
 

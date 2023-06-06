@@ -130,6 +130,9 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     })
     .def("Clear", &ContainerType::Clear)
     .def("SynchronizeAll", &ContainerType::SynchronizeAll)
+    .def("GetDistances", [&](ContainerType& self) {
+        return VectorToPyList(self.GetDistances());
+    })
     .def("GetResultShapeFunctions", [&](ContainerType& self, const array_1d<double, 3>& rPoint) {
         return VectorToPyList(self.GetResultShapeFunctions(rPoint));
     })
