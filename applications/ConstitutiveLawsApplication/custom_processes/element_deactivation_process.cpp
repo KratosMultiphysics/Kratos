@@ -70,6 +70,8 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
         });
     } else if (KratosComponents<Variable<Vector>>::Has(mVariableName)) {
 
+    } else {
+        KRATOS_ERROR << "The type of variable is not double nor Vector, which are the ones supported yet" << std::endl;
     }
 
 
