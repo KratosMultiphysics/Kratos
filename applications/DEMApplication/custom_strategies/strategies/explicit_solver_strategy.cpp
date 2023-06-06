@@ -2518,7 +2518,7 @@ namespace Kratos {
       ModelPart& r_dem_model_part = GetModelPart();
       const double limit_stress = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
 
-      if (mRVE_Compress && std::abs(mRVE_EffectStressInner) >= limit_stress) {
+      if (mRVE_Compress && mRVE_Porosity < limit_stress) {
         mRVE_Compress = false;
 
         if (mRVE_FlatWalls) {
