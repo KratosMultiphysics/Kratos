@@ -78,6 +78,7 @@ public:
         const IndexType number_of_entities = rContainer.size();
 
         if (number_of_entities > 0) {
+            KRATOS_TRY
             std::visit([&rContainer, number_of_entities, &rExpression, &rCommunicator](auto pVariable) {
                 using data_type = typename std::remove_const_t<std::remove_pointer_t<decltype(pVariable)>>::Type;
 
@@ -123,6 +124,7 @@ public:
                     }
                 }
             }, pVariable);
+            KRATOS_CATCH(" Variable: " + std::visit([](const auto& rpVariable) -> std::string {return rpVariable->Name();}, pVariable))
         }
 
         KRATOS_CATCH("");
