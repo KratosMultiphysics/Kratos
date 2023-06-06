@@ -15,6 +15,7 @@
 
 // Project includes
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "includes/define.h"
 #include "utilities/parallel_utilities.h"
 
 // Include base h
@@ -31,8 +32,7 @@ CArrayExpressionInput::CArrayExpressionInput(
     const int ShapeSize)
     : mpCArray(pBegin),
       mNumberOfEntities(NumberOfEntities),
-      mpShapeBegin(pShapeBegin),
-      mShapeSize(ShapeSize)
+      mShape(pShapeBegin, pShapeBegin + ShapeSize)
 {
 
 }
@@ -41,14 +41,10 @@ Expression::Pointer CArrayExpressionInput::Execute() const
 {
     KRATOS_TRY
 
-    // Convert int indices to IndexType
-    std::vector<IndexType> shape(mShapeSize);
-    std::copy(mpShapeBegin, mpShapeBegin + mShapeSize, shape.begin());
-
     return std::visit([&](auto pBegin){
         using data_type = std::remove_const_t<std::remove_pointer_t<decltype(pBegin)>>;
 
-        auto p_expression = LiteralFlatExpression<data_type>::Create(mNumberOfEntities, shape);
+        auto p_expression = LiteralFlatExpression<data_type>::Create(mNumberOfEntities, mShape);
         data_type* data_itr = p_expression->begin();
 
         const IndexType flattened_size = p_expression->GetItemComponentCount();

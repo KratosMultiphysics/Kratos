@@ -65,9 +65,7 @@ private:
 
     const int mNumberOfEntities;
 
-    int const * const mpShapeBegin;
-
-    const int mShapeSize;
+    std::vector<IndexType> mShape;
 
     ///@}
 }; // class CArrayExpressionInput
