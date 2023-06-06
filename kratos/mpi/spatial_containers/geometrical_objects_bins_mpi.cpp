@@ -256,7 +256,7 @@ std::vector<int> GeometricalObjectsBinsMPI::RansksPointIsInsideBoundingBoxWithTo
     const int world_size = GetWorldSize();
     std::array<double, 6> local_bb;
     std::vector<double> bb_tolerance(mGlobalBoundingBoxes.size());
-    SearchUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes, Tolerance, bb_tolerance);
+    SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(mGlobalBoundingBoxes, Tolerance, bb_tolerance);
     const auto it_begin = bb_tolerance.begin();
     for (int i = 0; i < world_size; ++i) {
         auto vec_it = it_begin + 6 * i;
