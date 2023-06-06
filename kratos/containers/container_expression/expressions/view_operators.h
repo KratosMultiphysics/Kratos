@@ -53,7 +53,7 @@ namespace Kratos {
  *  @param Offset Index of the first component to begin slicing at.
  *  @param Stride Number of components from the offset in the sliced item.
  */
-KRATOS_API(KRATOS_CORE) Expression::Pointer Slice(const Expression::Pointer& rpExpression,
+KRATOS_API(KRATOS_CORE) Expression::Pointer Slice(const Expression::ConstPointer& rpExpression,
                                                   std::size_t Offset,
                                                   std::size_t Stride);
 
@@ -81,7 +81,7 @@ KRATOS_API(KRATOS_CORE) Expression::Pointer Slice(const Expression::Pointer& rpE
  *  @param NewShapeEnd Iterator past the last component of the new shape.
  */
 template <class TIterator>
-Expression::Pointer Reshape(const Expression::Pointer& rpExpression,
+Expression::Pointer Reshape(const Expression::ConstPointer& rpExpression,
                             TIterator NewShapeBegin,
                             TIterator NewShapeEnd)
 {
@@ -111,7 +111,7 @@ Expression::Pointer Reshape(const Expression::Pointer& rpExpression,
  *  @param rExpression Expression to reshape.
  *  @param rNewShape New shape to used to reshape the existing expression.
  */
-Expression::Pointer Reshape(const Expression::Pointer& rpExpression,
+Expression::Pointer Reshape(const Expression::ConstPointer& rpExpression,
                             const std::vector<std::size_t>& rNewShape);
 
 
@@ -141,7 +141,7 @@ Expression::Pointer Reshape(const Expression::Pointer& rpExpression,
  *
  *  @param rExpressions Expressions to comb components from.
  */
-Expression::Pointer Comb(const std::vector<Expression::Pointer>& rExpressions);
+Expression::Pointer Comb(const std::vector<Expression::ConstPointer>& rExpressions);
 
 
 /** @brief Append the components of a set of expressions to the current expression's components.
@@ -174,7 +174,8 @@ Expression::Pointer Comb(const std::vector<Expression::Pointer>& rExpressions);
 template <class TIterator>
 Expression::Pointer Comb(TIterator ExpressionBegin, TIterator ExpressionEnd)
 {
-    static_assert(std::is_same_v<typename std::iterator_traits<TIterator>::value_type,Expression::Pointer>);
+    static_assert(std::is_same_v<typename std::iterator_traits<TIterator>::value_type,Expression::ConstPointer>
+                  || std::is_same_v<typename std::iterator_traits<TIterator>::value_type,Expression::Pointer>);
     return UnaryCombineExpression::Create(ExpressionBegin, ExpressionEnd);
 }
 

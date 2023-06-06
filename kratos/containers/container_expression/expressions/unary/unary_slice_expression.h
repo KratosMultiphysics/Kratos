@@ -41,7 +41,7 @@ public:
     ///@{
 
     UnarySliceExpression(
-        Expression::Pointer pExpression,
+        Expression::ConstPointer pExpression,
         const IndexType Offset,
         const IndexType Stride);
 
@@ -50,7 +50,7 @@ public:
     ///@{
 
     static Expression::Pointer Create(
-        Expression::Pointer pExpression,
+        Expression::ConstPointer pExpression,
         const IndexType Offset,
         const IndexType Stride);
 

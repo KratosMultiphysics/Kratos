@@ -267,7 +267,7 @@ public:
      *
      * @param pExpression       Expression to be used in this container variable data
      */
-    void SetExpression(Expression::Pointer pExpression);
+    void SetExpression(Expression::ConstPointer pExpression);
 
     /**
      * @brief Checks whether an expression has been initialized.
@@ -287,9 +287,9 @@ public:
     /**
      * @brief Get the expression pointer
      *
-     * @return const Expression::Pointer Returns the pointer of the expression
+     * @return Expression::ConstPointer Returns the pointer of the expression
      */
-    const Expression::Pointer pGetExpression() const;
+    Expression::ConstPointer pGetExpression() const;
 
     /**
      * @brief Get the shape of the expression data
@@ -434,7 +434,7 @@ protected:
     ///@name Protected member variables
     ///@{
 
-    std::optional<Expression::Pointer> mpExpression;
+    std::optional<Expression::ConstPointer> mpExpression;
 
     ModelPart* const mpModelPart;
 

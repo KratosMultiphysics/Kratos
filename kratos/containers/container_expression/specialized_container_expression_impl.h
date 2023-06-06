@@ -122,7 +122,7 @@ template <class TContainerType, class TContainerDataIO, class TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const BaseType& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    std::vector<Expression::Pointer> expressions;
+    std::vector<Expression::ConstPointer> expressions;
     expressions.push_back(this->pGetExpression());
     expressions.push_back(rOther.pGetExpression());
     result.mpExpression = Kratos::Comb(expressions.begin(), expressions.end());
@@ -142,7 +142,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     TIteratorType End) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    std::vector<Expression::Pointer> expressions;
+    std::vector<Expression::ConstPointer> expressions;
     expressions.push_back(this->pGetExpression());
     for (auto itr = Begin; itr != End; ++itr) {
         expressions.push_back((*itr)->pGetExpression());

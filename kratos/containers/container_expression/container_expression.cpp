@@ -253,7 +253,7 @@ void ContainerExpression<TContainerType, TMeshType>::SetDataToZero()
 }
 
 template <class TContainerType, class TMeshType>
-void ContainerExpression<TContainerType, TMeshType>::SetExpression(Expression::Pointer pExpression)
+void ContainerExpression<TContainerType, TMeshType>::SetExpression(Expression::ConstPointer pExpression)
 {
     this->mpExpression = pExpression;
 }
@@ -272,7 +272,7 @@ const Expression& ContainerExpression<TContainerType, TMeshType>::GetExpression(
 
 
 template <class TContainerType, class TMeshType>
-const Expression::Pointer ContainerExpression<TContainerType, TMeshType>::pGetExpression() const
+Expression::ConstPointer ContainerExpression<TContainerType, TMeshType>::pGetExpression() const
 {
     return *mpExpression;
 }
