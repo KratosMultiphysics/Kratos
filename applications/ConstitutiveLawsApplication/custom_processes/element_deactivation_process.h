@@ -26,12 +26,15 @@ namespace Kratos
  * @class ElementDeactivationProcess
  * @ingroup ConstitutiveLawsApplication
  * @brief This class process deactivates elements according to a certain variable threshold
+ * We currently suport double and Vector variable types
  * @author Alejandro Cornejo
 */
 
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ElementDeactivationProcess
     : public Process
 {
+
+    using IndexType = std::size_t;
 
 public:
 
@@ -83,6 +86,9 @@ protected:
 
     ModelPart& mrThisModelPart;
     Parameters mThisParameters;
+    std::string mVariableName;
+    double mThreshold;
+    bool mAverageOverIP = true;
 
 private:
 

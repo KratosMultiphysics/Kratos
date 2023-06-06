@@ -31,6 +31,9 @@ ElementDeactivationProcess::ElementDeactivationProcess(
     mThisParameters(ThisParameters)
 {
     mThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+    mVariableName = mThisParameters["variable_name"].GetString();
+    mThreshold = mThisParameters["variable_maximum_threshold"].GetDouble();
+    mAverageOverIP = mThisParameters["average_calculation_over_ip"].GetBool();
 }
 
 /***********************************************************************************/
@@ -41,6 +44,28 @@ void ElementDeactivationProcess::ExecuteFinalizeSolutionStep()
     KRATOS_TRY
 
 
+    if (KratosComponents<Variable<double>>::Has(mVariableName)) {
+        // double type variable
+        const auto &r_variable = KratosComponents<Variable<double>>::Get(mVariableName);
+
+        block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
+            std::vector<double> element_data;
+            rElement.CalculateOnIntegrationPoints(r_variable, element_data, mrThisModelPart.GetProcessInfo());
+
+            if (mAverageOverIP) {
+                double average_value = element_data[0];
+                for (IndexType i = 1; i < element_data.size(); ++i)
+                    average_value += element_data[i];
+                
+                if (average_value >= mThreshold)
+                    rElement.Set(ACTIVE, false);
+            }
+
+
+        });
+    } else if (KratosComponents<Variable<Vector>>::Has(mVariableName)) {
+
+    }
 
 
 
