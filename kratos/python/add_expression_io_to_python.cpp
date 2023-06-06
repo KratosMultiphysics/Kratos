@@ -156,11 +156,11 @@ void AddExpressionIOToPython(pybind11::module& rModule)
 
     auto variable_expression_io = rModule.def_submodule("VariableExpressionIO");
 
-    pybind11::class_<ExpressionInput, Detail::ExpressionInputTrampoline>(variable_expression_io, "ExpressionInput")
+    pybind11::class_<ExpressionInput, Detail::ExpressionInputTrampoline, ExpressionInput::Pointer>(variable_expression_io, "ExpressionInput")
         .def("Execute", &ExpressionInput::Execute)
         ;
 
-    pybind11::class_<ExpressionOutput, Detail::ExpressionOutputTrampoline>(variable_expression_io, "ExpressionOutput")
+    pybind11::class_<ExpressionOutput, Detail::ExpressionOutputTrampoline, ExpressionOutput::Pointer>(variable_expression_io, "ExpressionOutput")
         .def("Execute", &ExpressionOutput::Execute)
         ;
 
@@ -177,7 +177,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .value("Ghost", VariableExpressionIO::Ghost)
         ;
 
-    pybind11::class_<VariableExpressionIO::VariableExpressionInput, ExpressionInput>(variable_expression_io, "Input")
+    pybind11::class_<VariableExpressionIO::VariableExpressionInput, VariableExpressionIO::VariableExpressionInput::Pointer, ExpressionInput>(variable_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const VariableExpressionIO::VariableType&,
                             const VariableExpressionIO::ContainerType&,
@@ -188,7 +188,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("mesh_type") = VariableExpressionIO::Local)
         ;
 
-    pybind11::class_<VariableExpressionIO::VariableExpressionOutput, ExpressionOutput>(variable_expression_io, "Output")
+    pybind11::class_<VariableExpressionIO::VariableExpressionOutput, VariableExpressionIO::VariableExpressionOutput::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const VariableExpressionIO::VariableType&,
                             const VariableExpressionIO::ContainerType&,
@@ -197,6 +197,27 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("variable"),
              pybind11::arg("container_type"),
              pybind11::arg("mesh_type") = VariableExpressionIO::Local)
+        ;
+
+    pybind11::class_<CArrayExpressionInput, CArrayExpressionInput::Pointer, ExpressionInput>(rModule, "CArrayExpressionInput")
+        .def(pybind11::init([](const pybind11::array_t<double>& rArray,
+                               int NumberOfEntities,
+                               const std::vector<int>& rShape){
+                                return CArrayExpressionInput(rArray.data(),
+                                                             NumberOfEntities,
+                                                             rShape.data(),
+                                                             rShape.size());
+                            }),
+             pybind11::arg("array").noconvert(),
+             pybind11::arg("number_of_items"),
+             pybind11::arg("shape"))
+        ;
+
+    pybind11::class_<CArrayExpressionOutput, CArrayExpressionOutput::Pointer, ExpressionOutput>(rModule, "CArrayExpressionOutput")
+        .def(pybind11::init([](pybind11::array_t<double>& rArray) {
+                                return CArrayExpressionOutput(rArray.mutable_data(), rArray.size());
+                               }),
+             pybind11::arg("target_array").noconvert());
         ;
 }
 
