@@ -58,7 +58,28 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(TObjectType* pResult)
 {
     // Check if the object has been found (not nullptr)
     if (pResult != nullptr) {
+        // Push_back in local pointers
         mLocalPointers.push_back(pResult);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
+void SpatialSearchResultContainer<TObjectType>::AddResult(
+    TObjectType* pResult, 
+    const double Distance
+    )
+{
+    // Check if the object has been found (not nullptr)
+    if (pResult != nullptr) {
+        // Push_back in local pointers
+        mLocalPointers.push_back(pResult);
+
+        // Add distances
+        const IndexType id = pResult->Id();
+        mLocalDistances.insert({id, Distance});
     }
 }
 

@@ -363,6 +363,16 @@ public:
     void AddResult(TObjectType* pResult);
 
     /**
+     * @brief Add a result to the container
+     * @param pResult The result to be added
+     * @param Distance The distance to be added
+     */
+    void AddResult(
+        TObjectType* pResult,
+        const double Distance
+        );
+
+    /**
      * @brief Pushes back a result to the container
      * @param pResult The result to be added
      */
