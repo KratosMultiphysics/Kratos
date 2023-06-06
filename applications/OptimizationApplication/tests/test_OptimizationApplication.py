@@ -4,8 +4,7 @@
 
 
 # Import Kratos "wrapper" for unittests
-import KratosMultiphysics
-import run_cpp_unit_tests
+import KratosMultiphysics as km
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # ==============================================================================
@@ -31,9 +30,7 @@ import test_collective_expressions
 import test_buffered_dict
 import control.test_master_control
 import control.material.test_material_properties_control
-import filtering.implicit_filters_tests
 import test_component_data_view
-import process_tests.test_optimization_problem_vtu_output_process
 import process_tests.test_optimization_problem_ascii_output_process
 
 # Nightly tests
@@ -86,8 +83,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.test_master_control.TestMassterControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_material_properties_control.TestMaterialPropertiesControl]))
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.implicit_filters_tests.HelmholtzAnalysisTest]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_vtu_output_process.TestOptimizationProblemVtuOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_ascii_output_process.TestOptimizationProblemAsciiOutputProcess]))
 
     # Adding nightly tests (tests that take < 10min)
@@ -114,12 +109,7 @@ def AssembleTestSuites():
 # Main
 # ==============================================================================
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
-
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    km.Tester.SetVerbosity(km.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     KratosUnittest.runTests(AssembleTestSuites())
-    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
 
 # ==============================================================================

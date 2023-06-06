@@ -11,18 +11,30 @@
 //                   Aron Noordam,
 //                   Vahid Galavi
 //
-#pragma once
+//
+
+
+// System includes
+#include <cmath>
+#include <iostream>
+#include<string>
 
 // Project includes
 #include "includes/model_part.h"
+#include "utilities/openmp_utils.h"
+#include "utilities/math_utils.h"
 #include "includes/element.h"
-#include "utilities/variable_utils.h"
 
 // Application includes
+
+#if !defined(KRATOS_GEO_APPLY_EXCAVATION_PROCESS )
+#define  KRATOS_GEO_APPLY_EXCAVATION_PROCESS
+
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -30,44 +42,87 @@ namespace Kratos
 class ApplyExcavationProcess : public Process
 {
   public:
+
+    typedef std::size_t IndexType;
+    typedef Table<double, double> TableType;
+
     KRATOS_CLASS_POINTER_DEFINITION(ApplyExcavationProcess);
 
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    ApplyExcavationProcess(ModelPart& model_part,
-                           Parameters Settings) : Process(Flags()), mrModelPart(model_part)
+    /// Constructor
+    ApplyExcavationProcess(ModelPart&  model_part,
+                           Parameters& rParameters) : Process(Flags()), mrModelPart(model_part)
     {
         KRATOS_TRY
-        mDeactivateSoilPart = Settings["deactivate_soil_part"].GetBool();
+
+        mDeactivateSoilPart =  rParameters["deactivate_soil_part"].GetBool();
+
         KRATOS_CATCH("")
     }
 
+    ///------------------------------------------------------------------------------------
 
-    ~ApplyExcavationProcess() override = default;
+    /// Destructor
+    ~ApplyExcavationProcess() override{}
 
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void ExecuteInitialize() override
     {
         KRATOS_TRY
 
-        VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, mrModelPart.Elements());
+        if (mrModelPart.NumberOfElements() > 0) {
+            if (mDeactivateSoilPart) {
+                // Deactivation of the existing parts:
+                block_for_each(mrModelPart.Elements(), [&](Element& rElement) {
+                    rElement.Set(ACTIVE, false);
+                    rElement.ResetConstitutiveLaw();
+                });
+            } else {
+                // Activation of the existing parts:
+                block_for_each(mrModelPart.Elements(), [&](Element& rElement) {
+                    rElement.Set(ACTIVE, true);
+                });
 
-        if (mDeactivateSoilPart) {
-            block_for_each(mrModelPart.Elements(), [](Element& rElement) {
-                rElement.ResetConstitutiveLaw();
-            });
-        } else {
-            VariableUtils{}.SetFlag(ACTIVE, true, mrModelPart.Nodes());
+                // Same nodes for both computing model part
+                if (mrModelPart.NumberOfNodes() > 0) {
+                    block_for_each(mrModelPart.Nodes(), [&](Node& rNode) {
+                        rNode.Set(ACTIVE, true);
+                    });
+                }
+            }
         }
 
-        VariableUtils{}.SetFlag(ACTIVE, !mDeactivateSoilPart, mrModelPart.Conditions());
+        // Conditions
+        if (mrModelPart.NumberOfConditions() > 0) {
+            if (mDeactivateSoilPart) {
+                block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
+                    rCondition.Set(ACTIVE, false);
+                });
+            } else {
+                block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
+                    rCondition.Set(ACTIVE, true);
+                });
+            }
+        }
 
         KRATOS_CATCH("")
     }
 
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-  private:
+    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  protected:
+    /// Member Variables
+
     ModelPart& mrModelPart;
     bool mDeactivateSoilPart;
-};
 
-}
+}; //Class
+
+} /* namespace Kratos.*/
+
+#endif /* KRATOS_CONSTRUCTION_UTILITIES defined */
