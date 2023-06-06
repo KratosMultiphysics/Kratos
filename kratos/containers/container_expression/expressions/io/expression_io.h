@@ -15,6 +15,7 @@
 // Project includes
 #include "containers/container_expression/expressions/expression.h"
 #include "includes/define.h"
+#include "includes/smart_pointers.h"
 
 
 namespace Kratos {
@@ -23,6 +24,12 @@ namespace Kratos {
 class KRATOS_API(KRATOS_CORE) ExpressionInput
 {
 public:
+    /// @name Member Aliases
+    /// @{
+
+    KRATOS_CLASS_POINTER_DEFINITION(ExpressionInput);
+
+    /// @}
     /// @name  Life Cycle
     /// @{
 
@@ -61,6 +68,12 @@ protected:
 class KRATOS_API(KRATOS_CORE) ExpressionOutput
 {
 public:
+    /// @name Member Aliases
+    /// @{
+
+    KRATOS_CLASS_POINTER_DEFINITION(ExpressionOutput);
+
+    /// @}
     /// @name  Life Cycle
     /// @{
 
