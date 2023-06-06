@@ -130,7 +130,7 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const std::vector<Expression::Pointer> mSourceExpressions;
+    const std::vector<Expression::ConstPointer> mSourceExpressions;
 
     std::vector<IndexType> mStrides;
 

@@ -98,7 +98,7 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const Expression::Pointer mpSourceExpression;
+    const Expression::ConstPointer mpSourceExpression;
 
     const std::vector<IndexType> mShape;
 
