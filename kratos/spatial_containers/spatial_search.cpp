@@ -35,46 +35,122 @@ void SpatialSearch::SearchElementsInRadiusExclusive (
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::ElementSpatialSearchResultContainerMapType SpatialSearch::SearchElementsInRadiusExclusive (
+    ModelPart& rModelPart,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), rModelPart.GetCommunicator().LocalMesh().Elements(), rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchElementsInRadiusExclusive (
     ModelPart& rModelPart,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                        InputElements,
+                                        rInputElements,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::ElementSpatialSearchResultContainerMapType SpatialSearch::SearchElementsInRadiusExclusive (
+    ModelPart& rModelPart,
+    const ElementsContainerType& rInputElements,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), rInputElements, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchElementsInRadiusExclusive (
-    ElementsContainerType const& StructureElements,
+    const ElementsContainerType& rStructureElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
-    this->SearchElementsInRadiusExclusive(StructureElements,
-                                        StructureElements,
+    this->SearchElementsInRadiusExclusive(rStructureElements,
+                                        rStructureElements,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::ElementSpatialSearchResultContainerMapType SpatialSearch::SearchElementsInRadiusExclusive (
+    const ElementsContainerType& rStructureElements,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchElementsInRadiusExclusive(rStructureElements, rStructureElements, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchElementsInRadiusExclusive (
-    ElementsContainerType const& StructureElements,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+SpatialSearch::ElementSpatialSearchResultContainerMapType SpatialSearch::SearchElementsInRadiusExclusive (
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // First search in the structure
+    VectorResultElementsContainerType results;
+    VectorDistanceType distance;
+    this->SearchElementsInRadiusExclusive(rStructureElements, rInputElements, rRadius, results, distance);
+    
+    // Now pass this results to the container
+    ElementSpatialSearchResultContainerMapType result;
+    const SizeType number_of_results = results.size();
+    for (IndexType i = 0; i < number_of_results; ++i) {
+        // Partial results
+        auto& r_partial_results = results[i];
+        auto& r_partial_distances = distance[i];
+        
+        // Getting id of the element
+        const IndexType id = (rInputElements.begin() + i)->Id();
+        
+        // Adding partial results
+        auto result_i = result.InitializeResult(id);
+        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
+            auto p_element = (*((r_partial_results.begin() + j).base())).get();
+            result_i.AddResult(p_element, r_partial_distances[j]);
+        }
+    }
+
+    // Synchronize all the results
+    result.SynchronizeAll(rDataCommunicator);
+    return result;
 }
 
 /***********************************************************************************/
@@ -95,46 +171,122 @@ void SpatialSearch::SearchElementsInRadiusInclusive (
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchElementsInRadiusInclusive (
+    ModelPart& rModelPart,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), rModelPart.GetCommunicator().LocalMesh().Elements(), rRadius,rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchElementsInRadiusInclusive (
     ModelPart& rModelPart,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                        InputElements,
+                                        rInputElements,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchElementsInRadiusInclusive (
+    ModelPart& rModelPart,
+    const ElementsContainerType& rInputElements,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), rInputElements, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchElementsInRadiusInclusive (
-    ElementsContainerType const& StructureElements,
+    const ElementsContainerType& rStructureElements,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
-    this->SearchElementsInRadiusInclusive(StructureElements,
-                                        StructureElements,
+    this->SearchElementsInRadiusInclusive(rStructureElements,
+                                        rStructureElements,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchElementsInRadiusInclusive (
+    const ElementsContainerType& rStructureElements,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchElementsInRadiusInclusive(rStructureElements, rStructureElements, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchElementsInRadiusInclusive (
-    ElementsContainerType const& StructureElements,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchElementsInRadiusInclusive (
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // First search in the structure
+    VectorResultNodesContainerType results;
+    VectorDistanceType distance;
+    this->SearchElementsInRadiusInclusive(rStructureElements, rInputElements, rRadius, results, distance);
+    
+    // Now pass this results to the container
+    NodeSpatialSearchResultContainerMapType result;
+    const SizeType number_of_results = results.size();
+    for (IndexType i = 0; i < number_of_results; ++i) {
+        // Partial results
+        auto& r_partial_results = results[i];
+        auto& r_partial_distances = distance[i];
+        
+        // Getting id of the element
+        const IndexType id = (rInputElements.begin() + i)->Id();
+        
+        // Adding partial results
+        auto result_i = result.InitializeResult(id);
+        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
+            auto p_node = (*((r_partial_results.begin() + j).base())).get();
+            result_i.AddResult(p_node, r_partial_distances[j]);
+        }
+    }
+
+    // Synchronize all the results
+    result.SynchronizeAll(rDataCommunicator);
+    return result;
 }
 
 /***********************************************************************************/
@@ -156,13 +308,13 @@ void SpatialSearch::SearchElementsInRadiusExclusive (
 
 void SpatialSearch::SearchElementsInRadiusExclusive (
     ModelPart& rModelPart,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults
     )
 {
     this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                        InputElements,
+                                        rInputElements,
                                         rRadius,rResults);
 }
 
@@ -170,13 +322,13 @@ void SpatialSearch::SearchElementsInRadiusExclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchElementsInRadiusExclusive (
-    ElementsContainerType const& StructureElements,
+    const ElementsContainerType& rStructureElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults
     )
 {
-    this->SearchElementsInRadiusExclusive(StructureElements,
-                                        StructureElements,
+    this->SearchElementsInRadiusExclusive(rStructureElements,
+                                        rStructureElements,
                                         rRadius,rResults);
 }
 
@@ -184,8 +336,8 @@ void SpatialSearch::SearchElementsInRadiusExclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchElementsInRadiusExclusive (
-    ElementsContainerType const& StructureElements,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults
     )
@@ -212,13 +364,13 @@ void SpatialSearch::SearchElementsInRadiusInclusive (
 
 void SpatialSearch::SearchElementsInRadiusInclusive (
     ModelPart& rModelPart,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
 {
     this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                        InputElements,
+                                        rInputElements,
                                         rRadius,rResults);
 }
 
@@ -226,13 +378,13 @@ void SpatialSearch::SearchElementsInRadiusInclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchElementsInRadiusInclusive (
-    ElementsContainerType const& StructureElements,
+    const ElementsContainerType& rStructureElements,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
 {
-    this->SearchElementsInRadiusInclusive(StructureElements,
-                                        StructureElements,
+    this->SearchElementsInRadiusInclusive(rStructureElements,
+                                        rStructureElements,
                                         rRadius,rResults);
 }
 
@@ -240,8 +392,8 @@ void SpatialSearch::SearchElementsInRadiusInclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchElementsInRadiusInclusive (
-    ElementsContainerType const& StructureElements,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
@@ -260,8 +412,20 @@ void SpatialSearch::SearchNodesInRadiusExclusive (
     )
 {
     this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
-                                        rModelPart.GetCommunicator().LocalMesh().Nodes(),
-                                        rRadius,rResults,rResultsDistance);
+                                       rModelPart.GetCommunicator().LocalMesh().Nodes(),
+                                       rRadius,rResults,rResultsDistance);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNodesInRadiusExclusive (
+    ModelPart& rModelPart,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(), rModelPart.GetCommunicator().LocalMesh().Nodes(), rRadius, rDataCommunicator);
 }
 
 /***********************************************************************************/
@@ -269,44 +433,108 @@ void SpatialSearch::SearchNodesInRadiusExclusive (
 
 void SpatialSearch::SearchNodesInRadiusExclusive (
     ModelPart& rModelPart,
-    NodesContainerType const& InputNodes,
+    const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
-                                        InputNodes,
-                                        rRadius,rResults,rResultsDistance);
+                                       rInputNodes,
+                                       rRadius,rResults,rResultsDistance);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNodesInRadiusExclusive (
+    ModelPart& rModelPart,
+    const NodesContainerType& rInputNodes,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(), rInputNodes, rRadius, rDataCommunicator);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void SpatialSearch::SearchNodesInRadiusExclusive (
-    NodesContainerType const& StructureNodes,
+    const NodesContainerType& rStructureNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
-    this->SearchNodesInRadiusExclusive(StructureNodes,
-                                        StructureNodes,
+    this->SearchNodesInRadiusExclusive(rStructureNodes,
+                                        rStructureNodes,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNodesInRadiusExclusive (
+    const NodesContainerType& rStructureNodes,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    this->SearchNodesInRadiusExclusive(rStructureNodes, rStructureNodes, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchNodesInRadiusExclusive (
-    NodesContainerType const& StructureNodes,
-    NodesContainerType const& InputNodes,
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNodesInRadiusExclusive (
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // First search in the structure
+    VectorResultNodesContainerType results;
+    VectorDistanceType distance;
+    this->SearchNodesInRadiusExclusive(rStructureNodes, rInputNodes, rRadius, results, distance);
+    
+    // Now pass this results to the container
+    NodeSpatialSearchResultContainerMapType result;
+    const SizeType number_of_results = results.size();
+    for (IndexType i = 0; i < number_of_results; ++i) {
+        // Partial results
+        auto& r_partial_results = results[i];
+        auto& r_partial_distances = distance[i];
+        
+        // Getting id of the element
+        const IndexType id = (rInputNodes.begin() + i)->Id();
+        
+        // Adding partial results
+        auto result_i = result.InitializeResult(id);
+        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
+            auto p_node = (*((r_partial_results.begin() + j).base())).get();
+            result_i.AddResult(p_node, r_partial_distances[j]);
+        }
+    }
+
+    // Synchronize all the results
+    result.SynchronizeAll(rDataCommunicator);
+    return result;
 }
 
 /***********************************************************************************/
@@ -327,46 +555,122 @@ void SpatialSearch::SearchNodesInRadiusInclusive (
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNodesInRadiusInclusive (
+    ModelPart& rModelPart,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchNodesInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(), rModelPart.GetCommunicator().LocalMesh().Nodes(), rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchNodesInRadiusInclusive (
     ModelPart& rModelPart,
-    NodesContainerType const& InputNodes,
+    const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchNodesInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
-                                        InputNodes,
+                                        rInputNodes,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNodesInRadiusInclusive (
+    ModelPart& rModelPart,
+    const NodesContainerType& rInputNodes,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchNodesInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(), rInputNodes, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchNodesInRadiusInclusive (
-    NodesContainerType const& StructureNodes,
+    const NodesContainerType& rStructureNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
-    this->SearchNodesInRadiusInclusive(StructureNodes,
-                                        StructureNodes,
+    this->SearchNodesInRadiusInclusive(rStructureNodes,
+                                        rStructureNodes,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNodesInRadiusInclusive (
+    const NodesContainerType& rStructureNodes,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchNodesInRadiusInclusive(rStructureNodes, rStructureNodes, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchNodesInRadiusInclusive (
-    NodesContainerType const& StructureNodes,
-    NodesContainerType const& InputNodes,
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNodesInRadiusInclusive (
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // First search in the structure
+    VectorResultNodesContainerType results;
+    VectorDistanceType distance;
+    this->SearchNodesInRadiusInclusive(rStructureNodes, rInputNodes, rRadius, results, distance);
+    
+    // Now pass this results to the container
+    NodeSpatialSearchResultContainerMapType result;
+    const SizeType number_of_results = results.size();
+    for (IndexType i = 0; i < number_of_results; ++i) {
+        // Partial results
+        auto& r_partial_results = results[i];
+        auto& r_partial_distances = distance[i];
+        
+        // Getting id of the element
+        const IndexType id = (rInputNodes.begin() + i)->Id();
+        
+        // Adding partial results
+        auto result_i = result.InitializeResult(id);
+        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
+            auto p_node = (*((r_partial_results.begin() + j).base())).get();
+            result_i.AddResult(p_node, r_partial_distances[j]);
+        }
+    }
+
+    // Synchronize all the results
+    result.SynchronizeAll(rDataCommunicator);
+    return result;
 }
 
 /***********************************************************************************/
@@ -388,13 +692,13 @@ void SpatialSearch::SearchNodesInRadiusExclusive (
 
 void SpatialSearch::SearchNodesInRadiusExclusive (
     ModelPart& rModelPart,
-    NodesContainerType const& InputNodes,
+    const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
 {
     this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
-                                        InputNodes,
+                                        rInputNodes,
                                         rRadius,rResults);
 }
 
@@ -402,13 +706,13 @@ void SpatialSearch::SearchNodesInRadiusExclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchNodesInRadiusExclusive (
-    NodesContainerType const& StructureNodes,
+    const NodesContainerType& rStructureNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
 {
-    this->SearchNodesInRadiusExclusive(StructureNodes,
-                                        StructureNodes,
+    this->SearchNodesInRadiusExclusive(rStructureNodes,
+                                        rStructureNodes,
                                         rRadius,rResults);
 }
 
@@ -416,8 +720,8 @@ void SpatialSearch::SearchNodesInRadiusExclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchNodesInRadiusExclusive (
-    NodesContainerType const& StructureNodes,
-    NodesContainerType const& InputNodes,
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
@@ -444,13 +748,13 @@ void SpatialSearch::SearchNodesInRadiusInclusive (
 
 void SpatialSearch::SearchNodesInRadiusInclusive (
     ModelPart& rModelPart,
-    NodesContainerType const& InputNodes,
+    const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
 {
     this->SearchNodesInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
-                                        InputNodes,
+                                        rInputNodes,
                                         rRadius,rResults);
 }
 
@@ -458,13 +762,13 @@ void SpatialSearch::SearchNodesInRadiusInclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchNodesInRadiusInclusive (
-    NodesContainerType const& StructureNodes,
+    const NodesContainerType& rStructureNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
 {
-    this->SearchNodesInRadiusInclusive(StructureNodes,
-                                        StructureNodes,
+    this->SearchNodesInRadiusInclusive(rStructureNodes,
+                                        rStructureNodes,
                                         rRadius,rResults);
 }
 
@@ -472,8 +776,8 @@ void SpatialSearch::SearchNodesInRadiusInclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchNodesInRadiusInclusive (
-    NodesContainerType const& StructureNodes,
-    NodesContainerType const& InputNodes,
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
@@ -499,46 +803,122 @@ void SpatialSearch::SearchConditionsInRadiusExclusive (
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::ConditionSpatialSearchResultContainerMapType SpatialSearch::SearchConditionsInRadiusExclusive (
+    ModelPart& rModelPart,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(), rModelPart.GetCommunicator().LocalMesh().Conditions(), rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchConditionsInRadiusExclusive (
     ModelPart& rModelPart,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultConditionsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
-                                        InputConditions,
+                                        rInputConditions,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::ConditionSpatialSearchResultContainerMapType SpatialSearch::SearchConditionsInRadiusExclusive (
+    ModelPart& rModelPart,
+    const ConditionsContainerType& rInputConditions,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(), rInputConditions, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchConditionsInRadiusExclusive (
-    ConditionsContainerType const& StructureConditions,
+    const ConditionsContainerType& rStructureConditions,
     const RadiusArrayType& rRadius,
     VectorResultConditionsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
-    this->SearchConditionsInRadiusExclusive(StructureConditions,
-                                        StructureConditions,
+    this->SearchConditionsInRadiusExclusive(rStructureConditions,
+                                        rStructureConditions,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::ConditionSpatialSearchResultContainerMapType SpatialSearch::SearchConditionsInRadiusExclusive (
+    const ConditionsContainerType& rStructureConditions,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchConditionsInRadiusExclusive(rStructureConditions, rStructureConditions, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchConditionsInRadiusExclusive (
-    ConditionsContainerType const& StructureConditions,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultConditionsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+SpatialSearch::ConditionSpatialSearchResultContainerMapType SpatialSearch::SearchConditionsInRadiusExclusive (
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // First search in the structure
+    VectorResultConditionsContainerType results;
+    VectorDistanceType distance;
+    this->SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, rRadius, results, distance);
+    
+    // Now pass this results to the container
+    ConditionSpatialSearchResultContainerMapType result;
+    const SizeType number_of_results = results.size();
+    for (IndexType i = 0; i < number_of_results; ++i) {
+        // Partial results
+        auto& r_partial_results = results[i];
+        auto& r_partial_distances = distance[i];
+        
+        // Getting id of the element
+        const IndexType id = (rInputConditions.begin() + i)->Id();
+        
+        // Adding partial results
+        auto result_i = result.InitializeResult(id);
+        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
+            auto p_condition = (*((r_partial_results.begin() + j).base())).get();
+            result_i.AddResult(p_condition, r_partial_distances[j]);
+        }
+    }
+
+    // Synchronize all the results
+    result.SynchronizeAll(rDataCommunicator);
+    return result;
 }
 
 /***********************************************************************************/
@@ -559,46 +939,122 @@ void SpatialSearch::SearchConditionsInRadiusInclusive (
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchConditionsInRadiusInclusive (
+    ModelPart& rModelPart,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(), rModelPart.GetCommunicator().LocalMesh().Conditions(), rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchConditionsInRadiusInclusive (
     ModelPart& rModelPart,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
-                                        InputConditions,
+                                        rInputConditions,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchConditionsInRadiusInclusive (
+    ModelPart& rModelPart,
+    const ConditionsContainerType& rInputConditions,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(), rInputConditions, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchConditionsInRadiusInclusive (
-    ConditionsContainerType const& StructureConditions,
+    const ConditionsContainerType& rStructureConditions,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
-    this->SearchConditionsInRadiusInclusive(StructureConditions,
-                                        StructureConditions,
+    this->SearchConditionsInRadiusInclusive(rStructureConditions,
+                                        rStructureConditions,
                                         rRadius,rResults,rResultsDistance);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchConditionsInRadiusInclusive (
+    const ConditionsContainerType& rStructureConditions,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return this->SearchConditionsInRadiusInclusive(rStructureConditions, rStructureConditions, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpatialSearch::SearchConditionsInRadiusInclusive (
-    ConditionsContainerType const& StructureConditions,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchConditionsInRadiusInclusive (
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // First search in the structure
+    VectorResultNodesContainerType results;
+    VectorDistanceType distance;
+    this->SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, rRadius, results, distance);
+    
+    // Now pass this results to the container
+    NodeSpatialSearchResultContainerMapType result;
+    const SizeType number_of_results = results.size();
+    for (IndexType i = 0; i < number_of_results; ++i) {
+        // Partial results
+        auto& r_partial_results = results[i];
+        auto& r_partial_distances = distance[i];
+        
+        // Getting id of the element
+        const IndexType id = (rInputConditions.begin() + i)->Id();
+        
+        // Adding partial results
+        auto result_i = result.InitializeResult(id);
+        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
+            auto p_node = (*((r_partial_results.begin() + j).base())).get();
+            result_i.AddResult(p_node, r_partial_distances[j]);
+        }
+    }
+
+    // Synchronize all the results
+    result.SynchronizeAll(rDataCommunicator);
+    return result;
 }
 
 /***********************************************************************************/
@@ -620,13 +1076,13 @@ void SpatialSearch::SearchConditionsInRadiusExclusive (
 
 void SpatialSearch::SearchConditionsInRadiusExclusive (
     ModelPart& rModelPart,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultConditionsContainerType& rResults
     )
 {
     this->SearchConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
-                                        InputConditions,
+                                        rInputConditions,
                                         rRadius,rResults);
 }
 
@@ -634,13 +1090,13 @@ void SpatialSearch::SearchConditionsInRadiusExclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchConditionsInRadiusExclusive (
-    ConditionsContainerType const& StructureConditions,
+    const ConditionsContainerType& rStructureConditions,
     const RadiusArrayType& rRadius,
     VectorResultConditionsContainerType& rResults
     )
 {
-    this->SearchConditionsInRadiusExclusive(StructureConditions,
-                                        StructureConditions,
+    this->SearchConditionsInRadiusExclusive(rStructureConditions,
+                                        rStructureConditions,
                                         rRadius,rResults);
 }
 
@@ -648,8 +1104,8 @@ void SpatialSearch::SearchConditionsInRadiusExclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchConditionsInRadiusExclusive (
-    ConditionsContainerType const& StructureConditions,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultConditionsContainerType& rResults
     )
@@ -676,13 +1132,13 @@ void SpatialSearch::SearchConditionsInRadiusInclusive (
 
 void SpatialSearch::SearchConditionsInRadiusInclusive (
     ModelPart& rModelPart,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
 {
     this->SearchConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
-                                        InputConditions,
+                                        rInputConditions,
                                         rRadius,rResults);
 }
 
@@ -690,13 +1146,13 @@ void SpatialSearch::SearchConditionsInRadiusInclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchConditionsInRadiusInclusive (
-    ConditionsContainerType const& StructureConditions,
+    const ConditionsContainerType& rStructureConditions,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
 {
-    this->SearchConditionsInRadiusInclusive(StructureConditions,
-                                        StructureConditions,
+    this->SearchConditionsInRadiusInclusive(rStructureConditions,
+                                        rStructureConditions,
                                         rRadius,rResults);
 }
 
@@ -704,8 +1160,8 @@ void SpatialSearch::SearchConditionsInRadiusInclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchConditionsInRadiusInclusive (
-    ConditionsContainerType const& StructureConditions,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultNodesContainerType& rResults
     )
@@ -733,14 +1189,14 @@ void SpatialSearch::SearchConditionsOverElementsInRadiusExclusive (
 
 void SpatialSearch::SearchConditionsOverElementsInRadiusExclusive (
     ModelPart& rModelPart,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchConditionsOverElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                                        InputConditions,
+                                                        rInputConditions,
                                                         rRadius,rResults,rResultsDistance);
 }
 
@@ -748,8 +1204,8 @@ void SpatialSearch::SearchConditionsOverElementsInRadiusExclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchConditionsOverElementsInRadiusExclusive (
-    ElementsContainerType const& StructureElements,
-    ConditionsContainerType const& InputConditions,
+    const ElementsContainerType& rStructureElements,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
@@ -778,14 +1234,14 @@ void SpatialSearch::SearchConditionsOverElementsInRadiusInclusive (
 
 void SpatialSearch::SearchConditionsOverElementsInRadiusInclusive (
     ModelPart& rModelPart,
-    ConditionsContainerType const& InputConditions,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchConditionsOverElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
-                                                        InputConditions,
+                                                        rInputConditions,
                                                         rRadius,rResults,rResultsDistance);
 }
 
@@ -793,8 +1249,8 @@ void SpatialSearch::SearchConditionsOverElementsInRadiusInclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchConditionsOverElementsInRadiusInclusive (
-    ElementsContainerType const& StructureElements,
-    ConditionsContainerType const& InputConditions,
+    const ElementsContainerType& rStructureElements,
+    const ConditionsContainerType& rInputConditions,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
@@ -823,14 +1279,14 @@ void SpatialSearch::SearchElementsOverConditionsInRadiusExclusive (
 
 void SpatialSearch::SearchElementsOverConditionsInRadiusExclusive (
     ModelPart& rModelPart,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchElementsOverConditionsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
-                                                        InputElements,
+                                                        rInputElements,
                                                         rRadius,rResults,rResultsDistance);
 }
 
@@ -838,8 +1294,8 @@ void SpatialSearch::SearchElementsOverConditionsInRadiusExclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchElementsOverConditionsInRadiusExclusive (
-    ConditionsContainerType const& StructureElements,
-    ElementsContainerType const& InputElements,
+    const ConditionsContainerType& rStructureConditions,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
@@ -868,14 +1324,14 @@ void SpatialSearch::SearchElementsOverConditionsInRadiusInclusive (
 
 void SpatialSearch::SearchElementsOverConditionsInRadiusInclusive (
     ModelPart& rModelPart,
-    ElementsContainerType const& InputElements,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
     )
 {
     this->SearchElementsOverConditionsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Conditions(),
-                                                        InputElements,
+                                                        rInputElements,
                                                         rRadius,rResults,rResultsDistance);
 }
 
@@ -883,8 +1339,8 @@ void SpatialSearch::SearchElementsOverConditionsInRadiusInclusive (
 /***********************************************************************************/
 
 void SpatialSearch::SearchElementsOverConditionsInRadiusInclusive (
-    ConditionsContainerType const& StructureElements,
-    ElementsContainerType const& InputElements,
+    const ConditionsContainerType& rStructureConditions,
+    const ElementsContainerType& rInputElements,
     const RadiusArrayType& rRadius,
     VectorResultElementsContainerType& rResults,
     VectorDistanceType& rResultsDistance
