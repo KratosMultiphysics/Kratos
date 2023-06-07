@@ -128,7 +128,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         }
         max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
 
-        const double threshold = (1 - this->GetDamage()) * this->GetThreshold();
         double alphat;
 
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
@@ -214,7 +213,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
 
-        const double threshold = (1 - this->GetDamage()) * this->GetThreshold();
         double alphat;
 
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
