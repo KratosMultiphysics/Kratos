@@ -82,7 +82,6 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
         results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
         self.assertEqual(results.NumberOfSearchResults(), 1)
         node_results = results[self.node_coordinates]
-        node_results.SynchronizeAll(self.data_comm)   
         self.assertEqual(node_results.NumberOfGlobalResults(), 8)
         ids = node_results.GetResultIndices()
         self.assertEqual(len(ids), 8)
