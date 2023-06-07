@@ -11,7 +11,7 @@
 //
 
 // System includes
-
+#include <regex>
 // External includes
 
 // Project includes
@@ -217,7 +217,17 @@ void StlIO::ReadSolid(
     KRATOS_ERROR_IF(word != "solid") << "Invalid stl file. Solid block should begin with \"solid\" keyword but \"" << word << "\" was found" << std::endl;
     std::getline(*mpInputStream, word); // Reading solid name to be the model part name
 
-    word.erase(word.begin(), std::find_if(word.begin(), word.end(), [](int ch) {return !std::isspace(ch);})); // Triming the leading spaces
+    // Remove Comments
+    std::size_t pos = word.find("COMMENT:");
+    if(pos!=std::string::npos){
+        word = word.substr(0,pos);
+    }
+        std::size_t pos = word.find(";");
+    if(pos!=std::string::npos){
+        word = word.substr(0,pos);
+    }
+    // Remove newline and spaces characters from string in C++
+    word = std::regex_replace( word, std::regex("\\r\\n|\\r|\\n| "), "");
 
     if(word == "") // empty solid name is valid in STL format
         word = "main";
