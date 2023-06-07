@@ -267,8 +267,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsInRadiusExclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
@@ -281,8 +283,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements, py::list& rListOfRadius) {
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const ElementsContainerType& rInputElements, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsInRadiusExclusive(rModelPart, rInputElements, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rStructureElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
@@ -295,9 +299,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsInRadiusExclusive(rStructureElements, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
@@ -309,6 +314,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
+    })
+    .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, const ElementsContainerType& rInputElements, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsInRadiusExclusive(rStructureElements, rInputElements, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
     })
     .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
@@ -322,6 +330,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
+    })
+    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsInRadiusInclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
     })
     .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
     const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
@@ -337,8 +348,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements, py::list& rListOfRadius) {
+    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const ElementsContainerType& rInputElements, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsInRadiusInclusive(rModelPart, rInputElements, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rStructureElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
@@ -351,9 +364,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self,
-    const ElementsContainerType& rStructureElements,
-    const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
+    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsInRadiusInclusive(rStructureElements, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
@@ -365,6 +379,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
+    })
+    .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, const ElementsContainerType& rInputElements, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsInRadiusInclusive(rStructureElements, rInputElements, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
     })
     .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
@@ -379,8 +396,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
+    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesInRadiusExclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
@@ -393,8 +412,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes, py::list& rListOfRadius) {
+    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const NodesContainerType& rInputNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesInRadiusExclusive(rModelPart, rInputNodes, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rStructureNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
@@ -407,9 +428,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
+    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesInRadiusExclusive(rStructureNodes, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
@@ -421,6 +443,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
+    })
+    .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, const NodesContainerType& rInputNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesInRadiusExclusive(rStructureNodes, rInputNodes, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
     })
     .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
@@ -435,8 +460,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
+    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, const NodesContainerType& rInputNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesInRadiusInclusive(rStructureNodes, rInputNodes, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
@@ -449,8 +476,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes, py::list& rListOfRadius) {
+    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const NodesContainerType& rInputNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesInRadiusInclusive(rModelPart, rInputNodes, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rStructureNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
@@ -463,9 +492,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self,
-    const NodesContainerType& rStructureNodes,
-    const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
+    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesInRadiusInclusive(rStructureNodes, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
@@ -477,6 +507,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
+    })
+    .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, const NodesContainerType& rInputNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesInRadiusInclusive(rStructureNodes, rInputNodes, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
     })
     .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
@@ -491,8 +524,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
+    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsInRadiusExclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
@@ -505,8 +540,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius) {
+    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsInRadiusExclusive(rModelPart, rInputConditions, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rStructureConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
@@ -519,9 +556,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
+    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsInRadiusExclusive(rStructureConditions, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
@@ -533,6 +571,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
+    })
+    .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
     })
     .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
@@ -547,8 +588,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
+    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsInRadiusInclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
@@ -561,8 +604,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius) {
+    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsInRadiusInclusive(rModelPart, rInputConditions, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rStructureConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
@@ -575,9 +620,10 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
     })
-    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self,
-    const ConditionsContainerType& rStructureConditions,
-    const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
+    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsInRadiusInclusive(rStructureConditions, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
         KRATOS_DEBUG_ERROR_IF(size_array != rInputConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
@@ -589,6 +635,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
         // Copy the results to the python list
         return GenerateSpatialSearchSolutionTuple(results, distances);
+    })
+    .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
     })
     ;
 
