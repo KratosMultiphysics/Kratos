@@ -821,12 +821,13 @@ public:
         //loop over all nodes
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 2, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 2, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
+            const auto& coordinates = this->GetPoint(i).Coordinates();
+            rResult( 0, 0 ) += ( coordinates[0] ) * ( shape_functions_gradients( i, 0 ) );
+            rResult( 0, 1 ) += ( coordinates[0] ) * ( shape_functions_gradients( i, 1 ) );
+            rResult( 1, 0 ) += ( coordinates[1] ) * ( shape_functions_gradients( i, 0 ) );
+            rResult( 1, 1 ) += ( coordinates[1] ) * ( shape_functions_gradients( i, 1 ) );
+            rResult( 2, 0 ) += ( coordinates[2] ) * ( shape_functions_gradients( i, 0 ) );
+            rResult( 2, 1 ) += ( coordinates[2] ) * ( shape_functions_gradients( i, 1 ) );
         }
 
         return rResult;

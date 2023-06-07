@@ -23,6 +23,7 @@
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
 // Utility includes
+#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 
 namespace Kratos::Testing
@@ -135,5 +136,29 @@ namespace Kratos::Testing
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateFlatQuadrilateral3D9<Node>();
         TestAllShapeFunctionsLocalGradients(*geom);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Normal, KratosCoreGeometriesFastSuite) {
+        Geometry<Point>::Pointer p_geom = Kratos::make_shared<Quadrilateral3D9<Point>>(
+            Kratos::make_shared<Point>(0.9, 0.25, -0.15),
+            Kratos::make_shared<Point>(1.0, 0.25, -0.15),
+            Kratos::make_shared<Point>(1.0, 0.25, 0.05),
+            Kratos::make_shared<Point>(0.9, 0.25, 0.05),
+            Kratos::make_shared<Point>(0.95, 0.25, -0.15),
+            Kratos::make_shared<Point>(1.0, 0.25, -0.05),
+            Kratos::make_shared<Point>(0.95, 0.25, 0.05),
+            Kratos::make_shared<Point>(0.9, 0.25, -0.05),
+            Kratos::make_shared<Point>(0.95, 0.25, -0.05)
+        );
+
+        array_1d<double, 3> local_coordinates{1.0, 1.0, 0.0};
+        auto normal = p_geom->Normal(local_coordinates);
+        auto unit_normal = p_geom->UnitNormal(local_coordinates);
+
+        array_1d<double, 3> expected_unit_normal{0.0, -1.0, 0.0};
+        KRATOS_CHECK_VECTOR_NEAR(unit_normal, expected_unit_normal, TOLERANCE);
+
+        KRATOS_CHECK_NEAR(MathUtils<double>::Norm3(normal), MathUtils<double>::Dot3(unit_normal, normal), TOLERANCE);
+
     }
 }
