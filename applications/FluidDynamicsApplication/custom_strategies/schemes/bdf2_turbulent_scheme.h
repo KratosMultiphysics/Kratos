@@ -270,7 +270,7 @@ public:
      * @param Dx Newton-Raphson iteration solution
      * @param b Newton-Raphson right hand side (unused)
      */
-    virtual void Update(
+    void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
