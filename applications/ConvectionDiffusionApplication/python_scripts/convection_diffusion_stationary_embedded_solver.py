@@ -31,7 +31,7 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters(r"""{
             "mls_extension_operator_order" : 1,
-            "use_mls_constraints" : true,
+            "use_mls_constraints" : false,
             "use_distance_modification" : false
         }""")
         this_defaults.AddMissingParameters(super().GetDefaultParameters())

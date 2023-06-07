@@ -30,8 +30,7 @@
 #include "custom_utilities/embedded_mls_constraint_process.h"
 
 
-namespace Kratos {
-namespace Testing
+namespace Kratos::Testing
 {
     void SetEmbeddedConstraintProcessTestModelPart(ModelPart &rModelPart)
     {
@@ -157,5 +156,4 @@ namespace Testing
         }
     }
 
-} // namespace Testing
-} // namespace Kratos.
+} // namespace Kratos::Testing
