@@ -176,7 +176,7 @@ void BindSpatialSearchResultContainerMap(pybind11::module& m, const std::string&
     using ContainerMapType = SpatialSearchResultContainerMap<T>;
     pybind11::class_<ContainerMapType, typename ContainerMapType::Pointer>(m, rClassName.c_str())
     .def(pybind11::init<>())
-    .def("NumberOfPointsResults", &ContainerMapType::NumberOfPointsResults)
+    .def("NumberOfSearchResults", &ContainerMapType::NumberOfSearchResults)
     .def("InitializeResult", [](ContainerMapType& self, const std::size_t Index) {
         self.InitializeResult(Index);
     })
