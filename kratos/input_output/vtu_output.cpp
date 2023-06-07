@@ -87,7 +87,7 @@ XmlExpressionElement::Pointer CreateDataArrayElement(
     }
 }
 
-template<class TContainerType, class TMeshType>
+template<class TContainerType, MeshType TMeshType>
 const Expression* pGetExpression(const ContainerExpression<TContainerType, TMeshType>& rContainerExpression)
 {
     if (rContainerExpression.HasExpression()) {

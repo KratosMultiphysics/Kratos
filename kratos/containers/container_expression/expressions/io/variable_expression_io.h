@@ -55,13 +55,6 @@ public:
         ElementNonHistorical
     };
 
-    enum MeshType
-    {
-        Local,
-        Interface,
-        Ghost
-    };
-
     ///@}
     ///@name Public classes
     ///@{
@@ -83,21 +76,21 @@ public:
             const ModelPart& rModelPart,
             const Variable<TDataType>& rVariable,
             const ContainerType& rContainerType,
-            const MeshType& rMeshType = MeshType::Local);
+            MeshType rMeshType = MeshType::Local);
 
         VariableExpressionInput(
             const ModelPart& rModelPart,
             const VariableType& rVariable,
             const ContainerType& rContainerType,
-            const MeshType& rMeshType = MeshType::Local);
+            MeshType rMeshType = MeshType::Local);
 
-        template <class TDataType, class TMeshType = Kratos::MeshType::Local>
+        template <class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
         VariableExpressionInput(
             const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
             const Variable<TDataType>& rVariable,
             const bool IsHistorical = false);
 
-        template <class TContainerType, class TDataType, class TMeshType = Kratos::MeshType::Local>
+        template <class TContainerType, class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
         VariableExpressionInput(
             const ContainerExpression<TContainerType, TMeshType>& rContainer,
             const Variable<TDataType>& rVariable);
@@ -145,21 +138,21 @@ public:
             ModelPart& rModelPart,
             const Variable<TDataType>& rVariable,
             const ContainerType& rContainerType,
-            const MeshType& rMeshType = MeshType::Local);
+            MeshType rMeshType = MeshType::Local);
 
         VariableExpressionOutput(
             ModelPart& rModelPart,
             const VariableType& rVariable,
             const ContainerType& rContainerType,
-            const MeshType& rMeshType = MeshType::Local);
+            MeshType rMeshType = MeshType::Local);
 
-        template <class TDataType, class TMeshType = Kratos::MeshType::Local>
+        template <class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
         VariableExpressionOutput(
             ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
             const Variable<TDataType>& rVariable,
             const bool IsHistorical = false);
 
-        template <class TContainerType, class TDataType, class TMeshType = Kratos::MeshType::Local>
+        template <class TContainerType, class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
         VariableExpressionOutput(
             ContainerExpression<TContainerType, TMeshType>& rContainer,
             const Variable<TDataType>& rVariable);
@@ -196,11 +189,11 @@ public:
 
     static ModelPart::MeshType& GetMesh(
         Communicator& rCommunicator,
-        const MeshType& rMeshType);
+        MeshType rMeshType);
 
     static const ModelPart::MeshType& GetMesh(
         const Communicator& rCommunicator,
-        const MeshType& rMeshType);
+        MeshType rMeshType);
 
     ///@}
 

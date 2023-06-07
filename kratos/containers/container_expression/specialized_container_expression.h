@@ -51,7 +51,7 @@ namespace Kratos {
  * @tparam TContainerDataIO         Container entity input/output type.
  * @tparam TMeshType                Mesh type, should be Local, Ghost or Interface.
  */
-template <class TContainerType, class TContainerDataIO, class TMeshType = MeshType::Local>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType = MeshType::Local>
 class SpecializedContainerExpression : public ContainerExpression<TContainerType, TMeshType> {
 public:
     ///@name Type definitions
@@ -344,7 +344,7 @@ public:
 
 ///@}
 /// output stream function
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
     const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rThis)

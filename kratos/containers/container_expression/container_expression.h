@@ -24,16 +24,12 @@
 #include "includes/model_part.h"
 #include "containers/container_expression/expressions/expression.h"
 #include "containers/container_expression/container_expression_arithmetic_operators.h"
+#include "containers/container_expression/traits.h"
 
 namespace Kratos {
+
 ///@name Kratos Classes
 ///@{
-
-namespace MeshType {
-    struct Local     {};
-    struct Ghost     {};
-    struct Interface {};
-} // namespace MeshTypes
 
 /**
  * @brief Container variable data holder
@@ -81,7 +77,7 @@ namespace MeshType {
  * @tparam TContainerType       Container type, should be nodal, condition or elemental.
  * @tparam TMeshType            Mesh type, should be Local, Ghost or Interface
  */
-template <class TContainerType, class TMeshType = MeshType::Local>
+template <class TContainerType, MeshType TMeshType = MeshType::Local>
 class KRATOS_API(KRATOS_CORE) ContainerExpression {
 public:
     ///@name Type definitions
@@ -406,52 +402,52 @@ public:
 
     ContainerExpression& operator/=(const ContainerExpression& Value);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator+(const ContainerExpression<T1, T2>& rLeft, const double Right);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator+(const double Left, const ContainerExpression<T1, T2>& rRight);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator+(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator-(const ContainerExpression<T1, T2>& rLeft, const double Right);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator-(const double Left, const ContainerExpression<T1, T2>& rRight);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator-(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator*(const ContainerExpression<T1, T2>& rLeft, const double Right);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator*(const double Left, const ContainerExpression<T1, T2>& rRight);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator*(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator/(const ContainerExpression<T1, T2>& rLeft, const double Right);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator/(const double Left, const ContainerExpression<T1, T2>& rRight);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> operator/(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> Power(const double Base, const ContainerExpression<T1, T2>& rExponent);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> Power(const ContainerExpression<T1, T2>& rBase, const double Exponent);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> Power(const ContainerExpression<T1, T2>& rBase, const ContainerExpression<T1, T2>& rExponent);
 
-    template<class T1, class T2>
+    template<class T1, MeshType T2>
     friend ContainerExpression<T1, T2> Scale(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
 
     ///@}
