@@ -627,26 +627,26 @@ public:
 
         constexpr double TOLERANCE = 1e-12;
 
-        const auto& rP0 = this->GetPoint(0);
-        const auto& rP1 = this->GetPoint(1);
-        const auto& rP2 = this->GetPoint(2);
+        const auto& r_p0 = this->GetPoint(0);
+        const auto& r_p1 = this->GetPoint(1);
+        const auto& r_p2 = this->GetPoint(2);
 
         // The method is prone to numerical instability close to the ends of the search interval
         // exit early in that case
-        const array_1d<double,3> d0 = rP0 - rPoint;
+        const array_1d<double,3> d0 = r_p0 - rPoint;
         if (MathUtils<double>::Dot3(d0, d0) < TOLERANCE) {
             rResult[0] = -1.0;
             return rResult;
         }
-        const array_1d<double,3> d1 = rP1 - rPoint;
+        const array_1d<double,3> d1 = r_p1 - rPoint;
         if (MathUtils<double>::Dot3(d1, d1) < TOLERANCE) {
             rResult[0] = 1.0;
             return rResult;
         }
 
-        array_1d<double, 3> c1 = rP0 + rP1 - 2*rP2;
-        array_1d<double, 3> c2 = rP1 - rP0;
-        array_1d<double, 3> c3 = rP2 - rPoint;
+        array_1d<double, 3> c1 = r_p0 + r_p1 - 2*r_p2;
+        array_1d<double, 3> c2 = r_p1 - r_p0;
+        array_1d<double, 3> c3 = r_p2 - rPoint;
 
         const double aux1 = MathUtils<double>::Dot3(c1, c1);
         if (aux1 < TOLERANCE) {
@@ -658,7 +658,7 @@ public:
 
         const double aux2 = MathUtils<double>::Dot3(c1, c3);
         if (std::abs(aux2) < TOLERANCE) {
-            // rP2 == rPoint (we got the center of the line),
+            // r_p2 == rPoint (we got the center of the line),
             //the local coordinate is 0
             return rResult;
         }
@@ -681,7 +681,7 @@ public:
             // if point == line(root) we found our coordinate;
             rResult[0] = root;
             this->ShapeFunctionsValues(shape, rResult);
-            array_1d<double,3> d = (shape[0]*rP0 + shape[1]*rP1 + shape[2]*rP2) - rPoint;
+            array_1d<double,3> d = (shape[0]*r_p0 + shape[1]*r_p1 + shape[2]*r_p2) - rPoint;
             if (MathUtils<double>::Dot3(d, d) < TOLERANCE) {
                 return rResult;
             }
