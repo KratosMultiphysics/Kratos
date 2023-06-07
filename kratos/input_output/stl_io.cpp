@@ -219,16 +219,19 @@ void StlIO::ReadSolid(
     std::getline(*mpInputStream, word); // Reading solid name to be the model part name
 
     // Remove Comments
-    std::size_t pos = word.find("COMMENT:");
-    if(pos!=std::string::npos){
-        word = word.substr(0,pos);
+for (const auto& symbol : {"COMMENT:", ";"}) {
+        const auto position = word.find(symbol);
+        if (position != word.npos) {
+            word.erase(position);
+        }
     }
-    pos = word.find(";");
-    if(pos!=std::string::npos){
-        word = word.substr(0,pos);
-    }
-    // Remove newline and spaces characters from string in C++
-    word = std::regex_replace( word, std::regex("\\r\\n|\\r|\\n| "), "");
+    word.erase(std::remove_if(
+        word.begin(),
+        word.end(),
+        [](auto character) -> bool {
+            return character == '\r' || character == '\n';
+        }
+    ), word.end());
 
     if(word == "") // empty solid name is valid in STL format
         word = "main";
