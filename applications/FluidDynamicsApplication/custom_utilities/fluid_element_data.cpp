@@ -201,6 +201,8 @@ template class FluidElementData<2,3,true>;
 
 // Quadrilaterals
 template class FluidElementData<2,4,false>;
+template class FluidElementData<2,6,false>;
+template class FluidElementData<2,9,false>;
 template class FluidElementData<2,4,true>;
 
 // Tetrahedra
@@ -214,5 +216,6 @@ template class FluidElementData<3,6,true>;
 // Hexahedra
 template class FluidElementData<3,8,false>;
 template class FluidElementData<3,8,true>;
+template class FluidElementData<3,27,false>;
 
 } // namespace Kratos

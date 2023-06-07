@@ -836,9 +836,12 @@ template class QSVMS< TimeIntegratedQSVMSData<2,3> >;
 template class QSVMS< TimeIntegratedQSVMSData<3,4> >;
 
 template class QSVMS< QSVMSDEMCoupledData<2,3> >;
+template class QSVMS< QSVMSDEMCoupledData<2,6> >;
 template class QSVMS< QSVMSDEMCoupledData<3,4> >;
 
 template class QSVMS< QSVMSDEMCoupledData<2,4> >;
+template class QSVMS< QSVMSDEMCoupledData<2,9> >;
 template class QSVMS< QSVMSDEMCoupledData<3,8> >;
+template class QSVMS< QSVMSDEMCoupledData<3,27> >;
 
 } // namespace Kratos
