@@ -161,7 +161,6 @@ protected:
             else if(Column_left >= AuxVariables.NColumns) Column_left = AuxVariables.NColumns-1;
             if(Column_right >= AuxVariables.NColumns) Column_right = AuxVariables.NColumns-1;
             else if(Column_right < 0) Column_right = 0;
-
             if(Row_top < 0) Row_top = 0;
             else if(Row_top >= AuxVariables.NRows) Row_top = AuxVariables.NRows-1;
             if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
@@ -357,7 +356,6 @@ protected:
             else if(Column_left >= AuxVariables.NColumns) Column_left = AuxVariables.NColumns-1;
             if(Column_right >= AuxVariables.NColumns) Column_right = AuxVariables.NColumns-1;
             else if(Column_right < 0) Column_right = 0;
-
             if(Row_top < 0) Row_top = 0;
             else if(Row_top >= AuxVariables.NRows) Row_top = AuxVariables.NRows-1;
             if(Row_bot >= AuxVariables.NRows) Row_bot = AuxVariables.NRows-1;
