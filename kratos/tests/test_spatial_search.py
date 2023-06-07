@@ -1,6 +1,10 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
+# Importing the MPI
+if KM.IsDistributedRun():
+    import KratosMultiphysics.mpi as KratosMPI
+
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -29,6 +33,9 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(KM.NODAL_VAUX)
         cls.model_part.AddNodalSolutionStepVariable(KM.EXTERNAL_FORCES_VECTOR)
         cls.model_part.AddNodalSolutionStepVariable(KM.LOCAL_AXES_MATRIX)
+        # Adding PARTITION_INDEX
+        if KM.IsDistributedRun():
+            cls.model_part.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
         cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
         ReadModelPart(cls.mdpa_name, cls.model_part)
 
@@ -46,86 +53,123 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
             }
         }
         """)
+        
+        # Get the data communicator
+        self.data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
+
+    def GenerateSearch(self, container_type = "KDTree"):
+        self.settings["container_type"].SetString(container_type)
+        if KM.IsDistributedRun():
+            raise Exception("MPI version comming in a future PR")
+        else:
+            self.search = KM.SpecializedSpatialSearch(self.settings)
+
+        # Create node for search
+        self.new_node_id = 100000
+        self.second_model_part = self.current_model.CreateModelPart(container_type)
+        self.second_model_part.CreateNewNode(self.new_node_id, 0.0, 0.0, 0.0)
 
     def test_KDTree_nodes(self):
         # Create search
-        self.settings["container_type"].SetString("KDTree")
-        self.search = KM.SpecializedSpatialSearch(self.settings)
-
-        # Create node for search
-        second_model_part = self.current_model.CreateModelPart("KDTree")
-        second_model_part.CreateNewNode(100000, 0.0, 0.0, 0.0)
+        self.GenerateSearch("KDTree")
+        
+        # Reference solution
         radius_list = [0.3]
-        [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, second_model_part.Nodes, radius_list)
-
-        self.assertEqual(len(results), 1)
-        self.assertEqual(len(results[0]), 7)
         distance_ref = [0.077385615, 0.0008331217999999999, 0.0899807529, 0.0627019979, 0.07703137859999999, 0.0789991779, 0.0708403121]
         node_id_ref = [7, 17, 18, 23, 33, 39, 44, 56]
-        for distance in distances[0]:
-            self.assertTrue(distance in distance_ref)
-        for node in results[0]:
-            self.assertTrue(node.Id in node_id_ref)
+
+        # Serial interface
+        if not KM.IsDistributedRun():
+            [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list)
+
+            # Assert results
+            self.assertEqual(len(results), len(radius_list))
+            self.assertEqual(len(results[0]), len(distance_ref))
+
+            for distance in distances[0]:
+                self.assertTrue(distance in distance_ref)
+            for node in results[0]:
+                self.assertTrue(node.Id in node_id_ref)
+
+        # Parallel interface (also works in serial mode)
+        results = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list, self.data_comm)
+        self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
 
     def test_Octree_nodes(self):
         # Create search
-        self.settings["container_type"].SetString("Octree")
-        self.search = KM.SpecializedSpatialSearch(self.settings)
+        self.GenerateSearch("Octree")
 
-        # Create node for search
-        second_model_part = self.current_model.CreateModelPart("Octree")
-        second_model_part.CreateNewNode(100000, 0.0, 0.0, 0.0)
+        # Reference solution
         radius_list = [0.3]
-        [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, second_model_part.Nodes, radius_list)
-
-        self.assertEqual(len(results), 1)
-        self.assertEqual(len(results[0]), 7)
         distance_ref = [0.077385615, 0.0008331217999999999, 0.0899807529, 0.0627019979, 0.07703137859999999, 0.0789991779, 0.0708403121]
         node_id_ref = [7, 17, 18, 23, 33, 39, 44, 56]
-        for distance in distances[0]:
-            self.assertTrue(distance in distance_ref)
-        for node in results[0]:
-            self.assertTrue(node.Id in node_id_ref)
+
+        # Serial interface
+        if not KM.IsDistributedRun():
+            [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list)
+
+            # Assert results
+            self.assertEqual(len(results), len(radius_list))
+            self.assertEqual(len(results[0]), len(distance_ref))
+            
+            for distance in distances[0]:
+                self.assertTrue(distance in distance_ref)
+            for node in results[0]:
+                self.assertTrue(node.Id in node_id_ref)
+        
+        # Parallel interface (also works in serial mode)
+        results = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list, self.data_comm)
+        self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
 
     def test_BinsStatic_nodes(self):
         # Create search
-        self.settings["container_type"].SetString("BinsStatic")
-        self.search = KM.SpecializedSpatialSearch(self.settings)
+        self.GenerateSearch("BinsStatic")
 
-        # Create node for search
-        second_model_part = self.current_model.CreateModelPart("BinsStatic")
-        second_model_part.CreateNewNode(100000, 0.0, 0.0, 0.0)
+        # Reference solution
         radius_list = [0.3]
-        [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, second_model_part.Nodes, radius_list)
-
-        self.assertEqual(len(results), 1)
-        self.assertEqual(len(results[0]), 7)
         distance_ref = [0.077385615, 0.0008331217999999999, 0.0899807529, 0.0627019979, 0.07703137859999999, 0.0789991779, 0.0708403121]
         node_id_ref = [7, 17, 18, 23, 33, 39, 44, 56]
-        for distance in distances[0]:
-            self.assertTrue(distance in distance_ref)
-        for node in results[0]:
-            self.assertTrue(node.Id in node_id_ref)
+
+        # Serial interface
+        if not KM.IsDistributedRun():
+            [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list)
+
+            # Assert results
+            self.assertEqual(len(results), len(radius_list))
+            self.assertEqual(len(results[0]), len(distance_ref))
+            for distance in distances[0]:
+                self.assertTrue(distance in distance_ref)
+            for node in results[0]:
+                self.assertTrue(node.Id in node_id_ref)
+        
+        # Parallel interface (also works in serial mode)
+        results = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list, self.data_comm)
+        self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
 
     def test_BinsDynamic_nodes(self):
         # Create search
-        self.settings["container_type"].SetString("BinsDynamic")
-        self.search = KM.SpecializedSpatialSearch(self.settings)
+        self.GenerateSearch("BinsDynamic")
 
-        # Create node for search
-        second_model_part = self.current_model.CreateModelPart("BinsDynamic")
-        second_model_part.CreateNewNode(100000, 0.0, 0.0, 0.0)
+        # Reference solution
         radius_list = [0.3]
-        [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, second_model_part.Nodes, radius_list)
-
-        self.assertEqual(len(results), 1)
-        self.assertEqual(len(results[0]), 7)
         distance_ref = [0.077385615, 0.0008331217999999999, 0.0899807529, 0.0627019979, 0.07703137859999999, 0.0789991779, 0.0708403121]
         node_id_ref = [7, 17, 18, 23, 33, 39, 44, 56]
-        for distance in distances[0]:
-            self.assertTrue(distance in distance_ref)
-        for node in results[0]:
-            self.assertTrue(node.Id in node_id_ref)
+
+        # Serial interface
+        if not KM.IsDistributedRun():
+            [results, distances] = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list)
+
+            # Assert results
+            self.assertEqual(len(results), len(radius_list))
+            self.assertEqual(len(results[0]), len(distance_ref))
+            for distance in distances[0]:
+                self.assertTrue(distance in distance_ref)
+            for node in results[0]:
+                self.assertTrue(node.Id in node_id_ref)
+        
+        # Parallel interface (also works in serial mode)
+        results = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list, self.data_comm)
+        self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
