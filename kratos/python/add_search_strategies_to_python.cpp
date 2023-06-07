@@ -177,11 +177,27 @@ void BindSpatialSearchResultContainerMap(pybind11::module& m, const std::string&
     pybind11::class_<ContainerMapType, typename ContainerMapType::Pointer>(m, rClassName.c_str())
     .def(pybind11::init<>())
     .def("NumberOfPointsResults", &ContainerMapType::NumberOfPointsResults)
-    .def("InitializeResult", &ContainerMapType::InitializeResult)
-    .def("HasResult", &ContainerMapType::HasResult)
+    .def("InitializeResult", [](ContainerMapType& self, const std::size_t Index) {
+        self.InitializeResult(Index);
+    })
+    .def("InitializeResult", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
+        self.InitializeResult(rCoordinates);
+    })
+    .def("HasResult", [](ContainerMapType& self, const std::size_t Index) {
+        self.HasResult(Index);
+    })
+    .def("InitializeResult", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
+        self.HasResult(rCoordinates);
+    })
     .def("Clear", &ContainerMapType::Clear)
+    .def("__getitem__", [](ContainerMapType& self, const std::size_t Index) {
+        return self[Index];
+    })
     .def("__getitem__", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
         return self[rCoordinates];
+    })
+    .def("__call__", [](ContainerMapType& self, const std::size_t Index) {
+        return self(Index);
     })
     .def("__call__", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
         return self(rCoordinates);
