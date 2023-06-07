@@ -171,32 +171,32 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .value("ConditionNonHistorical", VariableExpressionIO::ConditionNonHistorical)
         ;
 
-    pybind11::enum_<VariableExpressionIO::MeshType>(variable_expression_io, "MeshType")
-        .value("Local", VariableExpressionIO::Local)
-        .value("Interface", VariableExpressionIO::Interface)
-        .value("Ghost", VariableExpressionIO::Ghost)
+    pybind11::enum_<MeshType>(variable_expression_io, "MeshType")
+        .value("Local", MeshType::Local)
+        .value("Interface", MeshType::Interface)
+        .value("Ghost", MeshType::Ghost)
         ;
 
     pybind11::class_<VariableExpressionIO::VariableExpressionInput, VariableExpressionIO::VariableExpressionInput::Pointer, ExpressionInput>(variable_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const VariableExpressionIO::VariableType&,
                             const VariableExpressionIO::ContainerType&,
-                            const VariableExpressionIO::MeshType&>(),
+                            const MeshType&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
              pybind11::arg("container_type"),
-             pybind11::arg("mesh_type") = VariableExpressionIO::Local)
+             pybind11::arg("mesh_type") = MeshType::Local)
         ;
 
     pybind11::class_<VariableExpressionIO::VariableExpressionOutput, VariableExpressionIO::VariableExpressionOutput::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const VariableExpressionIO::VariableType&,
                             const VariableExpressionIO::ContainerType&,
-                            const VariableExpressionIO::MeshType&>(),
+                            const MeshType&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
              pybind11::arg("container_type"),
-             pybind11::arg("mesh_type") = VariableExpressionIO::Local)
+             pybind11::arg("mesh_type") = MeshType::Local)
         ;
 
     pybind11::class_<CArrayExpressionInput, CArrayExpressionInput::Pointer, ExpressionInput>(rModule, "CArrayExpressionInput")

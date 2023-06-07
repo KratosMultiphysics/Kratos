@@ -33,7 +33,7 @@ namespace Kratos {
 
 namespace ContainerExpressionHelperUtilities
 {
-template <class TMeshType>
+template <MeshType TMeshType>
 ModelPart::MeshType& GetMesh(ModelPart& rModelPart);
 
 template<>
@@ -54,7 +54,7 @@ ModelPart::MeshType& GetMesh<MeshType::Interface>(ModelPart& rModelPart)
     return rModelPart.GetCommunicator().InterfaceMesh();
 }
 
-template <class TMeshType>
+template <MeshType TMeshType>
 const ModelPart::MeshType& GetMesh(const ModelPart& rModelPart);
 
 template<>
@@ -161,14 +161,14 @@ void MoveFrom(
 
 } // namespace ContainerExpressionHelperUtilities
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 ContainerExpression<TContainerType, TMeshType>::ContainerExpression(ModelPart& rModelPart)
     : mpExpression(),
       mpModelPart(&rModelPart)
 {
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 ContainerExpression<TContainerType, TMeshType>::ContainerExpression(
     const ContainerExpression& rOther)
     : mpExpression(rOther.mpExpression),
@@ -176,14 +176,14 @@ ContainerExpression<TContainerType, TMeshType>::ContainerExpression(
 {
 }
 
-template <class TContainer, class TMesh>
+template <class TContainer, MeshType TMesh>
 ContainerExpression<TContainer,TMesh>& ContainerExpression<TContainer,TMesh>::operator=(const ContainerExpression& rOther)
 {
     this->SetExpression(rOther.pGetExpression());
     return *this;
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::CopyFrom(
     const ContainerExpression<TContainerType, TMeshType>& rOther)
 {
@@ -195,7 +195,7 @@ void ContainerExpression<TContainerType, TMeshType>::CopyFrom(
     mpExpression = rOther.mpExpression;
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::Read(
     double const* pBegin,
     const int NumberOfEntities,
@@ -205,7 +205,7 @@ void ContainerExpression<TContainerType, TMeshType>::Read(
     ContainerExpressionHelperUtilities::Read(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::Read(
     int const* pBegin,
     const int NumberOfEntities,
@@ -215,7 +215,7 @@ void ContainerExpression<TContainerType, TMeshType>::Read(
     ContainerExpressionHelperUtilities::Read(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::MoveFrom(
     double* pBegin,
     const int NumberOfEntities,
@@ -225,7 +225,7 @@ void ContainerExpression<TContainerType, TMeshType>::MoveFrom(
     ContainerExpressionHelperUtilities::MoveFrom(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::MoveFrom(
     int* pBegin,
     const int NumberOfEntities,
@@ -235,7 +235,7 @@ void ContainerExpression<TContainerType, TMeshType>::MoveFrom(
     ContainerExpressionHelperUtilities::MoveFrom(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::Evaluate(
     double* pBegin,
     const int NumberOfEntities,
@@ -255,74 +255,74 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
     KRATOS_CATCH("");
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::SetDataToZero()
 {
     mpExpression = LiteralExpression<double>::Create(0.0, GetContainer().size());
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::SetExpression(Expression::ConstPointer pExpression)
 {
     this->mpExpression = pExpression;
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 bool ContainerExpression<TContainerType, TMeshType>::HasExpression() const
 {
     return mpExpression.has_value();
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 const Expression& ContainerExpression<TContainerType, TMeshType>::GetExpression() const
 {
     return *(*mpExpression);
 }
 
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 Expression::ConstPointer ContainerExpression<TContainerType, TMeshType>::pGetExpression() const
 {
     return *mpExpression;
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 const std::vector<std::size_t> ContainerExpression<TContainerType, TMeshType>::GetItemShape() const
 {
     return this->GetExpression().GetItemShape();
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 std::size_t ContainerExpression<TContainerType, TMeshType>::GetItemComponentCount() const
 {
     return this->GetExpression().GetItemComponentCount();
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 ModelPart& ContainerExpression<TContainerType, TMeshType>::GetModelPart()
 {
     return *mpModelPart;
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 const ModelPart& ContainerExpression<TContainerType, TMeshType>::GetModelPart() const
 {
     return *mpModelPart;
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 TContainerType& ContainerExpression<TContainerType, TMeshType>::GetContainer()
 {
     return ContainerExpressionHelperUtilities::GetContainer<TContainerType>(ContainerExpressionHelperUtilities::GetMesh<TMeshType>(*mpModelPart));
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 const TContainerType& ContainerExpression<TContainerType, TMeshType>::GetContainer() const
 {
     return ContainerExpressionHelperUtilities::GetContainer<TContainerType>(ContainerExpressionHelperUtilities::GetMesh<TMeshType>(*mpModelPart));
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 std::string ContainerExpression<TContainerType, TMeshType>::Info() const
 {
     std::stringstream msg;
@@ -343,7 +343,7 @@ std::string ContainerExpression<TContainerType, TMeshType>::Info() const
     return msg.str();
 }
 
-template <class TContainerType, class TMeshType>
+template <class TContainerType, MeshType TMeshType>
 std::string ContainerExpression<TContainerType, TMeshType>::PrintData() const
 {
     std::stringstream msg;
@@ -352,7 +352,7 @@ std::string ContainerExpression<TContainerType, TMeshType>::PrintData() const
 }
 
 
-template <class TContainer, class TMesh>
+template <class TContainer, MeshType TMesh>
 ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Slice(IndexType Offset, IndexType Stride) const
 {
     KRATOS_TRY
@@ -367,7 +367,7 @@ ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Sl
 }
 
 
-template <class TContainer, class TMesh>
+template <class TContainer, MeshType TMesh>
 ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Reshape(const std::vector<IndexType>& rNewShape) const
 {
     KRATOS_TRY
@@ -382,7 +382,7 @@ ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Res
 }
 
 
-template <class TContainer, class TMesh>
+template <class TContainer, MeshType TMesh>
 ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Comb(const ContainerExpression& rOther) const
 {
     KRATOS_TRY
@@ -402,7 +402,7 @@ ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Com
 }
 
 
-template <class TContainer, class TMesh>
+template <class TContainer, MeshType TMesh>
 ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Comb(const std::vector<ContainerExpression::Pointer>& rOthers) const
 {
     KRATOS_TRY
@@ -427,7 +427,7 @@ ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Com
 
 
 #define KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(OPERATOR_NAME)                \
-    template <class TContainerType, class TMeshType>                                     \
+    template <class TContainerType, MeshType TMeshType>                                     \
     ContainerExpression<TContainerType, TMeshType> OPERATOR_NAME(                        \
         const ContainerExpression<TContainerType, TMeshType>& rLeft, const double Right) \
     {                                                                                    \
@@ -436,7 +436,7 @@ ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Com
         return result;                                                                   \
     }                                                                                    \
                                                                                          \
-    template <class TContainerType, class TMeshType>                                     \
+    template <class TContainerType, MeshType TMeshType>                                     \
     ContainerExpression<TContainerType, TMeshType> OPERATOR_NAME(                        \
         const double Left, const ContainerExpression<TContainerType, TMeshType>& rRight) \
     {                                                                                    \
@@ -445,7 +445,7 @@ ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Com
         return result;                                                                   \
     }                                                                                    \
                                                                                          \
-    template <class TContainerType, class TMeshType>                                     \
+    template <class TContainerType, MeshType TMeshType>                                     \
     ContainerExpression<TContainerType, TMeshType> OPERATOR_NAME(                        \
         const ContainerExpression<TContainerType, TMeshType>& rLeft,                     \
         const ContainerExpression<TContainerType, TMeshType>& rRight)                    \

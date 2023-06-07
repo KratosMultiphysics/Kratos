@@ -29,7 +29,7 @@
 
 namespace Kratos {
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator=(const SpecializedContainerExpression& rOther)
 {
     KRATOS_ERROR_IF(this->GetContainer().size() != rOther.GetContainer().size())
@@ -41,13 +41,13 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& Spe
     return *this;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 typename SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Pointer SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Clone() const
 {
     return Kratos::make_shared<SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>>(*this);
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 template<class TDataType>
 void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Read(const Variable<TDataType>& rVariable)
 {
@@ -62,7 +62,7 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
     KRATOS_CATCH("")
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 template<class TDataType>
 void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Evaluate(const Variable<TDataType>& rVariable)
 {
@@ -77,21 +77,21 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
     KRATOS_CATCH("");
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 template<class TDataType>
 void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::SetData(const TDataType& rValue)
 {
     this->mpExpression = LiteralExpression<TDataType>::Create(rValue, this->GetContainer().size());
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 template<class TDataType>
 void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::SetZero(const Variable<TDataType>& rVariable)
 {
     this->SetData(rVariable.Zero());
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Slice(
     const IndexType Offset,
     const IndexType Stride) const
@@ -101,13 +101,13 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(const std::vector<IndexType>& rShape) const
 {
     return this->Reshape(rShape.begin(), rShape.end());
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 template<class TIteratorType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(
     TIteratorType Begin,
@@ -118,7 +118,7 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const BaseType& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
@@ -129,13 +129,13 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const std::vector<typename BaseType::Pointer>& rListOfOthers) const
 {
     return this->Comb(rListOfOthers.begin(), rListOfOthers.end());
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 template<class TIteratorType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(
     TIteratorType Begin,
@@ -151,21 +151,21 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) + static_cast<BaseType>(rOther));
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+=(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther)
 {
     static_cast<BaseType>(*this)+= static_cast<BaseType>(rOther);
     return *this;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+(const double Value) const
 {
 
@@ -173,28 +173,28 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+=(const double Value)
 {
     static_cast<BaseType>(*this)+= Value;
     return *this;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) - static_cast<BaseType>(rOther));
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-=(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther)
 {
     static_cast<BaseType>(*this)-= static_cast<BaseType>(rOther);
     return *this;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-(const double Value) const
 {
 
@@ -202,28 +202,28 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-=(const double Value)
 {
     static_cast<BaseType>(*this)-= Value;
     return *this;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) * static_cast<BaseType>(rOther));
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*=(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther)
 {
     static_cast<BaseType>(*this)*= static_cast<BaseType>(rOther);
     return *this;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*(const double Value) const
 {
 
@@ -231,28 +231,28 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*=(const double Value)
 {
     static_cast<BaseType>(*this)*= Value;
     return *this;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator/(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) / static_cast<BaseType>(rOther));
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator/=(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther)
 {
     static_cast<BaseType>(*this)/= static_cast<BaseType>(rOther);
     return *this;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator/(const double Value) const
 {
 
@@ -260,28 +260,28 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator/=(const double Value)
 {
     static_cast<BaseType>(*this)/= Value;
     return *this;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Power(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Power(static_cast<BaseType>(*this), static_cast<BaseType>(rOther)));
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Power(const double Value) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Power(static_cast<BaseType>(*this), Value));
     return result;
 }
 
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 std::string SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Info() const
 {
     std::stringstream msg;
