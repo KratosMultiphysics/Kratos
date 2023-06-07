@@ -218,14 +218,14 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) + static_cast<BaseType>(rOther));
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<const BaseType&>(*this) + static_cast<const BaseType&>(rOther));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+=(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther)
 {
-    static_cast<BaseType>(*this)+= static_cast<BaseType>(rOther);
+    static_cast<BaseType&>(*this)+= static_cast<const BaseType&>(rOther);
     return *this;
 }
 
@@ -233,28 +233,28 @@ template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+(const double Value) const
 {
 
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) + Value);
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<const BaseType&>(*this) + Value);
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator+=(const double Value)
 {
-    static_cast<BaseType>(*this)+= Value;
+    static_cast<BaseType&>(*this)+= Value;
     return *this;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) - static_cast<BaseType>(rOther));
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<const BaseType&>(*this) - static_cast<const BaseType&>(rOther));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-=(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther)
 {
-    static_cast<BaseType>(*this)-= static_cast<BaseType>(rOther);
+    static_cast<BaseType&>(*this)-= static_cast<const BaseType&>(rOther);
     return *this;
 }
 
@@ -262,28 +262,28 @@ template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-(const double Value) const
 {
 
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) - Value);
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<const BaseType&>(*this) - Value);
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator-=(const double Value)
 {
-    static_cast<BaseType>(*this)-= Value;
+    static_cast<BaseType&>(*this)-= Value;
     return *this;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) * static_cast<BaseType>(rOther));
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<const BaseType&>(*this) * static_cast<const BaseType&>(rOther));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*=(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther)
 {
-    static_cast<BaseType>(*this)*= static_cast<BaseType>(rOther);
+    static_cast<BaseType&>(*this)*= static_cast<const BaseType&>(rOther);
     return *this;
 }
 
@@ -291,28 +291,28 @@ template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*(const double Value) const
 {
 
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) * Value);
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<const BaseType&>(*this) * Value);
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator*=(const double Value)
 {
-    static_cast<BaseType>(*this)*= Value;
+    static_cast<BaseType&>(*this)*= Value;
     return *this;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator/(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) / static_cast<BaseType>(rOther));
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<const BaseType&>(*this) / static_cast<const BaseType&>(rOther));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator/=(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther)
 {
-    static_cast<BaseType>(*this)/= static_cast<BaseType>(rOther);
+    static_cast<BaseType&>(*this)/= static_cast<const BaseType&>(rOther);
     return *this;
 }
 
@@ -320,28 +320,28 @@ template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator/(const double Value) const
 {
 
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<BaseType>(*this) / Value);
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(static_cast<const BaseType&>(*this) / Value);
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::operator/=(const double Value)
 {
-    static_cast<BaseType>(*this)/= Value;
+    static_cast<BaseType&>(*this)/= Value;
     return *this;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Power(const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rOther) const
 {
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Power(static_cast<BaseType>(*this), static_cast<BaseType>(rOther)));
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Power(static_cast<const BaseType&>(*this), static_cast<const BaseType&>(rOther)));
     return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Power(const double Value) const
 {
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Power(static_cast<BaseType>(*this), Value));
+    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(Kratos::Power(static_cast<const BaseType&>(*this), Value));
     return result;
 }
 
