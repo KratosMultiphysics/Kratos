@@ -222,7 +222,7 @@ void StlIO::ReadSolid(
     if(pos!=std::string::npos){
         word = word.substr(0,pos);
     }
-        std::size_t pos = word.find(";");
+    std::size_t pos = word.find(";");
     if(pos!=std::string::npos){
         word = word.substr(0,pos);
     }
