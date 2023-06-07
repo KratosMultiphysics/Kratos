@@ -741,6 +741,54 @@ public:
     ///@name Operators
     ///@{
 
+   /**
+     * @brief Operator []
+     * @param Index The index to be initialized
+     * @return The result container
+     */
+    SpatialSearchResultContainer<TObjectType>& operator[](const IndexType Index)
+    {
+        const auto it = mPointResults.find(Index);
+        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for index: " << Index << std::endl;
+        return it->second;
+    }
+
+    /**
+     * @brief Operator []
+     * @param Index The index to be initialized
+     * @return The result container
+     */
+    const SpatialSearchResultContainer<TObjectType>& operator[](const IndexType Index) const
+    {
+        const auto it = mPointResults.find(Index);
+        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for index: " << Index << std::endl;
+        return it->second;
+    }
+
+    /**
+     * @brief Operator ()
+     * @param Index The index to be initialized
+     * @return The result container
+     */
+    SpatialSearchResultContainer<TObjectType>& operator()(const IndexType Index)
+    {
+        const auto it = mPointResults.find(Index);
+        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for index: " << Index << std::endl;
+        return it->second;
+    }
+
+    /**
+     * @brief Operator ()
+     * @param Index The index to be initialized
+     * @return The result container
+     */
+    const SpatialSearchResultContainer<TObjectType>& operator()(const IndexType Index) const
+    {
+        const auto it = mPointResults.find(Index);
+        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for index: " << Index << std::endl;
+        return it->second;
+    }
+
     /**
      * @brief Operator []
      * @param rCoordinates The coordinates
@@ -844,9 +892,22 @@ public:
 
     /**
      * @brief Initialize the container
+     * @param Index The index to be initialized
+     */
+    SpatialSearchResultContainer<TObjectType>& InitializeResult(const IndexType Index);
+
+    /**
+     * @brief Initialize the container
      * @param rCoordinates The coordinates
      */
     SpatialSearchResultContainer<TObjectType>& InitializeResult(const array_1d<double, 3>& rCoordinates);
+
+    /**
+     * @brief Check if coordinates are initialized
+     * @param Index The index to be initialized
+     * @return True if hash is initialized, false otherwise
+    */
+    bool HasResult(const IndexType Index) const;
 
     /**
      * @brief Check if coordinates are initialized
