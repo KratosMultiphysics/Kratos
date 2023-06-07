@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import HasContainerExpression
+import numpy
 
 class MasterControl:
     """Master control class.
@@ -158,11 +159,11 @@ class MasterControl:
 
         return mapped_gradients
 
-    def Update(self, update_collective_expressions: KratosOA.ContainerExpression.CollectiveExpressions) -> 'dict[Control, bool]':
+    def Update(self, new_control_variables) -> 'dict[Control, bool]':
         """Update each control with given collective expression's respective container expression.
 
         Args:
-            update_collective_expressions (KratosOA.ContainerExpression.CollectiveExpressions): Update
+            new_control_variables (KratosOA.ContainerExpression.CollectiveExpressions/numpy.ndarray): Update
 
         Raises:
             RuntimeError: If number of controls and number of container expressions mismatch.
@@ -170,12 +171,25 @@ class MasterControl:
         Returns:
             dict[Control, bool]: A map with control and a boolean whether the update changed anything in that control.
         """
-        if len(self.__list_of_controls) != len(update_collective_expressions.GetContainerExpressions()):
-            raise RuntimeError(f"Controls size and update size mismatch [ number of controls: {len(self.__list_of_controls)}, number of container expressions: {len(update_collective_expressions.GetContainerExpressions())} ].")
-
         update_map: 'dict[Control, bool]' = {}
-        for control, container_expression in zip(self.__list_of_controls, update_collective_expressions.GetContainerExpressions()):
-            update_map[control] = control.Update(container_expression)
+        if isinstance(new_control_variables, numpy.ndarray):
+            control_field = self.GetControlField()
+            number_of_entities = []
+            shapes = []
+            for control in self.__list_of_controls:
+                number_of_entities.append(len(control.GetControlField().GetContainer()))
+                shapes.append(control.GetControlField().GetItemShape())
+
+            control_field.Read(new_control_variables, numpy.array(number_of_entities), shapes)
+            for control, container_expression in zip(self.__list_of_controls, control_field.GetContainerExpressions()):
+                update_map[control] = control.Update(container_expression)
+
+        elif isinstance(new_control_variables, KratosOA.ContainerExpression.CollectiveExpressions):
+            if len(self.__list_of_controls) != len(new_control_variables.GetContainerExpressions()):
+                raise RuntimeError(f"Controls size and update size mismatch [ number of controls: {len(self.__list_of_controls)}, number of container expressions: {len(new_control_variables.GetContainerExpressions())} ].")
+            for control, container_expression in zip(self.__list_of_controls, new_control_variables.GetContainerExpressions()):
+                update_map[control] = control.Update(container_expression)
+
 
         return update_map
 
