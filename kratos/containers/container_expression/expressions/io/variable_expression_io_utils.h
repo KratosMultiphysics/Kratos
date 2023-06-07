@@ -79,7 +79,7 @@ public:
 
         if (number_of_entities > 0) {
             KRATOS_TRY
-            std::visit([&rContainer, number_of_entities, &rExpression, &rCommunicator](auto pVariable) {
+            std::visit([&, number_of_entities](auto pVariable) {
                 using data_type = typename std::remove_const_t<std::remove_pointer_t<decltype(pVariable)>>::Type;
 
                 VariableExpressionDataIO<data_type> variable_flatten_data_io(rExpression.GetItemShape());
