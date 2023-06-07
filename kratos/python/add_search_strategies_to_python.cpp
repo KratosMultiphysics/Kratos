@@ -178,16 +178,16 @@ void BindSpatialSearchResultContainerMap(pybind11::module& m, const std::string&
     .def(pybind11::init<>())
     .def("NumberOfSearchResults", &ContainerMapType::NumberOfSearchResults)
     .def("InitializeResult", [](ContainerMapType& self, const std::size_t Index) {
-        self.InitializeResult(Index);
+        return self.InitializeResult(Index);
     })
     .def("InitializeResult", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
-        self.InitializeResult(rCoordinates);
+        return self.InitializeResult(rCoordinates);
     })
     .def("HasResult", [](ContainerMapType& self, const std::size_t Index) {
-        self.HasResult(Index);
+        return self.HasResult(Index);
     })
-    .def("InitializeResult", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
-        self.HasResult(rCoordinates);
+    .def("HasResult", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
+        return self.HasResult(rCoordinates);
     })
     .def("Clear", &ContainerMapType::Clear)
     .def("__getitem__", [](ContainerMapType& self, const std::size_t Index) {
