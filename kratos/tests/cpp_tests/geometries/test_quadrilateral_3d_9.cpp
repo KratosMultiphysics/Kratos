@@ -63,7 +63,7 @@ namespace Kratos::Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9EdgesNumber, KratosCoreGeometriesFastSuite)
     {
-        auto geom = GenerateFlatQuadrilateral3D9<Node<3>>();
+        auto geom = GenerateFlatQuadrilateral3D9<Node>();
 
         KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 4);
     }
@@ -73,7 +73,7 @@ namespace Kratos::Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Edges, KratosCoreGeometriesFastSuite)
     {
-        auto p_geom = GenerateFlatQuadrilateral3D9<Node<3>>();
+        auto p_geom = GenerateFlatQuadrilateral3D9<Node>();
 
         const auto& r_edges = p_geom->GenerateEdges();
         CheckSamePoint(r_edges[0][0], p_geom->GetPoint(0));
@@ -98,7 +98,7 @@ namespace Kratos::Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Area, KratosCoreGeometriesFastSuite)
     {
-        auto geom = GenerateFlatQuadrilateral3D9<Node<3>>();
+        auto geom = GenerateFlatQuadrilateral3D9<Node>();
         KRATOS_CHECK_NEAR(geom->Area(), 1.0, TOLERANCE);
     }
 
@@ -106,7 +106,7 @@ namespace Kratos::Testing
      * Tests the PointLocalCoordinates for Quadrilateral3D9.
      */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateFlatQuadrilateral3D9<Node<3>>();
+        auto geom = GenerateFlatQuadrilateral3D9<Node>();
 
         Point TestPointA(1.0, 1.0, 0.0);
         Point TestPointB(0.5, 0.5, 0.0);
@@ -128,12 +128,12 @@ namespace Kratos::Testing
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
-      auto geom = GenerateFlatQuadrilateral3D9<Node<3>>();
+      auto geom = GenerateFlatQuadrilateral3D9<Node>();
       CrossCheckShapeFunctionsValues(*geom);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateFlatQuadrilateral3D9<Node<3>>();
+        auto geom = GenerateFlatQuadrilateral3D9<Node>();
         TestAllShapeFunctionsLocalGradients(*geom);
     }
 }
