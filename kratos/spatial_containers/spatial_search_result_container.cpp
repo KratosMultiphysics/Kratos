@@ -334,6 +334,19 @@ template class SpatialSearchResultContainer<GeometricalObject>;
 /***********************************************************************************/
 
 template <class TObjectType>
+SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerMap<TObjectType>::InitializeResult(const IndexType Index)
+{
+    // If doesn't exists, create it
+    if (!HasResult(Index)) {
+        mPointResults.insert({Index, SpatialSearchResultContainer<TObjectType>()});
+    }
+    return mPointResults[Index];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerMap<TObjectType>::InitializeResult(const array_1d<double, 3>& rCoordinates)
 {
     const HashType hash = Hash(rCoordinates);
@@ -342,6 +355,18 @@ SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerMap<TObje
         mPointResults.insert({hash, SpatialSearchResultContainer<TObjectType>()});
     }
     return mPointResults[hash];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
+bool SpatialSearchResultContainerMap<TObjectType>::HasResult(const IndexType Index) const
+{
+    if (mPointResults.find(Index) != mPointResults.end()) {
+        return true;
+    }
+    return false;       
 }
 
 /***********************************************************************************/
