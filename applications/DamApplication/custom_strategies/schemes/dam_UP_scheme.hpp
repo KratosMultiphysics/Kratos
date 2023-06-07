@@ -508,24 +508,16 @@ public:
     {
         KRATOS_TRY
 
-        int NumThreads = ParallelUtilities::GetNumThreads();
-        OpenMPUtils::PartitionVector DofSetPartition;
-        OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
-
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-
-            typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
-
-            //Update Displacement and Pressure (DOFs)
-            for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
+        // Initialize
+        block_for_each(rDofSet, [&Dx](auto& dof)
             {
-                if (itDof->IsFree())
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
+                if (dof.IsFree())
+                {
+                    dof.GetSolutionStepValue() += TSparseSpace::GetValue(Dx, dof.EquationId());
+                }
+
             }
-        }
+        );
 
         this->UpdateVariablesDerivatives(r_model_part);
 

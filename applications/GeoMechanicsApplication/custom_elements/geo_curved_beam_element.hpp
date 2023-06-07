@@ -41,17 +41,17 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCurvedBeamElement :
 
 public:
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
+    using ShapeFunctionsGradientsType = GeometryData::ShapeFunctionsGradientsType;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     using GeoStructuralBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
     using GeoStructuralBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
@@ -59,7 +59,7 @@ public:
     using GeoStructuralBaseElement<TDim,TNumNodes>::N_DOF_ELEMENT;
     using GeoStructuralBaseElement<TDim,TNumNodes>::VoigtSize;
     using GeoStructuralBaseElement<TDim,TNumNodes>::GetNodalDofValuesVector;
-    typedef typename GeoStructuralBaseElement<TDim,TNumNodes>::ElementVariables ElementVariables;
+    using ElementVariables = typename GeoStructuralBaseElement<TDim, TNumNodes>::ElementVariables;
 
     KRATOS_CLASS_POINTER_DEFINITION( GeoCurvedBeamElement );
 

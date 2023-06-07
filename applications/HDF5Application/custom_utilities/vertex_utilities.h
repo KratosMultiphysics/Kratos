@@ -30,18 +30,18 @@ namespace HDF5
 
 
 #define KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(TValue)   \
-    virtual TValue GetValue(const Node<3>& rNode, const Variable<TValue>& rVariable) const = 0
+    virtual TValue GetValue(const Node& rNode, const Variable<TValue>& rVariable) const = 0
 
 
 #define KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(TValue)                                          \
-    TValue GetValue(const Node<3>& rNode, const Variable<TValue>& rVariable) const override final \
+    TValue GetValue(const Node& rNode, const Variable<TValue>& rVariable) const override final \
     {                                                                                             \
         return rNode.GetSolutionStepValue(rVariable);                                             \
     }
 
 
 #define KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(TValue)                                      \
-    TValue GetValue(const Node<3>& rNode, const Variable<TValue>& rVariable) const override final \
+    TValue GetValue(const Node& rNode, const Variable<TValue>& rVariable) const override final \
     {                                                                                             \
         return rNode.GetValue(rVariable);                                                         \
     }

@@ -37,7 +37,7 @@ namespace Kratos
 namespace ExplicitStrategyTestingUtils
 {
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
 typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
@@ -119,7 +119,7 @@ inline void GenerateTestExplicitStrategiesModelPart(ModelPart& rModelPart)
 template<typename TStrategyType>
 inline void Solve(
     ModelPart& rModelPart,
-    Node<3>& rTestNode,
+    Node& rTestNode,
     const double time,
     const unsigned int n_steps)
 {

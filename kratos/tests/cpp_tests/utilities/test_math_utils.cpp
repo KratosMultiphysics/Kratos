@@ -42,39 +42,6 @@ namespace Kratos
             KRATOS_CHECK_NEAR(area, 0.5, tolerance);
         }
 
-        /** Checks if it gives you the absolute value of a given value
-         * Checks if It gives you the absolute value of a given value
-         */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsAbs, KratosCoreFastSuite)
-        {
-            const double absolute = MathUtils<double>::Abs(-1.0);
-
-            KRATOS_CHECK_EQUAL(absolute, 1.0);
-        }
-
-        /** Checks if it gives you the minimum value of a given value
-         * Checks if It gives you the minimum value of a given value
-         */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMin, KratosCoreFastSuite)
-        {
-            const double min = MathUtils<double>::Min(0.0,1.0);
-
-            KRATOS_CHECK_EQUAL(min, 0.0);
-        }
-
-        /** Checks if it gives you the maximum value of a given value
-         * Checks if It gives you the maximum value of a given value
-         */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMax, KratosCoreFastSuite)
-        {
-            const double max = MathUtils<double>::Max(0.0,1.0);
-
-            KRATOS_CHECK_EQUAL(max, 1.0);
-        }
-
         /** Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix
          * Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix
          */
@@ -923,6 +890,17 @@ namespace Kratos
             A(1, 1) = std::exp(A(1, 1));
             A(2, 2) = std::exp(A(2, 2));
             KRATOS_CHECK_MATRIX_NEAR(exp_A, A, 1.0e-8);
+        }
+
+        /** Checks whether the angle conversion from degrees to radians is performed correctly
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDegreesToRadians, KratosCoreFastSuite)
+        {
+            const double abs_tolerance = 1e-9;
+            KRATOS_CHECK_NEAR(          0.0, MathUtils<>::DegreesToRadians(   0.0), abs_tolerance);
+            KRATOS_CHECK_NEAR(Globals::Pi/2, MathUtils<>::DegreesToRadians(  90.0), abs_tolerance);
+            KRATOS_CHECK_NEAR( -Globals::Pi, MathUtils<>::DegreesToRadians(-180.0), abs_tolerance);
+            KRATOS_CHECK_NEAR(4*Globals::Pi, MathUtils<>::DegreesToRadians( 720.0), abs_tolerance);
         }
 
     } // namespace Testing

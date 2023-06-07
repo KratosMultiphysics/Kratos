@@ -53,7 +53,7 @@ void CheckSameModelPartUsingSkinDistanceProcess<TDim>::Execute()
 
     // We get the coordinates of the bounding box
     const double zero_tolerance = std::numeric_limits<double>::epsilon();
-    using NodeType = Node<3>;
+    using NodeType = Node;
     Parameters mesher_parameters(R"({
         "number_of_divisions"        : -1,
         "element_name"               : "Element3D4N",
@@ -167,7 +167,6 @@ const Parameters CheckSameModelPartUsingSkinDistanceProcess<TDim>::GetDefaultPar
         "skin_model_part_1_name"              : "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
         "skin_model_part_2_name"              : "PLEASE_SPECIFY_SKIN_MODEL_PART_2_NAME",
         "tolerance"                           : 1.0e-3,
-        //"continuous_distance"               : false, // TODO: Add continuous version if needed in the future
         "bounding_box_scale_factor"           : 1.5,
         "number_of_divisions_background_mesh" : 30,
         "discontinuous_distance_settings": {

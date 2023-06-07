@@ -82,13 +82,13 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
    {
    public:
       // The process info type definition
-      typedef ProcessInfo            ProcessInfoType;
+      using ProcessInfoType = ProcessInfo;
 
       // The base class ConstitutiveLaw type definition
-      typedef ConstitutiveLaw        BaseType;
+      using BaseType = ConstitutiveLaw;
 
       /// The size type definition
-      typedef std::size_t             SizeType;
+      using SizeType = std::size_t;
 
       /// Static definition of the dimension
       static constexpr SizeType Dimension = N_DIM_3D;
@@ -406,8 +406,8 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       ///@{
       pF_UMATMod          pUserMod;
 
-      bool mIsModelInitialized;
-      bool mIsUMATLoaded;
+      bool mIsModelInitialized = false;
+      bool mIsUMATLoaded = false;
 
       std::vector<int> mProjectDirectory;
 

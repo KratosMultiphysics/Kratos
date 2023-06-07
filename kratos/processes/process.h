@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "includes/define_registry.h"
 
 namespace Kratos
 {
@@ -162,7 +163,7 @@ public:
     {
         return 0;
     }
-    
+
     /**
      * @brief This method clears the assignation of the conditions
      */
@@ -218,6 +219,9 @@ public:
 private:
     ///@name Static Member Variables
     ///@{
+
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", Process)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process)
 
     ///@}
     ///@name Un accessible methods

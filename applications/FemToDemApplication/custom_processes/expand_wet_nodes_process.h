@@ -38,12 +38,12 @@ typedef std::size_t SizeType;
  * to the rest of the nodes (expand the pressure load)
  * @author Alejandro Cornejo
  */
-class ExpandWetNodesProcess : public Process 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ExpandWetNodesProcess : public Process 
 {
 
 public:
 
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
     typedef Condition ConditionType;

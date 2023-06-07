@@ -24,7 +24,7 @@ class ImposeNodalReferenceTemperatureProcess(Process):
         else:
             input_file_name = ""
 
-        if ((input_file_name == "") or (input_file_name == "- No file") or (input_file_name == "- Add new file")):
+        if ((input_file_name == "") or ("- No file" in input_file_name) or ("- Add new file" in input_file_name)):
             self.table = PiecewiseLinearTable()
         else:
             self.table = PiecewiseLinearTable()

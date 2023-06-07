@@ -98,9 +98,9 @@ void AddKratosComponent(std::string const& Name, Variable<Flags> const& ThisComp
     KratosComponents<Variable<Flags> >::Add(Name, ThisComponent);
 }
 
-void AddKratosComponent(std::string const& Name, Geometry<Node<3>> const& ThisComponent)
+void AddKratosComponent(std::string const& Name, Geometry<Node> const& ThisComponent)
 {
-    KratosComponents<Geometry<Node<3>>>::Add(Name, ThisComponent);
+    KratosComponents<Geometry<Node>>::Add(Name, ThisComponent);
 }
 
 void AddKratosComponent(std::string const& Name, Element const& ThisComponent)
@@ -144,7 +144,7 @@ template class KratosComponents<Variable<Flags> >;
 template class KratosComponents<Flags>;
 template class KratosComponents<DataCommunicator>;
 
-template class KratosComponents<Geometry<Node<3>>>;
+template class KratosComponents<Geometry<Node>>;
 template class KratosComponents<Element>;
 template class KratosComponents<Condition>;
 template class KratosComponents<ConstitutiveLaw>;
@@ -162,7 +162,7 @@ template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexD
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
 
-// Specialize array of compenents for VariableData
+// Specialize array of components for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
 
 }  // namespace Kratos.

@@ -1,12 +1,14 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: OptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
-// ==============================================================================
 
 #ifndef IMPLICIT_VERTEX_MORPHING_H
 #define IMPLICIT_VERTEX_MORPHING_H
@@ -95,8 +97,8 @@ public:
     typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 
     // Type definitions for better reading later
-    typedef Node < 3 > NodeType;
-    typedef Node < 3 > ::Pointer NodeTypePointer;
+    typedef Node NodeType;
+    typedef Node ::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
     typedef std::vector<double>::iterator DoubleVectorIterator;
@@ -116,7 +118,7 @@ public:
     /// Default constructor.
     ImplicitVertexMorphing( std::string ControlName, Model& rModel, std::vector<LinearSolverType::Pointer>& rLinearSolvers, Parameters ControlSettings )
         :  ShapeControl(ControlName,rModel,ControlSettings){
-            for(int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
+            for(long unsigned int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
                 rLinearSystemSolvers.push_back(rLinearSolvers[lin_i]);
             mTechniqueSettings = ControlSettings["technique_settings"];
         }
@@ -145,7 +147,7 @@ public:
 
         CalculateNodeNeighbourCount();
         
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             StrategyType* mpStrategy = new StrategyType (*mpVMModelParts[model_i],rLinearSystemSolvers[model_i]);            
             mpStrategy->Initialize();
             mpStrategies.push_back(mpStrategy);
@@ -162,7 +164,7 @@ public:
     void Update() override {
         BuiltinTimer timer;
 
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             #pragma omp parallel for
@@ -200,7 +202,7 @@ public:
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("ImplicitVertexMorphing:MapControlUpdate:") << " Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
 
@@ -239,7 +241,7 @@ public:
         if(mTechniqueSettings["project_to_normal"].GetBool())
             ProjectToNormal(rDerivativeVariable);       
 
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];    
 
@@ -372,7 +374,7 @@ private:
 
     void CalculateNodeNeighbourCount()
     {
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             auto& r_nodes = mpVMModePart->Nodes();
@@ -453,7 +455,7 @@ private:
 
             if (root_model_part.HasSubModelPart(vm_model_part_name)){
                 p_vm_model_part = &(root_model_part.GetSubModelPart(vm_model_part_name));
-                for(int i =0; i<mpVMModelParts.size(); i++)
+                for(long unsigned int i =0; i<mpVMModelParts.size(); i++)
                     if(mpVMModelParts[i]->Name()==p_vm_model_part->Name())
                         p_vm_model_part_property = mpVMModelPartsProperties[i];
             }
@@ -526,7 +528,7 @@ private:
         }
 
         // now add dofs
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             for(auto& node_i : mpVMModePart->Nodes())
@@ -542,7 +544,7 @@ private:
         const auto& fixed_model_parts_Y =  mTechniqueSettings["fixed_model_parts_Y"];
         const auto& fixed_model_parts_Z =  mTechniqueSettings["fixed_model_parts_Z"];
 
-        for(int i=0; i<fixed_model_parts.size();i++)
+        for(long unsigned int i=0; i<fixed_model_parts.size();i++)
         {
             const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
             for(auto& node_i : model_part.Nodes())
@@ -609,7 +611,7 @@ private:
 
     void AdjustFilterSizes()
     {
-        for(int obj_i=0;obj_i<mpVMModelPartsTypes.size();obj_i++)
+        for(long unsigned int obj_i=0;obj_i<mpVMModelPartsTypes.size();obj_i++)
             if(mpVMModelPartsTypes[obj_i]=="solid"){
                 ModelPart* mpVMModePart = mpVMModelParts[obj_i];
                 Properties::Pointer p_vm_model_part_property = mpVMModelPartsProperties[obj_i];
@@ -619,7 +621,7 @@ private:
                 double total_volume_strain_energy = 0.0;
                 #pragma omp parallel for reduction(+:total_volume_strain_energy)
                 for(auto& elem_i : mpVMModePart->Elements()){
-                    double elem_strain_energy;
+                    double elem_strain_energy = 0.0;
                     elem_i.Calculate(ELEMENT_STRAIN_ENERGY,elem_strain_energy,mpVMModePart->GetProcessInfo());
                     total_volume_strain_energy += elem_strain_energy;
                 }
@@ -644,7 +646,7 @@ private:
 
     void ComputeInitialControlPoints()
     {
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             

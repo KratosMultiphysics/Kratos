@@ -22,7 +22,7 @@
 #include "includes/radiation_settings.h"
 
 namespace Kratos {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef array_1d<double, 3> Vector3;
 
 //Create Variables by type:
@@ -121,7 +121,7 @@ KRATOS_CREATE_VARIABLE(double, TIME_INTEGRATION_THETA)
 // for geometrical application
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CHARACTERISTIC_GEOMETRY_LENGTH)
 
-//sheme info :: pass to elements
+//scheme info :: pass to elements
 KRATOS_CREATE_VARIABLE(double, NEWMARK_BETA)
 KRATOS_CREATE_VARIABLE(double, NEWMARK_GAMMA)
 KRATOS_CREATE_VARIABLE(double, BOSSAK_ALPHA)

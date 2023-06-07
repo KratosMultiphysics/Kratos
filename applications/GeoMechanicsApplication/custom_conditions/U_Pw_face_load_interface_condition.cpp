@@ -75,16 +75,16 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
     for (unsigned int i = 0; i<NumGPoints; i++)
         (JContainer[i]).resize(TDim,LocalDim,false);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
+    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
     
     //Condition variables
     array_1d<double,TNumNodes*TDim> DisplacementVector;
@@ -101,7 +101,6 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> TractionVector;
     array_1d<double,TNumNodes*TDim> UVector;
-    double IntegrationCoefficient;
     
     //Loop over integration points
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -116,10 +115,10 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::
             this->CalculateJointWidth(JointWidth, Nu, DisplacementVector, RelDispVector, RotationMatrix, LocalRelDispVector, MinimumJointWidth,GPoint);
         
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], IntegrationPoints[GPoint].Weight(), JointWidth);
+        double integration_coefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight(), JointWidth);
                 
         //Contributions to the right hand side
-        noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
+        noalias(UVector) = prod(trans(Nu),TractionVector) * integration_coefficient;
         ConditionUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,UVector);
     }
 }
@@ -192,7 +191,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bo
     //Quadrilateral_interface_3d_4
     array_1d<double, 3> pmid0;
     array_1d<double, 3> pmid1;
-    array_1d<double,3> P2 = Geom.GetPoint( 2 );
+    const array_1d<double, 3>& P2 = Geom.GetPoint( 2 );
     noalias(pmid0) = 0.5 * (Geom.GetPoint( 0 ) + Geom.GetPoint( 3 ));
     noalias(pmid1) = 0.5 * (Geom.GetPoint( 1 ) + P2);
     
@@ -289,17 +288,17 @@ void UPwFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWidt
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth)
+double UPwFaceLoadInterfaceCondition<2,2>::CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight, const double& JointWidth)
 {
     // Note: since we cannot include the determinant of the Jacobian here (because the Jacobian could be singular), we do not multiply the JointWidth by the Weight 
     //       In a normal line load we would have |J| * w = L/2.0 * 2.0 = L
-    rIntegrationCoefficient = JointWidth;
+    return JointWidth;
 }
 
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth)
+double UPwFaceLoadInterfaceCondition<3,4>::CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight, const double& JointWidth)
 {
     KRATOS_TRY
     
@@ -311,7 +310,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CalculateIntegrationCoefficient(double&
     
     double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi + dz_dxi*dz_dxi);
     
-    rIntegrationCoefficient = Weight * ds * JointWidth;
+    return Weight * ds * JointWidth;
 
     KRATOS_CATCH( "" )
 }

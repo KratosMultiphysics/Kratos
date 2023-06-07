@@ -62,7 +62,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class BaseSolidElement
+class KRATOS_API(FEM_TO_DEM_APPLICATION) BaseSolidElement
     : public Element
 {
 protected:
@@ -143,7 +143,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// This is the definition of the node.
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The base element type
     typedef Element BaseType;

@@ -61,7 +61,7 @@ int NewtonianTwoFluid3DLaw::Check(
     const ProcessInfo& rCurrentProcessInfo) const
 {
     for (unsigned int i = 0; i < rElementGeometry.size(); i++) {
-        const Node<3>& rNode = rElementGeometry[i];
+        const Node& rNode = rElementGeometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DYNAMIC_VISCOSITY,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,rNode);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rNode);

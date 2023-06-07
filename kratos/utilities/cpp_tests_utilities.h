@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_CPP_TESTS_UTILITIES)
-#define KRATOS_CPP_TESTS_UTILITIES
+#pragma once
 
 // System includes
 
@@ -68,6 +67,12 @@ namespace CppTestsUtilities
         );
 
     /**
+     * @brief This method creates a pure (Element) simple geometry in 2D (triangles)
+     * @param rModelPart Reference to the ModelPart containing the problem
+     */
+    void KRATOS_API(KRATOS_CORE) CreateTestModelPartTriangle2D3N(ModelPart& rModelPart);
+
+    /**
      * @brief This method creates a simple geometry in 2D (quadrilaterals)
      * @param rModelPart Reference to the ModelPart containing the problem
      * @param rEntityName The entity name considered
@@ -92,6 +97,12 @@ namespace CppTestsUtilities
         const std::string& rElementName = "Element3D4N",
         const bool Initialize = true
         );
+
+    /**
+     * @brief This method creates a pure (Element) simple geometry in 3D (tetrahedra)
+     * @param rModelPart Reference to the ModelPart containing the problem
+     */
+    void KRATOS_API(KRATOS_CORE) CreateTestModelPartTetrahedra3D4N(ModelPart& rModelPart);
 
     /**
      * @brief This method creates a simple geometry in 3D (hexahedra)
@@ -119,4 +130,3 @@ namespace CppTestsUtilities
 
 }; // namespace CppTestsUtilities
 }  // namespace Kratos
-#endif /* KRATOS_CPP_TESTS_UTILITIES defined */

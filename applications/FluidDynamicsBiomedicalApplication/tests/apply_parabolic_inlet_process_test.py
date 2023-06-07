@@ -99,7 +99,58 @@ class ApplyParabolicInletProcessTest(UnitTest.TestCase):
             "Parameters" : {
                 "wall_model_part_name": "TestModelPart.Wall",
                 "inlet_model_part_name": "TestModelPart.Inlet",
-                "parabola_vertex_value" : 1.0
+                "value" : 1.0,
+                "value_is_average" : false,
+                "value_is_flow_rate" : false
+            }
+        }""")
+        process = apply_parabolic_inlet_process.Factory(settings, self.model)
+
+        test_model_part = self.model.GetModelPart("TestModelPart")
+        test_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+
+        # Use inlet midpoint node as reference node
+        test_node = test_model_part.GetSubModelPart("Inlet").GetNode(2)
+
+        # Calculate normal and parallel distance
+        process.ExecuteInitialize()
+        self.assertEqual(test_node.Is(KratosMultiphysics.INLET), True)
+        self.assertVectorAlmostEqual(test_node.GetValue(KratosBio.INLET_NORMAL), [0.0,-1.0,0.0])
+        self.assertLessEqual(abs(test_node.GetValue(KratosBio.WALL_DISTANCE) - 0.9999971715808751), 1.0e-6)
+
+        # Set initial value
+        test_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
+        process.ExecuteBeforeSolutionLoop()
+        self.assertTrue(test_node.IsFixed(KratosMultiphysics.VELOCITY_X))
+        self.assertTrue(test_node.IsFixed(KratosMultiphysics.VELOCITY_Y))
+        self.assertTrue(test_node.IsFixed(KratosMultiphysics.VELOCITY_Z))
+        self.assertVectorAlmostEqual(test_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY), [0.0,1.0,0.0])
+
+        # Set current step value
+        test_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 1.0)
+        process.ExecuteInitializeSolutionStep()
+        self.assertTrue(test_node.IsFixed(KratosMultiphysics.VELOCITY_X))
+        self.assertTrue(test_node.IsFixed(KratosMultiphysics.VELOCITY_Y))
+        self.assertTrue(test_node.IsFixed(KratosMultiphysics.VELOCITY_Z))
+        self.assertVectorAlmostEqual(test_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY), [0.0,1.0,0.0])
+
+        # Remove fixity for next step
+        process.ExecuteFinalizeSolutionStep()
+        self.assertFalse(test_node.IsFixed(KratosMultiphysics.VELOCITY_X))
+        self.assertFalse(test_node.IsFixed(KratosMultiphysics.VELOCITY_Y))
+        self.assertFalse(test_node.IsFixed(KratosMultiphysics.VELOCITY_Z))
+
+    def testUnitParabolaAverage2D(self):
+        """Tests the process with a unit maximum value parabola."""
+
+        # Create the parabolic inlet process
+        settings = KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "wall_model_part_name": "TestModelPart.Wall",
+                "inlet_model_part_name": "TestModelPart.Inlet",
+                "value" : 0.5,
+                "value_is_average" : true,
+                "value_is_flow_rate" : false
             }
         }""")
         process = apply_parabolic_inlet_process.Factory(settings, self.model)
@@ -146,7 +197,9 @@ class ApplyParabolicInletProcessTest(UnitTest.TestCase):
             "Parameters" : {
                 "wall_model_part_name": "TestModelPart.Wall",
                 "inlet_model_part_name": "TestModelPart.Inlet",
-                "parabola_vertex_value" : "2.0*t*x"
+                "value" : "2.0*t*x",
+                "value_is_average" : false,
+                "value_is_flow_rate" : false
             }
         }""")
         process = apply_parabolic_inlet_process.Factory(settings, self.model)
@@ -202,9 +255,10 @@ class ApplyParabolicInletProcessTest(UnitTest.TestCase):
             "Parameters" : {
                 "wall_model_part_name": "TestModelPart.Wall",
                 "inlet_model_part_name": "TestModelPart.Inlet",
-                "parabola_vertex_value" : {
+                "value" : {
                     "filename" : "aux_table.csv"
                 },
+                "value_is_average" : false,
                 "value_is_flow_rate" : true
             }
         }""")

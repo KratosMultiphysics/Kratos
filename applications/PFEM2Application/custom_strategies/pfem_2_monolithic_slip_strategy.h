@@ -857,10 +857,10 @@ protected:
                  ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
                  if (rGeom.PointsNumber() == 2)
                  {
-                     Node<3>& rNode0 = rGeom[0];
+                     Node& rNode0 = rGeom[0];
                      int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                     Node<3>& rNode1 = rGeom[1];
+                     Node& rNode1 = rGeom[1];
                      int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
 
                      // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
@@ -942,10 +942,10 @@ protected:
                  ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
                  if (rGeom.PointsNumber() == 2)
                  {
-                     Node<3>& rNode0 = rGeom[0];
+                     Node& rNode0 = rGeom[0];
                      int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                     Node<3>& rNode1 = rGeom[1];
+                     Node& rNode1 = rGeom[1];
                      int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
 
                      // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)

@@ -250,7 +250,16 @@ virtual void AllGather(const std::vector<type>& rSendValues, std::vector<type>& 
     KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"AllGather");                   \
     rRecvValues = AllGather(rSendValues);                                                                           \
 }                                                                                                                   \
-
+virtual std::vector<std::vector<type>> AllGatherv(const std::vector<type>& rSendValues) const {                     \
+    return std::vector<std::vector<type>>{rSendValues};                                                             \
+}                                                                                                                   \
+virtual void AllGatherv(const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,                       \
+    const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const {                              \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "AllGatherv (values check)"); \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvCounts.size(), 1, "AllGatherv (counts check)");                  \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "AllGatherv (offset check)");                 \
+    rRecvValues = rSendValues;                                                                          \
+}
 #endif
 
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
@@ -349,7 +358,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return Kratos::make_unique<DataCommunicator>();
     }
 
-    /// Pause program exectution until all threads reach this call.
+    /// Pause program execution until all threads reach this call.
     /** Wrapper for MPI_Barrier. */
     virtual void Barrier() const {}
 
@@ -598,14 +607,14 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     ///@name Inquiry
     ///@{
 
-    /// Retrun the parallel rank for this DataCommunicator.
+    /// Return the parallel rank for this DataCommunicator.
     /** This is a wrapper for calls to MPI_Comm_rank. */
     virtual int Rank() const
     {
         return 0;
     }
 
-    /// Retrun the parallel size for this DataCommunicator.
+    /// Return the parallel size for this DataCommunicator.
     /** This is a wrapper for calls to MPI_Comm_size. */
     virtual int Size() const
     {
@@ -640,7 +649,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     ///@name Access
     ///@{
 
-    /// Convenience function to retireve the current default DataCommunicator.
+    /// Convenience function to retrieve the current default DataCommunicator.
     /** @return A reference to the DataCommunicator instance registered as default in ParallelEnvironment.
      */
     KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator through the ModelPart (or by name in special cases)")
@@ -869,7 +878,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     }
 
     /// Exchange data with other ranks (generic version).
-    /** This is a wrapper for MPI_Sendrecv that uses serialization to tranfer arbitrary objects.
+    /** This is a wrapper for MPI_Sendrecv that uses serialization to transfer arbitrary objects.
      *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
      *  @param[in] rSendValues Objects to send to rank SendDestination.
      *  @param[in] SendDestination Rank the data will be sent to.
@@ -919,7 +928,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     }
 
     /// Exchange data with other ranks (generic version).
-    /** This is a wrapper for MPI_Send that uses serialization to tranfer arbitrary objects.
+    /** This is a wrapper for MPI_Send that uses serialization to transfer arbitrary objects.
      *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
      *  @param[in] rSendValues Objects to send to rank SendDestination.
      *  @param[in] SendDestination Rank the data will be sent to.
@@ -956,7 +965,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     }
 
     /// Exchange data with other ranks (generic version).
-    /** This is a wrapper for MPI_Recv that uses serialization to tranfer arbitrary objects.
+    /** This is a wrapper for MPI_Recv that uses serialization to transfer arbitrary objects.
      *  The objects are expected to be serializable and come in an stl-like container supporting size() and resize()
      *  @param[out] rRecvObject Objects to receive from rank RecvSource.
      *  @param[in] RecvSource Rank the data will be received from.

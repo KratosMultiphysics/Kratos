@@ -26,7 +26,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangianAxisymmetry2D3N// GUI group identifier: disk
+Begin Elements MPMUpdatedLagrangianAxisymmetry2D3N// GUI group identifier: disk
         1          0         44         41         52 
         2          0         41         49         52 
         3          0         36         33         44 
