@@ -10,8 +10,12 @@
 //  Main authors:    Jordi Cotela
 //
 
+// System includes
 #include <cmath>
 
+// External includes
+
+// Project includes
 #include "polynomial_utilities.h"
 #include "includes/define.h"
 #include "utilities/brent_iteration.h"
