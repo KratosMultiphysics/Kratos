@@ -930,6 +930,19 @@ public:
     void SynchronizeAll(const DataCommunicator& rDataCommunicator);
 
     ///@}
+    ///@name Access
+    ///@{
+
+    /**
+     * @brief Get the container
+     * @return The container
+     */
+    ContainerType& GetContainer() 
+    {
+        return mPointResults;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
