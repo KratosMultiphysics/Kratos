@@ -103,7 +103,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
     smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
     smallSuite.addTest(test_dem_3d_parallel_bond_model.TestParallelBondModel("test_ParallelBondModel_1"))
-    
+
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
@@ -117,13 +117,15 @@ def AssembleTestSuites():
     nightSuite.addTest(Chung_Ooi_test_3.ChungOoiTest3("test_Run"))
     nightSuite.addTest(Chung_Ooi_test_4.ChungOoiTest4("test_Run"))
 
+    nightSuite.addTests(smallSuite)
+
     # For very long tests that should not be in nightly and you can use to validate
-    #validationSuite = suites['validation']
+    validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(smallSuite)
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 
