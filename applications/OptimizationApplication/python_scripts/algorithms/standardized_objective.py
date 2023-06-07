@@ -97,19 +97,22 @@ class StandardizedObjective(ResponseRoutine):
         return gradient_collective_expression * self.__scaling
 
     def GetRelativeChange(self) -> float:
-        if self.__optimization_problem.GetStep() > 1:
+        if self.__optimization_problem.GetStep() > 0:
             return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
         else:
             return 0.0
 
     def GetAbsoluteChange(self) -> float:
-        return self.GetStandardizedValue() / self.GetInitialValue() - 1.0 if abs(self.GetInitialValue()) > 1e-12 else self.GetStandardizedValue()
+        return self.GetValue() - self.GetInitialValue()
 
     def GetInfo(self) -> str:
-        msg = "\tObjective info:"
-        msg += f"\n\t\t name          : {self.GetReponse().GetName()}"
-        msg += f"\n\t\t type          : {self.__objective_type}"
-        msg += f"\n\t\t value         : {self.GetValue():0.6e}"
-        msg += f"\n\t\t abs_change    : {self.GetAbsoluteChange():0.6e}"
-        msg += f"\n\t\t rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"
+        msg = f"""\t Objective info: 
+            name          : {self.GetReponse().GetName()}
+            type          : {self.__objective_type} 
+            value         : {self.GetValue():0.6e} 
+            abs_change    : {self.GetAbsoluteChange():0.6e} 
+            rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"""
+        init_value = self.GetInitialValue()
+        if init_value:
+            msg = f"{msg} \n\t    abs_change [%]: {self.GetAbsoluteChange()/init_value * 100:0.6e} "
         return msg
