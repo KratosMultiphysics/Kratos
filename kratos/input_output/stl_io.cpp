@@ -12,6 +12,7 @@
 
 // System includes
 #include <regex>
+
 // External includes
 
 // Project includes
