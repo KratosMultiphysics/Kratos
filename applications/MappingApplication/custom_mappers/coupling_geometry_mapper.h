@@ -110,8 +110,6 @@ public:
     typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
     typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
 
-    using typename Mapper<TSparseSpace,TDenseSpace>::ExpressionType;
-
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
@@ -193,8 +191,15 @@ public:
         }
     }
 
-    void Map(ExpressionType& rOriginExpression,
+    void Map(Expression::ConstPointer rOriginExpression,
              const Variable<double>& rDestinationVariable,
+             Kratos::Flags MappingOptions) override
+    {
+        KRATOS_ERROR << "CouplingGeometryMapper with Expressions is not implemented";
+    }
+
+    void Map(Expression::ConstPointer rOriginExpression,
+             const Variable<array_1d<double,3>>& rDestinationVariable,
              Kratos::Flags MappingOptions) override
     {
         KRATOS_ERROR << "CouplingGeometryMapper with Expressions is not implemented";
