@@ -546,9 +546,9 @@ public:
             rResult.resize( 2, false );
 
         //starting with xi = 0
-        rResult = ZeroVector( 2 );
+        rResult = ZeroVector( 3 );
 
-        Vector DeltaXi = ZeroVector( 2 );
+        Vector DeltaXi = ZeroVector( 3 );
 
         CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
 
