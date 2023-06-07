@@ -481,7 +481,7 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNode
     const DataCommunicator& rDataCommunicator
     )
 {
-    this->SearchNodesInRadiusExclusive(rStructureNodes, rStructureNodes, rRadius, rDataCommunicator);
+    return this->SearchNodesInRadiusExclusive(rStructureNodes, rStructureNodes, rRadius, rDataCommunicator);
 }
 
 /***********************************************************************************/
