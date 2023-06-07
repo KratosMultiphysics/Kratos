@@ -24,7 +24,7 @@
 // Project includes
 #include "includes/define.h"
 
-namespace Kratos 
+namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
@@ -67,8 +67,8 @@ public:
 
         using value_type = char;                               //// The value type representing a byte.
         using pointer = char*;                                 //// Pointer to a byte.
-        using reference = char&;                               //// Reference to a byte. 
-        using iterator_category = std::forward_iterator_tag;   //// Iterator category - forward iterator. 
+        using reference = char&;                               //// Reference to a byte.
+        using iterator_category = std::forward_iterator_tag;   //// Iterator category - forward iterator.
         using difference_type = std::ptrdiff_t;                //// Difference type between iterators.
 
         ///@}
@@ -201,9 +201,16 @@ public:
 
         const IndexType raw_bytes = N * sizeof(value_type);
 
+        // Following offset forces to write bytes to mByteTripliet array even
+        // if raw_bytes count is less than the mByteTripletIndex. This is important
+        // in the case if there are less number of raw_bytes (in case of UInt8 data type),
+        // then raw bytes may be less than mByteTripletIndex, hence avoiding
+        // reading data from the data stream.
+        const IndexType initial_byte_triplet_offset = raw_bytes + mByteTripletIndex;
+
         // first fill the existing mByteTriplet
         IndexType number_of_written_bytes = 0;
-        for (; mByteTripletIndex < std::min(raw_bytes, IndexType{3}); ++mByteTripletIndex) {
+        for (; mByteTripletIndex < std::min(initial_byte_triplet_offset, IndexType{3}); ++mByteTripletIndex) {
             mByteTriplet[mByteTripletIndex] = *itr_byte_triplet++;
             ++number_of_written_bytes;
         }
