@@ -476,7 +476,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         // S00
         double uniaxial_residual_stress;
-        double ultimate_stress = mUltimateStress;
         double residual_stress_damage;
 
         predictive_residual_stress_vector = ZeroVector(VoigtSize);
