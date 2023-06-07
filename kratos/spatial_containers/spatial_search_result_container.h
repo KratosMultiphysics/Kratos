@@ -885,7 +885,7 @@ public:
      * @brief Returns the number of points results
      * @return The number of points results
      */
-    std::size_t NumberOfPointsResults() const
+    std::size_t NumberOfSearchResults() const
     {
         return mPointResults.size();
     }

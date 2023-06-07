@@ -80,7 +80,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
         # Nodes array search
         results = self.search.SearchInRadius(self.sub_model_part.Nodes, radius)
-        self.assertEqual(results.NumberOfPointsResults(), 1)
+        self.assertEqual(results.NumberOfSearchResults(), 1)
         node_results = results[self.node_coordinates]
         node_results.SynchronizeAll(self.data_comm)   
         self.assertEqual(node_results.NumberOfGlobalResults(), 8)
@@ -100,7 +100,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
         # Nodes array search
         results = self.search.SearchNearestInRadius(self.sub_model_part.Nodes, radius)   
-        self.assertEqual(results.NumberOfPointsResults(), 1)
+        self.assertEqual(results.NumberOfSearchResults(), 1)
         node_results = results[self.node_coordinates]
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
         # Local result
@@ -120,7 +120,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
         # Nodes array search
         results = self.search.SearchNearest(self.sub_model_part.Nodes) 
-        self.assertEqual(results.NumberOfPointsResults(), 1)
+        self.assertEqual(results.NumberOfSearchResults(), 1)
         node_results = results[self.node_coordinates] 
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
         # Local result
@@ -138,7 +138,7 @@ class TestGeometricalObjectBins(KratosUnittest.TestCase):
 
         # Nodes array search
         results = self.search.SearchIsInside(self.sub_model_part.Nodes) 
-        self.assertEqual(results.NumberOfPointsResults(), 1)
+        self.assertEqual(results.NumberOfSearchResults(), 1)
         node_results = results[self.node_coordinates] 
         self.assertFalse(node_results.IsObjectFound())
 
