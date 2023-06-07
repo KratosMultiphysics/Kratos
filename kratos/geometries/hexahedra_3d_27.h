@@ -893,10 +893,9 @@ public:
             { 4, 16, 19}, {16, 25, 19}, {16,  5, 25}, { 5, 17, 25}, {19, 25,  7}, {25, 18,  7}, {25, 17, 18}, {17,  6, 18}
         }};
 
-        for (const auto& nodes: triangle_faces) {
-
-            auto face = Triangle3D3<TPointType>(this->pGetPoint(nodes[0]), this->pGetPoint(nodes[1]),  this->pGetPoint(nodes[2]));
-
+        for (const auto& r_nodes: triangle_faces) {
+            // TODO: Replace the construction of a heavy object defining the HasIntersection method externally as a static method
+            auto face = Triangle3D3<TPointType>(this->pGetPoint(r_nodes[0]), this->pGetPoint(r_nodes[1]),  this->pGetPoint(r_nodes[2]));
             if (face.HasIntersection(rLowPoint, rHighPoint)) return true;
         }
 
