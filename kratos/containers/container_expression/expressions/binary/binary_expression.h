@@ -48,16 +48,16 @@ public:
     ///@{
 
     BinaryExpression(
-        Expression::Pointer pLeft,
-        Expression::Pointer pRight);
+        Expression::ConstPointer pLeft,
+        Expression::ConstPointer pRight);
 
     ///@}
     ///@name Public operations
     ///@{
 
     static Expression::Pointer Create(
-        Expression::Pointer pLeft,
-        Expression::Pointer pRight);
+        Expression::ConstPointer pLeft,
+        Expression::ConstPointer pRight);
 
     double Evaluate(
         const IndexType EntityIndex,
@@ -73,9 +73,9 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const Expression::Pointer mpLeft;
+    const Expression::ConstPointer mpLeft;
 
-    const Expression::Pointer mpRight;
+    const Expression::ConstPointer mpRight;
 
     ///@}
 };

@@ -19,16 +19,19 @@
 #include <pybind11/numpy.h>
 
 // Project includes
+#include "includes/define_python.h"
 #include "containers/container_expression/container_data_io.h"
 #include "containers/container_expression/container_expression.h"
 #include "containers/container_expression/specialized_container_expression.h"
 #include "add_container_expression_to_python_utils.h"
+#include "add_expression_io_to_python.h"
 
 // Include base h
 #include "add_container_expression_to_python.h"
 
 namespace Kratos::Python
 {
+
 
 void  AddContainerExpressionToPython(pybind11::module& m)
 {
@@ -42,6 +45,8 @@ void  AddContainerExpressionToPython(pybind11::module& m)
     AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "NodalNonHistoricalExpression");
     AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "ConditionNonHistoricalExpression");
     AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "ElementNonHistoricalExpression");
+
+    AddExpressionIOToPython(m);
 }
 
 } // namespace Kratos::Python

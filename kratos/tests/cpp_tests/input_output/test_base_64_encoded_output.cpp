@@ -89,4 +89,21 @@ KRATOS_TEST_CASE_IN_SUITE(Base64EcodedLargeInput, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(output.str(), expected);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(Base64EcodedSmallInput, KratosCoreFastSuite)
+{
+    std::stringstream output;
+
+    {
+        auto encoder = Base64EncodedOutput(output);
+
+        const unsigned int v1 = 1;
+        encoder.WriteData(&v1, 1);
+
+        const char v2 = 1;
+        encoder.WriteData(&v2, 1);
+    }
+
+    KRATOS_CHECK_EQUAL(output.str(), "AQAAAAE=");
+}
+
 } // namespace Kratos::Testing

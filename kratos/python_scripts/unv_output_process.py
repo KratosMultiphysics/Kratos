@@ -2,14 +2,16 @@ import KratosMultiphysics
 from KratosMultiphysics import kratos_utilities
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 
-def Factory(settings, model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object")
+
     return UnvOutputProcess(model, settings["Parameters"])
 
-
 class UnvOutputProcess(KratosMultiphysics.Process):
-    def __init__(self, model, settings ):
+    def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters ):
         KratosMultiphysics.Process.__init__(self)
 
         # IMPORTANT: when "output_control_type" is "time",
@@ -46,10 +48,15 @@ class UnvOutputProcess(KratosMultiphysics.Process):
         self.unv_io.InitializeMesh()
         self.unv_io.WriteMesh()
 
-        self.output_interval = self.settings["output_interval"].GetDouble()
-        self.output_control = self.settings["output_control_type"].GetString()
-        self.next_output = 0.0
-        self.step_count = 0
+        output_control_type = settings["output_control_type"].GetString()
+        if output_control_type == "time":
+            self.output_control_variable = KratosMultiphysics.TIME
+            self.output_control_utility = KratosMultiphysics.DoubleFixedIntervalRecurringEventUtility(self.model_part.ProcessInfo[self.output_control_variable], settings["output_interval"].GetDouble())
+        elif output_control_type == "step":
+            self.output_control_variable = KratosMultiphysics.STEP
+            self.output_control_utility = KratosMultiphysics.IntegerFixedIntervalRecurringEventUtility(self.model_part.ProcessInfo[self.output_control_variable], settings["output_interval"].GetInt())
+        else:
+            raise RuntimeError(f"Unsupported output control type = \"{output_control_type}\" requested. Supported control types are:\n\ttime\n\tstep")
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
@@ -63,39 +70,13 @@ class UnvOutputProcess(KratosMultiphysics.Process):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
     def ExecuteInitialize(self):
-        if self.output_control == "time":
-            self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        else:
-            self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
-
         self.nodal_variables = kratos_utilities.GenerateVariableListFromInput(self.settings["nodal_results"])
 
-    def ExecuteInitializeSolutionStep(self):
-        self.step_count += 1
-
     def PrintOutput(self):
+        current_control_value = self.model_part.ProcessInfo[self.output_control_variable]
         for variable in self.nodal_variables:
-            self.unv_io.PrintOutput(variable, self.next_output)
-
-        # Schedule next output
-        time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control == "time":
-                while GetPrettyTime(self.next_output) <= time:
-                    self.next_output += self.output_interval
-            else:
-                while self.next_output <= self.step_count:
-                    self.next_output += self.output_interval
+            self.unv_io.PrintOutput(variable, current_control_value)
+        self.output_control_utility.ScheduleNextEvent(current_control_value)
 
     def IsOutputStep(self):
-        if self.output_control == "time":
-            time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-            return (time >= GetPrettyTime(self.next_output))
-        else:
-            return ( self.step_count >= self.next_output )
-
-
-def GetPrettyTime(time):
-    pretty_time = "{0:.12g}".format(time)
-    pretty_time = float(pretty_time)
-    return pretty_time
+        return self.output_control_utility.IsEventExpected(self.model_part.ProcessInfo[self.output_control_variable])

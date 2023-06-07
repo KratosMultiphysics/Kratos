@@ -23,9 +23,9 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "containers/container_expression/expressions/expression.h"
+#include "containers/container_expression/container_expression_arithmetic_operators.h"
 
 namespace Kratos {
-
 ///@name Kratos Classes
 ///@{
 
@@ -94,6 +94,14 @@ public:
     ///@}
     ///@name Life cycle
     ///#{
+
+    /// Constructor with the model part
+    ContainerExpression(ModelPart& rModelPart);
+
+    /// Copy constructor
+    ContainerExpression(const ContainerExpression& rOther);
+
+    ContainerExpression& operator=(const ContainerExpression& rOther);
 
     virtual ~ContainerExpression() = default;
 
@@ -261,7 +269,7 @@ public:
      *
      * @param pExpression       Expression to be used in this container variable data
      */
-    void SetExpression(Expression::Pointer pExpression);
+    void SetExpression(Expression::ConstPointer pExpression);
 
     /**
      * @brief Checks whether an expression has been initialized.
@@ -281,9 +289,9 @@ public:
     /**
      * @brief Get the expression pointer
      *
-     * @return const Expression::Pointer Returns the pointer of the expression
+     * @return Expression::ConstPointer Returns the pointer of the expression
      */
-    const Expression::Pointer pGetExpression() const;
+    Expression::ConstPointer pGetExpression() const;
 
     /**
      * @brief Get the shape of the expression data
@@ -354,21 +362,104 @@ public:
     std::string PrintData() const;
 
     ///@}
-protected:
-    ///@name Life cycle
+    ///@name Public operators
     ///@{
 
-    /// Constructor with the model part
-    ContainerExpression(ModelPart& rModelPart);
+    /** @brief Returns a slice of the provided expression. Slicing is based on item components.
+     *  @details @see Kratos::Slice.
+     *  @param Offset Offset of the component to start slicing at.
+     *  @param Stride Number of components from the offset in the sliced entity.
+     */
+    ContainerExpression Slice(IndexType Offset, IndexType Stride) const;
 
-    /// Copy constructor
-    ContainerExpression(const ContainerExpression& rOther);
+    /** @brief Define a new shape for an otherwise identical expression.
+     *  @details @see Kratos::Reshape
+     *  @param rNewShape New shape to used to reshape the existing expression.
+     */
+    ContainerExpression Reshape(const std::vector<IndexType>& rNewShape) const;
+
+    /** @brief Append the components of an expression to the current expression's components.
+     *  @details @see Kratos::Comb.
+     *  @param rOther Expression to comb components from.
+     */
+    ContainerExpression Comb(const ContainerExpression& rOther) const;
+
+    /** @brief Append the components of a set of expressions to the current expression's components.
+     *  @details @see Kratos::Comb.
+     *  @param rOthers Expressions to comb components from.
+     */
+    ContainerExpression Comb(const std::vector<Pointer>& rOthers) const;
+
+    ContainerExpression& operator+=(const double Value);
+
+    ContainerExpression& operator+=(const ContainerExpression& Value);
+
+    ContainerExpression& operator-=(const double Value);
+
+    ContainerExpression& operator-=(const ContainerExpression& Value);
+
+    ContainerExpression& operator*=(const double Value);
+
+    ContainerExpression& operator*=(const ContainerExpression& Value);
+
+    ContainerExpression& operator/=(const double Value);
+
+    ContainerExpression& operator/=(const ContainerExpression& Value);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator+(const ContainerExpression<T1, T2>& rLeft, const double Right);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator+(const double Left, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator+(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator-(const ContainerExpression<T1, T2>& rLeft, const double Right);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator-(const double Left, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator-(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator*(const ContainerExpression<T1, T2>& rLeft, const double Right);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator*(const double Left, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator*(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator/(const ContainerExpression<T1, T2>& rLeft, const double Right);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator/(const double Left, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> operator/(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> Power(const double Base, const ContainerExpression<T1, T2>& rExponent);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> Power(const ContainerExpression<T1, T2>& rBase, const double Exponent);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> Power(const ContainerExpression<T1, T2>& rBase, const ContainerExpression<T1, T2>& rExponent);
+
+    template<class T1, class T2>
+    friend ContainerExpression<T1, T2> Scale(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
 
     ///@}
+protected:
     ///@name Protected member variables
     ///@{
 
-    std::optional<Expression::Pointer> mpExpression;
+    std::optional<Expression::ConstPointer> mpExpression;
 
     ModelPart* const mpModelPart;
 

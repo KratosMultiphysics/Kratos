@@ -191,6 +191,20 @@ public:
         }
     }
 
+    void Map(Expression::ConstPointer rOriginExpression,
+             const Variable<double>& rDestinationVariable,
+             Kratos::Flags MappingOptions) override
+    {
+        KRATOS_ERROR << "CouplingGeometryMapper with Expressions is not implemented";
+    }
+
+    void Map(Expression::ConstPointer rOriginExpression,
+             const Variable<array_1d<double,3>>& rDestinationVariable,
+             Kratos::Flags MappingOptions) override
+    {
+        KRATOS_ERROR << "CouplingGeometryMapper with Expressions is not implemented";
+    }
+
     void InverseMap(
         const Variable<double>& rOriginVariable,
         const Variable<double>& rDestinationVariable,

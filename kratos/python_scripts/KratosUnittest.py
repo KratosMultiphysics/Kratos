@@ -90,7 +90,7 @@ class TestCase(TestCase):
 
         self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
         for i, (v1, v2) in enumerate(zip(vector1, vector2)):
-            self.assertAlmostEqual(v1, v2, places, LazyErrMsg(i, msg), delta)
+            self.assertAlmostEqual(v1, v2, places = places, msg = LazyErrMsg(i, msg), delta = delta)
 
     def assertMatrixAlmostEqual(self, matrix1, matrix2, places=7, msg=None, delta=None):
         class LazyDimErrMsg:
