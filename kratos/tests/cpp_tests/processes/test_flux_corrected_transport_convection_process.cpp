@@ -55,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart",
         "echo_level" : 1,
-        "max_CFL" : 0.5
+        "max_CFL" : 0.1
     })");
 
     // Fake time advance to set the previous process info container
@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     // auto dist_func = [&](Node& rNode){return a*std::exp(-(std::pow(rNode.X()-b_x,2)/2/std::pow(c,2)+(std::pow(rNode.Y()-b_y,2)/2/std::pow(c,2))));};
     // auto vel_func = [&](Node& rNode, array_1d<double,3>& rVel){rVel[0] = -rNode.Y();rVel[1] = rNode.X();rVel[2] = 0.0;};
 
-    // "1D" Gaussian hill 
+    // "1D" Gaussian hill
     const double a = 1.0; // height
     const double c = 0.05; // width
     const double b = 0.0; // x-coordinate of the center

@@ -293,7 +293,7 @@ private:
 
     std::vector<double> mUpdateHighOrder;
 
-    std::vector<array_1d<double,3>> mConvectionValues; /// Auxiliary vector to store the convection variable values (e.g. VELOCITY) 
+    std::vector<array_1d<double,3>> mConvectionValues; /// Auxiliary vector to store the convection variable values (e.g. VELOCITY)
 
     std::vector<array_1d<double,3>> mConvectionValuesOld; /// Auxiliary vector to store the previous step convection variable values (e.g. VELOCITY)
 
@@ -515,7 +515,7 @@ private:
 
                     // Add low order scheme diffusion (Rainald)
                     const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
-                    const double c_tau = DeltaTime / local_dt;
+                    const double c_tau = 1.0 / local_dt;
                     const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
                     const double ij_low_order_diff =  c_tau * Mc_i_j;
                     res_edge_i += ij_low_order_diff * (u_j - u_i);
