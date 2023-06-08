@@ -406,9 +406,9 @@ private:
                 const double u_i = mSolution[iRow];
                 const auto& r_i_vel = mConvectionValues[iRow]; //TODO: Use substep velocity
 
-                // i-node mass matrices diagonal contributions
-                const double M_c_i = mpEdgeDataStructure->GetMassMatrixDiagonal(iRow);
-                const double M_l_i = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(iRow);
+                // // i-node mass matrices diagonal contributions
+                // const double M_c_i = mpEdgeDataStructure->GetMassMatrixDiagonal(iRow);
+                // const double M_l_i = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(iRow);
 
                 // i-node convective flux calculation
                 for (IndexType d = 0; d < TDim; ++d) {
@@ -423,18 +423,16 @@ private:
                     const double u_j = mSolution[j_node_id];
                     const auto& r_j_vel = mConvectionValues[j_node_id]; //TODO: Use substep velocity
 
-                    // j-node mass matrices diagonal contributions
-                    const double M_c_j = mpEdgeDataStructure->GetMassMatrixDiagonal(j_node_id);
-                    const double M_l_j = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(j_node_id);
+                    // // j-node mass matrices diagonal contributions
+                    // const double M_c_j = mpEdgeDataStructure->GetMassMatrixDiagonal(j_node_id);
+                    // const double M_l_j = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(j_node_id);
 
                     // // Laplacian problem
                     // // TODO: Remove once we check that the explicit update is correct
                     // const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                     // const double c_edge = r_ij_edge_data.GetOffDiagonalLaplacian();
-                    // const double res_edge = 0.1 * c_edge * (u_j - u_i);
-                    // KRATOS_WATCH(u_j)
-                    // KRATOS_WATCH(u_i)
-                    // KRATOS_WATCH(res_edge)
+                    // const double res_edge_i = 0.1 * c_edge * (u_i - u_j);
+                    // const double res_edge_j = 0.1 * c_edge * (u_j - u_i);
 
                     // j-node convective flux calculation
                     for (IndexType d = 0; d < TDim; ++d) {
@@ -445,29 +443,33 @@ private:
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                     const auto& r_Ni_DNj = r_ij_edge_data.GetOffDiagonalConvective();
                     const auto& r_DNi_Nj = r_ij_edge_data.GetOffDiagonalConvectiveTranspose();
-                    const double M_c_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                    d_ij = 0.5 * (r_DNi_Nj - r_Ni_DNj);
 
-                    // Calculate fluxes along edges
-                    double f_i = 0.0;
-                    double f_j = 0.0;
-                    double D_ij = 0.0;
-                    for (IndexType d = 0; d < TDim; ++d) {
-                        D_ij += std::pow(d_ij[d],2);
-                        f_i += d_ij[d] * F_i[d];
-                        f_j -= d_ij[d] * F_j[d];
-                    }
-                    D_ij = std::sqrt(D_ij);
-                    f_i /= D_ij;
-                    f_j /= D_ij;
+                    // // Calculate fluxes along edges
+                    // d_ij = 0.5 * (r_DNi_Nj - r_Ni_DNj);
+                    // double f_i = 0.0;
+                    // double f_j = 0.0;
+                    // double D_ij = 0.0;
+                    // for (IndexType d = 0; d < TDim; ++d) {
+                    //     D_ij += std::pow(d_ij[d],2);
+                    //     f_i += d_ij[d] * F_i[d];
+                    //     f_j -= d_ij[d] * F_j[d];
+                    // }
+                    // D_ij = std::sqrt(D_ij);
+                    // f_i /= D_ij;
+                    // f_j /= D_ij;
 
-                    // Calculate numerical flux from the fluxes along edges
-                    // Note that this numerical flux corresponds to a Lax-Wendroff scheme
-                    const double F_ij = (f_i + f_j) - DeltaTime * (f_i - f_j) / D_ij;
+                    // // Calculate numerical flux from the fluxes along edges
+                    // // Note that this numerical flux corresponds to a Lax-Wendroff scheme
+                    // const double F_ij = (f_i + f_j) - DeltaTime * (f_i - f_j) / D_ij;
 
-                    // Calculate convection volume residual
-                    double res_edge_i = -D_ij * F_ij;
-                    double res_edge_j = D_ij * F_ij;
+                    // // Calculate convection volume residual
+                    // double res_edge_i = -D_ij * F_ij;
+                    // double res_edge_j = D_ij * F_ij;
+
+                    // Standard convection to test
+                    d_ij = 0.5 * (r_Ni_DNj - r_DNi_Nj);
+                    double res_edge_i = inner_prod(-d_ij, F_i + F_j);
+                    double res_edge_j = inner_prod(d_ij, F_i + F_j);
 
                     // If current edge belogs to a boundary, add the corresponding convection boundary integrals
                     if (r_ij_edge_data.IsBoundary()) {
@@ -478,14 +480,33 @@ private:
 
                         // Add boundary contribution to the residual
                         const double res_edge_bd = inner_prod(b_ij, F_i + F_j);
-                        res_edge_i -= res_edge_bd + inner_prod(b_node, F_i);
-                        res_edge_j += res_edge_bd + inner_prod(b_node, F_j);
+                        res_edge_i += -res_edge_bd - inner_prod(b_node, F_i);
+                        res_edge_j += +res_edge_bd + inner_prod(b_node, F_j);
                     }
 
-                    // Add low order scheme diffusion
-                    const double diff_coeff = 0.1;
-                    res_edge_i += diff_coeff * (M_c_i*u_i + M_c_ij*u_j - M_l_i*u_i);
-                    res_edge_j += diff_coeff * (M_c_j*u_j + M_c_ij*u_i - M_l_j*u_j);
+                    // // Add Laplacian term
+                    // // TODO: Remove once we check that the explicit update is correct
+                    // const double c_edge = r_ij_edge_data.GetOffDiagonalLaplacian();
+                    // res_edge_i += 0.01 * c_edge * (u_i - u_j);
+                    // res_edge_j += 0.01 * c_edge * (u_j - u_i);
+
+                    // // Add low order scheme diffusion (Kuzmin)
+                    // double k_ij = 0.0;
+                    // double k_ji = 0.0;
+                    // for (IndexType d = 0; d < TDim; ++d) {
+                    //     k_ij += r_Ni_DNj[d] * r_j_vel[d];
+                    //     k_ji += r_DNi_Nj[d] * r_i_vel[d];
+                    // }
+                    // const double d_ij_diff = std::max({-k_ij, 0.0, -k_ji});
+                    // res_edge_i += d_ij_diff * (u_j - u_i);
+                    // res_edge_j += d_ij_diff * (u_i - u_j);
+
+                    // Add low order scheme diffusion (Rainald)
+                    const double c_tau = 1.0; //TODO: Make this dependent on the dt ratio
+                    const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
+                    const double ij_low_order_diff =  c_tau * Mc_i_j;
+                    res_edge_i += ij_low_order_diff * (u_j - u_i);
+                    res_edge_j += ij_low_order_diff * (u_i - u_j);
 
                     // Calculate antidiffusive fluxes (high order contribution)
                     //TODO: Implement this!
