@@ -16,15 +16,14 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/stl/filesystem.h>
 
 // Project includes
 #include "intrusive_ptr/intrusive_ptr.hpp"
 
 // Always needed for custom holder types
 PYBIND11_DECLARE_HOLDER_TYPE(T, Kratos::intrusive_ptr<T>);
-
-#include <pybind11/stl.h>
-#include <pybind11/stl/filesystem.h>
 
 #include "includes/define.h"
 
@@ -103,15 +102,53 @@ PYBIND11_DECLARE_HOLDER_TYPE(T, Kratos::intrusive_ptr<T>);
 #define KRATOS_REGISTER_IN_PYTHON_FLAG(module,flag) \
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,flag);
 
-// This function is used to print the ofstream-operator
-// i.e. printing an object will give the same result in Python as in C++
-// To be defined as the "__str__" function
-// e.g. ".def("__str__", PrintObject<ProcessInfo>)"
-// It replicates the function "self_ns::str(self))" of boost-python
+/** 
+ * @brief This function is used to print the ofstream-operator
+ * @details i.e. printing an object will give the same result in Python as in C++
+ * To be defined as the "__str__" function
+ * e.g. ".def("__str__", PrintObject<ProcessInfo>)"
+ * It replicates the function "self_ns::str(self))" of boost-python
+ */
 template< class T>
 std::string PrintObject(const T& rObject)
 {
     std::stringstream ss;
     ss << rObject;
     return ss.str();
+}
+
+/**
+ * @brief Converts a vector to a Python list using pybind11.
+ * @details This function is generic enough to be moved to a more general place.
+ * @tparam T The type of the vector.
+ * @param results The vector to convert.
+ * @return The converted Python list.
+ */
+template<typename T>
+pybind11::list VectorToPyList(const T& results) {
+    pybind11::list list_results;
+    for (auto& r_result : results) {
+        list_results.append(r_result);
+    }
+    return list_results;
+}
+
+/**
+ * @brief Converts a matrix to a nested Python list using pybind11.
+ * @details This function is generic enough to be moved to a more general place.
+ * @tparam T The type of the matrix.
+ * @param results The matrix to convert.
+ * @return The converted nested Python list.
+ */
+template<typename T>
+pybind11::list MatrixToPyList(const T& results) {
+    pybind11::list list_results;
+    for (auto& r_result : results) {
+        pybind11::list i_list_results;
+        for (auto& r_sub_result : r_result) {
+            i_list_results.append(r_sub_result);
+        }
+        list_results.append(i_list_results);
+    }
+    return list_results;
 }
