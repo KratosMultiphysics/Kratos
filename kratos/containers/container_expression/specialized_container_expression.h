@@ -242,7 +242,7 @@ public:
      * @return SpecializedContainerExpression   New container expression with data reshaped to @ref rShape.
      */
     template<class TIteratorType>
-    KRATOS_API(KRATOS_CORE) SpecializedContainerExpression Reshape(
+    SpecializedContainerExpression Reshape(
         TIteratorType Begin,
         TIteratorType End) const
     {
@@ -299,7 +299,7 @@ public:
      * @return SpecializedContainerExpression       New container expression with data combined.
      */
     template<class TIteratorType>
-    KRATOS_API(KRATOS_CORE) SpecializedContainerExpression Comb(
+    SpecializedContainerExpression Comb(
         TIteratorType Begin,
         TIteratorType End) const
     {
