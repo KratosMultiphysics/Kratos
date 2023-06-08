@@ -87,6 +87,17 @@ public:
     ///@{
 
     /**
+     * @brief Operator <<
+     * @param os The output stream
+     * @return The output stream
+     */
+    std::ostream& operator<<(std::ostream& os) 
+    {
+        this->PrintData(os);
+        return os;
+    }
+
+    /**
      * @brief Operator []
      * @param Index The index
      * @return The result container
@@ -541,6 +552,26 @@ private:
     ///@}
 }; // Class SpatialSearchResultContainer
 
+/// input stream function
+template <class TObjectType>
+inline std::istream& operator>>(std::istream& rIStream,
+                                SpatialSearchResultContainer<TObjectType>& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+template <class TObjectType>
+inline std::ostream& operator<<(std::ostream& rOStream,
+                                const SpatialSearchResultContainer<TObjectType>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
 /**
  * @class SpatialSearchResultContainerMap
  * @brief Spatial search result container map
@@ -992,7 +1023,27 @@ private:
     void load(Serializer& rSerializer);
 
     ///@}
-}; // Class SpatialSearchResultContainer
+}; // Class SpatialSearchResultContainerMap
+
+/// input stream function
+template <class TObjectType>
+inline std::istream& operator>>(std::istream& rIStream,
+                                SpatialSearchResultContainerMap<TObjectType>& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+template <class TObjectType>
+inline std::ostream& operator<<(std::ostream& rOStream,
+                                const SpatialSearchResultContainerMap<TObjectType>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 ///@}
 
