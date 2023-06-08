@@ -18,6 +18,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -69,6 +70,7 @@ class AlgorithmSystemIdentification(Algorithm):
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self.__control_field = None
         self.__obj_val = None
+        self.algorithm_data = None
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -128,18 +130,20 @@ class AlgorithmSystemIdentification(Algorithm):
         return self.converged
 
     def Solve(self):
-        algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
+        self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         while not self.converged:
             print("")
             with TimeLogger("Optimization", f" Start Iteration {self._optimization_problem.GetStep()}", f"End Iteration {self._optimization_problem.GetStep()}"):
 
                 with TimeLogger("Calculate objective value", "Start", "End"):
                     self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
-                    algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
-                    algorithm_data.GetBufferedData()["rel_obj[%]"] = self.__objective.GetRelativeChange() * 100
+                    CallOnAll(self._optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Execute)
+
+                    self.algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
+                    self.algorithm_data.GetBufferedData()["rel_obj[%]"] = self.__objective.GetRelativeChange() * 100
                     initial_value = self.__objective.GetInitialValue()
                     if initial_value:
-                        algorithm_data.GetBufferedData()["abs_obj[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
+                        self.algorithm_data.GetBufferedData()["abs_obj[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
                     print(self.__objective.GetInfo())
 
                 with TimeLogger("Calculate gradient", "Start", "End"):
@@ -147,15 +151,15 @@ class AlgorithmSystemIdentification(Algorithm):
 
                 with TimeLogger("Calculate design update", "Start", "End"):
                     search_direction = self.ComputeSearchDirection(obj_grad)
-                    algorithm_data.GetBufferedData()["search_direction"] = search_direction
+                    self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
 
                     alpha = self.__line_search_method.ComputeStep()
 
                     update = search_direction * alpha
                     self.__control_field += update
 
-                algorithm_data.GetBufferedData()["parameter_update"] = update
-                algorithm_data.GetBufferedData()["control_field"] = self.__control_field
+                self.algorithm_data.GetBufferedData()["parameter_update"] = update
+                self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field
 
                 self.converged = self.__convergence_criteria.IsConverged()
 

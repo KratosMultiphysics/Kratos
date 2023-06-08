@@ -1,0 +1,87 @@
+{
+  "problem_data": {
+    "parallel_type": "OpenMP",
+    "echo_level": 0
+  },
+  "model_parts": [
+    {
+      "settings": {
+        "model_part_name": "Structure",
+        "domain_size": 3,
+        "input_filename": "model_file"
+      }
+    }
+  ],
+  "analyses": [
+    {
+      "name": "primal_analysis",
+      "type": "stepping_analysis_execution_policy",
+      "settings": {
+        "model_part_names": ["Structure"],
+        "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
+        "analysis_type": "StructuralMechanicsAnalysis",
+        "analysis_settings": {
+          "@include_json": "primal_parameters.json"
+        }
+      }
+    }
+  ],
+  "controls": [
+    {
+      "name": "system_identification_control",
+      "type": "material.material_properties_control_system_identification",
+      "settings": {
+        "model_part_names": ["Structure.all_nodes_elements_model_part"],
+        "control_variable_name": "YOUNG_MODULUS"
+      }
+    }
+  ],
+  "responses": [
+    {
+      "name": "measurement_residual",
+      "type": "measurement_likelihood_response_function",
+      "settings": {
+        "evaluated_model_part_names": ["Structure"],
+        "primal_analysis_name": "primal_analysis",
+        "perturbation_size": 1e-8
+      }
+    }
+  ],
+  "algorithm_settings": {
+    "type": "algorithm_system_identification",
+    "settings": {
+      "echo_level": 0,
+      "line_search": {
+        "type": "const_step",
+        "init_step": 0.1,
+        "gradient_scaling": "inf_norm"
+      },
+      "conv_settings": {
+        "type": "max_iter",
+        "max_iter": 10
+      }
+    },
+    "controls": ["system_identification_control"],
+    "objective": {
+      "response_name": "measurement_residual",
+      "type": "minimization",
+      "scaling": 1.0
+    }
+  },
+  "processes": {
+    "kratos_processes": {},
+    "optimization_data_processes": {
+      "output_processes": [
+        {
+          "type": "optimization_problem_ascii_output_process",
+          "module": "KratosMultiphysics.OptimizationApplication.processes",
+          "settings": {
+            "output_file_name": "iteration_summary.csv",
+            "write_kratos_version": true,
+            "write_time_stamp": true
+          }
+        }
+      ]
+    }
+  }
+}
