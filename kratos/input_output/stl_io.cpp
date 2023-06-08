@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <regex>
 
 // External includes
 
@@ -219,7 +218,7 @@ void StlIO::ReadSolid(
     std::getline(*mpInputStream, word); // Reading solid name to be the model part name
 
     // Remove Comments
-for (const auto& symbol : {"COMMENT:", ";"}) {
+    for (const auto& symbol : {"COMMENT:", ";"}) {
         const auto position = word.find(symbol);
         if (position != word.npos) {
             word.erase(position);
@@ -229,7 +228,7 @@ for (const auto& symbol : {"COMMENT:", ";"}) {
         word.begin(),
         word.end(),
         [](auto character) -> bool {
-            return character == '\r' || character == '\n';
+            return character == '\r' || character == '\n' || character == ' '; //remove eol's and white spaces
         }
     ), word.end());
 
