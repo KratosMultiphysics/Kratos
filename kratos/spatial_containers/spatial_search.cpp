@@ -535,8 +535,6 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNode
     // Synchronize all the results
     result.SynchronizeAll(rDataCommunicator);
 
-    KRATOS_WATCH(result)
-
     return result;
 }
 
