@@ -52,7 +52,7 @@ namespace Kratos {
  * @tparam TMeshType                Mesh type, should be Local, Ghost or Interface.
  */
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType = MeshType::Local>
-class  KRATOS_API(KRATOS_CORE) SpecializedContainerExpression : public ContainerExpression<TContainerType, TMeshType> {
+class  SpecializedContainerExpression : public ContainerExpression<TContainerType, TMeshType> {
 public:
     ///@name Type definitions
     ///@{
@@ -241,7 +241,7 @@ public:
      * @return SpecializedContainerExpression   New container expression with data reshaped to @ref rShape.
      */
     template<class TIteratorType>
-    SpecializedContainerExpression Reshape(
+    KRATOS_API(KRATOS_CORE) SpecializedContainerExpression Reshape(
         TIteratorType Begin,
         TIteratorType End) const;
 
@@ -293,7 +293,7 @@ public:
      * @return SpecializedContainerExpression       New container expression with data combined.
      */
     template<class TIteratorType>
-    SpecializedContainerExpression Comb(
+    KRATOS_API(KRATOS_CORE) SpecializedContainerExpression Comb(
         TIteratorType Begin,
         TIteratorType End) const;
 
