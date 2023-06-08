@@ -169,9 +169,13 @@ class ShellThicknessControl(Control):
         self.filter.Initialize()
 
         # create the control field
-        self.control_field =  KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
+        self.control_field = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
         self.control_field.SetData(self.parameters["settings"]["initial_thickness"].GetDouble())
-        self.control_field.Evaluate(self.controlled_physical_variable)
+        self.SetFixedModelPartValues()
+        thickness_physical_field = self.filter.FilterField(self.control_field)
+        # now update physical field
+        thickness_physical_field.Evaluate(self.controlled_physical_variable)
+        return True
 
     def Check(self):
         return self.filter.Check()
@@ -191,32 +195,32 @@ class ShellThicknessControl(Control):
         return self.control_field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
-        keys = physical_gradient_variable_container_expression_map.keys()
-        if len(keys) != 1:
-            raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
-        if self.controlled_physical_variable not in keys:
-            raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+        with TimeLogger(self.__class__.__name__, f"Mapping Gardient {self.GetName()}...", f"Finished updating of {self.GetName()}."):
+            keys = physical_gradient_variable_container_expression_map.keys()
+            if len(keys) != 1:
+                raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+            if self.controlled_physical_variable not in keys:
+                raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-        physical_gradient = physical_gradient_variable_container_expression_map[self.controlled_physical_variable]
-        if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
-            raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
+            physical_gradient = physical_gradient_variable_container_expression_map[self.controlled_physical_variable]
+            if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
+                raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-        physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
-        self.SetFixedModelPartValues(True)
-        filtered_gradient = self.filter.FilterIntegratedField(physical_gradient_variable_container_expression_map[self.controlled_physical_variable])
+            physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
+            self.SetFixedModelPartValues(True)
+            filtered_gradient = self.filter.FilterIntegratedField(physical_gradient_variable_container_expression_map[self.controlled_physical_variable])
 
-        return filtered_gradient
+            return filtered_gradient
 
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
-        with TimeLogger(f"Updating control ...", " Starting updating .", " Finished updating ."):
-            if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
-                raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
-
-            if KratosOA.ContainerExpressionUtils.NormL2(self.control_field - new_control_field) > 1e-9:
+        if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
+        if KratosOA.ContainerExpressionUtils.NormL2(self.control_field - new_control_field) > 1e-9:
+            with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}."):
                 self.SetFixedModelPartValues()
-                self.control_field = self.filter.FilterField(new_control_field)
+                new_physical_field = self.filter.FilterField(new_control_field)
                 # now update physical field
-                self.control_field.Evaluate(self.controlled_physical_variable)
+                new_physical_field.Evaluate(self.controlled_physical_variable)
                 return True
 
         return False
