@@ -283,7 +283,7 @@ std::string SpatialSearchResultContainer<TObjectType>::Info() const
 template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::PrintInfo(std::ostream& rOStream) const 
 {
-    rOStream << "SpatialSearchResultContainer";
+    rOStream << "SpatialSearchResultContainer" << "\n";
 }
 
 /***********************************************************************************/
@@ -430,7 +430,7 @@ std::string SpatialSearchResultContainerMap<TObjectType>::Info() const
 template <class TObjectType>
 void SpatialSearchResultContainerMap<TObjectType>::PrintInfo(std::ostream& rOStream) const 
 {
-    rOStream << "SpatialSearchResultContainerMap";
+    rOStream << "SpatialSearchResultContainerMap" << "\n";
 }
 
 /***********************************************************************************/

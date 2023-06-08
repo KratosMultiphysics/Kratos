@@ -153,6 +153,11 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
         KRATOS_ERROR_IF(self.GetGlobalPointerCommunicator() == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
         return *(self.GetGlobalPointers().GetContainer().begin() + Index);
     })
+    .def("__repr__", [](ContainerType& self) {
+        std::ostringstream os;
+        self.PrintData(os);
+        return os.str();
+    })
     .def("__iter__", [](ContainerType& self) {
         return pybind11::make_iterator(self.begin(), self.end());
     }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
@@ -201,6 +206,11 @@ void BindSpatialSearchResultContainerMap(pybind11::module& m, const std::string&
     })
     .def("__call__", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
         return self(rCoordinates);
+    })
+    .def("__repr__", [](ContainerMapType& self) {
+        std::ostringstream os;
+        self.PrintData(os);
+        return os.str();
     })
     .def("__iter__", [](ContainerMapType& self) {
         return pybind11::make_iterator(self.begin(), self.end());
