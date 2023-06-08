@@ -106,8 +106,8 @@ class ResponseRoutine:
         #     # in the execution policies which has some intersection with the modified model parts.
         #     ChangeExecutionPolicyStates(modified_model_parts, False, self.__optimization_problem)
 
-        if compute_response_value_flag:
-            self.__response_value = self.__response.CalculateValue()
+        # if compute_response_value_flag:
+        self.__response_value = self.__response.CalculateValue()
 
         return self.__response_value
 

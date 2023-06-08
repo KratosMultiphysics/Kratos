@@ -46,6 +46,10 @@ class HelmholtzAnalysis(AnalysisStage):
             neighbour_conds = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
             KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourConditions(neighbour_conds)
             KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_conds)
+        elif isinstance(data_exp, KOA.ContainerExpression.ElementPropertiesExpression):
+            neighbour_elems = KM.ContainerExpression.NodalNonHistoricalExpression(data_exp.GetModelPart())
+            KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourElements(neighbour_elems)
+            KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_elems)
 
         filter_type = self._GetSolver().settings["filter_type"].GetString()
         if filter_type == "bulk_surface_shape" or filter_type == "general_vector":
@@ -72,6 +76,10 @@ class HelmholtzAnalysis(AnalysisStage):
             mapped_condition_solution_field = KM.ContainerExpression.ConditionNonHistoricalExpression(self._GetComputingModelPart())
             KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_condition_solution_field, nodal_solution_field)
             return mapped_condition_solution_field
+        elif output_data_exp_type == KOA.ContainerExpression.ElementPropertiesExpression:
+            mapped_elemental_solution_field = KOA.ContainerExpression.ElementPropertiesExpression(self._GetComputingModelPart())
+            KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_elemental_solution_field, nodal_solution_field)
+            return mapped_elemental_solution_field
 
     #### Public user interface functions ####
     def Initialize(self):
