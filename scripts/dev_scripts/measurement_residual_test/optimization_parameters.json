@@ -32,7 +32,11 @@
       "type": "material.material_properties_control_system_identification",
       "settings": {
         "model_part_names": ["Structure.all_nodes_elements_model_part"],
-        "control_variable_name": "YOUNG_MODULUS"
+        "control_variable_name": "YOUNG_MODULUS",
+        "mapping_options": {
+          "use_constant_multiplication_factor": true,
+          "constant_multiplication_factor": 3000000.0
+        }
       }
     }
   ],
@@ -79,6 +83,19 @@
             "output_file_name": "iteration_summary.csv",
             "write_kratos_version": true,
             "write_time_stamp": true
+          }
+        },
+        {
+          "type": "optimization_problem_vtu_output_process",
+          "module": "KratosMultiphysics.OptimizationApplication.processes",
+          "settings": {
+            "custom_name_prefix": "optimization_results",
+            "file_format": "binary",
+            "write_deformed_configuration": false,
+            "list_of_output_components": ["all"],
+            "output_precision": 7,
+            "output_interval": 1,
+            "echo_level": 0
           }
         },
         {
