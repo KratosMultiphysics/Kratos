@@ -64,10 +64,20 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         else:
             self.search = KM.SpecializedSpatialSearch(self.settings)
 
+        # Creating submodel part
+        self.second_model_part = self.current_model.CreateModelPart(container_type)
+
         # Create node for search
         self.new_node_id = 100000
-        self.second_model_part = self.current_model.CreateModelPart(container_type)
-        self.second_model_part.CreateNewNode(self.new_node_id, 0.0, 0.0, 0.0)
+        if KM.IsDistributedRun():
+            # Only added to first rank to actualy check it works in all ranks
+            if self.data_comm.Rank() == 0:
+                self.node = self.second_model_part.CreateNewNode(self.new_node_id, 0.0, 0.0, 0.0)
+                self.node.SetSolutionStepValue(KM.PARTITION_INDEX, 0)
+                ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.model_part, self.data_comm)
+                ParallelFillCommunicator.Execute()
+        else:
+            self.node = self.second_model_part.CreateNewNode(self.new_node_id, 0.0, 0.0, 0.0)
 
     def test_KDTree_nodes(self):
         # Create search
@@ -94,6 +104,17 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         # Parallel interface (also works in serial mode)
         results = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list, self.data_comm)
         self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
+        self.assertTrue(results.HasResult(self.new_node_id))
+        node_results = results[self.new_node_id]
+        if not KM.IsDistributedRun():
+            self.assertEqual(node_results.NumberOfLocalResults(), len(distance_ref))
+        self.assertEqual(node_results.NumberOfGlobalResults(), len(distance_ref))
+        ids = node_results.GetResultIndices()
+        for id in ids:
+            self.assertTrue(id in node_id_ref)
+        distances = node_results.GetDistances()
+        for distance in distances:
+            self.assertTrue(distance in distance_ref)
 
     def test_Octree_nodes(self):
         # Create search
@@ -120,6 +141,17 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         # Parallel interface (also works in serial mode)
         results = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list, self.data_comm)
         self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
+        self.assertTrue(results.HasResult(self.new_node_id))
+        node_results = results[self.new_node_id]
+        if not KM.IsDistributedRun():
+            self.assertEqual(node_results.NumberOfLocalResults(), len(distance_ref))
+        self.assertEqual(node_results.NumberOfGlobalResults(), len(distance_ref))
+        ids = node_results.GetResultIndices()
+        for id in ids:
+            self.assertTrue(id in node_id_ref)
+        distances = node_results.GetDistances()
+        for distance in distances:
+            self.assertTrue(distance in distance_ref)
 
     def test_BinsStatic_nodes(self):
         # Create search
@@ -145,6 +177,17 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         # Parallel interface (also works in serial mode)
         results = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list, self.data_comm)
         self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
+        self.assertTrue(results.HasResult(self.new_node_id))
+        node_results = results[self.new_node_id]
+        if not KM.IsDistributedRun():
+            self.assertEqual(node_results.NumberOfLocalResults(), len(distance_ref))
+        self.assertEqual(node_results.NumberOfGlobalResults(), len(distance_ref))
+        ids = node_results.GetResultIndices()
+        for id in ids:
+            self.assertTrue(id in node_id_ref)
+        distances = node_results.GetDistances()
+        for distance in distances:
+            self.assertTrue(distance in distance_ref)
 
     def test_BinsDynamic_nodes(self):
         # Create search
@@ -170,6 +213,17 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         # Parallel interface (also works in serial mode)
         results = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list, self.data_comm)
         self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
+        self.assertTrue(results.HasResult(self.new_node_id))
+        node_results = results[self.new_node_id]
+        if not KM.IsDistributedRun():
+            self.assertEqual(node_results.NumberOfLocalResults(), len(distance_ref))
+        self.assertEqual(node_results.NumberOfGlobalResults(), len(distance_ref))
+        ids = node_results.GetResultIndices()
+        for id in ids:
+            self.assertTrue(id in node_id_ref)
+        distances = node_results.GetDistances()
+        for distance in distances:
+            self.assertTrue(distance in distance_ref)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
