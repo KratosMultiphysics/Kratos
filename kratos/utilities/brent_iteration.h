@@ -9,11 +9,10 @@
 //
 //  Main authors:    Michael Andre
 //
-//  Contributors:    Jordi Cotela
+//  Contributors:    Jordi Cotela Dalmau
 //
 
-#if !defined(KRATOS_BRENT_ITERATION_H_INCLUDED)
-#define  KRATOS_BRENT_ITERATION_H_INCLUDED
+#pragma once
 
 #include <cmath>
 #include <algorithm>
@@ -158,5 +157,3 @@ public:
 };
 
 }
-
-#endif // KRATOS_BRENT_ITERATION_H_INCLUDED

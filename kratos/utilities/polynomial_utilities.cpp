@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main authors:    Jordi Cotela Dalmau
 //
 
 // System includes
@@ -119,7 +119,8 @@ void Divide(
     PolynomialType& rQuotient,
     PolynomialType& rRemainder,
     const PolynomialType& rA,
-    const PolynomialType& rB)
+    const PolynomialType& rB
+    )
 {
     const std::size_t deg_a = Degree(rA);
     const std::size_t deg_b = Degree(rB);
@@ -152,7 +153,8 @@ void Divide(
 void IsolateRoots(
     std::vector<IntervalType>& rRootIntervals,
     const PolynomialType& rPolynomial,
-    const IntervalType& rRange)
+    const IntervalType& rRange
+    )
 {
     std::size_t sturm_seq_size = rPolynomial.size();
     std::vector<PolynomialType> sturm_sequence{rPolynomial, Differentiate(rPolynomial)};
@@ -189,8 +191,7 @@ void IsolateRoots(
         nroots = (vc > va) ? vc - va : va - vc;
         if (nroots == 1) {
             rRootIntervals.push_back(IntervalType{a, c});
-        }
-        else if (nroots > 1) {
+        } else if (nroots > 1) {
             candidates.push_back(IntervalType{a, c});
             candidate_counts.push_back(IntervalCountType{va, vc});
         }
@@ -201,8 +202,7 @@ void IsolateRoots(
         nroots = (vc > vb) ? vc - vb : vb - vc;
         if (nroots == 1) {
             rRootIntervals.push_back(IntervalType{c, b});
-        }
-        else if (nroots > 1) {
+        } else if (nroots > 1) {
             candidates.push_back(IntervalType{c, b});
             candidate_counts.push_back(IntervalCountType{vc, vb});
         }
@@ -211,7 +211,8 @@ void IsolateRoots(
 
 double FindRoot(
     const PolynomialType& rPolynomial,
-    const IntervalType& rRange)
+    const IntervalType& rRange
+    )
 {
     const auto func = [&rPolynomial](double Coordinate){
         return Evaluate(rPolynomial, Coordinate);
