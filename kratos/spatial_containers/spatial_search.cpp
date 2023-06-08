@@ -534,7 +534,6 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNode
 
     // Synchronize all the results
     result.SynchronizeAll(rDataCommunicator);
-
     return result;
 }
 
