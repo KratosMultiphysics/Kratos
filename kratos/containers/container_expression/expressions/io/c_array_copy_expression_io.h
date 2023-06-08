@@ -41,7 +41,7 @@ public:
     ///@{
 
     template<class TRawDataType>
-    CArrayExpressionInput(
+    KRATOS_API(KRATOS_CORE) CArrayExpressionInput(
         TRawDataType const* pBegin,
         const int NumberOfEntities,
         int const* pShapeBegin,
@@ -88,7 +88,7 @@ public:
     ///@{
 
     template<class TRawDataType>
-    CArrayExpressionOutput(
+    KRATOS_API(KRATOS_CORE) CArrayExpressionOutput(
         TRawDataType* pBegin,
         const int mSize);
 

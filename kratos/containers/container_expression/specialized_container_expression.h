@@ -52,7 +52,7 @@ namespace Kratos {
  * @tparam TMeshType                Mesh type, should be Local, Ghost or Interface.
  */
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType = MeshType::Local>
-class SpecializedContainerExpression : public ContainerExpression<TContainerType, TMeshType> {
+class  KRATOS_API(KRATOS_CORE) SpecializedContainerExpression : public ContainerExpression<TContainerType, TMeshType> {
 public:
     ///@name Type definitions
     ///@{

@@ -59,7 +59,7 @@ public:
     ///@name Public classes
     ///@{
 
-    class VariableExpressionInput : public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) VariableExpressionInput : public ExpressionInput
     {
     public:
         ///@name Type definitions
@@ -121,7 +121,7 @@ public:
 
     };
 
-    class VariableExpressionOutput : public ExpressionOutput
+    class KRATOS_API(KRATOS_CORE) VariableExpressionOutput : public ExpressionOutput
     {
     public:
         ///@name Type definitions
