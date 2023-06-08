@@ -70,10 +70,10 @@ int IsotropicDamageCohesive3DLaw::Check(const Properties& rMaterialProperties,co
         KRATOS_ERROR << "FRACTURE_ENERGY not defined" << std::endl;
     }
 
-    if(rMaterialProperties.Has(EQSTRAIN_SHEAR_FACTOR)) {
-        KRATOS_ERROR_IF(rMaterialProperties[EQSTRAIN_SHEAR_FACTOR] < 0.0) << "EQSTRAIN_SHEAR_FACTOR has an invalid value " << std::endl;
+    if(rMaterialProperties.Has(BETA_EQSTRAIN_SHEAR_FACTOR)) {
+        KRATOS_ERROR_IF(rMaterialProperties[BETA_EQSTRAIN_SHEAR_FACTOR] < 0.0) << "EQSTRAIN_SHEAR_FACTOR has an invalid value " << std::endl;
     } else {
-        KRATOS_ERROR << "EQSTRAIN_SHEAR_FACTOR not defined" << std::endl;
+        KRATOS_ERROR << "BETA_EQSTRAIN_SHEAR_FACTOR not defined" << std::endl;
     }
 
     if(rMaterialProperties.Has(DAMAGE_EVOLUTION_LAW)) {
@@ -89,8 +89,8 @@ int IsotropicDamageCohesive3DLaw::Check(const Properties& rMaterialProperties,co
 
 void IsotropicDamageCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
-    mStateVariable[0] = 0.0;
-    mStateVariable[1] = 0.0;
+    mStateVariable[0]    = 0.0;
+    mStateVariable[1]    = 0.0;
     mOldStateVariable[0] = 0.0;
     mOldStateVariable[1] = 0.0;
 }
@@ -104,7 +104,6 @@ void IsotropicDamageCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& 
 
     // Get the strain vector
     Vector& rStrainVector = rValues.GetStrainVector();
-    KRATOS_WATCH(rStrainVector);
 
     //Initialize main variables
     Flags& Options = rValues.GetOptions();
@@ -118,7 +117,6 @@ void IsotropicDamageCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& 
 
     //Get the elastic constitutive matrix
     this->GetElasticConstitutiveMatrix(ElasticConstitutiveMatrix,Variables,rValues);
-    KRATOS_WATCH(ElasticConstitutiveMatrix);
 
     //Evaluate the current state variable
     this->ComputeEquivalentStrain(Variables,rValues);
@@ -127,27 +125,18 @@ void IsotropicDamageCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& 
     this->ComputeScalarDamage(Variables,rValues);
 
     //Compute the effective stress vector
-    EffectiveStressVector = prod(ElasticConstitutiveMatrix, rStrainVector);
-    KRATOS_WATCH(EffectiveStressVector);
+    noalias(EffectiveStressVector) = prod(ElasticConstitutiveMatrix, rStrainVector);
 
     //Compute the traction stress vector (IF REQUIRED)
     if(Options.Is(ConstitutiveLaw::COMPUTE_STRESS)){
         Vector& rStressVector = rValues.GetStressVector();
-        rStressVector = (1.0 - Variables.DamageVariable)*EffectiveStressVector;
-        KRATOS_WATCH(rStressVector);
+        this->ComputeStressVector(rStressVector, EffectiveStressVector, Variables, rValues);
     }
 
     //Compute the tangent constitutive matrix (IF REQUIRED)
     if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)){
-        Matrix DamageConstitutiveMatrix(VoigtSize,VoigtSize);
         Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix(); 
-
-        //Compute the damage constitutive matrix
-        this->ComputeDamageConstitutiveMatrix(DamageConstitutiveMatrix,EffectiveStressVector,Variables,rValues);
-        KRATOS_WATCH(DamageConstitutiveMatrix);
-
-        rConstitutiveMatrix = (1.0 - Variables.DamageVariable)*ElasticConstitutiveMatrix - DamageConstitutiveMatrix;
-        KRATOS_WATCH(rConstitutiveMatrix);
+        this->ComputeTangentConstitutiveMatrix(rConstitutiveMatrix, ElasticConstitutiveMatrix, EffectiveStressVector, Variables, rValues);
     }
     
 }
@@ -177,6 +166,7 @@ void IsotropicDamageCohesive3DLaw::FinalizeMaterialResponseCauchy (Parameters& r
 
 Vector& IsotropicDamageCohesive3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
+    rValue = mStateVariable;
     return( rValue );
 }
 
@@ -197,13 +187,13 @@ void IsotropicDamageCohesive3DLaw::InitializeConstitutiveLawVariables(Constituti
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
 
     // Material parameters received as an input
-    rVariables.ShearStiffness      = MaterialProperties[SHEAR_STIFFNESS];
-    rVariables.NormalStiffness     = MaterialProperties[NORMAL_STIFFNESS];
-    rVariables.PenaltyStiffness    = MaterialProperties[PENALTY_STIFFNESS];
-    rVariables.MaxTensileStress    = MaterialProperties[TENSILE_STRENGTH];
-    rVariables.FractureEnergy      = MaterialProperties[FRACTURE_ENERGY];
-    rVariables.EqStrainShearFactor = MaterialProperties[EQSTRAIN_SHEAR_FACTOR];
-    rVariables.DamageEvolutionLaw  = MaterialProperties[DAMAGE_EVOLUTION_LAW];
+    rVariables.ShearStiffness          = MaterialProperties[SHEAR_STIFFNESS];
+    rVariables.NormalStiffness         = MaterialProperties[NORMAL_STIFFNESS];
+    rVariables.PenaltyStiffness        = MaterialProperties[PENALTY_STIFFNESS];
+    rVariables.MaxTensileStress        = MaterialProperties[TENSILE_STRENGTH];
+    rVariables.FractureEnergy          = MaterialProperties[FRACTURE_ENERGY];
+    rVariables.BetaEqStrainShearFactor = MaterialProperties[BETA_EQSTRAIN_SHEAR_FACTOR];
+    rVariables.DamageEvolutionLaw      = MaterialProperties[DAMAGE_EVOLUTION_LAW];
 
     // Strain which the damage process begins
     rVariables.DamageThreshold  = rVariables.MaxTensileStress / rVariables.NormalStiffness;
@@ -214,6 +204,53 @@ void IsotropicDamageCohesive3DLaw::InitializeConstitutiveLawVariables(Constituti
 
     // Initialize the size of the vector with the derivatives of the equivalent strain
     rVariables.DerivativeEquivalentStrain.resize(VoigtSize);
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// This method computes the stress vector
+
+void IsotropicDamageCohesive3DLaw::ComputeStressVector(Vector& rStressVector, Vector& EffectiveStressVector, ConstitutiveLawVariables& rVariables, Parameters& rValues)
+{
+    // Get the normal component of the strain vector
+    const Vector& StrainVector = rValues.GetStrainVector();
+    const unsigned int VoigtSize = StrainVector.size();
+    double normalStrain = StrainVector[VoigtSize-1];
+
+    // Compute the stress vector
+    rStressVector = (1.0 - rVariables.DamageVariable)*EffectiveStressVector;
+
+    // Fix the normal component in case it is a compression in the normal direction
+    if (normalStrain < 0.0)
+    {
+        rStressVector[VoigtSize-1] = rVariables.PenaltyStiffness * rVariables.NormalStiffness * normalStrain;
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// This method computes the tangent constitutive matrix
+
+void IsotropicDamageCohesive3DLaw::ComputeTangentConstitutiveMatrix(Matrix& rConstitutiveMatrix, Matrix& ElasticConstitutiveMatrix, Vector& EffectiveStressVector, ConstitutiveLawVariables& rVariables, Parameters& rValues)
+{
+    // Get the normal component of the strain vector
+    const Vector& StrainVector = rValues.GetStrainVector();
+    const unsigned int VoigtSize = StrainVector.size();
+    double normalStrain = StrainVector[VoigtSize-1];
+
+    //Compute the damage constitutive matrix
+    Matrix DamageConstitutiveMatrix(VoigtSize,VoigtSize);
+    this->ComputeDamageConstitutiveMatrix(DamageConstitutiveMatrix,EffectiveStressVector,rVariables,rValues);
+
+    // Compute the tangent constitutive matrix
+    rConstitutiveMatrix = (1.0 - rVariables.DamageVariable)*ElasticConstitutiveMatrix - DamageConstitutiveMatrix;
+
+    // In case it is a compression in the normal direction:
+    if (normalStrain < 0.0)
+    {
+        for(int i = 0; i <(VoigtSize-1); i++){
+            rConstitutiveMatrix(VoigtSize-1,i) = 0.0;
+        }
+        rConstitutiveMatrix(VoigtSize-1,VoigtSize-1) = rVariables.NormalStiffness * rVariables.PenaltyStiffness;
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -233,14 +270,14 @@ void IsotropicDamageCohesive3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariab
     mStateVariable[1] = std::max(mOldStateVariable[1],StrainVector[2]);
 
     // Compute the current equivalent strain
-    rVariables.EquivalentStrain = mStateVariable[1] + rVariables.EqStrainShearFactor * mStateVariable[0];
+    rVariables.EquivalentStrain = mStateVariable[1] + rVariables.BetaEqStrainShearFactor * mStateVariable[0];
 
     // Compute the equivalent strain associated with the last converged step (used to evaluate the loading function)
-    rVariables.OldEquivalentStrain = mOldStateVariable[1] + rVariables.EqStrainShearFactor * mOldStateVariable[0];
+    rVariables.OldEquivalentStrain = mOldStateVariable[1] + rVariables.BetaEqStrainShearFactor * mOldStateVariable[0];
 
     // Compute the vector with the derivatives of the equivalent strain wrt to the components of the strain vector
-    rVariables.DerivativeEquivalentStrain[0] = rVariables.EqStrainShearFactor * StrainVector[0] / resShear;
-    rVariables.DerivativeEquivalentStrain[1] = rVariables.EqStrainShearFactor * StrainVector[1] / resShear;
+    rVariables.DerivativeEquivalentStrain[0] = rVariables.BetaEqStrainShearFactor * StrainVector[0] / resShear;
+    rVariables.DerivativeEquivalentStrain[1] = rVariables.BetaEqStrainShearFactor * StrainVector[1] / resShear;
     rVariables.DerivativeEquivalentStrain[2] = 1.0;
 }
 
@@ -342,41 +379,13 @@ void IsotropicDamageCohesive3DLaw::ComputeDamageConstitutiveMatrix(Matrix& rDama
 {
     const Vector& StrainVector = rValues.GetStrainVector();
 
-    // Fill the constitutive matrix
+    // Initialize the damage part of the tangent constitutive matrix
     const unsigned int VoigtSize = StrainVector.size();
     rDamageConstitutiveMatrix.resize(VoigtSize,VoigtSize);
-    this->TensorialProduct(rDamageConstitutiveMatrix, EffectiveStressVector,rVariables.DerivativeEquivalentStrain);
+
+    // Fill the matrix
+    noalias(rDamageConstitutiveMatrix) = outer_prod(EffectiveStressVector,rVariables.DerivativeEquivalentStrain);
     rDamageConstitutiveMatrix = rDamageConstitutiveMatrix * rVariables.DerivativeSDV;
-}
-
-//----------------------------------------------------------------------------------------
-
-void IsotropicDamageCohesive3DLaw::TensorialProduct(Matrix& rMatrix, Vector& V1, Vector& V2)
-{
-    // Consistency check
-    const unsigned int SizeVct1 = V1.size();
-    const unsigned int SizeVct2 = V2.size();
-
-    if(SizeVct1 != 3) {
-        KRATOS_ERROR_IF(SizeVct1 != 0.0) << "The vector 1 must have 3 components " << std::endl;
-    }
-    if(SizeVct2 != 3) {
-        KRATOS_ERROR_IF(SizeVct2 != 0.0) << "The vector 2 must have 3 components " << std::endl;
-    }
-    if(SizeVct1 != SizeVct2) {
-        KRATOS_ERROR_IF(SizeVct1 != SizeVct2) << "Vectors 1 and 2 must have three components " << std::endl;
-    }
-
-    // Tensor product: M = V1 * V2^T, considering that V1 and V2 are column vectors
-    rMatrix(0,0) = V1[0] * V2[0];
-    rMatrix(0,1) = V1[0] * V2[1];
-    rMatrix(0,2) = V1[0] * V2[2];
-    rMatrix(1,0) = V1[1] * V2[0];
-    rMatrix(1,1) = V1[1] * V2[1];
-    rMatrix(1,2) = V1[1] * V2[2];
-    rMatrix(2,0) = V1[2] * V2[0];
-    rMatrix(2,1) = V1[2] * V2[1];
-    rMatrix(2,2) = V1[2] * V2[2];
 }
 
 } // Namespace Kratos

@@ -48,18 +48,16 @@ void IsotropicDamageCohesive2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariab
     // Maximum shear resultant and normal strains in the loading history
     mStateVariable[0] = std::max(mOldStateVariable[0],StrainVector[0]);
     mStateVariable[1] = std::max(mOldStateVariable[1],StrainVector[1]);
-    KRATOS_WATCH(mStateVariable);
-    KRATOS_WATCH(mOldStateVariable);
 
     // Compute the current equivalent strain
-    rVariables.EquivalentStrain = mStateVariable[1] + rVariables.EqStrainShearFactor * mStateVariable[0];
+    rVariables.EquivalentStrain = mStateVariable[1] + rVariables.BetaEqStrainShearFactor * mStateVariable[0];
 
     // Compute the equivalent strain associated with the last converged step (used to evaluate the loading function)
-    rVariables.OldEquivalentStrain = mOldStateVariable[1] + rVariables.EqStrainShearFactor * mOldStateVariable[0];
+    rVariables.OldEquivalentStrain = mOldStateVariable[1] + rVariables.BetaEqStrainShearFactor * mOldStateVariable[0];
 
     // Compute the vector with the derivatives of the equivalent strain wrt to the components of the strain vector
     const double sign = (StrainVector[0] < 0.0) ? -1.0 : 1.0;
-    rVariables.DerivativeEquivalentStrain[0] = rVariables.EqStrainShearFactor * sign;
+    rVariables.DerivativeEquivalentStrain[0] = rVariables.BetaEqStrainShearFactor * sign;
     rVariables.DerivativeEquivalentStrain[1] = 1.0;
 }
 
@@ -83,29 +81,4 @@ void IsotropicDamageCohesive2DLaw::GetElasticConstitutiveMatrix(Matrix& rElastic
     rElasticConstitutiveMatrix(1,1) = rVariables.NormalStiffness * cp;
 }
 
-//----------------------------------------------------------------------------------------
-
-void IsotropicDamageCohesive2DLaw::TensorialProduct(Matrix& rMatrix, Vector& V1, Vector& V2)
-{
-    // Consistency check
-    const unsigned int SizeVct1 = V1.size();
-    const unsigned int SizeVct2 = V2.size();
-
-    if(SizeVct1 != 2) {
-        KRATOS_ERROR_IF(SizeVct1 != 0.0) << "The vector 1 must have 2 components " << std::endl;
-    }
-    if(SizeVct2 != 2) {
-        KRATOS_ERROR_IF(SizeVct2 != 0.0) << "The vector 2 must have 2 components " << std::endl;
-    }
-    if(SizeVct1 != SizeVct2) {
-        KRATOS_ERROR_IF(SizeVct1 != SizeVct2) << "Vectors 1 and 2 must have two components " << std::endl;
-    }
-
-    // Tensor product: M = V1 * V2^T, considering that V1 and V2 are column vectors
-    rMatrix(0,0) = V1[0] * V2[0];
-    rMatrix(0,1) = V1[0] * V2[1];
-    rMatrix(1,0) = V1[1] * V2[0];
-    rMatrix(1,1) = V1[1] * V2[1];
-
-}
 } // Namespace Kratos

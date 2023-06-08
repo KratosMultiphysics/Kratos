@@ -70,8 +70,6 @@ protected:
                                                         ConstitutiveLawVariables& rVariables,
                                                         Parameters& rValues) override;
 
-    void TensorialProduct(Matrix& rMatrix, Vector& V1, Vector& V2) override;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

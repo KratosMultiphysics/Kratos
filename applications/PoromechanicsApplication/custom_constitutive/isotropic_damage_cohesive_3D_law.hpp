@@ -90,7 +90,7 @@ protected:
         double PenaltyStiffness;
         double MaxTensileStress; 
         double FractureEnergy;
-        double EqStrainShearFactor;
+        double BetaEqStrainShearFactor;
         int    DamageEvolutionLaw; 
 
         // Material parameter computed based on others
@@ -109,7 +109,7 @@ protected:
     };
 
     // Member Variables
-    Vector mStateVariable = ZeroVector(2);
+    Vector mStateVariable = ZeroVector(2);      // [max(|delta_shear|) max(<delta_normal>)]
     Vector mOldStateVariable = ZeroVector(2);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -119,6 +119,11 @@ protected:
 
     virtual void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
                                                     Parameters& rValues);
+
+    virtual void ComputeStressVector(Vector& rStressVector, Vector& EffectiveStressVector,
+                                                 ConstitutiveLawVariables& rVariables, Parameters& rValues);
+
+    virtual void ComputeTangentConstitutiveMatrix(Matrix& rConstitutiveMatrix, Matrix& ElasticConstitutiveMatrix, Vector& EffectiveStressVector, ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
     virtual void CheckLoadingFunction(ConstitutiveLawVariables& rVariables,
                                                     Parameters& rValues);
@@ -135,8 +140,6 @@ protected:
     virtual void ComputeDamageConstitutiveMatrix(Matrix& rDamageConstitutiveMatrix,Vector& EffectiveStressVector,
                                                         ConstitutiveLawVariables& rVariables,
                                                         Parameters& rValues);
-
-    virtual void TensorialProduct(Matrix& rMatrix, Vector& V1, Vector& V2);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
