@@ -172,17 +172,6 @@ SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> Spec
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
-template<class TIteratorType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Reshape(
-    TIteratorType Begin,
-    TIteratorType End) const
-{
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    result.mpExpression = Kratos::Reshape(*this->mpExpression, Begin, End);
-    return result;
-}
-
-template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const BaseType& rOther) const
 {
     SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
@@ -197,22 +186,6 @@ template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(const std::vector<typename BaseType::Pointer>& rListOfOthers) const
 {
     return this->Comb(rListOfOthers.begin(), rListOfOthers.end());
-}
-
-template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
-template<class TIteratorType>
-SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>::Comb(
-    TIteratorType Begin,
-    TIteratorType End) const
-{
-    SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
-    std::vector<Expression::ConstPointer> expressions;
-    expressions.push_back(this->pGetExpression());
-    for (auto itr = Begin; itr != End; ++itr) {
-        expressions.push_back((*itr)->pGetExpression());
-    }
-    result.mpExpression = Kratos::Comb(expressions.begin(), expressions.end());
-    return result;
 }
 
 template <class TContainerType, class TContainerDataIO, MeshType TMeshType>

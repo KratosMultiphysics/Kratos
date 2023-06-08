@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "containers/container_expression/container_expression.h"
+#include "containers/container_expression/expressions/view_operators.h"
 
 namespace Kratos {
 
@@ -243,7 +244,12 @@ public:
     template<class TIteratorType>
     KRATOS_API(KRATOS_CORE) SpecializedContainerExpression Reshape(
         TIteratorType Begin,
-        TIteratorType End) const;
+        TIteratorType End) const
+    {
+        SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
+        result.mpExpression = Kratos::Reshape(*this->mpExpression, Begin, End);
+        return result;
+    }
 
     /**
      * @brief Returns container expression which combines current and all the other container expressions provided.
@@ -295,7 +301,17 @@ public:
     template<class TIteratorType>
     KRATOS_API(KRATOS_CORE) SpecializedContainerExpression Comb(
         TIteratorType Begin,
-        TIteratorType End) const;
+        TIteratorType End) const
+    {
+        SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
+        std::vector<Expression::ConstPointer> expressions;
+        expressions.push_back(this->pGetExpression());
+        for (auto itr = Begin; itr != End; ++itr) {
+            expressions.push_back((*itr)->pGetExpression());
+        }
+        result.mpExpression = Kratos::Comb(expressions.begin(), expressions.end());
+        return result;
+    }
 
     SpecializedContainerExpression operator+(const SpecializedContainerExpression& rOther) const;
 
