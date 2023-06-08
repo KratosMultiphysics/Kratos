@@ -97,18 +97,10 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     })
     .def("Clear", &ContainerType::Clear)
     .def("SynchronizeAll", &ContainerType::SynchronizeAll)
-    .def("GetDistances", [&](ContainerType& self) {
-        return VectorToPyList(self.GetDistances());
-    })
-    .def("GetResultShapeFunctions", [&](ContainerType& self, const array_1d<double, 3>& rPoint) {
-        return VectorToPyList(self.GetResultShapeFunctions(rPoint));
-    })
-    .def("GetResultIndices", [&](ContainerType& self) {
-        return VectorToPyList(self.GetResultIndices());
-    })
-    .def("GetResultCoordinates", [&](ContainerType& self) {
-        return MatrixToPyList(self.GetResultCoordinates());
-    })
+    .def("GetDistances", &ContainerType::GetDistances)
+    .def("GetResultShapeFunctions", &ContainerType::GetResultShapeFunctions)
+    .def("GetResultIndices", &ContainerType::GetResultIndices)
+    .def("GetResultCoordinates", &ContainerType::GetResultCoordinates)
     .def("__getitem__", [](ContainerType& self, const std::size_t Index) {
         return *(self.GetLocalPointers().GetContainer().begin() + Index);
     })
