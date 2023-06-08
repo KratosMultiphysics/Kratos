@@ -155,7 +155,7 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     })
     .def("__repr__", [](ContainerType& self) {
         std::ostringstream os;
-        self.PrintData(os);
+        os << self << std::endl;
         return os.str();
     })
     .def("__iter__", [](ContainerType& self) {
@@ -209,7 +209,7 @@ void BindSpatialSearchResultContainerMap(pybind11::module& m, const std::string&
     })
     .def("__repr__", [](ContainerMapType& self) {
         std::ostringstream os;
-        self.PrintData(os);
+        os << self << std::endl;
         return os.str();
     })
     .def("__iter__", [](ContainerMapType& self) {
