@@ -26,35 +26,36 @@
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 
-namespace Kratos::Testing
-{
-/// Factory functions
+namespace Kratos::Testing {
+namespace {
+    /// Test utility functions
 
-/** Generates a sample Quadrilateral3D9.
-* Generates a right quadrilateral with origin in the origin and leg size 1.
-* @return  Pointer to a Quadrilateral3D9
-*/
-template<class TPointType>
-typename Quadrilateral3D9<TPointType>::Pointer GenerateFlatQuadrilateral3D9()
-{
-    return typename Quadrilateral3D9<TPointType>::Pointer(new Quadrilateral3D9<TPointType>(
-    GeneratePoint<TPointType>( 0.0, 0.0, 0.0),
-    GeneratePoint<TPointType>( 1.0, 0.0, 0.0),
-    GeneratePoint<TPointType>( 1.0, 1.0, 0.0),
-    GeneratePoint<TPointType>( 0.0, 1.0, 0.0),
-    GeneratePoint<TPointType>( 0.5, 0.0, 0.0),
-    GeneratePoint<TPointType>( 1.0, 0.5, 0.0),
-    GeneratePoint<TPointType>( 0.5, 1.0, 0.0),
-    GeneratePoint<TPointType>( 0.0, 0.5, 0.0),
-    GeneratePoint<TPointType>( 0.5, 0.5, 0.0)
-    ));
-}
+    /** Generates a sample Quadrilateral3D9.
+    * Generates a right quadrilateral with origin in the origin and leg size 1.
+    * @return  Pointer to a Quadrilateral3D9
+    */
+    template<class TPointType>
+    typename Quadrilateral3D9<TPointType>::Pointer GenerateFlatQuadrilateral3D9()
+    {
+        return typename Quadrilateral3D9<TPointType>::Pointer(new Quadrilateral3D9<TPointType>(
+        GeneratePoint<TPointType>( 0.0, 0.0, 0.0),
+        GeneratePoint<TPointType>( 1.0, 0.0, 0.0),
+        GeneratePoint<TPointType>( 1.0, 1.0, 0.0),
+        GeneratePoint<TPointType>( 0.0, 1.0, 0.0),
+        GeneratePoint<TPointType>( 0.5, 0.0, 0.0),
+        GeneratePoint<TPointType>( 1.0, 0.5, 0.0),
+        GeneratePoint<TPointType>( 0.5, 1.0, 0.0),
+        GeneratePoint<TPointType>( 0.0, 0.5, 0.0),
+        GeneratePoint<TPointType>( 0.5, 0.5, 0.0)
+        ));
+    }
 
-template<class TPointType>
-void CheckSamePoint(const TPointType& rThisPoint, const TPointType& rThatPoint) {
-    KRATOS_CHECK_NEAR(rThisPoint.X(), rThatPoint.X(), TOLERANCE);
-    KRATOS_CHECK_NEAR(rThisPoint.Y(), rThatPoint.Y(), TOLERANCE);
-    KRATOS_CHECK_NEAR(rThisPoint.Z(), rThatPoint.Z(), TOLERANCE);
+    template<class TPointType>
+    void CheckSamePoint(const TPointType& rThisPoint, const TPointType& rThatPoint) {
+        KRATOS_CHECK_NEAR(rThisPoint.X(), rThatPoint.X(), TOLERANCE);
+        KRATOS_CHECK_NEAR(rThisPoint.Y(), rThatPoint.Y(), TOLERANCE);
+        KRATOS_CHECK_NEAR(rThisPoint.Z(), rThatPoint.Z(), TOLERANCE);
+    }
 }
 
 /// Tests
@@ -159,7 +160,6 @@ KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D9Normal, KratosCoreGeometriesFastSuite)
     KRATOS_CHECK_VECTOR_NEAR(unit_normal, expected_unit_normal, TOLERANCE);
 
     KRATOS_CHECK_NEAR(MathUtils<double>::Norm3(normal), MathUtils<double>::Dot3(unit_normal, normal), TOLERANCE);
-
 }
 
 }
