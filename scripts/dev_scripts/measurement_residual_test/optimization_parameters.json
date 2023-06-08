@@ -80,6 +80,11 @@
             "write_kratos_version": true,
             "write_time_stamp": true
           }
+        },
+        {
+          "type": "optimization_problem_plotly_output_process",
+          "module": "KratosMultiphysics.OptimizationApplication.processes",
+          "settings": {}
         }
       ]
     }
