@@ -30,42 +30,6 @@ namespace Kratos::Python
 {
 
 /**
- * @brief Converts a vector to a Python list using pybind11.
- * @details This function is generic enough to be moved to a more general place.
- * @tparam T The type of the vector.
- * @param results The vector to convert.
- * @return The converted Python list.
- */
-template<typename T>
-pybind11::list VectorToPyList(const T& results) {
-    pybind11::list list_results;
-    for (auto& r_result : results) {
-        list_results.append(r_result);
-    }
-    return list_results;
-}
-
-/**
- * @brief Converts a matrix to a nested Python list using pybind11.
- * @details This function is generic enough to be moved to a more general place.
- * @tparam T The type of the matrix.
- * @param results The matrix to convert.
- * @return The converted nested Python list.
- */
-template<typename T>
-pybind11::list MatrixToPyList(const T& results) {
-    pybind11::list list_results;
-    for (auto& r_result : results) {
-        pybind11::list i_list_results;
-        for (auto& r_sub_result : r_result) {
-            i_list_results.append(r_sub_result);
-        }
-        list_results.append(i_list_results);
-    }
-    return list_results;
-}
-
-/**
  * @brief Generates a list of lists from a vector of vectors
  * @param rList The list to be filled
  * @param rVector The vector of vectors to be copied
