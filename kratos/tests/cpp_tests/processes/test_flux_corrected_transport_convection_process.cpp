@@ -55,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart",
         "echo_level" : 1,
-        "max_CFL" : 0.05
+        "max_CFL" : 0.5
     })");
 
     // Fake time advance to set the previous process info container

@@ -340,10 +340,11 @@ private:
                     const double ij_length = r_ij_edge_data.GetLength();
 
                     // Calculate the max time step from the velocities at both edge ends and get the minimum
-                    const double dx_CFL = ij_length*mMaxAllowedCFL;
-                    const double dt_i = i_vel_norm > 1.0e-12 ? dx_CFL/i_vel_norm : mMaxAllowedDt;
-                    const double dt_j = j_vel_norm > 1.0e-12 ? dx_CFL/j_vel_norm : mMaxAllowedDt;
-                    dt_ij = std::min(dt_i, dt_j);
+                    // const double dx_CFL = ij_length*mMaxAllowedCFL;
+                    // const double dt_i = i_vel_norm > 1.0e-12 ? dx_CFL/i_vel_norm : mMaxAllowedDt;
+                    // const double dt_j = j_vel_norm > 1.0e-12 ? dx_CFL/j_vel_norm : mMaxAllowedDt;
+                    // dt_ij = std::min(dt_i, dt_j);
+                    dt_ij = CalculateEdgeLocalDeltaTime(ij_length, i_vel_norm, j_vel_norm);
                 }
             }
 
@@ -360,6 +361,17 @@ private:
 
         // Return maximum allowable time step
         return dt;
+    }
+
+    double CalculateEdgeLocalDeltaTime(
+        const double Length,
+        const double NormVelI,
+        const double NormVelJ)
+    {
+        const double dx_CFL = Length * mMaxAllowedCFL;
+        const double dt_i = NormVelI > 1.0e-12 ? dx_CFL / NormVelI : mMaxAllowedDt;
+        const double dt_j = NormVelJ > 1.0e-12 ? dx_CFL / NormVelJ : mMaxAllowedDt;
+        return std::min(dt_i, dt_j);
     }
 
     void SolveSubStep(const double DeltaTime)
@@ -502,7 +514,8 @@ private:
                     // res_edge_j += d_ij_diff * (u_i - u_j);
 
                     // Add low order scheme diffusion (Rainald)
-                    const double c_tau = 1.0; //TODO: Make this dependent on the dt ratio
+                    const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
+                    const double c_tau = DeltaTime / local_dt;
                     const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
                     const double ij_low_order_diff =  c_tau * Mc_i_j;
                     res_edge_i += ij_low_order_diff * (u_j - u_i);
