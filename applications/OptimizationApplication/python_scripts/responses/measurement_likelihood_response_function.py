@@ -40,6 +40,9 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
+        self.model = model
+        self.model_part: Kratos.ModelPart = None
+
         self.model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
@@ -47,10 +50,6 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         self.measurement_std = parameters["measurement_standard_deviation"].GetDouble()
 
         self.adjoint_analysis_file_name = parameters["adjoint_analysis_settings_file_name"].GetString()
-
-        self.model = model
-        self.model_part: Kratos.ModelPart = None
-        self.adjoint_model = Kratos.Model()
 
         self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_problem.GetExecutionPolicy(parameters["primal_analysis_name"].GetString())
 
@@ -61,15 +60,15 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         return [Kratos.YOUNG_MODULUS]
 
     def Initialize(self) -> None:
-        model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
-        root_model_part = model_parts_list[0].GetRootModelPart()
-        _, self.model_part = ModelPartUtilities.UnionModelParts(root_model_part, model_parts_list, False)
-
         with open(self.adjoint_analysis_file_name, 'r') as parameter_file:
             self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
 
         file = open(self.measurement_data_file)
         self.measurement_data = json.load(file)
+
+        model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
+        root_model_part = model_parts_list[0].GetRootModelPart()
+        _, self.model_part = ModelPartUtilities.UnionModelParts(root_model_part, model_parts_list, False)
 
         self.sensor_positions_model_part = self.model.CreateModelPart("sensor_positions")
 
@@ -108,8 +107,6 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         return self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().GetAnalysisModelPart()
 
     def CalculateValue(self) -> float:
-        # LL = 0.5*(1/covariance) * error.T @ error  # Without constant terms, and for diag. covariance matrix
-        # LL = 1/2 * 1/cov * error**2
 
         objective_value = 0
         for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
@@ -127,15 +124,14 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         return objective_value
 
     def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
-        # first calculate the gradients
         merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
         intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.GetAnalysisModelPart(), merged_model_part_map, True)
-
-        ###################################################################
 
         for variable, collective_expression in physical_variable_collective_expressions.items():
 
             self.adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
+
+            self.adjoint_model = Kratos.Model()
 
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
             adjoint_analysis.Run()
@@ -152,24 +148,6 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
                     expression.CopyFrom(element_data_expression)
                 else:
                     expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
-
-        #####################################################################
-
-        # Likelihood Gradient
-        # covariance = 0.001
-        # S = -(-1/covariance) * b@A
-        # Gradient = error @ d_disp/d_Youngs_modulus
-
-        # TODO remove after testing
-        # KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(
-        #     list(merged_model_part_map.keys()),
-        #     list(merged_model_part_map.values()),
-        #     list(intersected_model_part_map.values()),
-        #     self.perturbation_size)
-
-        # # now fill the collective expressions
-        # for variable, collective_expression in physical_variable_collective_expressions.items():
-        #     collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"

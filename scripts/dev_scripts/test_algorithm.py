@@ -77,6 +77,8 @@ execution_policy_decorator.Initialize()
 properties_control.Initialize()
 response_function.Initialize()
 
+execution_policy_decorator.Execute()
+
 
 # optimization algorithm object
 parameters = Kratos.Parameters("""{
@@ -98,7 +100,7 @@ parameters = Kratos.Parameters("""{
                 },
                 "conv_settings"   : {
                     "type"          : "max_iter",
-                    "max_iter"      : 2
+                    "max_iter"      : 10
                 }
             }
         }""")
