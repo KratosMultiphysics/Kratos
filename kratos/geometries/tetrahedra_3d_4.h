@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TETRAHEDRA_3D_4_H_INCLUDED )
-#define  KRATOS_TETRAHEDRA_3D_4_H_INCLUDED
+#pragma
 
 // System includes
 
@@ -1652,9 +1651,46 @@ public:
         }
     }
 
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
     /**
-     * Input and output
-     */
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        CoordinatesArrayType aux_coordinates;
+        if (this->IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
+            return 0.0;
+        }
+
+        // Generate triangles
+        std::array<double, 4> distances;
+        unsigned int i = 0;
+        for (auto& r_face : this->GenerateFaces()) {
+            distances[i] = r_face.CalculateDistance(rPointGlobalCoordinates, Tolerance);
+            ++i;
+        }
+        auto min = std::min_element(distances.begin(), distances.end());
+        return *min;
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /**
      * Turn back information as a string.
@@ -2034,5 +2070,3 @@ template<class TPointType>
 const GeometryDimension Tetrahedra3D4<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined
