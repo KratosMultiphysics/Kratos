@@ -14,7 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#pragma
+#pragma once
 
 // System includes
 
