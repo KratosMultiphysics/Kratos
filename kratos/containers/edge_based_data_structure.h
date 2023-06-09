@@ -122,7 +122,7 @@ public:
 
         void AddConvectiveBoundaryValue(
             const double FaceDomainSize,
-            const array_1d<double,3>& rUnitNormal)
+            const array_1d<double,TDim>& rUnitNormal)
         {
             // Face weight (length in 2D and 1/3 of the area in 3D)
             double w_i;
@@ -172,6 +172,9 @@ public:
 
     /// CSR storage mass matrices vector definition
     using MassMatrixVectorType = std::vector<double>;
+
+    /// CSR storage boundary mass matrices vector definition
+    using BoundaryMassMatrixVectorType = std::vector<array_1d<double,TDim>>;
 
     /// Pointer definition of EdgeBasedDataStructure
     KRATOS_CLASS_POINTER_DEFINITION(EdgeBasedDataStructure);
@@ -248,6 +251,16 @@ public:
     double GetMassMatrixDiagonal(IndexType I) const
     {
         return mMassMatrixDiagonal[I-1];
+    }
+
+    const BoundaryMassMatrixVectorType& GetBoundaryMassMatrixDiagonal() const
+    {
+        return mBoundaryMassMatrixDiagonal;
+    }
+
+    const array_1d<double,TDim>& GetBoundaryMassMatrixDiagonal(IndexType I) const
+    {
+        return mBoundaryMassMatrixDiagonal[I-1];
     }
 
     const MassMatrixVectorType& GetLumpedMassMatrixDiagonal() const
@@ -359,6 +372,7 @@ private:
     IndicesVectorType mColIndices;
     MassMatrixVectorType mMassMatrixDiagonal;
     MassMatrixVectorType mLumpedMassMatrixDiagonal;
+    BoundaryMassMatrixVectorType mBoundaryMassMatrixDiagonal;
     EdgeDataVectorType mEdgeData;
 
     ///@}
@@ -411,10 +425,12 @@ private:
         mEdgeData.resize(mNumEdges);
         mMassMatrixDiagonal.resize(rModelPart.NumberOfNodes());
         mLumpedMassMatrixDiagonal.resize(rModelPart.NumberOfNodes());
+        mBoundaryMassMatrixDiagonal.resize(rModelPart.NumberOfNodes());
 
         // Initialize mass matrices diagonal values
         std::fill(mMassMatrixDiagonal.begin(), mMassMatrixDiagonal.end(), 0.0);
         std::fill(mLumpedMassMatrixDiagonal.begin(), mLumpedMassMatrixDiagonal.end(), 0.0);
+        std::fill(mBoundaryMassMatrixDiagonal.begin(), mBoundaryMassMatrixDiagonal.end(), ZeroVector(TDim));
 
         // Allocate auxiliary arrays for the elementwise calculations
         double domain_size;
@@ -472,7 +488,7 @@ private:
         // Loop the conditions to calculate the normals in the boundary edges
         // Note that in here we are assuming that current model part has conditions in the entire skin
         KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfConditions() == 0) << "No conditions found in model part '" << rModelPart.FullName() << "'." << std::endl;
-        array_1d<double,3> unit_normal;
+        array_1d<double,TDim> unit_normal;
         for (auto& r_condition : rModelPart.Conditions()) {
             // Get condition data
             const auto& r_geom = r_condition.GetGeometry();
@@ -485,6 +501,20 @@ private:
                 for (IndexType j = i + 1; j < TDim; ++j) {
                     const IndexType j_id = r_geom[j].Id();
 
+                    // Add the boundary mass matrix diagonal (II) contribution
+                    // Note that this already includes the unit normal contribution
+                    // Also note that in here we take advantage of the fact that there is an integration point at the mid of each edge
+                    const IndexType i_row_id = i_id - 1;
+                    const IndexType j_row_id = j_id - 1;
+                    double aux_mass;
+                    if constexpr (TDim == 2) {
+                        aux_mass = 0.25 * domain_size;
+                    } else {
+                        aux_mass = 0.25 * domain_size / 3.0;
+                    }
+                    noalias(mBoundaryMassMatrixDiagonal[i_row_id]) += aux_mass * unit_normal;
+                    noalias(mBoundaryMassMatrixDiagonal[j_row_id]) += aux_mass * unit_normal;
+
                     // Get current edge data container
                     auto& rp_edge_data = pGetEdgeData(i_id, j_id);
                     rp_edge_data->AddConvectiveBoundaryValue(domain_size, unit_normal);
@@ -495,12 +525,11 @@ private:
 
     void CalculateUnitNormal(
         const Geometry<Node>& rGeometry,
-        array_1d<double, 3>& rUnitNormal) const
+        array_1d<double, TDim>& rUnitNormal) const
     {
         if constexpr (TDim == 2) {
             rUnitNormal[0] = rGeometry[1].Y() - rGeometry[0].Y();
             rUnitNormal[1] = -(rGeometry[1].X() - rGeometry[0].X());
-            rUnitNormal[2] = 0.0;
         } else {
             array_1d<double, 3> v1, v2;
             v1[0] = rGeometry[1].X() - rGeometry[0].X();

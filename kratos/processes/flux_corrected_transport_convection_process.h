@@ -307,6 +307,7 @@ private:
     ///@name Private Operations
     ///@{
 
+    //TODO: Do it with the edge projected velocity
     double CalculateSubStepDeltaTime(
         const double PreviousTime,
         const double TargetTime)
@@ -340,10 +341,6 @@ private:
                     const double ij_length = r_ij_edge_data.GetLength();
 
                     // Calculate the max time step from the velocities at both edge ends and get the minimum
-                    // const double dx_CFL = ij_length*mMaxAllowedCFL;
-                    // const double dt_i = i_vel_norm > 1.0e-12 ? dx_CFL/i_vel_norm : mMaxAllowedDt;
-                    // const double dt_j = j_vel_norm > 1.0e-12 ? dx_CFL/j_vel_norm : mMaxAllowedDt;
-                    // dt_ij = std::min(dt_i, dt_j);
                     dt_ij = CalculateEdgeLocalDeltaTime(ij_length, i_vel_norm, j_vel_norm);
                 }
             }
@@ -381,7 +378,7 @@ private:
         const auto& r_col_indices = mpEdgeDataStructure->GetColIndices();
         SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
 
-        // Initialize containers for the edge assembly
+        // Initialize containers for the current substep solve assembly
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
             mResidual[i] = 0.0;
             mUpdateLowOrder[i] = 0.0;
@@ -395,10 +392,9 @@ private:
             array_1d<double,TDim> F_j;
             array_1d<double,TDim> d_ij;
             array_1d<double,TDim> b_ij;
-            array_1d<double,TDim> b_node;
         };
 
-        // Edge contributions assembly
+        // Off-diagonal (edge) contributions assembly
         IndexPartition<IndexType>(aux_n_rows).for_each(AuxTLS(), [&](IndexType iRow, AuxTLS& rTLS){
             // Get current row (node) storage data
             const auto it_row = r_row_indices.begin() + iRow;
@@ -412,15 +408,12 @@ private:
                 auto& F_j = rTLS.F_j;
                 auto& d_ij = rTLS.d_ij;
                 auto& b_ij = rTLS.b_ij;
-                auto& b_node = rTLS.b_node;
+                // auto& b_i = rTLS.b_i;
+                // auto& b_j = rTLS.b_j;
 
                 // i-node nodal data
                 const double u_i = mSolution[iRow];
                 const auto& r_i_vel = mConvectionValues[iRow]; //TODO: Use substep velocity
-
-                // // i-node mass matrices diagonal contributions
-                // const double M_c_i = mpEdgeDataStructure->GetMassMatrixDiagonal(iRow);
-                // const double M_l_i = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(iRow);
 
                 // i-node convective flux calculation
                 for (IndexType d = 0; d < TDim; ++d) {
@@ -434,10 +427,6 @@ private:
                     IndexType j_node_id = *(i_col_begin + j_node);
                     const double u_j = mSolution[j_node_id];
                     const auto& r_j_vel = mConvectionValues[j_node_id]; //TODO: Use substep velocity
-
-                    // // j-node mass matrices diagonal contributions
-                    // const double M_c_j = mpEdgeDataStructure->GetMassMatrixDiagonal(j_node_id);
-                    // const double M_l_j = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(j_node_id);
 
                     // // Laplacian problem
                     // // TODO: Remove once we check that the explicit update is correct
@@ -487,31 +476,13 @@ private:
                     if (r_ij_edge_data.IsBoundary()) {
                         // Get ij-edge boundary operators from CSR data structure
                         const auto &r_N_N_normal = r_ij_edge_data.GetConvectiveBoundary();
-                        b_node = r_N_N_normal;
                         b_ij = 0.5 * r_N_N_normal;
 
                         // Add boundary contribution to the residual
                         const double res_edge_bd = inner_prod(b_ij, F_i + F_j);
-                        res_edge_i += -res_edge_bd - inner_prod(b_node, F_i);
-                        res_edge_j += +res_edge_bd + inner_prod(b_node, F_j);
+                        res_edge_i -= res_edge_bd;
+                        res_edge_j += res_edge_bd;
                     }
-
-                    // // Add Laplacian term
-                    // // TODO: Remove once we check that the explicit update is correct
-                    // const double c_edge = r_ij_edge_data.GetOffDiagonalLaplacian();
-                    // res_edge_i += 0.01 * c_edge * (u_i - u_j);
-                    // res_edge_j += 0.01 * c_edge * (u_j - u_i);
-
-                    // // Add low order scheme diffusion (Kuzmin)
-                    // double k_ij = 0.0;
-                    // double k_ji = 0.0;
-                    // for (IndexType d = 0; d < TDim; ++d) {
-                    //     k_ij += r_Ni_DNj[d] * r_j_vel[d];
-                    //     k_ji += r_DNi_Nj[d] * r_i_vel[d];
-                    // }
-                    // const double d_ij_diff = std::max({-k_ij, 0.0, -k_ji});
-                    // res_edge_i += d_ij_diff * (u_j - u_i);
-                    // res_edge_j += d_ij_diff * (u_i - u_j);
 
                     // Add low order scheme diffusion (Rainald)
                     const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
@@ -532,9 +503,22 @@ private:
         });
 
         // Do the explicit lumped mass matrix solve and apply the correction to current solution
-        IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
+        IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each(array_1d<double,TDim>(), [&](IndexType iNode, array_1d<double,TDim>& rTLS){
+            // Get nodal data
             const auto it_node = mpModelPart->NodesBegin() + iNode;
             const IndexType i_node_id = it_node->Id();
+
+            // Add the diagonal contribution to the residual
+            rTLS = mpEdgeDataStructure->GetBoundaryMassMatrixDiagonal(i_node_id);
+            double aux_res = 0.0;
+            const double u_i = mSolution[i_node_id];
+            const auto &r_i_vel = mConvectionValues[i_node_id]; // TODO: Use substep velocity
+            for (IndexType d = 0; d < TDim; ++d) {
+                aux_res += u_i * r_i_vel[d] * rTLS[d];
+            }
+            mResidual[i_node_id] -= aux_res;
+
+            // Do the explicit lumped mass matrix solve
             const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
             const double solve_coeff = DeltaTime / M_l;
             mSolution[i_node_id] += solve_coeff * mResidual[i_node_id];
