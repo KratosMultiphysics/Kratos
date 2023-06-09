@@ -626,7 +626,7 @@ void BaseSolidElement::CalculateMassMatrix(
 
         Matrix J0(dimension, dimension);
 
-        IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
+        const IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
         const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
 
@@ -1746,8 +1746,7 @@ double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
         GeometryUtils::ShapeFunctionsGradients(rDN_De, rInvJ0, rDN_DX);
     } else {
         const auto& integration_points =  this->IntegrationPoints();
-        GeometryUtils::JacobianOnInitialConfiguration(
-            r_geom, integration_points[PointNumber],rJ0);
+        GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[PointNumber],rJ0);
         MathUtils<double>::InvertMatrix(rJ0, rInvJ0, detJ0);
         Matrix DN_De;
         GetGeometry().ShapeFunctionsLocalGradients(DN_De, integration_points[PointNumber]);
@@ -1892,9 +1891,7 @@ void BaseSolidElement::CalculateLumpedMassVector(
 {
     KRATOS_TRY;
 
-    if(!UseGeometryIntegrationMethod())
-        KRATOS_ERROR << "CalculateLumpedMassVector not implemented for element-based integration in base class" << std::endl;
-
+    KRATOS_ERROR_IF_NOT(UseGeometryIntegrationMethod()) << "CalculateLumpedMassVector not implemented for element-based integration in base class" << std::endl;
 
     const auto& r_geom = GetGeometry();
     const auto& r_prop = GetProperties();
