@@ -27,7 +27,7 @@ namespace Kratos::Testing {
 KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
 {
     Kratos::shared_ptr<std::stringstream> p_input = Kratos::make_shared<std::stringstream>(R"input(
-    solid 1 triangle
+    solid 1_triangle
         facet normal  1.000000 0.000000 0.000000 
             outer loop 
             vertex 0.1 -2.56114e-08 0.1
@@ -35,7 +35,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
             vertex 0.1 -0.473406 -0.0446259
             endloop 
         endfacet 
-    endsolid 1 triangle
+    endsolid 1_triangle
     )input");  
 
     Model current_model;
@@ -44,15 +44,15 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
     StlIO stl_io(p_input);
     stl_io.ReadModelPart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.HasSubModelPart("1 triangle"));
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfGeometries(), 1);
+    KRATOS_CHECK(r_model_part.HasSubModelPart("1_triangle"));
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfGeometries(), 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTLAsElement, KratosCoreFastSuite)
 {
     Kratos::shared_ptr<std::stringstream> p_input = Kratos::make_shared<std::stringstream>(R"input(
-    solid 1 triangle
+    solid 1_triangle
         facet normal  1.000000 0.000000 0.000000 
             outer loop 
             vertex 0.1 -2.56114e-08 0.1
@@ -60,7 +60,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTLAsElement, KratosCoreFastSuite)
             vertex 0.1 -0.473406 -0.0446259
             endloop 
         endfacet 
-    endsolid 1 triangle
+    endsolid 1_triangle
     )input");  
 
     Model current_model;
@@ -72,16 +72,90 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTLAsElement, KratosCoreFastSuite)
     StlIO stl_io(p_input,settings);
     stl_io.ReadModelPart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.HasSubModelPart("1 triangle"));
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfGeometries(), 0);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1 triangle").NumberOfElements(), 1);
+    KRATOS_CHECK(r_model_part.HasSubModelPart("1_triangle"));
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfGeometries(), 0);
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfElements(), 1);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ReadSolidNameWithComments, KratosCoreFastSuite)
+{
+
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    Parameters settings(R"({
+        "new_entity_type" : "element"
+    })");
+
+    Kratos::shared_ptr<std::stringstream> p_input = Kratos::make_shared<std::stringstream>(R"input(
+    solid triangle_1 ;Do not read after this
+        facet normal  1.000000 0.000000 0.000000
+            outer loop
+            vertex 0.1 -2.56114e-08 0.1
+            vertex 0.1 -0.499156 -0.0352136
+            vertex 0.1 -0.473406 -0.0446259
+            endloop
+        endfacet
+    endsolid triangle_1
+    )input");
+
+    StlIO stl_io(p_input,settings);
+    stl_io.ReadModelPart(r_model_part);
+    KRATOS_CHECK(r_model_part.HasSubModelPart("triangle_1"));
+
+    Kratos::shared_ptr<std::stringstream> p_input2 = Kratos::make_shared<std::stringstream>(R"input(
+    solid triangle_2    COMMENT: This should be skipped
+        facet normal  1.000000 0.000000 0.000000
+            outer loop
+            vertex 0.1 -2.56114e-08 0.1
+            vertex 0.1 -0.499156 -0.0352136
+            vertex 0.1 -0.473406 -0.0446259
+            endloop
+        endfacet
+    endsolid triangle_2
+    )input");
+
+    StlIO stl_io2(p_input2,settings);
+    stl_io2.ReadModelPart(r_model_part);
+    KRATOS_CHECK(r_model_part.HasSubModelPart("triangle_2"));
+
+    Kratos::shared_ptr<std::stringstream> p_input3 = Kratos::make_shared<std::stringstream>(R"input(
+    solid triangle _ 3    COMMENT: This should be skipped
+        facet normal  1.000000 0.000000 0.000000
+            outer loop
+            vertex 0.1 -2.56114e-08 0.1
+            vertex 0.1 -0.499156 -0.0352136
+            vertex 0.1 -0.473406 -0.0446259
+            endloop
+        endfacet
+    endsolid triangle _ 3
+    )input");
+
+    StlIO stl_io3(p_input3,settings);
+    stl_io3.ReadModelPart(r_model_part);
+    KRATOS_CHECK(r_model_part.HasSubModelPart("triangle_3"));
+
+    Kratos::shared_ptr<std::stringstream> p_input4 = Kratos::make_shared<std::stringstream>(R"input(
+    solid core_851 COMMENT: Exported from Inspire HWVERSION_2023.0.0.21_Jun  6 2023_09:37:24 Build 4500, Altair Inc. Unit : mm
+    facet normal  0.999872 0.000003 -0.016028
+        outer loop
+           vertex 25.4997 58.7925 4.68075e-11
+           vertex 25.4961 58.7925 -0.226466
+           vertex 25.4959 135 -0.226461
+        endloop
+    endfacet
+    endsolid core_851
+    )input");
+
+    StlIO stl_io4(p_input4,settings);
+    stl_io4.ReadModelPart(r_model_part);
+    KRATOS_CHECK(r_model_part.HasSubModelPart("core_851"));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
 {
     Kratos::shared_ptr<std::stringstream> p_input = Kratos::make_shared<std::stringstream>(R"input(
-    solid 3 triangles
+    solid 3_triangles
         facet normal  1.000000 0.000000 0.000000 
             outer loop 
             vertex 0.1 -2.56114e-08 0.1
@@ -103,7 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
             vertex 0.1 -0.499156 -0.0352136
             endloop 
         endfacet 
-    endsolid 3 triangles
+    endsolid 3_triangles
     )input");  
 
     Model current_model;
@@ -112,9 +186,9 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
     StlIO stl_io(p_input);
     stl_io.ReadModelPart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.HasSubModelPart("3 triangles"));
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfNodes(), 9);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3 triangles").NumberOfGeometries(), 3);
+    KRATOS_CHECK(r_model_part.HasSubModelPart("3_triangles"));
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3_triangles").NumberOfNodes(), 9);
+    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3_triangles").NumberOfGeometries(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
