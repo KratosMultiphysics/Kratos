@@ -152,17 +152,24 @@ private:
         // Now we check if all the points are the same (we are going to do a gross assumtion that the sum of coordinates in al partitions does not compensate between them)
         double x_sum, y_sum, z_sum;
         array_1d<double, 3> coordinates;
+        bool all_points_are_the_same = true;
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
             noalias(coordinates) = it_point->Coordinates();
             x_sum = rDataCommunicator.SumAll(coordinates[0]);
-            if (std::abs(coordinates[0] - (x_sum/world_size)) > ZeroTolerance) return false;
+            if (std::abs(coordinates[0] - (x_sum/world_size)) > ZeroTolerance) all_points_are_the_same = false;
+            all_points_are_the_same = rDataCommunicator.AndReduceAll(all_points_are_the_same);
+            if (!all_points_are_the_same) break;
             y_sum = rDataCommunicator.SumAll(coordinates[1]);
-            if (std::abs(coordinates[1] - (y_sum/world_size)) > ZeroTolerance) return false;
+            if (std::abs(coordinates[1] - (y_sum/world_size)) > ZeroTolerance) all_points_are_the_same = false;
+            all_points_are_the_same = rDataCommunicator.AndReduceAll(all_points_are_the_same);
+            if (!all_points_are_the_same) break;
             z_sum = rDataCommunicator.SumAll(coordinates[2]);
-            if (std::abs(coordinates[2] - (z_sum/world_size)) > ZeroTolerance) return false;
+            if (std::abs(coordinates[2] - (z_sum/world_size)) > ZeroTolerance) all_points_are_the_same = false;
+            all_points_are_the_same = rDataCommunicator.AndReduceAll(all_points_are_the_same);
+            if (!all_points_are_the_same) break;
         }
 
-        return true;
+        return all_points_are_the_same;
     }
     ///@}
 };
