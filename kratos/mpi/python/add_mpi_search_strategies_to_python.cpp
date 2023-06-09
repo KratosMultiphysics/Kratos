@@ -88,4 +88,4 @@ void AddMPISearchStrategiesToPython(pybind11::module& m)
     ;
 }
 
-}
+}  // namespace Kratos::Python
