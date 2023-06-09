@@ -30,6 +30,7 @@ class ResponseRoutine:
             RuntimeError: If control domain and response domain does not have any intersection.
         """
         # create the required physical control fields to compute gradients
+        self.__response.Initialize()
         self.__required_physical_gradients = self.__master_control.GetPhysicalKratosVariableCollectiveExpressionsMap()
 
         # now check which are the dependent physical space variables for the response, if not then remove

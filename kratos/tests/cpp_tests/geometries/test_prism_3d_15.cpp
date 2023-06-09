@@ -223,7 +223,6 @@ void ShapeFunctionSanityCheck(
         for (unsigned int i = 0; i < numPoints; i++) {
             shapeFuncSum += shapeFunctions(g, i);
         }
-        std::cerr << "GPPT g " << g << " sum " << shapeFuncSum << std::endl;
         KRATOS_CHECK_NEAR(shapeFuncSum, 1.0, TOLERANCE);
     }
 
