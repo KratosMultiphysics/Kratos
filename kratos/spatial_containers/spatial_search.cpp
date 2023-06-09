@@ -142,8 +142,9 @@ SpatialSearch::ElementSpatialSearchResultContainerMapType SpatialSearch::SearchE
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
+        Element* p_element = nullptr;
         for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            auto p_element = (*((r_partial_results.begin() + j).base())).get();
+            p_element = (*((r_partial_results.begin() + j).base())).get();
             r_result_i.AddResult(p_element, r_partial_distances[j]);
         }
     }
@@ -278,8 +279,9 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchElem
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
+        Node* p_node = nullptr;
         for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            auto p_node = (*((r_partial_results.begin() + j).base())).get();
+            p_node = (*((r_partial_results.begin() + j).base())).get();
             r_result_i.AddResult(p_node, r_partial_distances[j]);
         }
     }
@@ -526,8 +528,9 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNode
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
+        Node* p_node = nullptr;
         for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            auto p_node = (*((r_partial_results.begin() + j).base())).get();
+            p_node = (*((r_partial_results.begin() + j).base())).get();
             r_result_i.AddResult(p_node, r_partial_distances[j]);
         }
     }
@@ -662,8 +665,9 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNode
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
+        Node* p_node = nullptr;
         for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            auto p_node = (*((r_partial_results.begin() + j).base())).get();
+            p_node = (*((r_partial_results.begin() + j).base())).get();
             r_result_i.AddResult(p_node, r_partial_distances[j]);
         }
     }
@@ -910,8 +914,9 @@ SpatialSearch::ConditionSpatialSearchResultContainerMapType SpatialSearch::Searc
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
+        Condition* p_condition = nullptr;
         for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            auto p_condition = (*((r_partial_results.begin() + j).base())).get();
+            p_condition = (*((r_partial_results.begin() + j).base())).get();
             r_result_i.AddResult(p_condition, r_partial_distances[j]);
         }
     }
@@ -1046,8 +1051,9 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchCond
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
+        Node* p_node = nullptr;
         for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            auto p_node = (*((r_partial_results.begin() + j).base())).get();
+            p_node = (*((r_partial_results.begin() + j).base())).get();
             r_result_i.AddResult(p_node, r_partial_distances[j]);
         }
     }
