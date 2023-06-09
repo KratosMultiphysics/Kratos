@@ -142,10 +142,10 @@ SpatialSearch::ElementSpatialSearchResultContainerMapType SpatialSearch::SearchE
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
-        Element* p_element = nullptr;
-        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            p_element = (*((r_partial_results.begin() + j).base())).get();
-            r_result_i.AddResult(p_element, r_partial_distances[j]);
+        IndexType j = 0;
+        for (auto& r_partial_result : r_partial_results) {
+            r_result_i.AddResult(r_partial_result.get(), r_partial_distances[j]);
+            ++j;
         }
     }
 
@@ -279,10 +279,10 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchElem
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
-        Node* p_node = nullptr;
-        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            p_node = (*((r_partial_results.begin() + j).base())).get();
-            r_result_i.AddResult(p_node, r_partial_distances[j]);
+        IndexType j = 0;
+        for (auto& r_partial_result : r_partial_results) {
+            r_result_i.AddResult(r_partial_result.get(), r_partial_distances[j]);
+            ++j;
         }
     }
 
@@ -528,10 +528,10 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNode
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
-        Node* p_node = nullptr;
-        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            p_node = (*((r_partial_results.begin() + j).base())).get();
-            r_result_i.AddResult(p_node, r_partial_distances[j]);
+        IndexType j = 0;
+        for (auto& r_partial_result : r_partial_results) {
+            r_result_i.AddResult(r_partial_result.get(), r_partial_distances[j]);
+            ++j;
         }
     }
 
@@ -665,10 +665,10 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchNode
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
-        Node* p_node = nullptr;
-        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            p_node = (*((r_partial_results.begin() + j).base())).get();
-            r_result_i.AddResult(p_node, r_partial_distances[j]);
+        IndexType j = 0;
+        for (auto& r_partial_result : r_partial_results) {
+            r_result_i.AddResult(r_partial_result.get(), r_partial_distances[j]);
+            ++j;
         }
     }
 
@@ -914,10 +914,10 @@ SpatialSearch::ConditionSpatialSearchResultContainerMapType SpatialSearch::Searc
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
-        Condition* p_condition = nullptr;
-        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            p_condition = (*((r_partial_results.begin() + j).base())).get();
-            r_result_i.AddResult(p_condition, r_partial_distances[j]);
+        IndexType j = 0;
+        for (auto& r_partial_result : r_partial_results) {
+            r_result_i.AddResult(r_partial_result.get(), r_partial_distances[j]);
+            ++j;
         }
     }
 
@@ -1051,10 +1051,10 @@ SpatialSearch::NodeSpatialSearchResultContainerMapType SpatialSearch::SearchCond
         
         // Adding partial results
         auto& r_result_i = result.InitializeResult(id);
-        Node* p_node = nullptr;
-        for (IndexType j = 0; j < r_partial_results.size(); ++j) {
-            p_node = (*((r_partial_results.begin() + j).base())).get();
-            r_result_i.AddResult(p_node, r_partial_distances[j]);
+        IndexType j = 0;
+        for (auto& r_partial_result : r_partial_results) {
+            r_result_i.AddResult(r_partial_result.get(), r_partial_distances[j]);
+            ++j;
         }
     }
 
