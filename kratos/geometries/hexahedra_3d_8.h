@@ -1068,7 +1068,7 @@ public:
         }
 
         // Generate triangles
-        std::array<double, 4> distances;
+        std::array<double, 6> distances;
         unsigned int i = 0;
         for (auto& r_face : this->GenerateFaces()) {
             distances[i] = r_face.CalculateDistance(rPointGlobalCoordinates, Tolerance);
