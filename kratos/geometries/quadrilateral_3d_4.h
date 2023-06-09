@@ -1127,12 +1127,6 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {        
-        // First check if the point is inside the quadrilateral
-        CoordinatesArrayType aux_coordinates;
-        if (this->IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
-            return 0.0;
-        }
-
         // Generate triangles
         Triangle3D3<PointType> triangle_0 (this->pGetPoint( 0 ),
                                            this->pGetPoint( 1 ),
@@ -1144,11 +1138,9 @@ public:
         );
 
         // Calculate distances
-        std::array<double, 2> distances;
-        distances[0] = triangle_0.CalculateDistance(rPointGlobalCoordinates, Tolerance);
-        distances[1] = triangle_1.CalculateDistance(rPointGlobalCoordinates, Tolerance);
-        auto min = std::min_element(distances.begin(), distances.end());
-        return *min;
+        const double distance_1 = triangle_0.CalculateDistance(rPointGlobalCoordinates, Tolerance);
+        const double distance_2 = triangle_1.CalculateDistance(rPointGlobalCoordinates, Tolerance);
+        return std::min(distance_1, distance_2);
     }
 
     ///@}

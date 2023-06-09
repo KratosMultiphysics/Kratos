@@ -1684,7 +1684,7 @@ public:
             distances[i] = r_face.CalculateDistance(rPointGlobalCoordinates, Tolerance);
             ++i;
         }
-        auto min = std::min_element(distances.begin(), distances.end());
+        const auto min = std::min_element(distances.begin(), distances.end());
         return *min;
     }
 
