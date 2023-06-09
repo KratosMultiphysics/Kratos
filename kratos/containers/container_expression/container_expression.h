@@ -402,54 +402,6 @@ public:
 
     ContainerExpression& operator/=(const ContainerExpression& Value);
 
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator+(const ContainerExpression<T1, T2>& rLeft, const double Right);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator+(const double Left, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator+(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator-(const ContainerExpression<T1, T2>& rLeft, const double Right);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator-(const double Left, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator-(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator*(const ContainerExpression<T1, T2>& rLeft, const double Right);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator*(const double Left, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator*(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator/(const ContainerExpression<T1, T2>& rLeft, const double Right);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator/(const double Left, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) operator/(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) Power(const double Base, const ContainerExpression<T1, T2>& rExponent);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) Power(const ContainerExpression<T1, T2>& rBase, const double Exponent);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) Power(const ContainerExpression<T1, T2>& rBase, const ContainerExpression<T1, T2>& rExponent);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> KRATOS_API(KRATOS_CORE) Scale(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
-
     ///@}
 protected:
     ///@name Protected member variables

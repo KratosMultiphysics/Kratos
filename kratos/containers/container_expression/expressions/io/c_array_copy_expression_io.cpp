@@ -108,10 +108,10 @@ void CArrayExpressionOutput::Execute(const Expression& rExpression)
 }
 
 // template instantiations
-template CArrayExpressionInput::CArrayExpressionInput(int const*, const int, int const*, const int);
-template CArrayExpressionInput::CArrayExpressionInput(double const*, const int, int const*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionInput::CArrayExpressionInput(int const*, const int, int const*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionInput::CArrayExpressionInput(double const*, const int, int const*, const int);
 
-template CArrayExpressionOutput::CArrayExpressionOutput(int*, const int);
-template CArrayExpressionOutput::CArrayExpressionOutput(double*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionOutput::CArrayExpressionOutput(int*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionOutput::CArrayExpressionOutput(double*, const int);
 
 } // namespace Kratos
