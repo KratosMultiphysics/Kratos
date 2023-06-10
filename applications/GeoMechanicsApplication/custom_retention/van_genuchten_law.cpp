@@ -238,7 +238,8 @@ void VanGenuchtenLaw::
 void VanGenuchtenLaw::
     FinalizeSolutionStep(Parameters &rParameters)
 {
-   Lastp = rParameters.GetFluidPressure();
+      Lastp = std::max(rParameters.GetFluidPressure(), 0.0);
+     KRATOS_INFO("Lastpfinalize") << Lastp << std::endl;
 }
 
 //-------------------------------------------------------------------------------------------------
