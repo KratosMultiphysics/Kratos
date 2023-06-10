@@ -424,7 +424,7 @@ void BrooksCoreyLaw::
     FinalizeSolutionStep(Parameters &rParameters)
 {
     
-     Lastp = std::max(rParameters.GetFluidPressure(), 0.0);
+     Lastp = std::max(rParameters.GetFluidPressure(), 5.0);
      KRATOS_INFO("Lastpfinalize") << Lastp << std::endl;
      
 
