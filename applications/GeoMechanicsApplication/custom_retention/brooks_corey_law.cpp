@@ -429,7 +429,7 @@ void BrooksCoreyLaw::
      Lastp = rParameters.GetFluidPressure();
      KRATOS_INFO("Lastpfinalizeak") << Lastp << std::endl;
      
-    KRATOS_CATCH("")
+
 }
 
 //-------------------------------------------------------------------------------------------------
