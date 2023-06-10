@@ -398,10 +398,10 @@ void BrooksCoreyLaw::
 
 //-------------------------------------------------------------------------------------------------
 void BrooksCoreyLaw::
-    Initialize(Parameters &rParameters)
+    Initialize(const Parameters &rParameters)
 {
     
-   // Lastp = rParameters.GetFluidPressure();
+    Lastp = rParameters.GetFluidPressure();
     
 }
 
@@ -409,7 +409,7 @@ void BrooksCoreyLaw::
 void BrooksCoreyLaw::
     InitializeSolutionStep(Parameters &rParameters)
 {
-     Lastp = rParameters.GetFluidPressure();
+     // nothing is needed
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -421,7 +421,7 @@ void BrooksCoreyLaw::
 
 //-------------------------------------------------------------------------------------------------
 void BrooksCoreyLaw::
-    FinalizeSolutionStep(Parameters &rParameters)
+    FinalizeSolutionStep(const Parameters &rParameters)
 {
     
      Lastp = rParameters.GetFluidPressure();
