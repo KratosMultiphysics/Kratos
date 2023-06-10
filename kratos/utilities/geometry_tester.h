@@ -522,6 +522,17 @@ private:
         );
 
     /**
+     * @brief This function verifies the shape functions second derivatives interpolations
+     * @param rGeometry The geometry
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
+    bool VerifyShapeFunctionsSecondDerivativesInterpolation(
+    GeometryType& rGeometry,
+    std::stringstream& rErrorMessage
+    );
+
+    /**
      * @brief Get the name of the intergration method
      * @param rGeometry The geometry
      * @param ThisMethod The integration method
