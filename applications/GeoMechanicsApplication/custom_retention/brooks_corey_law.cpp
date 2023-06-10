@@ -338,9 +338,7 @@ double BrooksCoreyLaw::
         double LastSuction= std::max(Lastp, 0.0);
         double IncSuction=Suction-LastSuction;
         return IncSuction;
-       // KRATOS_INFO("Suction") << Suction << std::endl;
-       //KRATOS_INFO("LastSuction") << LastSuction << std::endl;
-       // KRATOS_INFO("IncSuction") << IncSuction << std::endl;
+       
     }
     else
     {
@@ -398,10 +396,10 @@ void BrooksCoreyLaw::
 
 //-------------------------------------------------------------------------------------------------
 void BrooksCoreyLaw::
-    Initialize(const Parameters &rParameters)
+    Initialize( Parameters &rParameters)
 {
     
-    Lastp = rParameters.GetFluidPressure();
+   double &Lastp = rParameters.GetFluidPressure();
     
 }
 
@@ -421,10 +419,10 @@ void BrooksCoreyLaw::
 
 //-------------------------------------------------------------------------------------------------
 void BrooksCoreyLaw::
-    FinalizeSolutionStep(const Parameters &rParameters)
+    FinalizeSolutionStep(Parameters &rParameters)
 {
     
-     Lastp = rParameters.GetFluidPressure();
+     double &Lastp = rParameters.GetFluidPressure();
      KRATOS_INFO("Lastpfinalize") << Lastp << std::endl;
      
 
