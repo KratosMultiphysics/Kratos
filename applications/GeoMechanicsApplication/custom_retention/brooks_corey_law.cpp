@@ -401,7 +401,6 @@ void BrooksCoreyLaw::
     Initialize(Parameters &rParameters)
 {
     const double &Lastp = rParameters.GetFluidPressure();
-    KRATOS_INFO("Lastpinitialize") << Lastp << std::endl;
 }
 
 //-------------------------------------------------------------------------------------------------
