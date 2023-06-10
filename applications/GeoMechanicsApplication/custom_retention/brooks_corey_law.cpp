@@ -399,9 +399,9 @@ void BrooksCoreyLaw::
 //-------------------------------------------------------------------------------------------------
 void BrooksCoreyLaw::
     Initialize(Parameters &rParameters)
-//{
+{
  //   const double &Lastp = rParameters.GetFluidPressure();
-//}
+}
 
 //-------------------------------------------------------------------------------------------------
 void BrooksCoreyLaw::
