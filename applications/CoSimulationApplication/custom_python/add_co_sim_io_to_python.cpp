@@ -36,6 +36,8 @@ namespace Kratos::Python {
 // TODO use elements or conditions?? => how to switch?
 // TODO using initial or current coordinates?? => how to switch?
 
+using DataLocation = Globals::DataLocation;
+
 namespace CoSimIO_Wrappers { // helpers namespace
 
 // creating static buffers such that memory does not constantly have to be reallocated during the data-exchange
