@@ -213,12 +213,20 @@ XmlExpressionElement::Pointer CreateVariableDataXmlElement(
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
         SpecializedContainerExpression<TContainerType, ContainerDataIO<TContainerDataIOTag>, MeshType::Local> local_container(rModelPart);
         local_container.Read(rVariable);
-        SpecializedContainerExpression<TContainerType, ContainerDataIO<TContainerDataIOTag>, MeshType::Ghost> ghost_container(rModelPart);
-        ghost_container.Read(rVariable);
 
-        return CreateDataArrayElement(
-            rVariable.Name(),
-            {pGetExpression(local_container), pGetExpression(ghost_container)});
+        if (rModelPart.GetCommunicator().GhostMesh().NumberOfNodes() > 0) {
+            SpecializedContainerExpression<TContainerType, ContainerDataIO<TContainerDataIOTag>, MeshType::Ghost> ghost_container(rModelPart);
+            ghost_container.Read(rVariable);
+
+            return CreateDataArrayElement(
+                rVariable.Name(),
+                {pGetExpression(local_container), pGetExpression(ghost_container)});
+        } else {
+            return CreateDataArrayElement(
+                rVariable.Name(),
+                {pGetExpression(local_container)});
+        }
+
     } else {
         SpecializedContainerExpression<TContainerType, ContainerDataIO<TContainerDataIOTag>> local_container(rModelPart);
         local_container.Read(rVariable);
