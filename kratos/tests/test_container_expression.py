@@ -356,7 +356,7 @@ class TestContainerExpression(ABC):
             self._GetContainerType()
         ).Execute())
         numpy_array = numpy.empty([a.GetExpression().NumberOfEntities()] + a.GetItemShape())
-        Kratos.ContainerExpression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
+        Kratos.ContainerExpression.CArrayExpressionIO.Output(numpy_array).Execute(a.GetExpression())
 
         for i, entity in enumerate(a.GetContainer()):
             self.assertEqual(self._GetValue(entity, Kratos.PRESSURE), numpy_array[i], 12)
@@ -367,7 +367,7 @@ class TestContainerExpression(ABC):
             self._GetContainerType()
         ).Execute())
         numpy_array = numpy.empty([a.GetExpression().NumberOfEntities()] + a.GetItemShape())
-        Kratos.ContainerExpression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
+        Kratos.ContainerExpression.CArrayExpressionIO.Output(numpy_array).Execute(a.GetExpression())
 
         for i, entity in enumerate(a.GetContainer()):
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.VELOCITY), numpy_array[i, :], 12)
@@ -378,7 +378,7 @@ class TestContainerExpression(ABC):
             self._GetContainerType()
         ).Execute())
         numpy_array = numpy.empty([a.GetExpression().NumberOfEntities()] + a.GetItemShape())
-        Kratos.ContainerExpression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
+        Kratos.ContainerExpression.CArrayExpressionIO.Output(numpy_array).Execute(a.GetExpression())
 
         for i, entity in enumerate(a.GetContainer()):
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.INITIAL_STRAIN), numpy_array[i, :], 12)
@@ -389,7 +389,7 @@ class TestContainerExpression(ABC):
             self._GetContainerType()
         ).Execute())
         numpy_array = numpy.empty([a.GetExpression().NumberOfEntities()] + a.GetItemShape())
-        Kratos.ContainerExpression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
+        Kratos.ContainerExpression.CArrayExpressionIO.Output(numpy_array).Execute(a.GetExpression())
 
         for i_entity, entity in enumerate(a.GetContainer()):
             v = self._GetValue(entity, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
@@ -430,7 +430,7 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
 
         numpy_array = numpy.arange(0.0, len(a.GetContainer()))
-        a.SetExpression(Kratos.ContainerExpression.CArrayExpressionInput(
+        a.SetExpression(Kratos.ContainerExpression.CArrayExpressionIO.Input(
             numpy_array,
             len(numpy_array),
             []
@@ -446,7 +446,7 @@ class TestContainerExpression(ABC):
             self.assertEqual(v, numpy_array[i], 12)
 
         numpy_array = numpy.arange(0.0, len(a.GetContainer()) * 8).reshape(len(a.GetContainer()), 8)
-        a.SetExpression(Kratos.ContainerExpression.CArrayExpressionInput(
+        a.SetExpression(Kratos.ContainerExpression.CArrayExpressionIO.Input(
             numpy_array,
             len(a.GetContainer()),
             [8]
@@ -462,7 +462,7 @@ class TestContainerExpression(ABC):
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), numpy_array[i, :] * 2, 12)
 
         numpy_array = numpy.arange(0.0, len(a.GetContainer()) * 2 * 4).reshape(len(a.GetContainer()), 2, 4)
-        a.SetExpression(Kratos.ContainerExpression.CArrayExpressionInput(
+        a.SetExpression(Kratos.ContainerExpression.CArrayExpressionIO.Input(
             numpy_array,
             len(a.GetContainer()),
             [2, 4]

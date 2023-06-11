@@ -22,8 +22,7 @@
 #include "containers/container_expression/expressions/expression.h"
 #include "containers/container_expression/expressions/io/expression_io.h"
 #include "containers/container_expression/expressions/io/variable_expression_io.h"
-#include "containers/container_expression/expressions/io/c_array_copy_expression_io.h"
-#include "containers/container_expression/expressions/io/c_array_move_expression_input.h"
+#include "containers/container_expression/expressions/io/c_array_expression_io.h"
 #include "containers/container_expression/expressions/literal/literal_expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/expressions/arithmetic_operators.h"
@@ -103,6 +102,62 @@ public:
         );
     }
 }; // class ExpressionOutputTrampoline
+
+template<class TContainerType>
+void AddCArrayExpressionIOMethods(pybind11::module& rModule)
+{
+    std::string expression_name;
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        expression_name = "nodal_expression";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        expression_name = "condition_expression";
+    } else {
+        expression_name = "element_expression";
+    }
+
+    rModule.def(
+        "Read", [](
+            ContainerExpression<TContainerType>& rContainerExpression,
+            const pybind11::array_t<double>& rArray,
+            int NumberOfEntities,
+            const std::vector<int>& rShape) {
+            rContainerExpression.SetExpression(
+                CArrayExpressionIO::CArrayExpressionInput(
+                    rArray.data(), NumberOfEntities, rShape.data(), rShape.size())
+                    .Execute());
+        },
+        pybind11::arg(expression_name.c_str()),
+        pybind11::arg("array").noconvert(),
+        pybind11::arg("number_of_items"),
+        pybind11::arg("shape"));
+
+    rModule.def(
+        "Move", [](
+            ContainerExpression<TContainerType>& rContainerExpression,
+            pybind11::array_t<double>& rArray,
+            int NumberOfEntities,
+            const std::vector<int>& rShape) {
+            rContainerExpression.SetExpression(
+                CArrayExpressionIO::CArrayMoveExpressionInput(
+                    rArray.mutable_data(), NumberOfEntities, rShape.data(), rShape.size())
+                    .Execute());
+        },
+        pybind11::arg(expression_name.c_str()),
+        pybind11::arg("array").noconvert(),
+        pybind11::arg("number_of_items"),
+        pybind11::arg("shape"));
+
+    rModule.def(
+        "Write",
+        [](const ContainerExpression<TContainerType>& rContainerExpression,
+           pybind11::array_t<double>& rArray) {
+            CArrayExpressionIO::CArrayExpressionOutput(rArray.mutable_data(),
+                                                       rArray.size())
+                .Execute(rContainerExpression.GetExpression());
+        },
+        pybind11::arg(expression_name.c_str()),
+        pybind11::arg("target_array").noconvert());
+}
 
 } // namespace Detail
 
@@ -200,26 +255,31 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("container_type"))
         ;
 
-    pybind11::class_<CArrayExpressionInput, CArrayExpressionInput::Pointer, ExpressionInput>(rModule, "CArrayExpressionInput")
+    auto carray_expression_io = rModule.def_submodule("CArrayExpressionIO");
+    Detail::AddCArrayExpressionIOMethods<ModelPart::NodesContainerType>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ConditionsContainerType>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ElementsContainerType>(carray_expression_io);
+
+    pybind11::class_<CArrayExpressionIO::CArrayExpressionInput, CArrayExpressionIO::CArrayExpressionInput::Pointer, ExpressionInput>(
+        carray_expression_io, "Input")
         .def(pybind11::init([](const pybind11::array_t<double>& rArray,
                                int NumberOfEntities,
-                               const std::vector<int>& rShape){
-                                return CArrayExpressionInput(rArray.data(),
-                                                             NumberOfEntities,
-                                                             rShape.data(),
-                                                             rShape.size());
-                            }),
+                               const std::vector<int>& rShape) {
+                 return CArrayExpressionIO::CArrayExpressionInput(
+                     rArray.data(), NumberOfEntities, rShape.data(), rShape.size());
+             }),
              pybind11::arg("array").noconvert(),
              pybind11::arg("number_of_items"),
-             pybind11::arg("shape"))
-        ;
+             pybind11::arg("shape"));
 
-    pybind11::class_<CArrayExpressionOutput, CArrayExpressionOutput::Pointer, ExpressionOutput>(rModule, "CArrayExpressionOutput")
+    pybind11::class_<CArrayExpressionIO::CArrayExpressionOutput, CArrayExpressionIO::CArrayExpressionOutput::Pointer, ExpressionOutput>(
+        carray_expression_io, "Output")
         .def(pybind11::init([](pybind11::array_t<double>& rArray) {
-                                return CArrayExpressionOutput(rArray.mutable_data(), rArray.size());
-                               }),
+                 return CArrayExpressionIO::CArrayExpressionOutput(
+                     rArray.mutable_data(), rArray.size());
+             }),
              pybind11::arg("target_array").noconvert());
-        ;
+    ;
 }
 
 

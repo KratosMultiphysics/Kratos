@@ -21,8 +21,7 @@
 #include "containers/container_expression/expressions/unary/unary_slice_expression.h"
 #include "containers/container_expression/expressions/literal/literal_expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
-#include "containers/container_expression/expressions/io/c_array_copy_expression_io.h"
-#include "containers/container_expression/expressions/io/c_array_move_expression_input.h"
+#include "containers/container_expression/expressions/io/c_array_expression_io.h"
 #include "containers/container_expression/expressions/arithmetic_operators.h"
 #include "containers/container_expression/expressions/view_operators.h"
 
@@ -133,7 +132,7 @@ void Read(
         << NumberOfEntities
         << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
 
-    rContainerExpression.SetExpression(CArrayExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
+    rContainerExpression.SetExpression(CArrayExpressionIO::CArrayExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 
     KRATOS_CATCH("");
 }
@@ -154,7 +153,7 @@ void MoveFrom(
         << NumberOfEntities
         << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
 
-    rContainerExpression.SetExpression(CArrayMoveExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
+    rContainerExpression.SetExpression(CArrayExpressionIO::CArrayMoveExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 
     KRATOS_CATCH("");
 }
@@ -250,7 +249,7 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
         << NumberOfEntities
         << ", local container size = " << this->GetContainer().size() << " ].\n";
 
-    CArrayExpressionOutput(pBegin, NumberOfEntities * std::accumulate(pShapeBegin, pShapeBegin+ShapeSize, 1, [](const int V1, const int V2) { return V1 * V2; })).Execute(**this->mpExpression);
+    CArrayExpressionIO::CArrayExpressionOutput(pBegin, NumberOfEntities * std::accumulate(pShapeBegin, pShapeBegin+ShapeSize, 1, [](const int V1, const int V2) { return V1 * V2; })).Execute(**this->mpExpression);
 
     KRATOS_CATCH("");
 }
