@@ -508,3 +508,11 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/intel_configure.sh configure.sh
         bash configure.sh
+
+    - name: Running python tests
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
