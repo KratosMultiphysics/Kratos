@@ -180,9 +180,9 @@ private:
 
     ///@}
     ///@name Member Variables
-    {
+    ///@{
     double Lastp;
-    }
+    ///@}
     ///@name Private Operators
     ///@{
 
