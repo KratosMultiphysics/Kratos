@@ -304,6 +304,12 @@ std::size_t ContainerExpression<TContainerType, TMeshType>::GetItemComponentCoun
 }
 
 template <class TContainerType, MeshType TMeshType>
+ModelPart* const ContainerExpression<TContainerType, TMeshType>::pGetModelPart() const
+{
+    return this->mpModelPart;
+}
+
+template <class TContainerType, MeshType TMeshType>
 ModelPart& ContainerExpression<TContainerType, TMeshType>::GetModelPart()
 {
     return *mpModelPart;
@@ -429,13 +435,12 @@ ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Com
     KRATOS_CATCH("");
 }
 
-
 #define KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(OPERATOR_NAME)                \
     template <class TContainerType, MeshType TMeshType>                                  \
     ContainerExpression<TContainerType, TMeshType> OPERATOR_NAME(                        \
         const ContainerExpression<TContainerType, TMeshType>& rLeft, const double Right) \
     {                                                                                    \
-        ContainerExpression<TContainerType, TMeshType> result(*rLeft.mpModelPart);       \
+        ContainerExpression<TContainerType, TMeshType> result(*rLeft.pGetModelPart());   \
         result.SetExpression(Kratos::OPERATOR_NAME(rLeft.pGetExpression(), Right));      \
         return result;                                                                   \
     }                                                                                    \
@@ -444,7 +449,7 @@ ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Com
     ContainerExpression<TContainerType, TMeshType> OPERATOR_NAME(                        \
         const double Left, const ContainerExpression<TContainerType, TMeshType>& rRight) \
     {                                                                                    \
-        ContainerExpression<TContainerType, TMeshType> result(*rRight.mpModelPart);      \
+        ContainerExpression<TContainerType, TMeshType> result(*rRight.pGetModelPart());  \
         result.SetExpression(Kratos::OPERATOR_NAME(Left, rRight.pGetExpression()));      \
         return result;                                                                   \
     }                                                                                    \
@@ -454,7 +459,7 @@ ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Com
         const ContainerExpression<TContainerType, TMeshType>& rLeft,                     \
         const ContainerExpression<TContainerType, TMeshType>& rRight)                    \
     {                                                                                    \
-        ContainerExpression<TContainerType, TMeshType> result(*rLeft.mpModelPart);       \
+        ContainerExpression<TContainerType, TMeshType> result(*rLeft.pGetModelPart());   \
         result.SetExpression(Kratos::OPERATOR_NAME(rLeft.pGetExpression(),               \
                                                    rRight.pGetExpression()));            \
         return result;                                                                   \
@@ -508,7 +513,17 @@ KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power)
     KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator*=, operator*,                 \
                                                            CONTAINER_TYPE, MESH_TYPE)             \
     KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator/=, operator/,                 \
-                                                           CONTAINER_TYPE, MESH_TYPE)
+                                                           CONTAINER_TYPE, MESH_TYPE)             \
+    template <>                                                                                   \
+    ContainerExpression<CONTAINER_TYPE, MESH_TYPE> Scale(                                         \
+        const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& rLeft,                              \
+        const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& rRight)                             \
+    {                                                                                             \
+        ContainerExpression<CONTAINER_TYPE, MESH_TYPE> result(*rLeft.pGetModelPart());            \
+        result.SetExpression(                                                                     \
+            Kratos::Scale(rLeft.pGetExpression(), rRight.pGetExpression()));                      \
+        return result;                                                                            \
+    }
 
 #define KRATOS_INSTANTIATE_CONTAINER_EXPRESSION_OPERATOR_GROUP_CONTAINER_TYPE(CONTAINER_TYPE)   \
     KRATOS_INSTANTIATE_CONTAINER_EXPRESSION_OPERATOR_GROUP(CONTAINER_TYPE, MeshType::Local)     \

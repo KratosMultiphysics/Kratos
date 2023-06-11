@@ -309,6 +309,13 @@ public:
     IndexType GetItemComponentCount() const;
 
     /**
+     * @brief Get the pointer to underlying model part
+     *
+     * @return ModelPart* const
+     */
+    ModelPart* const pGetModelPart() const;
+
+    /**
      * @brief Get the Model Part used in the container data
      *
      * @return ModelPart&       Model part
@@ -411,57 +418,6 @@ protected:
     std::optional<Expression::ConstPointer> mpExpression;
 
     ModelPart* const mpModelPart;
-
-    ///@}
-
-private:
-    ///@name Friend methods
-    ///@{
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator+(const ContainerExpression<T1, T2>& rLeft, const double Right);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator+(const double Left, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator+(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator-(const ContainerExpression<T1, T2>& rLeft, const double Right);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator-(const double Left, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator-(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator*(const ContainerExpression<T1, T2>& rLeft, const double Right);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator*(const double Left, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator*(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator/(const ContainerExpression<T1, T2>& rLeft, const double Right);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator/(const double Left, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> operator/(const ContainerExpression<T1, T2>& rLeft, const ContainerExpression<T1, T2>& rRight);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> Power(const double Base, const ContainerExpression<T1, T2>& rExponent);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> Power(const ContainerExpression<T1, T2>& rBase, const double Exponent);
-
-    template<class T1, MeshType T2>
-    friend ContainerExpression<T1, T2> Power(const ContainerExpression<T1, T2>& rBase, const ContainerExpression<T1, T2>& Exponent);
 
     ///@}
 };

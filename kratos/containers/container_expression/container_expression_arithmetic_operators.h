@@ -71,6 +71,9 @@ KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> Power(con
 template<class TContainerType, MeshType TMeshType>
 KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> Power(const ContainerExpression<TContainerType, TMeshType>& rBase, const ContainerExpression<TContainerType, TMeshType>& Exponent);
 
+template<class TContainerType, MeshType TMeshType>
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> Scale(const ContainerExpression<TContainerType, TMeshType>& rLeft, const ContainerExpression<TContainerType, TMeshType>& rRight);
+
 /// @}
 
 
