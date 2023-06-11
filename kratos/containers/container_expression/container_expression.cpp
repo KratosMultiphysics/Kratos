@@ -264,6 +264,9 @@ void ContainerExpression<TContainerType, TMeshType>::SetDataToZero()
 template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::SetExpression(Expression::ConstPointer pExpression)
 {
+    KRATOS_ERROR_IF(pExpression.get() == nullptr)
+        << "Invalid expression pointer provided.";
+
     KRATOS_ERROR_IF_NOT(this->GetContainer().size() == pExpression->NumberOfEntities())
         << "Expression number of entities and contaienr number of entities mismatch. [ Expression number of entities = "
         << pExpression->NumberOfEntities() << ", container number of entities = "
