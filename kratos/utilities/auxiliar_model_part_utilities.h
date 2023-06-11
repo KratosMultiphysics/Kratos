@@ -53,6 +53,8 @@ public:
     /// Counted pointer of AuxiliarModelPartUtilities
     KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
 
+    using DataLocation = Globals::DataLocation;
+
     ///@}
     ///@name Life Cycle
     ///@{
