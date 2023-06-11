@@ -53,29 +53,12 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
 {
     KRATOS_TRY
 
-        const auto& r_container = this->GetContainer();
-    const IndexType number_of_entities = r_container.size();
-
-    using raw_data_type = std::conditional_t<
-                            std::is_same_v<TDataType, char>, char,
-                            std::conditional_t<
-                                std::is_same_v<TDataType, int>, int,
-                                double
-                            >
-                          >;
-
-    if (number_of_entities != 0) {
-        // initialize the shape with the first entity value
-        VariableExpressionDataIO<TDataType> variable_flatten_data_io(TContainerDataIO::GetValue(*r_container.begin(), rVariable));
-
-        auto p_expression = LiteralFlatExpression<raw_data_type>::Create(number_of_entities, variable_flatten_data_io.GetItemShape());
-        auto& r_expression = *p_expression;
-        this->mpExpression = p_expression;
-
-        IndexPartition<IndexType>(number_of_entities).for_each([&r_container, &rVariable, &variable_flatten_data_io, &r_expression](const IndexType Index){
-            const auto& values = TContainerDataIO::GetValue(*(r_container.begin() + Index), rVariable);
-            variable_flatten_data_io.Read(r_expression, Index, values);
-        });
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        VariableExpressionIO::VariableExpressionInput variable_expression_input(*this, rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>);
+        this->SetExpression(variable_expression_input.Execute());
+    } else {
+        VariableExpressionIO::VariableExpressionInput variable_expression_input(*this, rVariable);
+        this->SetExpression(variable_expression_input.Execute());
     }
 
     KRATOS_CATCH("")
