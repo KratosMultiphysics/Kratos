@@ -104,7 +104,6 @@ public:
     }
 }; // class ExpressionOutputTrampoline
 
-
 } // namespace Detail
 
 
@@ -180,23 +179,48 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     pybind11::class_<VariableExpressionIO::VariableExpressionInput, VariableExpressionIO::VariableExpressionInput::Pointer, ExpressionInput>(variable_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const VariableExpressionIO::VariableType&,
-                            const VariableExpressionIO::ContainerType&,
-                            const MeshType&>(),
+                            const VariableExpressionIO::ContainerType&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"),
-             pybind11::arg("mesh_type") = MeshType::Local)
+             pybind11::arg("container_type"))
+        .def(pybind11::init<const ContainerExpression<ModelPart::NodesContainerType>&,
+                            const VariableExpressionIO::VariableType&,
+                            const bool>(),
+             pybind11::arg("nodal_container_expression"),
+             pybind11::arg("variable"),
+             pybind11::arg("is_historical"))
+        .def(pybind11::init<const ContainerExpression<ModelPart::ConditionsContainerType>&,
+                            const VariableExpressionIO::VariableType&>(),
+             pybind11::arg("condition_container_expression"),
+             pybind11::arg("variable"))
+        .def(pybind11::init<const ContainerExpression<ModelPart::ElementsContainerType>&,
+                            const VariableExpressionIO::VariableType&>(),
+             pybind11::arg("element_container_expression"),
+             pybind11::arg("variable"))
         ;
+
 
     pybind11::class_<VariableExpressionIO::VariableExpressionOutput, VariableExpressionIO::VariableExpressionOutput::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const VariableExpressionIO::VariableType&,
-                            const VariableExpressionIO::ContainerType&,
-                            const MeshType&>(),
+                            const VariableExpressionIO::ContainerType&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"),
-             pybind11::arg("mesh_type") = MeshType::Local)
+             pybind11::arg("container_type"))
+        .def(pybind11::init<ContainerExpression<ModelPart::NodesContainerType>&,
+                            const VariableExpressionIO::VariableType&,
+                            const bool>(),
+             pybind11::arg("nodal_container_expression"),
+             pybind11::arg("variable"),
+             pybind11::arg("is_historical"))
+        .def(pybind11::init<ContainerExpression<ModelPart::ConditionsContainerType>&,
+                            const VariableExpressionIO::VariableType&>(),
+             pybind11::arg("condition_container_expression"),
+             pybind11::arg("variable"))
+        .def(pybind11::init<ContainerExpression<ModelPart::ElementsContainerType>&,
+                            const VariableExpressionIO::VariableType&>(),
+             pybind11::arg("element_container_expression"),
+             pybind11::arg("variable"))
         ;
 
     pybind11::class_<CArrayExpressionInput, CArrayExpressionInput::Pointer, ExpressionInput>(rModule, "CArrayExpressionInput")

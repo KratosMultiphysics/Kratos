@@ -90,10 +90,21 @@ public:
             const Variable<TDataType>& rVariable,
             const bool IsHistorical = false);
 
+        template <MeshType TMeshType = Kratos::MeshType::Local>
+        VariableExpressionInput(
+            const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
+            const VariableType& rVariable,
+            const bool IsHistorical = false);
+
         template <class TContainerType, class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
         VariableExpressionInput(
             const ContainerExpression<TContainerType, TMeshType>& rContainer,
             const Variable<TDataType>& rVariable);
+
+        template <class TContainerType, MeshType TMeshType = Kratos::MeshType::Local>
+        VariableExpressionInput(
+            const ContainerExpression<TContainerType, TMeshType>& rContainer,
+            const VariableType& rVariable);
 
         ~VariableExpressionInput() override = default;
 
@@ -152,10 +163,21 @@ public:
             const Variable<TDataType>& rVariable,
             const bool IsHistorical = false);
 
+        template <MeshType TMeshType = Kratos::MeshType::Local>
+        VariableExpressionOutput(
+            ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
+            const VariableType& rVariable,
+            const bool IsHistorical = false);
+
         template <class TContainerType, class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
         VariableExpressionOutput(
             ContainerExpression<TContainerType, TMeshType>& rContainer,
             const Variable<TDataType>& rVariable);
+
+        template <class TContainerType, MeshType TMeshType = Kratos::MeshType::Local>
+        VariableExpressionOutput(
+            ContainerExpression<TContainerType, TMeshType>& rContainer,
+            const VariableType& rVariable);
 
         ~VariableExpressionOutput() override = default;
 
