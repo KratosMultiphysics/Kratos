@@ -34,19 +34,6 @@ namespace Kratos
     typedef std::size_t IndexType;
 
 ///@}
-///@name  Enum's
-///@{
-
-enum class DataLocation {
-    NodeHistorical,
-    NodeNonHistorical,
-    Element,
-    Condition,
-    ModelPart,
-    ProcessInfo
-};
-
-///@}
 ///@name  Functions
 ///@{
 

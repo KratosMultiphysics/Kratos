@@ -45,6 +45,19 @@ namespace Globals
         Current = 1
     };
 
+
+    /**
+     * @brief Enum for location of data
+     */
+    enum class DataLocation {
+        NodeHistorical,
+        NodeNonHistorical,
+        Element,
+        Condition,
+        ModelPart,
+        ProcessInfo
+    };
+
     ///@}
     ///@}
 ///@name Kratos Globals
