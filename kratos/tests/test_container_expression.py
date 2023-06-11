@@ -350,46 +350,46 @@ class TestContainerExpression(ABC):
     def test_NumpyEvaluateContainerExpression(self):
         a = self._GetContainerExpression()
 
-        a.SetExpression(Kratos.Expression.VariableExpressionIO.Input(
+        a.SetExpression(Kratos.ContainerExpression.VariableExpressionIO.Input(
             a.GetModelPart(),
             Kratos.PRESSURE,
             self._GetContainerType()
         ).Execute())
         numpy_array = numpy.empty([a.GetExpression().NumberOfEntities()] + a.GetItemShape())
-        Kratos.Expression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
+        Kratos.ContainerExpression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
 
         for i, entity in enumerate(a.GetContainer()):
             self.assertEqual(self._GetValue(entity, Kratos.PRESSURE), numpy_array[i], 12)
 
-        a.SetExpression(Kratos.Expression.VariableExpressionIO.Input(
+        a.SetExpression(Kratos.ContainerExpression.VariableExpressionIO.Input(
             a.GetModelPart(),
             Kratos.VELOCITY,
             self._GetContainerType()
         ).Execute())
         numpy_array = numpy.empty([a.GetExpression().NumberOfEntities()] + a.GetItemShape())
-        Kratos.Expression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
+        Kratos.ContainerExpression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
 
         for i, entity in enumerate(a.GetContainer()):
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.VELOCITY), numpy_array[i, :], 12)
 
-        a.SetExpression(Kratos.Expression.VariableExpressionIO.Input(
+        a.SetExpression(Kratos.ContainerExpression.VariableExpressionIO.Input(
             a.GetModelPart(),
             Kratos.INITIAL_STRAIN,
             self._GetContainerType()
         ).Execute())
         numpy_array = numpy.empty([a.GetExpression().NumberOfEntities()] + a.GetItemShape())
-        Kratos.Expression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
+        Kratos.ContainerExpression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
 
         for i, entity in enumerate(a.GetContainer()):
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.INITIAL_STRAIN), numpy_array[i, :], 12)
 
-        a.SetExpression(Kratos.Expression.VariableExpressionIO.Input(
+        a.SetExpression(Kratos.ContainerExpression.VariableExpressionIO.Input(
             a.GetModelPart(),
             Kratos.GREEN_LAGRANGE_STRAIN_TENSOR,
             self._GetContainerType()
         ).Execute())
         numpy_array = numpy.empty([a.GetExpression().NumberOfEntities()] + a.GetItemShape())
-        Kratos.Expression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
+        Kratos.ContainerExpression.CArrayExpressionOutput(numpy_array).Execute(a.GetExpression())
 
         for i_entity, entity in enumerate(a.GetContainer()):
             v = self._GetValue(entity, Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
@@ -430,12 +430,12 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
 
         numpy_array = numpy.arange(0.0, len(a.GetContainer()))
-        a.SetExpression(Kratos.Expression.CArrayExpressionInput(
+        a.SetExpression(Kratos.ContainerExpression.CArrayExpressionInput(
             numpy_array,
             len(numpy_array),
             []
         ).Execute())
-        Kratos.Expression.VariableExpressionIO.Output(
+        Kratos.ContainerExpression.VariableExpressionIO.Output(
             a.GetModelPart(),
             Kratos.PRESSURE,
             self._GetContainerType()
@@ -446,13 +446,13 @@ class TestContainerExpression(ABC):
             self.assertEqual(v, numpy_array[i], 12)
 
         numpy_array = numpy.arange(0.0, len(a.GetContainer()) * 8).reshape(len(a.GetContainer()), 8)
-        a.SetExpression(Kratos.Expression.CArrayExpressionInput(
+        a.SetExpression(Kratos.ContainerExpression.CArrayExpressionInput(
             numpy_array,
             len(a.GetContainer()),
             [8]
         ).Execute())
         a *= 2
-        Kratos.Expression.VariableExpressionIO.Output(
+        Kratos.ContainerExpression.VariableExpressionIO.Output(
             a.GetModelPart(),
             Kratos.PENALTY,
             self._GetContainerType()
@@ -462,13 +462,13 @@ class TestContainerExpression(ABC):
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), numpy_array[i, :] * 2, 12)
 
         numpy_array = numpy.arange(0.0, len(a.GetContainer()) * 2 * 4).reshape(len(a.GetContainer()), 2, 4)
-        a.SetExpression(Kratos.Expression.CArrayExpressionInput(
+        a.SetExpression(Kratos.ContainerExpression.CArrayExpressionInput(
             numpy_array,
             len(a.GetContainer()),
             [2, 4]
         ).Execute())
         a *= 2
-        Kratos.Expression.VariableExpressionIO.Output(
+        Kratos.ContainerExpression.VariableExpressionIO.Output(
             a.GetModelPart(),
             Kratos.PK2_STRESS_TENSOR,
             self._GetContainerType()
@@ -552,7 +552,7 @@ class TestContainerExpression(ABC):
 
         # Tests for ContainerExpression (replaces tests for SpecializedContainerExpression)
         expression = self._GetContainerExpression()
-        expression.SetExpression(Kratos.Expression.VariableExpressionIO.Input(
+        expression.SetExpression(Kratos.ContainerExpression.VariableExpressionIO.Input(
             expression.GetModelPart(),
             Kratos.INITIAL_STRAIN,
             self._GetContainerType()
@@ -560,7 +560,7 @@ class TestContainerExpression(ABC):
 
         sliced = expression.Slice(2, 3)
         sliced *= 3.0
-        Kratos.Expression.VariableExpressionIO.Output(
+        Kratos.ContainerExpression.VariableExpressionIO.Output(
             sliced.GetModelPart(),
             Kratos.ACCELERATION,
             self._GetContainerType()
@@ -592,7 +592,7 @@ class TestContainerExpression(ABC):
 
     def test_ReshapeContainerExpression(self) -> None:
         expression = self._GetContainerExpression()
-        expression.SetExpression(Kratos.Expression.VariableExpressionIO.Input(
+        expression.SetExpression(Kratos.ContainerExpression.VariableExpressionIO.Input(
             expression.GetModelPart(),
             Kratos.INITIAL_STRAIN,
             self._GetContainerType()
@@ -601,7 +601,7 @@ class TestContainerExpression(ABC):
         reshaped = expression.Reshape([2, 3])
         reshaped *= 3.0
 
-        Kratos.Expression.VariableExpressionIO.Output(
+        Kratos.ContainerExpression.VariableExpressionIO.Output(
             reshaped.GetModelPart(),
             Kratos.PK2_STRESS_TENSOR,
             self._GetContainerType()
@@ -656,14 +656,14 @@ class TestContainerExpression(ABC):
 
     def test_CombContainerExpression(self) -> None:
         a = self._GetContainerExpression()
-        a.SetExpression(Kratos.Expression.VariableExpressionIO.Input(
+        a.SetExpression(Kratos.ContainerExpression.VariableExpressionIO.Input(
             a.GetModelPart(),
             Kratos.PRESSURE,
             self._GetContainerType()
         ).Execute())
 
         b = self._GetContainerExpression()
-        b.SetExpression(Kratos.Expression.VariableExpressionIO.Input(
+        b.SetExpression(Kratos.ContainerExpression.VariableExpressionIO.Input(
             b.GetModelPart(),
             Kratos.VELOCITY,
             self._GetContainerType()
@@ -672,7 +672,7 @@ class TestContainerExpression(ABC):
         combed = a.Comb(b)
         combed *= 3.0
 
-        Kratos.Expression.VariableExpressionIO.Output(
+        Kratos.ContainerExpression.VariableExpressionIO.Output(
             combed.GetModelPart(),
             Kratos.PENALTY,
             self._GetContainerType()
@@ -691,7 +691,7 @@ class TestContainerExpression(ABC):
         combed = a.Comb([b, a])
         combed *= 4.0
 
-        Kratos.Expression.VariableExpressionIO.Output(
+        Kratos.ContainerExpression.VariableExpressionIO.Output(
             combed.GetModelPart(),
             Kratos.PENALTY,
             self._GetContainerType()
@@ -732,13 +732,13 @@ class TestContainerExpression(ABC):
 
     def test_SliceCombReshapeContainerExpression(self):
         a = self._GetContainerExpression()
-        a.SetExpression(Kratos.Expression.VariableExpressionIO.Input(
+        a.SetExpression(Kratos.ContainerExpression.VariableExpressionIO.Input(
             a.GetModelPart(),
             Kratos.INITIAL_STRAIN,
             self._GetContainerType()
         ).Execute())
 
-        Kratos.Expression.VariableExpressionIO.Output(
+        Kratos.ContainerExpression.VariableExpressionIO.Output(
             a.GetModelPart(),
             Kratos.PK2_STRESS_TENSOR,
             self._GetContainerType()
@@ -772,7 +772,7 @@ class TestContainerExpression(ABC):
         pass
 
     @abstractmethod
-    def _GetContainerType(self) -> Kratos.Expression.VariableExpressionIO.ContainerType:
+    def _GetContainerType(self) -> Kratos.ContainerExpression.VariableExpressionIO.ContainerType:
         pass
 
     @abstractmethod
@@ -820,8 +820,8 @@ class TestHistoricalContainerExpression(kratos_unittest.TestCase, TestContainerE
     def _GetContainerExpression(self) -> Kratos.ContainerExpression.NodalExpression:
         return Kratos.ContainerExpression.NodalExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.VariableExpressionIO.ContainerType:
-        return Kratos.Expression.VariableExpressionIO.ContainerType.NodalHistorical
+    def _GetContainerType(self) -> Kratos.ContainerExpression.VariableExpressionIO.ContainerType:
+        return Kratos.ContainerExpression.VariableExpressionIO.ContainerType.NodalHistorical
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Nodes
@@ -866,8 +866,8 @@ class TestNodalContainerExpression(kratos_unittest.TestCase, TestContainerExpres
     def _GetContainerExpression(self) -> Kratos.ContainerExpression.NodalExpression:
         return Kratos.ContainerExpression.NodalExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.VariableExpressionIO.ContainerType:
-        return Kratos.Expression.VariableExpressionIO.ContainerType.NodalNonHistorical
+    def _GetContainerType(self) -> Kratos.ContainerExpression.VariableExpressionIO.ContainerType:
+        return Kratos.ContainerExpression.VariableExpressionIO.ContainerType.NodalNonHistorical
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Nodes
@@ -886,8 +886,8 @@ class TestConditionContainerExpression(kratos_unittest.TestCase, TestContainerEx
     def _GetContainerExpression(self) -> Kratos.ContainerExpression.ConditionExpression:
         return Kratos.ContainerExpression.ConditionExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.VariableExpressionIO.ContainerType:
-        return Kratos.Expression.VariableExpressionIO.ContainerType.ConditionNonHistorical
+    def _GetContainerType(self) -> Kratos.ContainerExpression.VariableExpressionIO.ContainerType:
+        return Kratos.ContainerExpression.VariableExpressionIO.ContainerType.ConditionNonHistorical
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Conditions
@@ -906,8 +906,8 @@ class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpr
     def _GetContainerExpression(self):
         return Kratos.ContainerExpression.ElementExpression(self.model_part)
 
-    def _GetContainerType(self) -> Kratos.Expression.VariableExpressionIO.ContainerType:
-        return Kratos.Expression.VariableExpressionIO.ContainerType.ElementNonHistorical
+    def _GetContainerType(self) -> Kratos.ContainerExpression.VariableExpressionIO.ContainerType:
+        return Kratos.ContainerExpression.VariableExpressionIO.ContainerType.ElementNonHistorical
 
     def _GetContainer(self):
         return self.model_part.GetCommunicator().LocalMesh().Elements

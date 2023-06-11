@@ -46,9 +46,7 @@ void  AddContainerExpressionToPython(pybind11::module& m)
     AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(container_exp_sub_module, "ConditionNonHistoricalExpression");
     AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(container_exp_sub_module, "ElementNonHistoricalExpression");
 
-    auto exp_sub_module = m.def_submodule("Expression");
-
-    AddExpressionIOToPython(exp_sub_module);
+    AddExpressionIOToPython(container_exp_sub_module);
 }
 
 } // namespace Kratos::Python

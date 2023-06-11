@@ -154,6 +154,12 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         ;
 
     auto variable_expression_io = rModule.def_submodule("VariableExpressionIO");
+    variable_expression_io.def("Read", &VariableExpressionIO::Read<MeshType::Local>, pybind11::arg("nodal_container_expression"), pybind11::arg("variable"), pybind11::arg("is_historical"));
+    variable_expression_io.def("Read", &VariableExpressionIO::Read<ModelPart::ConditionsContainerType, MeshType::Local>, pybind11::arg("condition_container_expression"), pybind11::arg("variable"));
+    variable_expression_io.def("Read", &VariableExpressionIO::Read<ModelPart::ElementsContainerType, MeshType::Local>, pybind11::arg("element_container_expression"), pybind11::arg("variable"));
+    variable_expression_io.def("Write", &VariableExpressionIO::Write<MeshType::Local>, pybind11::arg("nodal_container_expression"), pybind11::arg("variable"), pybind11::arg("is_historical"));
+    variable_expression_io.def("Write", &VariableExpressionIO::Write<ModelPart::ConditionsContainerType, MeshType::Local>, pybind11::arg("condition_container_expression"), pybind11::arg("variable"));
+    variable_expression_io.def("Write", &VariableExpressionIO::Write<ModelPart::ElementsContainerType, MeshType::Local>, pybind11::arg("element_container_expression"), pybind11::arg("variable"));
 
     pybind11::class_<ExpressionInput, Detail::ExpressionInputTrampoline, ExpressionInput::Pointer>(variable_expression_io, "ExpressionInput")
         .def("Execute", &ExpressionInput::Execute)
@@ -183,22 +189,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
              pybind11::arg("container_type"))
-        .def(pybind11::init<const ContainerExpression<ModelPart::NodesContainerType>&,
-                            const VariableExpressionIO::VariableType&,
-                            const bool>(),
-             pybind11::arg("nodal_container_expression"),
-             pybind11::arg("variable"),
-             pybind11::arg("is_historical"))
-        .def(pybind11::init<const ContainerExpression<ModelPart::ConditionsContainerType>&,
-                            const VariableExpressionIO::VariableType&>(),
-             pybind11::arg("condition_container_expression"),
-             pybind11::arg("variable"))
-        .def(pybind11::init<const ContainerExpression<ModelPart::ElementsContainerType>&,
-                            const VariableExpressionIO::VariableType&>(),
-             pybind11::arg("element_container_expression"),
-             pybind11::arg("variable"))
         ;
-
 
     pybind11::class_<VariableExpressionIO::VariableExpressionOutput, VariableExpressionIO::VariableExpressionOutput::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
@@ -207,20 +198,6 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
              pybind11::arg("container_type"))
-        .def(pybind11::init<ContainerExpression<ModelPart::NodesContainerType>&,
-                            const VariableExpressionIO::VariableType&,
-                            const bool>(),
-             pybind11::arg("nodal_container_expression"),
-             pybind11::arg("variable"),
-             pybind11::arg("is_historical"))
-        .def(pybind11::init<ContainerExpression<ModelPart::ConditionsContainerType>&,
-                            const VariableExpressionIO::VariableType&>(),
-             pybind11::arg("condition_container_expression"),
-             pybind11::arg("variable"))
-        .def(pybind11::init<ContainerExpression<ModelPart::ElementsContainerType>&,
-                            const VariableExpressionIO::VariableType&>(),
-             pybind11::arg("element_container_expression"),
-             pybind11::arg("variable"))
         ;
 
     pybind11::class_<CArrayExpressionInput, CArrayExpressionInput::Pointer, ExpressionInput>(rModule, "CArrayExpressionInput")

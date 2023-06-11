@@ -71,40 +71,11 @@ public:
         ///@name Life cycle
         ///@{
 
-        template<class TDataType>
-        VariableExpressionInput(
-            const ModelPart& rModelPart,
-            const Variable<TDataType>& rVariable,
-            const ContainerType& rContainerType,
-            MeshType rMeshType = MeshType::Local);
-
         VariableExpressionInput(
             const ModelPart& rModelPart,
             const VariableType& rVariable,
             const ContainerType& rContainerType,
             MeshType rMeshType = MeshType::Local);
-
-        template <class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
-        VariableExpressionInput(
-            const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
-            const Variable<TDataType>& rVariable,
-            const bool IsHistorical = false);
-
-        template <MeshType TMeshType = Kratos::MeshType::Local>
-        VariableExpressionInput(
-            const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
-            const VariableType& rVariable,
-            const bool IsHistorical = false);
-
-        template <class TContainerType, class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
-        VariableExpressionInput(
-            const ContainerExpression<TContainerType, TMeshType>& rContainer,
-            const Variable<TDataType>& rVariable);
-
-        template <class TContainerType, MeshType TMeshType = Kratos::MeshType::Local>
-        VariableExpressionInput(
-            const ContainerExpression<TContainerType, TMeshType>& rContainer,
-            const VariableType& rVariable);
 
         ~VariableExpressionInput() override = default;
 
@@ -144,40 +115,11 @@ public:
         ///@name Life cycle
         ///@{
 
-        template<class TDataType>
-        VariableExpressionOutput(
-            ModelPart& rModelPart,
-            const Variable<TDataType>& rVariable,
-            const ContainerType& rContainerType,
-            MeshType rMeshType = MeshType::Local);
-
         VariableExpressionOutput(
             ModelPart& rModelPart,
             const VariableType& rVariable,
             const ContainerType& rContainerType,
             MeshType rMeshType = MeshType::Local);
-
-        template <class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
-        VariableExpressionOutput(
-            ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
-            const Variable<TDataType>& rVariable,
-            const bool IsHistorical = false);
-
-        template <MeshType TMeshType = Kratos::MeshType::Local>
-        VariableExpressionOutput(
-            ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainer,
-            const VariableType& rVariable,
-            const bool IsHistorical = false);
-
-        template <class TContainerType, class TDataType, MeshType TMeshType = Kratos::MeshType::Local>
-        VariableExpressionOutput(
-            ContainerExpression<TContainerType, TMeshType>& rContainer,
-            const Variable<TDataType>& rVariable);
-
-        template <class TContainerType, MeshType TMeshType = Kratos::MeshType::Local>
-        VariableExpressionOutput(
-            ContainerExpression<TContainerType, TMeshType>& rContainer,
-            const VariableType& rVariable);
 
         ~VariableExpressionOutput() override = default;
 
@@ -208,6 +150,28 @@ public:
     ///@}
     ///@name Public static operations
     ///@{
+
+    template<MeshType TMeshType>
+    static void Read(
+        ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
+        const VariableType& rVariable,
+        const bool IsHistorical);
+
+    template<class TContainerType, MeshType TMeshType>
+    static void Read(
+        ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+        const VariableType& rVariable);
+
+    template<MeshType TMeshType>
+    static void Write(
+        ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
+        const VariableType& rVariable,
+        const bool IsHistorical);
+
+    template<class TContainerType, MeshType TMeshType>
+    static void Write(
+        ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+        const VariableType& rVariable);
 
     static ModelPart::MeshType& GetMesh(
         Communicator& rCommunicator,

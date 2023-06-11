@@ -54,11 +54,9 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
     KRATOS_TRY
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        VariableExpressionIO::VariableExpressionInput variable_expression_input(*this, rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>);
-        this->SetExpression(variable_expression_input.Execute());
+        VariableExpressionIO::Read(*this, &rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>);
     } else {
-        VariableExpressionIO::VariableExpressionInput variable_expression_input(*this, rVariable);
-        this->SetExpression(variable_expression_input.Execute());
+        VariableExpressionIO::Read(*this, &rVariable);
     }
 
     KRATOS_CATCH("")
@@ -71,11 +69,9 @@ void SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>
     KRATOS_TRY
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        VariableExpressionIO::VariableExpressionOutput variable_expression_output(*this, rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>);
-        variable_expression_output.Execute(this->GetExpression());
+        VariableExpressionIO::Write(*this, &rVariable, std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>);
     } else {
-        VariableExpressionIO::VariableExpressionOutput variable_expression_output(*this, rVariable);
-        variable_expression_output.Execute(this->GetExpression());
+        VariableExpressionIO::Write(*this, &rVariable);
     }
 
     KRATOS_CATCH("");
