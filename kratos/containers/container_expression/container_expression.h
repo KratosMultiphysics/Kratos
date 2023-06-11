@@ -410,6 +410,12 @@ public:
 
     ContainerExpression& operator/=(const ContainerExpression& Value);
 
+    ContainerExpression& Power(const double Value);
+
+    ContainerExpression& Power(const ContainerExpression& Value);
+
+    ContainerExpression& Scale(const ContainerExpression& Value);
+
     ///@}
 protected:
     ///@name Protected member variables

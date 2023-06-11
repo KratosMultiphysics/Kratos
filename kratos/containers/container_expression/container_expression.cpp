@@ -499,30 +499,40 @@ KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power)
         return *this;                                                                                              \
     }
 
-#define KRATOS_INSTANTIATE_CONTAINER_EXPRESSION_OPERATOR_GROUP(CONTAINER_TYPE, MESH_TYPE)         \
-    template class ContainerExpression<CONTAINER_TYPE, MESH_TYPE>;                                \
-    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(operator+, CONTAINER_TYPE, MESH_TYPE) \
-    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(operator-, CONTAINER_TYPE, MESH_TYPE) \
-    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(operator*, CONTAINER_TYPE, MESH_TYPE) \
-    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(operator/, CONTAINER_TYPE, MESH_TYPE) \
-    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power, CONTAINER_TYPE, MESH_TYPE)     \
-    KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator+=, operator+,                 \
-                                                           CONTAINER_TYPE, MESH_TYPE)             \
-    KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator-=, operator-,                 \
-                                                           CONTAINER_TYPE, MESH_TYPE)             \
-    KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator*=, operator*,                 \
-                                                           CONTAINER_TYPE, MESH_TYPE)             \
-    KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator/=, operator/,                 \
-                                                           CONTAINER_TYPE, MESH_TYPE)             \
-    template <>                                                                                   \
-    ContainerExpression<CONTAINER_TYPE, MESH_TYPE> Scale(                                         \
-        const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& rLeft,                              \
-        const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& rRight)                             \
-    {                                                                                             \
-        ContainerExpression<CONTAINER_TYPE, MESH_TYPE> result(*rLeft.pGetModelPart());            \
-        result.SetExpression(                                                                     \
-            Kratos::Scale(rLeft.pGetExpression(), rRight.pGetExpression()));                      \
-        return result;                                                                            \
+#define KRATOS_INSTANTIATE_CONTAINER_EXPRESSION_OPERATOR_GROUP(CONTAINER_TYPE, MESH_TYPE)                  \
+    template class ContainerExpression<CONTAINER_TYPE, MESH_TYPE>;                                         \
+    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(operator+, CONTAINER_TYPE, MESH_TYPE)          \
+    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(operator-, CONTAINER_TYPE, MESH_TYPE)          \
+    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(operator*, CONTAINER_TYPE, MESH_TYPE)          \
+    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(operator/, CONTAINER_TYPE, MESH_TYPE)          \
+    KRATOS_INSTANTIATE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power, CONTAINER_TYPE, MESH_TYPE)              \
+    KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator+=, operator+,                          \
+                                                           CONTAINER_TYPE, MESH_TYPE)                      \
+    KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator-=, operator-,                          \
+                                                           CONTAINER_TYPE, MESH_TYPE)                      \
+    KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator*=, operator*,                          \
+                                                           CONTAINER_TYPE, MESH_TYPE)                      \
+    KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(operator/=, operator/,                          \
+                                                           CONTAINER_TYPE, MESH_TYPE)                      \
+    KRATOS_INSTANTIATE_UNARY_CONTAINER_EXPRESSION_OPERATOR(                                                \
+        Power, Kratos::Power, CONTAINER_TYPE, MESH_TYPE)                                                   \
+    template <>                                                                                            \
+    ContainerExpression<CONTAINER_TYPE, MESH_TYPE> Scale(                                                  \
+        const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& rLeft,                                       \
+        const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& rRight)                                      \
+    {                                                                                                      \
+        ContainerExpression<CONTAINER_TYPE, MESH_TYPE> result(*rLeft.pGetModelPart());                     \
+        result.SetExpression(                                                                              \
+            Kratos::Scale(rLeft.pGetExpression(), rRight.pGetExpression()));                               \
+        return result;                                                                                     \
+    }                                                                                                      \
+    template <>                                                                                            \
+    ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& ContainerExpression<CONTAINER_TYPE, MESH_TYPE>::Scale( \
+        const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& rScaling)                                    \
+    {                                                                                                      \
+        this->mpExpression =                                                                               \
+            Kratos::Scale(*this->mpExpression, rScaling.pGetExpression());                                 \
+        return *this;                                                                                      \
     }
 
 #define KRATOS_INSTANTIATE_CONTAINER_EXPRESSION_OPERATOR_GROUP_CONTAINER_TYPE(CONTAINER_TYPE)   \
