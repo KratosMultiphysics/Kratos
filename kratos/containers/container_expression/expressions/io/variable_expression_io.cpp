@@ -136,7 +136,7 @@ VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
         rContainer.GetModelPart(),
         rVariable,
         IsHistorical ? ContainerType::NodalHistorical : ContainerType::NodalNonHistorical,
-        TMeshType == MeshType::Local ? MeshType::Local : TMeshType == MeshType::Interface ? MeshType::Interface : MeshType::Ghost)
+        TMeshType)
 {
 
 }
@@ -149,7 +149,7 @@ VariableExpressionIO::VariableExpressionOutput::VariableExpressionOutput(
         rContainer.GetModelPart(),
         rVariable,
         std::is_same_v<TContainerType, ModelPart::ConditionsContainerType> ? ContainerType::ConditionNonHistorical : ContainerType::ElementNonHistorical,
-        TMeshType == MeshType::Local ? MeshType::Local : TMeshType == MeshType::Interface ? MeshType::Interface : MeshType::Ghost)
+        TMeshType)
 {
 }
 
