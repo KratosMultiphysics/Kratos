@@ -26,7 +26,7 @@
 namespace Kratos {
 
 template<class TRawDataType>
-CArrayExpressionIO::CArrayExpressionInput::CArrayExpressionInput(
+CArrayExpressionIO::Input::Input(
     TRawDataType const* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,
@@ -38,7 +38,7 @@ CArrayExpressionIO::CArrayExpressionInput::CArrayExpressionInput(
 
 }
 
-Expression::Pointer CArrayExpressionIO::CArrayExpressionInput::Execute() const
+Expression::Pointer CArrayExpressionIO::Input::Execute() const
 {
     KRATOS_TRY
 
@@ -63,7 +63,7 @@ Expression::Pointer CArrayExpressionIO::CArrayExpressionInput::Execute() const
 }
 
 template<class TRawDataType>
-CArrayExpressionIO::CArrayMoveExpressionInput::CArrayMoveExpressionInput(
+CArrayExpressionIO::MoveInput::MoveInput(
     TRawDataType* pBegin,
     const int NumberOfEntities,
     int const* pShapeBegin,
@@ -76,7 +76,7 @@ CArrayExpressionIO::CArrayMoveExpressionInput::CArrayMoveExpressionInput(
 
 }
 
-Expression::Pointer CArrayExpressionIO::CArrayMoveExpressionInput::Execute() const
+Expression::Pointer CArrayExpressionIO::MoveInput::Execute() const
 {
     KRATOS_TRY
 
@@ -97,7 +97,7 @@ Expression::Pointer CArrayExpressionIO::CArrayMoveExpressionInput::Execute() con
 }
 
 template<class TRawDataType>
-CArrayExpressionIO::CArrayExpressionOutput::CArrayExpressionOutput(
+CArrayExpressionIO::Output::Output(
     TRawDataType* pBegin,
     const int Size)
     : mpCArray(pBegin),
@@ -106,7 +106,7 @@ CArrayExpressionIO::CArrayExpressionOutput::CArrayExpressionOutput(
 
 }
 
-void CArrayExpressionIO::CArrayExpressionOutput::Execute(const Expression& rExpression)
+void CArrayExpressionIO::Output::Execute(const Expression& rExpression)
 {
     KRATOS_TRY
 
@@ -151,7 +151,7 @@ void CArrayExpressionIO::Read(
     const int ShapeSize)
 {
     rContainerExpression.SetExpression(
-        CArrayExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
+        Input(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 }
 
 template<class TRawDataType, class TContainerType, MeshType TMeshType>
@@ -163,7 +163,7 @@ void CArrayExpressionIO::Move(
     const int ShapeSize)
 {
     rContainerExpression.SetExpression(
-        CArrayMoveExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
+        MoveInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 }
 
 template<class TRawDataType, class TContainerType, MeshType TMeshType>
@@ -172,7 +172,7 @@ void CArrayExpressionIO::Write(
     TRawDataType* pBegin,
     const int mSize)
 {
-    CArrayExpressionOutput(pBegin, mSize).Execute(rContainerExpression.GetExpression());
+    Output(pBegin, mSize).Execute(rContainerExpression.GetExpression());
 }
 
 #define KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS(RAW_DATA_TYPE, CONTAINER_TYPE, MESH_TYPE)                                                                      \
@@ -191,14 +191,14 @@ void CArrayExpressionIO::Write(
     KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_1(RAW_DATA_TYPE, MeshType::Ghost)
 
 // template instantiations
-template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::CArrayExpressionInput::CArrayExpressionInput(int const*, const int, int const*, const int);
-template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::CArrayExpressionInput::CArrayExpressionInput(double const*, const int, int const*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Input::Input(int const*, const int, int const*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Input::Input(double const*, const int, int const*, const int);
 
-template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::CArrayMoveExpressionInput::CArrayMoveExpressionInput(int*, const int, int const*, const int);
-template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::CArrayMoveExpressionInput::CArrayMoveExpressionInput(double*, const int, int const*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::MoveInput::MoveInput(int*, const int, int const*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::MoveInput::MoveInput(double*, const int, int const*, const int);
 
-template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::CArrayExpressionOutput::CArrayExpressionOutput(int*, const int);
-template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::CArrayExpressionOutput::CArrayExpressionOutput(double*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Output::Output(int*, const int);
+template KRATOS_API(KRATOS_CORE) CArrayExpressionIO::Output::Output(double*, const int);
 
 KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_2(int)
 KRATOS_INSTANTIATE_C_ARRAY_EXPRESSION_IO_METHODS_2(double)

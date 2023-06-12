@@ -30,7 +30,7 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) CArrayExpressionInput: public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) Input: public ExpressionInput
     {
     public:
         ///@name Type definitions
@@ -40,20 +40,20 @@ public:
 
         using RawArrayType = std::variant<int const*, double const*>;
 
-        KRATOS_CLASS_POINTER_DEFINITION(CArrayExpressionInput);
+        KRATOS_CLASS_POINTER_DEFINITION(Input);
 
         ///@}
         ///@name  Life Cycle
         ///@{
 
         template<class TRawDataType>
-        KRATOS_API(KRATOS_CORE) CArrayExpressionInput(
+        KRATOS_API(KRATOS_CORE) Input(
             TRawDataType const* pBegin,
             const int NumberOfEntities,
             int const* pShapeBegin,
             const int ShapeSize);
 
-        ~CArrayExpressionInput() override = default;
+        ~Input() override = default;
 
         ///@}
         ///@name Operations
@@ -74,10 +74,10 @@ public:
         std::vector<IndexType> mShape;
 
         ///@}
-    }; // class CArrayExpressionInput
+    }; // class Input
 
 
-    class KRATOS_API(KRATOS_CORE) CArrayMoveExpressionInput : public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) MoveInput : public ExpressionInput
     {
     public:
         ///@name Type definitions
@@ -87,20 +87,20 @@ public:
 
         using RawArrayType = std::variant<int*, double*>;
 
-        KRATOS_CLASS_POINTER_DEFINITION(CArrayMoveExpressionInput);
+        KRATOS_CLASS_POINTER_DEFINITION(MoveInput);
 
         ///@}
         ///@name  Life Cycle
         ///@{
 
         template <class TRawDataType>
-        CArrayMoveExpressionInput(
+        MoveInput(
             TRawDataType* pBegin,
             const int NumberOfEntities,
             int const* pShapeBegin,
             const int ShapeSize);
 
-        ~CArrayMoveExpressionInput() override = default;
+        ~MoveInput() override = default;
 
         ///@}
         ///@name Operations
@@ -123,9 +123,9 @@ public:
         const int mShapeSize;
 
         ///@}
-    }; // class CArrayMoveExpressionInput
+    }; // class MoveInput
 
-    class KRATOS_API(KRATOS_CORE) CArrayExpressionOutput: public ExpressionOutput
+    class KRATOS_API(KRATOS_CORE) Output: public ExpressionOutput
     {
     public:
         ///@name Type definitions
@@ -135,18 +135,18 @@ public:
 
         using RawArrayType = std::variant<int*, double*>;
 
-        KRATOS_CLASS_POINTER_DEFINITION(CArrayExpressionOutput);
+        KRATOS_CLASS_POINTER_DEFINITION(Output);
 
         ///@}
         ///@name  Life Cycle
         ///@{
 
         template<class TRawDataType>
-        KRATOS_API(KRATOS_CORE) CArrayExpressionOutput(
+        KRATOS_API(KRATOS_CORE) Output(
             TRawDataType* pBegin,
             const int mSize);
 
-        ~CArrayExpressionOutput() override = default;
+        ~Output() override = default;
 
         ///@}
         ///@name Operations
@@ -165,7 +165,7 @@ public:
         const int mSize;
 
         ///@}
-    }; // class CArrayExpressionOutput
+    }; // class Output
 
     ///@}
     ///@name Public static operations

@@ -132,7 +132,7 @@ void Read(
         << NumberOfEntities
         << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
 
-    rContainerExpression.SetExpression(CArrayExpressionIO::CArrayExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
+    rContainerExpression.SetExpression(CArrayExpressionIO::Input(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 
     KRATOS_CATCH("");
 }
@@ -153,7 +153,7 @@ void MoveFrom(
         << NumberOfEntities
         << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
 
-    rContainerExpression.SetExpression(CArrayExpressionIO::CArrayMoveExpressionInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
+    rContainerExpression.SetExpression(CArrayExpressionIO::MoveInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
 
     KRATOS_CATCH("");
 }
@@ -255,7 +255,7 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
         << NumberOfEntities
         << ", local container size = " << this->GetContainer().size() << " ].\n";
 
-    CArrayExpressionIO::CArrayExpressionOutput(pBegin, NumberOfEntities * std::accumulate(pShapeBegin, pShapeBegin+ShapeSize, 1, [](const int V1, const int V2) { return V1 * V2; })).Execute(**this->mpExpression);
+    CArrayExpressionIO::Output(pBegin, NumberOfEntities * std::accumulate(pShapeBegin, pShapeBegin+ShapeSize, 1, [](const int V1, const int V2) { return V1 * V2; })).Execute(**this->mpExpression);
 
     KRATOS_CATCH("");
 }
