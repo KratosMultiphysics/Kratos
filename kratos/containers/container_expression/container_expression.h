@@ -52,13 +52,12 @@ namespace Kratos {
  *                              They are used to store keep track of the operations carried on the LiteralExpressions.
  *
  * Literal expressions are created on the following cases:
- *      1. When data is set using the SpecializedContainerExpression::Read. Here, a LiteralFlatExpression is created.
- *      2. When data is reset to one value using either ContainerExpression::SetDataToZero or SpecializedContainerExpression::SetData
- *         or SpecializedContainerExpression::SetZero. Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
- *      3. When a SpecializedContainerExpression is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
+ *      1. When data is set using the VariableExpressionIO. Here, a LiteralFlatExpression is created.
+ *      2. When data is reset to one value using either DataExpression::SetDataToZero or Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
+ *      3. When a ContainerExpression is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
  *
  * BinaryExpressions are created on the followin cases:
- *      1. When a SpecializedContainerExpression is operated with "+", "-", "*", "/", "Pow".
+ *      1. When a ContainerExpression is operated with "+", "-", "*", "/", "Pow".
  *
  * ContainerExpression only holds double vector if any nodal, condition or element variable data needs to be stored for future calculations
  * where the variable can be released to store new data. Hence same variable can be used to store different data in the same container.
