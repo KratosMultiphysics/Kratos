@@ -10,21 +10,17 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
+#pragma once
+
 // System includes
 
 // External includes
 
 // Project includes
-#include "python/add_global_variables_to_python.h"
-#include "includes/define_python.h"
-#include "includes/global_variables.h"
+#include <pybind11/pybind11.h>
 
 namespace Kratos::Python {
 
-void AddGlobalVariablesToPython(pybind11::module& m)
-{
-    namespace py = pybind11;
-
-}
+void AddGlobalsToPython(pybind11::module& m);
 
 } // namespace Kratos::Python
