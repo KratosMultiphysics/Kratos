@@ -233,7 +233,7 @@ void IsotropicDamageCohesive3DLaw::ComputeTangentConstitutiveMatrix(Matrix& rCon
 {
     // Get the normal component of the strain vector
     const Vector& StrainVector = rValues.GetStrainVector();
-    const unsigned int VoigtSize = StrainVector.size();
+    const int VoigtSize = StrainVector.size();
     double normalStrain = StrainVector[VoigtSize-1];
 
     //Compute the damage constitutive matrix
