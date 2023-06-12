@@ -26,7 +26,7 @@ VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
     const ModelPart& rModelPart,
     const VariableType& rVariable,
     const ContainerType& rContainerType,
-    MeshType rMeshType)
+    const MeshType& rMeshType)
     : mrModelPart(rModelPart),
       mpVariable(rVariable),
       mContainerType(rContainerType),

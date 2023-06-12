@@ -63,7 +63,7 @@ public:
             const ModelPart& rModelPart,
             const VariableType& rVariable,
             const ContainerType& rContainerType,
-            MeshType rMeshType = MeshType::Local);
+            const MeshType& rMeshType = MeshType::Local);
 
         ~VariableExpressionInput() override = default;
 
