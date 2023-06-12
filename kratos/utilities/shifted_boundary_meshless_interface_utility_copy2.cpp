@@ -1521,23 +1521,16 @@ namespace
                                 sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
                                 number_4th_level = number_4th_level + 1 ;
                             } else {
-                                KRATOS_WATCH("Need 5th level neigh research....")
-                                KRATOS_WATCH("\n\n\n\n\n\n\n\n\n\n\n\n\n\n We return 0 nodes...")
+                                KRATOS_WATCH("Need 5th level neigh research....--------------------------------------------")
                                 number_5th_level = number_5th_level + 1 ;
                                 // insert a fake map with 0 contribiutions
                                 std::map<std::size_t, Vector> neigh_dn_dx_map;
                                 sur_bd_nodes_map.insert(std::make_pair(r_bd_node.Id(), neigh_dn_dx_map));
-                                // exit(0) ;
                             }
-                            // exit(0) ;
                         }
                     }
                 }
             }
-            // if (r_bd_node.Id() == 72448) {
-            //     KRATOS_WATCH("WHAT IS HAPPENING?")
-            //     exit(0) ;
-            // }
         }
         KRATOS_WATCH(number_2nd_level)
         KRATOS_WATCH(number_3rd_level)

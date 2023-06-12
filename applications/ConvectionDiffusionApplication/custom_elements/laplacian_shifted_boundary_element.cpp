@@ -343,16 +343,15 @@ std::vector<std::size_t> LaplacianShiftedBoundaryElement<TDim>::GetSurrogateFace
     const std::size_t n_faces = TDim + 1;
     auto& r_neigh_elems = GetValue(NEIGHBOUR_ELEMENTS);
     // Check the current element faces
-    // Note that we relly on the fact that the neighbours are sorted according to the faces
     std::vector<std::size_t> surrogate_faces_ids;
     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
+        // Get the neighbour element that shares the edge
         auto p_neigh_elem = r_neigh_elems(i_face).get(); 
-        if (p_neigh_elem != nullptr && p_neigh_elem->Is(VISITED)) {        // BOUNDARY (if it is cut!)
+        if (p_neigh_elem != nullptr && p_neigh_elem->Is(VISITED)) {   
+            // VISITED = the element is cut!
             surrogate_faces_ids.push_back(i_face);
         }
     }
-    // KRATOS_WATCH(surrogate_faces_ids)
-
     return surrogate_faces_ids;
 }
 

@@ -39,13 +39,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             time_integration_method = solver_settings["time_integration_method"].GetString()
             if time_integration_method == "implicit":
                 solver_module_name = "sbm_convection_diffusion_transient_solver"
-        elif (solver_type == "SBM_moving_transient" or solver_type == "sbm_moving_transient"):
-            if not solver_settings.Has("time_integration_method"):
-                KratosMultiphysics.Logger.PrintWarning("Time integration method was not provided. Setting \'implicit\' as default.")
-                solver_settings.AddEmptyValue("time_integration_method").SetString("implicit")
-            time_integration_method = solver_settings["time_integration_method"].GetString()
-            if time_integration_method == "implicit":
-                solver_module_name = "sbm_moving_convection_diffusion_transient_solver"
         # Steady solver
         elif (solver_type == "stationary" or solver_type == "Stationary"):
             solver_module_name = "convection_diffusion_stationary_solver"
@@ -53,7 +46,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "SBM_stationary" or solver_type == "sbm_stationary"):
             solver_module_name = "sbm_convection_diffusion_stationary_solver"
         elif (solver_type == "SBM_moving_stationary" or solver_type == "SBM_moving_stationary"):
-            solver_module_name = "sbm_moving_convection_diffusion_transient_solver"
+            solver_module_name = "sbm_moving_convection_diffusion_stationary_solver"
         # Steady embedded (CutFEM) solver
         elif solver_type == "stationary_embedded":
             solver_module_name = "convection_diffusion_stationary_embedded_solver"

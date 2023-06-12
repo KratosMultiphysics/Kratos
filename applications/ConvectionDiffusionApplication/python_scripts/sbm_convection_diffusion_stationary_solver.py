@@ -28,7 +28,7 @@ def CreateSolver(main_model_part, custom_settings):
 
 class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_solver.ConvectionDiffusionStationarySolver):
     print('ci siamo')
-    skin_model_part = Import_Structural_model_part('Structural_onda')
+    skin_model_part = Import_Structural_model_part('Structural_COMPLEX')
     #  "value"           : "0.25*(9-x**2-y**2-2*ln(3) + ln(x**2+y**2)) +  0.25 * sin(x) * sinh(y)"
     #  "value"           : "cos(x)*cos(y) - sin(x)*sin(y) + 2*sin(x)*cos(y)",
     def __init__(self, main_model_part, custom_settings):
@@ -48,10 +48,10 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         iter = 0
         main_model_part = self.GetComputingModelPart()
         for node in main_model_part.Nodes :
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0, [5.0, 10.0, 0.0])
-            node.Fix(KratosMultiphysics.VELOCITY_X)
-            node.Fix(KratosMultiphysics.VELOCITY_Y)
-            node.Fix(KratosMultiphysics.VELOCITY_Z)
+            # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0, [5.0, 10.0, 0.0])
+            # node.Fix(KratosMultiphysics.VELOCITY_X)
+            # node.Fix(KratosMultiphysics.VELOCITY_Y)
+            # node.Fix(KratosMultiphysics.VELOCITY_Z)
             if node.Is(BOUNDARY) : 
                 # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
                 # node.Fix(KratosMultiphysics.TEMPERATURE)
@@ -62,10 +62,6 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         print('Number of skin elements: ', tot_skin_el)
 
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(main_model_part, skin_model_part).Execute()
-
-        # for node in main_model_part.Nodes :
-        #     print(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE))
-        # exit()
 
         # Find the surrogate boundary nodes
         a = KratosMultiphysics.FindSurrogateNodesProcess2D(main_model_part, skin_model_part)
@@ -96,12 +92,12 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
         # Set the BC at the skin mesh________________________________________________________________________________________________
         for node in skin_model_part.Nodes:
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, node.X + node.Y)
-            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0)
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9 - ((node.X)**2 + (node.Y)**2) ) ) # --> Paraboloide
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.25*(9-node.X**2-node.Y**2-2*math.log(3) + math.log((node.X)**2+(node.Y)**2)) + 0.25 *math.sin(node.X) * math.sinh(node.Y))
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, math.sin(node.X) * math.cos(node.Y))
             # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, math.sin(node.X)*math.cos(node.Y)+math.log(1+node.X**2+node.Y**2))
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (1-node.X))
+            # node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, (1-node.X))
             node.Fix(KratosMultiphysics.TEMPERATURE)
 
         # Calculate the required neighbours
@@ -124,18 +120,8 @@ class SBMConvectionDiffusionStationarySolver(convection_diffusion_stationary_sol
 
 
         ## Compute the gradint coefficients for each of the surrogate node
-        # self.result, self.result2 = ComputeGradientCoefficients (sub_model_part_fluid, self.model, self.surrogate_sub_model_part)
         self.result = ComputeGradientCoefficients (sub_model_part_fluid, self.model, self.surrogate_sub_model_part)
         
-        # for node in self.surrogate_sub_model_part.Nodes :
-        #     my_result = self.result[node.Id]
-        #     if len(my_result) == 0 :
-        #         # Sostitute the results of the "Problematic" & "Very_Problematic" surrogate nodes 
-        #         # self.result[node.Id] = self.result2[node.Id]
-        #         # node.Set(SLAVE, True)
-        #         # exit()
-            
-
         ## Compute the T matrix for imposition of sbm condition
         i = 0
         for node in self.surrogate_sub_model_part.Nodes :
