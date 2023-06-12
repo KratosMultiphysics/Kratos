@@ -516,7 +516,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
+        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3 -v 2
 
     - name: Running MPI C++ tests (2 Cores)
       shell: bash
