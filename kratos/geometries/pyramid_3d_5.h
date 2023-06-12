@@ -682,7 +682,25 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        return GeometryUtils::CalculateDistanceFrom3DGeometry(*this, rPointGlobalCoordinates, Tolerance);
+        // Point to compute distance to
+        const Point point(rPointGlobalCoordinates);
+
+        // Check if point is inside
+        CoordinatesArrayType aux_coordinates;
+        if (this->IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
+            return 0.0;
+        }
+
+        // Compute distance to faces
+        std::array<double, 6> distances;
+        distances[0]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(4), point);
+        distances[1]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(1), this->GetPoint(2), this->GetPoint(4), point);
+        distances[2]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), point);
+        distances[3]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(3), this->GetPoint(0), point);
+        distances[4]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(3), this->GetPoint(4), point);
+        distances[5]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(3), this->GetPoint(0), this->GetPoint(4), point);
+        const auto min = std::min_element(distances.begin(), distances.end());
+        return *min;
     }
 
     ///@}
