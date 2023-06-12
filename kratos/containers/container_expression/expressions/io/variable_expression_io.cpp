@@ -178,8 +178,8 @@ void VariableExpressionIO::Write(
     template void VariableExpressionIO::Write(const ContainerExpression<ModelPart::NodesContainerType, MESH_TYPE>&, const VariableExpressionIO::VariableType&, const bool);\
 
 #define KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MESH_TYPE)                                                    \
-    template void VariableExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const VariableExpressionIO::VariableType&); \
-    template void VariableExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const VariableExpressionIO::VariableType&);\
+    template KRATOS_API(KRATOS_CORE) void VariableExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const VariableExpressionIO::VariableType&); \
+    template KRATOS_API(KRATOS_CORE) void VariableExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const VariableExpressionIO::VariableType&);\
 
 #define KRATOS_INSTANTIATE_CONTAINER_VARIABLE_EXPRESSION_IO(MESH_TYPE)                              \
     KRATOS_INSTANTIATE_NODAL_CONTAINER_IO_METHODS(MESH_TYPE)                                        \
