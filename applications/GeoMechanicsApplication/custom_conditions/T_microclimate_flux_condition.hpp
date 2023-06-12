@@ -78,6 +78,10 @@ protected:
         double minimalStorage;
         double maximalStorage;
 
+        ///Nodal variables
+        array_1d<double, TNumNodes> TemperatureVector;
+        array_1d<double, TNumNodes> DtTemperatureVector;
+
         double NormalFlux;
         double IntegrationCoefficient;
         array_1d<double,TNumNodes> Np;
@@ -149,6 +153,8 @@ protected:
 
     double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         unsigned int PointNumber, double detJ);
+
+    void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

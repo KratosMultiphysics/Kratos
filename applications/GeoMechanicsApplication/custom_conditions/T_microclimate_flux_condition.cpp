@@ -8,8 +8,8 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //
-//  Main authors:    Mohamed Nabi
-//                   
+//  Main authors:    John van Esch
+//                   Mohamed Nabi
 //                   
 //
 
@@ -37,11 +37,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::Initialize(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    //this->InitializeProperties();
-
-    //mIsInitialised = true;
-    //this->InitializeProperties();
 
     KRATOS_CATCH("")
 }
@@ -121,12 +116,15 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
     //this->InitializeProperties(rVariables);
 
     //Nodal Variables
+    this->InitializeNodalTemperatureVariables(rVariables);
+
+    //Nodal Variables
     //this->CalculateRoughness(rCurrentProcessInfo, rVariables);
     this->CalculateNodalFluxes(rCurrentProcessInfo, rVariables);
 
     //Variables computed at each GP
     rVariables.Np.resize(TNumNodes, false);
-//    rVariables.GradNpT.resize(TNumNodes, TDim, false);
+    //    rVariables.GradNpT.resize(TNumNodes, TDim, false);
 
     //General Variables
     const GeometryType& Geom = this->GetGeometry();
@@ -149,13 +147,44 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
+void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeNodalTemperatureVariables(
+    ElementVariables& rVariables)
+{
+    KRATOS_TRY
+
+    const GeometryType& rGeom = this->GetGeometry();
+
+    //Nodal Variables
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        rVariables.TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
+        rVariables.DtTemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(DT_TEMPERATURE);
+    }
+
+    KRATOS_CATCH("")
+}
+
+// ============================================================================================
+// ============================================================================================
+template<unsigned int TDim, unsigned int TNumNodes>
 void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
     ElementVariables& rVariables)
 {
     rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
     rVariables.TVector = prod(rVariables.TMatrix, rVariables.rightHandSideFlux);
+    GeoElementUtilities::
+        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
 
+    //---------------
+
+    rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
+    Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
+    for (int i = 0; i < TNumNodes; ++i)
+    {
+        TTMatrix(i, i) = rVariables.leftHandSideFlux[i];
+    }
+    rVariables.TMatrix = prod(rVariables.TMatrix, TTMatrix);
+    rVariables.TVector = -prod(rVariables.TMatrix, rVariables.TemperatureVector);
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
 }
@@ -169,104 +198,21 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
 {
     KRATOS_TRY
 
-    //rVariables.TVector = prod(rVariables.Np, rVariables.lefthandside);    //TODO: what is the result?
+    rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
+
+    Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
     for (int i = 0; i < TNumNodes; ++i)
     {
-        rVariables.TVector[i] = rVariables.Np[i] * rVariables.leftHandSideFlux[i];
+        TTMatrix(i, i) = rVariables.leftHandSideFlux[i];
     }
-    rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.TVector) * rVariables.IntegrationCoefficient;
+
+    rVariables.TMatrix = prod(rVariables.TMatrix, TTMatrix);
 
     GeoElementUtilities::
         AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.TMatrix);
 
     KRATOS_CATCH("")
 }
-
-
-
-
-
-
-
-
-
-
-
-//// ============================================================================================
-//// ============================================================================================
-//template<unsigned int TDim, unsigned int TNumNodes>
-//void TMicroClimateFluxCondition<TDim,TNumNodes>::CalculateRHS(
-//    VectorType& rRightHandSideVector,
-//    const ProcessInfo& CurrentProcessInfo)
-//{        
-//    //Previous definitions
-//    const GeometryType& Geom = this->GetGeometry();
-//    
-//    const GeometryType::IntegrationPointsArrayType& IntegrationPoints =
-//        Geom.IntegrationPoints( mThisIntegrationMethod );
-//    const unsigned int NumGPoints = IntegrationPoints.size();
-//    const unsigned int LocalDim = Geom.LocalSpaceDimension();
-//    
-//    //Containers of variables at all integration points
-//    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-//    GeometryType::JacobiansType JContainer(NumGPoints);
-//    for(unsigned int i = 0; i < NumGPoints; ++i)
-//        (JContainer[i]).resize(TDim,LocalDim,false);
-//    Geom.Jacobian( JContainer, mThisIntegrationMethod );
-//    
-//    //Condition variables
-//    ElementVariables Variables;
-//    //this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-//
-//
-//    GeometryType geom = this->GetGeometry();
-//    this->Info();
-//    this->CalculateRoughness(CurrentProcessInfo, Variables);
-//
-//    array_1d<double,TNumNodes> NormalFluxVector;
-//    array_1d<double,TNumNodes> NormalFluxVector1;
-//    array_1d<double,TNumNodes> NormalFluxVector2;
-//    array_1d<double,TNumNodes> NormalFluxVector3;
-//    array_1d<double,TNumNodes> NormalFluxVector4;
-//    array_1d<double,TNumNodes> NormalFluxVector5;
-//
-//    for(unsigned int i = 0; i < TNumNodes; ++i)
-//    {
-//        NormalFluxVector1[i] = Geom[i].FastGetSolutionStepValue(AIR_TEMPERATURE);
-//        NormalFluxVector2[i] = Geom[i].FastGetSolutionStepValue(SOLAR_RADIATION);
-//        NormalFluxVector3[i] = Geom[i].FastGetSolutionStepValue(AIR_HUMIDITY);
-//        NormalFluxVector4[i] = Geom[i].FastGetSolutionStepValue(PRECIPITATION);
-//        NormalFluxVector5[i] = Geom[i].FastGetSolutionStepValue(WIND_SPEED);
-//    }
-//    
-//    this->CalculateNodalFluxes(CurrentProcessInfo, rVariables);
-//
-//    //Loop over integration points
-//    for(unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-//        //Compute normal flux 
-//        Variables.NormalFlux = 0.0;
-//        for (unsigned int i = 0; i < TNumNodes; ++i) {
-//            Variables.NormalFlux += NContainer(GPoint,i) * NormalFluxVector[i];
-//        }
-//        
-//        //Obtain Np
-//        noalias(Variables.Np) = row(NContainer,GPoint);
-//                
-//        //Compute weighting coefficient for integration
-//        this->CalculateIntegrationCoefficient(
-//            Variables.IntegrationCoefficient,
-//            JContainer[GPoint],
-//            IntegrationPoints[GPoint].Weight());
-//                
-//        //Contributions to the right hand side
-//        this->CalculateAndAddRHS(rRightHandSideVector, Variables);
-//    }
-//}
-
-
-
-
-
 
 // ============================================================================================
 // ============================================================================================
@@ -355,10 +301,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
 {
     double timeStepSize = CurrentProcessInfo.GetValue(DELTA_TIME);
 
-    rVariables.previousRoughnessTemperature = rVariables.roughnessTemperature;
-    rVariables.previousStorage = rVariables.waterStorage;
-    rVariables.previousRadiation = rVariables.netRadiation;
-
     const GeometryType& Geom = this->GetGeometry();
     const double currentAirTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE);
     double currentWindSpeed = Geom[0].FastGetSolutionStepValue(WIND_SPEED);
@@ -376,12 +318,12 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     rVariables.previousRoughnessTemperature = rVariables.roughnessTemperature;
     rVariables.previousStorage = rVariables.waterStorage;
     rVariables.previousRadiation = rVariables.netRadiation;
-
-    const double initialSoilTemperature = Geom[0].FastGetSolutionStepValue(TEMPERATURE, 1);
-
     rVariables.roughnessTemperature = 0.0;
+
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
+        const double initialSoilTemperature = Geom[i].FastGetSolutionStepValue(TEMPERATURE, 1);
+
         double atmosphericStabilityFactor = 0.0;
         double surfaceRoughnessFactor = 0.0;
 
@@ -448,6 +390,9 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     constexpr double waterDensity = 1e3;
     constexpr double psychometricConstant = 0.63;
     constexpr double surfaceResistance = 30.0;
+
+    rVariables.previousStorage = rVariables.waterStorage;
+    rVariables.previousRadiation = rVariables.netRadiation;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -575,9 +520,9 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     rVariables.maximalStorage = rProp[SMAX_COEFFICIENT];
 
     const GeometryType& Geom = this->GetGeometry();
-    rVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);
-    rVariables.waterStorage = 0.0;
-    rVariables.netRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);
+    rVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   //TODO: This value does not get read correctly
+    rVariables.waterStorage = 0.0;                                                            // it is related to the initial value of the table
+    rVariables.netRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);  //TODO: This value does not get read correctly, initial value of the table
 
     KRATOS_CATCH("")
 }
@@ -599,17 +544,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateKinematics(
 
     KRATOS_CATCH("")
 }
-
-//// ============================================================================================
-//// ============================================================================================
-//template<unsigned int TDim, unsigned int TNumNodes>
-//double TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateIntegrationCoefficient(
-//    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-//    unsigned int PointNumber,
-//    double detJ)
-//{
-//    return IntegrationPoints[PointNumber].Weight() * detJ;
-//}
 
 // ============================================================================================
 // ============================================================================================
