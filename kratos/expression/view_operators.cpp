@@ -12,10 +12,10 @@
 //
 
 // Project includes
-#include "containers/container_expression/expressions/view_operators.h"
-#include "containers/container_expression/expressions/unary/unary_slice_expression.h"
-#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
-#include "containers/container_expression/expressions/unary/unary_combine_expression.h"
+#include "expression/view_operators.h"
+#include "expression/unary_slice_expression.h"
+#include "expression/unary_reshape_expression.h"
+#include "expression/unary_combine_expression.h"
 
 
 namespace Kratos {

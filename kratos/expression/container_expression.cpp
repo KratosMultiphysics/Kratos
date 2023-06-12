@@ -16,14 +16,14 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/container_expression/expressions/unary/unary_combine_expression.h"
-#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
-#include "containers/container_expression/expressions/unary/unary_slice_expression.h"
-#include "containers/container_expression/expressions/literal/literal_expression.h"
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
-#include "containers/container_expression/expressions/io/c_array_expression_io.h"
-#include "containers/container_expression/expressions/arithmetic_operators.h"
-#include "containers/container_expression/expressions/view_operators.h"
+#include "expression/unary_combine_expression.h"
+#include "expression/unary_reshape_expression.h"
+#include "expression/unary_slice_expression.h"
+#include "expression/literal_expression.h"
+#include "expression/literal_flat_expression.h"
+#include "expression/c_array_expression_io.h"
+#include "expression/arithmetic_operators.h"
+#include "expression/view_operators.h"
 
 // Include base h
 #include "container_expression.h"

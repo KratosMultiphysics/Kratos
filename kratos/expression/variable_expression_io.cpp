@@ -14,7 +14,7 @@
 #include <type_traits>
 
 // Project includes
-#include "containers/container_expression/container_data_io.h"
+#include "expression/container_data_io.h"
 #include "expression_io_utils.h"
 
 // Include base h

@@ -20,9 +20,9 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "containers/container_expression/container_data_io.h"
-#include "containers/container_expression/container_expression.h"
-#include "containers/container_expression/specialized_container_expression.h"
+#include "expression/container_data_io.h"
+#include "expression/container_expression.h"
+#include "expression/specialized_container_expression.h"
 #include "add_container_expression_to_python_utils.h"
 #include "add_expression_io_to_python.h"
 

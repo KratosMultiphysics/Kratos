@@ -22,9 +22,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "containers/container_expression/expressions/expression.h"
-#include "containers/container_expression/container_expression_arithmetic_operators.h"
-#include "containers/container_expression/traits.h"
+#include "expression/expression.h"
+#include "expression/container_expression_arithmetic_operators.h"
+#include "expression/traits.h"
 
 namespace Kratos {
 

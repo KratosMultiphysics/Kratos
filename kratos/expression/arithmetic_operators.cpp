@@ -11,9 +11,9 @@
 //
 
 // Project includes
-#include "containers/container_expression/expressions/arithmetic_operators.h"
-#include "containers/container_expression/expressions/literal/literal_expression.h"
-#include "containers/container_expression/expressions/binary/binary_expression.h"
+#include "expression/arithmetic_operators.h"
+#include "expression/literal_expression.h"
+#include "expression/binary_expression.h"
 
 
 namespace Kratos {

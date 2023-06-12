@@ -19,15 +19,15 @@
 // Project includes
 #include "add_expression_io_to_python.h"
 #include "includes/define_python.h"
-#include "containers/container_expression/expressions/expression.h"
-#include "containers/container_expression/expressions/io/expression_io.h"
-#include "containers/container_expression/expressions/io/variable_expression_io.h"
-#include "containers/container_expression/expressions/io/c_array_expression_io.h"
-#include "containers/container_expression/expressions/io/data_expression_input.h"
-#include "containers/container_expression/expressions/literal/literal_expression.h"
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
-#include "containers/container_expression/expressions/arithmetic_operators.h"
-#include "containers/container_expression/expressions/view_operators.h"
+#include "expression/expression.h"
+#include "expression/expression_io.h"
+#include "expression/variable_expression_io.h"
+#include "expression/c_array_expression_io.h"
+#include "expression/data_expression_input.h"
+#include "expression/literal_expression.h"
+#include "expression/literal_flat_expression.h"
+#include "expression/arithmetic_operators.h"
+#include "expression/view_operators.h"
 
 
 namespace Kratos::Python {

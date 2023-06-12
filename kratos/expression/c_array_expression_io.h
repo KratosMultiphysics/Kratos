@@ -16,9 +16,9 @@
 #include <variant>
 
 // Project includes
-#include "containers/container_expression/container_expression.h"
-#include "containers/container_expression/expressions/expression.h"
-#include "containers/container_expression/traits.h"
+#include "expression/container_expression.h"
+#include "expression/expression.h"
+#include "expression/traits.h"
 #include "includes/define.h"
 #include "expression_io.h"
 

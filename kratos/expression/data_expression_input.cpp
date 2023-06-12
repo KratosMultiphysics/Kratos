@@ -14,8 +14,8 @@
 #include <type_traits>
 
 // Project includes
-#include "containers/container_expression/expressions/literal/literal_expression.h"
-#include "containers/container_expression/expressions/io/expression_io_utils.h"
+#include "expression/literal_expression.h"
+#include "expression/expression_io_utils.h"
 
 // Include base h
 #include "data_expression_input.h"
