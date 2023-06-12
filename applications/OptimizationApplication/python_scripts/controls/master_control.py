@@ -179,3 +179,5 @@ class MasterControl:
 
         return update_map
 
+    def Initialize(self):
+        pass

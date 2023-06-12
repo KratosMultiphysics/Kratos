@@ -23,7 +23,7 @@
 #include "utilities/xml_utilities/xml_ostream_writer.h"
 #include "utilities/xml_utilities/xml_ostream_ascii_writer.h"
 #include "utilities/xml_utilities/xml_ostream_base64_binary_writer.h"
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "expression/literal_flat_expression.h"
 
 namespace Kratos::Testing {
 
