@@ -55,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart",
         "echo_level" : 1,
-        "max_CFL" : 0.5
+        "max_CFL" : 0.05
     })");
 
     // Fake time advance to set the previous process info container
@@ -63,7 +63,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     r_model_part.GetProcessInfo()[TIME] = 0.0;
     r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
     r_model_part.CloneTimeStep(dt);
-    r_model_part.CloneTimeStep(2.0*dt);
+    r_model_part.CloneTimeStep(5.0*dt);
 
     // Set nodal values
 

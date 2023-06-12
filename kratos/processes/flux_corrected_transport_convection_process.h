@@ -386,12 +386,12 @@ private:
         // Calculate the low order solution
         CalculateLowOrderUpdate(DeltaTime);
 
-        // Calculate the high order solution update
-        CalculateHighOrderSolutionUpdate(DeltaTime);
+        // // Calculate the high order solution update
+        // CalculateHighOrderSolutionUpdate(DeltaTime);
 
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
-            // mSolution[i] += mLowOrderUpdate[i];
-            mSolution[i] += mHighOrderUpdate[i];
+            mSolution[i] += mLowOrderUpdate[i];
+            // mSolution[i] += mHighOrderUpdate[i];
         });
     }
 
@@ -456,33 +456,21 @@ private:
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                     const auto& r_Ni_DNj = r_ij_edge_data.GetOffDiagonalConvective();
                     const auto& r_DNi_Nj = r_ij_edge_data.GetOffDiagonalConvectiveTranspose();
-
-                    // Calculate fluxes along edges
                     d_ij = 0.5 * (r_Ni_DNj - r_DNi_Nj);
-                    double f_i = 0.0;
-                    double f_j = 0.0;
                     double D_ij = 0.0;
                     for (IndexType d = 0; d < TDim; ++d) {
                         D_ij += std::pow(d_ij[d],2);
-                        f_i -= d_ij[d] * F_i[d];
-                        f_j += d_ij[d] * F_j[d];
                     }
-                    D_ij = std::sqrt(D_ij);
-                    f_i /= D_ij;
-                    f_j /= D_ij;
 
-                    // Calculate numerical flux from the fluxes along edges
-                    // Note that this numerical flux corresponds to a Lax-Wendroff scheme
-                    const double u_ij_half = 0.5*(u_i + u_j);
-                    // const double u_ij_half = 0.5*(u_i + u_j) - 0.5 * DeltaTime * (f_i - f_j) / D_ij;
+                    // Calculate numerical flux "upwind" contribution at de edge midpoint
+                    // Note that this numerical flux corresponds to the Lax-Wendroff scheme
+                    const double u_ij_half = 0.5 * (u_i + u_j) - 0.5 * DeltaTime * inner_prod(-d_ij, F_i - F_j) / D_ij;
                     noalias(vel_ij_half) = 0.5 * (r_i_vel + r_j_vel);
                     for (IndexType d = 0; d < TDim; ++d) {
-                        F_ij_num[d] = vel_ij_half[d] * u_ij_half;
+                        F_ij_num[d] = 2.0 * (vel_ij_half[d] * u_ij_half);
                     }
-                    F_ij_num *= 2.0;
 
                     // Calculate convection volume residual contributions
-                    d_ij = 0.5 * (r_Ni_DNj - r_DNi_Nj);
                     double res_edge_i = inner_prod(-d_ij, F_ij_num);
                     double res_edge_j = inner_prod(d_ij, F_ij_num);
 
@@ -505,7 +493,7 @@ private:
             }
         });
 
-        // Do the explicit lumped mass matrix solve and apply the correction to current solution
+        // Add the diagonal boundary term coming from the convective flux split
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each(array_1d<double,TDim>(), [&](IndexType iNode, array_1d<double,TDim>& rTLS){
             // Get nodal data
             const auto it_node = mpModelPart->NodesBegin() + iNode;
@@ -515,7 +503,7 @@ private:
             rTLS = mpEdgeDataStructure->GetBoundaryMassMatrixDiagonal(i_node_id);
             double aux_res = 0.0;
             const double u_i = mSolution[i_node_id];
-            const auto &r_i_vel = mConvectionValues[i_node_id]; // TODO: Use substep velocity
+            const auto &r_i_vel = mConvectionValues[i_node_id];
             for (IndexType d = 0; d < TDim; ++d) {
                 aux_res += u_i * r_i_vel[d] * rTLS[d];
             }
