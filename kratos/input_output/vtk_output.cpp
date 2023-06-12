@@ -996,6 +996,18 @@ VtkOutput::GeometryType::Pointer VtkOutput::ReorderConnectivity(GeometryType::Po
             r_reordered_points.push_back(pGeometry->pGetPoint(i - 4));
         }
         return p_reorder_geom;
+    } else if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D27) {
+        auto p_reorder_geom = Kratos::make_shared<GeometryType>();
+        constexpr std::array<size_t, 27> permutation{
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 18, 19, 12, 13, 14, 15, 24, 22, 21, 23, 20, 25, 26
+        };
+
+        GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
+        r_reordered_points.reserve(27);
+        for (const auto i: permutation) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i));
+        }
+        return p_reorder_geom;
     } else if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Prism3D15) {
         auto p_reorder_geom = Kratos::make_shared<GeometryType>();
         GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();

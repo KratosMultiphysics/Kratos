@@ -101,6 +101,9 @@ class OptimizationProblem:
     def RemoveControl(self, name: str) -> None:
         self.RemoveComponent(name, Control)
 
+    def AddProcessType(self, process_type: str) -> None:
+        self.__proceses[process_type] = []
+
     def AddProcess(self, process_type: str, process: Kratos.Process) -> None:
         if process_type not in self.__proceses.keys():
             self.__proceses[process_type]: 'list[Kratos.Process]' = []
@@ -117,7 +120,7 @@ class OptimizationProblem:
 
     def GetListOfProcesses(self, process_type: str) -> 'list[Kratos.Process]':
         if process_type not in self.__proceses.keys():
-            raise RuntimeError(f"The process type not found. Followings are available process types:\n\t" + "\n\t".join([k for k in self.__proceses.keys()]))
+            raise RuntimeError(f"The process type = \"{process_type}\" not found. Followings are available process types:\n\t" + "\n\t".join([k for k in self.__proceses.keys()]))
 
         return self.__proceses[process_type]
 
