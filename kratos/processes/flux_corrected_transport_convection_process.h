@@ -386,12 +386,12 @@ private:
         // Calculate the low order solution
         CalculateLowOrderUpdate(DeltaTime);
 
-        // // Calculate the high order solution update
+        // Calculate the high order solution update
         CalculateHighOrderSolutionUpdate(DeltaTime);
 
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
-            mSolution[i] += mLowOrderUpdate[i];
-            // mSolution[i] += mHighOrderUpdate[i];
+            // mSolution[i] += mLowOrderUpdate[i];
+            mSolution[i] += mHighOrderUpdate[i];
         });
     }
 
@@ -626,8 +626,8 @@ private:
                         // Add low order scheme diffusion
                         const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                         const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                        const double res_edge_i = Mc_i_j * (delta_u_h_j - delta_u_h_i);
-                        const double res_edge_j = Mc_i_j * (delta_u_h_i - delta_u_h_j);
+                        const double res_edge_i = Mc_i_j * (delta_u_h_i - delta_u_h_j);
+                        const double res_edge_j = Mc_i_j * (delta_u_h_j - delta_u_h_i);
 
                         // Atomic additions
                         AtomicAdd(residual_high_order[iRow], res_edge_i);
