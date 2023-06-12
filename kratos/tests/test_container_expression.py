@@ -230,13 +230,13 @@ class TestContainerExpression(ABC):
 
     def test_SetData(self):
         a = self._GetContainerExpression()
-        Kratos.Expression.DataExpressionIO.SetData(a, Kratos.Array3([1, 2, 3]))
+        Kratos.Expression.LiteralExpressionIO.SetData(a, Kratos.Array3([1, 2, 3]))
         self._Evaluate(a, Kratos.ACCELERATION)
         for node in a.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([1, 2, 3]), 12)
 
         a = self._GetContainerExpression()
-        Kratos.Expression.DataExpressionIO.SetData(a, 10)
+        Kratos.Expression.LiteralExpressionIO.SetData(a, 10)
         self._Evaluate(a, Kratos.DENSITY)
         for node in a.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), 10)
@@ -247,7 +247,7 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.VELOCITY)
 
         b = a.Clone()
-        Kratos.Expression.DataExpressionIO.SetData(b, Kratos.Array3([10, 11, 12]))
+        Kratos.Expression.LiteralExpressionIO.SetData(b, Kratos.Array3([10, 11, 12]))
 
         self._Evaluate(a, Kratos.ACCELERATION)
         for node in a.GetContainer():
@@ -262,7 +262,7 @@ class TestContainerExpression(ABC):
         self._Read(a, Kratos.PRESSURE)
 
         b = a.Clone()
-        Kratos.Expression.DataExpressionIO.SetData(b, 12)
+        Kratos.Expression.LiteralExpressionIO.SetData(b, 12)
 
         self._Evaluate(a, Kratos.DENSITY)
         for node in a.GetContainer():

@@ -175,7 +175,7 @@ void AddCArrayExpressionIOMethods(pybind11::module& rModule)
 
 
 template<class TContainerType, class TRawDataType>
-void AddDataExpressionIOMethods(pybind11::module& rModule)
+void AddLiteralExpressionIOMethods(pybind11::module& rModule)
 {
     std::string expression_name;
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
@@ -186,10 +186,10 @@ void AddDataExpressionIOMethods(pybind11::module& rModule)
         expression_name = "element_expression";
     }
 
-    rModule.def("SetData", &DataExpressionIO::SetData<TContainerType>,
+    rModule.def("SetData", &LiteralExpressionIO::SetData<TContainerType>,
                     pybind11::arg(expression_name.c_str()),
                     pybind11::arg("value"));
-    rModule.def("SetDataToZero", &DataExpressionIO::SetDataToZero<TContainerType>,
+    rModule.def("SetDataToZero", &LiteralExpressionIO::SetDataToZero<TContainerType>,
                     pybind11::arg(expression_name.c_str()),
                     pybind11::arg("variable"));
 }
@@ -339,18 +339,18 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("target_array").noconvert());
     ;
 
-    auto data_expression_io = rModule.def_submodule("DataExpressionIO");
-    Detail::AddDataExpressionIOMethods<ModelPart::NodesContainerType, int>(data_expression_io);
-    Detail::AddDataExpressionIOMethods<ModelPart::NodesContainerType, double>(data_expression_io);
-    Detail::AddDataExpressionIOMethods<ModelPart::ConditionsContainerType, int>(data_expression_io);
-    Detail::AddDataExpressionIOMethods<ModelPart::ConditionsContainerType, double>(data_expression_io);
-    Detail::AddDataExpressionIOMethods<ModelPart::ElementsContainerType, int>(data_expression_io);
-    Detail::AddDataExpressionIOMethods<ModelPart::ElementsContainerType, double>(data_expression_io);
+    auto data_expression_io = rModule.def_submodule("LiteralExpressionIO");
+    Detail::AddLiteralExpressionIOMethods<ModelPart::NodesContainerType, int>(data_expression_io);
+    Detail::AddLiteralExpressionIOMethods<ModelPart::NodesContainerType, double>(data_expression_io);
+    Detail::AddLiteralExpressionIOMethods<ModelPart::ConditionsContainerType, int>(data_expression_io);
+    Detail::AddLiteralExpressionIOMethods<ModelPart::ConditionsContainerType, double>(data_expression_io);
+    Detail::AddLiteralExpressionIOMethods<ModelPart::ElementsContainerType, int>(data_expression_io);
+    Detail::AddLiteralExpressionIOMethods<ModelPart::ElementsContainerType, double>(data_expression_io);
 
-    pybind11::class_<DataExpressionIO::DataExpressionInput, DataExpressionIO::DataExpressionInput::Pointer, ExpressionInput>(
+    pybind11::class_<LiteralExpressionIO::DataExpressionInput, LiteralExpressionIO::DataExpressionInput::Pointer, ExpressionInput>(
         data_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
-                            const DataExpressionIO::DataType&,
+                            const LiteralExpressionIO::DataType&,
                             const ContainerType&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),

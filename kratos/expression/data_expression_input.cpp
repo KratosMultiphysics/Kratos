@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-DataExpressionIO::DataExpressionInput::DataExpressionInput(
+LiteralExpressionIO::DataExpressionInput::DataExpressionInput(
     const ModelPart& rModelPart,
     const DataType& rValue,
     const ContainerType& rContainerType,
@@ -33,7 +33,7 @@ DataExpressionIO::DataExpressionInput::DataExpressionInput(
       mMeshType(rMeshType)
 {
 }
-Expression::Pointer DataExpressionIO::DataExpressionInput::Execute() const
+Expression::Pointer LiteralExpressionIO::DataExpressionInput::Execute() const
 {
     return std::visit([&](auto& rValue){
         using data_type = std::remove_const_t<std::remove_reference_t<decltype(rValue)>>;
@@ -59,7 +59,7 @@ Expression::Pointer DataExpressionIO::DataExpressionInput::Execute() const
 }
 
 template<class TContainerType, MeshType TMeshType>
-void DataExpressionIO::SetData(
+void LiteralExpressionIO::SetData(
     ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
     const DataType& rValue)
 {
@@ -75,7 +75,7 @@ void DataExpressionIO::SetData(
 }
 
 template<class TContainerType, MeshType TMeshType>
-void DataExpressionIO::SetDataToZero(
+void LiteralExpressionIO::SetDataToZero(
     ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
     const VariableType& rVariable)
 {
@@ -95,8 +95,8 @@ void DataExpressionIO::SetDataToZero(
 // template instantiations
 
 #define KRATOS_INSTANTIATE_DATA_EXPRESSION_IO_METHODS(CONTAINER_TYPE, MESH_TYPE)                                                                                  \
-    template KRATOS_API(KRATOS_CORE) void DataExpressionIO::SetData(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const DataExpressionIO::DataType&);          \
-    template KRATOS_API(KRATOS_CORE) void DataExpressionIO::SetDataToZero(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const DataExpressionIO::VariableType&);
+    template KRATOS_API(KRATOS_CORE) void LiteralExpressionIO::SetData(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const LiteralExpressionIO::DataType&);          \
+    template KRATOS_API(KRATOS_CORE) void LiteralExpressionIO::SetDataToZero(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const LiteralExpressionIO::VariableType&);
 
 #define KRATOS_INSTANTIATE_DATA_EXPRESSION_IO_METHODS_1(MESH_TYPE)                                  \
     KRATOS_INSTANTIATE_DATA_EXPRESSION_IO_METHODS(ModelPart::NodesContainerType, MESH_TYPE)         \

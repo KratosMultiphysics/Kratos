@@ -27,7 +27,7 @@
 namespace Kratos {
 
 
-class KRATOS_API(KRATOS_CORE) DataExpressionIO
+class KRATOS_API(KRATOS_CORE) LiteralExpressionIO
 {
 public:
     ///@name Type definitions
