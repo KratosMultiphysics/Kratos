@@ -103,7 +103,7 @@ public:
     }
 }; // class ExpressionOutputTrampoline
 
-template<class TContainerType>
+template<class TContainerType, class TRawDataType>
 void AddCArrayExpressionIOMethods(pybind11::module& rModule)
 {
     std::string expression_name;
@@ -118,39 +118,52 @@ void AddCArrayExpressionIOMethods(pybind11::module& rModule)
     rModule.def(
         "Read", [](
             ContainerExpression<TContainerType>& rContainerExpression,
-            const pybind11::array_t<double>& rArray,
-            int NumberOfEntities,
-            const std::vector<int>& rShape) {
+            const pybind11::array_t<TRawDataType>& rArray) {
+
+            KRATOS_ERROR_IF(rArray.ndim() == 0) << "Passed data is not compatible.\n";
+
+            // dimension of the numpy array is always one dimension greater than the kratos stored dimension for each
+            // entity. That is because, first dimension of the numpy array shows how many entities are there
+            // in the numpy array to be read in. If the numpy array dimension is [45, 3, 4] then it shows
+            // there are 45 entities each having matrices of shape [3, 4].
+            std::vector<int> shape(rArray.ndim() - 1);
+            std::copy(rArray.shape() + 1, rArray.shape() + rArray.ndim(), shape.begin());
+
             rContainerExpression.SetExpression(
                 CArrayExpressionIO::CArrayExpressionInput(
-                    rArray.data(), NumberOfEntities, rShape.data(), rShape.size())
+                    rArray.data(), rArray.shape()[0], shape.data(), shape.size())
                     .Execute());
+
         },
         pybind11::arg(expression_name.c_str()),
-        pybind11::arg("array").noconvert(),
-        pybind11::arg("number_of_items"),
-        pybind11::arg("shape"));
+        pybind11::arg("array").noconvert());
 
     rModule.def(
         "Move", [](
             ContainerExpression<TContainerType>& rContainerExpression,
-            pybind11::array_t<double>& rArray,
-            int NumberOfEntities,
-            const std::vector<int>& rShape) {
+            pybind11::array_t<TRawDataType>& rArray) {
+
+            KRATOS_ERROR_IF(rArray.ndim() == 0) << "Passed data is not compatible.\n";
+
+            // dimension of the numpy array is always one dimension greater than the kratos stored dimension for each
+            // entity. That is because, first dimension of the numpy array shows how many entities are there
+            // in the numpy array to be read in. If the numpy array dimension is [45, 3, 4] then it shows
+            // there are 45 entities each having matrices of shape [3, 4].
+            std::vector<int> shape(rArray.ndim() - 1);
+            std::copy(rArray.shape() + 1, rArray.shape() + rArray.ndim(), shape.begin());
+
             rContainerExpression.SetExpression(
                 CArrayExpressionIO::CArrayMoveExpressionInput(
-                    rArray.mutable_data(), NumberOfEntities, rShape.data(), rShape.size())
+                    rArray.mutable_data(), rArray.shape()[0], shape.data(), shape.size())
                     .Execute());
         },
         pybind11::arg(expression_name.c_str()),
-        pybind11::arg("array").noconvert(),
-        pybind11::arg("number_of_items"),
-        pybind11::arg("shape"));
+        pybind11::arg("array").noconvert());
 
     rModule.def(
         "Write",
         [](const ContainerExpression<TContainerType>& rContainerExpression,
-           pybind11::array_t<double>& rArray) {
+           pybind11::array_t<TRawDataType>& rArray) {
             CArrayExpressionIO::CArrayExpressionOutput(rArray.mutable_data(),
                                                        rArray.size())
                 .Execute(rContainerExpression.GetExpression());
@@ -256,9 +269,12 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         ;
 
     auto carray_expression_io = rModule.def_submodule("CArrayExpressionIO");
-    Detail::AddCArrayExpressionIOMethods<ModelPart::NodesContainerType>(carray_expression_io);
-    Detail::AddCArrayExpressionIOMethods<ModelPart::ConditionsContainerType>(carray_expression_io);
-    Detail::AddCArrayExpressionIOMethods<ModelPart::ElementsContainerType>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::NodesContainerType, int>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::NodesContainerType, double>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ConditionsContainerType, int>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ConditionsContainerType, double>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ElementsContainerType, int>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ElementsContainerType, double>(carray_expression_io);
 
     pybind11::class_<CArrayExpressionIO::CArrayExpressionInput, CArrayExpressionIO::CArrayExpressionInput::Pointer, ExpressionInput>(
         carray_expression_io, "Input")
