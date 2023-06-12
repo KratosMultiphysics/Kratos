@@ -52,13 +52,12 @@ namespace Kratos {
  *                              They are used to store keep track of the operations carried on the LiteralExpressions.
  *
  * Literal expressions are created on the following cases:
- *      1. When data is set using the SpecializedContainerExpression::Read. Here, a LiteralFlatExpression is created.
- *      2. When data is reset to one value using either ContainerExpression::SetDataToZero or SpecializedContainerExpression::SetData
- *         or SpecializedContainerExpression::SetZero. Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
- *      3. When a SpecializedContainerExpression is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
+ *      1. When data is set using the VariableExpressionIO. Here, a LiteralFlatExpression is created.
+ *      2. When data is reset to one value using either DataExpression::SetDataToZero or Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
+ *      3. When a ContainerExpression is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
  *
  * BinaryExpressions are created on the followin cases:
- *      1. When a SpecializedContainerExpression is operated with "+", "-", "*", "/", "Pow".
+ *      1. When a ContainerExpression is operated with "+", "-", "*", "/", "Pow".
  *
  * ContainerExpression only holds double vector if any nodal, condition or element variable data needs to be stored for future calculations
  * where the variable can be released to store new data. Hence same variable can be used to store different data in the same container.
@@ -97,6 +96,7 @@ public:
     /// Copy constructor
     ContainerExpression(const ContainerExpression& rOther);
 
+    /// Assignment operator
     ContainerExpression& operator=(const ContainerExpression& rOther);
 
     virtual ~ContainerExpression() = default;
@@ -104,6 +104,17 @@ public:
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing data container.
+     *
+     * This clones existing specialized data container. This is light weight operation
+     * since this just clones the expression pointer. No data copying for the underlying
+     * data in expression is done.
+     *
+     * @return ContainerExpression::Pointer
+     */
+    ContainerExpression::Pointer Clone() const;
 
     /**
      * @brief Copies the data from another same type container variable data.
@@ -308,6 +319,13 @@ public:
     IndexType GetItemComponentCount() const;
 
     /**
+     * @brief Get the pointer to underlying model part
+     *
+     * @return ModelPart* const
+     */
+    ModelPart* const pGetModelPart() const;
+
+    /**
      * @brief Get the Model Part used in the container data
      *
      * @return ModelPart&       Model part
@@ -401,6 +419,12 @@ public:
     ContainerExpression& operator/=(const double Value);
 
     ContainerExpression& operator/=(const ContainerExpression& Value);
+
+    ContainerExpression& Power(const double Value);
+
+    ContainerExpression& Power(const ContainerExpression& Value);
+
+    ContainerExpression& Scale(const ContainerExpression& Value);
 
     ///@}
 protected:

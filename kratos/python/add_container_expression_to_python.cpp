@@ -35,18 +35,18 @@ namespace Kratos::Python
 
 void  AddContainerExpressionToPython(pybind11::module& m)
 {
-    auto sub_module = m.def_submodule("ContainerExpression");
+    auto container_exp_sub_module = m.def_submodule("ContainerExpression");
 
-    AddContainerExpressionToPython<ModelPart::NodesContainerType>(sub_module, "NodalExpression");
-    AddContainerExpressionToPython<ModelPart::ConditionsContainerType>(sub_module, "ConditionExpression");
-    AddContainerExpressionToPython<ModelPart::ElementsContainerType>(sub_module, "ElementExpression");
+    AddContainerExpressionToPython<ModelPart::NodesContainerType>(container_exp_sub_module, "NodalExpression");
+    AddContainerExpressionToPython<ModelPart::ConditionsContainerType>(container_exp_sub_module, "ConditionExpression");
+    AddContainerExpressionToPython<ModelPart::ElementsContainerType>(container_exp_sub_module, "ElementExpression");
 
-    AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::Historical>(sub_module, "HistoricalExpression");
-    AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "NodalNonHistoricalExpression");
-    AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "ConditionNonHistoricalExpression");
-    AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "ElementNonHistoricalExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::Historical>(container_exp_sub_module, "HistoricalExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical>(container_exp_sub_module, "NodalNonHistoricalExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(container_exp_sub_module, "ConditionNonHistoricalExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(container_exp_sub_module, "ElementNonHistoricalExpression");
 
-    AddExpressionIOToPython(m);
+    AddExpressionIOToPython(container_exp_sub_module);
 }
 
 } // namespace Kratos::Python

@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Máté Kelemen
+//                   Suneth Warnakulasuriya
 //
 
 #pragma once
@@ -20,6 +21,14 @@ enum MeshType {
     Ghost,
     Interface
 }; // enum MeshType
+
+enum ContainerType
+{
+    NodalHistorical,
+    NodalNonHistorical,
+    ConditionNonHistorical,
+    ElementNonHistorical
+}; // enum ContainerType
 
 
 } // namespace Kratos

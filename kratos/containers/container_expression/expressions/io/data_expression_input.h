@@ -27,11 +27,21 @@
 namespace Kratos {
 
 
-class KRATOS_API(KRATOS_CORE) VariableExpressionIO
+class KRATOS_API(KRATOS_CORE) DataExpressionIO
 {
 public:
     ///@name Type definitions
     ///@{
+
+    using DataType = std::variant<
+                                int,
+                                double,
+                                array_1d<double, 3>,
+                                array_1d<double, 4>,
+                                array_1d<double, 6>,
+                                array_1d<double, 9>,
+                                Vector,
+                                Matrix>;
 
     using VariableType = std::variant<
                                 const Variable<int>*,
@@ -47,25 +57,25 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) VariableExpressionInput : public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) DataExpressionInput : public ExpressionInput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(VariableExpressionInput);
+        KRATOS_CLASS_POINTER_DEFINITION(DataExpressionInput);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        VariableExpressionInput(
+        DataExpressionInput(
             const ModelPart& rModelPart,
-            const VariableType& rVariable,
+            const DataType& rValue,
             const ContainerType& rContainerType,
             const MeshType& rMeshType = MeshType::Local);
 
-        ~VariableExpressionInput() override = default;
+        ~DataExpressionInput() override = default;
 
         ///@}
         ///@name Public operations
@@ -81,51 +91,7 @@ public:
 
         const ModelPart& mrModelPart;
 
-        const VariableType mpVariable;
-
-        const ContainerType mContainerType;
-
-        const MeshType mMeshType;
-
-        ///@}
-
-    };
-
-    class KRATOS_API(KRATOS_CORE) VariableExpressionOutput : public ExpressionOutput
-    {
-    public:
-        ///@name Type definitions
-        ///@{
-
-        KRATOS_CLASS_POINTER_DEFINITION(VariableExpressionOutput);
-
-        ///@}
-        ///@name Life cycle
-        ///@{
-
-        VariableExpressionOutput(
-            ModelPart& rModelPart,
-            const VariableType& rVariable,
-            const ContainerType& rContainerType,
-            MeshType rMeshType = MeshType::Local);
-
-        ~VariableExpressionOutput() override = default;
-
-        ///@}
-        ///@name Public operations
-        ///@{
-
-        void Execute(const Expression& rExpression) override;
-
-        ///@}
-
-    private:
-        ///@name Private member variables
-        ///@{
-
-        ModelPart& mrModelPart;
-
-        const VariableType mpVariable;
+        const DataType mValue;
 
         const ContainerType mContainerType;
 
@@ -139,31 +105,18 @@ public:
     ///@name Public static operations
     ///@{
 
-    template<MeshType TMeshType>
-    KRATOS_API(KRATOS_CORE) static void Read(
-        ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
-        const VariableType& rVariable,
-        const bool IsHistorical);
-
-    template<class TContainerType, MeshType TMeshType>
-    KRATOS_API(KRATOS_CORE) static void Read(
+    template<class TContainerType, MeshType TMeshType = MeshType::Local>
+    static void SetData(
         ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
-        const VariableType& rVariable);
+        const DataType& rValue);
 
-    template<MeshType TMeshType>
-    KRATOS_API(KRATOS_CORE) static void Write(
-        const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
-        const VariableType& rVariable,
-        const bool IsHistorical);
-
-    template<class TContainerType, MeshType TMeshType>
-    KRATOS_API(KRATOS_CORE) static void Write(
-        const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+    template<class TContainerType, MeshType TMeshType = MeshType::Local>
+    static void SetDataToZero(
+        ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable);
 
     ///@}
 
 }; // class ExpressionIO
-
 
 } // namespace Kratos

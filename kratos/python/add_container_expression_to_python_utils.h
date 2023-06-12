@@ -20,6 +20,7 @@
 // Project includes
 #include "containers/container_expression/container_expression.h"
 #include "containers/container_expression/specialized_container_expression.h"
+#include "containers/container_expression/expressions/io/c_array_expression_io.h"
 
 namespace Kratos::Python
 {
@@ -147,6 +148,14 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
                 const std::vector<typename container_expression_holder_base::Pointer>& rOthers)
                 {return rSelf.Comb(rOthers);},
              py::arg("others"))
+        .def("Evaluate", [](const container_expression_holder_base& rSelf){
+            const auto& r_shape = rSelf.GetItemShape();
+            auto array = AllocateNumpyArray<double>(rSelf.GetContainer().size(), r_shape);
+            CArrayExpressionIO::Write(rSelf, array.mutable_data(), array.size());
+            return array;
+        })
+        .def("Clone", &container_expression_holder_base::Clone)
+        .def("Scale", [](const container_expression_holder_base& rSelf, const container_expression_holder_base& rOther){auto copy = rSelf; copy.SetExpression(Scale(rSelf.pGetExpression(), rOther.pGetExpression())); return copy;})
         .def("__add__", [](const container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { return rSelf + rOther; })
         .def("__iadd__", [](container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { rSelf = rSelf + rOther; return rSelf; })
         .def("__add__", [](const container_expression_holder_base& rSelf, const double Value) { return rSelf + Value; })
@@ -186,15 +195,7 @@ void AddSpecializedContainerExpressionToPython(pybind11::module& m, const std::s
         .def("Evaluate", [](const container_type& rSelf){
             const auto& r_shape = rSelf.GetItemShape();
             auto array = AllocateNumpyArray<double>(rSelf.GetContainer().size(), r_shape);
-
-            std::vector<int> shape(r_shape.size());
-            std::transform(r_shape.begin(), r_shape.end(), shape.begin(), [](const IndexType Value) -> int { return Value; });
-
-            rSelf.Evaluate(array.mutable_data(),
-                           rSelf.GetContainer().size(),
-                           shape.data(),
-                           shape.size());
-
+            CArrayExpressionIO::Write(rSelf, array.mutable_data(), array.size());
             return array;
         })
         .def("Evaluate", &container_type::template Evaluate<int>, py::arg("scalar_int_variable"))

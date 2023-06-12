@@ -27,49 +27,52 @@ template<class TContainerType, MeshType TMeshType>
 class ContainerExpression;
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator+(ContainerExpression<TContainerType, TMeshType> Left, const double Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator+(const ContainerExpression<TContainerType, TMeshType>& rLeft, const double Right);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator+(const double Left, ContainerExpression<TContainerType, TMeshType> Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator+(const double Left, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator+(ContainerExpression<TContainerType, TMeshType> Left, ContainerExpression<TContainerType, TMeshType> Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator+(const ContainerExpression<TContainerType, TMeshType>& rLeft, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator-(ContainerExpression<TContainerType, TMeshType> Left, const double Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator-(const ContainerExpression<TContainerType, TMeshType>& rLeft, const double Right);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator-(const double Left, ContainerExpression<TContainerType, TMeshType> Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator-(const double Left, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator-(ContainerExpression<TContainerType, TMeshType> Left, ContainerExpression<TContainerType, TMeshType> Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator-(const ContainerExpression<TContainerType, TMeshType>& rLeft, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator*(ContainerExpression<TContainerType, TMeshType> Left, const double Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator*(const ContainerExpression<TContainerType, TMeshType>& rLeft, const double Right);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator*(const double Left, ContainerExpression<TContainerType, TMeshType> Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator*(const double Left, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator*(ContainerExpression<TContainerType, TMeshType> Left, ContainerExpression<TContainerType, TMeshType> Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator*(const ContainerExpression<TContainerType, TMeshType>& rLeft, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator/(ContainerExpression<TContainerType, TMeshType> Left, const double Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator/(const ContainerExpression<TContainerType, TMeshType>& rLeft, const double Right);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator/(const double Left, ContainerExpression<TContainerType, TMeshType> Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator/(const double Left, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator/(ContainerExpression<TContainerType, TMeshType> Left, ContainerExpression<TContainerType, TMeshType> Right);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> operator/(const ContainerExpression<TContainerType, TMeshType>& rLeft, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 template<class TContainerType, MeshType TMeshType>
 KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> Power(const double Base, const ContainerExpression<TContainerType, TMeshType>& rExponent);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> Power(ContainerExpression<TContainerType, TMeshType> Base, const double Exponent);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> Power(const ContainerExpression<TContainerType, TMeshType>& rBase, const double Exponent);
 
 template<class TContainerType, MeshType TMeshType>
-KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> Power(ContainerExpression<TContainerType, TMeshType> Base, ContainerExpression<TContainerType, TMeshType> Exponent);
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> Power(const ContainerExpression<TContainerType, TMeshType>& rBase, const ContainerExpression<TContainerType, TMeshType>& Exponent);
+
+template<class TContainerType, MeshType TMeshType>
+KRATOS_API(KRATOS_CORE) ContainerExpression<TContainerType, TMeshType> Scale(const ContainerExpression<TContainerType, TMeshType>& rLeft, const ContainerExpression<TContainerType, TMeshType>& rRight);
 
 /// @}
 

@@ -22,8 +22,8 @@
 #include "containers/container_expression/expressions/expression.h"
 #include "containers/container_expression/expressions/io/expression_io.h"
 #include "containers/container_expression/expressions/io/variable_expression_io.h"
-#include "containers/container_expression/expressions/io/c_array_copy_expression_io.h"
-#include "containers/container_expression/expressions/io/c_array_move_expression_input.h"
+#include "containers/container_expression/expressions/io/c_array_expression_io.h"
+#include "containers/container_expression/expressions/io/data_expression_input.h"
 #include "containers/container_expression/expressions/literal/literal_expression.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
 #include "containers/container_expression/expressions/arithmetic_operators.h"
@@ -104,6 +104,95 @@ public:
     }
 }; // class ExpressionOutputTrampoline
 
+template<class TContainerType, class TRawDataType>
+void AddCArrayExpressionIOMethods(pybind11::module& rModule)
+{
+    std::string expression_name;
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        expression_name = "nodal_expression";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        expression_name = "condition_expression";
+    } else {
+        expression_name = "element_expression";
+    }
+
+    rModule.def(
+        "Read", [](
+            ContainerExpression<TContainerType>& rContainerExpression,
+            const pybind11::array_t<TRawDataType>& rArray) {
+
+            KRATOS_ERROR_IF(rArray.ndim() == 0) << "Passed data is not compatible.\n";
+
+            // dimension of the numpy array is always one dimension greater than the kratos stored dimension for each
+            // entity. That is because, first dimension of the numpy array shows how many entities are there
+            // in the numpy array to be read in. If the numpy array dimension is [45, 3, 4] then it shows
+            // there are 45 entities each having matrices of shape [3, 4].
+            std::vector<int> shape(rArray.ndim() - 1);
+            std::copy(rArray.shape() + 1, rArray.shape() + rArray.ndim(), shape.begin());
+
+            rContainerExpression.SetExpression(
+                CArrayExpressionIO::CArrayExpressionInput(
+                    rArray.data(), rArray.shape()[0], shape.data(), shape.size())
+                    .Execute());
+
+        },
+        pybind11::arg(expression_name.c_str()),
+        pybind11::arg("array").noconvert());
+
+    rModule.def(
+        "Move", [](
+            ContainerExpression<TContainerType>& rContainerExpression,
+            pybind11::array_t<TRawDataType>& rArray) {
+
+            KRATOS_ERROR_IF(rArray.ndim() == 0) << "Passed data is not compatible.\n";
+
+            // dimension of the numpy array is always one dimension greater than the kratos stored dimension for each
+            // entity. That is because, first dimension of the numpy array shows how many entities are there
+            // in the numpy array to be read in. If the numpy array dimension is [45, 3, 4] then it shows
+            // there are 45 entities each having matrices of shape [3, 4].
+            std::vector<int> shape(rArray.ndim() - 1);
+            std::copy(rArray.shape() + 1, rArray.shape() + rArray.ndim(), shape.begin());
+
+            rContainerExpression.SetExpression(
+                CArrayExpressionIO::CArrayMoveExpressionInput(
+                    rArray.mutable_data(), rArray.shape()[0], shape.data(), shape.size())
+                    .Execute());
+        },
+        pybind11::arg(expression_name.c_str()),
+        pybind11::arg("array").noconvert());
+
+    rModule.def(
+        "Write",
+        [](const ContainerExpression<TContainerType>& rContainerExpression,
+           pybind11::array_t<TRawDataType>& rArray) {
+            CArrayExpressionIO::CArrayExpressionOutput(rArray.mutable_data(),
+                                                       rArray.size())
+                .Execute(rContainerExpression.GetExpression());
+        },
+        pybind11::arg(expression_name.c_str()),
+        pybind11::arg("target_array").noconvert());
+}
+
+
+template<class TContainerType, class TRawDataType>
+void AddDataExpressionIOMethods(pybind11::module& rModule)
+{
+    std::string expression_name;
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        expression_name = "nodal_expression";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        expression_name = "condition_expression";
+    } else {
+        expression_name = "element_expression";
+    }
+
+    rModule.def("SetData", &DataExpressionIO::SetData<TContainerType>,
+                    pybind11::arg(expression_name.c_str()),
+                    pybind11::arg("value"));
+    rModule.def("SetDataToZero", &DataExpressionIO::SetDataToZero<TContainerType>,
+                    pybind11::arg(expression_name.c_str()),
+                    pybind11::arg("variable"));
+}
 
 } // namespace Detail
 
@@ -155,6 +244,12 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         ;
 
     auto variable_expression_io = rModule.def_submodule("VariableExpressionIO");
+    variable_expression_io.def("Read", &VariableExpressionIO::Read<MeshType::Local>, pybind11::arg("nodal_container_expression"), pybind11::arg("variable"), pybind11::arg("is_historical"));
+    variable_expression_io.def("Read", &VariableExpressionIO::Read<ModelPart::ConditionsContainerType, MeshType::Local>, pybind11::arg("condition_container_expression"), pybind11::arg("variable"));
+    variable_expression_io.def("Read", &VariableExpressionIO::Read<ModelPart::ElementsContainerType, MeshType::Local>, pybind11::arg("element_container_expression"), pybind11::arg("variable"));
+    variable_expression_io.def("Write", &VariableExpressionIO::Write<MeshType::Local>, pybind11::arg("nodal_container_expression"), pybind11::arg("variable"), pybind11::arg("is_historical"));
+    variable_expression_io.def("Write", &VariableExpressionIO::Write<ModelPart::ConditionsContainerType, MeshType::Local>, pybind11::arg("condition_container_expression"), pybind11::arg("variable"));
+    variable_expression_io.def("Write", &VariableExpressionIO::Write<ModelPart::ElementsContainerType, MeshType::Local>, pybind11::arg("element_container_expression"), pybind11::arg("variable"));
 
     pybind11::class_<ExpressionInput, Detail::ExpressionInputTrampoline, ExpressionInput::Pointer>(variable_expression_io, "ExpressionInput")
         .def("Execute", &ExpressionInput::Execute)
@@ -164,11 +259,11 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .def("Execute", &ExpressionOutput::Execute)
         ;
 
-    pybind11::enum_<VariableExpressionIO::ContainerType>(variable_expression_io, "ContainerType")
-        .value("NodalHistorical", VariableExpressionIO::NodalHistorical)
-        .value("NodalNonHistorical", VariableExpressionIO::NodalNonHistorical)
-        .value("ElementNonHistorical", VariableExpressionIO::ElementNonHistorical)
-        .value("ConditionNonHistorical", VariableExpressionIO::ConditionNonHistorical)
+    pybind11::enum_<ContainerType>(variable_expression_io, "ContainerType")
+        .value("NodalHistorical", ContainerType::NodalHistorical)
+        .value("NodalNonHistorical", ContainerType::NodalNonHistorical)
+        .value("ElementNonHistorical", ContainerType::ElementNonHistorical)
+        .value("ConditionNonHistorical", ContainerType::ConditionNonHistorical)
         ;
 
     pybind11::enum_<MeshType>(variable_expression_io, "MeshType")
@@ -180,44 +275,66 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     pybind11::class_<VariableExpressionIO::VariableExpressionInput, VariableExpressionIO::VariableExpressionInput::Pointer, ExpressionInput>(variable_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const VariableExpressionIO::VariableType&,
-                            const VariableExpressionIO::ContainerType&,
-                            const MeshType&>(),
+                            const ContainerType&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"),
-             pybind11::arg("mesh_type") = MeshType::Local)
+             pybind11::arg("container_type"))
         ;
 
     pybind11::class_<VariableExpressionIO::VariableExpressionOutput, VariableExpressionIO::VariableExpressionOutput::Pointer, ExpressionOutput>(variable_expression_io, "Output")
         .def(pybind11::init<ModelPart&,
                             const VariableExpressionIO::VariableType&,
-                            const VariableExpressionIO::ContainerType&,
-                            const MeshType&>(),
+                            const ContainerType&>(),
              pybind11::arg("model_part"),
              pybind11::arg("variable"),
-             pybind11::arg("container_type"),
-             pybind11::arg("mesh_type") = MeshType::Local)
+             pybind11::arg("container_type"))
         ;
 
-    pybind11::class_<CArrayExpressionInput, CArrayExpressionInput::Pointer, ExpressionInput>(rModule, "CArrayExpressionInput")
+    auto carray_expression_io = rModule.def_submodule("CArrayExpressionIO");
+    Detail::AddCArrayExpressionIOMethods<ModelPart::NodesContainerType, int>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::NodesContainerType, double>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ConditionsContainerType, int>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ConditionsContainerType, double>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ElementsContainerType, int>(carray_expression_io);
+    Detail::AddCArrayExpressionIOMethods<ModelPart::ElementsContainerType, double>(carray_expression_io);
+
+    pybind11::class_<CArrayExpressionIO::CArrayExpressionInput, CArrayExpressionIO::CArrayExpressionInput::Pointer, ExpressionInput>(
+        carray_expression_io, "Input")
         .def(pybind11::init([](const pybind11::array_t<double>& rArray,
                                int NumberOfEntities,
-                               const std::vector<int>& rShape){
-                                return CArrayExpressionInput(rArray.data(),
-                                                             NumberOfEntities,
-                                                             rShape.data(),
-                                                             rShape.size());
-                            }),
+                               const std::vector<int>& rShape) {
+                 return CArrayExpressionIO::CArrayExpressionInput(
+                     rArray.data(), NumberOfEntities, rShape.data(), rShape.size());
+             }),
              pybind11::arg("array").noconvert(),
              pybind11::arg("number_of_items"),
-             pybind11::arg("shape"))
-        ;
+             pybind11::arg("shape"));
 
-    pybind11::class_<CArrayExpressionOutput, CArrayExpressionOutput::Pointer, ExpressionOutput>(rModule, "CArrayExpressionOutput")
+    pybind11::class_<CArrayExpressionIO::CArrayExpressionOutput, CArrayExpressionIO::CArrayExpressionOutput::Pointer, ExpressionOutput>(
+        carray_expression_io, "Output")
         .def(pybind11::init([](pybind11::array_t<double>& rArray) {
-                                return CArrayExpressionOutput(rArray.mutable_data(), rArray.size());
-                               }),
+                 return CArrayExpressionIO::CArrayExpressionOutput(
+                     rArray.mutable_data(), rArray.size());
+             }),
              pybind11::arg("target_array").noconvert());
+    ;
+
+    auto data_expression_io = rModule.def_submodule("DataExpressionIO");
+    Detail::AddDataExpressionIOMethods<ModelPart::NodesContainerType, int>(data_expression_io);
+    Detail::AddDataExpressionIOMethods<ModelPart::NodesContainerType, double>(data_expression_io);
+    Detail::AddDataExpressionIOMethods<ModelPart::ConditionsContainerType, int>(data_expression_io);
+    Detail::AddDataExpressionIOMethods<ModelPart::ConditionsContainerType, double>(data_expression_io);
+    Detail::AddDataExpressionIOMethods<ModelPart::ElementsContainerType, int>(data_expression_io);
+    Detail::AddDataExpressionIOMethods<ModelPart::ElementsContainerType, double>(data_expression_io);
+
+    pybind11::class_<DataExpressionIO::DataExpressionInput, DataExpressionIO::DataExpressionInput::Pointer, ExpressionInput>(
+        data_expression_io, "Input")
+        .def(pybind11::init<const ModelPart&,
+                            const DataExpressionIO::DataType&,
+                            const ContainerType&>(),
+             pybind11::arg("model_part"),
+             pybind11::arg("variable"),
+             pybind11::arg("container_type"))
         ;
 }
 
