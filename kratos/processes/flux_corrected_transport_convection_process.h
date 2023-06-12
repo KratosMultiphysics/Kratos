@@ -386,8 +386,8 @@ private:
         // Calculate the low order solution
         CalculateLowOrderUpdate(DeltaTime);
 
-        // // Calculate the high order solution update
-        // CalculateHighOrderSolutionUpdate(DeltaTime);
+        // Calculate the high order solution update
+        CalculateHighOrderSolutionUpdate(DeltaTime);
 
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
             mSolution[i] += mLowOrderUpdate[i];
