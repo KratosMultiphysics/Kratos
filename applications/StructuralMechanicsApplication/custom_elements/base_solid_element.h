@@ -274,7 +274,17 @@ public:
         return mThisIntegrationMethod;
     }
 
-    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const
+    /**
+    * element can be integrated using the GP provided by the geometry or custom ones
+    * by default, the base element will use the standard integration provided by the geom
+    * @return bool to select if use/not use GPs given by the geometry
+    */
+    bool virtual UseGeometryIntegrationMethod() const
+    {
+        return true;
+    }
+
+    const virtual GeometryType::IntegrationPointsArrayType  IntegrationPoints() const 
     {
         return GetGeometry().IntegrationPoints();
     }
@@ -618,14 +628,14 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
+    
     /**
      * @brief This method provides the specifications/requirements of the element
      * @details This can be used to enhance solvers and analysis
      * @return specifications The required specifications/requirements
      */
     const Parameters GetSpecifications() const override;
-
+    
     /// Turn back information as a string.
     std::string Info() const override
     {
