@@ -16,10 +16,10 @@
 #include <numeric>
 
 // Project includes
-#include "containers/container_expression/variable_expression_data_io.h"
-#include "containers/container_expression/container_data_io.h"
-#include "containers/container_expression/container_expression.h"
-#include "containers/container_expression/specialized_container_expression.h"
+#include "expression/variable_expression_data_io.h"
+#include "expression/container_data_io.h"
+#include "expression/container_expression.h"
+#include "expression/specialized_container_expression.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/atomic_utilities.h"
