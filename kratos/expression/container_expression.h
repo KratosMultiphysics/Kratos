@@ -323,7 +323,7 @@ public:
      *
      * @return ModelPart* const
      */
-    ModelPart* const pGetModelPart() const;
+    ModelPart* pGetModelPart() const;
 
     /**
      * @brief Get the Model Part used in the container data

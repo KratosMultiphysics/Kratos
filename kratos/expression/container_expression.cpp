@@ -312,7 +312,7 @@ std::size_t ContainerExpression<TContainerType, TMeshType>::GetItemComponentCoun
 }
 
 template <class TContainerType, MeshType TMeshType>
-ModelPart* const ContainerExpression<TContainerType, TMeshType>::pGetModelPart() const
+ModelPart* ContainerExpression<TContainerType, TMeshType>::pGetModelPart() const
 {
     return this->mpModelPart;
 }
