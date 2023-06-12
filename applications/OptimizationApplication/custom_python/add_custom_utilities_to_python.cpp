@@ -27,6 +27,7 @@
 #include "custom_utilities/container_properties_data_io.h"
 #include "custom_utilities/collective_expressions.h"
 #include "custom_utilities/container_expression_utils.h"
+#include "custom_utilities/properties_variable_expression_io.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -247,6 +248,32 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("MapNodalVariableToContainerVariable", &ContainerExpressionUtils::MapNodalVariableToContainerVariable<ModelPart::ElementsContainerType>, py::arg("output_container_expression"), py::arg("input_nodal_container_expression_to_map"))
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
+        ;
+
+    auto properties_variable_expression_io = sub_module.def_submodule("PropertiesVariableExpressionIO");
+    properties_variable_expression_io.def("Read", &PropertiesVariableExpressionIO::Read<ModelPart::ConditionsContainerType>, py::arg("condition_container_expression"), py::arg("variable"));
+    properties_variable_expression_io.def("Read", &PropertiesVariableExpressionIO::Read<ModelPart::ElementsContainerType>, py::arg("element_container_expression"), py::arg("variable"));
+    properties_variable_expression_io.def("Check", &PropertiesVariableExpressionIO::Check<ModelPart::ConditionsContainerType>, py::arg("condition_container_expression"), py::arg("variable"));
+    properties_variable_expression_io.def("Check", &PropertiesVariableExpressionIO::Check<ModelPart::ElementsContainerType>, py::arg("element_container_expression"), py::arg("variable"));
+    properties_variable_expression_io.def("Write", &PropertiesVariableExpressionIO::Write<ModelPart::ConditionsContainerType>, py::arg("condition_container_expression"), py::arg("variable"));
+    properties_variable_expression_io.def("Write", &PropertiesVariableExpressionIO::Write<ModelPart::ElementsContainerType>, py::arg("element_container_expression"), py::arg("variable"));
+
+    py::class_<PropertiesVariableExpressionIO::PropertiesVariableExpressionInput, PropertiesVariableExpressionIO::PropertiesVariableExpressionInput::Pointer, ExpressionInput>(properties_variable_expression_io, "Input")
+        .def(py::init<const ModelPart&,
+                      const PropertiesVariableExpressionIO::VariableType&,
+                      const ContainerType&>(),
+             py::arg("model_part"),
+             py::arg("variable"),
+             py::arg("container_type"))
+        ;
+
+    py::class_<PropertiesVariableExpressionIO::PropertiesVariableExpressionOutput, PropertiesVariableExpressionIO::PropertiesVariableExpressionOutput::Pointer, ExpressionOutput>(properties_variable_expression_io, "Output")
+        .def(py::init<ModelPart&,
+                      const PropertiesVariableExpressionIO::VariableType&,
+                      const ContainerType&>(),
+             py::arg("model_part"),
+             py::arg("variable"),
+             py::arg("container_type"))
         ;
 }
 
