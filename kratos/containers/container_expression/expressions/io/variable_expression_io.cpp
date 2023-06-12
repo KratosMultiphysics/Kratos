@@ -14,7 +14,8 @@
 #include <type_traits>
 
 // Project includes
-#include "variable_expression_io_utils.h"
+#include "containers/container_expression/container_data_io.h"
+#include "expression_io_utils.h"
 
 // Include base h
 #include "variable_expression_io.h"
@@ -35,23 +36,23 @@ VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
 
 Expression::Pointer VariableExpressionIO::VariableExpressionInput::Execute() const
 {
-    const auto& r_mesh = GetMesh(mrModelPart.GetCommunicator(), mMeshType);
+    const auto& r_mesh = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType);
 
     switch (mContainerType) {
         case ContainerType::NodalHistorical: {
-                return VariableExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>, const VariableType>(r_mesh.Nodes(), mpVariable);
+                return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>, const VariableType>(r_mesh.Nodes(), mpVariable);
                 break;
             }
         case ContainerType::NodalNonHistorical: {
-                return VariableExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Nodes(), mpVariable);
+                return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Nodes(), mpVariable);
                 break;
             }
         case ContainerType::ConditionNonHistorical: {
-                return VariableExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Conditions(), mpVariable);
+                return ExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Conditions(), mpVariable);
                 break;
             }
         case ContainerType::ElementNonHistorical: {
-                return VariableExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), mpVariable);
+                return ExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), mpVariable);
                 break;
             }
         default: {
@@ -79,20 +80,20 @@ void VariableExpressionIO::VariableExpressionOutput::Execute(const Expression& r
 {
     KRATOS_TRY
     auto& r_communicator = mrModelPart.GetCommunicator();
-    auto& r_mesh = GetMesh(r_communicator, mMeshType);
+    auto& r_mesh = ExpressionIOUtils::GetMesh(r_communicator, mMeshType);
 
     switch (mContainerType) {
         case ContainerType::NodalHistorical:
-            VariableExpressionIOUtils::WriteFromExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>, const VariableType>(r_mesh.Nodes(), r_communicator, rExpression, mpVariable);
+            ExpressionIOUtils::WriteFromExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>, const VariableType>(r_mesh.Nodes(), r_communicator, rExpression, mpVariable);
             break;
         case ContainerType::NodalNonHistorical:
-            VariableExpressionIOUtils::WriteFromExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Nodes(), r_communicator, rExpression, mpVariable);
+            ExpressionIOUtils::WriteFromExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Nodes(), r_communicator, rExpression, mpVariable);
             break;
         case ContainerType::ConditionNonHistorical:
-            VariableExpressionIOUtils::WriteFromExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Conditions(), r_communicator, rExpression, mpVariable);
+            ExpressionIOUtils::WriteFromExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Conditions(), r_communicator, rExpression, mpVariable);
             break;
         case ContainerType::ElementNonHistorical:
-            VariableExpressionIOUtils::WriteFromExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), r_communicator, rExpression, mpVariable);
+            ExpressionIOUtils::WriteFromExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), r_communicator, rExpression, mpVariable);
             break;
     }
     KRATOS_CATCH("");
@@ -170,54 +171,6 @@ void VariableExpressionIO::Write(
                                  : ContainerType::ElementNonHistorical,
                              TMeshType)
         .Execute(rContainerExpression.GetExpression());
-}
-
-ModelPart::MeshType& VariableExpressionIO::GetMesh(
-    Communicator& rCommunicator,
-    MeshType  rMeshType)
-{
-    switch (rMeshType) {
-        case MeshType::Local: {
-                return rCommunicator.LocalMesh();
-                break;
-            }
-        case MeshType::Interface: {
-                return rCommunicator.InterfaceMesh();
-                break;
-            }
-        case MeshType::Ghost: {
-                return rCommunicator.GhostMesh();
-                break;
-            }
-        default: {
-            KRATOS_ERROR << "Invalid mesh type";
-            break;
-        }
-    }
-}
-
-const ModelPart::MeshType& VariableExpressionIO::GetMesh(
-    const Communicator& rCommunicator,
-    MeshType  rMeshType)
-{
-    switch (rMeshType) {
-        case MeshType::Local: {
-                return rCommunicator.LocalMesh();
-                break;
-            }
-        case MeshType::Interface: {
-                return rCommunicator.InterfaceMesh();
-                break;
-            }
-        case MeshType::Ghost: {
-                return rCommunicator.GhostMesh();
-                break;
-            }
-        default: {
-            KRATOS_ERROR << "Invalid mesh type";
-            break;
-        }
-    }
 }
 
 #define KRATOS_INSTANTIATE_NODAL_CONTAINER_IO_METHODS(MESH_TYPE)                                                                                                \

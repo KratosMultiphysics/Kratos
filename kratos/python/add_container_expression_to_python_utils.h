@@ -154,6 +154,8 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
             CArrayExpressionIO::Write(rSelf, array.mutable_data(), array.size());
             return array;
         })
+        .def("Clone", &container_expression_holder_base::Clone)
+        .def("Scale", [](const container_expression_holder_base& rSelf, const container_expression_holder_base& rOther){auto copy = rSelf; copy.SetExpression(Scale(rSelf.pGetExpression(), rOther.pGetExpression())); return copy;})
         .def("__add__", [](const container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { return rSelf + rOther; })
         .def("__iadd__", [](container_expression_holder_base& rSelf, const container_expression_holder_base& rOther) { rSelf = rSelf + rOther; return rSelf; })
         .def("__add__", [](const container_expression_holder_base& rSelf, const double Value) { return rSelf + Value; })

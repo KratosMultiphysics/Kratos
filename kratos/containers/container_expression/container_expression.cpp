@@ -183,6 +183,12 @@ ContainerExpression<TContainer,TMesh>& ContainerExpression<TContainer,TMesh>::op
 }
 
 template <class TContainerType, MeshType TMeshType>
+typename ContainerExpression<TContainerType, TMeshType>::Pointer ContainerExpression<TContainerType, TMeshType>::Clone() const
+{
+    return Kratos::make_shared<ContainerExpression<TContainerType, TMeshType>>(*this);
+}
+
+template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::CopyFrom(
     const ContainerExpression<TContainerType, TMeshType>& rOther)
 {

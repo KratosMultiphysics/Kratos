@@ -107,6 +107,17 @@ public:
     ///@{
 
     /**
+     * @brief Clones the existing data container.
+     *
+     * This clones existing specialized data container. This is light weight operation
+     * since this just clones the expression pointer. No data copying for the underlying
+     * data in expression is done.
+     *
+     * @return ContainerExpression::Pointer
+     */
+    ContainerExpression::Pointer Clone() const;
+
+    /**
      * @brief Copies the data from another same type container variable data.
      *
      * This method is used to copy data from another variable data. The model

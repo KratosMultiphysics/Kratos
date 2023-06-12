@@ -16,15 +16,18 @@
 #include <variant>
 
 // Project includes
+#include "includes/communicator.h"
+#include "includes/mesh.h"
 #include "containers/container_expression/container_data_io.h"
 #include "containers/container_expression/variable_expression_data_io.h"
 #include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "containers/container_expression/traits.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos {
 
-class VariableExpressionIOUtils
+class ExpressionIOUtils
 {
 public:
     ///@name Public static operations
@@ -128,6 +131,54 @@ public:
         }
 
         KRATOS_CATCH("");
+    }
+
+    static ModelPart::MeshType& GetMesh(
+        Communicator& rCommunicator,
+        MeshType  rMeshType)
+    {
+        switch (rMeshType) {
+            case MeshType::Local: {
+                    return rCommunicator.LocalMesh();
+                    break;
+                }
+            case MeshType::Interface: {
+                    return rCommunicator.InterfaceMesh();
+                    break;
+                }
+            case MeshType::Ghost: {
+                    return rCommunicator.GhostMesh();
+                    break;
+                }
+            default: {
+                KRATOS_ERROR << "Invalid mesh type";
+                break;
+            }
+        }
+    }
+
+    static const ModelPart::MeshType& GetMesh(
+        const Communicator& rCommunicator,
+        MeshType  rMeshType)
+    {
+        switch (rMeshType) {
+            case MeshType::Local: {
+                    return rCommunicator.LocalMesh();
+                    break;
+                }
+            case MeshType::Interface: {
+                    return rCommunicator.InterfaceMesh();
+                    break;
+                }
+            case MeshType::Ghost: {
+                    return rCommunicator.GhostMesh();
+                    break;
+                }
+            default: {
+                KRATOS_ERROR << "Invalid mesh type";
+                break;
+            }
+        }
     }
 
     ///@}
