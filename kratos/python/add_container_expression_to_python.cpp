@@ -35,7 +35,7 @@ namespace Kratos::Python
 
 void  AddContainerExpressionToPython(pybind11::module& m)
 {
-    auto container_exp_sub_module = m.def_submodule("ContainerExpression");
+    auto container_exp_sub_module = m.def_submodule("Expression");
 
     AddContainerExpressionToPython<ModelPart::NodesContainerType>(container_exp_sub_module, "NodalExpression");
     AddContainerExpressionToPython<ModelPart::ConditionsContainerType>(container_exp_sub_module, "ConditionExpression");
