@@ -18,7 +18,7 @@
 
 // Project includes
 #include "python/add_container_expression_to_python_utils.h"
-#include "containers/container_expression/specialized_container_expression.h"
+#include "expression/specialized_container_expression.h"
 
 // Application includes
 #include "custom_utilities/geometrical/symmetry_utility.h"

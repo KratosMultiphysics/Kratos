@@ -14,7 +14,7 @@
 #pragma once
 
 // Project includes
-#include "containers/container_expression/traits.h"
+#include "expression/traits.h"
 #include "includes/define.h"
 
 namespace Kratos {

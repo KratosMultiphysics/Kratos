@@ -14,9 +14,9 @@
 #pragma once
 
 // Project includes
-#include "containers/container_expression/expressions/expression.h"
-#include "containers/container_expression/expressions/unary/unary_reshape_expression.h"
-#include "containers/container_expression/expressions/unary/unary_combine_expression.h"
+#include "expression/expression.h"
+#include "expression/unary_reshape_expression.h"
+#include "expression/unary_combine_expression.h"
 #include "includes/define.h"
 
 

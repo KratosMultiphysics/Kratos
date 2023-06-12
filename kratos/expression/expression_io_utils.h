@@ -18,10 +18,10 @@
 // Project includes
 #include "includes/communicator.h"
 #include "includes/mesh.h"
-#include "containers/container_expression/container_data_io.h"
-#include "containers/container_expression/variable_expression_data_io.h"
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
-#include "containers/container_expression/traits.h"
+#include "expression/container_data_io.h"
+#include "expression/variable_expression_data_io.h"
+#include "expression/literal_flat_expression.h"
+#include "expression/traits.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 

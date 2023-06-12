@@ -18,9 +18,9 @@
 #include <pybind11/numpy.h>
 
 // Project includes
-#include "containers/container_expression/container_expression.h"
-#include "containers/container_expression/specialized_container_expression.h"
-#include "containers/container_expression/expressions/io/c_array_expression_io.h"
+#include "expression/container_expression.h"
+#include "expression/specialized_container_expression.h"
+#include "expression/c_array_expression_io.h"
 
 namespace Kratos::Python
 {

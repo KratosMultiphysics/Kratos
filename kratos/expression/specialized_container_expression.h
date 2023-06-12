@@ -18,8 +18,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "containers/container_expression/container_expression.h"
-#include "containers/container_expression/expressions/view_operators.h"
+#include "expression/container_expression.h"
+#include "expression/view_operators.h"
 
 namespace Kratos {
 

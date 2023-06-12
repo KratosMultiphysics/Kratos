@@ -19,13 +19,13 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
-#include "containers/container_expression/container_data_io.h"
-#include "containers/container_expression/variable_expression_data_io.h"
-#include "containers/container_expression/expressions/literal/literal_expression.h"
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
-#include "containers/container_expression/expressions/arithmetic_operators.h"
-#include "containers/container_expression/expressions/view_operators.h"
-#include "containers/container_expression/expressions/io/variable_expression_io.h"
+#include "expression/container_data_io.h"
+#include "expression/variable_expression_data_io.h"
+#include "expression/literal_expression.h"
+#include "expression/literal_flat_expression.h"
+#include "expression/arithmetic_operators.h"
+#include "expression/view_operators.h"
+#include "expression/variable_expression_io.h"
 
 namespace Kratos {
 
