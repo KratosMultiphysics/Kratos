@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 import scipy.sparse.linalg as ssl
 import numpy as np
+import plotly.express as px
 
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
@@ -104,12 +105,15 @@ class AlgorithmSystemIdentification(Algorithm):
             if search_direction == None:
                 search_direction = np.zeros(shape=(len(elements)))
 
+            scaling = 30000000000.0
+
+            gradient_vector *= scaling
+
             gauss_newton_likelihood = gradient_vector * self.GetCurrentObjValue()
             gauss_newton_gradient = gradient_vector@gradient_vector.T
 
-            scaling = 1  # 30000000000.0
-            gauss_newton_likelihood *= scaling**2
-            gauss_newton_gradient *= scaling
+            # fig = px.line(gradient_vector)
+            # fig.show()
 
             search_direction += ssl.lsmr(
                 gauss_newton_gradient,
@@ -159,8 +163,8 @@ class AlgorithmSystemIdentification(Algorithm):
                     search_direction = self.ComputeSearchDirection(obj_grad)
                     self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
 
-                    alpha = self.__line_search_method.ComputeStep()
-                    # alpha = 0.1
+                    # alpha = self.__line_search_method.ComputeStep()
+                    alpha = 0.1
 
                     update = search_direction * alpha
                     self.__control_field += update

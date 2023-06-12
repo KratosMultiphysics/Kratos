@@ -109,9 +109,9 @@ namespace Kratos
         const ArrayVariableType &r_traced_dof = KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
 
         rAdjointElement.GetDofList(dofs_of_element, rProcessInfo);
-        for (auto const &node_id : it_map->second)
+        for (auto const &node_id : it_map->second) // iterate over the node ids of all nodes that are part of the element
         {
-            for (IndexType i = 0; i < dofs_of_element.size(); ++i)
+            for (IndexType i = 0; i < dofs_of_element.size(); ++i) // iterate over all available dof in the element
             {
 
                 if (dofs_of_element[i]->Id() == node_id &&

@@ -113,11 +113,7 @@
       "help": "",
       "process_name": "JsonOutputProcess",
       "Parameters": {
-        "output_variables": [
-          "YOUNG_MODULUS",
-          "ADJOINT_DISPLACEMENT",
-          "SHAPE_SENSITIVITY"
-        ],
+        "output_variables": ["YOUNG_MODULUS"],
         "output_file_name": "linear_shell_test_nodal_disp_results.json",
         "model_part_name": "Structure",
         "time_frequency": -2.0

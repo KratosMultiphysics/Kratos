@@ -62,7 +62,7 @@
       },
       "conv_settings": {
         "type": "max_iter",
-        "max_iter": 40
+        "max_iter": 1
       }
     },
     "controls": ["system_identification_control"],
