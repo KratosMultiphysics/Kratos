@@ -34,8 +34,8 @@
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
-#include "containers/container_expression/expressions/view_operators.h"
-#include "containers/container_expression/expressions/io/c_array_copy_expression_io.h"
+#include "expression/view_operators.h"
+#include "expression/c_array_expression_io.h"
 
 namespace Kratos
 {
@@ -544,7 +544,7 @@ private:
                 Expression::ConstPointer p_slice = Slice(pOriginExpression, i_component, 1);
 
                 // Evaluate the sliced expression to the target array
-                CArrayExpressionOutput(p_begin, expression_size / source_stride).Execute(*p_slice);
+                CArrayExpressionIO::Output(p_begin, expression_size / source_stride).Execute(*p_slice);
 
                 // Perform the transform and assign the output
                 this->ApplyTransform();
