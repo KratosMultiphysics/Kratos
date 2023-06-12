@@ -692,9 +692,11 @@ namespace Kratos::Testing {
 
       Point point1(0.25, 0.25, 0.25);
       KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
 
       Point point2(1.5, 0.0, 0.0);
       KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
   }
 
 }  // namespace Kratos::Python.
