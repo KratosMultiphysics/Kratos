@@ -613,7 +613,7 @@ public:
      */
     double MaxEdgeLength() const override {
         const auto edges = GenerateEdges();
-        double max_edge_length = -std::numeric_limits<double>::max();
+        double max_edge_length = 0.0;
         for (const auto& r_edge: edges) {
             max_edge_length = std::max(max_edge_length, r_edge.Length());
         }
