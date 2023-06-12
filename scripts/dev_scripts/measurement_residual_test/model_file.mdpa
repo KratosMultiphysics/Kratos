@@ -357,12 +357,7 @@ Begin Elements	ShellThinElement3D3N
 End Elements
 
 Begin Conditions	PointLoadCondition3D1N
-	1	0	48
-	2	0	51
-	3	0	55
-	4	0	84
-	5	0	86
-	6	0	91
+	1	0	69
 End Conditions
 
 Begin SubModelPart	point_load_positions_model_part
@@ -371,22 +366,12 @@ Begin SubModelPart	point_load_positions_model_part
 	Begin SubModelPartTables
 	End SubModelPartTables
 	Begin SubModelPartNodes
-		48
-		51
-		55
-		84
-		86
-		91
+		69
 	End SubModelPartNodes
 	Begin SubModelPartElements
 	End SubModelPartElements
 	Begin SubModelPartConditions
 		1
-		2
-		3
-		4
-		5
-		6
 	End SubModelPartConditions
 End SubModelPart
 

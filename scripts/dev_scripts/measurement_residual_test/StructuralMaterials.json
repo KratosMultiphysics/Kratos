@@ -8,9 +8,9 @@
           "name": "LinearElasticPlaneStress2DLaw"
         },
         "Variables": {
-          "THICKNESS": 4,
-          "DENSITY": 7850.0,
-          "YOUNG_MODULUS": 1.0,
+          "THICKNESS": 1.0,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 30000000000.0,
           "POISSON_RATIO": 0.2
         },
         "Tables": {}

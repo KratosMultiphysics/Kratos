@@ -2,7 +2,7 @@
   "problem_data": {
     "problem_name": "calculate_sensitivities_for_system_identification",
     "start_time": 0.0,
-    "end_time": 1.1,
+    "end_time": 1.0,
     "parallel_type": "OpenMP",
     "echo_level": 0
   },
@@ -12,7 +12,7 @@
     "model_part_name": "Structure",
     "domain_size": 3,
     "time_stepping": {
-      "time_step": 1.1
+      "time_step": 1.0
     },
     "compute_reactions": false,
     "move_mesh_flag": false,

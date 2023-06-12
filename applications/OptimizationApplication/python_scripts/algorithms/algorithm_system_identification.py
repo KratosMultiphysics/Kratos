@@ -107,11 +107,17 @@ class AlgorithmSystemIdentification(Algorithm):
             gauss_newton_likelihood = gradient_vector * self.GetCurrentObjValue()
             gauss_newton_gradient = gradient_vector@gradient_vector.T
 
+            scaling = 1  # 30000000000.0
+            gauss_newton_likelihood *= scaling**2
+            gauss_newton_gradient *= scaling
+
             search_direction += ssl.lsmr(
                 gauss_newton_gradient,
                 gauss_newton_likelihood,
                 damp=0.0,
             )[0]
+
+            search_direction *= scaling
 
             container_expression.Read(search_direction)
 
@@ -140,11 +146,11 @@ class AlgorithmSystemIdentification(Algorithm):
                     CallOnAll(self._optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Execute)
 
                     self.algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
-                    self.algorithm_data.GetBufferedData()["rel_obj[%]"] = self.__objective.GetRelativeChange() * 100
+                    self.algorithm_data.GetBufferedData()["obj_rel_change[%]"] = self.__objective.GetRelativeChange() * 100
                     initial_value = self.__objective.GetInitialValue()
                     if initial_value:
-                        self.algorithm_data.GetBufferedData()["abs_obj[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
-                    print(self.__objective.GetInfo())
+                        self.algorithm_data.GetBufferedData()["obj_abs_change[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
+                    # print(self.__objective.GetInfo())
 
                 with TimeLogger("Calculate gradient", "Start", "End"):
                     obj_grad = self.__objective.CalculateStandardizedGradient()
@@ -154,6 +160,7 @@ class AlgorithmSystemIdentification(Algorithm):
                     self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
 
                     alpha = self.__line_search_method.ComputeStep()
+                    # alpha = 0.1
 
                     update = search_direction * alpha
                     self.__control_field += update

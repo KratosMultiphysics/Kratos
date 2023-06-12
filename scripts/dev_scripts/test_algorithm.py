@@ -1,8 +1,5 @@
-import csv
 import os
-
-import pandas as pd
-import plotly.express as px
+from glob import glob
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -119,6 +116,11 @@ with open("optimization_parameters.json", "r") as file_input:
 model = Kratos.Model()
 analysis = OptimizationAnalysis(model, parameters)
 analysis.Run()
+
+# remove primal analysis files
+for file in glob('./Structure*.h5'):
+    os.remove(file)
+
 
 # print(analysis._OptimizationAnalysis__algorithm)
 
