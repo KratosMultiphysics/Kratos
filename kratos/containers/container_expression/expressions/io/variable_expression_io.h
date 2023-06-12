@@ -140,24 +140,24 @@ public:
     ///@{
 
     template<MeshType TMeshType>
-    static void Read(
+    KRATOS_API(KRATOS_CORE) static void Read(
         ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable,
         const bool IsHistorical);
 
     template<class TContainerType, MeshType TMeshType>
-    static void Read(
+    KRATOS_API(KRATOS_CORE) static void Read(
         ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable);
 
     template<MeshType TMeshType>
-    static void Write(
+    KRATOS_API(KRATOS_CORE) static void Write(
         const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable,
         const bool IsHistorical);
 
     template<class TContainerType, MeshType TMeshType>
-    static void Write(
+    KRATOS_API(KRATOS_CORE) static void Write(
         const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable);
 
