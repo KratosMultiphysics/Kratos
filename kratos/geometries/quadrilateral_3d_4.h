@@ -28,6 +28,7 @@
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -1126,20 +1127,11 @@ public:
         const CoordinatesArrayType& rPointGlobalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
-    {        
-        // Generate triangles
-        Triangle3D3<PointType> triangle_0 (this->pGetPoint( 0 ),
-                                           this->pGetPoint( 1 ),
-                                           this->pGetPoint( 2 )
-        );
-        Triangle3D3<PointType> triangle_1 (this->pGetPoint( 2 ),
-                                           this->pGetPoint( 3 ),
-                                           this->pGetPoint( 0 )
-        );
-
+    {
         // Calculate distances
-        const double distance_1 = triangle_0.CalculateDistance(rPointGlobalCoordinates, Tolerance);
-        const double distance_2 = triangle_1.CalculateDistance(rPointGlobalCoordinates, Tolerance);
+        const Point point(rPointGlobalCoordinates);
+        const double distance_1 = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), point);
+        const double distance_2 = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(3), this->GetPoint(0), point);
         return std::min(distance_1, distance_2);
     }
 
