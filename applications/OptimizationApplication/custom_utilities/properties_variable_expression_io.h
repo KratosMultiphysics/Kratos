@@ -17,9 +17,9 @@
 
 // Project includes
 #include "containers/array_1d.h"
-#include "containers/container_expression/container_expression.h"
-#include "containers/container_expression/expressions/io/expression_io.h"
-#include "containers/container_expression/traits.h"
+#include "expression/container_expression.h"
+#include "expression/expression_io.h"
+#include "expression/traits.h"
 #include "containers/variable.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
