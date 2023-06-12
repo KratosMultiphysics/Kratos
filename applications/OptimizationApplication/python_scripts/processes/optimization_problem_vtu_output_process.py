@@ -11,10 +11,12 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetComponentHavingDataByFullName
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
+
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Any:
     if not parameters.Has("settings"):
         raise RuntimeError(f"OptimizationProblemVtuOutputProcess instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
     return OptimizationProblemVtuOutputProcess(parameters["settings"], optimization_problem)
+
 
 class ExpressionVtuOutput:
     def __init__(self, output_file_name_prefix: str, model_part: Kratos.ModelPart, is_initial_configuration: bool, writer_format: Kratos.VtuOutput.WriterFormat, precision: int, optimization_problem: OptimizationProblem):
@@ -50,7 +52,8 @@ class ExpressionVtuOutput:
             for container_expression_path in self.list_of_container_expression_paths:
                 container_expression = data_container[container_expression_path]
                 if not isinstance(container_expression, ContainerExpressionTypes):
-                    raise RuntimeError(f"No container expression exists at \"{container_expression_path}\". The data container is not consistent between steps [ current data = {container_expression} ].")
+                    raise RuntimeError(
+                        f"No container expression exists at \"{container_expression_path}\". The data container is not consistent between steps [ current data = {container_expression} ].")
 
                 self.vtu_output.AddContainerExpression(self._GetContainerExpressionName(container_expression_path), container_expression)
 
@@ -58,13 +61,15 @@ class ExpressionVtuOutput:
             for collective_expression_path, index in self.list_of_collective_expression_paths:
                 collective_expression = data_container[collective_expression_path]
                 if not isinstance(collective_expression, KratosOA.ContainerExpression.CollectiveExpressions):
-                    raise RuntimeError(f"No collective expression exists at \"{collective_expression_path}\". The data container is not consistent between steps [ current data = {collective_expression} ].")
+                    raise RuntimeError(
+                        f"No collective expression exists at \"{collective_expression_path}\". The data container is not consistent between steps [ current data = {collective_expression} ].")
 
                 self.vtu_output.AddContainerExpression(self._GetContainerExpressionName(container_expression_path), collective_expression.GetContainerExpressions()[index])
 
             self.vtu_output.PrintOutput(self.output_file_name_prefix + "_".join(self.list_of_component_names))
 
     def _CheckIfExists(self, data_path: str) -> None:
+
         container_expression_name = ExpressionVtuOutput._GetContainerExpressionName(data_path)
 
         if container_expression_name in [ExpressionVtuOutput._GetContainerExpressionName(c_path) for c_path in self.list_of_container_expression_paths]:
@@ -75,7 +80,12 @@ class ExpressionVtuOutput:
 
     @staticmethod
     def _GetContainerExpressionName(container_expression_path: str) -> str:
+
+        # Was added to handle self.list_of_collective_expression_paths and self.list_of_container_expression_paths list elements directly
+        if isinstance(container_expression_path, list):
+            container_expression_path = container_expression_path[0]
         return container_expression_path[container_expression_path.rfind("/")+1:]
+
 
 class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
     def GetDefaultParameters(self):
@@ -134,13 +144,13 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
     def InitializeVtuOutputIO(self) -> None:
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
         for global_k, global_v in global_values_map.items():
-             # first check whether this is part of requested list of components
+            # first check whether this is part of requested list of components
             found_valid_component = False
             for component in self.list_of_components:
                 component_data = ComponentDataView(component, self.optimization_problem)
                 if global_k.startswith(component_data.GetDataPath()):
-                     found_valid_component = True
-                     break
+                    found_valid_component = True
+                    break
 
             # if a valid component is found, add the expression
             if found_valid_component:
@@ -164,7 +174,8 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
                 break
 
         if not found_vtu_output:
-            expression_vtu_output = ExpressionVtuOutput(self.output_name_prefix, model_part, not self.write_deformed_configuration, self.writer_format, self.output_precision, self.optimization_problem)
+            expression_vtu_output = ExpressionVtuOutput(self.output_name_prefix, model_part, not self.write_deformed_configuration,
+                                                        self.writer_format, self.output_precision, self.optimization_problem)
             if index == -1:
                 expression_vtu_output.AddContainerExpressionPath(component_data.GetComponentName(), data_path)
             else:
