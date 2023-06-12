@@ -25,6 +25,7 @@
 #include "geometries/quadrilateral_3d_4.h"
 #include "utilities/integration_utilities.h"
 #include "integration/prism_gauss_legendre_integration_points.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -742,20 +743,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
-        CoordinatesArrayType aux_coordinates;
-        if (this->IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
-            return 0.0;
-        }
-
-        // Generate triangles
-        std::array<double, 5> distances;
-        unsigned int i = 0;
-        for (auto& r_face : this->GenerateFaces()) {
-            distances[i] = r_face.CalculateDistance(rPointGlobalCoordinates, Tolerance);
-            ++i;
-        }
-        const auto min = std::min_element(distances.begin(), distances.end());
-        return *min;
+        return GeometryUtils::CalculateDistanceFrom3DGeometry(*this, rPointGlobalCoordinates, Tolerance);
     }
 
     ///@}

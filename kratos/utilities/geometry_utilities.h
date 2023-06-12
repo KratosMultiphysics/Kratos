@@ -42,11 +42,8 @@ public:
     /// The index type definition
     using IndexType = std::size_t;
 
-    /// Definition of the node
-    using NodeType = Node;
-
     /// Definition of the geometry
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType = Geometry<Node>;
 
     ///@}
     ///@name Operations
@@ -651,6 +648,38 @@ public:
         GeometryType::CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         );
+
+    /**
+    * @brief Computes the distance between an point in global coordinates and the closest point of this geometry.
+    * @param rGeometry the geometry to compute the distance to.
+    * @param rPointGlobalCoordinates the point to which the closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    template <class TGeometryType>
+    static double CalculateDistanceFrom3DGeometry(
+        const TGeometryType& rGeometry,
+        const typename TGeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        typename TGeometryType::CoordinatesArrayType aux_coordinates;
+        if (rGeometry.IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
+            return 0.0;
+        }
+
+        // Generate faces
+        std::vector<double> distances(rGeometry.FacesNumber());
+        unsigned int i = 0;
+        for (auto& r_face : rGeometry.GenerateFaces()) {
+            distances[i] = r_face.CalculateDistance(rPointGlobalCoordinates, Tolerance);
+            ++i;
+        }
+        const auto min = std::min_element(distances.begin(), distances.end());
+        return *min;
+    }
 };
 
 }  // namespace Kratos.
