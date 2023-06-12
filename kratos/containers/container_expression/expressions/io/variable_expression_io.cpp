@@ -144,11 +144,11 @@ void VariableExpressionIO::Read(
 
 template<MeshType TMeshType>
 void VariableExpressionIO::Write(
-    ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
+    const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
     const VariableType& rVariable,
     const bool IsHistorical)
 {
-    VariableExpressionOutput(rContainerExpression.GetModelPart(), rVariable,
+    VariableExpressionOutput(*rContainerExpression.pGetModelPart(), rVariable,
                              IsHistorical ? ContainerType::NodalHistorical
                                           : ContainerType::NodalNonHistorical,
                              TMeshType)
@@ -157,14 +157,14 @@ void VariableExpressionIO::Write(
 
 template<class TContainerType, MeshType TMeshType>
 void VariableExpressionIO::Write(
-    ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+    const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
     const VariableType& rVariable)
 {
     static_assert(!std::is_same_v<TContainerType, ModelPart::NodesContainerType>,
                   "NodesContainerType expressions should have the IsHistorical "
                   "stated.\n");
 
-    VariableExpressionOutput(rContainerExpression.GetModelPart(), rVariable,
+    VariableExpressionOutput(*rContainerExpression.pGetModelPart(), rVariable,
                              std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>
                                  ? ContainerType::ConditionNonHistorical
                                  : ContainerType::ElementNonHistorical,
@@ -222,11 +222,11 @@ const ModelPart::MeshType& VariableExpressionIO::GetMesh(
 
 #define KRATOS_INSTANTIATE_NODAL_CONTAINER_IO_METHODS(MESH_TYPE)                                                                                                \
     template void VariableExpressionIO::Read(ContainerExpression<ModelPart::NodesContainerType, MESH_TYPE>&, const VariableExpressionIO::VariableType&, const bool); \
-    template void VariableExpressionIO::Write(ContainerExpression<ModelPart::NodesContainerType, MESH_TYPE>&, const VariableExpressionIO::VariableType&, const bool);\
+    template void VariableExpressionIO::Write(const ContainerExpression<ModelPart::NodesContainerType, MESH_TYPE>&, const VariableExpressionIO::VariableType&, const bool);\
 
 #define KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MESH_TYPE)                                                    \
     template void VariableExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const VariableExpressionIO::VariableType&); \
-    template void VariableExpressionIO::Write(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const VariableExpressionIO::VariableType&);\
+    template void VariableExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const VariableExpressionIO::VariableType&);\
 
 #define KRATOS_INSTANTIATE_CONTAINER_VARIABLE_EXPRESSION_IO(MESH_TYPE)                              \
     KRATOS_INSTANTIATE_NODAL_CONTAINER_IO_METHODS(MESH_TYPE)                                        \

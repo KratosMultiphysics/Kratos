@@ -164,13 +164,13 @@ public:
 
     template<MeshType TMeshType>
     static void Write(
-        ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
+        const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable,
         const bool IsHistorical);
 
     template<class TContainerType, MeshType TMeshType>
     static void Write(
-        ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
+        const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable);
 
     static ModelPart::MeshType& GetMesh(
