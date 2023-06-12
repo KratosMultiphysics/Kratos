@@ -125,7 +125,7 @@ class Commander(object):
                         file=sys.stderr)
                     sys.stderr.flush()
 
-    def RunCppTests(self, applications):
+    def RunCppTests(self, applications, verbosity):
         ''' Calls the cpp tests directly
         '''
 
@@ -135,8 +135,15 @@ class Commander(object):
         for application in applications:
             import_module("KratosMultiphysics." + application)
 
+        if verbosity == 0:
+            cpp_tests_verbosity = KM.Tester.Verbosity.QUITE
+        elif verbosity == 1:
+            cpp_tests_verbosity = KM.Tester.Verbosity.PROGRESS
+        else:
+            cpp_tests_verbosity = KM.Tester.Verbosity.TESTS_OUTPUTS
+
         try:
-            KM.Tester.SetVerbosity(KM.Tester.Verbosity.PROGRESS)
+            KM.Tester.SetVerbosity(cpp_tests_verbosity)
             self.exitCode = KM.Tester.RunAllTestCases()
         except Exception as e:
             print('[Warning]:', e, file=sys.stderr)
@@ -162,8 +169,8 @@ def print_summary(exit_codes):
 def main():
     # Define the command
     cmd = testing_utils.GetPython3Command()
-    
-    # List of application 
+
+    # List of application
     applications = kratos_utils.GetListOfAvailableApplications()
 
     # Keep the worst exit code
@@ -252,7 +259,7 @@ def main():
     # Run the cpp tests (does the same as run_cpp_tests.py)
     print_test_header("cpp")
     with KratosUnittest.SupressConsoleOutput():
-        commander.RunCppTests(applications)
+        commander.RunCppTests(applications, args.verbosity)
     print_test_footer("cpp", commander.exitCode)
     exit_codes["cpp"] = commander.exitCode
 
