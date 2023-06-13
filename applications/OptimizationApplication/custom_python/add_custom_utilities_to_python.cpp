@@ -84,8 +84,6 @@ void CollectiveExpressionFromPythonArray(
                 p_list_of_shapes, p_list_of_shape_dimensions, rListOfShapes.size());
     }
 
-
-
     // delete allocated memories
     delete[] p_list_of_shapes;
     delete[] p_list_of_shape_dimensions;
