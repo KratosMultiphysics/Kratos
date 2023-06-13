@@ -18,7 +18,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "containers/container_expression/container_expression.h"
+#include "expression/container_expression.h"
+#include "expression/view_operators.h"
 
 namespace Kratos {
 
@@ -51,8 +52,8 @@ namespace Kratos {
  * @tparam TContainerDataIO         Container entity input/output type.
  * @tparam TMeshType                Mesh type, should be Local, Ghost or Interface.
  */
-template <class TContainerType, class TContainerDataIO, class TMeshType = MeshType::Local>
-class SpecializedContainerExpression : public ContainerExpression<TContainerType, TMeshType> {
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType = MeshType::Local>
+class  SpecializedContainerExpression : public ContainerExpression<TContainerType, TMeshType> {
 public:
     ///@name Type definitions
     ///@{
@@ -243,7 +244,12 @@ public:
     template<class TIteratorType>
     SpecializedContainerExpression Reshape(
         TIteratorType Begin,
-        TIteratorType End) const;
+        TIteratorType End) const
+    {
+        SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
+        result.mpExpression = Kratos::Reshape(*this->mpExpression, Begin, End);
+        return result;
+    }
 
     /**
      * @brief Returns container expression which combines current and all the other container expressions provided.
@@ -295,7 +301,17 @@ public:
     template<class TIteratorType>
     SpecializedContainerExpression Comb(
         TIteratorType Begin,
-        TIteratorType End) const;
+        TIteratorType End) const
+    {
+        SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType> result(*(this->mpModelPart));
+        std::vector<Expression::ConstPointer> expressions;
+        expressions.push_back(this->pGetExpression());
+        for (auto itr = Begin; itr != End; ++itr) {
+            expressions.push_back((*itr)->pGetExpression());
+        }
+        result.mpExpression = Kratos::Comb(expressions.begin(), expressions.end());
+        return result;
+    }
 
     SpecializedContainerExpression operator+(const SpecializedContainerExpression& rOther) const;
 
@@ -329,9 +345,9 @@ public:
 
     SpecializedContainerExpression& operator/=(const double Value);
 
-    SpecializedContainerExpression Pow(const SpecializedContainerExpression& rOther) const;
+    SpecializedContainerExpression Power(const SpecializedContainerExpression& rOther) const;
 
-    SpecializedContainerExpression Pow(const double Value) const;
+    SpecializedContainerExpression Power(const double Value) const;
 
     ///@}
     ///@name Input and output
@@ -344,7 +360,7 @@ public:
 
 ///@}
 /// output stream function
-template <class TContainerType, class TContainerDataIO, class TMeshType>
+template <class TContainerType, class TContainerDataIO, MeshType TMeshType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
     const SpecializedContainerExpression<TContainerType, TContainerDataIO, TMeshType>& rThis)

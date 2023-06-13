@@ -17,7 +17,7 @@
 #include <vector>
 
 // Project includes
-#include "containers/container_expression/expressions/expression.h"
+#include "expression/expression.h"
 
 namespace Kratos {
 
@@ -130,7 +130,7 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const std::vector<Expression::Pointer> mSourceExpressions;
+    const std::vector<Expression::ConstPointer> mSourceExpressions;
 
     std::vector<IndexType> mStrides;
 
