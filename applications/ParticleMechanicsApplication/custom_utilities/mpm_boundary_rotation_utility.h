@@ -264,7 +264,7 @@ public:
 	{
         // creates an empty dummy matrix to pass into the 'full' ConditionApplySlipCondition -- this dummy matrix is
         // ignored, effectively only updating the RHS
-        TLocalMatrixType dummyMatrix = TLocalMatrixType();
+        TLocalMatrixType dummyMatrix;
         this->ConditionApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
