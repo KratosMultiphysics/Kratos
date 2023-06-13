@@ -86,6 +86,11 @@ public:
             return mLij;
         }
 
+        double GetAntidiffusiveEdgeContribution() const
+        {
+            return mAEC;
+        }
+
         const array_1d<double,TDim>& GetOffDiagonalConvective() const
         {
             return mNiDNj;
@@ -104,6 +109,11 @@ public:
         void SetLength(const double Length)
         {
             mLength = Length;
+        }
+
+        void SetAntidiffusiveEdgeContribution(const double AntidiffusiveEedgeContribution)
+        {
+            mAEC = AntidiffusiveEedgeContribution;
         }
 
         void AddOffDiagonalValues(
@@ -147,9 +157,10 @@ public:
         double mLength = 0.0; // l_{ij}
         double mMij = 0.0; // N_{i}*N_{j}
         double mLij = 0.0; // grad(N_{i})^{T}*grad(N_{j})
+        double mAEC = 0.0; // f_{ij} (raw Antidiffusive Edge Contribution, AEC)
         array_1d<double, TDim> mNiDNj = ZeroVector(TDim); // N_{i}*grad(N_{j})
         array_1d<double, TDim> mDNiNj = ZeroVector(TDim); // grad(N_{i})*N_{j}
-        array_1d<double, TDim> mNiNjNormal = ZeroVector(TDim); // NiNjn (or NiNin as N value is always 0.5)
+        array_1d<double, TDim> mNiNjNormal = ZeroVector(TDim); // NiNjn
     };
 
     /// Index type definition
@@ -276,6 +287,14 @@ public:
     const EdgeDataVectorType& GetEdgeData() const
     {
         return mEdgeData;
+    }
+
+    EdgeData& GetEdgeData(
+        IndexType I,
+        IndexType J)
+    {
+        const IndexType ij_col_vect_index = GetColumVectorIndex(I,J);
+        return *(mEdgeData[ij_col_vect_index]);
     }
 
     const EdgeData& GetEdgeData(

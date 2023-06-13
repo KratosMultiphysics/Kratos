@@ -132,7 +132,6 @@ public:
         mLowOrderUpdate.resize(mAuxSize);
         mHighOrderUpdate.resize(mAuxSize);
         mConvectionValues.resize(mAuxSize);
-        mAntidiffusiveContributions.resize(mAuxSize);
     }
 
     void Execute() override
@@ -210,7 +209,6 @@ public:
         mLowOrderUpdate.clear();
         mHighOrderUpdate.clear();
         mConvectionValues.clear();
-        mAntidiffusiveContributions.clear();
         mpEdgeDataStructure->Clear();
     }
 
@@ -295,8 +293,6 @@ private:
     std::vector<double> mLowOrderUpdate; /// Auxiliary vector containing the low order solution update
 
     std::vector<double> mHighOrderUpdate; /// Auxiliary vector containing the high order solution update
-
-    std::vector<double> mAntidiffusiveContributions; /// Auxiliary vector containing the antidiffusive contributions
 
     std::vector<array_1d<double,3>> mConvectionValues; /// Auxiliary vector to store the convection variable values (e.g. VELOCITY)
 
@@ -392,14 +388,17 @@ private:
         // Calculate the high order solution update
         CalculateHighOrderSolutionUpdate(DeltaTime);
 
-        // Calculate the raw antidiffusive contribution and low order update
+        // Calculate the antidiffusive edge contributions
+        CalculateAntidiffusiveEdgeContributions();
+
+        // Add the low order update
+        // TODO: Check that this needs to be done for the limiter or not
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
             mSolution[i] = mSolutionOld[i] + mLowOrderUpdate[i];
-            mAntidiffusiveContributions[i] = mHighOrderUpdate[i] - mLowOrderUpdate[i];
         });
 
         // Evaluate limiter
-        EvaluateLimiter();
+        EvaluateLimiter(DeltaTime);
 
         // Do the current step solution update
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
@@ -623,7 +622,7 @@ private:
                         IndexType j_node_id = *(i_col_begin + j_node);
                         const double delta_u_h_j = mHighOrderUpdate[j_node_id];
 
-                        // Add low order scheme diffusion
+                        // Add previous iteration correction
                         const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                         const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
                         const double res_edge_i = Mc_i_j * (delta_u_h_i - delta_u_h_j);
@@ -647,75 +646,207 @@ private:
                 const double solve_coeff = DeltaTime / M_l;
                 mHighOrderUpdate[i_node_id] += solve_coeff * mResidual[i_node_id];
             });
-
         }
     }
 
-    void EvaluateLimiter()
+    void CalculateAntidiffusiveEdgeContributions()
+    {
+        // Get edge data structure containers
+        const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
+        const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
+        SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
+
+        // Add the diffusion to the Taylor-Galerkin already computed residual
+        IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
+            // Get current row (node) storage data
+            const auto it_row = r_row_indices.begin() + iRow;
+            const IndexType i_col_index = *it_row;
+            const SizeType n_cols = *(it_row+1) - i_col_index;
+
+            // Check that there are CSR columns (i.e. that current node involves an edge)
+            if (n_cols != 0) {
+                // i-node nodal data
+                const double u_i = mSolutionOld[iRow];
+                const double u_h_i = mHighOrderUpdate[iRow];
+                const auto& r_i_vel = mConvectionValues[iRow];
+
+                // j-node nodal loop (i.e. loop ij-edges)
+                const auto i_col_begin = r_col_indices.begin() + i_col_index;
+                for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
+                    // j-node nodal data
+                    IndexType j_node_id = *(i_col_begin + j_node);
+                    const double u_j = mSolutionOld[j_node_id];
+                    const double u_h_j = mHighOrderUpdate[j_node_id];
+                    const auto& r_j_vel = mConvectionValues[j_node_id];
+
+                    // Calculate and store the antidiffusive flux edge contribution
+                    auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
+                    const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
+                    const double c_tau = 1.0 / local_dt;
+                    const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
+                    const double AEC_ij = Mc_i_j * (c_tau * (u_i - u_j) + (u_h_i - u_h_j));
+                    r_ij_edge_data.SetAntidiffusiveEdgeContribution(AEC_ij);
+                }
+            }
+        });
+    }
+
+    void EvaluateLimiter(const double DeltaTime)
     {
         // Allocate and initialize auxiliary limiter arrays
-        const double min_init = std::numeric_limits<double>::max();
-        const double max_init = std::numeric_limits<double>::lowest();
-        std::vector<double> P_min(mAuxSize, min_init);
-        std::vector<double> P_max(mAuxSize, max_init);
-        std::vector<double> Q_min(mAuxSize);
-        std::vector<double> Q_max(mAuxSize);
+        std::vector<double> P_min(mAuxSize, 0.0);
+        std::vector<double> P_max(mAuxSize, 0.0);
+        std::vector<double> Q_min(mAuxSize, 0.0);
+        std::vector<double> Q_max(mAuxSize, 0.0);
+        std::vector<double> u_min(mAuxSize, std::numeric_limits<double>::max());
+        std::vector<double> u_max(mAuxSize, std::numeric_limits<double>::lowest());
 
-        // Calculate minimum and maximum allowable values
-        CalculateAllowedIncrements(Q_min, Q_max);
-    }
+        // Get edge data structure containers
+        const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
+        const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
+        SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
 
-    void CalculateAllowedIncrements(
-        std::vector<double>& rMinIncrementVector,
-        std::vector<double>& rMaxIncrementVector)
-    {
-        // Calculate maximum and minimum allowed values
-        std::vector<double> u_min_vect(mAuxSize);
-        std::vector<double> u_max_vect(mAuxSize);
-        block_for_each(mpModelPart->Nodes(), [&](Node &rNode) {
-            // Initialize values for current node (i)
-            double u_min = std::numeric_limits<double>::max();
-            double u_max = std::numeric_limits<double>::lowest();
+        // Calculate the summation of antidiffusive fluxes and bound fluxes
+        IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
+            // Get current row (node) storage data
+            const auto it_row = r_row_indices.begin() + iRow;
+            const IndexType i_col_index = *it_row;
+            const SizeType n_cols = *(it_row+1) - i_col_index;
 
-            // i-node data
-            const IndexType i_id = rNode.Id();
-            const double u_i_low = mSolution[i_id];
-            const double u_i_old = mSolutionOld[i_id];
-            const double u_i_min = std::min(u_i_low, u_i_old);
-            const double u_i_max = std::max(u_i_low, u_i_old);
+            // Check that there are CSR columns (i.e. that current node involves an edge)
+            if (n_cols != 0) {
+                // i-node nodal data
+                const double u_i = mSolutionOld[iRow];
+                const double M_l_i = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(iRow);
 
-            // j-node nodal loop (i.e. loop ij-edges)
-            auto& r_neighs_i = rNode.GetValue(NEIGHBOUR_NODES);
-            for (auto& rp_neigh : r_neighs_i) {
-                // j-node data
-                const IndexType j_id = rp_neigh.Id();
-                const double u_j_low = mSolution[j_id];
-                const double u_j_old = mSolutionOld[j_id];
-                const double u_j_min = std::min(u_j_low, u_j_old);
-                const double u_j_max = std::max(u_j_low, u_j_old);
+                // j-node nodal loop (i.e. loop ij-edges)
+                const auto i_col_begin = r_col_indices.begin() + i_col_index;
+                for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
+                    // j-node nodal data
+                    IndexType j_node_id = *(i_col_begin + j_node);
+                    const double u_j = mSolutionOld[j_node_id];
 
-                // Check among current ij-edge nodes
-                const double u_ij_min = std::min(u_j_min, u_i_min);
-                const double u_ij_max = std::max(u_j_max, u_i_max);
+                    // Get the antidiffusive flux edge contribution
+                    const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
+                    const double AEC_ij = r_ij_edge_data.GetAntidiffusiveEdgeContribution();
 
-                // Check among edges sharing i-node
-                u_min = std::min(u_min, u_ij_min);
-                u_max = std::max(u_max, u_ij_max);
+                    // Assemble the positive/negative antidiffusive fluxes
+                    AtomicAdd(P_min[iRow], std::min(0.0, AEC_ij));
+                    AtomicAdd(P_max[iRow], std::max(0.0, AEC_ij));
+                    AtomicAdd(P_min[j_node_id], std::min(0.0, -AEC_ij));
+                    AtomicAdd(P_max[j_node_id], std::max(0.0, -AEC_ij));
+
+                    // Assemble the positive/negative antidiffusive bounds
+                    const double aux_val = M_l_i * (u_j - u_i) / DeltaTime;
+                    Q_min[iRow] = std::min(Q_min[iRow], aux_val);
+                    Q_max[iRow] = std::max(Q_max[iRow], aux_val);
+                    Q_min[j_node_id] = std::min(Q_min[j_node_id], -aux_val);
+                    Q_max[j_node_id] = std::max(Q_max[j_node_id], -aux_val);
+                }
             }
-
-            // Save maximum and minimum of all edges surrounding i-node
-            u_min_vect[i_id] = u_min;
-            u_max_vect[i_id] = u_max;
         });
 
-        // Calculate maximum and minimum allowed increments
-        // Note that this requires the low order solution to be already computed
+        // Calculate the nodal correction factors
+        std::vector<double> R_min(mAuxSize);
+        std::vector<double> R_max(mAuxSize);
         IndexPartition<IndexType>(mAuxSize).for_each([&](IndexType i){
-            const double u_l = mSolution[i];
-            rMinIncrementVector[i] = u_min_vect[i] - u_l;
-            rMaxIncrementVector[i] = u_max_vect[i] - u_l;
+            const double P_min_i = P_min[i];
+            const double P_max_i = P_max[i];
+            if (P_max_i > 1.0e-12 && P_min_i < -1.0e-12) {
+                R_min[i] = std::min(1.0, Q_min[i] / P_min_i);
+                R_max[i] = std::min(1.0, Q_max[i] / P_max_i);
+            } else {
+                R_min[i] = 0.0;
+                R_max[i] = 0.0;
+            }
+        });
+
+        // Assembly of the final antidiffusive contribution
+        std::vector<double> antidiff_assembly(mAuxSize, 0.0);
+        IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
+            // Get current row (node) storage data
+            const auto it_row = r_row_indices.begin() + iRow;
+            const IndexType i_col_index = *it_row;
+            const SizeType n_cols = *(it_row+1) - i_col_index;
+
+            // Check that there are CSR columns (i.e. that current node involves an edge)
+            if (n_cols != 0) {
+                // j-node nodal loop (i.e. loop ij-edges)
+                const auto i_col_begin = r_col_indices.begin() + i_col_index;
+                for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
+                    // j-node nodal data
+                    IndexType j_node_id = *(i_col_begin + j_node);
+
+                    // Get the antidiffusive flux edge contribution
+                    const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
+                    const double AEC_ij = r_ij_edge_data.GetAntidiffusiveEdgeContribution();
+
+                    // Set as correction factor the minimum in the edge
+                    const double alpha_ij = AEC_ij > 0.0 ? std::min(R_max[iRow], R_min[j_node_id]) : std::min(R_min[iRow], R_max[j_node_id]);
+
+                    // Solve and assembly current edge antidiffusive contribution
+                    const double aux = alpha_ij * AEC_ij;
+                    AtomicAdd(antidiff_assembly[iRow], aux);
+                    AtomicAdd(antidiff_assembly[j_node_id], -aux);
+                }
+            }
+        });
+
+        // Solve and add final antidiffusive contributions
+        // Note that in here it is assumed that the low order solution is already added
+        IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
+            // Get nodal data
+            const auto it_node = mpModelPart->NodesBegin() + iNode;
+            const IndexType i_node_id = it_node->Id();
+
+            // Solve antidiffusive contribution
+            const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
+            const double solve_coeff = DeltaTime / M_l;
+            mSolution[i_node_id] += solve_coeff * antidiff_assembly[i_node_id];
         });
     }
+
+    // void CalculateLocalBounds(
+    //     std::vector<double>& rMinLocalBoundVector,
+    //     std::vector<double>& rMaxLocalBoundVector)
+    // {
+    //     // Calculate maximum and minimum allowed values
+    //     block_for_each(mpModelPart->Nodes(), [&](Node &rNode) {
+    //         // Initialize values for current node (i)
+    //         double u_min = std::numeric_limits<double>::max();
+    //         double u_max = std::numeric_limits<double>::lowest();
+
+    //         // i-node data
+    //         const IndexType i_id = rNode.Id();
+    //         const double u_i_low = mSolution[i_id];
+    //         const double u_i_old = mSolutionOld[i_id];
+    //         const double u_i_min = std::min(u_i_low, u_i_old);
+    //         const double u_i_max = std::max(u_i_low, u_i_old);
+
+    //         // j-node nodal loop (i.e. loop ij-edges)
+    //         auto& r_neighs_i = rNode.GetValue(NEIGHBOUR_NODES);
+    //         for (auto& rp_neigh : r_neighs_i) {
+    //             // j-node data
+    //             const IndexType j_id = rp_neigh.Id();
+    //             const double u_j_low = mSolution[j_id];
+    //             const double u_j_old = mSolutionOld[j_id];
+    //             const double u_j_min = std::min(u_j_low, u_j_old);
+    //             const double u_j_max = std::max(u_j_low, u_j_old);
+
+    //             // Check among current ij-edge nodes
+    //             const double u_ij_min = std::min(u_j_min, u_i_min);
+    //             const double u_ij_max = std::max(u_j_max, u_i_max);
+
+    //             // Check among edges sharing i-node
+    //             u_min = std::min(u_min, u_ij_min);
+    //             u_max = std::max(u_max, u_ij_max);
+    //         }
+
+    //         // Save maximum and minimum of all edges surrounding i-node
+    //         rMinLocalBoundVector[i_id] = u_min;
+    //         rMaxLocalBoundVector[i_id] = u_max;
+    //     });
+    // }
 
     ///@}
     ///@name Private  Access
