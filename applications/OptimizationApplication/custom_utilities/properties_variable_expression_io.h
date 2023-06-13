@@ -133,19 +133,19 @@ public:
     ///@name Public static operations
     ///@{
 
-    template<class TContainerType>
+    template<class TContainerType, MeshType TMeshType = MeshType::Local>
     static void Read(
-        ContainerExpression<TContainerType, MeshType::Local>& rContainerExpression,
+        ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable);
 
-    template<class TContainerType>
+    template<class TContainerType, MeshType TMeshType = MeshType::Local>
     static void Check(
-        const ContainerExpression<TContainerType, MeshType::Local>& rContainerExpression,
+        const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable);
 
-    template<class TContainerType>
+    template<class TContainerType, MeshType TMeshType = MeshType::Local>
     static void Write(
-        const ContainerExpression<TContainerType, MeshType::Local>& rContainerExpression,
+        const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
         const VariableType& rVariable);
 
     ///@}

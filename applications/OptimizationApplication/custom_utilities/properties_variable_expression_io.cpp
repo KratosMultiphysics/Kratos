@@ -81,9 +81,9 @@ void PropertiesVariableExpressionIO::PropertiesVariableExpressionOutput::Execute
     KRATOS_CATCH("");
 }
 
-template<class TContainerType>
+template<class TContainerType, MeshType TMeshType>
 void PropertiesVariableExpressionIO::Read(
-    ContainerExpression<TContainerType, MeshType::Local>& rContainerExpression,
+    ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
     const VariableType& rVariable)
 {
     static_assert(!std::is_same_v<TContainerType, ModelPart::NodesContainerType>,
@@ -103,9 +103,9 @@ void PropertiesVariableExpressionIO::Read(
     }
 }
 
-template<class TContainerType>
+template<class TContainerType, MeshType TMeshType>
 void PropertiesVariableExpressionIO::Check(
-    const ContainerExpression<TContainerType, MeshType::Local>& rContainerExpression,
+    const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
     const VariableType& rVariable)
 {
     static_assert(!std::is_same_v<TContainerType, ModelPart::NodesContainerType>,
@@ -133,9 +133,9 @@ void PropertiesVariableExpressionIO::Check(
     }, rVariable);
 }
 
-template<class TContainerType>
+template<class TContainerType, MeshType TMeshType>
 void PropertiesVariableExpressionIO::Write(
-    const ContainerExpression<TContainerType, MeshType::Local>& rContainerExpression,
+    const ContainerExpression<TContainerType, TMeshType>& rContainerExpression,
     const VariableType& rVariable)
 {
     static_assert(!std::is_same_v<TContainerType, ModelPart::NodesContainerType>,
@@ -148,14 +148,20 @@ void PropertiesVariableExpressionIO::Write(
         .Execute(rContainerExpression.GetExpression());
 }
 
-#define KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE)                                                                                      \
-    template void PropertiesVariableExpressionIO::Read(ContainerExpression<CONTAINER_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);          \
-    template void PropertiesVariableExpressionIO::Check(const ContainerExpression<CONTAINER_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);   \
-    template void PropertiesVariableExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);
+#define KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MESH_TYPE)                                                                                      \
+    template void PropertiesVariableExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);          \
+    template void PropertiesVariableExpressionIO::Check(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);   \
+    template void PropertiesVariableExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);
 
-KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(ModelPart::ConditionsContainerType)
-KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(ModelPart::ElementsContainerType)
+#define KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS_1(CONTAINER_TYPE)                \
+    KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MeshType::Local)     \
+    KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MeshType::Interface) \
+    KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MeshType::Ghost)
+
+KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS_1(ModelPart::ConditionsContainerType)
+KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS_1(ModelPart::ElementsContainerType)
 
 #undef KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS
+#undef KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS_1
 
 } // namespace Kratos
