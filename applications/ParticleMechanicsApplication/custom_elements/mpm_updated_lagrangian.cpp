@@ -998,13 +998,14 @@ void MPMUpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, cons
     }
 
     /* NOTE:
-    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
-    This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    mMP.velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
+    Update velocity with Newmark integration rule 
+    This assumes newmark (since n.gamma=0.5 and beta=0.25) rule of integration*/
+    mMP.velocity = 2.0/delta_time* delta_xg -  MP_PreviousVelocity;
 
     /* NOTE: The following interpolation techniques have been tried:
         MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
         MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
+        mMP.velocity = mMP.velocity + 0.5 * delta_time * (MP_acceleration + mMP.acceleration);
     */
 
     // Update the MP Position
