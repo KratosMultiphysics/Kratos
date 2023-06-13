@@ -38,11 +38,7 @@ import process_tests.test_optimization_problem_ascii_output_process
 import algorithm_tests.test_convergence
 import algorithm_tests.test_line_search
 import algorithm_tests.test_algorithm_steepest_descent
-<<<<<<< HEAD
-import analysis_tests.algorithm_steepest_descent.test_steepest_descent_analysis
-=======
 import algorithm_tests.analysis_based_tests.algorithm_steepest_descent.test_steepest_descent_analysis
->>>>>>> master
 
 # Nightly tests
 

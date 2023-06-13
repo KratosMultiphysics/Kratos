@@ -75,7 +75,7 @@
                 "model_part_name": "shell",
                 "file_format": "binary",
                 "output_precision": 7,
-                "output_control_type": "time",
+                "output_control_type": "step",
                 "output_frequency": 1.0,
                 "output_sub_model_parts": false,
                 "folder_name": "Primal_Results",
