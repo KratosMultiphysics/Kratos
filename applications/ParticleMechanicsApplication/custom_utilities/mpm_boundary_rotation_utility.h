@@ -237,6 +237,7 @@ public:
 						unsigned int j = itNode * block_size;
 
 						// Copy all normal value in LHS to the temp_matrix
+                        // [ does nothing for dummy rLocalMatrix (size1() == 0) -- RHS only case ]
 						for (unsigned int i = j; i < rLocalMatrix.size1(); i+= block_size)
 						{
 							temp_matrix(i,j) = rLocalMatrix(i,j);
@@ -250,6 +251,8 @@ public:
 						}
 					}
 				}
+                // All entries in penalty matrix zeroed out except for normal component
+                // [ no effect in case of empty dummy rLocalMatrix ]
 				rLocalMatrix = temp_matrix;
 			}
 		}
@@ -259,34 +262,10 @@ public:
 	void ConditionApplySlipCondition(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const
 	{
-		// If it is not a penalty condition, do as standard
-		if (!this->IsPenalty(rGeometry))
-		{
-			this->ApplySlipCondition(rLocalVector, rGeometry);
-		}
-		// Otherwise, if it is a penalty element, dont do anything
-		else
-		{
-			if (rLocalVector.size() > 0)
-			{
-				const unsigned int block_size = this->GetBlockSize();
-				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-				{
-					if( this->IsSlip(rGeometry[itNode]) )
-					{
-						// We fix the first momentum dof (normal component) for each rotated block
-						unsigned int j = itNode * block_size;
-
-						// Remove all other value than the normal component
-						for(unsigned int i = j; i < (j + block_size); ++i)
-						{
-							if (i!=j) rLocalVector[i] = 0.0;
-						}
-					}
-				}
-			}
-		}
-
+        // creates an empty dummy matrix to pass into the 'full' ConditionApplySlipCondition -- this dummy matrix is
+        // ignored, effectively only updating the RHS
+        TLocalMatrixType dummyMatrix = *(new TLocalMatrixType());
+        this->ConditionApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
 	// Checking whether it is normal element or penalty element
