@@ -4,7 +4,7 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-import numpy
+
 class ResponseRoutine:
     """A class which adds optimization-specific utilities to simplify routines
        and synchronization between the control field from algorithms and analysis models.
@@ -70,7 +70,7 @@ class ResponseRoutine:
     def GetReponse(self) -> ResponseFunction:
         return self.__response
 
-    def CalculateValue(self, control_field) -> float:
+    def CalculateValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions) -> float:
         """Calculates the value of the response.
 
         This method updates the design with the provided control field. If a control field is updated
@@ -78,7 +78,7 @@ class ResponseRoutine:
         value is returned.
 
         Args:
-            control_field (KratosOA.ContainerExpression.CollectiveExpressions) or numpy array: Control field of the new design.
+            control_field (KratosOA.ContainerExpression.CollectiveExpressions): Control field of the new design.
 
         Returns:
             float: Respone value.
@@ -106,23 +106,21 @@ class ResponseRoutine:
         #     # in the execution policies which has some intersection with the modified model parts.
         #     ChangeExecutionPolicyStates(modified_model_parts, False, self.__optimization_problem)
 
-        # if compute_response_value_flag:
-        self.__response_value = self.__response.CalculateValue()
+        if compute_response_value_flag:
+            self.__response_value = self.__response.CalculateValue()
 
         return self.__response_value
 
-    def CalculateGradient(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions = None) -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def CalculateGradient(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
         """Returns Collective expression containing all the control space gradients for all control variable types (fields).
 
         Notes:
-            1. If the input control_field is not None, it calls the CalculateValue.
+            1. It expects that the CalculateValue is called.
             2. The gradients are computed with respect to updates from master control.
 
         Returns:
             KratosOA.ContainerExpression.CollectiveExpressions: Returns mapped gradients collective expression.
         """
-        if control_field is not None:
-            self.CalculateValue(control_field)
         # fills the proper physical gradients from the response
         self.__response.CalculateGradient(self.__required_physical_gradients)
 

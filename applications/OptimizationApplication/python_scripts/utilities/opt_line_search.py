@@ -28,10 +28,10 @@ class ConstStep(object):
 
     def ComputeStep(self) -> float:
         algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
-
+        
         if not algorithm_buffered_data.HasValue("search_direction"):
             raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
-
+        
         if self.__gradient_scaling == "inf_norm":
             norm = KratosOA.ContainerExpressionUtils.NormInf(algorithm_buffered_data["search_direction"])
         elif self.__gradient_scaling == "l2_norm":
@@ -44,8 +44,8 @@ class ConstStep(object):
             step = self.init_step / norm
         else:
             step =  self.init_step
-        msg = f"""\t Line Search info:
-            type          : constant
+        msg = f"""\t Line Search info: 
+            type          : constant 
             unscaled_step : {self.init_step:0.6e}
             scaled_step   : {step:0.6e}"""
         print(msg)
