@@ -39,6 +39,101 @@
 namespace Kratos {
 namespace Python {
 
+namespace Detail
+{
+
+template<class TCArrayData>
+void CollectiveExpressionFromPythonArray(
+    CollectiveExpression& rCollectiveExpression,
+    const pybind11::array_t<double>& rData,
+    const std::vector<std::vector<int>>& rListOfShapes,
+    TCArrayData rCArrayData)
+{
+    KRATOS_TRY
+
+    auto r_container_expressions = rCollectiveExpression.GetContainerExpressions();
+
+    KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
+
+    KRATOS_ERROR_IF(r_container_expressions.size() != rListOfShapes.size())
+        << "Number of container expressions in the Collective expression and list of shapes size mismatch. "
+        << "[ Number of container expressions = "
+        << r_container_expressions.size()
+        << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
+
+    // create c style double pointer from std::vector list for shapes.
+    int const** p_list_of_shapes = new int const*[rListOfShapes.size()];
+    std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes,
+                   [](const auto& rShape) { return rShape.data(); });
+
+    // create c style double pointer for sizes of std::vector list.
+    int* p_list_of_shape_dimensions =  new int[rListOfShapes.size()];
+    std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shape_dimensions,
+                   [](const auto& rShape) { return rShape.size(); });
+
+    // create c style double pointer for number of entities in each container expression.
+    int* p_list_of_number_of_entities_in_container =  new int[rListOfShapes.size()];
+    std::transform(r_container_expressions.begin(), r_container_expressions.end(), p_list_of_number_of_entities_in_container,
+                   [](const auto& pContainerExpressionVariant) { return std::visit([](const auto pContainerExpression) { return pContainerExpression->GetContainer().size(); }, pContainerExpressionVariant); });
+
+    if constexpr(std::is_same_v<TCArrayData, double*>) {
+        CollectiveExpressionIO::Move(rCollectiveExpression, rCArrayData, p_list_of_number_of_entities_in_container,
+                p_list_of_shapes, p_list_of_shape_dimensions, rListOfShapes.size());
+    } else {
+        CollectiveExpressionIO::Read(rCollectiveExpression, rCArrayData, p_list_of_number_of_entities_in_container,
+                p_list_of_shapes, p_list_of_shape_dimensions, rListOfShapes.size());
+    }
+
+
+
+    // delete allocated memories
+    delete[] p_list_of_shapes;
+    delete[] p_list_of_shape_dimensions;
+
+    KRATOS_CATCH("");
+}
+
+void CollectiveExpressionMoveFromPythonArray(
+    CollectiveExpression& rCollectiveExpression,
+    pybind11::array_t<double>& rData,
+    const std::vector<int>& rListOfNumberOfEntitiesInContainers,
+    const std::vector<std::vector<int>>& rListOfShapes)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
+
+    KRATOS_ERROR_IF(rListOfNumberOfEntitiesInContainers.size() != rListOfShapes.size())
+        << "List of number of entities and list of shapes size mismatch. "
+        << "[ List of number of entities size = "
+        << rListOfNumberOfEntitiesInContainers.size()
+        << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
+
+    // create c style double pointer from std::vector list for shapes.
+    int const** p_list_of_shapes =
+        new int const*[rListOfNumberOfEntitiesInContainers.size()];
+    std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes,
+                   [](const auto& rShape) { return rShape.data(); });
+
+    // create c style double pointer for sizes of std::vector list.
+    int* p_list_of_shape_dimensions =
+        new int[rListOfNumberOfEntitiesInContainers.size()];
+    std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shape_dimensions,
+                   [](const auto& rShape) { return rShape.size(); });
+
+    CollectiveExpressionIO::Move(rCollectiveExpression, rData.mutable_data(),
+                                 rListOfNumberOfEntitiesInContainers.data(),
+                                 p_list_of_shapes, p_list_of_shape_dimensions,
+                                 rListOfNumberOfEntitiesInContainers.size());
+
+    // delete allocated memories
+    delete[] p_list_of_shapes;
+    delete[] p_list_of_shape_dimensions;
+
+    KRATOS_CATCH("");
+}
+} // namespace Detail
+
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -247,7 +342,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                 }
 
                 auto array = AllocateNumpyArray<double>(number_of_entities, current_shape);
-                CollectiveExpressionIO::WriteCArray(rSelf, array.mutable_data(), array.size());
+                CollectiveExpressionIO::Write(rSelf, array.mutable_data(), array.size());
                 return array;
             } else {
                 return AllocateNumpyArray<double>(0, {});
@@ -315,6 +410,47 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         ;
+
+    auto collective_expression_io = sub_module.def_submodule("CollectiveExpressionIO");
+    py::class_<CollectiveExpressionIO::HistoricalVariable, CollectiveExpressionIO::HistoricalVariable::Pointer>(collective_expression_io, "HistoricalVariable")
+        .def(py::init<const CollectiveExpressionIO::VariableType&>(), py::arg("variable"));
+    py::class_<CollectiveExpressionIO::NonHistoricalVariable, CollectiveExpressionIO::NonHistoricalVariable::Pointer>(collective_expression_io, "NonHistoricalVariable")
+        .def(py::init<const CollectiveExpressionIO::VariableType&>(), py::arg("variable"));
+    py::class_<CollectiveExpressionIO::PropertiesVariable, CollectiveExpressionIO::PropertiesVariable::Pointer>(collective_expression_io, "PropertiesVariable")
+        .def(py::init<const CollectiveExpressionIO::VariableType&>(), py::arg("variable"));
+
+    collective_expression_io.def("Read", [](CollectiveExpression& rCExpression, const CollectiveExpressionIO::ContainerVariableType& rContainerVariable){ CollectiveExpressionIO::Read(rCExpression, rContainerVariable); }, py::arg("collective_expression"), py::arg("variable_container"));
+    collective_expression_io.def("Read", [](CollectiveExpression& rCExpression, const std::vector<CollectiveExpressionIO::ContainerVariableType>& rContainerVariable){ CollectiveExpressionIO::Read(rCExpression, rContainerVariable); }, py::arg("collective_expression"), py::arg("list_of_variable_containers"));
+    collective_expression_io.def("Read", [](CollectiveExpression& rCExpression, const py::array_t<double>& rData) {
+        KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
+
+        // get the shape
+        std::vector<int> current_shape;
+        for (int i = 1; i < rData.ndim(); ++i) {
+            current_shape.push_back(rData.shape(i));
+        }
+
+        std::vector<std::vector<int>> list_of_shapes(rCExpression.GetContainerExpressions().size(), current_shape);
+
+        Detail::CollectiveExpressionFromPythonArray(rCExpression, rData, list_of_shapes, rData.data());
+    }, py::arg("collective_expression"), py::arg("numpy_data_array").noconvert());
+    collective_expression_io.def("Read", [](CollectiveExpression& rCExpression, const py::array_t<double>& rData, const std::vector<std::vector<int>>& rListOfShapes) { Detail::CollectiveExpressionFromPythonArray(rCExpression, rData, rListOfShapes, rData.data()); }, py::arg("collective_expression"), py::arg("numpy_data_array").noconvert(), py::arg("list_of_shapes"));
+    collective_expression_io.def("Move", [](CollectiveExpression& rCExpression, py::array_t<double>& rData) {
+        KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
+
+        // get the shape
+        std::vector<int> current_shape;
+        for (int i = 1; i < rData.ndim(); ++i) {
+            current_shape.push_back(rData.shape(i));
+        }
+
+        std::vector<std::vector<int>> list_of_shapes(rCExpression.GetContainerExpressions().size(), current_shape);
+
+        Detail::CollectiveExpressionFromPythonArray(rCExpression, rData, list_of_shapes, rData.mutable_data());
+    }, py::arg("collective_expression"), py::arg("numpy_data_array").noconvert());
+    collective_expression_io.def("Move", [](CollectiveExpression& rCExpression, py::array_t<double>& rData, const std::vector<std::vector<int>>& rListOfShapes) { Detail::CollectiveExpressionFromPythonArray(rCExpression, rData, rListOfShapes, rData.mutable_data()); }, py::arg("collective_expression"), py::arg("numpy_data_array").noconvert(), py::arg("list_of_shapes"));
+    collective_expression_io.def("Write", [](CollectiveExpression& rCExpression, const CollectiveExpressionIO::ContainerVariableType& rContainerVariable){ CollectiveExpressionIO::Write(rCExpression, rContainerVariable); }, py::arg("collective_expression"), py::arg("variable_container"));
+    collective_expression_io.def("Write", [](CollectiveExpression& rCExpression, const std::vector<CollectiveExpressionIO::ContainerVariableType>& rContainerVariable){ CollectiveExpressionIO::Write(rCExpression, rContainerVariable); }, py::arg("collective_expression"), py::arg("list_of_variable_containers"));
 
     m.def_submodule("ImplicitFilterUtils")
         .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount, py::arg("input_model_part"))
