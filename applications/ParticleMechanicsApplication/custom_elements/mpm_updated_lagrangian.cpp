@@ -962,7 +962,6 @@ void MPMUpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, cons
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    const array_1d<double,3> & MP_PreviousAcceleration = mMP.acceleration;
     const array_1d<double,3> & MP_PreviousVelocity = mMP.velocity;
 
     array_1d<double,3> delta_xg = ZeroVector(3);
