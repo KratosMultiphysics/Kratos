@@ -89,6 +89,8 @@ int ElastoPlasticModMohrCoulombCohesive3DLaw::Check(const Properties& rMaterialP
 
 void ElastoPlasticModMohrCoulombCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
+    mPlasticStrainVector.resize(3);
+    mOldPlasticStrainVector.resize(3);
     mPlasticStrainVector[0]    = 0.0;
     mPlasticStrainVector[1]    = 0.0;
     mPlasticStrainVector[2]    = 0.0;
@@ -238,8 +240,7 @@ double ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeYieldFunction(Vector& St
 double ElastoPlasticModMohrCoulombCohesive3DLaw::GetShearResultantStressVector(Vector& StressVector)
 {
     // Compute the shear resultant of the stress vector
-    double ts = std::sqrt(StressVector[0]*StressVector[0]+StressVector[1]*StressVector[1]);
-    return ts;
+    return std::sqrt(StressVector[0]*StressVector[0]+StressVector[1]*StressVector[1]);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
