@@ -1130,9 +1130,7 @@ public:
     {
         // Calculate distances
         const Point point(rPointGlobalCoordinates);
-        const double distance_1 = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), point);
-        const double distance_2 = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(3), this->GetPoint(0), point);
-        return std::min(distance_1, distance_2);
+        return GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), this->GetPoint(3), point);
     }
 
     ///@}

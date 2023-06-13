@@ -351,6 +351,22 @@ double GeometryUtils::PointDistanceToTriangle3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
+double GeometryUtils::PointDistanceToQuadrilateral3D(
+    const Point& rQuadrilateralPoint1,
+    const Point& rQuadrilateralPoint2,
+    const Point& rQuadrilateralPoint3,
+    const Point& rQuadrilateralPoint4,
+    const Point& rPoint
+    )
+{
+    const double distance_1 = GeometryUtils::PointDistanceToTriangle3D(rQuadrilateralPoint1, rQuadrilateralPoint2, rQuadrilateralPoint3, rPoint);
+    const double distance_2 = GeometryUtils::PointDistanceToTriangle3D(rQuadrilateralPoint3, rQuadrilateralPoint4, rQuadrilateralPoint1, rPoint);
+    return std::min(distance_1, distance_2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TDataType>
 void GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(
     TDataType& rOutput,

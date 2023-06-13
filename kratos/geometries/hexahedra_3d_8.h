@@ -1073,19 +1073,13 @@ public:
         }
 
         // Compute distance to faces
-        std::array<double, 12> distances;
-        distances[0]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(3), this->GetPoint(2), this->GetPoint(1), point);
-        distances[1]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(1), this->GetPoint(0), this->GetPoint(3), point);
-        distances[2]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(5), point);
-        distances[3]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(5), this->GetPoint(4), this->GetPoint(0), point);
-        distances[4]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(6), this->GetPoint(5), point);
-        distances[5]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(5), this->GetPoint(1), this->GetPoint(2), point);
-        distances[6]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(7), this->GetPoint(6), this->GetPoint(2), point);
-        distances[7]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(3), this->GetPoint(7), point);
-        distances[8]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(7), this->GetPoint(3), this->GetPoint(0), point);
-        distances[9]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(4), this->GetPoint(7), point);
-        distances[10] = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(4), this->GetPoint(5), this->GetPoint(6), point);
-        distances[11] = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(6), this->GetPoint(7), this->GetPoint(4), point);
+        std::array<double, 6> distances;
+        distances[0] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(3), this->GetPoint(2), this->GetPoint(1), this->GetPoint(0), point);
+        distances[1] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(5), this->GetPoint(4), point);
+        distances[2] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(2), this->GetPoint(6), this->GetPoint(5), this->GetPoint(1), point);
+        distances[3] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(7), this->GetPoint(6), this->GetPoint(2), this->GetPoint(3), point);
+        distances[4] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(7), this->GetPoint(3), this->GetPoint(0), this->GetPoint(4), point);
+        distances[5] = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(4), this->GetPoint(5), this->GetPoint(6), this->GetPoint(7), point);
         const auto min = std::min_element(distances.begin(), distances.end());
         return *min;
     }

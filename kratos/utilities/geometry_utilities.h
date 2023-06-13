@@ -449,6 +449,24 @@ public:
         );
 
     /**
+     * @brief This function calculates the distance of a 3D point to a 3D quadrilateral
+     * @details The implementation is done by decomposing the quadrilateral into 2 triangles and calling PointDistanceToTriangle3D
+     * @param rQuadrilateralPoint1 First point of quadrilateral
+     * @param rQuadrilateralPoint2 Second point of quadrilateral
+     * @param rQuadrilateralPoint3 Third point of quadrilateral
+     * @param rQuadrilateralPoint4 Third point of quadrilateral
+     * @param rPoint The point which distance is required
+     * @return The distance between the point and the quadrilateral
+     */
+    static double PointDistanceToQuadrilateral3D(
+        const Point& rQuadrilateralPoint1,
+        const Point& rQuadrilateralPoint2,
+        const Point& rQuadrilateralPoint3,
+        const Point& rQuadrilateralPoint4,
+        const Point& rPoint
+        );
+
+    /**
      * @brief Calculate the gradients of shape functions.
      * @param rDN_De local gradient of shape functions.
      * @param rInvJ inverse of the element Jacobian.

@@ -692,13 +692,12 @@ public:
         }
 
         // Compute distance to faces
-        std::array<double, 6> distances;
+        std::array<double, 5> distances;
         distances[0]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(4), point);
         distances[1]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(1), this->GetPoint(2), this->GetPoint(4), point);
-        distances[2]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), point);
-        distances[3]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(3), this->GetPoint(0), point);
-        distances[4]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(3), this->GetPoint(4), point);
-        distances[5]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(3), this->GetPoint(0), this->GetPoint(4), point);
+        distances[2]  = GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), this->GetPoint(3), point);
+        distances[3]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(3), this->GetPoint(4), point);
+        distances[4]  = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(3), this->GetPoint(0), this->GetPoint(4), point);
         const auto min = std::min_element(distances.begin(), distances.end());
         return *min;
     }
