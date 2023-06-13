@@ -16,6 +16,10 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "expression/c_array_expression_io.h"
+#include "expression/variable_expression_io.h"
+
+// Application includes
+#include "properties_variable_expression_io.h"
 
 // Include base h
 #include "collective_expression_io.h"
@@ -23,7 +27,7 @@
 namespace Kratos {
 
 template<class TRawDataType>
-void CollectiveExpressionIO::ReadCArray(
+void CollectiveExpressionIO::Read(
     CollectiveExpression& rCollectiveExpression,
     TRawDataType const* pBegin,
     int const* NumberOfEntities,
@@ -54,7 +58,7 @@ void CollectiveExpressionIO::ReadCArray(
 }
 
 template<class TRawDataType>
-void CollectiveExpressionIO::MoveCArray(
+void CollectiveExpressionIO::Move(
     CollectiveExpression& rCollectiveExpression,
     TRawDataType* pBegin,
     int const* NumberOfEntities,
@@ -85,7 +89,7 @@ void CollectiveExpressionIO::MoveCArray(
 }
 
 template<class TRawDataType>
-void CollectiveExpressionIO::WriteCArray(
+void CollectiveExpressionIO::Write(
     const CollectiveExpression& rCollectiveExpression,
     TRawDataType* pBegin,
     const int Size)
@@ -118,14 +122,114 @@ void CollectiveExpressionIO::WriteCArray(
     }
 }
 
+void CollectiveExpressionIO::Read(
+    CollectiveExpression& rCollectiveExpression,
+    const std::vector<ContainerVariableType>& rContainerVariables)
+{
+    const auto& r_container_expressions = rCollectiveExpression.GetContainerExpressions();
+
+    KRATOS_ERROR_IF_NOT(r_container_expressions.size() == rContainerVariables.size())
+        << "Container expressions size and variables size mismatch. [ number of container expressions = "
+        << r_container_expressions.size() << ", number of variable container types = " << rContainerVariables.size() << " ].\n";
+
+    for (IndexType i = 0; i < r_container_expressions.size(); ++i) {
+        std::visit([&rContainerVariables, i](auto& pContainer, auto& pContainerVariable) {
+            using container_expression_type = std::decay_t<decltype(*pContainer)>;
+            using container_variable_type = std::decay_t<decltype(*pContainerVariable)>;
+
+            if constexpr(std::is_same_v<container_expression_type, ContainerExpression<ModelPart::NodesContainerType, MeshType::Local>> ||
+                         std::is_same_v<container_expression_type, ContainerExpression<ModelPart::NodesContainerType, MeshType::Ghost>> ||
+                         std::is_same_v<container_expression_type, ContainerExpression<ModelPart::NodesContainerType, MeshType::Interface>>) {
+                if constexpr(std::is_same_v<container_variable_type, HistoricalVariable>) {
+                    VariableExpressionIO::Read(*pContainer, pContainerVariable->mVariable, true);
+                } else if constexpr(std::is_same_v<container_variable_type, NonHistoricalVariable>) {
+                    VariableExpressionIO::Read(*pContainer, pContainerVariable->mVariable, false);
+                } else {
+                    KRATOS_ERROR
+                        << "Nodal expressions only supports HistoricalVariable "
+                           "and NonHistoricalVariable container types.\n";
+                }
+            } else {
+                if constexpr(std::is_same_v<container_variable_type, NonHistoricalVariable>) {
+                    VariableExpressionIO::Read(*pContainer, pContainerVariable->mVariable);
+                } else if constexpr(std::is_same_v<container_variable_type, PropertiesVariable>) {
+                    PropertiesVariableExpressionIO::Read(*pContainer, pContainerVariable->mVariable);
+                } else {
+                    KRATOS_ERROR << "Element/Condition expressions only "
+                                    "supports NonHistoricalVariable and "
+                                    "PropertiesVariable container types.\n";
+                }
+            }
+        }, r_container_expressions[i], rContainerVariables[i]);
+    }
+}
+
+void CollectiveExpressionIO::Read(
+    CollectiveExpression& rCollectiveExpression,
+    const ContainerVariableType& rContainerVariable)
+{
+    std::vector<ContainerVariableType> variables(rCollectiveExpression.GetContainerExpressions().size(), rContainerVariable);
+    Read(rCollectiveExpression, variables);
+}
+
+void CollectiveExpressionIO::Write(
+    const CollectiveExpression& rCollectiveExpression,
+    const std::vector<ContainerVariableType>& rContainerVariables)
+{
+    const auto& r_container_expressions = rCollectiveExpression.GetContainerExpressions();
+
+    KRATOS_ERROR_IF_NOT(r_container_expressions.size() == rContainerVariables.size())
+        << "Container expressions size and variables size mismatch. [ number of container expressions = "
+        << r_container_expressions.size() << ", number of variable container types = " << rContainerVariables.size() << " ].\n";
+
+    for (IndexType i = 0; i < r_container_expressions.size(); ++i) {
+        std::visit([&rContainerVariables, i](auto& pContainer, auto& pContainerVariable) {
+            using container_expression_type = std::decay_t<decltype(*pContainer)>;
+            using container_variable_type = std::decay_t<decltype(*pContainerVariable)>;
+
+            if constexpr(std::is_same_v<container_expression_type, ContainerExpression<ModelPart::NodesContainerType, MeshType::Local>> ||
+                         std::is_same_v<container_expression_type, ContainerExpression<ModelPart::NodesContainerType, MeshType::Ghost>> ||
+                         std::is_same_v<container_expression_type, ContainerExpression<ModelPart::NodesContainerType, MeshType::Interface>>) {
+                if constexpr(std::is_same_v<container_variable_type, HistoricalVariable>) {
+                    VariableExpressionIO::Write(*pContainer, pContainerVariable->mVariable, true);
+                } else if constexpr(std::is_same_v<container_variable_type, NonHistoricalVariable>) {
+                    VariableExpressionIO::Write(*pContainer, pContainerVariable->mVariable, false);
+                } else {
+                    KRATOS_ERROR
+                        << "Nodal expressions only supports HistoricalVariable "
+                           "and NonHistoricalVariable container types.\n";
+                }
+            } else {
+                if constexpr(std::is_same_v<container_variable_type, NonHistoricalVariable>) {
+                    VariableExpressionIO::Write(*pContainer, pContainerVariable->mVariable);
+                } else if constexpr(std::is_same_v<container_variable_type, PropertiesVariable>) {
+                    PropertiesVariableExpressionIO::Write(*pContainer, pContainerVariable->mVariable);
+                } else {
+                    KRATOS_ERROR << "Element/Condition expressions only "
+                                    "supports NonHistoricalVariable and "
+                                    "PropertiesVariable container types.\n";
+                }
+            }
+        }, r_container_expressions[i], rContainerVariables[i]);
+    }
+}
+
+void CollectiveExpressionIO::Write(
+    const CollectiveExpression& rCollectiveExpression,
+    const ContainerVariableType& rContainerVariable)
+{
+    std::vector<ContainerVariableType> variables(rCollectiveExpression.GetContainerExpressions().size(), rContainerVariable);
+    Write(rCollectiveExpression, variables);
+}
+
 // template instantiations
-template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::ReadCArray(CollectiveExpression&, int const*, int const*, int const**, int const*, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::ReadCArray(CollectiveExpression&, double const*, int const*, int const**, int const*, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::Read(CollectiveExpression&, int const*, int const*, int const**, int const*, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::Read(CollectiveExpression&, double const*, int const*, int const**, int const*, const int);
 
-template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::MoveCArray(CollectiveExpression&, int*, int const*, int const**, int const*, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::MoveCArray(CollectiveExpression&, double*, int const*, int const**, int const*, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::Move(CollectiveExpression&, int*, int const*, int const**, int const*, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::Move(CollectiveExpression&, double*, int const*, int const**, int const*, const int);
 
-template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::WriteCArray(const CollectiveExpression&, int*, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::WriteCArray(const CollectiveExpression&, double*, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::Write(const CollectiveExpression&, int*, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) void CollectiveExpressionIO::Write(const CollectiveExpression&, double*, const int);
 
 } // namespace Kratos
