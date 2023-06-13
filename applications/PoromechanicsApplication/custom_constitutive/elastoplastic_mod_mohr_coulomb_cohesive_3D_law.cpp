@@ -64,10 +64,22 @@ int ElastoPlasticModMohrCoulombCohesive3DLaw::Check(const Properties& rMaterialP
         KRATOS_ERROR << "TENSILE_STRENGTH not defined" << std::endl;
     }
 
-    if(rMaterialProperties.Has(FRACTURE_ENERGY)) {
-        KRATOS_ERROR_IF(rMaterialProperties[FRACTURE_ENERGY] < 0.0) << "FRACTURE_ENERGY has an invalid value " << std::endl;
+    if(rMaterialProperties.Has(FRICTION_ANGLE)) {
+        KRATOS_ERROR_IF(rMaterialProperties[FRICTION_ANGLE] < 0.0) << "FRICTION_ANGLE has an invalid value " << std::endl;
     } else {
-        KRATOS_ERROR << "FRACTURE_ENERGY not defined" << std::endl;
+        KRATOS_ERROR << "FRICTION_ANGLE not defined" << std::endl;
+    }
+
+    if(rMaterialProperties.Has(DILATANCY_ANGLE)) {
+        KRATOS_ERROR_IF(rMaterialProperties[DILATANCY_ANGLE] < 0.0) << "DILATANCY_ANGLE has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "DILATANCY_ANGLE not defined" << std::endl;
+    }
+
+    if(rMaterialProperties.Has(COHESION)) {
+        KRATOS_ERROR_IF(rMaterialProperties[COHESION] < 0.0) << "COHESION has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "COHESION not defined" << std::endl;
     }
 
     return 0;
@@ -142,7 +154,7 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::CalculateMaterialResponseCauchy (
     //Compute the tangent constitutive matrix (IF REQUIRED)
     if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)){
         Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix(); 
-        this->ComputeTangentConstitutiveMatrix(rConstitutiveMatrix, ElasticConstitutiveMatrix, PlasticMultiplier, Variables, rValues);
+        this->ComputeTangentConstitutiveMatrix(rConstitutiveMatrix, ElasticConstitutiveMatrix, rStressVector, PlasticMultiplier, Variables, rValues);
     }
     
 }
@@ -154,17 +166,7 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::FinalizeMaterialResponseCauchy (P
     if(rValues.GetProcessInfo()[IS_CONVERGED]==true) //Convergence is achieved. Save equilibrium state variable
     {
         rValues.CheckAllParameters();
-
-        ConstitutiveLawVariables Variables;
-        this->InitializeConstitutiveLawVariables(Variables,rValues);
-
-        this->ComputeEquivalentStrain(Variables,rValues);
-        this->CheckLoadingFunction(Variables,rValues);
-
-        if(Variables.LoadingFlag)
-        {
-            mOldPlasticStrainVector = mPlasticStrainVector;
-        }
+        mOldPlasticStrainVector = mPlasticStrainVector;
     }
 }
 
@@ -196,8 +198,48 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::InitializeConstitutiveLawVariable
     rVariables.ShearStiffness          = MaterialProperties[SHEAR_STIFFNESS];
     rVariables.NormalStiffness         = MaterialProperties[NORMAL_STIFFNESS];
     rVariables.PenaltyStiffness        = MaterialProperties[PENALTY_STIFFNESS];
-    rVariables.MaxTensileStress        = MaterialProperties[TENSILE_STRENGTH];
-    rVariables.FractureEnergy          = MaterialProperties[FRACTURE_ENERGY];
+    rVariables.TensileStrength         = MaterialProperties[TENSILE_STRENGTH];
+    rVariables.FrictionAngle           = MaterialProperties[FRICTION_ANGLE];
+    rVariables.DilatancyAngle          = MaterialProperties[DILATANCY_ANGLE];
+    rVariables.Cohesion                = MaterialProperties[COHESION];
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// This methods evaluate the yield function
+
+double ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeYieldFunction(Vector& StressVector, ConstitutiveLawVariables& rVariables,
+                                                                Parameters& rValues)
+
+{
+    // Get the size of the strain vector
+    const Vector& StrainVector = rValues.GetStrainVector();
+    const unsigned int VoigtSize = StrainVector.size();
+
+    // Declare auxiliary variables
+    double ft2 = rVariables.TensileStrength*rVariables.TensileStrength;
+    double c2  = rVariables.Cohesion*rVariables.Cohesion;
+    double tanPhi = std::tan(rVariables.FrictionAngle);
+
+    // Get the shear component of the stress vector
+    double ts = this->GetShearResultantStressVector(StressVector);
+
+    // Get the normal component of the stress vector
+    double tn = StressVector[VoigtSize-1];
+
+    // Evaluate the yield function
+    double f_yield = ts*ts - tn*tn*(ft2 + 2.0*c*tanPhi - c2)/(ft2) - c2*(1.0 + tanPhi*tanPhi) + (tn + c*tanPhi)*(tn + c*tanPhi);
+
+    return f_yield;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// This method returns the resultant shear component of the stress vector 
+
+double ElastoPlasticModMohrCoulombCohesive3DLaw::GetShearResultantStressVector(Vector& StressVector)
+{
+    // Compute the shear resultant of the stress vector
+    double ts = std::sqrt(StressVector[0]*StressVector[0]+StressVector[1]*StressVector[1]);
+    return ts;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -206,10 +248,9 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::InitializeConstitutiveLawVariable
 
 void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStressVector,Vector& TrialStressVector, double& YieldFunction, double& PlasticMultiplier, ConstitutiveLawVariables& rVariables, Parameters& rValues)
 {
-    // Get the normal component of the strain vector
+    // Get the size of the strain vector
     const Vector& StrainVector = rValues.GetStrainVector();
     const unsigned int VoigtSize = StrainVector.size();
-    double normalStrain = StrainVector[VoigtSize-1];
 
     // Declaring variables for the return mapping algorithm
     double DPlasticMultiplier;                                       // Increment of the plastic multiplier
@@ -231,11 +272,11 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
     int iterCounter     = 1;                                         // Iteration counter
     
     while(YieldFunction > 1.0e-12){
-        // Compute the normal to the plastic potential surface (np)
+        // Compute the normal to the plastic potential surface (np) and its derivative wrt to the stress vector
+        this->DerivativesPlasticPotentialSurface(rStressVector, np, DnpDtp, rVariables, rValues);
 
         // Compute the normal to the yield surface (n)
-
-        // Compute the derivative of the normal to the plastic potential surface with to the traction vector (DnpDtd)
+        this->DerivativesYieldSurface(rStressVector, n, rVariables, rValues);
 
         // Compute the residual of the traction vector (ResidualTractionVector)
         ResidualTractionVector = rStressVector - TrialStressVector + PlasticMultiplier*prod(ElasticConstitutiveMatrix,np);
@@ -246,11 +287,11 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
         MathUtils<double>::InvertMatrix( Psi, invPsi, det_psi);
 
         // Compute auxiliary products
-        noalias(invPsi_Res)    = prod(invPsi,ResidualTractionVector);
-        noalias(invPsi_Tel_np) = prod(invPsi,prod(ElasticConstitutiveMatrix,np));
+        noalias(invPsi_Res)    = prod(invPsi,ResidualTractionVector);                   // Psi^(-1)*r
+        noalias(invPsi_Tel_np) = prod(invPsi,prod(ElasticConstitutiveMatrix,np));       // Psi^(-1)*Tel*np
 
         // Compute the increment of the plastic multiplier (DPlasticMultiplier)
-        DPlasticMultiplier = (YieldFunction - outer_prod(n,invPsi_Res)) / outer_prod(n,invPsi_Tel_np);
+        DPlasticMultiplier = (YieldFunction - inner_prod(n,invPsi_Res)) / inner_prod(n,invPsi_Tel_np);
 
         // Compute the increment of the traction vector
         DTractionVector = -invPsi_Res - DPlasticMultiplier*invPsi_Tel_np;
@@ -263,7 +304,7 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
         
     }
 
-    // Update the plastic strains
+    // Update the current plastic displacement jumps
     mPlasticStrainVector = mOldPlasticStrainVector + PlasticMultiplier * np;
 
 }
@@ -271,125 +312,94 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // This method computes the tangent constitutive matrix
 
-void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeTangentConstitutiveMatrix(Matrix& rConstitutiveMatrix, Matrix& ElasticConstitutiveMatrix, Vector& EffectiveStressVector, ConstitutiveLawVariables& rVariables, Parameters& rValues)
+void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeTangentConstitutiveMatrix(Matrix& rConstitutiveMatrix, Matrix& ElasticConstitutiveMatrix, Vector& rStressVector, double& PlasticMultiplier, ConstitutiveLawVariables& rVariables, Parameters& rValues)
 {
     // Get the normal component of the strain vector
     const Vector& StrainVector = rValues.GetStrainVector();
     const unsigned int VoigtSize = StrainVector.size();
-    double normalStrain = StrainVector[VoigtSize-1];
 
-    //Compute the damage constitutive matrix
-    Matrix DamageConstitutiveMatrix(VoigtSize,VoigtSize);
-    this->ComputeDamageConstitutiveMatrix(DamageConstitutiveMatrix,EffectiveStressVector,rVariables,rValues);
+    Vector np(VoigtSize);                                            // Normal to the plastic potential surface
+    Vector n(VoigtSize);                                             // Normal to the yield surface
+    Matrix IdentityMtrx = identity_matrix<double> ( VoigtSize );     // Auxialiary identity matrix
+    Matrix Psi(VoigtSize,VoigtSize);                                 // Auxialiary matrix
+    Matrix invPsi(VoigtSize,VoigtSize);                              // Inverse of the auxialiary matrix
+    Matrix DnpDtp(VoigtSize,VoigtSize);                              // Derivative of np wrt the traction vector
 
-    // Compute the tangent constitutive matrix
-    rConstitutiveMatrix = (1.0 - rVariables.DamageVariable)*ElasticConstitutiveMatrix - DamageConstitutiveMatrix;
+    // Compute the normal to the plastic potential surface (np) and its derivative wrt to the stress vector
+    this->DerivativesPlasticPotentialSurface(rStressVector, np, DnpDtp, rVariables, rValues);
 
-    // In case it is a compression in the normal direction:
-    if (normalStrain < 0.0)
-    {
-        for(int i = 0; i <(VoigtSize-1); i++){
-            rConstitutiveMatrix(VoigtSize-1,i) = 0.0;
-        }
-        rConstitutiveMatrix(VoigtSize-1,VoigtSize-1) = rVariables.NormalStiffness * rVariables.PenaltyStiffness;
-    }
+    // Compute the normal to the yield surface (n)
+    this->DerivativesYieldSurface(rStressVector, n, rVariables, rValues);
+
+    // Compute auxiliary matrix (Psi) and its inverse (invPsi)
+    noalias(Psi) = IdentityMtrx + PlasticMultiplier * prod(ElasticConstitutiveMatrix,DnpDtp);
+    double det_psi = 0;
+    MathUtils<double>::InvertMatrix( Psi, invPsi, det_psi);
+
+    // Computes the auxiliary matrix H
+    noalias(H) = prod(invPsi,ElasticConstitutiveMatrix);
+
+    // Compute the algorithmic tangent constitutive matrix
+    rConstitutiveMatrix = H - prod(H,prod(outer_prod(np,n),H)) / inner_prod(n,prod(H,np));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// This method computes the current state variables, current equivalent strain, and the vector with the 
-// derivatives of the equivalent strain wrt to the components of the strain vector
+// This method computes the first and second order derivatives of the plastic potential surface with respect to the
+// traction stress vector.
+// This method is valid for both 2D and 3D problems.
 
-void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
-                                                    Parameters& rValues)
+void ElastoPlasticModMohrCoulombCohesive3DLaw::DerivativesPlasticPotentialSurface(Vector& StressVector,Vector& np,Matrix& DnpDtp,
+                                                                                  ConstitutiveLawVariables& rVariables, Parameters& rValues)
 {
+    // Get the normal component of the strain vector
     const Vector& StrainVector = rValues.GetStrainVector();
+    const unsigned int VoigtSize = StrainVector.size();
 
-    // Compute the resultant shear in the local plane
-    double resShear = std::sqrt(StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1]);
+    // Get material properties
+    double tanPsi = std::tan(rVariables.DilatancyAngle);
+    double c   = rVariables.Cohesion;
+    double ft  = rVariables.TensileStrength;
 
-    // Maximum shear resultant and normal strains in the loading history
-    mStateVariable[0] = std::max(mOldStateVariable[0],resShear);
-    mStateVariable[1] = std::max(mOldStateVariable[1],StrainVector[2]);
+    // Vector normal to the plastic potential surface (nd = diff(g,td))
+    nd = 2.0 * StressVector;
 
-    // Compute the current equivalent strain
-    rVariables.EquivalentStrain = mStateVariable[1] + rVariables.BetaEqStrainShearFactor * mStateVariable[0];
+    // Matrix with the derivatives of the normal vector wrt to the tracion vector
+    DnpDtp = 2.0 * identity_matrix<double> (VoigtSize);
 
-    // Compute the equivalent strain associated with the last converged step (used to evaluate the loading function)
-    rVariables.OldEquivalentStrain = mOldStateVariable[1] + rVariables.BetaEqStrainShearFactor * mOldStateVariable[0];
+    // Fix the components associated with the normal traction changes according with its sign
+    if(StressVector[VoigtSize-1] > 0.0){
 
-    // Compute the vector with the derivatives of the equivalent strain wrt to the components of the strain vector
-    rVariables.DerivativeEquivalentStrain[0] = rVariables.BetaEqStrainShearFactor * StrainVector[0] / resShear;
-    rVariables.DerivativeEquivalentStrain[1] = rVariables.BetaEqStrainShearFactor * StrainVector[1] / resShear;
-    rVariables.DerivativeEquivalentStrain[2] = 1.0;
-}
+        nd[VoigtSize-1] = 2.0*StressVector[VoigtSize-1] + 2.0*c*tanPsi - (2.0*StressVector[VoigtSize-1]*(-c*c + 2.0*tanPsi*c*ft + ft*ft)/(ft*ft));
+        DnpDtp(VoigtSize-1,VoigtSize-1) = 2.0 - 2.0*(-c*c + 2.0*tanPsi*c*ft + ft*ft)/(ft*ft);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// This method computes the scalar damage variable and its derivative with respect to the equivalent strain
+    }else if(StressVector[VoigtSize-1] <= 0.0){
 
-void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeScalarDamage(ConstitutiveLawVariables& rVariables,
-                                                    Parameters& rValues)
-{
-    // Before damage initiated
-    if((rVariables.EquivalentStrain - rVariables.DamageThreshold) <= 0.0){
-        rVariables.DamageVariable = 0.0;
-        rVariables.DerivativeSDV  = 0.0;
-    }
-    // Damage initiated, but it didn't evolved 
-    else if((rVariables.EquivalentStrain - rVariables.OldEquivalentStrain) <= 0.0){
-        this->DamageLaw(rVariables,rValues,false);
-        rVariables.DerivativeSDV  = 0.0;
-    }
-    // Damage initiated and evolved
-    else{
-        this->DamageLaw(rVariables,rValues,true);
+        nd[VoigtSize-1] = -2.0 * tanPsi * (c - StressVector[VoigtSize-1]*tanPsi);
+        DnpDtp(VoigtSize-1,VoigtSize-1) = 2.0*tanPsi*tanPsi;
+
     }
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// This method evaluates the damage evolution law
+// This method computes the derivatives of the yield surface with respect to the traction stress vector.
+// This method is valid for both 2D and 3D problems.
 
-void ElastoPlasticModMohrCoulombCohesive3DLaw::DamageLaw(ConstitutiveLawVariables& rVariables, Parameters& rValues, bool needsDerivative)
+void ElastoPlasticModMohrCoulombCohesive3DLaw::DerivativesYieldSurface(Vector& StressVector,Vector& n, ConstitutiveLawVariables& rVariables, Parameters& rValues)
 {
-    // Declare local variables
-    double w    = rVariables.EquivalentStrain; 
-    double w0   = rVariables.DamageThreshold;
-    double ft   = rVariables.MaxTensileStress;
-    double Gf   = rVariables.FractureEnergy;
-    double wmax = w0 + 2.0 * Gf / ft;
+    // Get the normal component of the strain vector
+    const Vector& StrainVector = rValues.GetStrainVector();
+    const unsigned int VoigtSize = StrainVector.size();
 
-    switch (rVariables.DamageEvolutionLaw){
-        case 1: // Linear evolution law
-            rVariables.DamageVariable = (wmax / (wmax - w0)) * (1.0 - w0/w); 
-            if (needsDerivative){
-                rVariables.DerivativeSDV = (w0*wmax)/(w*w*(wmax - w0)); 
-            }
-            break;
-        case 2: // Exponential evolution law
-            rVariables.DamageVariable = 1.0 - w0/w * std::exp(-ft*(w - w0)/Gf);
-            if (needsDerivative){
-                rVariables.DerivativeSDV = (ft * w + Gf)* w0/(w * w * Gf) * std::exp(-ft*(w - w0)/Gf);
-            }
-            break;
-    }
+    // Get material properties
+    double tanPhi = std::tan(rVariables.FrictionAngle);
+    double c      = rVariables.Cohesion;
+    double ft     = rVariables.TensileStrength;
 
-    if(rVariables.DamageVariable > 1.0){
-        rVariables.DamageVariable = 0.99999;
-    }
-}
+    // Vector normal to the plastic potential surface (n = diff(f,td))
+    n = 2.0 * StressVector;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void ElastoPlasticModMohrCoulombCohesive3DLaw::CheckLoadingFunction(ConstitutiveLawVariables& rVariables,
-                                                    Parameters& rValues)
-{
-    rVariables.LoadingFlag = false;
-    rVariables.LoadingFunction = 0.0;
-
-    if(rVariables.EquivalentStrain >= rVariables.OldEquivalentStrain)
-    {
-        rVariables.LoadingFlag = true;
-        rVariables.LoadingFunction = 1.0;
-    }
+    // Fix the components associated with the normal traction changes according with its sign
+    n[VoigtSize-1] = 2.0*StressVector[VoigtSize-1] + 2.0*c*tanPhi - (2.0*StressVector[VoigtSize-1]*(-c*c + 2.0*tanPhi*c*ft + ft*ft)/(ft*ft));
 }
 
 //----------------------------------------------------------------------------------------
@@ -411,23 +421,6 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::GetElasticConstitutiveMatrix(Matr
     rElasticConstitutiveMatrix(0,0) = rVariables.ShearStiffness;
     rElasticConstitutiveMatrix(1,1) = rVariables.ShearStiffness;
     rElasticConstitutiveMatrix(2,2) = rVariables.NormalStiffness * cp;
-}
-
-//----------------------------------------------------------------------------------------
-
-void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeDamageConstitutiveMatrix(Matrix& rDamageConstitutiveMatrix,Vector& EffectiveStressVector,
-                                                        ConstitutiveLawVariables& rVariables,
-                                                        Parameters& rValues)
-{
-    const Vector& StrainVector = rValues.GetStrainVector();
-
-    // Initialize the damage part of the tangent constitutive matrix
-    const unsigned int VoigtSize = StrainVector.size();
-    rDamageConstitutiveMatrix.resize(VoigtSize,VoigtSize);
-
-    // Fill the matrix
-    noalias(rDamageConstitutiveMatrix) = outer_prod(EffectiveStressVector,rVariables.DerivativeEquivalentStrain);
-    rDamageConstitutiveMatrix = rDamageConstitutiveMatrix * rVariables.DerivativeSDV;
 }
 
 } // Namespace Kratos
