@@ -249,7 +249,7 @@ public:
     void GetDamageEffectTensor(BoundedMatrixVoigtType& DamageEffectTensor,
                                const BoundedVectorType& DamageVector
                                );
-    
+
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -280,6 +280,7 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
+        const double eps = 1e-8;
     ///@}
 
     ///@name Protected member Variables
@@ -298,65 +299,60 @@ protected:
      * @brief This method computes principal values of stresses/strains
      * @param VectorForm Stresses/Strains in vector form
      * @param Pri_Values principal values in vector form
-     * @param MaxValue maximum of the principal values
      * @param MinValue minimum of the principal values
      */
     void GetEigenValues(BoundedVectorType& Pri_Values,
-                        double& MaxValue,
                         const Variable<Vector>& rThisVariable,
-                        const Vector& VectorForm); 
-        
+                        const Vector& VectorForm);
+
     ///@}
-    
-    /**
-     * @brief This method computes dSprdS(dSigma_pr/dSigma or dEpsilon_pr/dEpsilon)
-     * @param VectorForm Stresses/strains in vector form
-     * @param PrincipalVector principal values
-     */
-    void ComputedSprdS(BoundedMatrix3x6Type& dSprdS,
-                       const Vector& VectorForm,
-                       const BoundedVectorType& PrincipalVector,
-                       const Variable<Vector>& rThisVariable
-                       );  
+
+
     /**
      * @brief This method computes stress weight factor
-     */                                
-    void GetStressWeightFactor(double &w, 
+     */
+    void GetStressWeightFactor(double &w,
                                const BoundedVectorType &s_pr) const ;
-    
+
     /**
      * @brief This method calculates the linearized tangent operator
-     */ 
+     */
     void CalculateParameters(BoundedMatrixVoigtType& EffStiffnessMatrix,
                              BoundedMatrix3x6Type& dEprdE,
                              BoundedMatrixType& dkdEpr,
-                             ConstitutiveLaw::Parameters& rParametersValues, 
+                             ConstitutiveLaw::Parameters& rParametersValues,
                              const BoundedVectorType& DamageVector
                              );
     /**
      * @brief This method calculates the linearized tangent operator
-     */ 
+     */
 
     void CalculatePartialDerivatives(BoundedMatrix6x3Type& dHdk,
                                     const Properties& rMaterialProperties,
                                     const BoundedVectorType& DamageVector,
-                                    const double Kappa0, 
-                                    const double Beta1, 
-                                    const double Beta2, 
+                                    const BoundedVectorType& Kappa0,
+                                    const BoundedVectorType& Beta1,
+                                    const BoundedVectorType& Beta2,
                                     const BoundedVectorType& Kappa
                                     );
-    /**
-     * @brief This method adjusts the stress/strain values to avoid the numerical problems due to zero entries
-     */ 
-    void ManipulationOfZeroEntries(BoundedVectorType& PrincipalVector,
-                                   const double eps);
+
     /**
      * @brief This method converts stress or strain vectors to tensors
-     */ 
+     */
     void VectorToTensor(BoundedMatrixType& TensorForm,
-                        const Vector& VectorForm, 
+                        const Vector& VectorForm,
                         const Variable<Vector>& rThisVariable
                         );
+    /**
+     * @brief the derivatives of eigen values with respect to the matrix elements
+     * @param DerivativesofEigenvalues
+     * @param EigenvaluesVector
+     * @param Voigtform
+     */
+    void CalculateDerivativesofEigenvalues(BoundedMatrix3x6Type &DerivativesofEigenvalues,
+                                           const BoundedVectorType &EigenvaluesVector,
+                                           const BoundedVectorVoigtType &Voigtform,
+                                           const Variable<Vector>& rThisVariable);
 
 private:
 
@@ -367,10 +363,10 @@ private:
 
     ///@name Member Variables
     ///@{
-    
+
     ///@}
 
-    ///@name Private Operators 
+    ///@name Private Operators
     ///@}
 
     ///@name Private  Access
