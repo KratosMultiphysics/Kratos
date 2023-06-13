@@ -237,10 +237,10 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpression([c, d])))
 
     def test_ReadEvaluate1(self):
-        a = Kratos.Expression.HistoricalExpression(self.model_part)
-        b = Kratos.Expression.NodalNonHistoricalExpression(self.model_part)
-        c = Kratos.Expression.ConditionNonHistoricalExpression(self.model_part)
-        d = Kratos.Expression.ElementNonHistoricalExpression(self.model_part)
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        c = Kratos.Expression.ConditionExpression(self.model_part)
+        d = Kratos.Expression.ElementExpression(self.model_part)
 
         collective = KratosOA.ContainerExpression.CollectiveExpression([a, b, c, d])
 
@@ -288,10 +288,10 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             self.assertEqual((velocity[2] + 2) * 3, result[i + offset, 2])
 
     def test_ReadEvaluate2(self):
-        a = Kratos.Expression.HistoricalExpression(self.model_part)
-        b = Kratos.Expression.NodalNonHistoricalExpression(self.model_part)
-        c = Kratos.Expression.ConditionNonHistoricalExpression(self.model_part)
-        d = Kratos.Expression.ElementNonHistoricalExpression(self.model_part)
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        c = Kratos.Expression.ConditionExpression(self.model_part)
+        d = Kratos.Expression.ElementExpression(self.model_part)
 
         collective = KratosOA.ContainerExpression.CollectiveExpression([a, b, c, d])
 
