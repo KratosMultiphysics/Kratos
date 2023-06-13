@@ -654,59 +654,67 @@ private:
     void EvaluateLimiter()
     {
         // Allocate and initialize auxiliary limiter arrays
-        const double max_init = std::numeric_limits<double>::max();
-        const double min_init = std::numeric_limits<double>::lowest();
-        std::vector<double> P_max(mAuxSize, max_init);
+        const double min_init = std::numeric_limits<double>::max();
+        const double max_init = std::numeric_limits<double>::lowest();
         std::vector<double> P_min(mAuxSize, min_init);
-        std::vector<double> Q_max(mAuxSize, max_init);
-        std::vector<double> Q_min(mAuxSize, min_init);
-        std::vector<double> u_max(mAuxSize, max_init);
-        std::vector<double> u_min(mAuxSize, min_init);
+        std::vector<double> P_max(mAuxSize, max_init);
+        std::vector<double> Q_min(mAuxSize);
+        std::vector<double> Q_max(mAuxSize);
 
-        //FIXME: We need to do it with the neighbours
+        // Calculate minimum and maximum allowable values
+        CalculateAllowedIncrements(Q_min, Q_max);
+    }
 
-        // // Get edge data structure containers
-        // const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
-        // const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
-        // SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
+    void CalculateAllowedIncrements(
+        std::vector<double>& rMinIncrementVector,
+        std::vector<double>& rMaxIncrementVector)
+    {
+        // Calculate maximum and minimum allowed values
+        std::vector<double> u_min_vect(mAuxSize);
+        std::vector<double> u_max_vect(mAuxSize);
+        block_for_each(mpModelPart->Nodes(), [&](Node &rNode) {
+            // Initialize values for current node (i)
+            double u_min = std::numeric_limits<double>::max();
+            double u_max = std::numeric_limits<double>::lowest();
 
-        // // Loop edges to "assemble" antidiffusive contributions
-        // // By assemble we mean to check edge-by-edge the contributions so the limiting is conservative
-        // IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
-        //     // Get current row (node) storage data
-        //     const auto it_row = r_row_indices.begin() + iRow;
-        //     const IndexType i_col_index = *it_row;
-        //     const SizeType n_cols = *(it_row+1) - i_col_index;
+            // i-node data
+            const IndexType i_id = rNode.Id();
+            const double u_i_low = mSolution[i_id];
+            const double u_i_old = mSolutionOld[i_id];
+            const double u_i_min = std::min(u_i_low, u_i_old);
+            const double u_i_max = std::max(u_i_low, u_i_old);
 
-        //     // Check that there are CSR columns (i.e. that current node involves an edge)
-        //     if (n_cols != 0) {
-        //         // i-node data
-        //         const double u_i_low = mSolution[iRow];
-        //         const double u_i_old = mSolutionOld[iRow];
-        //         const double u_i_max = std::max(u_i_low, u_i_old);
-        //         const double u_i_min = std::min(u_i_low, u_i_old);
+            // j-node nodal loop (i.e. loop ij-edges)
+            auto& r_neighs_i = rNode.GetValue(NEIGHBOUR_NODES);
+            for (auto& rp_neigh : r_neighs_i) {
+                // j-node data
+                const IndexType j_id = rp_neigh.Id();
+                const double u_j_low = mSolution[j_id];
+                const double u_j_old = mSolutionOld[j_id];
+                const double u_j_min = std::min(u_j_low, u_j_old);
+                const double u_j_max = std::max(u_j_low, u_j_old);
 
-        //         // j-node nodal loop (i.e. loop ij-edges)
-        //         double u_ij_max;
-        //         double u_ij_min;
-        //         const auto i_col_begin = r_col_indices.begin() + i_col_index;
-        //         for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
-        //             // j-node data
-        //             IndexType j_node_id = *(i_col_begin + j_node);
-        //             const double u_j_low = mSolution[j_node_id];
-        //             const double u_j_old = mSolutionOld[j_node_id];
-        //             const double u_j_max = std::max(u_j_low, u_j_old);
-        //             const double u_j_min = std::min(u_j_low, u_j_old);
+                // Check among current ij-edge nodes
+                const double u_ij_min = std::min(u_j_min, u_i_min);
+                const double u_ij_max = std::max(u_j_max, u_i_max);
 
-        //             // Check among edges sharing i-node
-        //             u_ij_max = std::max(u_j_max, u_i_max);
-        //             u_ij_min = std::max(u_j_min, u_i_min);
-        //         }
+                // Check among edges sharing i-node
+                u_min = std::min(u_min, u_ij_min);
+                u_max = std::max(u_max, u_ij_max);
+            }
 
+            // Save maximum and minimum of all edges surrounding i-node
+            u_min_vect[i_id] = u_min;
+            u_max_vect[i_id] = u_max;
+        });
 
-
-        //     }
-        // });
+        // Calculate maximum and minimum allowed increments
+        // Note that this requires the low order solution to be already computed
+        IndexPartition<IndexType>(mAuxSize).for_each([&](IndexType i){
+            const double u_l = mSolution[i];
+            rMinIncrementVector[i] = u_min_vect[i] - u_l;
+            rMaxIncrementVector[i] = u_max_vect[i] - u_l;
+        });
     }
 
     ///@}
