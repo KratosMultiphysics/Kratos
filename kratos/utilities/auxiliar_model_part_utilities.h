@@ -34,19 +34,6 @@ namespace Kratos
     typedef std::size_t IndexType;
 
 ///@}
-///@name  Enum's
-///@{
-
-enum class DataLocation {
-    NodeHistorical,
-    NodeNonHistorical,
-    Element,
-    Condition,
-    ModelPart,
-    ProcessInfo
-};
-
-///@}
 ///@name  Functions
 ///@{
 
@@ -65,6 +52,8 @@ public:
 
     /// Counted pointer of AuxiliarModelPartUtilities
     KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
+
+    using DataLocation = Globals::DataLocation;
 
     ///@}
     ///@name Life Cycle
