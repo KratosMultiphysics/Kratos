@@ -338,17 +338,21 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
             const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
+            const double max_stress_mode_one = r_material_properties[MAXIMUM_STRESS_MODE_ONE];
+            const double max_stress_mode_two = r_material_properties[MAXIMUM_STRESS_MODE_TWO];
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
 
                 DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
+                // DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageHardening(rValues, GIc, Ei, T0n, max_stress_mode_one, equivalent_stress_mode_one);
             }
 
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
 
                 DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
+                // DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageHardening(rValues, GIIc, Gi, T0s, max_stress_mode_two, equivalent_stress_mode_two);
             }
 
             // End damage calculation
@@ -538,11 +542,14 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             const double GIIc = r_material_properties[MODE_TWO_FRACTURE_ENERGY]; // Mode II Energy Release Rate
             const double Ei = r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
+            const double max_stress_mode_one = r_material_properties[MAXIMUM_STRESS_MODE_ONE];
+            const double max_stress_mode_two = r_material_properties[MAXIMUM_STRESS_MODE_TWO];
 
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
 
                 DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
+                // DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageHardening(rValues, GIc, Ei, T0n, max_stress_mode_one, equivalent_stress_mode_one);
 
                 mDelaminationDamageModeOne[i+1] = DelaminationDamageModeOne[i+1];
                 mThresholdModeOne[i] = equivalent_stress_mode_one;
@@ -552,6 +559,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             if (F_mode_two > tolerance) {
 
                 DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIIc, Gi, T0s, equivalent_stress_mode_two);
+                // DelaminationDamageModeTwo[i+1] = CalculateDelaminationDamageHardening(rValues, GIIc, Gi, T0s, max_stress_mode_two, equivalent_stress_mode_two);
 
                 mDelaminationDamageModeTwo[i+1] = DelaminationDamageModeTwo[i+1];
                 mThresholdModeTwo[i] = equivalent_stress_mode_two;
@@ -605,6 +613,41 @@ double TractionSeparationLaw3D<TDim>::CalculateDelaminationDamageExponentialSoft
     KRATOS_ERROR_IF(AParameter < 0.0) << "AParameter is negative." << std::endl;
 
     double DelaminationDamage = 1.0 - (T0 / equivalent_stress) * std::exp(AParameter * (1.0 - equivalent_stress / T0)); // Exponential
+
+    DelaminationDamage = (DelaminationDamage >= 0.99999) ? 0.99999 : DelaminationDamage;
+    DelaminationDamage = (DelaminationDamage < 0.0) ? 0.0 : DelaminationDamage;
+    return DelaminationDamage;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+double TractionSeparationLaw3D<TDim>::CalculateDelaminationDamageHardening(
+    ConstitutiveLaw::Parameters& rValues,
+    const double GI,
+    const double E,
+    const double T0,
+    const double maximum_stress,
+    const double equivalent_stress)
+{
+    const double characteristic_length = 0.6343 * (AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry()));
+    const double n = 1.0;
+    const double re = maximum_stress / T0;
+    const double rp = 1.5 * re;
+    const double Ad = (rp - re) / re;
+    const double Ad_tilda = Ad * (std::pow(rp, 3) - 3.0 * rp + 2.0 / 3.0) / (6.0 * re * std::pow((rp - 1.0), 2));
+    const double Hd = 1.0 / (2.0 * (E * GI * n * n / maximum_stress / maximum_stress / characteristic_length - 0.5 * rp / re - Ad_tilda));
+
+    const double r = equivalent_stress / T0;
+
+    double DelaminationDamage = 0;
+
+    if (r <= rp) {
+        DelaminationDamage = Ad * re / r * std::pow(((r - 1.0) / (rp - 1.0)), 2);
+    } else {
+        DelaminationDamage = 1.0 - re / r + Hd * (1.0 - rp / r);
+    }
 
     DelaminationDamage = (DelaminationDamage >= 0.99999) ? 0.99999 : DelaminationDamage;
     DelaminationDamage = (DelaminationDamage < 0.0) ? 0.0 : DelaminationDamage;

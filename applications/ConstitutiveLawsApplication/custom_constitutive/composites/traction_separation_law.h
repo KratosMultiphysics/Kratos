@@ -224,6 +224,18 @@ public:
         const double equivalent_stress);
 
     /**
+     * @brief Calculate delamination damage in different modes
+     * @see Parameters
+     */
+    double CalculateDelaminationDamageHardening (
+        ConstitutiveLaw::Parameters& rValues,
+        const double GI,
+        const double E,
+        const double T0,
+        const double maximum_stress,
+        const double equivalent_stress);
+
+    /**
      * @brief This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed to catch user's errors.
      * @param rMaterialProperties
