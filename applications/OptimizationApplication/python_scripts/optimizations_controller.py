@@ -80,7 +80,7 @@ class OptimizationsController:
 
         self.optimizations_algorithm={}
         self.supported_opt_types = ["gradient_based"]
-        self.supported_algorithms = ["steepest_descent","gradient_projection"]
+        self.supported_algorithms = ["gradient_projection"]
 
 
 
@@ -195,9 +195,7 @@ class OptimizationsController:
             if not algorithm in self.supported_algorithms:
                 raise RuntimeError("OptimizationsController: Optimization algorithm '{}' is not supported, supprted types {}.".format(algorithm,self.supported_algorithms))                  
 
-            if algorithm == "steepest_descent":
-                self.optimizations[opt_name] = steepest_descent.AlgorithmSteepestDescent(opt_name,opt_settings["settings"],model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
-            elif algorithm == "gradient_projection":
+            if algorithm == "gradient_projection":
                 self.optimizations[opt_name] = gradient_projection.AlgorithmGradientProjection(opt_name,opt_settings["settings"],model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
     
         
