@@ -93,45 +93,6 @@ void CollectiveExpressionFromPythonArray(
     KRATOS_CATCH("");
 }
 
-void CollectiveExpressionMoveFromPythonArray(
-    CollectiveExpression& rCollectiveExpression,
-    pybind11::array_t<double>& rData,
-    const std::vector<int>& rListOfNumberOfEntitiesInContainers,
-    const std::vector<std::vector<int>>& rListOfShapes)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
-
-    KRATOS_ERROR_IF(rListOfNumberOfEntitiesInContainers.size() != rListOfShapes.size())
-        << "List of number of entities and list of shapes size mismatch. "
-        << "[ List of number of entities size = "
-        << rListOfNumberOfEntitiesInContainers.size()
-        << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
-
-    // create c style double pointer from std::vector list for shapes.
-    int const** p_list_of_shapes =
-        new int const*[rListOfNumberOfEntitiesInContainers.size()];
-    std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes,
-                   [](const auto& rShape) { return rShape.data(); });
-
-    // create c style double pointer for sizes of std::vector list.
-    int* p_list_of_shape_dimensions =
-        new int[rListOfNumberOfEntitiesInContainers.size()];
-    std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shape_dimensions,
-                   [](const auto& rShape) { return rShape.size(); });
-
-    CollectiveExpressionIO::Move(rCollectiveExpression, rData.mutable_data(),
-                                 rListOfNumberOfEntitiesInContainers.data(),
-                                 p_list_of_shapes, p_list_of_shape_dimensions,
-                                 rListOfNumberOfEntitiesInContainers.size());
-
-    // delete allocated memories
-    delete[] p_list_of_shapes;
-    delete[] p_list_of_shape_dimensions;
-
-    KRATOS_CATCH("");
-}
 } // namespace Detail
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
