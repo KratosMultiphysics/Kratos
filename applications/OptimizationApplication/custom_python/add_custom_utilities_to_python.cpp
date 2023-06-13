@@ -87,6 +87,7 @@ void CollectiveExpressionFromPythonArray(
     // delete allocated memories
     delete[] p_list_of_shapes;
     delete[] p_list_of_shape_dimensions;
+    delete[] p_list_of_number_of_entities_in_container;
 
     KRATOS_CATCH("");
 }
