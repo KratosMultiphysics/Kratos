@@ -57,25 +57,25 @@ public:
     ///@name Public classes
     ///@{
 
-    class KRATOS_API(KRATOS_CORE) DataExpressionInput : public ExpressionInput
+    class KRATOS_API(KRATOS_CORE) LiteralExpressionInput : public ExpressionInput
     {
     public:
         ///@name Type definitions
         ///@{
 
-        KRATOS_CLASS_POINTER_DEFINITION(DataExpressionInput);
+        KRATOS_CLASS_POINTER_DEFINITION(LiteralExpressionInput);
 
         ///@}
         ///@name Life cycle
         ///@{
 
-        DataExpressionInput(
+        LiteralExpressionInput(
             const ModelPart& rModelPart,
             const DataType& rValue,
             const ContainerType& rContainerType,
             const MeshType& rMeshType = MeshType::Local);
 
-        ~DataExpressionInput() override = default;
+        ~LiteralExpressionInput() override = default;
 
         ///@}
         ///@name Public operations

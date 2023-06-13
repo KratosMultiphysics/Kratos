@@ -23,7 +23,7 @@
 #include "expression/expression_io.h"
 #include "expression/variable_expression_io.h"
 #include "expression/c_array_expression_io.h"
-#include "expression/data_expression_input.h"
+#include "expression/literal_expression_input.h"
 #include "expression/literal_expression.h"
 #include "expression/literal_flat_expression.h"
 #include "expression/arithmetic_operators.h"
@@ -279,14 +279,14 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         .def("Execute", &ExpressionOutput::Execute)
         ;
 
-    pybind11::enum_<ContainerType>(variable_expression_io, "ContainerType")
+    pybind11::enum_<ContainerType>(rModule, "ContainerType")
         .value("NodalHistorical", ContainerType::NodalHistorical)
         .value("NodalNonHistorical", ContainerType::NodalNonHistorical)
         .value("ElementNonHistorical", ContainerType::ElementNonHistorical)
         .value("ConditionNonHistorical", ContainerType::ConditionNonHistorical)
         ;
 
-    pybind11::enum_<MeshType>(variable_expression_io, "MeshType")
+    pybind11::enum_<MeshType>(rModule, "MeshType")
         .value("Local", MeshType::Local)
         .value("Interface", MeshType::Interface)
         .value("Ghost", MeshType::Ghost)
@@ -347,7 +347,7 @@ void AddExpressionIOToPython(pybind11::module& rModule)
     Detail::AddLiteralExpressionIOMethods<ModelPart::ElementsContainerType, int>(data_expression_io);
     Detail::AddLiteralExpressionIOMethods<ModelPart::ElementsContainerType, double>(data_expression_io);
 
-    pybind11::class_<LiteralExpressionIO::DataExpressionInput, LiteralExpressionIO::DataExpressionInput::Pointer, ExpressionInput>(
+    pybind11::class_<LiteralExpressionIO::LiteralExpressionInput, LiteralExpressionIO::LiteralExpressionInput::Pointer, ExpressionInput>(
         data_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
                             const LiteralExpressionIO::DataType&,
