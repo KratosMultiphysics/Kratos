@@ -26,9 +26,11 @@
 #include "custom_utilities/optimization_utils.h"
 #include "custom_utilities/container_properties_data_io.h"
 #include "custom_utilities/collective_expressions.h"
+#include "custom_utilities/collective_expression.h"
 #include "custom_utilities/container_expression_utils.h"
 #include "custom_utilities/properties_variable_expression_io.h"
 #include "custom_utilities/implicit_filter_utils.h"
+#include "custom_utilities/collective_expression_io.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -215,6 +217,69 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("__pow__", [](CollectiveExpressions& rSelf, const double Value) { CollectiveExpressions result(rSelf); result = rSelf.Pow(Value); return result; })
         .def("__ipow__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf.Pow(Value); return rSelf; })
         .def("__neg__", [](CollectiveExpressions& rSelf) { return rSelf.operator*(-1.0); })
+        ;
+
+    // Add collective expression to python
+    pybind11::class_<CollectiveExpression, CollectiveExpression::Pointer>(sub_module, "CollectiveExpression")
+        .def(pybind11::init<>())
+        .def(pybind11::init<const std::vector<CollectiveExpression::CollectiveExpressionType>&>())
+        .def("Add", pybind11::overload_cast<const CollectiveExpression::CollectiveExpressionType&>(&CollectiveExpression::Add))
+        .def("Add", pybind11::overload_cast<const CollectiveExpression&>(&CollectiveExpression::Add))
+        .def("Clear", &CollectiveExpression::Clear)
+        .def("Evaluate", [](const CollectiveExpression& rSelf){
+            const auto& r_container_expressions = rSelf.GetContainerExpressions();
+            if (r_container_expressions.size() > 0) {
+                bool is_same_item_shape = true;
+                IndexType number_of_entities = 0;
+                auto current_shape =  std::visit([](auto& pContainerExpression) {return pContainerExpression->GetItemShape();}, r_container_expressions[0]);
+
+                for (const auto& r_container_expression : r_container_expressions) {
+                    is_same_item_shape = is_same_item_shape && std::visit([&current_shape, &number_of_entities](auto& pContainerExpression){
+                        number_of_entities += pContainerExpression->GetContainer().size();
+                        return pContainerExpression->GetItemShape() == current_shape;
+                    }, r_container_expression);
+                }
+
+                // if all the container expressions does not have the same shape, make the output numpy array scalar.
+                if (!is_same_item_shape) {
+                    current_shape.clear();
+                    number_of_entities = rSelf.GetCollectiveFlattenedDataSize();
+                }
+
+                auto array = AllocateNumpyArray<double>(number_of_entities, current_shape);
+                CollectiveExpressionIO::WriteCArray(rSelf, array.mutable_data(), array.size());
+                return array;
+            } else {
+                return AllocateNumpyArray<double>(0, {});
+            }
+        })
+        .def("GetCollectiveFlattenedDataSize", &CollectiveExpression::GetCollectiveFlattenedDataSize)
+        .def("GetContainerExpressions", pybind11::overload_cast<>(&CollectiveExpression::GetContainerExpressions))
+        .def("IsCompatibleWith", &CollectiveExpression::IsCompatibleWith)
+        .def("Clone", &CollectiveExpression::Clone)
+        .def("Scale", [](const CollectiveExpression& rSelf, const CollectiveExpression& rOther){auto copy = rSelf; copy.Scale(rOther); return copy;})
+        .def("__add__", [](const CollectiveExpression& rSelf, const CollectiveExpression& rOther) { return rSelf + rOther; })
+        .def("__iadd__", [](CollectiveExpression& rSelf, const CollectiveExpression& rOther) { rSelf = rSelf + rOther; return rSelf; })
+        .def("__add__", [](const CollectiveExpression& rSelf, const double Value) { return rSelf + Value; })
+        .def("__iadd__", [](CollectiveExpression& rSelf, const double Value) { rSelf = rSelf + Value; return rSelf; })
+        .def("__sub__", [](const CollectiveExpression& rSelf, const CollectiveExpression& rOther) { return rSelf - rOther; })
+        .def("__isub__", [](CollectiveExpression& rSelf, const CollectiveExpression& rOther) { rSelf = rSelf - rOther; return rSelf; })
+        .def("__sub__", [](const CollectiveExpression& rSelf, const double Value) { return rSelf - Value; })
+        .def("__isub__", [](CollectiveExpression& rSelf, const double Value) { rSelf = rSelf - Value; return rSelf; })
+        .def("__mul__", [](const CollectiveExpression& rSelf, const CollectiveExpression& rOther) { return rSelf * rOther; })
+        .def("__imul__", [](CollectiveExpression& rSelf, const CollectiveExpression& rOther) { rSelf = rSelf * rOther; return rSelf; })
+        .def("__mul__", [](const CollectiveExpression& rSelf, const double Value) { return rSelf * Value; })
+        .def("__imul__", [](CollectiveExpression& rSelf, const double Value) { rSelf = rSelf * Value; return rSelf; })
+        .def("__truediv__", [](const CollectiveExpression& rSelf, const CollectiveExpression& rOther) { return rSelf / rOther; })
+        .def("__itruediv__", [](CollectiveExpression& rSelf, const CollectiveExpression& rOther) { rSelf = rSelf / rOther; return rSelf; })
+        .def("__truediv__", [](const CollectiveExpression& rSelf, const double Value) { return rSelf / Value; })
+        .def("__itruediv__", [](CollectiveExpression& rSelf, const double Value) { rSelf = rSelf / Value; return rSelf; })
+        .def("__pow__", [](CollectiveExpression& rSelf, const CollectiveExpression& rInput) { CollectiveExpression result; result = Power(rSelf, rInput); return result; })
+        .def("__ipow__", [](CollectiveExpression& rSelf, const CollectiveExpression& rInput) { rSelf = Power(rSelf, rInput); return rSelf; })
+        .def("__pow__", [](CollectiveExpression& rSelf, const double Value) { CollectiveExpression result; result = Power(rSelf, Value); return result; })
+        .def("__ipow__", [](CollectiveExpression& rSelf, const double Value) { rSelf = Power(rSelf, Value); return rSelf; })
+        .def("__neg__", [](CollectiveExpression& rSelf) { return rSelf *= -1.0; })
+        .def("__str__", &CollectiveExpression::Info)
         ;
 
     m.def_submodule("ContainerExpressionUtils")
