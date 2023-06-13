@@ -46,15 +46,9 @@ public:
     using IndexType = std::size_t;
 
     using CollectiveExpressionType = std::variant<
-            ContainerExpression<ModelPart::NodesContainerType, MeshType::Local>::Pointer,
-            ContainerExpression<ModelPart::NodesContainerType, MeshType::Ghost>::Pointer,
-            ContainerExpression<ModelPart::NodesContainerType, MeshType::Interface>::Pointer,
-            ContainerExpression<ModelPart::ConditionsContainerType, MeshType::Local>::Pointer,
-            ContainerExpression<ModelPart::ConditionsContainerType, MeshType::Ghost>::Pointer,
-            ContainerExpression<ModelPart::ConditionsContainerType, MeshType::Interface>::Pointer,
-            ContainerExpression<ModelPart::ElementsContainerType, MeshType::Local>::Pointer,
-            ContainerExpression<ModelPart::ElementsContainerType, MeshType::Ghost>::Pointer,
-            ContainerExpression<ModelPart::ElementsContainerType, MeshType::Interface>::Pointer>;
+            ContainerExpression<ModelPart::NodesContainerType>::Pointer,
+            ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
+            ContainerExpression<ModelPart::ElementsContainerType>::Pointer>;
 
     KRATOS_CLASS_POINTER_DEFINITION(CollectiveExpression);
 
