@@ -19,6 +19,7 @@
 #include "spaces/ublas_space.h"
 #include "spatial_containers/spatial_containers.h"
 #include "expression/container_expression.h"
+#include "collective_expression.h"
 
 // Application includes
 #include "custom_utilities/collective_expressions.h"
@@ -77,6 +78,21 @@ public:
     static double NormInf(const CollectiveExpressions& rContainer);
 
     /**
+     * @brief Calculate infinity norm of the evaluated expressions for each entitiy.
+     *
+     * This method calculates the infinity norm of the expressions by evaluating
+     * the expression for each entity in the container. Then the infinity norm of all the
+     * collective expressions are computed, hence this is an expensive
+     * operation.
+     *
+     * This method is optimized and compatible with OpenMP and MPI.
+     *
+     * @param rContainer                Collective expressions.
+     * @return double                   Infinity norm.
+     */
+    static double NormInf(const CollectiveExpression& rContainer);
+
+    /**
      * @brief Calculate L2 norm of the evaluated expression for each entitiy.
      *
      * This method calculates the L2 norm of the expression by evaluating
@@ -106,6 +122,21 @@ public:
      * @return double                   L2 norm
      */
     static double NormL2(const CollectiveExpressions& rContainer);
+
+    /**
+     * @brief Calculate L2 norm of the evaluated expressions for each entitiy.
+     *
+     * This method calculates the L2 norm of the expression by evaluating
+     * the expression for each entity in the container. Then the L2 norm of all the
+     * collective expressions are computed, hence this is an expensive
+     * operation.
+     *
+     * This method is optimized and compatible with OpenMP and MPI.
+     *
+     * @param rContainer                Collective expressions.
+     * @return double                   L2 norm
+     */
+    static double NormL2(const CollectiveExpression& rContainer);
 
     /**
      * @brief Calculate max L2 norm of the evaluated expression for each entitiy.
@@ -155,6 +186,22 @@ public:
     static double InnerProduct(
         const CollectiveExpressions& rContainer1,
         const CollectiveExpressions& rContainer2);
+
+    /**
+     * @brief Computes inner product between two container expressions by evaluating
+     * both expressions for each entity in their containers, hence this is an
+     * expensive operation. Both container expressions should have the same types of containe expressions,
+     * therefore they may have the same container expressions lists.
+     *
+     * This method is optimized and compatible with OpenMP and MPI.
+     *
+     * @param rContainer1               Container expressions 1
+     * @param rContainer2               Container expressions 2
+     * @return double                   Output of the inner product.
+     */
+    static double InnerProduct(
+        const CollectiveExpression& rContainer1,
+        const CollectiveExpression& rContainer2);
 
     /**
      * @brief Calculates matrix vector product for container variable data

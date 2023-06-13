@@ -170,6 +170,16 @@ double ContainerExpressionUtils::NormInf(
     return max_norm;
 }
 
+double ContainerExpressionUtils::NormInf(
+    const CollectiveExpression& rContainer)
+{
+    double max_norm = std::numeric_limits<double>::lowest();
+    for (const auto& p_variable_data_container : rContainer.GetContainerExpressions()) {
+        std::visit([&max_norm](const auto& v) { max_norm = std::max(max_norm, NormInf(*v));}, p_variable_data_container);
+    }
+    return max_norm;
+}
+
 template<class TContainerType>
 double ContainerExpressionUtils::NormL2(
     const ContainerExpression<TContainerType>& rContainer)
@@ -192,6 +202,16 @@ double ContainerExpressionUtils::NormL2(
 
 double ContainerExpressionUtils::NormL2(
     const CollectiveExpressions& rContainer)
+{
+    double l2_norm_square = 0.0;
+    for (const auto& p_variable_data_container : rContainer.GetContainerExpressions()) {
+        std::visit([&l2_norm_square](const auto& v) { l2_norm_square += std::pow(NormL2(*v), 2);}, p_variable_data_container);
+    }
+    return std::sqrt(l2_norm_square);
+}
+
+double ContainerExpressionUtils::NormL2(
+    const CollectiveExpression& rContainer)
 {
     double l2_norm_square = 0.0;
     for (const auto& p_variable_data_container : rContainer.GetContainerExpressions()) {
@@ -244,6 +264,25 @@ double ContainerExpressionUtils::InnerProduct(
 double ContainerExpressionUtils::InnerProduct(
     const CollectiveExpressions& rContainer1,
     const CollectiveExpressions& rContainer2)
+{
+    KRATOS_ERROR_IF_NOT(rContainer1.IsCompatibleWith(rContainer2))
+        << "Unsupported collective variable data holders provided for \"+\" operation."
+        << "\nLeft operand : " << rContainer1 << "\nRight operand: " << rContainer2 << std::endl;
+
+    double inner_product_value = 0.0;
+    for (IndexType i = 0; i < rContainer1.GetContainerExpressions().size(); ++i) {
+        const auto v_2 = rContainer2.GetContainerExpressions()[i];
+        std::visit([&inner_product_value, &v_2](const auto& v_1) {
+            using v_type = std::decay_t<decltype(v_1)>;
+            inner_product_value += InnerProduct(*v_1, *std::get<v_type>(v_2));
+        }, rContainer1.GetContainerExpressions()[i]);
+    }
+    return inner_product_value;
+}
+
+double ContainerExpressionUtils::InnerProduct(
+    const CollectiveExpression& rContainer1,
+    const CollectiveExpression& rContainer2)
 {
     KRATOS_ERROR_IF_NOT(rContainer1.IsCompatibleWith(rContainer2))
         << "Unsupported collective variable data holders provided for \"+\" operation."
