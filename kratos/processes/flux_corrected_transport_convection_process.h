@@ -127,11 +127,12 @@ public:
         // Also note that this implies having a "fake" 0-id entry in the first position of the arrays
         mAuxSize = mpModelPart->NumberOfNodes() + 1;
         mResidual.resize(mAuxSize);
+        mSolution.resize(mAuxSize);
+        mSolutionOld.resize(mAuxSize);
         mLowOrderUpdate.resize(mAuxSize);
         mHighOrderUpdate.resize(mAuxSize);
-        mSolution.resize(mAuxSize);
         mConvectionValues.resize(mAuxSize);
-        mConvectionValuesOld.resize(mAuxSize);
+        mAntidiffusiveContributions.resize(mAuxSize);
     }
 
     void Execute() override
@@ -150,14 +151,13 @@ public:
         const double time = r_process_info[TIME];
         double prev_time = r_prev_process_info[TIME];
 
-        // Update data vectors
+        // Initialize data vectors
         const SizeType n_nodes = mpModelPart->NumberOfNodes();
         IndexPartition<IndexType>(n_nodes).for_each([this](IndexType iNode){
             const auto it_node = mpModelPart->NodesBegin() + iNode;
             const IndexType i_node_id = it_node->Id();
-            mSolution[i_node_id] = it_node->GetSolutionStepValue(*mpConvectedVar,1); //solution at n
+            mSolutionOld[i_node_id] = it_node->GetSolutionStepValue(*mpConvectedVar,1); //solution at n
             mConvectionValues[i_node_id] = it_node->GetSolutionStepValue(*mpConvectionVar,1); //convective velocity at n
-            mConvectionValuesOld[i_node_id] = it_node->GetSolutionStepValue(*mpConvectionVar,2); //convective velocity at n-1
         });
 
         GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportConvectionProcess2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
@@ -205,11 +205,12 @@ public:
     void Clear() override
     {
         mResidual.clear();
+        mSolution.clear();
+        mSolutionOld.clear();
         mLowOrderUpdate.clear();
         mHighOrderUpdate.clear();
-        mSolution.clear();
         mConvectionValues.clear();
-        mConvectionValuesOld.clear();
+        mAntidiffusiveContributions.clear();
         mpEdgeDataStructure->Clear();
     }
 
@@ -287,15 +288,17 @@ private:
 
     std::vector<double> mResidual; /// Auxiliary vector to assemble the edge residuals
 
-    std::vector<double> mSolution; /// Auxiliary vector containing the solution
+    std::vector<double> mSolution; /// Auxiliary vector containing the current solution
 
-    std::vector<double> mLowOrderUpdate;
+    std::vector<double> mSolutionOld; /// Auxiliary vector containing the previous step solution
 
-    std::vector<double> mHighOrderUpdate;
+    std::vector<double> mLowOrderUpdate; /// Auxiliary vector containing the low order solution update
+
+    std::vector<double> mHighOrderUpdate; /// Auxiliary vector containing the high order solution update
+
+    std::vector<double> mAntidiffusiveContributions; /// Auxiliary vector containing the antidiffusive contributions
 
     std::vector<array_1d<double,3>> mConvectionValues; /// Auxiliary vector to store the convection variable values (e.g. VELOCITY)
-
-    std::vector<array_1d<double,3>> mConvectionValuesOld; /// Auxiliary vector to store the previous step convection variable values (e.g. VELOCITY)
 
     typename EdgeBasedDataStructure<TDim>::UniquePointer mpEdgeDataStructure; /// Pointer to the edge-based data structure
 
@@ -389,9 +392,18 @@ private:
         // Calculate the high order solution update
         CalculateHighOrderSolutionUpdate(DeltaTime);
 
+        // Calculate the raw antidiffusive contribution and low order update
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
-            mSolution[i] += mLowOrderUpdate[i];
-            // mSolution[i] += mHighOrderUpdate[i];
+            mSolution[i] = mSolutionOld[i] + mLowOrderUpdate[i];
+            mAntidiffusiveContributions[i] = mHighOrderUpdate[i] - mLowOrderUpdate[i];
+        });
+
+        // Evaluate limiter
+        EvaluateLimiter();
+
+        // Do the current step solution update
+        IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
+            mSolutionOld[i] = mSolution[i];
         });
     }
 
@@ -431,7 +443,7 @@ private:
                 auto& vel_ij_half = rTLS.vel_ij_half;
 
                 // i-node nodal data
-                const double u_i = mSolution[iRow];
+                const double u_i = mSolutionOld[iRow];
                 const auto& r_i_vel = mConvectionValues[iRow];
 
                 // i-node convective flux calculation
@@ -444,7 +456,7 @@ private:
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    const double u_j = mSolution[j_node_id];
+                    const double u_j = mSolutionOld[j_node_id];
                     const auto& r_j_vel = mConvectionValues[j_node_id];
 
                     // j-node convective flux calculation
@@ -502,7 +514,7 @@ private:
             // Add the diagonal contribution to the residual
             rTLS = mpEdgeDataStructure->GetBoundaryMassMatrixDiagonal(i_node_id);
             double aux_res = 0.0;
-            const double u_i = mSolution[i_node_id];
+            const double u_i = mSolutionOld[i_node_id];
             const auto &r_i_vel = mConvectionValues[i_node_id];
             for (IndexType d = 0; d < TDim; ++d) {
                 aux_res += u_i * r_i_vel[d] * rTLS[d];
@@ -533,7 +545,7 @@ private:
             // Check that there are CSR columns (i.e. that current node involves an edge)
             if (n_cols != 0) {
                 // i-node nodal data
-                const double u_i = mSolution[iRow];
+                const double u_i = mSolutionOld[iRow];
                 const auto& r_i_vel = mConvectionValues[iRow];
 
                 // j-node nodal loop (i.e. loop ij-edges)
@@ -541,7 +553,7 @@ private:
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    const double u_j = mSolution[j_node_id];
+                    const double u_j = mSolutionOld[j_node_id];
                     const auto& r_j_vel = mConvectionValues[j_node_id];
 
                     // Add low order scheme diffusion
@@ -637,6 +649,64 @@ private:
             });
 
         }
+    }
+
+    void EvaluateLimiter()
+    {
+        // Allocate and initialize auxiliary limiter arrays
+        const double max_init = std::numeric_limits<double>::max();
+        const double min_init = std::numeric_limits<double>::lowest();
+        std::vector<double> P_max(mAuxSize, max_init);
+        std::vector<double> P_min(mAuxSize, min_init);
+        std::vector<double> Q_max(mAuxSize, max_init);
+        std::vector<double> Q_min(mAuxSize, min_init);
+        std::vector<double> u_max(mAuxSize, max_init);
+        std::vector<double> u_min(mAuxSize, min_init);
+
+        //FIXME: We need to do it with the neighbours
+
+        // // Get edge data structure containers
+        // const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
+        // const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
+        // SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
+
+        // // Loop edges to "assemble" antidiffusive contributions
+        // // By assemble we mean to check edge-by-edge the contributions so the limiting is conservative
+        // IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
+        //     // Get current row (node) storage data
+        //     const auto it_row = r_row_indices.begin() + iRow;
+        //     const IndexType i_col_index = *it_row;
+        //     const SizeType n_cols = *(it_row+1) - i_col_index;
+
+        //     // Check that there are CSR columns (i.e. that current node involves an edge)
+        //     if (n_cols != 0) {
+        //         // i-node data
+        //         const double u_i_low = mSolution[iRow];
+        //         const double u_i_old = mSolutionOld[iRow];
+        //         const double u_i_max = std::max(u_i_low, u_i_old);
+        //         const double u_i_min = std::min(u_i_low, u_i_old);
+
+        //         // j-node nodal loop (i.e. loop ij-edges)
+        //         double u_ij_max;
+        //         double u_ij_min;
+        //         const auto i_col_begin = r_col_indices.begin() + i_col_index;
+        //         for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
+        //             // j-node data
+        //             IndexType j_node_id = *(i_col_begin + j_node);
+        //             const double u_j_low = mSolution[j_node_id];
+        //             const double u_j_old = mSolutionOld[j_node_id];
+        //             const double u_j_max = std::max(u_j_low, u_j_old);
+        //             const double u_j_min = std::min(u_j_low, u_j_old);
+
+        //             // Check among edges sharing i-node
+        //             u_ij_max = std::max(u_j_max, u_i_max);
+        //             u_ij_min = std::max(u_j_min, u_i_min);
+        //         }
+
+
+
+        //     }
+        // });
     }
 
     ///@}
