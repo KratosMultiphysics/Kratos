@@ -157,19 +157,19 @@ public:
 					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
 					this->Normalize(rN);
 
-					for( unsigned int i = 0; i < j; ++i)// Skip term (i,i)
-					{
-						rLocalMatrix(i,j) = 0.0;
-						rLocalMatrix(j,i) = 0.0;
-					}
-					for( unsigned int i = j+1; i < LocalSize; ++i)
-					{
-						rLocalMatrix(i,j) = 0.0;
-						rLocalMatrix(j,i) = 0.0;
-					}
+                    // Zero out row/column corresponding to normal displacement DoF except diagonal term (set to 1)
+                    // Applied IFF the local matrix passed is not empty [otherwise does nothing -- RHS only case]
+                    if (rLocalMatrix.size1() != 0) {
+                        for( unsigned int i = 0; i < LocalSize; ++i)
+                        {
+                            rLocalMatrix(i,j) = 0.0;
+                            rLocalMatrix(j,i) = 0.0;
+                        }
+                        rLocalMatrix(j, j) = 1.0; // set diagonal term to 1.0
+                    }
 
+                    // Set value of normal displacement at node directly to the normal displacement of the boundary mesh
 					rLocalVector[j] = inner_prod(rN,displacement);
-					rLocalMatrix(j,j) = 1.0;
 				}
 			}
 		}
@@ -179,26 +179,10 @@ public:
 	void ApplySlipCondition(TLocalVectorType& rLocalVector,
 			GeometryType& rGeometry) const override
 	{
-		if (rLocalVector.size() > 0)
-		{
-			for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
-			{
-				if( this->IsSlip(rGeometry[itNode]) )
-				{
-					// We fix the first momentum dof (normal component) for each rotated block
-					unsigned int j = itNode * this->GetBlockSize(); // +1
-
-					// Get the displacement of the boundary mesh, this does not assume that the mesh is moving.
-					// If the mesh is moving, need to consider the displacement of the moving mesh into account.
-					const array_1d<double,3> & displacement = rGeometry[itNode].FastGetSolutionStepValue(DISPLACEMENT);
-					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-					this->Normalize(rN);
-
-					rLocalVector[j] = inner_prod(rN,displacement);
-
-				}
-			}
-		}
+        // creates an empty dummy matrix to pass into the 'full' ApplySlipCondition -- this dummy matrix is
+        // ignored, effectively only updating the RHS
+        TLocalMatrixType dummyMatrix = *(new TLocalMatrixType());
+        this->ApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
 	// An extra function to distinguish the application of slip in element considering penalty imposition
@@ -207,7 +191,7 @@ public:
 			GeometryType& rGeometry) const
 	{
 		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, dont do anything
+		// Otherwise, if it is a penalty element, don't do anything
 		if (!this->IsPenalty(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
@@ -219,7 +203,7 @@ public:
 			GeometryType& rGeometry) const
 	{
 		// If it is not a penalty element, do as standard
-		// Otherwise, if it is a penalty element, dont do anything
+		// Otherwise, if it is a penalty element, don't do anything
 		if (!this->IsPenalty(rGeometry))
 		{
 			this->ApplySlipCondition(rLocalVector, rGeometry);
