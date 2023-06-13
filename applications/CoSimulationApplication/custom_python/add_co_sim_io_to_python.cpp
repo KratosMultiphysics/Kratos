@@ -205,14 +205,6 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
 
     m_co_sim_io.def("InfoFromParameters", CoSimIOConversionUtilities::InfoFromParameters);
-
-    py::enum_<DataLocation>(m_co_sim_io,"DataLocation")
-        .value("NodeHistorical",    DataLocation::NodeHistorical)
-        .value("NodeNonHistorical", DataLocation::NodeNonHistorical)
-        .value("Element",           DataLocation::Element)
-        .value("Condition",         DataLocation::Condition)
-        .value("ModelPart",         DataLocation::ModelPart)
-        ;
 }
 
 }  // namespace Kratos::Python
