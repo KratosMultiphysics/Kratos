@@ -1750,6 +1750,15 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
             noalias(externally_applied_force)  += counter_force;}
     } else {
         noalias(externally_applied_force)  += ComputeWeight(gravity, r_process_info);
+        //Global viscous damping force
+        const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        const double vel_magnitude = DEM_MODULUS_3(vel);
+        if (vel_magnitude != 0.0)
+        {
+            const double viscous_damping_coefficient = 0.5;
+            const array_1d<double, 3> viscous_damping_force = -2.0 * viscous_damping_coefficient * sqrt(GetMass() * GetRadius() * GetYoung())  * vel;
+            noalias(externally_applied_force)  += viscous_damping_force;
+        }
         noalias(externally_applied_force)  += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
         noalias(externally_applied_moment) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
     }
