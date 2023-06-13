@@ -181,7 +181,7 @@ public:
 	{
         // creates an empty dummy matrix to pass into the 'full' ApplySlipCondition -- this dummy matrix is
         // ignored, effectively only updating the RHS
-        TLocalMatrixType dummyMatrix = *(new TLocalMatrixType());
+        TLocalMatrixType dummyMatrix = TLocalMatrixType();
         this->ApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
@@ -264,7 +264,7 @@ public:
 	{
         // creates an empty dummy matrix to pass into the 'full' ConditionApplySlipCondition -- this dummy matrix is
         // ignored, effectively only updating the RHS
-        TLocalMatrixType dummyMatrix = *(new TLocalMatrixType());
+        TLocalMatrixType dummyMatrix = TLocalMatrixType();
         this->ConditionApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
 
