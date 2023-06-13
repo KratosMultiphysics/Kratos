@@ -443,10 +443,10 @@ protected:
 ///@{
 
 /// output stream function
-template<class TContainerType>
+template<class TContainerType, MeshType TMeshType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const ContainerExpression<TContainerType>& rThis)
+    const ContainerExpression<TContainerType, TMeshType>& rThis)
 {
     return rOStream << rThis.Info();
 }
