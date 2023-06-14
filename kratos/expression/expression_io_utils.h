@@ -50,16 +50,17 @@ public:
             using raw_data_type = std::conditional_t<std::is_same_v<data_type, int>, int, double>;
 
             // first get the shape correctly
-            std::vector<IndexType> shape_info;
+            std::vector<int> shape_info;
             if (number_of_entities != 0) {
                 // initialize the shape with the first entity value
                 // required for dynamic data types such as Vector and Matrix
                 VariableExpressionDataIO<data_type> variable_flatten_data_io(TContainerDataIO::GetValue(*rContainer.begin(), *pVariable));
-                shape_info = variable_flatten_data_io.GetItemShape();
+                const auto& shape = variable_flatten_data_io.GetItemShape();
+                shape_info.resize(shape.size() + 1, number_of_entities);
+                std::transform(shape.begin(), shape.end(), shape_info.begin() + 1, [](const auto v) -> int { return v; });
+            } else {
+                shape_info.resize(1, number_of_entities);
             }
-
-            // append the number of entities for a proper check
-            shape_info.insert(shape_info.begin(), number_of_entities);
 
             // now communicate the shape
             const auto& r_shapes_info_in_ranks = rDataCommunicator.AllGatherv(shape_info);
@@ -69,7 +70,7 @@ public:
             for (const auto& r_shape_info_in_rank : r_shapes_info_in_ranks) {
                 if (r_shape_info_in_rank[0] != 0) {
                     shape.resize(r_shape_info_in_rank.size() - 1);
-                    std::copy(r_shape_info_in_rank.begin() + 1, r_shape_info_in_rank.end(), shape.begin());
+                    std::transform(r_shape_info_in_rank.begin() + 1, r_shape_info_in_rank.end(), shape.begin(), [](const auto v) -> IndexType { return v;});
                     break;
                 }
             }
@@ -78,7 +79,8 @@ public:
             shape_info.erase(shape_info.begin());
 
             // cross check between all ranks the shape is the same
-            KRATOS_ERROR_IF(number_of_entities > 0 && shape_info != shape)
+            IndexType local_index = 0;
+            KRATOS_ERROR_IF(number_of_entities > 0 && !std::all_of(shape.begin(), shape.end(), [&local_index, &shape_info](const auto v) { return static_cast<int>(v) == shape_info[local_index++]; }))
                 << "All the ranks should have values with the same shape.\n";
 
             auto p_expression = LiteralFlatExpression<raw_data_type>::Create(number_of_entities, shape);
