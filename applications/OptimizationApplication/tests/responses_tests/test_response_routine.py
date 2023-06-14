@@ -79,30 +79,30 @@ class TestResponseRoutine(kratos_unittest.TestCase):
 
     def test_CalculateValue(self):
         control_field = self.master_control.GetEmptyField()
-        control_field.Read(Kratos.DENSITY)
+        KratosOA.ContainerExpression.CollectiveExpressionIO.Read(control_field, KratosOA.ContainerExpression.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
         # now change the control field where response does not depend on
         # changing a variable such as YOUNG_MODULUS
-        control_field.GetContainerExpressions()[1].SetData(2.0)
+        Kratos.Expression.LiteralExpressionIO.SetData(control_field.GetContainerExpressions()[1], 2.0)
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
         # now change a dependent variable where the domain is not having intersection
         # changing DENSITY variable
-        control_field.GetContainerExpressions()[3].SetData(3.0)
+        Kratos.Expression.LiteralExpressionIO.SetData(control_field.GetContainerExpressions()[3], 3.0)
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
         # now change a dependent field
-        control_field.GetContainerExpressions()[0].SetData(3.0)
+        Kratos.Expression.LiteralExpressionIO.SetData(control_field.GetContainerExpressions()[0], 3.0)
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 66)
 
     def test_CalculateGradient(self):
         control_field = self.master_control.GetEmptyField()
-        control_field.Read(Kratos.DENSITY)
+        KratosOA.ContainerExpression.CollectiveExpressionIO.Read(control_field, KratosOA.ContainerExpression.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
 
         # Calculate value should always be called once before the calculate gradient
         _ = self.response_routine.CalculateValue(control_field)
