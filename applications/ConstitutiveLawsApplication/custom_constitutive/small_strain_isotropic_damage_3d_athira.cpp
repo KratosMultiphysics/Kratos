@@ -181,7 +181,7 @@ void SmallStrainIsotropicDamageAthira3D::CalculateStressResponse(
     CalculateValue(rParametersValues, STRAIN, r_strain_vector);
     // If we compute the tangent moduli or the stress
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
-        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) 
+        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
         {
         Vector& r_stress_vector       = rParametersValues.GetStressVector();
         const Vector& r_strain_vector = rParametersValues.GetStrainVector();
@@ -193,18 +193,18 @@ void SmallStrainIsotropicDamageAthira3D::CalculateStressResponse(
         const double E   = r_material_properties[YOUNG_MODULUS];
         const double fck = r_material_properties[YIELD_STRESS_COMPRESSION];
         const double ft  = r_material_properties[YIELD_STRESS_TENSION];
-        const double fcb = 1.16 * fck;  
+        const double fcb = 1.16 * fck;
         const double alphaL = (((fcb/fck)-1.0)/(2.0*(fcb/fck)-1.0));
-        const double betaL  = ((1.0 - alphaL) * (fck/(ft))) - (1. + alphaL); 
+        const double betaL  = ((1.0 - alphaL) * (fck/(ft))) - (1. + alphaL);
         Vector dI1dS  = ZeroVector(6);
-        Vector dJ2dS  = ZeroVector(6); 
-        Matrix dJ2ddS = ZeroMatrix(6, 6); 
+        Vector dJ2dS  = ZeroVector(6);
+        Matrix dJ2ddS = ZeroMatrix(6, 6);
         Matrix dSprdS = ZeroMatrix(3,6);
         GetDerivatives( r_stress_vector, dI1dS, dJ2ddS,dJ2dS);
         Vector Spr = ZeroVector(3);;
         double SprMax, SprMin;
         GetEigenValues(r_stress_vector, Spr, SprMax, SprMin);
-        
+
         //manipulation of zero entries in stress
         if( (fabs(Spr(0)-Spr(1)) < 2.0*eps ) && ( fabs(Spr(0)-Spr(2)) < 2.0*eps ) && ( fabs(Spr(1)-Spr(2)) < 2.0*eps ) )
         {
@@ -221,21 +221,21 @@ void SmallStrainIsotropicDamageAthira3D::CalculateStressResponse(
 
         Vector dSmaxdSig(6);
         for(int i=0; i<6; ++i){
-          dSmaxdSig[i]= dSprdS(0,i); 
+          dSmaxdSig[i]= dSprdS(0,i);
         }
         //computing invariants of stress
         double I1, J2, D, DN, H, Eps_eq;
         GetInvariants(r_stress_vector, I1, J2);
-        
+
         if(SprMax < eps){
             H = 0.0;
         }else{
-            H = 1.0;   
+            H = 1.0;
         }
-        
+
         //local damage equivalent strain
         Eps_eq = (std::sqrt( 3. * J2 ) + alphaL * I1 + betaL * H * SprMax) /(E * ( 1. - alphaL)) ;
-        
+
         const double beta1t = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA1_TENSION];
         const double beta2t = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA2_TENSION];
         const double beta1c = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA1_COMPRESSION];
@@ -255,14 +255,14 @@ void SmallStrainIsotropicDamageAthira3D::CalculateStressResponse(
         if (f_d < 0.0){
           D = 0.0;
          }else if (f_d == 0.0) {
-       
+
             double var1      = pow((k0/kappa),beta1);
             double var2      = exp(-beta2*((kappa-k0)/(k0)));
             D                = 1.0 - var1 * var2;
             DN               = std::pow((1. -D),2);
             r_stress_vector *= DN;
- 
-            double factor       = 2.0*(D-1.0);         
+
+            double factor       = 2.0*(D-1.0);
             Vector dsdeii       = factor * prod(r_constitutive_matrix, r_strain_vector) ;
             double dKappadSmax  = betaL * H;
             Vector dKappadSig   = 1./(E * (1.-alphaL)) * (alphaL * dI1dS + 1.5/std::sqrt(3.*J2) * dJ2dS);
@@ -338,10 +338,10 @@ void SmallStrainIsotropicDamageAthira3D::save(Serializer& rSerializer) const
 void SmallStrainIsotropicDamageAthira3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mStrainVariable", mStrainVariable);
+    rSerializer.load("mStrainVariable", mStrainVariable);
 }
 
-void SmallStrainIsotropicDamageAthira3D::TensorProduct6( 
+void SmallStrainIsotropicDamageAthira3D::TensorProduct6(
     Matrix& rOutput,
     const Vector& rVector1,
     const Vector& rVector2)
@@ -358,16 +358,16 @@ void SmallStrainIsotropicDamageAthira3D::TensorProduct6(
         }
     }
 
-    KRATOS_CATCH("")    
+    KRATOS_CATCH("")
 }
 
-void SmallStrainIsotropicDamageAthira3D::GetDerivatives( 
+void SmallStrainIsotropicDamageAthira3D::GetDerivatives(
     const Vector StressVector,
     Vector& dI1dS,
     Matrix& dJ2ddS,
     Vector& dJ2dS)
 {
-    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0; 
+    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0;
     dJ2ddS(0,0) = dJ2ddS(1,1) = dJ2ddS(2,2) =  2.0/3.0;
     dJ2ddS(0,1) = dJ2ddS(0,2) = dJ2ddS(1,0) = dJ2ddS(1,2) = dJ2ddS(2,0) = dJ2ddS(2,1)= -1.0/3.0;
     dJ2ddS(3,3) = dJ2ddS(4,4) = dJ2ddS(5,5) =  2.0;
@@ -403,16 +403,16 @@ void SmallStrainIsotropicDamageAthira3D::ComputedSprdS(
     const Vector StressVector,
     const Vector Spr,
     Matrix& dSprdS)
-{   
+{
     Matrix indx = ZeroMatrix(3, 3);
     Vector stress2(6);
     Vector dSprdS_entries(6);
     Vector dI1dS = ZeroVector(6);
-    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0; 
+    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0;
 
     indx(0,1)= indx(1,0)= indx(2,2)=1.0;
     indx(0,2)= indx(1,1)= indx(2,0)=2.0;
-   
+
     Matrix stress_matrix = ZeroMatrix(3, 3);
     stress_matrix(0,1)= stress_matrix(1,0)= StressVector[5];
     stress_matrix(0,2)= stress_matrix(2,0)= StressVector[4];
@@ -424,13 +424,13 @@ void SmallStrainIsotropicDamageAthira3D::ComputedSprdS(
     Matrix stress(stress_matrix);
     stress = prod(stress, stress);
     stress2[0]= stress(0,0);
-    stress2[1]= stress(1,1); 
+    stress2[1]= stress(1,1);
     stress2[2]= stress(2,2);
     stress2[3]= stress(1,2);
-    stress2[4]= stress(0,2); 
+    stress2[4]= stress(0,2);
     stress2[5]= stress(0,1);
-    
-    for(int i=0; i<3; ++i){  
+
+    for(int i=0; i<3; ++i){
         dSprdS_entries  = stress2 - ( Spr(indx(1,i)) + Spr(indx(2,i)) )*(StressVector) + Spr(indx(1,i)) * Spr(indx(2,i)) * dI1dS;
         dSprdS_entries /=  (Spr(indx(0,i)) - Spr(indx(1,i)) ) * ( Spr(indx(0,i)) - Spr(indx(2,i)) );
         for(int j=0; j<6; ++j){
@@ -438,7 +438,7 @@ void SmallStrainIsotropicDamageAthira3D::ComputedSprdS(
         }
         for(int k=3; k<6; ++k){
             dSprdS(i,k) *= 2.;
-        }   
+        }
     }
 }
 
@@ -449,7 +449,7 @@ void SmallStrainIsotropicDamageAthira3D::GetInvariants(
 {
     I1 = StressVector(0)+StressVector(1)+StressVector(2);
     double I2 = (StressVector(0)*StressVector(1) + StressVector(1)*StressVector(2) + StressVector(2)* StressVector(0)) - ( StressVector(3)*StressVector(3) + StressVector(4)*StressVector(4) + StressVector(5)*StressVector(5) );
-    J2 = (1.0/3.0)*(std::pow(I1,2.0))-I2;   
+    J2 = (1.0/3.0)*(std::pow(I1,2.0))-I2;
 }
 
 } /* namespace Kratos.*/

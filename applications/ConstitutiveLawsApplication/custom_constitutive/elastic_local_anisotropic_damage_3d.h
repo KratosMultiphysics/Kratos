@@ -307,13 +307,6 @@ protected:
 
     ///@}
 
-
-    /**
-     * @brief This method computes stress weight factor
-     */
-    void GetStressWeightFactor(double &w,
-                               const BoundedVectorType &s_pr) const ;
-
     /**
      * @brief This method calculates the linearized tangent operator
      */
@@ -321,7 +314,7 @@ protected:
                              BoundedMatrix3x6Type& dEprdE,
                              BoundedMatrixType& dkdEpr,
                              ConstitutiveLaw::Parameters& rParametersValues,
-                             const BoundedVectorType& DamageVector
+                             const Vector& DamageVector
                              );
     /**
      * @brief This method calculates the linearized tangent operator
@@ -329,7 +322,7 @@ protected:
 
     void CalculatePartialDerivatives(BoundedMatrix6x3Type& dHdk,
                                     const Properties& rMaterialProperties,
-                                    const BoundedVectorType& DamageVector,
+                                    const Vector& DamageVector,
                                     const BoundedVectorType& Kappa0,
                                     const BoundedVectorType& Beta1,
                                     const BoundedVectorType& Beta2,

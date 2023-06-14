@@ -209,7 +209,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         const double E   = r_material_properties[YOUNG_MODULUS];
         const double fck = r_material_properties[YIELD_STRESS_COMPRESSION];
         const double ft  = r_material_properties[YIELD_STRESS_TENSION];
-        BoundedVectorType damage_vector= ZeroVector(3);
+        Vector damage_vector= ZeroVector(3);
         BoundedVectorType Spr = ZeroVector(3);
         BoundedVectorType k0 = ZeroVector(3);
         BoundedVectorType beta1 = ZeroVector(3);
@@ -255,11 +255,13 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
                 damage_vector[i] = 0.0;
             }
         }
+        KRATOS_WATCH(damage_vector)
         CalculateParameters(EffStiffnessMatrix, dEprdE, dkdEpr, rParametersValues, damage_vector);
         noalias(r_stress_vector)       = prod(EffStiffnessMatrix,r_strain_vector);
         CalculatePartialDerivatives(dHdk, r_material_properties, damage_vector, k0, beta1, beta2, kappa);
         const BoundedMatrix3x6Type b = prod(dkdEpr, dEprdE);
         noalias(r_constitutive_matrix) = EffStiffnessMatrix + prod(dHdk, b);
+        KRATOS_WATCH(r_constitutive_matrix)
         rDamageVector = damage_vector;
         }
     KRATOS_CATCH("")
@@ -284,25 +286,6 @@ void ElasticAnisotropicDamage::GetEigenValues(
     Pri_Values[0] = EigenValues(0,0);
     Pri_Values[1] = EigenValues(1,1);
     Pri_Values[2] = EigenValues(2,2);
-    KRATOS_CATCH("")
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void ElasticAnisotropicDamage::GetStressWeightFactor(
-    double &w,
-    const BoundedVectorType &s_pr) const
-{
-    KRATOS_TRY
-    Vector N1(3);
-    SizeType kk;
-    for(kk=0; kk < Dimension; ++kk ){
-        N1(kk) = 0.5 * ( abs(s_pr(kk)) + s_pr(kk) );
-    }
-    double N11 = N1(0) + N1(1) + N1(2);
-    double D11 = eps + abs(s_pr(0)) + abs(s_pr(1)) + abs(s_pr(2));
-    w = N11 / D11 ;
     KRATOS_CATCH("")
 }
 
@@ -357,7 +340,7 @@ void ElasticAnisotropicDamage::CalculateParameters(
     BoundedMatrix3x6Type& dEprdE,
     BoundedMatrixType& dkdEpr,
     ConstitutiveLaw::Parameters& rParametersValues,
-    const BoundedVectorType& DamageVector
+    const Vector& DamageVector
 )
 {
     KRATOS_TRY
@@ -368,8 +351,11 @@ void ElasticAnisotropicDamage::CalculateParameters(
     BoundedVectorType principal_strains = ZeroVector(3);
     double det_M;
     CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
+    //KRATOS_WATCH(DamageVector)
     GetDamageEffectTensor(M, DamageVector);
+    //KRATOS_WATCH(M)
     MathUtils<double>::InvertMatrix(M, Inv_M, det_M);
+    //KRATOS_WATCH(Inv_M)
     const BoundedMatrixVoigtType a = prod(r_constitutive_matrix,trans(Inv_M));
     EffStiffnessMatrix = prod(Inv_M,a);
     GetEigenValues(principal_strains, STRAIN, r_strain_vector);
@@ -388,7 +374,7 @@ void ElasticAnisotropicDamage::CalculateParameters(
 void ElasticAnisotropicDamage::CalculatePartialDerivatives(
     BoundedMatrix6x3Type& dHdk,
     const Properties& rMaterialProperties,
-    const BoundedVectorType& DamageVector,
+    const Vector& DamageVector,
     const BoundedVectorType& Kappa0,
     const BoundedVectorType& Beta1,
     const BoundedVectorType& Beta2,
@@ -504,7 +490,7 @@ void ElasticAnisotropicDamage::save(Serializer& rSerializer) const
 void ElasticAnisotropicDamage::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mDamageVector", mDamageVector);
+    rSerializer.load("mDamageVector", mDamageVector);
 }
 
 
