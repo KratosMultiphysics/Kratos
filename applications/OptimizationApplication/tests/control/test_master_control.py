@@ -71,7 +71,7 @@ class TestMassterControl(kratos_unittest.TestCase):
         density_collective_expression = result[Kratos.DENSITY]
         density_container_expression_model_part_names = []
         for container_expression in density_collective_expression.GetContainerExpressions():
-            self.assertTrue(isinstance(container_expression, KratosOA.ContainerExpression.ElementPropertiesExpression))
+            self.assertTrue(isinstance(container_expression, Kratos.Expression.ElementExpression))
             density_container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
@@ -81,7 +81,7 @@ class TestMassterControl(kratos_unittest.TestCase):
         thickness_collective_expression = result[Kratos.THICKNESS]
         thickness_container_expression_model_part_names = []
         for container_expression in thickness_collective_expression.GetContainerExpressions():
-            self.assertTrue(isinstance(container_expression, KratosOA.ContainerExpression.ElementPropertiesExpression))
+            self.assertTrue(isinstance(container_expression, Kratos.Expression.ElementExpression))
             thickness_container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
@@ -92,7 +92,7 @@ class TestMassterControl(kratos_unittest.TestCase):
         empty_control_fields = self.master_control.GetEmptyField()
         container_expression_model_part_names = []
         for container_expression in empty_control_fields.GetContainerExpressions():
-            self.assertTrue(isinstance(container_expression, KratosOA.ContainerExpression.ElementPropertiesExpression))
+            self.assertTrue(isinstance(container_expression, Kratos.Expression.ElementExpression))
             self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(container_expression), 0.0)
             container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
@@ -118,7 +118,7 @@ class TestMassterControl(kratos_unittest.TestCase):
         update = self.master_control.GetEmptyField()
 
         # assigning density for all the mapped gradients
-        update.Read(Kratos.DENSITY)
+        KratosOA.ContainerExpression.CollectiveExpressionIO.Read(update, KratosOA.ContainerExpression.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
 
         # now updating density should not do anything for density controls, but thickness should be updated
         # checking for that
