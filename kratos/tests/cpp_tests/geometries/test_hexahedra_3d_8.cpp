@@ -309,6 +309,20 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8AverageEdgeLength, KratosCoreGeometriesFas
     KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 2.0, TOLERANCE);
 }
 
+/** Checks the min edge length */
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8MinEdgeLength, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateDeformedCenterLen1Hexahedra3D8();
+    KRATOS_CHECK_NEAR(geom->MinEdgeLength(), 1.0, TOLERANCE);
+}
+
+/** Checks the max edge length */
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8MaxEdgeLength, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateDeformedCenterLen1Hexahedra3D8();
+    KRATOS_CHECK_NEAR(geom->MaxEdgeLength(), sqrt(2.0), TOLERANCE);
+}
+
 /** Checks the solid angles */
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8SolidAngles, KratosCoreGeometriesFastSuite)
 {

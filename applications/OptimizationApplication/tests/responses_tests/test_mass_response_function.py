@@ -74,7 +74,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, 126, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -148,7 +148,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, 15, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -224,7 +224,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, v, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
