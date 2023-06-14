@@ -164,7 +164,8 @@ void BindSpatialSearchResultContainerMap(pybind11::module& m, const std::string&
     .def("__iter__", [](ContainerMapType& self) {
         return pybind11::make_iterator(self.begin(), self.end());
     }, pybind11::keep_alive<0, 1>()); /* Keep object alive while iterator is used */
- 
+}
+
 /** 
  * @brief Copies a Python list of radius to a C++ radius array.
  * @param rListOfRadius list of radius to copy
