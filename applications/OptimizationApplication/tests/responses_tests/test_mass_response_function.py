@@ -1,4 +1,6 @@
+from typing import Any
 from abc import ABC, abstractmethod
+import numpy
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -29,8 +31,9 @@ class TestMassResponseFunctionBase(kratos_unittest.TestCase, ABC):
         cls.response_function.Check()
         cls.ref_value = cls.response_function.CalculateValue()
 
-    def _CheckSensitivity(self, response_function: MassResponseFunction, entities, sensitivity_method, update_method, delta, precision):
+    def _CheckSensitivity(self, response_function: MassResponseFunction, entities, sensitivity_method, update_method, container_expression_data, delta, precision):
         ref_value = response_function.CalculateValue()
+        list_of_sensitivities = []
         for entity in entities:
             v = sensitivity_method(entity)
             update_method(entity, delta)
@@ -38,6 +41,10 @@ class TestMassResponseFunctionBase(kratos_unittest.TestCase, ABC):
             sensitivity = (value - ref_value)/delta
             update_method(entity, -delta)
             self.assertAlmostEqual(v, sensitivity, precision)
+            list_of_sensitivities.append(v)
+
+        list_of_sensitivities = numpy.array(list_of_sensitivities)
+        self.assertVectorAlmostEqual(list_of_sensitivities, container_expression_data, precision)
 
     def _UpdateProperties(self, variable, entity, delta):
         entity.Properties[variable] += delta
@@ -74,7 +81,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, 126, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -83,6 +90,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_X),
             lambda x, y: self._UpdateNodalPositions(0, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 0],
             1e-6,
             4)
 
@@ -91,11 +99,12 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Y),
             lambda x, y: self._UpdateNodalPositions(1, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 1],
             1e-6,
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity
@@ -104,11 +113,12 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             self.model_part.Elements,
             lambda x: x.Properties[KratosOA.DENSITY_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate(),
             1e-6,
             6)
 
     def test_CalculateCrossAreaSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.CROSS_AREA: sensitivity})
 
         # calculate element cross area sensitivity
@@ -117,6 +127,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             self.model_part.Elements,
             lambda x: x.Properties[KratosOA.CROSS_AREA_SENSITIVITY],
             lambda x, y: self._UpdateProperties(KratosOA.CROSS_AREA, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate(),
             1e-6,
             6)
 
@@ -148,7 +159,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, 15, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -157,6 +168,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_X),
             lambda x, y: self._UpdateNodalPositions(0, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 0],
             1e-6,
             4)
 
@@ -165,11 +177,12 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Y),
             lambda x, y: self._UpdateNodalPositions(1, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 1],
             1e-6,
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity
@@ -178,11 +191,12 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
             self.model_part.Elements,
             lambda x: x.Properties[KratosOA.DENSITY_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate(),
             1e-6,
             6)
 
     def test_CalculateThicknessSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.THICKNESS: sensitivity})
 
         # calculate element cross area sensitivity
@@ -191,6 +205,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
             self.model_part.Elements,
             lambda x: x.Properties[KratosOA.THICKNESS_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.THICKNESS, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate(),
             1e-7,
             6)
 
@@ -224,7 +239,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, v, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -233,6 +248,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_X),
             lambda x, y: self._UpdateNodalPositions(0, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 0],
             1e-6,
             4)
 
@@ -241,6 +257,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Y),
             lambda x, y: self._UpdateNodalPositions(1, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 1],
             1e-6,
             4)
 
@@ -249,11 +266,12 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
             self.model_part.Nodes,
             lambda x: x.GetValue(Kratos.SHAPE_SENSITIVITY_Z),
             lambda x, y: self._UpdateNodalPositions(2, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate()[:, 2],
             1e-6,
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity
@@ -262,6 +280,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
             self.model_part.Elements,
             lambda x: x.Properties[KratosOA.DENSITY_SENSITIVITY],
             lambda x, y: self._UpdateProperties(Kratos.DENSITY, x, y),
+            sensitivity.GetContainerExpressions()[0].Evaluate(),
             1e-6,
             6)
 
