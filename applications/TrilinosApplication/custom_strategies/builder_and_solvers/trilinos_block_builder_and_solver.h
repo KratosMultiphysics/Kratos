@@ -139,8 +139,9 @@ public:
         : BaseType(pNewLinearSystemSolver),
           mrComm(rComm),
           mGuessRowSize(GuessRowSize)
-    { }
-
+    {
+    }    
+    
     /**
      * @brief Default constructor. (with parameters)
      */

@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala, Philipp Bucher
+//  Main authors:    Aditya Ghantasala
+//                   Philipp Bucher (https://github.com/philbucher)
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
@@ -44,6 +45,7 @@ Parameters VtkOutput::GetDefaultParameters()
         "custom_name_prefix"                          : "",
         "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,
+        "entity_type"                                 : "automatic",
         "write_deformed_configuration"                : false,
         "write_ids"                                   : false,
         "nodal_solution_step_data_variables"          : [],
@@ -106,13 +108,47 @@ VtkOutput::VtkOutput(
         mpGaussToNodesProcess = Kratos::make_unique<IntegrationValuesExtrapolationToNodesProcess>(rModelPart, gauss_intergration_param_non_hist);
     }
 
-    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
-    const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+    const std::string entity_type = mOutputSettings["entity_type"].GetString();
 
-    const int num_elements = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
-    const int num_conditions = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
+    if (entity_type == "element") {
+        mEntityType = EntityType::ELEMENT;
+    }
+    else if (entity_type == "condition") {
+        mEntityType = EntityType::CONDITION;
+    }
+    else if (entity_type == "automatic") {
+        mEntityType = EntityType::AUTOMATIC;
 
-    KRATOS_WARNING_IF("VtkOutput", num_elements > 0 && num_conditions > 0) << r_data_comm << "Modelpart \"" << rModelPart.Name() << "\" has both elements and conditions.\nGiving precedence to elements and writing only elements!" << std::endl;
+        const std::size_t num_elements = rModelPart.GetCommunicator().GlobalNumberOfElements();
+        const std::size_t num_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions();
+
+        KRATOS_WARNING_IF("VtkOutput", num_elements > 0 && num_conditions > 0) << "Modelpart \"" << rModelPart.Name() << "\" has both elements and conditions.\nGiving precedence to elements and writing only elements!" << std::endl;
+    } else {
+        KRATOS_ERROR << "Unknown entity_type \"" << entity_type << "\". Available options are \"element\", \"condition\", \"automatic\"" << std::endl;
+    }
+}
+
+VtkOutput::EntityType VtkOutput::GetEntityType(const ModelPart& rModelPart) const
+{
+
+    const std::size_t num_elements = rModelPart.GetCommunicator().GlobalNumberOfElements();
+    const std::size_t num_conditions = rModelPart.GetCommunicator().GlobalNumberOfConditions();
+
+    if (mEntityType == EntityType::ELEMENT) {
+        return (num_elements > 0) ? EntityType::ELEMENT : EntityType::NONE;
+    }
+    else if (mEntityType == EntityType::CONDITION) {
+        return (num_conditions > 0) ? EntityType::CONDITION : EntityType::NONE;
+    }
+
+    // automatic: elements take precedence over conditions
+    if (num_elements > 0) {
+        return EntityType::ELEMENT;
+    } else if(num_conditions > 0) {
+        return EntityType::CONDITION;
+    } else {
+        return EntityType::NONE;
+    }
 }
 
 /***********************************************************************************/
@@ -140,13 +176,11 @@ void VtkOutput::PrintOutput(const std::string& rOutputFilename)
     const bool print_sub_model_parts = mOutputSettings["output_sub_model_parts"].GetBool();
     if (print_sub_model_parts) {
         for (auto& r_sub_model_part : mrModelPart.SubModelParts()) {
+            const auto& r_comm = mrModelPart.GetCommunicator();
 
-            const auto& r_local_mesh = mrModelPart.GetCommunicator().LocalMesh();
-            const auto& r_data_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
-
-            const int num_nodes = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfNodes()));
-            const int num_elements = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
-            const int num_conditions = r_data_comm.SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
+            const int num_nodes = r_comm.GlobalNumberOfNodes();
+            const int num_elements = r_comm.GlobalNumberOfElements();
+            const int num_conditions = r_comm.GlobalNumberOfConditions();
 
             if (num_nodes == 0 && (num_elements != 0 || num_conditions != 0)) {
                 WriteModelPartWithoutNodesToFile(r_sub_model_part, rOutputFilename);
@@ -319,11 +353,9 @@ void VtkOutput::WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFi
 void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    const auto entity_type = GetEntityType(rModelPart);
 
-    const int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
-    const int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfConditions()));
-
-    if (num_elements > 0) {
+    if (entity_type == EntityType::ELEMENT) {
         // write cells header
         rFileStream << "\nCELLS " << r_local_mesh.NumberOfElements() << " "
             << DetermineVtkCellListSize(r_local_mesh.Elements()) << "\n";
@@ -331,7 +363,7 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
         // write cell types header
         rFileStream << "\nCELL_TYPES " << r_local_mesh.NumberOfElements() << "\n";
         WriteCellType(r_local_mesh.Elements(), rFileStream);
-    } else if (num_conditions > 0) {
+    } else if (entity_type == EntityType::CONDITION) {
         // write cells header
         rFileStream << "\nCELLS " << r_local_mesh.NumberOfConditions() << " "
             << DetermineVtkCellListSize(r_local_mesh.Conditions()) << "\n";
@@ -527,9 +559,7 @@ void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofst
         if (IsCompatibleVariable(r_element_result_name)) ++counter_gauss_point_variables_in_elements;
     }
 
-    const int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
-
-    if (num_elements > 0) {
+    if (GetEntityType(rModelPart) == EntityType::ELEMENT) {
         // write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfElements() << "\n";
         const bool write_ids = mOutputSettings["write_ids"].GetBool();
@@ -590,10 +620,7 @@ void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::of
         if (IsCompatibleVariable(r_element_result_name)) ++counter_gauss_point_variables_in_elements;
     }
 
-    const int num_elements = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(r_local_mesh.NumberOfElements()));
-    const int num_conditions = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(static_cast<int>(static_cast<int>(r_local_mesh.NumberOfConditions())));
-
-    if (num_elements == 0 && num_conditions > 0) { // TODO: Can we have conditions and elements at the same time?
+    if (GetEntityType(rModelPart) == EntityType::CONDITION) {
         // Write cells header
         rFileStream << "CELL_DATA " << r_local_mesh.NumberOfConditions() << "\n";
         const bool write_ids = mOutputSettings["write_ids"].GetBool();
@@ -994,6 +1021,18 @@ VtkOutput::GeometryType::Pointer VtkOutput::ReorderConnectivity(GeometryType::Po
         }
         for (IndexType i = 16; i < 20; ++i) {
             r_reordered_points.push_back(pGeometry->pGetPoint(i - 4));
+        }
+        return p_reorder_geom;
+    } else if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D27) {
+        auto p_reorder_geom = Kratos::make_shared<GeometryType>();
+        constexpr std::array<size_t, 27> permutation{
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 18, 19, 12, 13, 14, 15, 24, 22, 21, 23, 20, 25, 26
+        };
+
+        GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
+        r_reordered_points.reserve(27);
+        for (const auto i: permutation) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i));
         }
         return p_reorder_geom;
     } else if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Prism3D15) {

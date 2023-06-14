@@ -18,7 +18,7 @@
 
 // Project includes
 #include "python/add_container_expression_to_python_utils.h"
-#include "containers/container_expression/specialized_container_expression.h"
+#include "expression/specialized_container_expression.h"
 
 // Application includes
 #include "custom_utilities/geometrical/symmetry_utility.h"
@@ -27,6 +27,7 @@
 #include "custom_utilities/container_properties_data_io.h"
 #include "custom_utilities/collective_expressions.h"
 #include "custom_utilities/container_expression_utils.h"
+#include "custom_utilities/implicit_filter_utils.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -248,6 +249,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ConditionsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         ;
+
+    m.def_submodule("ImplicitFilterUtils")
+        .def("CalculateNodeNeighbourCount", &ImplicitFilterUtils::CalculateNodeNeighbourCount, py::arg("input_model_part"))
+        .def("SetBulkRadiusForShapeFiltering", &ImplicitFilterUtils::SetBulkRadiusForShapeFiltering, py::arg("input_model_part"))
+        .def("AssignProperties", &ImplicitFilterUtils::AssignProperties, py::arg("model_part"), py::arg("properties_parameters"))
+        ;
+
 }
 
 }  // namespace Python.

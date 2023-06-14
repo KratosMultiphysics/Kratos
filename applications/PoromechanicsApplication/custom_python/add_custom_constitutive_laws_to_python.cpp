@@ -16,6 +16,8 @@
 //constitutive laws
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/isotropic_damage_cohesive_3D_law.hpp"
+#include "custom_constitutive/isotropic_damage_cohesive_2D_law.hpp"
 #include "custom_constitutive/elastic_cohesive_3D_law.hpp"
 #include "custom_constitutive/elastic_cohesive_2D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_3D_law.hpp"
@@ -57,6 +59,13 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     .def( py::init<>() ) ;
     py::class_< ElasticCohesive3DLaw, ElasticCohesive3DLaw::Pointer, ConstitutiveLaw >
     (m, "ElasticCohesive3DLaw", py::module_local())
+    .def( py::init<>() ) ;
+
+    py::class_< IsotropicDamageCohesive3DLaw, IsotropicDamageCohesive3DLaw::Pointer, ConstitutiveLaw >
+    (m, "IsotropicDamageCohesive3DLaw", py::module_local())
+    .def( py::init<>() ) ;
+    py::class_< IsotropicDamageCohesive2DLaw, IsotropicDamageCohesive2DLaw::Pointer, ConstitutiveLaw >
+    (m, "IsotropicDamageCohesive2DLaw", py::module_local())
     .def( py::init<>() ) ;
 
     py::class_< BilinearCohesive3DLaw, BilinearCohesive3DLaw::Pointer, ConstitutiveLaw >

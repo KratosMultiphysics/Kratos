@@ -14,6 +14,9 @@ class interface_elastic_linear(TF.TestFactory):
     file_name = "constitutiveModel_tests/interface_elastic_linear/interface_elastic_linear"
     file_parameters = "constitutiveModel_tests/interface_elastic_linear/ProjectParameters.json"
 
+class interface_isotropic_damage(TF.TestFactory):
+    file_name = "constitutiveModel_tests/interface_isotropic_damage_linear/Test_UnixialTension"
+    file_parameters = "constitutiveModel_tests/interface_isotropic_damage_linear/ProjectParameters.json"
 
 def SetTestSuite(suites):
     small_suite = suites['small']
@@ -21,7 +24,8 @@ def SetTestSuite(suites):
     small_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             undrained_soil_column_2D,
-            interface_elastic_linear
+            interface_elastic_linear,
+            interface_isotropic_damage
         ])
     )
 
