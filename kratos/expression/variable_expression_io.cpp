@@ -113,11 +113,7 @@ void VariableExpressionIO::Read(
                                 TMeshType)
             .Execute();
 
-    // p_expression is nullptr if there are no items in the ModelParts relevant container.
-    // such as in ghost containers or interface containers.
-    if (p_expression.get() != nullptr) {
-        rContainerExpression.SetExpression(p_expression);
-    }
+    rContainerExpression.SetExpression(p_expression);
 }
 
 template<class TContainerType, MeshType TMeshType>
@@ -137,11 +133,7 @@ void VariableExpressionIO::Read(
                                 TMeshType)
             .Execute();
 
-    // p_expression is nullptr if there are no items in the ModelParts relevant container.
-    // such as in ghost containers or interface containers.
-    if (p_expression.get() != nullptr) {
-        rContainerExpression.SetExpression(p_expression);
-    }
+    rContainerExpression.SetExpression(p_expression);
 }
 
 template<MeshType TMeshType>
