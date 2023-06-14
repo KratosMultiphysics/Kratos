@@ -20,8 +20,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "containers/container_expression/specialized_container_expression.h"
-#include "containers/container_expression/container_data_io.h"
+#include "expression/specialized_container_expression.h"
+#include "expression/container_data_io.h"
 
 // Application includes
 #include "container_properties_data_io.h"

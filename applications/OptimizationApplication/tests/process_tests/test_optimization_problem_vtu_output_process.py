@@ -122,11 +122,11 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
     def __AddData(self, buffered_dict: BufferedDict, is_buffered_data: bool, component):
         step_v = self.optimization_problem.GetStep() + 1
 
-        nodal_data = Kratos.ContainerExpression.NodalNonHistoricalExpression(component.model_part)
+        nodal_data = Kratos.Expression.NodalNonHistoricalExpression(component.model_part)
         nodal_data.Read(Kratos.VELOCITY)
         buffered_dict[f"{component.GetName()}_data_nodal_{is_buffered_data}"] = nodal_data * step_v * 2.3
 
-        element_data = Kratos.ContainerExpression.ElementNonHistoricalExpression(component.model_part)
+        element_data = Kratos.Expression.ElementNonHistoricalExpression(component.model_part)
         element_data.Read(Kratos.ACCELERATION)
         buffered_dict[f"{component.GetName()}_data_element_{is_buffered_data}"] = element_data * step_v * 2.3
 
