@@ -40,7 +40,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
 
     def test_CollectiveExpressionsAdd(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
         a.Read(Kratos.VELOCITY)
@@ -69,7 +69,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] * 13 + 14, 12)
 
     def test_CollectiveExpressionsSub(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
         a.Read(Kratos.VELOCITY)
@@ -98,7 +98,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] * 7 - 14, 12)
 
     def test_CollectiveExpressionsMul(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
         a.Read(Kratos.VELOCITY)
@@ -124,7 +124,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] * 20, 12)
 
     def test_CollectiveExpressionsDiv(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
         a.Read(Kratos.VELOCITY)
@@ -150,7 +150,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             self.assertEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] / 8, 12)
 
     def test_CollectiveExpressionsPow(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
         a.Read(Kratos.VELOCITY)
@@ -177,7 +177,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             self.assertAlmostEqual(element.Properties[Kratos.DENSITY], element.Properties[Kratos.PRESSURE] ** (2 * element.Properties[Kratos.PRESSURE] / 1e+3), 12)
 
     def test_CollectiveExpressionsNeg(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
 
         a.Read(Kratos.VELOCITY)
@@ -219,10 +219,10 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         for element in self.model_part.Elements:
             additional_model_part.AddElement(element)
 
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
         b = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
-        c = Kratos.ContainerExpression.HistoricalExpression(additional_model_part)
-        d = Kratos.ContainerExpression.HistoricalExpression(diff_size_model_part)
+        c = Kratos.Expression.HistoricalExpression(additional_model_part)
+        d = Kratos.Expression.HistoricalExpression(diff_size_model_part)
 
         a.Read(Kratos.VELOCITY)
         b.Read(Kratos.PRESSURE)
@@ -237,10 +237,10 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([c, d])))
 
     def test_ReadEvaluate1(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
-        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
-        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
-        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
+        b = Kratos.Expression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.Expression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.Expression.ElementNonHistoricalExpression(self.model_part)
 
         collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
 
@@ -286,10 +286,10 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             index += 3
 
     def test_ReadEvaluate2(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
-        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
-        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
-        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
+        b = Kratos.Expression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.Expression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.Expression.ElementNonHistoricalExpression(self.model_part)
 
         collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
 
@@ -331,10 +331,10 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             index += 1
 
     def test_ReadEvaluate3(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
-        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
-        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
-        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
+        b = Kratos.Expression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.Expression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.Expression.ElementNonHistoricalExpression(self.model_part)
 
         collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
 
@@ -377,10 +377,10 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             index += 1
 
     def test_Move(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
-        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
-        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
-        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
+        b = Kratos.Expression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.Expression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.Expression.ElementNonHistoricalExpression(self.model_part)
 
         collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
 
@@ -453,10 +453,10 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
             index += 1
 
     def test_ReadMoveErrors(self):
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
-        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
-        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
-        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+        a = Kratos.Expression.HistoricalExpression(self.model_part)
+        b = Kratos.Expression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.Expression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.Expression.ElementNonHistoricalExpression(self.model_part)
 
         collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
 

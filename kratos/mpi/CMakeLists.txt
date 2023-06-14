@@ -8,6 +8,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 ## Kratos MPI extension sources
 file(GLOB_RECURSE KRATOS_MPI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/spatial_containers/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
 )
 
