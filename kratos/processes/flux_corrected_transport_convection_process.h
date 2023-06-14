@@ -389,7 +389,7 @@ private:
         CalculateHighOrderSolutionUpdate(DeltaTime);
 
         // Calculate the antidiffusive edge contributions
-        CalculateAntidiffusiveEdgeContributions();
+        CalculateAntidiffusiveEdgeContributions(DeltaTime);
 
         // Add the low order update
         // TODO: Check that this needs to be done for the limiter or not
@@ -625,8 +625,8 @@ private:
                         // Add previous iteration correction
                         const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                         const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                        const double res_edge_i = Mc_i_j * (delta_u_h_i - delta_u_h_j);
-                        const double res_edge_j = Mc_i_j * (delta_u_h_j - delta_u_h_i);
+                        const double res_edge_i = Mc_i_j * (delta_u_h_i - delta_u_h_j) / DeltaTime;
+                        const double res_edge_j = Mc_i_j * (delta_u_h_j - delta_u_h_i) / DeltaTime;
 
                         // Atomic additions
                         AtomicAdd(residual_high_order[iRow], res_edge_i);
@@ -635,7 +635,7 @@ private:
                 }
             });
 
-            // Solve current residual
+            // Solve current iteration residual
             IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
                 // Get nodal data
                 const auto it_node = mpModelPart->NodesBegin() + iNode;
@@ -644,12 +644,12 @@ private:
                 // Do the explicit lumped mass matrix solve
                 const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
                 const double solve_coeff = DeltaTime / M_l;
-                mHighOrderUpdate[i_node_id] += solve_coeff * mResidual[i_node_id];
+                mHighOrderUpdate[i_node_id] = solve_coeff * residual_high_order[i_node_id];
             });
         }
     }
 
-    void CalculateAntidiffusiveEdgeContributions()
+    void CalculateAntidiffusiveEdgeContributions(const double DeltaTime)
     {
         // Get edge data structure containers
         const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
@@ -682,7 +682,7 @@ private:
                     // Calculate and store the antidiffusive flux edge contribution
                     auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                     const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
-                    const double c_tau = 1.0 / local_dt;
+                    const double c_tau = DeltaTime / local_dt;
                     const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
                     const double AEC_ij = Mc_i_j * (c_tau * (u_i - u_j) + (u_h_i - u_h_j));
                     r_ij_edge_data.SetAntidiffusiveEdgeContribution(AEC_ij);
@@ -801,7 +801,8 @@ private:
 
             // Solve antidiffusive contribution
             const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
-            const double solve_coeff = DeltaTime / M_l;
+            const double solve_coeff = 1.0 / M_l;
+            // const double solve_coeff = DeltaTime / M_l;
             mSolution[i_node_id] += solve_coeff * antidiff_assembly[i_node_id];
         });
     }

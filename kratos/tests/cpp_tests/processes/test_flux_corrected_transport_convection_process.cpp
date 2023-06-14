@@ -55,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart",
         "echo_level" : 1,
-        "max_CFL" : 0.05
+        "max_CFL" : 0.25
     })");
 
     // Fake time advance to set the previous process info container
@@ -63,17 +63,17 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     r_model_part.GetProcessInfo()[TIME] = 0.0;
     r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
     r_model_part.CloneTimeStep(dt);
-    r_model_part.CloneTimeStep(5.0*dt);
+    r_model_part.CloneTimeStep(2.0*dt);
 
     // Set nodal values
 
-    // Gaussian hill
-    const double a = 1.0; // height
-    const double c = 0.1; // width
-    const double b_x = 0.15; // x-coordinate of the center
-    const double b_y = 0.15; // y-coordinate of the center
-    auto dist_func = [&](Node& rNode){return a*std::exp(-(std::pow(rNode.X()-b_x,2)/2/std::pow(c,2)+(std::pow(rNode.Y()-b_y,2)/2/std::pow(c,2))));};
-    auto vel_func = [&](Node& rNode, array_1d<double,3>& rVel){rVel[0] = -rNode.Y();rVel[1] = rNode.X();rVel[2] = 0.0;};
+    // // Gaussian hill
+    // const double a = 1.0; // height
+    // const double c = 0.1; // width
+    // const double b_x = 0.15; // x-coordinate of the center
+    // const double b_y = 0.15; // y-coordinate of the center
+    // auto dist_func = [&](Node& rNode){return a*std::exp(-(std::pow(rNode.X()-b_x,2)/2/std::pow(c,2)+(std::pow(rNode.Y()-b_y,2)/2/std::pow(c,2))));};
+    // auto vel_func = [&](Node& rNode, array_1d<double,3>& rVel){rVel[0] = -rNode.Y();rVel[1] = rNode.X();rVel[2] = 0.0;};
 
     // // "1D" Gaussian hill
     // const double a = 1.0; // height
@@ -81,6 +81,13 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     // const double b = 0.0; // x-coordinate of the center
     // auto dist_func = [&](Node& rNode){return a*std::exp(-(std::pow(rNode.X()-b,2)/2/std::pow(c,2)));};
     // auto vel_func = [&](Node& rNode, array_1d<double,3>& rVel){rVel[0] = 1.0;rVel[1] = 0.0;rVel[2] = 0.0;};
+
+    // "1D" hill
+    const double a = 1.0; // height
+    const double c = 0.1; // width
+    const double b = 0.0; // x-coordinate of the center
+    auto dist_func = [&](Node& rNode){return std::abs(rNode.X() - b) < c ? a : 0.0;};
+    auto vel_func = [&](Node& rNode, array_1d<double,3>& rVel){rVel[0] = 1.0;rVel[1] = 0.0;rVel[2] = 0.0;};
 
     array_1d<double,3> aux_v;
     for (auto& r_node : r_model_part.Nodes()) {
