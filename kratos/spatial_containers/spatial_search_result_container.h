@@ -353,6 +353,17 @@ public:
     }
 
     /**
+     * @brief Reserves the container
+     * @details Only local
+     * @param Size The size of the container
+     */
+    void Reserve(const std::size_t Size)
+    {
+        // Only local
+        mLocalPointers.reserve(Size);
+    }
+
+    /**
      * @brief Add a result to the container
      * @param rResult The result to be added
      */

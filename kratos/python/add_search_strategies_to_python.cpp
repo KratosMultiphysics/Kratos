@@ -89,6 +89,7 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("IsObjectFound", &ContainerType::IsObjectFound)
     .def("NumberOfLocalResults", &ContainerType::NumberOfLocalResults)
     .def("NumberOfGlobalResults", &ContainerType::NumberOfGlobalResults)
+    .def("Reserve", &ContainerType::Reserve)
     .def("AddResult", [](ContainerType& self, TObjectType* pObject) {
         self.AddResult(pObject);
     })
