@@ -177,6 +177,8 @@ void KratosPoromechanicsApplication::Register()
 
 
     //Register Constitutive Laws
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElastoPlasticModMohrCoulombCohesive3DLaw",mElastoPlasticModMohrCoulombCohesive3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ElastoPlasticModMohrCoulombCohesive2DLaw",mElastoPlasticModMohrCoulombCohesive2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageCohesive3DLaw",mIsotropicDamageCohesive3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageCohesive2DLaw",mIsotropicDamageCohesive2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ElasticCohesive3DLaw",mElasticCohesive3DLaw);
