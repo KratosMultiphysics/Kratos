@@ -475,7 +475,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::save(Serializer& rSeriali
 void ElasticIsotropicDamage3DNonLocalEquivalentStrain::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mEquivalentStrain", mEquivalentStrain);
+    rSerializer.load("mEquivalentStrain", mEquivalentStrain);
 }
 
 

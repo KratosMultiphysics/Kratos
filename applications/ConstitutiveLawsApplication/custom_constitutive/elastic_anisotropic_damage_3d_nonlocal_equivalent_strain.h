@@ -169,6 +169,30 @@ public:
 
 
     /**
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Vector& GetValue(
+        const Variable<Vector>& rThisVariable,
+        Vector& rValues
+        ) override;
+
+
+    /**
+     * @brief Sets the value of a specified variable (Vector)
+     * @param rThisVariable The variable to be returned
+     * @param rValue New value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<Vector>& rThisVariable,
+        const Vector& rValues,
+        const ProcessInfo& rProcessInfo
+        ) override;
+
+    /**
      * @brief This is to be called at the very beginning of the calculation
      * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
      * @param rMaterialProperties the Properties instance of the current element
@@ -185,6 +209,7 @@ public:
      * @param rStrainVariable
      */
     void CalculateStressResponse(ConstitutiveLaw::Parameters& rParametersValues,
+                                 Vector& rDamageVector,
                                  double& rEquivalentStrain);
 
     /**
@@ -271,14 +296,16 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
+    const double eps = 1e-8;
     ///@}
 
     ///@name Protected member Variables
     ///@{
     double mEquivalentStrain;
-    double k0;
-    double beta1;
-    double beta2;
+    BoundedVectorType k0;
+    BoundedVectorType beta1;
+    BoundedVectorType beta2;
+    Vector mDamageVector;
     ///@}
 
     ///@name Protected Operators
@@ -296,7 +323,6 @@ protected:
      * @param MinValue minimum of the principal values
      */
     void GetEigenValues(BoundedVectorType& Pri_Values,
-                        double& MaxValue,
                         const Variable<Vector>& rThisVariable,
                         const Vector& VectorForm);
 
@@ -360,7 +386,7 @@ protected:
      */
     void Calculate_tangent_HuNL(BoundedVectorVoigtType& H_uNL,
                                 ConstitutiveLaw::Parameters& rParametersValues,
-                                const BoundedVectorType& Damage_Vector,
+                                const Vector& Damage_Vector,
                                 const BoundedVectorType& Kappa,
                                 const BoundedVectorType& Principal_Strains
                                 );
