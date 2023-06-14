@@ -559,8 +559,8 @@ private:
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                     const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
                     const double c_tau = 1.0 / local_dt;
-                    const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                    const double ij_low_order_diff =  c_tau * Mc_i_j;
+                    const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
+                    const double ij_low_order_diff =  c_tau * Mc_ij;
                     const double res_edge_i = ij_low_order_diff * (u_j - u_i);
                     const double res_edge_j = ij_low_order_diff * (u_i - u_j);
 
@@ -624,9 +624,9 @@ private:
 
                         // Add previous iteration correction
                         const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
-                        const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                        const double res_edge_i = Mc_i_j * (delta_u_h_i - delta_u_h_j) / DeltaTime;
-                        const double res_edge_j = Mc_i_j * (delta_u_h_j - delta_u_h_i) / DeltaTime;
+                        const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
+                        const double res_edge_i = Mc_ij * (delta_u_h_i - delta_u_h_j) / DeltaTime;
+                        const double res_edge_j = Mc_ij * (delta_u_h_j - delta_u_h_i) / DeltaTime;
 
                         // Atomic additions
                         AtomicAdd(residual_high_order[iRow], res_edge_i);
@@ -683,8 +683,8 @@ private:
                     auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                     const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
                     const double c_tau = DeltaTime / local_dt;
-                    const double Mc_i_j = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                    const double AEC_ij = Mc_i_j * (c_tau * (u_i - u_j) + (u_h_i - u_h_j));
+                    const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
+                    const double AEC_ij = Mc_ij * (c_tau * (u_i - u_j) + (u_h_i - u_h_j)) / DeltaTime;
                     r_ij_edge_data.SetAntidiffusiveEdgeContribution(AEC_ij);
                 }
             }
@@ -784,7 +784,7 @@ private:
                     // Set as correction factor the minimum in the edge
                     const double alpha_ij = AEC_ij > 0.0 ? std::min(R_max[iRow], R_min[j_node_id]) : std::min(R_min[iRow], R_max[j_node_id]);
 
-                    // Solve and assembly current edge antidiffusive contribution
+                    // Assemble current edge antidiffusive contribution
                     const double aux = alpha_ij * AEC_ij;
                     AtomicAdd(antidiff_assembly[iRow], aux);
                     AtomicAdd(antidiff_assembly[j_node_id], -aux);
@@ -801,8 +801,7 @@ private:
 
             // Solve antidiffusive contribution
             const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
-            const double solve_coeff = 1.0 / M_l;
-            // const double solve_coeff = DeltaTime / M_l;
+            const double solve_coeff = DeltaTime / M_l;
             mSolution[i_node_id] += solve_coeff * antidiff_assembly[i_node_id];
         });
     }
