@@ -64,10 +64,10 @@ class MassResponseFunction(ResponseFunction):
         intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, False)
 
         # calculate the gradients
-        for physical_variable, moderged_model_part in merged_model_part_map.items():
+        for physical_variable, merged_model_part in merged_model_part_map.items():
             KratosOA.ResponseUtils.MassResponseUtils.CalculateGradient(
                 physical_variable,
-                moderged_model_part,
+                merged_model_part,
                 intersected_model_part_map[physical_variable],
                 physical_variable_collective_expressions[physical_variable].GetContainerExpressions())
 

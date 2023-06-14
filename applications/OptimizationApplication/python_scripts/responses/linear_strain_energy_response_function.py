@@ -64,14 +64,20 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_part)
 
     def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpression]) -> None:
-        # first calculate the gradients
+        # first merge all the model parts
         merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
-        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.GetAnalysisModelPart(), merged_model_part_map, True)
-        KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(list(merged_model_part_map.keys()), list(merged_model_part_map.values()), list(intersected_model_part_map.values()), self.perturbation_size)
 
-        # now fill the collective expressions
-        for variable, collective_expression in physical_variable_collective_expressions.items():
-            collective_expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
+        # now get the intersected model parts
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, True)
+
+        # calculate the gradients
+        for physical_variable, merged_model_part in merged_model_part_map.items():
+            KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(
+                physical_variable,
+                merged_model_part,
+                intersected_model_part_map[physical_variable],
+                physical_variable_collective_expressions[physical_variable].GetContainerExpressions(),
+                self.perturbation_size)
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
