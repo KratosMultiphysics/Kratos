@@ -17,8 +17,8 @@
 #include <variant>
 
 // Project includes
-#include "containers/container_expression/expressions/binary/binary_expression.h"
-#include "containers/container_expression/expressions/literal/literal_expression.h"
+#include "expression/binary_expression.h"
+#include "expression/literal_expression.h"
 
 // Application includes
 
@@ -106,7 +106,7 @@ void CollectiveExpressions::Read(
             v->Read(pBegin, *NumberOfEntities, *pListShapeBegin, *ShapeSizes);
 
             // now offset everything
-            pBegin += v->GetContainer().size() * v->GetFlattenedSize();
+            pBegin += v->GetContainer().size() * v->GetItemComponentCount();
             ++pListShapeBegin;
             ++ShapeSizes;
             ++NumberOfEntities;
@@ -166,7 +166,7 @@ void CollectiveExpressions::MoveFrom(
             v->MoveFrom(pBegin, *NumberOfEntities, *pListShapeBegin, *ShapeSizes);
 
             // now offset everything
-            pBegin += v->GetContainer().size() * v->GetFlattenedSize();
+            pBegin += v->GetContainer().size() * v->GetItemComponentCount();
             ++pListShapeBegin;
             ++ShapeSizes;
             ++NumberOfEntities;
@@ -192,7 +192,7 @@ void CollectiveExpressions::Evaluate(
     for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
         std::visit([&pBegin](const auto& v) {
             // get the shape of the container expression.
-            const auto& r_shape = v->GetShape();
+            const auto& r_shape = v->GetItemShape();
 
             // transform unsigned Index type shape to signed int shape.
             std::vector<int> shape(r_shape.size());
@@ -205,7 +205,7 @@ void CollectiveExpressions::Evaluate(
             v->Evaluate(pBegin, number_of_entities, shape.data(), shape.size());
 
             // increase the offset to place the evaluated values of the next container expression correctly.
-            pBegin += number_of_entities * v->GetFlattenedSize();
+            pBegin += number_of_entities * v->GetItemComponentCount();
         }, p_container_variable_data_holder);
     }
 
@@ -248,7 +248,7 @@ IndexType CollectiveExpressions::GetCollectiveFlattenedDataSize() const
     IndexType size = 0;
     for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
         std::visit([&size](const auto& v) {
-            size += v->GetContainer().size() * v->GetFlattenedSize();
+            size += v->GetContainer().size() * v->GetItemComponentCount();
         }, p_container_variable_data_holder);
     }
 
@@ -559,7 +559,7 @@ CollectiveExpressions CollectiveExpressions::Pow(const double Value) const
             v->SetExpression(
                 BinaryExpression<BinaryOperations::Power>::Create(
                     v->pGetExpression(),
-                    LiteralExpression<double>::Create(Value)));
+                    LiteralExpression<double>::Create(Value, v->GetExpression().NumberOfEntities())));
         }, result.mExpressionPointersList[i]);
     }
     return result;
