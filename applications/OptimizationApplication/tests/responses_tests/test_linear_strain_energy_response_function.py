@@ -132,7 +132,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             1e-5)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = KratosOA.CollectiveExpression([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
+        sensitivity = KratosOA.CollectiveExpression([Kratos.Expression.NodalExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities

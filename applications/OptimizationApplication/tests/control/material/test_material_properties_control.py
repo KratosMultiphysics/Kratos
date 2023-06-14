@@ -68,7 +68,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
         control_model_part = self.model_part.GetSubModelPart("Union_Structure#structure_EN")
 
         with self.assertRaises(RuntimeError):
-            self.properties_control.Update(Kratos.Expression.ConditionNonHistoricalExpression(control_model_part))
+            self.properties_control.Update(Kratos.Expression.ConditionExpression(control_model_part))
 
         temp = Kratos.Expression.ElementExpression(self.model_part)
         KratosOA.PropertiesVariableExpressionIO.Read(temp, Kratos.DENSITY)
@@ -87,7 +87,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
         control_model_part = self.model_part.GetSubModelPart("Union_Structure#structure_EN")
 
         with self.assertRaises(RuntimeError):
-            self.properties_control.MapGradient({Kratos.DENSITY: Kratos.Expression.NodalNonHistoricalExpression(control_model_part)})
+            self.properties_control.MapGradient({Kratos.DENSITY: Kratos.Expression.NodalExpression(control_model_part)})
 
         with self.assertRaises(RuntimeError):
             self.properties_control.MapGradient({Kratos.DENSITY: Kratos.Expression.ElementExpression(self.model_part)})
