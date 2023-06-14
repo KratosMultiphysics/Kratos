@@ -74,27 +74,27 @@ VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const std::vector<
         KRATOS_ERROR_IF_NOT(rShape.size() == 0)
             << "Constructing a int VariableExpressionDataIO with invalid "
                "shape. [ shape = "
-            << rShape << " ].\n";
+            << rShape << " ].";
     } else if constexpr(std::is_same_v<TDataType, double>) {
         KRATOS_ERROR_IF_NOT(rShape.size() == 0)
             << "Constructing a double VariableExpressionDataIO with invalid "
                "shape. [ shape = "
-            << rShape << " ].\n";
+            << rShape << " ].";
     } else if constexpr(std::is_same_v<TDataType, Vector>) {
         KRATOS_ERROR_IF_NOT(rShape.size() == 1)
             << "Constructing a vector VariableExpressionDataIO with invalid "
                "shape. [ shape = "
-            << rShape << " ].\n";
+            << rShape << " ].";
     } else if constexpr(std::is_same_v<TDataType, Matrix>) {
         KRATOS_ERROR_IF_NOT(rShape.size() == 2)
             << "Constructing a matrix VariableExpressionDataIO with invalid "
                "shape. [ shape = "
-            << rShape << " ].\n";
+            << rShape << " ].";
     } else { // this is for all array_1d types
         KRATOS_ERROR_IF_NOT(rShape == std::vector<IndexType>{std::tuple_size_v<typename TDataType::array_type>})
             << "Constructing a array VariableExpressionDataIO with invalid "
                "shape. [ shape = "
-            << rShape << " ].\n";
+            << rShape << " ] for array of size " << std::tuple_size_v<typename TDataType::array_type> << ".";
     }
 }
 

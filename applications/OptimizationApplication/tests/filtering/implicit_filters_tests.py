@@ -193,7 +193,7 @@ class HelmholtzAnalysisTest(TestCase):
 
     def test_scalar_solid_filter(self):
 
-        unfiltered_uniform_field_nodal = KM.ContainerExpression.NodalNonHistoricalExpression(self.solid_model_part)
+        unfiltered_uniform_field_nodal = KM.Expression.NodalNonHistoricalExpression(self.solid_model_part)
         unfiltered_uniform_field_nodal.SetData(1.0)
 
         filtered_field = self.solid_scalar_filter.FilterField(unfiltered_uniform_field_nodal)
@@ -206,7 +206,7 @@ class HelmholtzAnalysisTest(TestCase):
             for node in element.GetNodes():
                 node.SetValue(KM.NODAL_VOLUME, node.GetValue(KM.NODAL_VOLUME)+element.GetGeometry().Volume()/4.0)
 
-        nodal_volume = KM.ContainerExpression.NodalNonHistoricalExpression(self.solid_model_part)
+        nodal_volume = KM.Expression.NodalNonHistoricalExpression(self.solid_model_part)
         nodal_volume.Read(KM.NODAL_VOLUME)
 
         filtered_field = self.solid_scalar_filter.FilterIntegratedField(nodal_volume)
@@ -218,7 +218,7 @@ class HelmholtzAnalysisTest(TestCase):
 
     def test_vector_solid_filter(self):
 
-        unfiltered_uniform_field_nodal = KM.ContainerExpression.NodalNonHistoricalExpression(self.solid_model_part)
+        unfiltered_uniform_field_nodal = KM.Expression.NodalNonHistoricalExpression(self.solid_model_part)
         unfiltered_uniform_field_nodal.SetData(KM.Array3([1, 1, 1]))
 
         filtered_field = self.solid_vector_filter.FilterField(unfiltered_uniform_field_nodal)
@@ -233,7 +233,7 @@ class HelmholtzAnalysisTest(TestCase):
                 node.SetValue(KM.VELOCITY_Y, node.GetValue(KM.VELOCITY_Y)+element.GetGeometry().Volume()/4.0)
                 node.SetValue(KM.VELOCITY_Z, node.GetValue(KM.VELOCITY_Z)+element.GetGeometry().Volume()/4.0)
 
-        nodal_volume = KM.ContainerExpression.NodalNonHistoricalExpression(self.solid_model_part)
+        nodal_volume = KM.Expression.NodalNonHistoricalExpression(self.solid_model_part)
         nodal_volume.Read(KM.VELOCITY)
 
         filtered_field = self.solid_vector_filter.FilterIntegratedField(nodal_volume)
@@ -243,7 +243,7 @@ class HelmholtzAnalysisTest(TestCase):
 
     def test_scalar_shell_filter(self):
 
-        unfiltered_uniform_field_nodal = KM.ContainerExpression.NodalNonHistoricalExpression(self.shell_model_part)
+        unfiltered_uniform_field_nodal = KM.Expression.NodalNonHistoricalExpression(self.shell_model_part)
         unfiltered_uniform_field_nodal.SetData(1.0)
 
         filtered_field = self.shell_scalar_filter.UnFilterField(unfiltered_uniform_field_nodal)
@@ -260,7 +260,7 @@ class HelmholtzAnalysisTest(TestCase):
             for node in element.GetNodes():
                 node.SetValue(KM.NODAL_AREA, node.GetValue(KM.NODAL_AREA)+element.GetGeometry().Area()/3.0)
 
-        nodal_area = KM.ContainerExpression.NodalNonHistoricalExpression(self.shell_model_part)
+        nodal_area = KM.Expression.NodalNonHistoricalExpression(self.shell_model_part)
         nodal_area.Read(KM.NODAL_AREA)
 
         filtered_field = self.shell_scalar_filter.FilterIntegratedField(nodal_area)
@@ -268,7 +268,7 @@ class HelmholtzAnalysisTest(TestCase):
 
     def test_scalar_closed_shell_filter(self):
 
-        unfiltered_uniform_field_nodal = KM.ContainerExpression.NodalNonHistoricalExpression(self.closed_shell_model_part)
+        unfiltered_uniform_field_nodal = KM.Expression.NodalNonHistoricalExpression(self.closed_shell_model_part)
         unfiltered_uniform_field_nodal.SetData(1.0)
 
         filtered_field = self.closed_shell_scalar_filter.FilterField(unfiltered_uniform_field_nodal)
@@ -281,7 +281,7 @@ class HelmholtzAnalysisTest(TestCase):
             for node in element.GetNodes():
                 node.SetValue(KM.NODAL_AREA, node.GetValue(KM.NODAL_AREA)+element.GetGeometry().Area()/4.0)
 
-        nodal_area = KM.ContainerExpression.NodalNonHistoricalExpression(self.closed_shell_model_part)
+        nodal_area = KM.Expression.NodalNonHistoricalExpression(self.closed_shell_model_part)
         nodal_area.Read(KM.NODAL_AREA)
 
         filtered_field = self.closed_shell_scalar_filter.FilterIntegratedField(nodal_area)
@@ -291,7 +291,7 @@ class HelmholtzAnalysisTest(TestCase):
 
     def test_vector_shell_filter(self):
 
-        unfiltered_uniform_field_nodal = KM.ContainerExpression.NodalNonHistoricalExpression(self.shell_model_part)
+        unfiltered_uniform_field_nodal = KM.Expression.NodalNonHistoricalExpression(self.shell_model_part)
         unfiltered_uniform_field_nodal.SetData(KM.Array3([1, 1, 1]))
 
         filtered_field = self.shell_vector_filter.UnFilterField(unfiltered_uniform_field_nodal)
@@ -310,7 +310,7 @@ class HelmholtzAnalysisTest(TestCase):
                 node.SetValue(KM.VELOCITY_Y, node.GetValue(KM.VELOCITY_Y)+element.GetGeometry().Area()/3.0)
                 node.SetValue(KM.VELOCITY_Z, node.GetValue(KM.VELOCITY_Z)+element.GetGeometry().Area()/3.0)
 
-        nodal_area = KM.ContainerExpression.NodalNonHistoricalExpression(self.shell_model_part)
+        nodal_area = KM.Expression.NodalNonHistoricalExpression(self.shell_model_part)
         nodal_area.Read(KM.VELOCITY)
 
         filtered_field = self.shell_vector_filter.FilterIntegratedField(nodal_area)
@@ -318,7 +318,7 @@ class HelmholtzAnalysisTest(TestCase):
 
     def test_bulk_surface_shape(self):
 
-        unfiltered_uniform_field_nodal = KM.ContainerExpression.NodalNonHistoricalExpression(self.solid_model_part)
+        unfiltered_uniform_field_nodal = KM.Expression.NodalNonHistoricalExpression(self.solid_model_part)
         unfiltered_uniform_field_nodal.SetData(KM.Array3([1, 1, 1]))
 
         filtered_field = self.bulk_surface_filter.FilterField(unfiltered_uniform_field_nodal)
@@ -334,7 +334,7 @@ class HelmholtzAnalysisTest(TestCase):
                 node.SetValue(KM.VELOCITY_Y, node.GetValue(KM.VELOCITY_Y)+element.GetGeometry().Volume()/4.0)
                 node.SetValue(KM.VELOCITY_Z, node.GetValue(KM.VELOCITY_Z)+element.GetGeometry().Volume()/4.0)
 
-        nodal_area = KM.ContainerExpression.NodalNonHistoricalExpression(self.solid_model_part)
+        nodal_area = KM.Expression.NodalNonHistoricalExpression(self.solid_model_part)
         nodal_area.Read(KM.VELOCITY)
 
         filtered_field = self.bulk_surface_filter.FilterIntegratedField(nodal_area)

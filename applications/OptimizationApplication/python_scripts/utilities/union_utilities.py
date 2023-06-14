@@ -7,9 +7,9 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 SupportedSensitivityFieldVariableTypes = Union[Kratos.DoubleVariable, Kratos.Array1DVariable3]
 
 ContainerExpressionTypes = Union[
-                                Kratos.ContainerExpression.HistoricalExpression,
-                                Kratos.ContainerExpression.NodalNonHistoricalExpression,
-                                Kratos.ContainerExpression.ConditionNonHistoricalExpression,
-                                Kratos.ContainerExpression.ElementNonHistoricalExpression,
+                                Kratos.Expression.HistoricalExpression,
+                                Kratos.Expression.NodalNonHistoricalExpression,
+                                Kratos.Expression.ConditionNonHistoricalExpression,
+                                Kratos.Expression.ElementNonHistoricalExpression,
                                 KratosOA.ContainerExpression.ConditionPropertiesExpression,
                                 KratosOA.ContainerExpression.ElementPropertiesExpression]

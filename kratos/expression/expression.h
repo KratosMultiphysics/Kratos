@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Suneth Warnakulasuriya
+//                   Máté Kelemen
 //
 
 #pragma once
@@ -21,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "intrusive_ptr/intrusive_ptr.hpp"
 
 namespace Kratos {
 
@@ -39,7 +41,9 @@ public:
     ///@name Type definitions
     ///@{
 
-    using Pointer = Kratos::intrusive_ptr<const Expression>;
+    using Pointer = Kratos::intrusive_ptr<Expression>;
+
+    using ConstPointer = Kratos::intrusive_ptr<const Expression>;
 
     using IndexType = std::size_t;
 
@@ -70,7 +74,7 @@ public:
 
         ExpressionIterator();
 
-        ExpressionIterator(Expression::Pointer pExpression);
+        ExpressionIterator(Expression::ConstPointer pExpression);
 
         /**
          * @brief Copy constructor
@@ -83,7 +87,7 @@ public:
         ///@name Public operations
         ///@{
 
-        Expression::Pointer GetExpression() const;
+        Expression::ConstPointer GetExpression() const;
 
         ///@}
         ///@name Public operators
@@ -107,7 +111,7 @@ public:
         ///@name Private member variables
         ///@{
 
-        Expression::Pointer mpExpression;
+        Expression::ConstPointer mpExpression;
 
         IndexType mEntityIndex;
 
@@ -155,6 +159,7 @@ public:
      * @param EntityDataBeginIndex  Index at which entity data starts.
      * @param ComponentIndex        Component index.
      * @return double               Evaluated expression.
+     * @todo Move to private.
      */
     virtual double Evaluate(
         const IndexType EntityIndex,
@@ -201,6 +206,10 @@ public:
     ///@}
 
 private:
+    friend class ExpressionInput;
+
+    friend class ExpressionOutput;
+
     ///@name Private member variables
     ///@{
 
@@ -232,6 +241,7 @@ private:
     ///@}
 };
 
+/// @}
 /// output stream functions
 inline std::ostream& operator<<(
     std::ostream& rOStream,

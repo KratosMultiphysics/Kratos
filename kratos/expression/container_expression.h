@@ -22,18 +22,14 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "containers/container_expression/expressions/expression.h"
+#include "expression/expression.h"
+#include "expression/container_expression_arithmetic_operators.h"
+#include "expression/traits.h"
 
 namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
-
-namespace MeshType {
-    struct Local     {};
-    struct Ghost     {};
-    struct Interface {};
-} // namespace MeshTypes
 
 /**
  * @brief Container variable data holder
@@ -56,13 +52,12 @@ namespace MeshType {
  *                              They are used to store keep track of the operations carried on the LiteralExpressions.
  *
  * Literal expressions are created on the following cases:
- *      1. When data is set using the SpecializedContainerExpression::Read. Here, a LiteralFlatExpression is created.
- *      2. When data is reset to one value using either ContainerExpression::SetDataToZero or SpecializedContainerExpression::SetData
- *         or SpecializedContainerExpression::SetZero. Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
- *      3. When a SpecializedContainerExpression is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
+ *      1. When data is set using the VariableExpressionIO. Here, a LiteralFlatExpression is created.
+ *      2. When data is reset to one value using either DataExpression::SetDataToZero or Here a LiteralExpression<double> or LiteralExpression<array_1d<double, 3>> is created.
+ *      3. When a ContainerExpression is used with "+", "-", "*", "/", "Pow" operators with double values in right operand.
  *
  * BinaryExpressions are created on the followin cases:
- *      1. When a SpecializedContainerExpression is operated with "+", "-", "*", "/", "Pow".
+ *      1. When a ContainerExpression is operated with "+", "-", "*", "/", "Pow".
  *
  * ContainerExpression only holds double vector if any nodal, condition or element variable data needs to be stored for future calculations
  * where the variable can be released to store new data. Hence same variable can be used to store different data in the same container.
@@ -81,7 +76,7 @@ namespace MeshType {
  * @tparam TContainerType       Container type, should be nodal, condition or elemental.
  * @tparam TMeshType            Mesh type, should be Local, Ghost or Interface
  */
-template <class TContainerType, class TMeshType = MeshType::Local>
+template <class TContainerType, MeshType TMeshType = MeshType::Local>
 class KRATOS_API(KRATOS_CORE) ContainerExpression {
 public:
     ///@name Type definitions
@@ -95,11 +90,31 @@ public:
     ///@name Life cycle
     ///#{
 
+    /// Constructor with the model part
+    ContainerExpression(ModelPart& rModelPart);
+
+    /// Copy constructor
+    ContainerExpression(const ContainerExpression& rOther);
+
+    /// Assignment operator
+    ContainerExpression& operator=(const ContainerExpression& rOther);
+
     virtual ~ContainerExpression() = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing data container.
+     *
+     * This clones existing specialized data container. This is light weight operation
+     * since this just clones the expression pointer. No data copying for the underlying
+     * data in expression is done.
+     *
+     * @return ContainerExpression::Pointer
+     */
+    ContainerExpression::Pointer Clone() const;
 
     /**
      * @brief Copies the data from another same type container variable data.
@@ -261,7 +276,7 @@ public:
      *
      * @param pExpression       Expression to be used in this container variable data
      */
-    void SetExpression(Expression::Pointer pExpression);
+    void SetExpression(Expression::ConstPointer pExpression);
 
     /**
      * @brief Checks whether an expression has been initialized.
@@ -281,9 +296,9 @@ public:
     /**
      * @brief Get the expression pointer
      *
-     * @return const Expression::Pointer Returns the pointer of the expression
+     * @return Expression::ConstPointer Returns the pointer of the expression
      */
-    const Expression::Pointer pGetExpression() const;
+    Expression::ConstPointer pGetExpression() const;
 
     /**
      * @brief Get the shape of the expression data
@@ -302,6 +317,13 @@ public:
      * @return IndexType
      */
     IndexType GetItemComponentCount() const;
+
+    /**
+     * @brief Get the pointer to underlying model part
+     *
+     * @return ModelPart* const
+     */
+    ModelPart* pGetModelPart() const;
 
     /**
      * @brief Get the Model Part used in the container data
@@ -354,21 +376,62 @@ public:
     std::string PrintData() const;
 
     ///@}
-protected:
-    ///@name Life cycle
+    ///@name Public operators
     ///@{
 
-    /// Constructor with the model part
-    ContainerExpression(ModelPart& rModelPart);
+    /** @brief Returns a slice of the provided expression. Slicing is based on item components.
+     *  @details @see Kratos::Slice.
+     *  @param Offset Offset of the component to start slicing at.
+     *  @param Stride Number of components from the offset in the sliced entity.
+     */
+    ContainerExpression Slice(IndexType Offset, IndexType Stride) const;
 
-    /// Copy constructor
-    ContainerExpression(const ContainerExpression& rOther);
+    /** @brief Define a new shape for an otherwise identical expression.
+     *  @details @see Kratos::Reshape
+     *  @param rNewShape New shape to used to reshape the existing expression.
+     */
+    ContainerExpression Reshape(const std::vector<IndexType>& rNewShape) const;
+
+    /** @brief Append the components of an expression to the current expression's components.
+     *  @details @see Kratos::Comb.
+     *  @param rOther Expression to comb components from.
+     */
+    ContainerExpression Comb(const ContainerExpression& rOther) const;
+
+    /** @brief Append the components of a set of expressions to the current expression's components.
+     *  @details @see Kratos::Comb.
+     *  @param rOthers Expressions to comb components from.
+     */
+    ContainerExpression Comb(const std::vector<Pointer>& rOthers) const;
+
+    ContainerExpression& operator+=(const double Value);
+
+    ContainerExpression& operator+=(const ContainerExpression& Value);
+
+    ContainerExpression& operator-=(const double Value);
+
+    ContainerExpression& operator-=(const ContainerExpression& Value);
+
+    ContainerExpression& operator*=(const double Value);
+
+    ContainerExpression& operator*=(const ContainerExpression& Value);
+
+    ContainerExpression& operator/=(const double Value);
+
+    ContainerExpression& operator/=(const ContainerExpression& Value);
+
+    ContainerExpression& Power(const double Value);
+
+    ContainerExpression& Power(const ContainerExpression& Value);
+
+    ContainerExpression& Scale(const ContainerExpression& Value);
 
     ///@}
+protected:
     ///@name Protected member variables
     ///@{
 
-    std::optional<Expression::Pointer> mpExpression;
+    std::optional<Expression::ConstPointer> mpExpression;
 
     ModelPart* const mpModelPart;
 
@@ -380,10 +443,10 @@ protected:
 ///@{
 
 /// output stream function
-template<class TContainerType>
+template<class TContainerType, MeshType TMeshType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const ContainerExpression<TContainerType>& rThis)
+    const ContainerExpression<TContainerType, TMeshType>& rThis)
 {
     return rOStream << rThis.Info();
 }

@@ -14,10 +14,9 @@
 
 // System includes
 #include <string>
-#include <vector>
 
 // Project includes
-#include "containers/container_expression/expressions/expression.h"
+#include "expression/expression.h"
 
 namespace Kratos {
 
@@ -25,26 +24,35 @@ namespace Kratos {
 ///@{
 
 /**
- * @brief Expression to hold a literal value
+ * @brief Unary slice expression used to represent a slicing lazy expression of a given input expression.
+ *
+ * @details This expression slices the input expression's entity values with an offset and stride (length of components).
  *
  */
-template <class TDataType>
-class KRATOS_API(KRATOS_CORE) LiteralExpression : public Expression {
+class KRATOS_API(KRATOS_CORE) UnarySliceExpression : public Expression {
 public:
+    ///@name Type definitions
+    ///@{
+
+    using IndexType = std::size_t;
+
+    ///@}
     ///@name Life cycle
     ///@{
 
-    LiteralExpression(
-        const TDataType& Value,
-        const IndexType NumberOfEntities);
+    UnarySliceExpression(
+        Expression::ConstPointer pExpression,
+        const IndexType Offset,
+        const IndexType Stride);
 
     ///@}
     ///@name Public operations
     ///@{
 
     static Expression::Pointer Create(
-        const TDataType& Value,
-        const IndexType NumberOfEntities);
+        Expression::ConstPointer pExpression,
+        const IndexType Offset,
+        const IndexType Stride);
 
     double Evaluate(
         const IndexType EntityIndex,
@@ -56,13 +64,17 @@ public:
     std::string Info() const override;
 
     ///@}
-private:
+protected:
     ///@name Private member variables
     ///@{
 
-    const TDataType mValue;
+    const Expression::ConstPointer mpSourceExpression;
 
-    std::vector<IndexType> mShape;
+    const IndexType mOffset;
+
+    const IndexType mStride;
+
+    const IndexType mSourceStride;
 
     ///@}
 };
