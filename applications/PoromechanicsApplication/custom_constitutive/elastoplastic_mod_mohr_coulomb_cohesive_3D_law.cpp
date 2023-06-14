@@ -219,7 +219,8 @@ double ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeYieldFunction(Vector& St
     const unsigned int VoigtSize = StrainVector.size();
 
     // Declare auxiliary variables
-    double ft2    = rVariables.TensileStrength*rVariables.TensileStrength;
+    double ft     = rVariables.TensileStrength;
+    double ft2    = ft*ft;
     double c      = rVariables.Cohesion;
     double c2     = c*c;
     double tanPhi = std::tan(rVariables.FrictionAngle);
@@ -231,7 +232,7 @@ double ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeYieldFunction(Vector& St
     double tn = StressVector[VoigtSize-1];
 
     // Evaluate the yield function
-    double f_yield = ts*ts - tn*tn*(ft2 + 2.0*c*tanPhi - c2)/(ft2) - c2*(1.0 + tanPhi*tanPhi) + (tn + c*tanPhi)*(tn + c*tanPhi);
+    double f_yield = ts*ts - tn*tn*(ft2 + 2.0*c*ft*tanPhi - c2)/(ft2) - c2*(1.0 + tanPhi*tanPhi) + (tn + c*tanPhi)*(tn + c*tanPhi);
 
     return f_yield;
 }
@@ -274,7 +275,7 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
     PlasticMultiplier   = 0.0;                                       // Plastic multiplier
     int iterCounter     = 1;                                         // Iteration counter
     
-    while(YieldFunction > 1.0e-12){
+    while((YieldFunction > 1.0e-6) && iterCounter < 20){
         // Compute the normal to the plastic potential surface (np) and its derivative wrt to the stress vector
         this->DerivativesPlasticPotentialSurface(rStressVector, np, DnpDtp, rVariables, rValues);
 
@@ -305,6 +306,12 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
 
         // Update the traction vector
         rStressVector += DTractionVector;
+
+        // Evaluate the yield function
+        YieldFunction = this->ComputeYieldFunction(rStressVector,rVariables,rValues);
+
+        // Update the iteration counter 
+        iterCounter += 1;
         
     }
 
