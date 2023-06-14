@@ -388,14 +388,14 @@ private:
         // Calculate the high order solution update
         CalculateHighOrderSolutionUpdate(DeltaTime);
 
-        // Calculate the antidiffusive edge contributions
-        CalculateAntidiffusiveEdgeContributions(DeltaTime);
-
         // Add the low order update
         // TODO: Check that this needs to be done for the limiter or not
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
             mSolution[i] = mSolutionOld[i] + mLowOrderUpdate[i];
         });
+
+        // Calculate the antidiffusive edge contributions
+        CalculateAntidiffusiveEdgeContributions(DeltaTime);
 
         // Evaluate limiter
         EvaluateLimiter(DeltaTime);
@@ -666,7 +666,8 @@ private:
             // Check that there are CSR columns (i.e. that current node involves an edge)
             if (n_cols != 0) {
                 // i-node nodal data
-                const double u_i = mSolutionOld[iRow];
+                const double u_i = mSolution[iRow]; //u_l
+                // const double u_i = mSolutionOld[iRow]; //u_n
                 const double u_h_i = mHighOrderUpdate[iRow];
                 const auto& r_i_vel = mConvectionValues[iRow];
 
@@ -675,7 +676,8 @@ private:
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    const double u_j = mSolutionOld[j_node_id];
+                    const double u_j = mSolution[j_node_id]; //u_l
+                    // const double u_j = mSolutionOld[j_node_id]; //u_n
                     const double u_h_j = mHighOrderUpdate[j_node_id];
                     const auto& r_j_vel = mConvectionValues[j_node_id];
 
@@ -714,7 +716,8 @@ private:
             // Check that there are CSR columns (i.e. that current node involves an edge)
             if (n_cols != 0) {
                 // i-node nodal data
-                const double u_i = mSolutionOld[iRow];
+                // const double u_i = mSolution[iRow]; //u_l
+                const double u_i = mSolutionOld[iRow]; //u_n
                 const double M_l_i = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(iRow);
 
                 // j-node nodal loop (i.e. loop ij-edges)
@@ -722,7 +725,8 @@ private:
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    const double u_j = mSolutionOld[j_node_id];
+                    // const double u_j = mSolution[j_node_id]; //u_l
+                    const double u_j = mSolutionOld[j_node_id]; //u_n
                     const double M_l_j = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(j_node_id);
 
                     // Get the antidiffusive flux edge contribution
