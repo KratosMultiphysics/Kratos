@@ -77,7 +77,7 @@ class AlgorithmSteepestDescent(Algorithm):
     def Finalize(self):
         pass
 
-    def ComputeSearchDirection(self, obj_grad) -> KratosOA.ContainerExpression.CollectiveExpression:
+    def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
         return obj_grad * -1.0
 
     def GetCurrentObjValue(self) -> float:

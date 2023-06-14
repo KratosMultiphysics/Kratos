@@ -167,10 +167,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CopySolutionStepVariablesList", &OptimizationUtils::CopySolutionStepVariablesList)
         ;
 
-    auto sub_module = m.def_submodule("ContainerExpression");
-
     // Add collective expression to python
-    pybind11::class_<CollectiveExpression, CollectiveExpression::Pointer>(sub_module, "CollectiveExpression")
+    pybind11::class_<CollectiveExpression, CollectiveExpression::Pointer>(m, "CollectiveExpression")
         .def(pybind11::init<>())
         .def(pybind11::init<const std::vector<CollectiveExpression::CollectiveExpressionType>&>())
         .def("Add", pybind11::overload_cast<const CollectiveExpression::CollectiveExpressionType&>(&CollectiveExpression::Add))
@@ -232,7 +230,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("__str__", &CollectiveExpression::Info)
         ;
 
-    m.def_submodule("ContainerExpressionUtils")
+    m.def_submodule("ExpressionUtils")
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_expression"))
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ElementsContainerType>, py::arg("container_expression"))
@@ -266,7 +264,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeNodalVariableProductWithEntityMatrix", &ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix<ModelPart::ElementsContainerType>, py::arg("output_nodal_container_expression"), py::arg("input_nodal_values_container_expression"), py::arg("matrix_variable"), py::arg("entities"))
         ;
 
-    auto collective_expression_io = sub_module.def_submodule("CollectiveExpressionIO");
+    auto collective_expression_io = m.def_submodule("CollectiveExpressionIO");
     py::class_<CollectiveExpressionIO::HistoricalVariable, CollectiveExpressionIO::HistoricalVariable::Pointer>(collective_expression_io, "HistoricalVariable")
         .def(py::init<const CollectiveExpressionIO::VariableType&>(), py::arg("variable"));
     py::class_<CollectiveExpressionIO::NonHistoricalVariable, CollectiveExpressionIO::NonHistoricalVariable::Pointer>(collective_expression_io, "NonHistoricalVariable")
@@ -314,7 +312,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
 
-    auto properties_variable_expression_io = sub_module.def_submodule("PropertiesVariableExpressionIO");
+    auto properties_variable_expression_io = m.def_submodule("PropertiesVariableExpressionIO");
     properties_variable_expression_io.def("Read", &PropertiesVariableExpressionIO::Read<ModelPart::ConditionsContainerType>, py::arg("condition_container_expression"), py::arg("variable"));
     properties_variable_expression_io.def("Read", &PropertiesVariableExpressionIO::Read<ModelPart::ElementsContainerType>, py::arg("element_container_expression"), py::arg("variable"));
     properties_variable_expression_io.def("Check", &PropertiesVariableExpressionIO::Check<ModelPart::ConditionsContainerType>, py::arg("condition_container_expression"), py::arg("variable"));

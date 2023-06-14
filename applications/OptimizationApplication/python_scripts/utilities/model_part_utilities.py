@@ -34,7 +34,7 @@ class ModelPartUtilities:
             return True, Kratos.ModelPartOperationUtilities.Substract(unique_name, main_model_part, substracting_model_parts, add_neighbours)
 
     @staticmethod
-    def GetMergedMap(main_model_part: Kratos.ModelPart, input_dict: 'dict[Any, KratosOA.ContainerExpression.CollectiveExpression]', add_neghbours: bool) -> 'dict[Any, Kratos.ModelPart]':
+    def GetMergedMap(main_model_part: Kratos.ModelPart, input_dict: 'dict[Any, KratosOA.CollectiveExpression]', add_neghbours: bool) -> 'dict[Any, Kratos.ModelPart]':
         result: 'dict[Any, Kratos.ModelPart]' = {}
         for k, v in input_dict.items():
             merging_model_parts = [container_expression.GetModelPart() for container_expression in v.GetContainerExpressions()]

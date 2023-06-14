@@ -102,7 +102,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
         self.assertAlmostEqual(self.ref_value, 71515947.17480606, 6)
 
     def test_CalculateYoungModulusSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
+        sensitivity = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.YOUNG_MODULUS: sensitivity})
 
         # calculate element density sensitivity
@@ -117,7 +117,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             1e-5)
 
     def test_CalculatePoissonRatioSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
+        sensitivity = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.POISSON_RATIO: sensitivity})
 
         # calculate element density sensitivity
@@ -132,7 +132,7 @@ class TestLinearStrainEnergyResponseFunction(kratos_unittest.TestCase):
             1e-5)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
+        sensitivity = KratosOA.CollectiveExpression([Kratos.Expression.NodalNonHistoricalExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities

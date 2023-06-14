@@ -51,7 +51,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
             element.Properties[Kratos.DENSITY] = element.Id
 
         update_vector = self.properties_control.GetEmptyField()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(update_vector, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(update_vector, Kratos.DENSITY)
 
         # run for 3 iterations
         for i in range(1, 4, 1):
@@ -71,13 +71,13 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
             self.properties_control.Update(Kratos.Expression.ConditionNonHistoricalExpression(control_model_part))
 
         temp = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(temp, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(temp, Kratos.DENSITY)
 
         with self.assertRaises(RuntimeError):
             self.properties_control.Update(temp)
 
         temp = Kratos.Expression.ElementExpression(control_model_part)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(temp, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(temp, Kratos.DENSITY)
 
         self.properties_control.Update(temp)
 
@@ -108,7 +108,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     def test_GetControlFiield(self):
         self.properties_control.Initialize()
         field = self.properties_control.GetControlField()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(field, Kratos.YOUNG_MODULUS)
+        KratosOA.PropertiesVariableExpressionIO.Write(field, Kratos.YOUNG_MODULUS)
         for element in self.model_part.Elements:
             properties = element.Properties
             self.assertEqual(properties[Kratos.DENSITY], properties[Kratos.YOUNG_MODULUS])

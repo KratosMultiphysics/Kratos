@@ -40,12 +40,12 @@ class HelmholtzAnalysis(AnalysisStage):
             mapped_values = data_exp
         elif isinstance(data_exp, KM.Expression.ElementNonHistoricalExpression):
             neighbour_elems = KM.Expression.NodalNonHistoricalExpression(data_exp.GetModelPart())
-            KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourElements(neighbour_elems)
-            KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_elems)
+            KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbour_elems)
+            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_elems)
         elif isinstance(data_exp, KM.Expression.ConditionNonHistoricalExpression):
             neighbour_conds = KM.Expression.NodalNonHistoricalExpression(data_exp.GetModelPart())
-            KOA.ContainerExpressionUtils.ComputeNumberOfNeighbourConditions(neighbour_conds)
-            KOA.ContainerExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_conds)
+            KOA.ExpressionUtils.ComputeNumberOfNeighbourConditions(neighbour_conds)
+            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_conds)
 
         filter_type = self._GetSolver().settings["filter_type"].GetString()
         if filter_type == "bulk_surface_shape" or filter_type == "general_vector":
@@ -66,11 +66,11 @@ class HelmholtzAnalysis(AnalysisStage):
             return non_hist_nodal_solution_field
         elif output_data_exp_type == KM.Expression.ElementNonHistoricalExpression:
             mapped_elemental_solution_field = KM.Expression.ElementNonHistoricalExpression(self._GetComputingModelPart())
-            KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_elemental_solution_field, nodal_solution_field)
+            KOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_elemental_solution_field, nodal_solution_field)
             return mapped_elemental_solution_field
         elif output_data_exp_type == KM.Expression.ConditionNonHistoricalExpression:
             mapped_condition_solution_field = KM.Expression.ConditionNonHistoricalExpression(self._GetComputingModelPart())
-            KOA.ContainerExpressionUtils.MapNodalVariableToContainerVariable(mapped_condition_solution_field, nodal_solution_field)
+            KOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_condition_solution_field, nodal_solution_field)
             return mapped_condition_solution_field
 
     #### Public user interface functions ####

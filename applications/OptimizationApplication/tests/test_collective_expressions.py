@@ -44,13 +44,13 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         b = Kratos.Expression.ElementExpression(self.model_part)
 
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
 
-        collective_1 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_1 = KratosOA.CollectiveExpression()
         collective_1.Add(a)
         collective_1.Add(b)
 
-        collective_2 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_2 = KratosOA.CollectiveExpression()
         collective_2.Add(a)
         collective_2.Add(b)
 
@@ -61,7 +61,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         collective_4 += collective_1.Clone()
 
         Kratos.Expression.VariableExpressionIO.Write(collective_4.GetContainerExpressions()[0], Kratos.ACCELERATION, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(collective_4.GetContainerExpressions()[1], Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(collective_4.GetContainerExpressions()[1], Kratos.DENSITY)
 
         for node in self.model_part.Nodes:
             self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), node.GetSolutionStepValue(Kratos.VELOCITY) * 13 + Kratos.Array3([14, 14, 14]), 12)
@@ -73,13 +73,13 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         b = Kratos.Expression.ElementExpression(self.model_part)
 
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
 
-        collective_1 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_1 = KratosOA.CollectiveExpression()
         collective_1.Add(a)
         collective_1.Add(b)
 
-        collective_2 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_2 = KratosOA.CollectiveExpression()
         collective_2.Add(a)
         collective_2.Add(b)
 
@@ -90,7 +90,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         collective_4 -= collective_1.Clone()
 
         Kratos.Expression.VariableExpressionIO.Write(collective_4.GetContainerExpressions()[0], Kratos.ACCELERATION, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(collective_4.GetContainerExpressions()[1], Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(collective_4.GetContainerExpressions()[1], Kratos.DENSITY)
 
         for node in self.model_part.Nodes:
             self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), node.GetSolutionStepValue(Kratos.VELOCITY) * 7 - Kratos.Array3([14, 14, 14]), 12)
@@ -102,13 +102,13 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         b = Kratos.Expression.ElementExpression(self.model_part)
 
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
 
-        collective_1 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_1 = KratosOA.CollectiveExpression()
         collective_1.Add(a)
         collective_1.Add(b)
 
-        collective_2 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_2 = KratosOA.CollectiveExpression()
         collective_2.Add(a)
         collective_2.Add(b)
 
@@ -116,7 +116,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         collective_3 *= 2
 
         Kratos.Expression.VariableExpressionIO.Write(collective_3.GetContainerExpressions()[0], Kratos.ACCELERATION, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(collective_3.GetContainerExpressions()[1], Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(collective_3.GetContainerExpressions()[1], Kratos.DENSITY)
 
         for node in self.model_part.Nodes:
             self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), node.GetSolutionStepValue(Kratos.VELOCITY) * 20, 12)
@@ -128,13 +128,13 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         b = Kratos.Expression.ElementExpression(self.model_part)
 
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
 
-        collective_1 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_1 = KratosOA.CollectiveExpression()
         collective_1.Add(a)
         collective_1.Add(b)
 
-        collective_2 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_2 = KratosOA.CollectiveExpression()
         collective_2.Add(a)
         collective_2.Add(b)
 
@@ -142,7 +142,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         collective_3 /= 2
 
         Kratos.Expression.VariableExpressionIO.Write(collective_3.GetContainerExpressions()[0], Kratos.ACCELERATION, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(collective_3.GetContainerExpressions()[1], Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(collective_3.GetContainerExpressions()[1], Kratos.DENSITY)
 
         for node in self.model_part.Nodes:
             self.assertVectorAlmostEqual(node.GetSolutionStepValue(Kratos.ACCELERATION), node.GetSolutionStepValue(Kratos.VELOCITY) / 8, 12)
@@ -154,13 +154,13 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         b = Kratos.Expression.ElementExpression(self.model_part)
 
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
 
-        collective_1 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_1 = KratosOA.CollectiveExpression()
         collective_1.Add(a)
         collective_1.Add(b)
 
-        collective_2 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_2 = KratosOA.CollectiveExpression()
         collective_2.Add(a)
         collective_2.Add(b)
 
@@ -168,7 +168,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         collective_3 **= 2
 
         Kratos.Expression.VariableExpressionIO.Write(collective_3.GetContainerExpressions()[0], Kratos.ACCELERATION, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(collective_3.GetContainerExpressions()[1], Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(collective_3.GetContainerExpressions()[1], Kratos.DENSITY)
 
         for node in self.model_part.Nodes:
             v = node.GetSolutionStepValue(Kratos.VELOCITY)
@@ -181,20 +181,20 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         b = Kratos.Expression.ElementExpression(self.model_part)
 
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
 
-        collective_1 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_1 = KratosOA.CollectiveExpression()
         collective_1.Add(a)
         collective_1.Add(b)
 
-        collective_2 = KratosOA.ContainerExpression.CollectiveExpression()
+        collective_2 = KratosOA.CollectiveExpression()
         collective_2.Add(a)
         collective_2.Add(b)
 
         collective_3 = -collective_1
 
         Kratos.Expression.VariableExpressionIO.Write(collective_3.GetContainerExpressions()[0], Kratos.ACCELERATION, True)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(collective_3.GetContainerExpressions()[1], Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(collective_3.GetContainerExpressions()[1], Kratos.DENSITY)
 
         for node in self.model_part.Nodes:
             v = node.GetSolutionStepValue(Kratos.VELOCITY)
@@ -229,12 +229,12 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         Kratos.Expression.VariableExpressionIO.Read(c, Kratos.VELOCITY, True)
         Kratos.Expression.VariableExpressionIO.Read(d, Kratos.VELOCITY, True)
 
-        collective_1 = KratosOA.ContainerExpression.CollectiveExpression([a, b])
-        self.assertTrue(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpression([a, b])))
-        self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpression([a])))
-        self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpression([b, a])))
-        self.assertTrue(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpression([c, b])))
-        self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpression([c, d])))
+        collective_1 = KratosOA.CollectiveExpression([a, b])
+        self.assertTrue(collective_1.IsCompatibleWith(KratosOA.CollectiveExpression([a, b])))
+        self.assertFalse(collective_1.IsCompatibleWith(KratosOA.CollectiveExpression([a])))
+        self.assertFalse(collective_1.IsCompatibleWith(KratosOA.CollectiveExpression([b, a])))
+        self.assertTrue(collective_1.IsCompatibleWith(KratosOA.CollectiveExpression([c, b])))
+        self.assertFalse(collective_1.IsCompatibleWith(KratosOA.CollectiveExpression([c, d])))
 
     def test_ReadEvaluate1(self):
         a = Kratos.Expression.NodalExpression(self.model_part)
@@ -242,13 +242,13 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         c = Kratos.Expression.ConditionExpression(self.model_part)
         d = Kratos.Expression.ElementExpression(self.model_part)
 
-        collective = KratosOA.ContainerExpression.CollectiveExpression([a, b, c, d])
+        collective = KratosOA.CollectiveExpression([a, b, c, d])
 
         # reads VELOCITY from different container expressions
-        ceio = KratosOA.ContainerExpression.CollectiveExpressionIO
+        ceio = KratosOA.CollectiveExpressionIO
         historical = ceio.HistoricalVariable(Kratos.VELOCITY)
         non_historical = ceio.NonHistoricalVariable(Kratos.VELOCITY)
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Read(collective,  [historical, non_historical, non_historical, non_historical])
+        KratosOA.CollectiveExpressionIO.Read(collective,  [historical, non_historical, non_historical, non_historical])
 
         # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
         collective += 2
@@ -293,13 +293,13 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         c = Kratos.Expression.ConditionExpression(self.model_part)
         d = Kratos.Expression.ElementExpression(self.model_part)
 
-        collective = KratosOA.ContainerExpression.CollectiveExpression([a, b, c, d])
+        collective = KratosOA.CollectiveExpression([a, b, c, d])
 
         # reads VELOCITY from different container expressions
-        ceio = KratosOA.ContainerExpression.CollectiveExpressionIO
+        ceio = KratosOA.CollectiveExpressionIO
         historical = ceio.HistoricalVariable
         non_historical = ceio.NonHistoricalVariable
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Read(collective, [historical(Kratos.VELOCITY), non_historical(Kratos.PRESSURE), non_historical(Kratos.VELOCITY), non_historical(Kratos.PRESSURE)])
+        KratosOA.CollectiveExpressionIO.Read(collective, [historical(Kratos.VELOCITY), non_historical(Kratos.PRESSURE), non_historical(Kratos.VELOCITY), non_historical(Kratos.PRESSURE)])
 
         # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
         collective += 2
@@ -341,21 +341,21 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         c = Kratos.Expression.ConditionExpression(self.model_part)
         d = Kratos.Expression.ElementExpression(self.model_part)
 
-        collective = KratosOA.ContainerExpression.CollectiveExpression([a, b, c, d])
+        collective = KratosOA.CollectiveExpression([a, b, c, d])
 
         data = numpy.arange(1, self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1, 1.0)
 
         # here we copy data
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Read(collective, data, [[3], [], [3], []])
+        KratosOA.CollectiveExpressionIO.Read(collective, data, [[3], [], [3], []])
 
         # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
         collective += 2
         collective *= 3
 
-        ceio = KratosOA.ContainerExpression.CollectiveExpressionIO
+        ceio = KratosOA.CollectiveExpressionIO
         historical = ceio.HistoricalVariable
         non_historical = ceio.NonHistoricalVariable
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY), non_historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY)])
+        KratosOA.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY), non_historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY)])
 
         # now check
         index = 0
@@ -389,22 +389,22 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         c = Kratos.Expression.ConditionExpression(self.model_part)
         d = Kratos.Expression.ElementExpression(self.model_part)
 
-        collective = KratosOA.ContainerExpression.CollectiveExpression([a, b, c, d])
+        collective = KratosOA.CollectiveExpression([a, b, c, d])
 
         data = numpy.arange(1, self.model_part.NumberOfNodes() * 6 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() * 3 + 1, 1.0)
         data = data.reshape((self.model_part.NumberOfNodes() * 2 + self.model_part.NumberOfConditions() + self.model_part.NumberOfElements(), 3))
 
         # here we copy data
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Read(collective, data)
+        KratosOA.CollectiveExpressionIO.Read(collective, data)
 
         # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
         collective += 2
         collective *= 3
 
-        ceio = KratosOA.ContainerExpression.CollectiveExpressionIO
+        ceio = KratosOA.CollectiveExpressionIO
         historical = ceio.HistoricalVariable
         non_historical = ceio.NonHistoricalVariable
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION)])
+        KratosOA.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION)])
 
         # now check
         offset = 0
@@ -441,21 +441,21 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         c = Kratos.Expression.ConditionExpression(self.model_part)
         d = Kratos.Expression.ElementExpression(self.model_part)
 
-        collective = KratosOA.ContainerExpression.CollectiveExpression([a, b, c, d])
+        collective = KratosOA.CollectiveExpression([a, b, c, d])
 
         data = numpy.arange(1, self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1, 1.0)
 
         # here we move data. The life time is not managed by the collective. If moved data is destroyed, then use of collective can seg fault.
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Move(collective, data, [[3], [], [3], []])
+        KratosOA.CollectiveExpressionIO.Move(collective, data, [[3], [], [3], []])
 
         # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
         collective += 2
         collective *= 3
 
-        ceio = KratosOA.ContainerExpression.CollectiveExpressionIO
+        ceio = KratosOA.CollectiveExpressionIO
         historical = ceio.HistoricalVariable
         non_historical = ceio.NonHistoricalVariable
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY), non_historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY)])
+        KratosOA.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY), non_historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY)])
 
         # now check for initial values
         index = 0
@@ -485,7 +485,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
 
         # now change the numpy array to check whether we are still referening to data from numpy arraydata
         data += 1.0
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY), non_historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY)])
+        KratosOA.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY), non_historical(Kratos.ACCELERATION), non_historical(Kratos.DENSITY)])
 
         # now check for changed values
         index = 0
@@ -519,22 +519,22 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         c = Kratos.Expression.ConditionExpression(self.model_part)
         d = Kratos.Expression.ElementExpression(self.model_part)
 
-        collective = KratosOA.ContainerExpression.CollectiveExpression([a, b, c, d])
+        collective = KratosOA.CollectiveExpression([a, b, c, d])
 
         data = numpy.arange(1, self.model_part.NumberOfNodes() * 6 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() * 3 + 1, 1.0)
         data = data.reshape((self.model_part.NumberOfNodes() * 2 + self.model_part.NumberOfConditions() + self.model_part.NumberOfElements(), 3))
 
         # here we move data. The life time is not managed by the collective. If moved data is destroyed, then use of collective can seg fault.
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Move(collective, data)
+        KratosOA.CollectiveExpressionIO.Move(collective, data)
 
         # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
         collective += 2
         collective *= 3
 
-        ceio = KratosOA.ContainerExpression.CollectiveExpressionIO
+        ceio = KratosOA.CollectiveExpressionIO
         historical = ceio.HistoricalVariable
         non_historical = ceio.NonHistoricalVariable
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION)])
+        KratosOA.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION)])
 
         # now check for initial values
         offset = 0
@@ -567,7 +567,7 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
 
         # now change the numpy array to check whether we are still referening to data from numpy arraydata
         data += 1.0
-        KratosOA.ContainerExpression.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION)])
+        KratosOA.CollectiveExpressionIO.Write(collective, [historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION), non_historical(Kratos.ACCELERATION)])
 
         # now check for changed values
         offset = 0
@@ -604,41 +604,41 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         c = Kratos.Expression.ConditionExpression(self.model_part)
         d = Kratos.Expression.ElementExpression(self.model_part)
 
-        collective = KratosOA.ContainerExpression.CollectiveExpression([a, b, c, d])
+        collective = KratosOA.CollectiveExpression([a, b, c, d])
 
         total_entities = self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities)
-            KratosOA.ContainerExpression.CollectiveExpressionIO.Read(collective, numpy_array, [[3], [], [3], []])
+            KratosOA.CollectiveExpressionIO.Read(collective, numpy_array, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.float32)
-            KratosOA.ContainerExpression.CollectiveExpressionIO.Read(collective, numpy_array, [[3], [], [3], []])
+            KratosOA.CollectiveExpressionIO.Read(collective, numpy_array, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int32)
-            KratosOA.ContainerExpression.CollectiveExpressionIO.Read(collective, numpy_array, [[3], [], [3], []])
+            KratosOA.CollectiveExpressionIO.Read(collective, numpy_array, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int64)
-            KratosOA.ContainerExpression.CollectiveExpressionIO.Read(collective, numpy_array, [[3], [], [3], []])
+            KratosOA.CollectiveExpressionIO.Read(collective, numpy_array, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities)
-            KratosOA.ContainerExpression.CollectiveExpressionIO.Move(collective, numpy_array, [[3], [], [3], []])
+            KratosOA.CollectiveExpressionIO.Move(collective, numpy_array, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.float32)
-            KratosOA.ContainerExpression.CollectiveExpressionIO.Move(collective, numpy_array, [[3], [], [3], []])
+            KratosOA.CollectiveExpressionIO.Move(collective, numpy_array, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int32)
-            KratosOA.ContainerExpression.CollectiveExpressionIO.Move(collective, numpy_array, [[3], [], [3], []])
+            KratosOA.CollectiveExpressionIO.Move(collective, numpy_array, [[3], [], [3], []])
 
         with self.assertRaises(TypeError):
             numpy_array = numpy.arange(0, total_entities, dtype=numpy.int64)
-            KratosOA.ContainerExpression.CollectiveExpressionIO.Move(collective, numpy_array, [[3], [], [3], []])
+            KratosOA.CollectiveExpressionIO.Move(collective, numpy_array, [[3], [], [3], []])
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

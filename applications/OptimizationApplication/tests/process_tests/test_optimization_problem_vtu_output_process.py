@@ -21,7 +21,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             self.model_part = model_part
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpression]) -> None:
+        def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
             pass
         def Check(self) -> None:
             pass

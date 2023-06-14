@@ -47,46 +47,46 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         b = self._GetContainerExpression()
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.VELOCITY)
 
         c = a + b
         c += b
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) * 3, 12)
 
         c = a + 100.0
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) + Kratos.Array3([100.0, 100.0, 100.0]), 12)
 
         c += 200.0
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) + Kratos.Array3([300.0, 300.0, 300.0]), 12)
 
         a = self._GetContainerExpression()
         b = self._GetContainerExpression()
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
 
         c = a + b
         c += b
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) * 3, 12)
 
         c = a + 100.0
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) + 100.0, 12)
 
         c += 100.0
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) + 200.0, 12)
 
@@ -94,148 +94,148 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         b = self._GetContainerExpression()
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.VELOCITY)
 
         c = a * 4 - b
         c *= 2
         c -= a
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) * 5, 12)
 
         c = a - 100.0
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) - Kratos.Array3([100.0, 100.0, 100.0]), 12)
 
         c -= 200.0
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) - Kratos.Array3([300.0, 300.0, 300.0]), 12)
 
         a = self._GetContainerExpression()
         b = self._GetContainerExpression()
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(b, Kratos.PRESSURE)
 
         c = a * 4 - b
         c *= 2
         c -= a
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) * 5, 12)
 
         c = a - 100.0
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) - 100.0, 12)
 
         c -= 100.0
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) - 200.0, 12)
 
         d = c * a
         d *= b
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(d, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(d, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), (self._GetValue(node, Kratos.PRESSURE) - 200.0) * self._GetValue(node, Kratos.PRESSURE) ** 2, 12)
 
         a = self._GetContainerExpression()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
 
     def test_ContainerExpressionDivision(self):
         a = self._GetContainerExpression()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
 
         c = a / 2.0
         c /= 2.0
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) / 4, 12)
 
         a = self._GetContainerExpression()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
 
         c = a / 2.0
         c /= 2.0
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) / 4, 12)
 
         d = c / a
         d /= (a * 2)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(d, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(d, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), 0.5 * ((self._GetValue(node, Kratos.PRESSURE) / 4) / self._GetValue(node, Kratos.PRESSURE)) / self._GetValue(node, Kratos.PRESSURE) , 12)
 
         a = self._GetContainerExpression()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
 
     def test_ContainerExpressionPow(self):
         a = self._GetContainerExpression()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
 
         c = a ** 2.0
         c **= 2.0
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
         for node in c.GetContainer():
             ref_value = self._GetValue(node, Kratos.VELOCITY)
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([ref_value[0]**4, ref_value[1]**4, ref_value[2]**4]), 12)
 
         a = self._GetContainerExpression()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
 
         c = a ** 2.0
         c **= 2.0
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) ** 4, 12)
 
     def test_ContainerExpressionNeg(self):
         a = self._GetContainerExpression()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
 
         c = -a
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.ACCELERATION)
         for node in c.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY) * (-1.0), 12)
 
         a = self._GetContainerExpression()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
 
         c = -a
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(c, Kratos.DENSITY)
         for node in c.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE) * (-1.0), 12)
 
     def test_SetDataForContainerVariable(self):
         a = self._GetContainerExpression()
         Kratos.Expression.LiteralExpressionIO.SetData(a, Kratos.Array3([1, 2, 3]))
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(a, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(a, Kratos.ACCELERATION)
         for node in a.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([1, 2, 3]), 12)
 
         a = self._GetContainerExpression()
         Kratos.Expression.LiteralExpressionIO.SetData(a, 10)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(a, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(a, Kratos.DENSITY)
         for node in a.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), 10)
 
     def test_ReadEvaluate(self) -> None:
         a = self._GetContainerExpression()
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(a, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(a, Kratos.ACCELERATION)
         for node in a.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION),
                                          self._GetValue(node, Kratos.VELOCITY),
@@ -244,31 +244,31 @@ class TestContainerExpression(ABC):
     def test_Clone(self):
         a = self._GetContainerExpression()
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.VELOCITY)
 
         b = a.Clone()
         Kratos.Expression.LiteralExpressionIO.SetData(b, Kratos.Array3([10, 11, 12]))
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(a, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(a, Kratos.ACCELERATION)
         for node in a.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), self._GetValue(node, Kratos.VELOCITY), 12)
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(b, Kratos.ACCELERATION)
+        KratosOA.PropertiesVariableExpressionIO.Write(b, Kratos.ACCELERATION)
         for node in a.GetContainer():
             self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION), Kratos.Array3([10, 11, 12]), 12)
 
         a = self._GetContainerExpression()
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
+        KratosOA.PropertiesVariableExpressionIO.Read(a, Kratos.PRESSURE)
 
         b = a.Clone()
         Kratos.Expression.LiteralExpressionIO.SetData(b, 12)
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(a, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(a, Kratos.DENSITY)
         for node in a.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
-        KratosOA.ContainerExpression.PropertiesVariableExpressionIO.Write(b, Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Write(b, Kratos.DENSITY)
         for node in a.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), 12, 12)
 
