@@ -18,7 +18,7 @@
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
 #include "spatial_containers/spatial_containers.h"
-#include "containers/container_expression/container_expression.h"
+#include "expression/container_expression.h"
 
 // Application includes
 #include "custom_utilities/collective_expressions.h"

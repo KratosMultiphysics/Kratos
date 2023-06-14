@@ -18,6 +18,7 @@
 // Include base h
 #include "expression.h"
 
+
 namespace Kratos {
 
 Expression::ExpressionIterator::ExpressionIterator()
@@ -30,7 +31,7 @@ Expression::ExpressionIterator::ExpressionIterator()
     KRATOS_ERROR << "The default construction of ExpressionIterator is not allowed.\n";
 }
 
-Expression::ExpressionIterator::ExpressionIterator(Expression::Pointer pExpression)
+Expression::ExpressionIterator::ExpressionIterator(Expression::ConstPointer pExpression)
     : mpExpression(pExpression),
       mEntityIndex(0),
       mEntityDataBeginIndex(0),
@@ -48,7 +49,7 @@ Expression::ExpressionIterator::ExpressionIterator(const ExpressionIterator& rOt
 {
 }
 
-Expression::Pointer Expression::ExpressionIterator::GetExpression() const
+Expression::ConstPointer Expression::ExpressionIterator::GetExpression() const
 {
     return mpExpression;
 }
@@ -136,5 +137,6 @@ Expression::ExpressionIterator Expression::cend() const
 {
     return end();
 }
+
 
 } // namespace Kratos

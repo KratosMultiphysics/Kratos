@@ -21,7 +21,7 @@
 namespace Kratos {
 
 UnarySliceExpression::UnarySliceExpression(
-    Expression::Pointer pExpression,
+    Expression::ConstPointer pExpression,
     const IndexType Offset,
     const IndexType Stride)
     : Expression(pExpression->NumberOfEntities()),
@@ -38,7 +38,7 @@ UnarySliceExpression::UnarySliceExpression(
 }
 
 Expression::Pointer UnarySliceExpression::Create(
-    Expression::Pointer pExpression,
+    Expression::ConstPointer pExpression,
     const IndexType Offset,
     const IndexType Stride)
 {

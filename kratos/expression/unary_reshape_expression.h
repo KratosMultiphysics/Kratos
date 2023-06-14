@@ -17,7 +17,7 @@
 #include <iterator>
 
 // Project includes
-#include "containers/container_expression/expressions/expression.h"
+#include "expression/expression.h"
 
 namespace Kratos {
 
@@ -41,7 +41,7 @@ public:
 
     template<class TIteratorType>
     UnaryReshapeExpression(
-        Expression::Pointer pExpression,
+        Expression::ConstPointer pExpression,
         TIteratorType Begin,
         TIteratorType End)
         : Expression(pExpression->NumberOfEntities()),
@@ -62,7 +62,7 @@ public:
 
     template<class TIteratorType>
     static Expression::Pointer Create(
-        Expression::Pointer pExpression,
+        Expression::ConstPointer pExpression,
         TIteratorType Begin,
         TIteratorType End)
     {
@@ -98,7 +98,7 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const Expression::Pointer mpSourceExpression;
+    const Expression::ConstPointer mpSourceExpression;
 
     const std::vector<IndexType> mShape;
 
