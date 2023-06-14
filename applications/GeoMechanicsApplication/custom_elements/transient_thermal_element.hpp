@@ -48,8 +48,6 @@ namespace Kratos
     	std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
         bool mIsInitialised = false;
 
-//        typedef typename BaseType::ElementVariables ElementVariables;
-
         struct ElementVariables
         {
             ///Properties variables

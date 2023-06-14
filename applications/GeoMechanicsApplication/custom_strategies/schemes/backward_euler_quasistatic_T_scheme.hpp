@@ -34,12 +34,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( BackwardEulerQuasistaticTScheme );
 
-    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
-    using DofsArrayType = typename BaseType::DofsArrayType;
-    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
-    using TSystemVectorType = typename BaseType::TSystemVectorType;
-    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
-    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
     using NewmarkQuasistaticTScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
 
     ///Constructor
@@ -57,7 +51,6 @@ public:
 
 protected:
 
-    /// Member Variables
     // ============================================================================================
     // ============================================================================================
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override

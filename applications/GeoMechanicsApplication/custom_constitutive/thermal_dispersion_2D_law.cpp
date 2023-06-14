@@ -24,14 +24,14 @@ namespace Kratos
 {
     // ============================================================================================
     // ============================================================================================
-    GeoThermalDispersion2DLaw::GeoThermalDispersion2DLaw() : LinearPlaneStrainK0Law()
+    GeoThermalDispersion2DLaw::GeoThermalDispersion2DLaw() : ConstitutiveLaw()
     {
     }
 
     // ============================================================================================
     // ============================================================================================
     GeoThermalDispersion2DLaw::GeoThermalDispersion2DLaw(const GeoThermalDispersion2DLaw& rOther)
-        : LinearPlaneStrainK0Law(rOther) {}
+        : ConstitutiveLaw(rOther) {}
 
     // ============================================================================================
     // ============================================================================================

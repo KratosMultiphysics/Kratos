@@ -71,7 +71,6 @@ class TSolver(GeoSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "realised_factor"            : 1.0,
             "calculate_reactions"        : true,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
@@ -170,7 +169,7 @@ class TSolver(GeoSolver):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Steady-state heat transfer.")
                 scheme = scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
         else:
-            raise Exception("Apart from Newmark, other scheme_type are not available.")
+            raise Exception("Apart from Newmark and Backward Euler, other scheme_type are not available.")
 
         return scheme
 

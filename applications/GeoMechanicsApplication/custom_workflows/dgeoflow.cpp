@@ -32,11 +32,6 @@ public:
         return mvariable_name == "WATER_PRESSURE";
     }
 
-    bool hasTemperature()
-    {
-        return mvariable_name == "TEMPERATURE";
-    }
-
     Kratos::ModelPart &GetModelPart()
     {
         return mr_model_part;
