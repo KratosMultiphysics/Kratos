@@ -698,15 +698,13 @@ private:
         std::vector<double> P_max(mAuxSize, 0.0);
         std::vector<double> Q_min(mAuxSize, 0.0);
         std::vector<double> Q_max(mAuxSize, 0.0);
-        std::vector<double> u_min(mAuxSize, std::numeric_limits<double>::max());
-        std::vector<double> u_max(mAuxSize, std::numeric_limits<double>::lowest());
 
         // Get edge data structure containers
         const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
         const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
         SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
 
-        // Calculate the summation of antidiffusive fluxes and bound fluxes
+        // Calculate the summation of positive/negative antidiffusive fluxes and bound fluxes
         IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
             // Get current row (node) storage data
             const auto it_row = r_row_indices.begin() + iRow;
@@ -725,6 +723,7 @@ private:
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
                     const double u_j = mSolutionOld[j_node_id];
+                    const double M_l_j = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(j_node_id);
 
                     // Get the antidiffusive flux edge contribution
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
@@ -737,11 +736,12 @@ private:
                     AtomicAdd(P_max[j_node_id], std::max(0.0, -AEC_ij));
 
                     // Assemble the positive/negative antidiffusive bounds
-                    const double aux_val = M_l_i * (u_j - u_i) / DeltaTime;
-                    Q_min[iRow] = std::min(Q_min[iRow], aux_val);
-                    Q_max[iRow] = std::max(Q_max[iRow], aux_val);
-                    Q_min[j_node_id] = std::min(Q_min[j_node_id], -aux_val);
-                    Q_max[j_node_id] = std::max(Q_max[j_node_id], -aux_val);
+                    const double aux_val_i = M_l_i * (u_j - u_i) / DeltaTime;
+                    const double aux_val_j = M_l_j * (u_i - u_j) / DeltaTime;
+                    Q_min[iRow] = std::min(Q_min[iRow], aux_val_i);
+                    Q_max[iRow] = std::max(Q_max[iRow], aux_val_i);
+                    Q_min[j_node_id] = std::min(Q_min[j_node_id], aux_val_j);
+                    Q_max[j_node_id] = std::max(Q_max[j_node_id], aux_val_j);
                 }
             }
         });
