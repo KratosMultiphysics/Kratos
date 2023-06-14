@@ -1,8 +1,10 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.model_part_controllers.model_part_controller import ModelPartController
 
-def Factory(parameters: Kratos.Parameters, model: Kratos.Model) -> ModelPartController:
-    return MdpaModelPartController(model, parameters)
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ModelPartController:
+    if not parameters.Has("settings"):
+        raise RuntimeError(f"MdpaModelPartController instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+    return MdpaModelPartController(model, parameters["settings"])
 
 class MdpaModelPartController(ModelPartController):
     def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):

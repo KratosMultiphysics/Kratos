@@ -19,10 +19,12 @@
 #include <pybind11/numpy.h>
 
 // Project includes
-#include "containers/container_expression/container_data_io.h"
-#include "containers/container_expression/container_expression.h"
-#include "containers/container_expression/specialized_container_expression.h"
+#include "includes/define_python.h"
+#include "expression/container_data_io.h"
+#include "expression/container_expression.h"
+#include "expression/specialized_container_expression.h"
 #include "add_container_expression_to_python_utils.h"
+#include "add_expression_io_to_python.h"
 
 // Include base h
 #include "add_container_expression_to_python.h"
@@ -30,18 +32,21 @@
 namespace Kratos::Python
 {
 
+
 void  AddContainerExpressionToPython(pybind11::module& m)
 {
-    auto sub_module = m.def_submodule("ContainerExpression");
+    auto container_exp_sub_module = m.def_submodule("Expression");
 
-    AddContainerExpressionToPython<ModelPart::NodesContainerType>(sub_module, "NodalExpression");
-    AddContainerExpressionToPython<ModelPart::ConditionsContainerType>(sub_module, "ConditionExpression");
-    AddContainerExpressionToPython<ModelPart::ElementsContainerType>(sub_module, "ElementExpression");
+    AddContainerExpressionToPython<ModelPart::NodesContainerType>(container_exp_sub_module, "NodalExpression");
+    AddContainerExpressionToPython<ModelPart::ConditionsContainerType>(container_exp_sub_module, "ConditionExpression");
+    AddContainerExpressionToPython<ModelPart::ElementsContainerType>(container_exp_sub_module, "ElementExpression");
 
-    AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::Historical>(sub_module, "HistoricalExpression");
-    AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "NodalNonHistoricalExpression");
-    AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "ConditionNonHistoricalExpression");
-    AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(sub_module, "ElementNonHistoricalExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::Historical>(container_exp_sub_module, "HistoricalExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::NodesContainerType, ContainerDataIOTags::NonHistorical>(container_exp_sub_module, "NodalNonHistoricalExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::NonHistorical>(container_exp_sub_module, "ConditionNonHistoricalExpression");
+    AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::NonHistorical>(container_exp_sub_module, "ElementNonHistoricalExpression");
+
+    AddExpressionIOToPython(container_exp_sub_module);
 }
 
 } // namespace Kratos::Python
