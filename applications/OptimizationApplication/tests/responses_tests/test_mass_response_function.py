@@ -104,7 +104,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity
@@ -118,7 +118,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             6)
 
     def test_CalculateCrossAreaSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
         self.response_function.CalculateGradient({KratosOA.CROSS_AREA: sensitivity})
 
         # calculate element cross area sensitivity
@@ -182,7 +182,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity
@@ -196,7 +196,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
             6)
 
     def test_CalculateThicknessSensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.THICKNESS: sensitivity})
 
         # calculate element cross area sensitivity
@@ -271,7 +271,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity

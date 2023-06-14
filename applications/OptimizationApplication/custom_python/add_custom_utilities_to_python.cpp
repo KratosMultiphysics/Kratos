@@ -170,8 +170,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     auto sub_module = m.def_submodule("ContainerExpression");
-    AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties>(sub_module, "ConditionPropertiesExpression");
-    AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::Properties>(sub_module, "ElementPropertiesExpression");
 
     // Add collective expression to python
     pybind11::class_<CollectiveExpression, CollectiveExpression::Pointer>(sub_module, "CollectiveExpression")
