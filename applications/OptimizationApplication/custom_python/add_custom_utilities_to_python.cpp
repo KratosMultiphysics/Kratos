@@ -58,6 +58,22 @@ void CollectiveExpressionFromPythonArray(
         << r_container_expressions.size()
         << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
 
+    int required_number_of_values = 0;
+    for (IndexType i = 0; i < r_container_expressions.size(); ++i) {
+        required_number_of_values += std::visit([&rListOfShapes, i](auto& pContainerExpression){
+            return pContainerExpression->GetContainer().size() * std::accumulate(rListOfShapes[i].begin(), rListOfShapes[i].end(), 1, [](const int V1, const int V2) { return V1 * V2; });
+        }, r_container_expressions[i]);
+    }
+
+    KRATOS_ERROR_IF_NOT(required_number_of_values == rData.size())
+        << "Required number of values for the specified ContainerExpressions "
+           "and shapes mismatch with the values present in the rData array. [ "
+           "required number of values = "
+        << required_number_of_values << ", rData.size() = " << rData.size()
+        << ", shapes = " << rListOfShapes
+        << ", collective expression = " << rCollectiveExpression
+        << " ].\n";
+
     // create c style double pointer from std::vector list for shapes.
     int const** p_list_of_shapes = new int const*[rListOfShapes.size()];
     std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes,
