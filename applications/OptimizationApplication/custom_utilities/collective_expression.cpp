@@ -195,7 +195,7 @@ CollectiveExpression& CollectiveExpression::Scale(const CollectiveExpression& rO
         auto r_list_of_container_expressions = result.GetContainerExpressions();              \
         for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) {              \
             std::visit(                                                                       \
-                [Right, i](auto& pResult) {                                                   \
+                [Right](auto& pResult) {                                                      \
                     pResult->SetExpression(OPERATOR_NAME(pResult->pGetExpression(), Right));  \
                 },                                                                            \
                 r_list_of_container_expressions[i]);                                          \
@@ -213,7 +213,7 @@ CollectiveExpression& CollectiveExpression::Scale(const CollectiveExpression& rO
         auto r_list_of_container_expressions = result.GetContainerExpressions();              \
         for (IndexType i = 0; i < r_list_of_container_expressions.size(); ++i) {              \
             std::visit(                                                                       \
-                [Left, i](auto& pResult) {                                                    \
+                [Left](auto& pResult) {                                                       \
                     pResult->SetExpression(OPERATOR_NAME(pResult->pGetExpression(), Left));   \
                 },                                                                            \
                 r_list_of_container_expressions[i]);                                          \
