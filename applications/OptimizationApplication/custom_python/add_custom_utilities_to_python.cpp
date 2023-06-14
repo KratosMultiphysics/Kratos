@@ -25,7 +25,6 @@
 #include "custom_utilities/geometrical/model_part_utils.h"
 #include "custom_utilities/optimization_utils.h"
 #include "custom_utilities/container_properties_data_io.h"
-#include "custom_utilities/collective_expressions.h"
 #include "custom_utilities/collective_expression.h"
 #include "custom_utilities/container_expression_utils.h"
 #include "custom_utilities/properties_variable_expression_io.h"
@@ -174,106 +173,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     AddSpecializedContainerExpressionToPython<ModelPart::ConditionsContainerType, ContainerDataIOTags::Properties>(sub_module, "ConditionPropertiesExpression");
     AddSpecializedContainerExpressionToPython<ModelPart::ElementsContainerType, ContainerDataIOTags::Properties>(sub_module, "ElementPropertiesExpression");
 
-    py::class_<CollectiveExpressions, CollectiveExpressions::Pointer>(sub_module, "CollectiveExpressions")
-        .def(py::init<>())
-        .def(py::init<const CollectiveExpressions&>())
-        .def(py::init<const std::vector<CollectiveExpressions::CollectiveExpressionType>&>())
-        .def("Add", py::overload_cast<const CollectiveExpressions::CollectiveExpressionType&>(&CollectiveExpressions::Add))
-        .def("Add", py::overload_cast<const CollectiveExpressions&>(&CollectiveExpressions::Add))
-        .def("Clear", &CollectiveExpressions::Clear)
-        .def("Read", [](CollectiveExpressions& rSelf, const py::array_t<double>& rData, const std::vector<int>& rListOfNumberOfEntitiesInContainers, const std::vector<std::vector<int>>& rListOfShapes){
-            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
-
-            KRATOS_ERROR_IF(rListOfNumberOfEntitiesInContainers.size() != rListOfShapes.size())
-                << "List of number of entities and list of shapes size mismatch. "
-                << "[ List of number of entities size = "
-                << rListOfNumberOfEntitiesInContainers.size()
-                << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
-
-            // create c style double pointer from std::vector list for shapes.
-            int const** p_list_of_shapes = new int const*[rListOfNumberOfEntitiesInContainers.size()];
-            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes, [](const auto& rShape) { return rShape.data(); });
-
-            // create c style double pointer for sizes of std::vector list.
-            int* p_list_of_shape_dimensions = new int[rListOfNumberOfEntitiesInContainers.size()];
-            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shape_dimensions, [](const auto& rShape) { return rShape.size(); });
-
-            rSelf.Read(rData.data(),
-                       rListOfNumberOfEntitiesInContainers.data(),
-                       p_list_of_shapes,
-                       p_list_of_shape_dimensions,
-                       rListOfNumberOfEntitiesInContainers.size());
-
-            // delete allocated memories
-            delete[] p_list_of_shapes;
-            delete[] p_list_of_shape_dimensions;
-        }, py::arg("numpy_data_array").noconvert(), py::arg("list_of_number_of_entities_in_contaienrs"), py::arg("list_of_shapes"))
-        .def("Read", py::overload_cast<const CollectiveExpressions::VariableTypes&>(&CollectiveExpressions::Read), py::arg("variable"))
-        .def("Read", py::overload_cast<const std::vector<CollectiveExpressions::VariableTypes>&>(&CollectiveExpressions::Read), py::arg("variables_list"))
-        .def("MoveFrom", [](CollectiveExpressions& rSelf, py::array_t<double>& rData, const std::vector<int>& rListOfNumberOfEntitiesInContainers, const std::vector<std::vector<int>>& rListOfShapes){
-            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
-
-            KRATOS_ERROR_IF(rListOfNumberOfEntitiesInContainers.size() != rListOfShapes.size())
-                << "List of number of entities and list of shapes size mismatch. "
-                << "[ List of number of entities size = "
-                << rListOfNumberOfEntitiesInContainers.size()
-                << ", list of shapes size = " << rListOfShapes.size() << " ].\n";
-
-            // create c style double pointer from std::vector list for shapes.
-            int const** p_list_of_shapes = new int const*[rListOfNumberOfEntitiesInContainers.size()];
-            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shapes, [](const auto& rShape) { return rShape.data(); });
-
-            // create c style double pointer for sizes of std::vector list.
-            int* p_list_of_shape_dimensions = new int[rListOfNumberOfEntitiesInContainers.size()];
-            std::transform(rListOfShapes.begin(), rListOfShapes.end(), p_list_of_shape_dimensions, [](const auto& rShape) { return rShape.size(); });
-
-            rSelf.MoveFrom(rData.mutable_data(),
-                           rListOfNumberOfEntitiesInContainers.data(),
-                           p_list_of_shapes,
-                           p_list_of_shape_dimensions,
-                           rListOfNumberOfEntitiesInContainers.size());
-
-            // delete allocated memories
-            delete[] p_list_of_shapes;
-            delete[] p_list_of_shape_dimensions;
-
-        }, py::arg("numpy_data_array").noconvert(), py::arg("list_of_number_of_entities_in_contaienrs"), py::arg("list_of_shapes"))
-        .def("Evaluate", [](const CollectiveExpressions& rSelf){
-            const IndexType size = rSelf.GetCollectiveFlattenedDataSize();
-            auto array = AllocateNumpyArray<double>(size, {});
-            rSelf.Evaluate(array.mutable_data(), size);
-            return array;
-        })
-        .def("Evaluate", py::overload_cast<const CollectiveExpressions::VariableTypes&>(&CollectiveExpressions::Evaluate), py::arg("variable"))
-        .def("Evaluate", py::overload_cast<const std::vector<CollectiveExpressions::VariableTypes>&>(&CollectiveExpressions::Evaluate), py::arg("variables_list"))
-        .def("GetCollectiveFlattenedDataSize", &CollectiveExpressions::GetCollectiveFlattenedDataSize)
-        .def("GetContainerExpressions", py::overload_cast<>(&CollectiveExpressions::GetContainerExpressions))
-        .def("IsCompatibleWith", &CollectiveExpressions::IsCompatibleWith)
-        .def("Clone", &CollectiveExpressions::Clone)
-        .def("SetToZero", &CollectiveExpressions::SetToZero)
-        .def("__add__", [](const CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { return rSelf + rOther; })
-        .def("__iadd__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { rSelf = rSelf + rOther; return rSelf; })
-        .def("__add__", [](const CollectiveExpressions& rSelf, const double Value) { return rSelf + Value; })
-        .def("__iadd__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf + Value; return rSelf; })
-        .def("__sub__", [](const CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { return rSelf - rOther; })
-        .def("__isub__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { rSelf = rSelf - rOther; return rSelf; })
-        .def("__sub__", [](const CollectiveExpressions& rSelf, const double Value) { return rSelf - Value; })
-        .def("__isub__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf - Value; return rSelf; })
-        .def("__mul__", [](const CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { return rSelf * rOther; })
-        .def("__imul__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { rSelf = rSelf * rOther; return rSelf; })
-        .def("__mul__", [](const CollectiveExpressions& rSelf, const double Value) { return rSelf * Value; })
-        .def("__imul__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf * Value; return rSelf; })
-        .def("__truediv__", [](const CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { return rSelf / rOther; })
-        .def("__itruediv__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rOther) { rSelf = rSelf / rOther; return rSelf; })
-        .def("__truediv__", [](const CollectiveExpressions& rSelf, const double Value) { return rSelf / Value; })
-        .def("__itruediv__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf / Value; return rSelf; })
-        .def("__pow__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rInput) { CollectiveExpressions result(rSelf); result = rSelf.Pow(rInput); return result; })
-        .def("__ipow__", [](CollectiveExpressions& rSelf, const CollectiveExpressions& rInput) { rSelf = rSelf.Pow(rInput); return rSelf; })
-        .def("__pow__", [](CollectiveExpressions& rSelf, const double Value) { CollectiveExpressions result(rSelf); result = rSelf.Pow(Value); return result; })
-        .def("__ipow__", [](CollectiveExpressions& rSelf, const double Value) { rSelf = rSelf.Pow(Value); return rSelf; })
-        .def("__neg__", [](CollectiveExpressions& rSelf) { return rSelf.operator*(-1.0); })
-        ;
-
     // Add collective expression to python
     pybind11::class_<CollectiveExpression, CollectiveExpression::Pointer>(sub_module, "CollectiveExpression")
         .def(pybind11::init<>())
@@ -341,12 +240,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::NodesContainerType>, py::arg("container_expression"))
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
         .def("NormInf", &ContainerExpressionUtils::NormInf<ModelPart::ElementsContainerType>, py::arg("container_expression"))
-        .def("NormInf", [](const CollectiveExpressions& rData){ return ContainerExpressionUtils::NormInf(rData); }, py::arg("collective_expressions"))
         .def("NormInf", [](const CollectiveExpression& rData){ return ContainerExpressionUtils::NormInf(rData); }, py::arg("collective_expressions"))
         .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::NodesContainerType>, py::arg("container_expression"))
         .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
         .def("NormL2", &ContainerExpressionUtils::NormL2<ModelPart::ElementsContainerType>, py::arg("container_expression"))
-        .def("NormL2", [](const CollectiveExpressions& rData){ return ContainerExpressionUtils::NormL2(rData); }, py::arg("collective_expressions"))
         .def("NormL2", [](const CollectiveExpression& rData){ return ContainerExpressionUtils::NormL2(rData); }, py::arg("collective_expressions"))
         .def("EntityMaxNormL2", &ContainerExpressionUtils::EntityMaxNormL2<ModelPart::NodesContainerType>, py::arg("container_expression"))
         .def("EntityMaxNormL2", &ContainerExpressionUtils::EntityMaxNormL2<ModelPart::ConditionsContainerType>, py::arg("container_expression"))
@@ -354,7 +251,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("InnerProduct", &ContainerExpressionUtils::InnerProduct<ModelPart::NodesContainerType>, py::arg("container_expression_1"), py::arg("container_expression_2"))
         .def("InnerProduct", &ContainerExpressionUtils::InnerProduct<ModelPart::ConditionsContainerType>, py::arg("container_expression_1"), py::arg("container_expression_2"))
         .def("InnerProduct", &ContainerExpressionUtils::InnerProduct<ModelPart::ElementsContainerType>, py::arg("container_expression_1"), py::arg("container_expression_2"))
-        .def("InnerProduct", [](const CollectiveExpressions& rData1, const CollectiveExpressions& rData2){ return ContainerExpressionUtils::InnerProduct(rData1, rData2); }, py::arg("collective_expressions_1"), py::arg("collective_expressions_2"))
         .def("InnerProduct", [](const CollectiveExpression& rData1, const CollectiveExpression& rData2){ return ContainerExpressionUtils::InnerProduct(rData1, rData2); }, py::arg("collective_expressions_1"), py::arg("collective_expressions_2"))
         .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::NodesContainerType>&, const Matrix&, const ContainerExpression<ModelPart::NodesContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::NodesContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
         .def("ProductWithEntityMatrix", py::overload_cast<ContainerExpression<ModelPart::ConditionsContainerType>&, const Matrix&, const ContainerExpression<ModelPart::ConditionsContainerType>&>(&ContainerExpressionUtils::ProductWithEntityMatrix<ModelPart::ConditionsContainerType>), py::arg("output_container_expression"), py::arg("matrix_with_entity_size"), py::arg("input_container_expression_for_multiplication"))
