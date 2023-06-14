@@ -2593,35 +2593,35 @@ namespace Kratos {
       if (time_step % mRVE_FreqWrite != 0.0)
         return;
 
-      if (mRVE_FileCoordinates.is_open()) {
-        double xmin, xmax, ymin, ymax, zmin, zmax;
-
-        if (mRVE_WallXMin.size() > 0) xmin = mRVE_WallXMin[0]->GetGeometry()[0][0];
-        else                          xmin = 0.0;
-        if (mRVE_WallXMax.size() > 0) xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
-        else                          xmax = 0.0;
-        if (mRVE_WallYMin.size() > 0) ymin = mRVE_WallYMin[0]->GetGeometry()[0][1];
-        else                          ymin = 0.0;
-        if (mRVE_WallYMax.size() > 0) ymax = mRVE_WallYMax[0]->GetGeometry()[0][1];
-        else                          ymax = 0.0;
-        if (mRVE_WallZMin.size() > 0) zmin = mRVE_WallZMin[0]->GetGeometry()[0][2];
-        else                          zmin = 0.0;
-        if (mRVE_WallZMax.size() > 0) zmax = mRVE_WallZMax[0]->GetGeometry()[0][2];
-        else                          zmax = 0.0;
-
-        mRVE_FileCoordinates << time_step << " " << time << " ";
-        mRVE_FileCoordinates << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " ";
-
-        const int number_of_particles = (int)mListOfSphericParticles.size();
-        for (int i = 0; i < number_of_particles; i++) {
-          const double x = mListOfSphericParticles[i]->GetGeometry()[0][0];
-          const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
-          const double z = mListOfSphericParticles[i]->GetGeometry()[0][2];
-          const double r = mListOfSphericParticles[i]->GetRadius();
-          mRVE_FileCoordinates << x << " " << y << " " << z << " " << r << " ";
-        }
-        mRVE_FileCoordinates << std::endl;
-      }
+      //if (mRVE_FileCoordinates.is_open()) {
+      //  double xmin, xmax, ymin, ymax, zmin, zmax;
+	  //
+      //  if (mRVE_WallXMin.size() > 0) xmin = mRVE_WallXMin[0]->GetGeometry()[0][0];
+      //  else                          xmin = 0.0;
+      //  if (mRVE_WallXMax.size() > 0) xmax = mRVE_WallXMax[0]->GetGeometry()[0][0];
+      //  else                          xmax = 0.0;
+      //  if (mRVE_WallYMin.size() > 0) ymin = mRVE_WallYMin[0]->GetGeometry()[0][1];
+      //  else                          ymin = 0.0;
+      //  if (mRVE_WallYMax.size() > 0) ymax = mRVE_WallYMax[0]->GetGeometry()[0][1];
+      //  else                          ymax = 0.0;
+      //  if (mRVE_WallZMin.size() > 0) zmin = mRVE_WallZMin[0]->GetGeometry()[0][2];
+      //  else                          zmin = 0.0;
+      //  if (mRVE_WallZMax.size() > 0) zmax = mRVE_WallZMax[0]->GetGeometry()[0][2];
+      //  else                          zmax = 0.0;
+	  //
+      //  mRVE_FileCoordinates << time_step << " " << time << " ";
+      //  mRVE_FileCoordinates << xmin << " " << xmax << " " << ymin << " " << ymax << " " << zmin << " " << zmax << " ";
+	  //
+      //  const int number_of_particles = (int)mListOfSphericParticles.size();
+      //  for (int i = 0; i < number_of_particles; i++) {
+      //    const double x = mListOfSphericParticles[i]->GetGeometry()[0][0];
+      //    const double y = mListOfSphericParticles[i]->GetGeometry()[0][1];
+      //    const double z = mListOfSphericParticles[i]->GetGeometry()[0][2];
+      //    const double r = mListOfSphericParticles[i]->GetRadius();
+      //    mRVE_FileCoordinates << x << " " << y << " " << z << " " << r << " ";
+      //  }
+      //  mRVE_FileCoordinates << std::endl;
+      //}
 
       if (mRVE_FilePorosity.is_open())
         mRVE_FilePorosity << time_step     << " "
@@ -2654,22 +2654,22 @@ namespace Kratos {
                              << mRVE_AvgCoordNumInner
                              << std::endl;
 
-      if (mRVE_FileInnerVolumeParticles.is_open()) {
-        mRVE_FileInnerVolumeParticles << time_step << " " << time << " ";
-        mRVE_FileInnerVolumeParticles << mRVE_InnerVolParticles.size() << " ";
-        for (int i = 0; i < mRVE_InnerVolParticles.size(); i++) {
-          array_1d<double,3> coords = mRVE_InnerVolParticles[i]->GetGeometry()[0].Coordinates();
-          const double radius       = mRVE_InnerVolParticles[i]->GetRadius();
-          mRVE_FileInnerVolumeParticles << coords[0] << " " << coords[1] << " " << coords[2] << " " << radius << " ";
-        }
-        mRVE_FileInnerVolumeParticles << std::endl;
-      }
+      //if (mRVE_FileInnerVolumeParticles.is_open()) {
+      //  mRVE_FileInnerVolumeParticles << time_step << " " << time << " ";
+      //  mRVE_FileInnerVolumeParticles << mRVE_InnerVolParticles.size() << " ";
+      //  for (int i = 0; i < mRVE_InnerVolParticles.size(); i++) {
+      //    array_1d<double,3> coords = mRVE_InnerVolParticles[i]->GetGeometry()[0].Coordinates();
+      //    const double radius       = mRVE_InnerVolParticles[i]->GetRadius();
+      //    mRVE_FileInnerVolumeParticles << coords[0] << " " << coords[1] << " " << coords[2] << " " << radius << " ";
+      //  }
+      //  mRVE_FileInnerVolumeParticles << std::endl;
+      //}
 
-      if (mRVE_FileForceChain.is_open()) {
-        mRVE_FileForceChain << time_step << " " << time << " ";
-        for (int i = 0; i < mRVE_ForceChain.size(); i++) mRVE_FileForceChain << mRVE_ForceChain[i] << " ";
-        mRVE_FileForceChain << std::endl;
-      }
+      //if (mRVE_FileForceChain.is_open()) {
+      //  mRVE_FileForceChain << time_step << " " << time << " ";
+      //  for (int i = 0; i < mRVE_ForceChain.size(); i++) mRVE_FileForceChain << mRVE_ForceChain[i] << " ";
+      //  mRVE_FileForceChain << std::endl;
+      //}
 
       if (mRVE_FileElasticContactForces.is_open() && mRVE_Equilibrium) {
         for (int i = 0; i < mListOfSphericParticles.size(); i++) {
@@ -2873,13 +2873,13 @@ namespace Kratos {
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEOpenFiles(void) {
 
-      mRVE_FileCoordinates.open("rve_coordinates.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mRVE_FileCoordinates) << "Could not open file rve_coordinates.txt!" << std::endl;
-      mRVE_FileCoordinates << "1 - STEP | ";
-      mRVE_FileCoordinates << "2 - TIME | ";
-      mRVE_FileCoordinates << "3 - WALL_MIN_X WALL_MAX_X WALL_MIN_Y WALL_MAX_Y WALL_MIN_Z WALL_MAX_Z | ";
-      mRVE_FileCoordinates << "4 - X Y Z R of all particles";
-      mRVE_FileCoordinates << std::endl;
+      //mRVE_FileCoordinates.open("rve_coordinates.txt", std::ios::out);
+      //KRATOS_ERROR_IF_NOT(mRVE_FileCoordinates) << "Could not open file rve_coordinates.txt!" << std::endl;
+      //mRVE_FileCoordinates << "1 - STEP | ";
+      //mRVE_FileCoordinates << "2 - TIME | ";
+      //mRVE_FileCoordinates << "3 - WALL_MIN_X WALL_MAX_X WALL_MIN_Y WALL_MAX_Y WALL_MIN_Z WALL_MAX_Z | ";
+      //mRVE_FileCoordinates << "4 - X Y Z R of all particles";
+      //mRVE_FileCoordinates << std::endl;
 
       mRVE_FilePorosity.open("rve_porosity.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FilePorosity) << "Could not open file rve_porosity.txt!" << std::endl;
@@ -2910,20 +2910,20 @@ namespace Kratos {
       mRVE_FileCoordNumber << "6 - AVG COORDINATION NUMBER - INNER";
       mRVE_FileCoordNumber << std::endl;
 
-      mRVE_FileInnerVolumeParticles.open("rve_inner_volume_particles.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mRVE_FileInnerVolumeParticles) << "Could not open file rve_inner_volume_particles.txt!" << std::endl;
-      mRVE_FileInnerVolumeParticles << "1 - STEP | ";
-      mRVE_FileInnerVolumeParticles << "2 - TIME | ";
-      mRVE_FileInnerVolumeParticles << "3 - Number of particles | ";
-      mRVE_FileInnerVolumeParticles << "4 - [X Y Z R] of each particles";
-      mRVE_FileInnerVolumeParticles << std::endl;
+      //mRVE_FileInnerVolumeParticles.open("rve_inner_volume_particles.txt", std::ios::out);
+      //KRATOS_ERROR_IF_NOT(mRVE_FileInnerVolumeParticles) << "Could not open file rve_inner_volume_particles.txt!" << std::endl;
+      //mRVE_FileInnerVolumeParticles << "1 - STEP | ";
+      //mRVE_FileInnerVolumeParticles << "2 - TIME | ";
+      //mRVE_FileInnerVolumeParticles << "3 - Number of particles | ";
+      //mRVE_FileInnerVolumeParticles << "4 - [X Y Z R] of each particles";
+      //mRVE_FileInnerVolumeParticles << std::endl;
 
-      mRVE_FileForceChain.open("rve_force_chain.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mRVE_FileForceChain) << "Could not open file rve_force_chain.txt!" << std::endl;
-      mRVE_FileForceChain << "1 - STEP | ";
-      mRVE_FileForceChain << "2 - TIME | ";
-      mRVE_FileForceChain << "3 - [X1 Y1 Z1 X2 Y2 Z2 F] of each contact";
-      mRVE_FileForceChain << std::endl;
+      //mRVE_FileForceChain.open("rve_force_chain.txt", std::ios::out);
+      //KRATOS_ERROR_IF_NOT(mRVE_FileForceChain) << "Could not open file rve_force_chain.txt!" << std::endl;
+      //mRVE_FileForceChain << "1 - STEP | ";
+      //mRVE_FileForceChain << "2 - TIME | ";
+      //mRVE_FileForceChain << "3 - [X1 Y1 Z1 X2 Y2 Z2 F] of each contact";
+      //mRVE_FileForceChain << std::endl;
 
       mRVE_FileElasticContactForces.open("rve_elastic_forces.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FileElasticContactForces) << "Could not open file rve_elastic_forces.txt!" << std::endl;
@@ -3060,12 +3060,12 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVECloseFiles(void) {
-      if (mRVE_FileCoordinates.is_open())             mRVE_FileCoordinates.close();
+      //if (mRVE_FileCoordinates.is_open())             mRVE_FileCoordinates.close();
       if (mRVE_FilePorosity.is_open())                mRVE_FilePorosity.close();
       if (mRVE_FileContactNumber.is_open())           mRVE_FileContactNumber.close();
       if (mRVE_FileCoordNumber.is_open())             mRVE_FileCoordNumber.close();
-      if (mRVE_FileInnerVolumeParticles.is_open())    mRVE_FileInnerVolumeParticles.close();
-      if (mRVE_FileForceChain.is_open())              mRVE_FileForceChain.close();
+      //if (mRVE_FileInnerVolumeParticles.is_open())    mRVE_FileInnerVolumeParticles.close();
+      //if (mRVE_FileForceChain.is_open())              mRVE_FileForceChain.close();
       if (mRVE_FileElasticContactForces.is_open())    mRVE_FileElasticContactForces.close();
       if (mRVE_FileRoseDiagram.is_open())             mRVE_FileRoseDiagram.close();
       if (mRVE_FileRoseDiagramInner.is_open())        mRVE_FileRoseDiagramInner.close();
