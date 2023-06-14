@@ -116,6 +116,7 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::CalculateMaterialResponseCauchy (
     Matrix ElasticConstitutiveMatrix(VoigtSize,VoigtSize);
     Vector ElasticStrainVector(VoigtSize);
     Vector TrialStressVector(VoigtSize);
+    double YieldFunction_Trial;
     
     //Initialize the material parameters in the Variables struct
     this->InitializeConstitutiveLawVariables(Variables,rValues);
@@ -151,7 +152,7 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::CalculateMaterialResponseCauchy (
     //because we need to compute the plastic multiplier in order to calculate the algorithmic tangent stiffness matrix
     Vector& rStressVector = rValues.GetStressVector();
     double PlasticMultiplier;
-    this->ComputeStressVector(rStressVector, TrialStressVector, YieldFunction_Trial, PlasticMultiplier, Variables, rValues);
+    this->ComputeStressVector(rStressVector, TrialStressVector, YieldFunction_Trial, PlasticMultiplier, ElasticConstitutiveMatrix, Variables, rValues);
 
     //Compute the tangent constitutive matrix (IF REQUIRED)
     if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)){
@@ -176,7 +177,7 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::FinalizeMaterialResponseCauchy (P
 
 Vector& ElastoPlasticModMohrCoulombCohesive3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
-    rValue = mStateVariable;
+    rValue = mPlasticStrainVector;
     return( rValue );
 }
 
@@ -218,8 +219,9 @@ double ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeYieldFunction(Vector& St
     const unsigned int VoigtSize = StrainVector.size();
 
     // Declare auxiliary variables
-    double ft2 = rVariables.TensileStrength*rVariables.TensileStrength;
-    double c2  = rVariables.Cohesion*rVariables.Cohesion;
+    double ft2    = rVariables.TensileStrength*rVariables.TensileStrength;
+    double c      = rVariables.Cohesion;
+    double c2     = c*c;
     double tanPhi = std::tan(rVariables.FrictionAngle);
 
     // Get the shear component of the stress vector
@@ -247,7 +249,7 @@ double ElastoPlasticModMohrCoulombCohesive3DLaw::GetShearResultantStressVector(V
 // This method computes the traction vector and the plastic multiplier based on a Backward-Euler integration scheme.
 // The implementation does not consider any softening or hardening rule.
 
-void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStressVector,Vector& TrialStressVector, double& YieldFunction, double& PlasticMultiplier, ConstitutiveLawVariables& rVariables, Parameters& rValues)
+void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStressVector,Vector& TrialStressVector, double& YieldFunction, double& PlasticMultiplier, Matrix& ElasticConstitutiveMatrix, ConstitutiveLawVariables& rVariables, Parameters& rValues)
 {
     // Get the size of the strain vector
     const Vector& StrainVector = rValues.GetStrainVector();
@@ -288,8 +290,9 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
         MathUtils<double>::InvertMatrix( Psi, invPsi, det_psi);
 
         // Compute auxiliary products
-        noalias(invPsi_Res)    = prod(invPsi,ResidualTractionVector);                   // Psi^(-1)*r
-        noalias(invPsi_Tel_np) = prod(invPsi,prod(ElasticConstitutiveMatrix,np));       // Psi^(-1)*Tel*np
+        noalias(invPsi_Res)    = prod(invPsi,ResidualTractionVector);    // Psi^(-1)*r
+        noalias(Tel_np)        = prod(ElasticConstitutiveMatrix,np);     // Tel*np
+        noalias(invPsi_Tel_np) = prod(invPsi,Tel_np);                    // Psi^(-1)*Tel*np
 
         // Compute the increment of the plastic multiplier (DPlasticMultiplier)
         DPlasticMultiplier = (YieldFunction - inner_prod(n,invPsi_Res)) / inner_prod(n,invPsi_Tel_np);
@@ -325,6 +328,10 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeTangentConstitutiveMatrix(
     Matrix Psi(VoigtSize,VoigtSize);                                 // Auxialiary matrix
     Matrix invPsi(VoigtSize,VoigtSize);                              // Inverse of the auxialiary matrix
     Matrix DnpDtp(VoigtSize,VoigtSize);                              // Derivative of np wrt the traction vector
+    Matrix H(VoigtSize,VoigtSize);                                   // Auxiliary matrix
+    Matrix np_n(VoigtSize,VoigtSize);                                // Matrix resultant from the tensor product between the vectors np and n
+    Matrix np_n_H(VoigtSize,VoigtSize);                              // Matrix resultant from the product between np_n and H
+    Vector H_np(VoigtSize);                                          // Vector resultant from the product between the matrix H and the vector np
 
     // Compute the normal to the plastic potential surface (np) and its derivative wrt to the stress vector
     this->DerivativesPlasticPotentialSurface(rStressVector, np, DnpDtp, rVariables, rValues);
@@ -340,8 +347,13 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeTangentConstitutiveMatrix(
     // Computes the auxiliary matrix H
     noalias(H) = prod(invPsi,ElasticConstitutiveMatrix);
 
+    // Compute the auxialiary matrix products
+    noalias(np_n)   = outer_prod(np,n);
+    noalias(np_n_H) = prod(np_n,H);
+    noalias(H_np)   = prod(H,np);
+
     // Compute the algorithmic tangent constitutive matrix
-    rConstitutiveMatrix = H - prod(H,prod(outer_prod(np,n),H)) / inner_prod(n,prod(H,np));
+    rConstitutiveMatrix = H - prod(H,np_n_H) / inner_prod(n,H_np);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -361,8 +373,8 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::DerivativesPlasticPotentialSurfac
     double c   = rVariables.Cohesion;
     double ft  = rVariables.TensileStrength;
 
-    // Vector normal to the plastic potential surface (nd = diff(g,td))
-    nd = 2.0 * StressVector;
+    // Vector normal to the plastic potential surface (np = diff(g,td))
+    np = 2.0 * StressVector;
 
     // Matrix with the derivatives of the normal vector wrt to the tracion vector
     DnpDtp = 2.0 * identity_matrix<double> (VoigtSize);
@@ -370,12 +382,12 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::DerivativesPlasticPotentialSurfac
     // Fix the components associated with the normal traction changes according with its sign
     if(StressVector[VoigtSize-1] > 0.0){
 
-        nd[VoigtSize-1] = 2.0*StressVector[VoigtSize-1] + 2.0*c*tanPsi - (2.0*StressVector[VoigtSize-1]*(-c*c + 2.0*tanPsi*c*ft + ft*ft)/(ft*ft));
+        np[VoigtSize-1] = 2.0*StressVector[VoigtSize-1] + 2.0*c*tanPsi - (2.0*StressVector[VoigtSize-1]*(-c*c + 2.0*tanPsi*c*ft + ft*ft)/(ft*ft));
         DnpDtp(VoigtSize-1,VoigtSize-1) = 2.0 - 2.0*(-c*c + 2.0*tanPsi*c*ft + ft*ft)/(ft*ft);
 
     }else if(StressVector[VoigtSize-1] <= 0.0){
 
-        nd[VoigtSize-1] = -2.0 * tanPsi * (c - StressVector[VoigtSize-1]*tanPsi);
+        np[VoigtSize-1] = -2.0 * tanPsi * (c - StressVector[VoigtSize-1]*tanPsi);
         DnpDtp(VoigtSize-1,VoigtSize-1) = 2.0*tanPsi*tanPsi;
 
     }

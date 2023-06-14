@@ -107,7 +107,7 @@ protected:
 
     virtual double GetShearResultantStressVector(Vector& StressVector);
 
-    virtual void ComputeStressVector(Vector& rStressVector,Vector& TrialStressVector, double& YieldFunction, double& PlasticMultiplier, ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    virtual void ComputeStressVector(Vector& rStressVector,Vector& TrialStressVector, double& YieldFunction, double& PlasticMultiplier, Matrix& ElasticConstitutiveMatrix, ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
     virtual void ComputeTangentConstitutiveMatrix(Matrix& rConstitutiveMatrix, Matrix& ElasticConstitutiveMatrix, Vector& rStressVector, double& PlasticMultiplier, ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
