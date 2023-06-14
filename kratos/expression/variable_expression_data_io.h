@@ -17,8 +17,8 @@
 #include <type_traits>
 
 // Project includes
-#include "containers/container_expression/expressions/expression.h"
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "expression/expression.h"
+#include "expression/literal_flat_expression.h"
 
 namespace Kratos {
 
