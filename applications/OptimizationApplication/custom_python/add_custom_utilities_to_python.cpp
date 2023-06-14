@@ -15,25 +15,23 @@
 
 // External includes
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "python/add_container_expression_to_python_utils.h"
-#include "expression/specialized_container_expression.h"
 
 // Application includes
-#include "custom_utilities/geometrical/symmetry_utility.h"
-#include "custom_utilities/geometrical/model_part_utils.h"
-#include "custom_utilities/optimization_utils.h"
-#include "custom_utilities/container_properties_data_io.h"
 #include "custom_utilities/collective_expression.h"
-#include "custom_utilities/container_expression_utils.h"
-#include "custom_utilities/properties_variable_expression_io.h"
-#include "custom_utilities/implicit_filter_utils.h"
 #include "custom_utilities/collective_expression_io.h"
+#include "custom_utilities/container_expression_utils.h"
+#include "custom_utilities/geometrical/model_part_utils.h"
+#include "custom_utilities/geometrical/symmetry_utility.h"
+#include "custom_utilities/implicit_filter_utils.h"
+#include "custom_utilities/optimization_utils.h"
+#include "custom_utilities/properties_variable_expression_io.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
-
 
 namespace Kratos {
 namespace Python {
