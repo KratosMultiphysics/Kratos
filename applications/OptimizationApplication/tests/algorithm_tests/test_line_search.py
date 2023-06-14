@@ -15,8 +15,8 @@ class TestLineSearch(kratos_unittest.TestCase):
         cls.optimization_problem = OptimizationProblem()
         ComponentDataView("algorithm", cls.optimization_problem).SetDataBuffer(1)
 
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(cls.model_part)])
-        sensitivity.Read(Kratos.DENSITY)
+        sensitivity = KratosOA.ContainerExpression.CollectiveExpression([Kratos.Expression.ElementExpression(cls.model_part)])
+        KratosOA.ContainerExpression.CollectiveExpressionIO.Read(sensitivity, KratosOA.ContainerExpression.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
         ComponentDataView("algorithm", cls.optimization_problem).GetBufferedData()["search_direction"] = sensitivity
 
     @classmethod
