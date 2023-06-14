@@ -85,6 +85,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Definition of the flags
+    KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
+
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosBlockBuilderAndSolver);
 
@@ -140,9 +143,19 @@ public:
     }    
     
     /**
-     * @brief Default destructor.
+     * @brief Default constructor. (with parameters)
      */
-    ~TrilinosBlockBuilderAndSolver() override = default;
+    explicit TrilinosBlockBuilderAndSolver(
+        EpetraCommunicatorType& rComm,
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver),
+            mrComm(rComm)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     /**
      * Copy constructor
@@ -153,6 +166,8 @@ public:
      * Assignment operator
      */
     TrilinosBlockBuilderAndSolver& operator=(const TrilinosBlockBuilderAndSolver& rOther) = delete;
+
+    // TODO: In order to create a Create method, the name of the DataCommunicator that is used needs to be passed in the settings (see DistributedImportModelPartUtility). Then an EpetraComm can be constructed from the MPI_Comm in the DataCommunicator
 
     ///@}
     ///@name Operators
@@ -831,6 +846,10 @@ public:
         // defining a temporary vector to gather all of the values needed
         Epetra_IntVector fixed(rA.ColMap());
 
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, mScalingDiagonal);
+
         // Importing in the new temp vector the values
         int ierr = fixed.Import(fixed_local, dirichlet_importer, Insert);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
@@ -890,6 +909,27 @@ public:
     }
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                 : "trilinos_block_builder_and_solver",
+            "guess_row_size"                       : 45,
+            "block_builder"                        : true,
+            "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal",
+            "silent_warnings"                      : false
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
@@ -946,7 +986,13 @@ protected:
     int mGuessRowSize;                /// The guess row size
     IndexType mLocalSystemSize;       /// The local system size
     int mFirstMyId;                   /// Auxiliary Id (I)
-    int mLastMyId;                    /// Auxiliary Id (II)                                                         /// Some flags used internally
+    int mLastMyId;                    /// Auxiliary Id (II)
+
+    double mScaleFactor = 1.0;         /// The manually set scale factor
+
+    /* Flags */
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL; /// We identify the scaling considered for the dirichlet dofs
+    Flags mOptions;                                                              /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
@@ -955,6 +1001,42 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Get guess row size
+        mGuessRowSize = ThisParameters["guess_row_size"].GetInt();
+
+        // Setting flags
+        const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+
+        const std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_in_process_info"};
+
+        if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
+            std::stringstream msg;
+            msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+            msg << "Admissible values for the diagonal scaling are : 'no_scaling', 'use_max_diagonal', 'use_diagonal_norm', or 'defined_in_process_info'" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
+        }
+
+        // The first option will not consider any scaling (the diagonal values will be replaced with 1)
+        if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
+            mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL;
+        } else { // Otherwise we will assume we impose a numerical value
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
+        }
+        mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
+    }
 
     ///@}
     ///@name Protected  Access
@@ -1011,6 +1093,10 @@ private:
 
 ///@name Type Definitions
 ///@{
+
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(0));
 
 ///@}
 
