@@ -57,7 +57,7 @@ class ExpressionVtuOutput:
             # now add the collective expressions
             for collective_expression_path, index in self.list_of_collective_expression_paths:
                 collective_expression = data_container[collective_expression_path]
-                if not isinstance(collective_expression, KratosOA.ContainerExpression.CollectiveExpressions):
+                if not isinstance(collective_expression, KratosOA.ContainerExpression.CollectiveExpression):
                     raise RuntimeError(f"No collective expression exists at \"{collective_expression_path}\". The data container is not consistent between steps [ current data = {collective_expression} ].")
 
                 self.vtu_output.AddContainerExpression(self._GetContainerExpressionName(container_expression_path), collective_expression.GetContainerExpressions()[index])
@@ -147,7 +147,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
                 if isinstance(global_v, ContainerExpressionTypes):
                     model_part = global_v.GetModelPart()
                     self._AddContainerExpression(component_data, global_k, model_part)
-                elif isinstance(global_v, KratosOA.ContainerExpression.CollectiveExpressions):
+                elif isinstance(global_v, KratosOA.ContainerExpression.CollectiveExpression):
                     for i, container_expression in enumerate(global_v.GetContainerExpressions()):
                         model_part = container_expression.GetModelPart()
                         self._AddContainerExpression(component_data, global_k, model_part, i)

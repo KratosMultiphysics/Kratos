@@ -53,7 +53,7 @@ class TestConvergence(kratos_unittest.TestCase):
         }""")
         algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
         convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
-        search_direction = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
+        search_direction = KratosOA.ContainerExpression.CollectiveExpression([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
         search_direction.Read(Kratos.DENSITY)
         algorithm_data.GetBufferedData()["search_direction"] = search_direction
         self.assertFalse(convergence_criterium.IsConverged())
