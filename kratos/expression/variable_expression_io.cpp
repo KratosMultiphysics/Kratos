@@ -37,22 +37,23 @@ VariableExpressionIO::VariableExpressionInput::VariableExpressionInput(
 Expression::Pointer VariableExpressionIO::VariableExpressionInput::Execute() const
 {
     const auto& r_mesh = ExpressionIOUtils::GetMesh(mrModelPart.GetCommunicator(), mMeshType);
+    const auto& r_data_communicator = mrModelPart.GetCommunicator().GetDataCommunicator();
 
     switch (mContainerType) {
         case ContainerType::NodalHistorical: {
-                return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>, const VariableType>(r_mesh.Nodes(), mpVariable);
+                return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>, const VariableType>(r_mesh.Nodes(), mpVariable, r_data_communicator);
                 break;
             }
         case ContainerType::NodalNonHistorical: {
-                return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Nodes(), mpVariable);
+                return ExpressionIOUtils::ReadToExpression<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Nodes(), mpVariable, r_data_communicator);
                 break;
             }
         case ContainerType::ConditionNonHistorical: {
-                return ExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Conditions(), mpVariable);
+                return ExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Conditions(), mpVariable, r_data_communicator);
                 break;
             }
         case ContainerType::ElementNonHistorical: {
-                return ExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), mpVariable);
+                return ExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, const VariableType>(r_mesh.Elements(), mpVariable, r_data_communicator);
                 break;
             }
         default: {
