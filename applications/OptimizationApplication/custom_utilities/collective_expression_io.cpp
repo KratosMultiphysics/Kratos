@@ -133,7 +133,7 @@ void CollectiveExpressionIO::Read(
         << r_container_expressions.size() << ", number of variable container types = " << rContainerVariables.size() << " ].\n";
 
     for (IndexType i = 0; i < r_container_expressions.size(); ++i) {
-        std::visit([&rContainerVariables, i](auto& pContainer, auto& pContainerVariable) {
+        std::visit([](auto& pContainer, auto& pContainerVariable) {
             using container_expression_type = std::decay_t<decltype(*pContainer)>;
             using container_variable_type = std::decay_t<decltype(*pContainerVariable)>;
 
