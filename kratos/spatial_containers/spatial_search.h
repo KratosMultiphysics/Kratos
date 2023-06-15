@@ -81,18 +81,21 @@ public:
     using NodesContainerType = ModelPart::NodesContainerType;
     using ResultNodesContainerType = NodesContainerType::ContainerType;
     using VectorResultNodesContainerType = std::vector<ResultNodesContainerType>;
+    using NodeSpatialSearchResultContainerType = SpatialSearchResultContainer<Node>;
     using NodeSpatialSearchResultContainerMapType = SpatialSearchResultContainerMap<Node>;
 
     /// Elements classes
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ResultElementsContainerType = ElementsContainerType::ContainerType;
     using VectorResultElementsContainerType = std::vector<ResultElementsContainerType>;
+    using ElementSpatialSearchResultContainerType = SpatialSearchResultContainer<GeometricalObject>;
     using ElementSpatialSearchResultContainerMapType = SpatialSearchResultContainerMap<GeometricalObject>;
 
     /// Conditions classes
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
     using ResultConditionsContainerType = ConditionsContainerType::ContainerType;
     using VectorResultConditionsContainerType = std::vector<ResultConditionsContainerType>;
+    using ConditionSpatialSearchResultContainerType = SpatialSearchResultContainer<GeometricalObject>;
     using ConditionSpatialSearchResultContainerMapType = SpatialSearchResultContainerMap<GeometricalObject>;
 
     /// Input/output types
@@ -1373,6 +1376,256 @@ public:
         VectorResultElementsContainerType& rResults,
         VectorDistanceType& rResultsDistance
         );
+
+    //************************************************************************
+    // Point vs Entities (these are new interfaces and already use the new containers)
+    //************************************************************************
+
+    /**
+     * @brief Search neighbours nodes for one point in a given radius
+     * @param rStructureNodes      List of nodes to be searched
+     * @param rPoint               Point to be searched
+     * @param Radius               Radius of the search
+     * @param rResults             Results of the search
+     * @param rDataCommunicator    The data communicator
+     */
+    virtual void SearchNodesOverPointInRadius (
+        const NodesContainerType& rStructureNodes,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        NodeSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
+
+    /**
+     * @brief Search neighbours nodes for several points in a given radius
+     * @param rStructureNodes      List of nodes to be searched
+     * @param itPointBegin         Iterator to the first point
+     * @param itPointEnd           Iterator to the last point
+     * @param rRadius              List of search radius for every node
+     * @param rDataCommunicator    The data communicator
+     */
+    template<typename TPointIteratorType>    
+    NodeSpatialSearchResultContainerMapType SearchNodesOverPointsInRadius (
+        const NodesContainerType& rStructureNodes,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        NodeSpatialSearchResultContainerMapType results;
+        int i = 0;
+        for (auto it_point = itPointBegin; it_point != itPointEnd; ++it_point) {
+            const Point& r_point = *it_point;
+            auto& r_partial_result = results.InitializeResult(r_point);
+            SearchNodesOverPointInRadius(rStructureNodes, r_point, rRadius[i], r_partial_result, rDataCommunicator);
+            ++i;
+        }
+        return results;
+    }
+
+    /**
+     * @brief Search nearest neighbour node for one point
+     * @param rStructureNodes      List of nodes to be searched
+     * @param rPoint               Point to be searched
+     * @param rResults             Results of the search
+     * @param rDataCommunicator    The data communicator
+     */
+    virtual void SearchNodesOverPointNearestPoint (
+        const NodesContainerType& rStructureNodes,
+        const array_1d<double,3>& rPoint,
+        NodeSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
+
+    /**
+     * @brief Search nearest neighbour node for several points
+     * @param rStructureNodes      List of nodes to be searched
+     * @param itPointBegin         Iterator to the first point
+     * @param itPointEnd           Iterator to the last point
+     * @param rDataCommunicator    The data communicator
+     */
+    template<typename TPointIteratorType>    
+    NodeSpatialSearchResultContainerMapType SearchNodesOverPointsNearestPoint (
+        const NodesContainerType& rStructureNodes,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        NodeSpatialSearchResultContainerMapType results;
+        for (auto it_point = itPointBegin; it_point != itPointEnd; ++it_point) {
+            const Point& r_point = *it_point;
+            auto& r_partial_result = results.InitializeResult(r_point);
+            SearchNodesOverPointNearestPoint(rStructureNodes, r_point, r_partial_result, rDataCommunicator);
+        }
+        return results;
+    }
+
+    /**
+     * @brief Search neighbours elements for one point in a given radius
+     * @param rStructureElements   List of elements to be searched
+     * @param rPoint               Point to be searched
+     * @param Radius               Radius of the search
+     * @param rResults             Results of the search
+     * @param rDataCommunicator    The data communicator
+     */
+    virtual void SearchElementsOverPointInRadius (
+        const ElementsContainerType& rStructureElements,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        ElementSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
+
+    /**
+     * @brief Search neighbours elements for several points in a given radius
+     * @param rStructureElements   List of elements to be searched
+     * @param itPointBegin         Iterator to the first point
+     * @param itPointEnd           Iterator to the last point
+     * @param rRadius              List of search radius for every element
+     * @param rDataCommunicator    The data communicator
+     */
+    template<typename TPointIteratorType>    
+    ElementSpatialSearchResultContainerMapType SearchElementsOverPointsInRadius (
+        const ElementsContainerType& rStructureElements,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        ElementSpatialSearchResultContainerMapType results;
+        int i = 0;
+        for (auto it_point = itPointBegin; it_point != itPointEnd; ++it_point) {
+            const Point& r_point = *it_point;
+            auto& r_partial_result = results.InitializeResult(r_point);
+            SearchElementsOverPointInRadius(rStructureElements, r_point, rRadius[i], r_partial_result, rDataCommunicator);
+            ++i;
+        }
+        return results;
+    }
+
+    /**
+     * @brief Search nearest neighbour element for one point
+     * @param rStructureElements   List of elements to be searched
+     * @param rPoint               Point to be searched
+     * @param rResults             Results of the search
+     * @param rDataCommunicator    The data communicator
+     */
+    virtual void SearchElementsOverPointNearestPoint (
+        const ElementsContainerType& rStructureElements,
+        const array_1d<double,3>& rPoint,
+        ElementSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
+
+    /**
+     * @brief Search nearest neighbour element for several points
+     * @param rStructureElements   List of elements to be searched
+     * @param itPointBegin         Iterator to the first point
+     * @param itPointEnd           Iterator to the last point
+     * @param rDataCommunicator    The data communicator
+     */
+    template<typename TPointIteratorType>    
+    ElementSpatialSearchResultContainerMapType SearchElementsOverPointsNearestPoint (
+        const ElementsContainerType& rStructureElements,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        ElementSpatialSearchResultContainerMapType results;
+        for (auto it_point = itPointBegin; it_point != itPointEnd; ++it_point) {
+            const Point& r_point = *it_point;
+            auto& r_partial_result = results.InitializeResult(r_point);
+            SearchElementsOverPointNearestPoint(rStructureElements, r_point, r_partial_result, rDataCommunicator);
+        }
+        return results;
+    }
+
+    /**
+     * @brief Search neighbours conditions for one point in a given radius
+     * @param rStructureConditions List of conditions to be searched
+     * @param rPoint               Point to be searched
+     * @param Radius               Radius of the search
+     * @param rResults             Results of the search
+     * @param rDataCommunicator    The data communicator
+     */
+    virtual void SearchConditionsOverPointInRadius (
+        const ConditionsContainerType& rStructureConditions,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        ConditionSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
+
+    /**
+     * @brief Search neighbours conditions for several points in a given radius
+     * @param rStructureConditions List of conditions to be searched
+     * @param itPointBegin         Iterator to the first point
+     * @param itPointEnd           Iterator to the last point
+     * @param rRadius              List of search radius for every condition
+     * @param rDataCommunicator    The data communicator
+     */
+    template<typename TPointIteratorType>    
+    ConditionSpatialSearchResultContainerMapType SearchConditionsOverPointsInRadius (
+        const ConditionsContainerType& rStructureConditions,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        ConditionSpatialSearchResultContainerMapType results;
+        int i = 0;
+        for (auto it_point = itPointBegin; it_point != itPointEnd; ++it_point) {
+            const Point& r_point = *it_point;
+            auto& r_partial_result = results.InitializeResult(r_point);
+            SearchConditionsOverPointInRadius(rStructureConditions, r_point, rRadius[i], r_partial_result, rDataCommunicator);
+            ++i;
+        }
+        return results;
+    }
+
+    /**
+     * @brief Search nearest neighbour condition for one point
+     * @param rStructureConditions List of conditions to be searched
+     * @param rPoint               Point to be searched
+     * @param rResults             Results of the search
+     * @param rDataCommunicator    The data communicator
+     */
+    virtual void SearchConditionsOverPointNearestPoint (
+        const ConditionsContainerType& rStructureConditions,
+        const array_1d<double,3>& rPoint,
+        ConditionSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        );
+
+    /**
+     * @brief Search nearest neighbour condition for several points
+     * @param rStructureConditions List of conditions to be searched
+     * @param itPointBegin         Iterator to the first point
+     * @param itPointEnd           Iterator to the last point
+     * @param rDataCommunicator    The data communicator
+     */
+    template<typename TPointIteratorType>    
+    ConditionSpatialSearchResultContainerMapType SearchConditionsOverPointsNearestPoint (
+        const ConditionsContainerType& rStructureConditions,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        ConditionSpatialSearchResultContainerMapType results;
+        for (auto it_point = itPointBegin; it_point != itPointEnd; ++it_point) {
+            const Point& r_point = *it_point;
+            auto& r_partial_result = results.InitializeResult(r_point);
+            SearchConditionsOverPointNearestPoint(rStructureConditions, r_point, r_partial_result, rDataCommunicator);
+        }
+        return results;
+    }
 
     ///@}
     ///@name Access

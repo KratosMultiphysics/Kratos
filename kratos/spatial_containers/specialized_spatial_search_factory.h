@@ -175,6 +175,87 @@ public:
         mpSpatialSearch->SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, rRadius, rResults);
     }
 
+    /**
+     * @brief Search neighbours nodes for one point in a given radius
+     */
+    void SearchNodesOverPointInRadius (
+        const NodesContainerType& rStructureNodes,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        NodeSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override
+    {
+        mpSpatialSearch->SearchNodesOverPointInRadius(rStructureNodes, rPoint, Radius, rResults, rDataCommunicator);
+    }
+
+    /**
+     * @brief Search nearest neighbour node for one point
+     */
+    void SearchNodesOverPointNearestPoint (
+        const NodesContainerType& rStructureNodes,
+        const array_1d<double,3>& rPoint,
+        NodeSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override
+    {
+        mpSpatialSearch->SearchNodesOverPointNearestPoint(rStructureNodes, rPoint, rResults, rDataCommunicator);
+    }
+
+    /**
+     * @brief Search neighbours elements for one point in a given radius
+     */
+    void SearchElementsOverPointInRadius (
+        const ElementsContainerType& rStructureElements,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        ElementSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override
+    {
+        mpSpatialSearch->SearchElementsOverPointInRadius(rStructureElements, rPoint, Radius, rResults, rDataCommunicator);
+    }
+
+    /**
+     * @brief Search nearest neighbour element for one point
+     */
+    void SearchElementsOverPointNearestPoint (
+        const ElementsContainerType& rStructureElements,
+        const array_1d<double,3>& rPoint,
+        ElementSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override
+    {
+        mpSpatialSearch->SearchElementsOverPointNearestPoint(rStructureElements, rPoint, rResults, rDataCommunicator);
+    }
+
+    /**
+     * @brief Search neighbours conditions for one point in a given radius
+     */
+    void SearchConditionsOverPointInRadius (
+        const ConditionsContainerType& rStructureConditions,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        ConditionSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override
+    {
+        mpSpatialSearch->SearchConditionsOverPointInRadius(rStructureConditions, rPoint, Radius, rResults, rDataCommunicator);
+    }
+
+    /**
+     * @brief Search nearest neighbour condition for one point
+     */
+    void SearchConditionsOverPointNearestPoint (
+        const ConditionsContainerType& rStructureConditions,
+        const array_1d<double,3>& rPoint,
+        ConditionSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override
+    {
+        mpSpatialSearch->SearchConditionsOverPointNearestPoint(rStructureConditions, rPoint, rResults, rDataCommunicator);
+    }
+
     ///@}
     ///@name Input and output
     ///@{

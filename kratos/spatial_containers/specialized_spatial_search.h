@@ -91,6 +91,18 @@ public:
     {
     }
 
+    /// Default constructors with coordinates
+    PointObject(const array_1d<double,3>& rCoordinates):
+        BaseType(rCoordinates)
+    {
+    }
+
+    /// Default constructors with point
+    PointObject(const Point& rPoint):
+        BaseType(rPoint)
+    {
+    }
+
     /**
      * @brief Constructor with object
      * @param pObject The pointer to the object
@@ -198,6 +210,10 @@ public:
     {
         // We asssign default parameters
         mParameters = GetDefaultParameters();
+
+        // The allocation and bucket size
+        mAllocationSize = mParameters["allocation_size"].GetInt();
+        mBucketSize = mParameters["bucket_size"].GetInt();
     }
 
     /**
@@ -212,6 +228,10 @@ public:
 
         // We update the parameters
         mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+        // The allocation and bucket size
+        mAllocationSize = mParameters["allocation_size"].GetInt();
+        mBucketSize = mParameters["bucket_size"].GetInt();
     }
 
     /// Destructor.
@@ -288,6 +308,69 @@ public:
         VectorResultConditionsContainerType& rResults
         ) override;
 
+    /**
+     * @brief Search neighbours nodes for one point in a given radius
+     */
+    void SearchNodesOverPointInRadius (
+        const NodesContainerType& rStructureNodes,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        NodeSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override;
+
+    /**
+     * @brief Search nearest neighbour node for one point
+     */
+    void SearchNodesOverPointNearestPoint (
+        const NodesContainerType& rStructureNodes,
+        const array_1d<double,3>& rPoint,
+        NodeSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override;
+
+    /**
+     * @brief Search neighbours elements for one point in a given radius
+     */
+    void SearchElementsOverPointInRadius (
+        const ElementsContainerType& rStructureElements,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        ElementSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override;
+
+    /**
+     * @brief Search nearest neighbour element for one point
+     */
+    void SearchElementsOverPointNearestPoint (
+        const ElementsContainerType& rStructureElements,
+        const array_1d<double,3>& rPoint,
+        ElementSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override;
+
+    /**
+     * @brief Search neighbours conditions for one point in a given radius
+     */
+    void SearchConditionsOverPointInRadius (
+        const ConditionsContainerType& rStructureConditions,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        ConditionSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override;
+
+    /**
+     * @brief Search nearest neighbour condition for one point
+     */
+    void SearchConditionsOverPointNearestPoint (
+        const ConditionsContainerType& rStructureConditions,
+        const array_1d<double,3>& rPoint,
+        ConditionSpatialSearchResultContainerType& rResults,
+        const DataCommunicator& rDataCommunicator
+        ) override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -328,6 +411,9 @@ protected:
 
     Parameters mParameters; /// The configuration parameters
 
+    int mAllocationSize;    /// The allocation size
+    int mBucketSize;        /// The bucket size
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -351,22 +437,13 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief This method prepares the search
+   /**
+     * @brief This method prepares the search points
      * @param rStructure The structure to be searched
-     * @param rInput The input to be searched
-     * @param rResults The results
-     * @param rResultsDistance The results distance
      * @tparam TContainer The container type
-     * @tparam TResultType The result type
      */
-    template<class TContainer, class TResultType>
-    std::vector<typename PointObject<typename TContainer::value_type>::Pointer> PrepareSearch(
-        const TContainer& rStructure,
-        const TContainer& rInput,
-        TResultType& rResults,
-        VectorDistanceType& rResultsDistance
-        )
+    template<class TContainer>
+    std::vector<typename PointObject<typename TContainer::value_type>::Pointer> PrepareSearchPoints(const TContainer& rStructure)
     {
         // Some definitions
         using ObjectType = typename TContainer::value_type;
@@ -384,6 +461,26 @@ private:
             points.push_back(PointTypePointer(new PointType(*(it.base()))));
         }
 
+        return points;
+    }
+
+    /**
+     * @brief This method prepares the search
+     * @param rStructure The structure to be searched
+     * @param rInput The input to be searched
+     * @param rResults The results
+     * @param rResultsDistance The results distance
+     * @tparam TContainer The container type
+     * @tparam TResultType The result type
+     */
+    template<class TContainer, class TResultType>
+    std::vector<typename PointObject<typename TContainer::value_type>::Pointer> PrepareSearch(
+        const TContainer& rStructure,
+        const TContainer& rInput,
+        TResultType& rResults,
+        VectorDistanceType& rResultsDistance
+        )
+    {
         // Resizing the results
         const std::size_t input_size = rInput.size();
         if (rResults.size() != input_size) {
@@ -393,11 +490,97 @@ private:
             rResultsDistance.resize(input_size);
         }
 
-        return points;
+        return PrepareSearchPoints(rStructure);
     }
 
     /**
-     * @brief This method performs the search in parallel
+     * @brief This method performs the search in radius 
+     * @param rPoint The point to be searched
+     * @param Radius The search radius
+     * @param rSearch The spatial search
+     * @param rResults The results
+     * @tparam TContainer The container type
+     * @tparam TSpatialContainer The spatial container type
+     * @tparam TResultType The result type
+     */
+    template<class TContainer, class TSpatialContainer, class TResultType>
+    void SearchInRadius(
+        const TContainer& rStructure,
+        const array_1d<double,3>& rPoint,
+        const double Radius,
+        TSpatialContainer& rSearch,
+        TResultType& rResults,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        // Some definitions
+        using ObjectType = typename TContainer::value_type;
+        using PointType = PointObject<ObjectType>;
+        using PointTypePointer = typename PointType::Pointer;
+        using PointVector = std::vector<PointTypePointer>;
+        using DistanceVector = std::vector<double>;
+
+        // The allocation size
+        const int allocation_size = mAllocationSize > static_cast<int>(rStructure.size()) ? rStructure.size() : mAllocationSize;
+
+        // Perform search
+        PointType aux_point(rPoint);
+        PointVector results(allocation_size);
+        DistanceVector results_distances(allocation_size);
+        const std::size_t number_of_results = rSearch.SearchInRadius(aux_point, Radius, results.begin(), results_distances.begin(), allocation_size);
+
+        // Adding the results
+        if (number_of_results > 0) {
+            rResults.Reserve(number_of_results);
+            for (std::size_t i = 0; i < number_of_results; ++i) {
+                auto p_point = results[i];
+                rResults.AddResult((p_point->pGetObject()).get(), results_distances[i]);
+            }
+        }
+
+        // Synchronize results
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
+
+    /**
+     * @brief This method performs the search in radius 
+     * @param rPoint The point to be searched
+     * @param Radius The search radius
+     * @param rSearch The spatial search
+     * @param rResults The results
+     * @tparam TContainer The container type
+     * @tparam TSpatialContainer The spatial container type
+     * @tparam TResultType The result type
+     */
+    template<class TContainer, class TSpatialContainer, class TResultType>
+    void SearchNearestPoint(
+        const TContainer& rStructure,
+        const array_1d<double,3>& rPoint,
+        TSpatialContainer& rSearch,
+        TResultType& rResults,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        // Some definitions
+        using ObjectType = typename TContainer::value_type;
+        using PointType = PointObject<ObjectType>;
+
+        // Perform search
+        PointType aux_point(rPoint);
+        double distance = 0.0;
+        auto p_point = rSearch.SearchNearestPoint(aux_point, distance);
+
+        // Adding the results
+        if (p_point != nullptr) {
+            rResults.AddResult((p_point->pGetObject()).get(), distance);
+        }
+
+        // Synchronize results
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
+
+    /**
+     * @brief This method performs the search in radius in parallel
      * @param rInput The input container
      * @param rRadius The radius array
      * @param rSearch The spatial search
@@ -408,7 +591,7 @@ private:
      * @tparam TResultType The result type
      */
     template<class TContainer, class TSpatialContainer, class TResultType>
-    void ParallelSearch(
+    void ParallelSearchInRadius(
         const TContainer& rInput,
         const RadiusArrayType& rRadius,
         TSpatialContainer& rSearch,
@@ -424,16 +607,13 @@ private:
         using DistanceVector = std::vector<double>;
         const std::size_t input_size = rInput.size();
 
-        // Retrieving parameters
-        const int allocation_size = mParameters["allocation_size"].GetInt();
-
         // Performing search
         IndexPartition<std::size_t>(input_size).for_each([&](std::size_t i) {
             auto it = rInput.begin() + i;
             PointType aux_point(*(it.base()));
-            PointVector results(allocation_size);
-            DistanceVector results_distances(allocation_size);
-            const std::size_t number_of_results = rSearch.SearchInRadius(aux_point, rRadius[i], results.begin(), results_distances.begin(), allocation_size);
+            PointVector results(mAllocationSize);
+            DistanceVector results_distances(mAllocationSize);
+            const std::size_t number_of_results = rSearch.SearchInRadius(aux_point, rRadius[i], results.begin(), results_distances.begin(), mAllocationSize);
             if (number_of_results > 0) {
                 auto& r_results = rResults[i];
                 auto& r_results_distance = rResultsDistance[i];
