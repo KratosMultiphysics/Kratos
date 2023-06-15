@@ -271,20 +271,20 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
     Matrix DnpDtp(VoigtSize,VoigtSize);                              // Derivative of np wrt the traction vector
 
     // Initialize parameters for the return mapping
-    rStressVector       = TrialStressVector;                         // Initial stress
-    PlasticMultiplier   = 0.0;                                       // Plastic multiplier
-    int iterCounter     = 1;                                         // Iteration counter
+    rStressVector                   = TrialStressVector;             // Initial stress
+    PlasticMultiplier               = 0.0;                           // Plastic multiplier
+    noalias(ResidualTractionVector) = ZeroVector(VoigtSize);         // Initialize the residual stress vector
+    int iterCounter                 = 1;                             // Iteration counter
+    double resNorm                  = 10.0;                          // Norm of the residual traction stress vector
+
+    // Compute the normal to the plastic potential surface (np) and its derivative wrt to the stress vector
+    this->DerivativesPlasticPotentialSurface(rStressVector, np, DnpDtp, rVariables, rValues);
+
+    // Compute the normal to the yield surface (n)
+    this->DerivativesYieldSurface(rStressVector, n, rVariables, rValues);
     
-    while((YieldFunction > 1.0e-6) && iterCounter < 20){
-        // Compute the normal to the plastic potential surface (np) and its derivative wrt to the stress vector
-        this->DerivativesPlasticPotentialSurface(rStressVector, np, DnpDtp, rVariables, rValues);
-
-        // Compute the normal to the yield surface (n)
-        this->DerivativesYieldSurface(rStressVector, n, rVariables, rValues);
-
-        // Compute the residual of the traction vector (ResidualTractionVector)
-        ResidualTractionVector = rStressVector - TrialStressVector + PlasticMultiplier*prod(ElasticConstitutiveMatrix,np);
-
+    while((YieldFunction > 1.0e-6) && (iterCounter < 20) && (resNorm > 1.0e-6)){
+        
         // Compute auxiliary matrix (Psi) and its inverse (invPsi)
         noalias(Psi) = IdentityMtrx + PlasticMultiplier * prod(ElasticConstitutiveMatrix,DnpDtp);
         double det_psi = 0;
@@ -306,6 +306,18 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
 
         // Update the traction vector
         rStressVector += DTractionVector;
+
+        // Compute the normal to the plastic potential surface (np) and its derivative wrt to the stress vector
+        this->DerivativesPlasticPotentialSurface(rStressVector, np, DnpDtp, rVariables, rValues);
+
+        // Compute the normal to the yield surface (n)
+        this->DerivativesYieldSurface(rStressVector, n, rVariables, rValues);
+
+        // Compute the residual of the traction vector (ResidualTractionVector)
+        ResidualTractionVector = rStressVector - TrialStressVector + PlasticMultiplier*prod(ElasticConstitutiveMatrix,np);
+
+        // Compute the norm of the residual traction vector
+        resNorm = norm_2(ResidualTractionVector);
 
         // Evaluate the yield function
         YieldFunction = this->ComputeYieldFunction(rStressVector,rVariables,rValues);
