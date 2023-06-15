@@ -13,10 +13,12 @@
 #pragma once
 
 // System incldues
+#include <algorithm>
 #include <variant>
 
 // Project includes
 #include "includes/communicator.h"
+#include "includes/data_communicator.h"
 #include "includes/mesh.h"
 #include "expression/container_data_io.h"
 #include "expression/variable_expression_data_io.h"
@@ -36,35 +38,67 @@ public:
     template <class TContainerType, class TContainerDataIO, class TVariableType>
     static Expression::Pointer ReadToExpression(
         const TContainerType& rContainer,
-        TVariableType pVariable)
+        TVariableType pVariable,
+        const DataCommunicator& rDataCommunicator)
     {
         KRATOS_TRY
 
         const IndexType number_of_entities = rContainer.size();
 
-        if (number_of_entities != 0) {
-            // initialize the shape with the first entity value
-            return std::visit([&rContainer, number_of_entities](auto pVariable) {
-                using data_type = typename std::remove_const_t<std::remove_pointer_t<decltype(pVariable)>>::Type;
+        return std::visit([&rContainer, &rDataCommunicator, number_of_entities](auto pVariable) {
+            using data_type = typename std::remove_const_t<std::remove_pointer_t<decltype(pVariable)>>::Type;
+            using raw_data_type = std::conditional_t<std::is_same_v<data_type, int>, int, double>;
 
-                using raw_data_type = std::conditional_t<std::is_same_v<data_type, int>, int, double>;
-
+            // first get the shape correctly
+            std::vector<int> shape_info;
+            if (number_of_entities != 0) {
+                // initialize the shape with the first entity value
+                // required for dynamic data types such as Vector and Matrix
                 VariableExpressionDataIO<data_type> variable_flatten_data_io(TContainerDataIO::GetValue(*rContainer.begin(), *pVariable));
+                const auto& shape = variable_flatten_data_io.GetItemShape();
+                shape_info.resize(shape.size() + 1, number_of_entities);
+                std::transform(shape.begin(), shape.end(), shape_info.begin() + 1, [](const auto v) -> int { return v; });
+            } else {
+                shape_info.resize(1, number_of_entities);
+            }
 
-                auto p_expression = LiteralFlatExpression<raw_data_type>::Create(number_of_entities, variable_flatten_data_io.GetItemShape());
-                auto& r_expression = *p_expression;
+            // now communicate the shape
+            const auto& r_shapes_info_in_ranks = rDataCommunicator.AllGatherv(shape_info);
+
+            // get the shape
+            std::vector<IndexType> shape;
+            for (const auto& r_shape_info_in_rank : r_shapes_info_in_ranks) {
+                if (r_shape_info_in_rank[0] != 0) {
+                    shape.resize(r_shape_info_in_rank.size() - 1);
+                    std::transform(r_shape_info_in_rank.begin() + 1, r_shape_info_in_rank.end(), shape.begin(), [](const auto v) -> IndexType { return v;});
+                    break;
+                }
+            }
+
+            // remove number of entities for check
+            shape_info.erase(shape_info.begin());
+
+            // cross check between all ranks the shape is the same
+            IndexType local_index = 0;
+            KRATOS_ERROR_IF(number_of_entities > 0 && !std::all_of(shape.begin(), shape.end(), [&local_index, &shape_info](const auto v) { return static_cast<int>(v) == shape_info[local_index++]; }))
+                << "All the ranks should have values with the same shape.\n";
+
+            auto p_expression = LiteralFlatExpression<raw_data_type>::Create(number_of_entities, shape);
+            auto& r_expression = *p_expression;
+
+            if (number_of_entities != 0) {
+                // initialize the shape with the first entity value
+                VariableExpressionDataIO<data_type> variable_flatten_data_io(TContainerDataIO::GetValue(*rContainer.begin(), *pVariable));
 
                 IndexPartition<IndexType>(number_of_entities).for_each([&rContainer, &pVariable, &variable_flatten_data_io, &r_expression](const IndexType Index) {
                         const auto& values = TContainerDataIO::GetValue(*(rContainer.begin() + Index), *pVariable);
                         variable_flatten_data_io.Read(r_expression, Index, values);
                     });
+            }
 
-                return Kratos::intrusive_ptr<Expression>(&r_expression);
+            return Kratos::intrusive_ptr<Expression>(&r_expression);
 
-            }, pVariable);
-        }
-
-        return nullptr;
+        }, pVariable);
 
         KRATOS_CATCH("");
     }
