@@ -87,6 +87,63 @@ public:
             return result;
         }
 
+    //  Dviding the plane of the triangle in 7 zones and find the nearest reflecting those zones
+    //
+    //             \       /
+    //              \  6  /
+    //               \   /
+    //                \ /
+    //                 /\ 
+    //                /  \ 
+    //          2    /    \     3
+    //              /   1  \ 
+    //             /        \ 
+    //    _______ /__________\_____________ 
+    //           /            \ 
+    //     5    /       4      \    7
+    //         /                \ 
+    //        /                  \ 
+
+        template<class TPointType, class TGeometryType>
+        static Point TriangleNearestPoint(TPointType const& ThePoint, TGeometryType const& TheTriangle){
+            constexpr double Tolerance = 1e-12;
+            array_1d<double, 3> result;
+            array_1d<double,3> local_coordinates = ZeroVector(3);
+            const Point center = TheTriangle.Center();
+            const array_1d<double, 3> normal = TheTriangle.UnitNormal(local_coordinates);
+            double distance = 0.00;
+            const Point point_projected = GeometricalProjectionUtilities::FastProject( center, ThePoint, normal, distance);
+            TheTriangle.PointLocalCoordinates(local_coordinates, point_projected);
+
+            if(local_coordinates[0] < -Tolerance) { // case 2,5,6
+                if(local_coordinates[1] < -Tolerance) { // case 5
+                    result = TheTriangle[0];
+                }
+                else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 6
+                    result = TheTriangle[2];
+                }
+                else {
+                    result = GetLineNearestPoint(ThePoint, Line3D2<Node<3>>(TheTriangle.pGetPoint(0), TheTriangle.pGetPoint(2)));
+                }
+            }
+            else if(local_coordinates[1] < -Tolerance) { // case 4,7 (case 5 is already covered in previous if)
+                if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 7
+                    result = TheTriangle[1];
+                }
+                else { // case 4
+                    result = GetLineNearestPoint(ThePoint, Line3D2<Node<3>>(TheTriangle.pGetPoint(0), TheTriangle.pGetPoint(1)));
+                }
+            }
+            else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 3
+                result = GetLineNearestPoint(ThePoint, Line3D2<Node<3>>(TheTriangle.pGetPoint(1), TheTriangle.pGetPoint(2)));
+            } 
+            else {  // inside
+                result = point_projected;
+            }
+                
+            return result;
+        }
+
 
     ///@}
 
