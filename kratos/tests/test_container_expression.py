@@ -580,6 +580,15 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         self.assertEqual(self._GetContainer(), a.GetContainer())
 
+    def test_EmptyContainer(self):
+        model_part = self.model.CreateModelPart("empty_model_part")
+        a = type(self._GetContainerExpression())(model_part)
+        self._Read(a, Kratos.VELOCITY)
+
+        a *= 3
+        self._Evaluate(a, Kratos.ACCELERATION)
+        self.assertEqual(a.Evaluate().shape, (0, ))
+
     @abstractmethod
     def _GetContainerExpression(self) -> Union[Kratos.Expression.NodalExpression, Kratos.Expression.ElementExpression, Kratos.Expression.ConditionExpression]:
         pass
