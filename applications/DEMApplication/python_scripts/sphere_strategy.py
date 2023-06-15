@@ -162,6 +162,12 @@ class ExplicitStrategy():
         else:
             self.global_damping = DEM_parameters["GlobalDamping"].GetDouble()
 
+        if not "GlobalViscousDamping" in DEM_parameters.keys():
+            self.global_viscous_damping = 0.0
+            Logger.PrintWarning("DEM", "\nGlobal Viscous Damping parameter not found! No damping will be applied...\n")
+        else:
+            self.global_viscous_damping = DEM_parameters["GlobalViscousDamping"].GetDouble()
+
         # PRINTING VARIABLES
         self.print_export_id = DEM_parameters["PostExportId"].GetBool()
         self.print_export_skin_sphere = 0
@@ -256,6 +262,7 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_DAMPING, self.global_damping)
+        self.spheres_model_part.ProcessInfo.SetValue(GLOBAL_VISCOUS_DAMPING, self.global_viscous_damping)
 
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
