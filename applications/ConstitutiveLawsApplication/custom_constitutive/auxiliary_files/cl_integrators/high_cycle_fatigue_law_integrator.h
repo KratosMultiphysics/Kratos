@@ -302,7 +302,7 @@ public:
         const double AUXR1 = r_fatigue_coefficients[5];
         const double AUXR2 = r_fatigue_coefficients[6];
         const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
-        const double MonotonicReductionFactorSmoothness = r_fatigue_coefficients[8];
+        // const double MonotonicReductionFactorSmoothness = r_fatigue_coefficients[8];
 
         if (std::abs(ReversionFactor) < 1.0) {
             // if (Se_ref > Se){
@@ -328,9 +328,9 @@ public:
                 if (stress_relative_error <= 1.0e-3){
                     rN_f = ReferenceNumberOfCycles;
                     if (ReversionFactor > 0.1){
-                        rB0 = (ReversionFactor / (MonotonicReductionFactorSmoothness * (1 - ReferenceDamage)));
+                        rB0 = (ReversionFactor / (1.0 * (1 - ReferenceDamage)));
                     } else {
-                        rB0 = (0.1 / (MonotonicReductionFactorSmoothness * (1 - ReferenceDamage)));
+                        rB0 = (0.1 / (1.0 * (1 - ReferenceDamage)));
                     }
                 }
                 
