@@ -360,7 +360,14 @@ namespace Kratos {
             array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
-            GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+            if (mContinuumConstitutiveLawArray[i]->GetTypeOfLaw() == "smooth_joint_CL") {
+                
+                double JointLocalCoordSystem[3][3];
+                GeometryFunctions::ComputeContactLocalCoordSystem(OtherToMeVector, Distance, JointLocalCoordSystem);
+                GeometryFunctions::VectorLocal2Global(JointLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+            } else {
+                GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+            }
 
             //******************Moments calculation start****************
             if (this->Is(DEMFlags::HAS_ROTATION)) {
