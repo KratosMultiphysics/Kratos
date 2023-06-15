@@ -76,6 +76,7 @@
 #include "add_registry_to_python.h"
 #include "add_container_expression_to_python.h"
 #include "add_accessors_to_python.h"
+#include "add_globals_to_python.h"
 
 namespace Kratos::Python
 {
@@ -154,6 +155,7 @@ PYBIND11_MODULE(Kratos, m)
     AddSparseMatricesToPython(m);
     AddRegistryToPython(m);
     AddContainerExpressionToPython(m);
+    AddGlobalsToPython(m);
 
     m.def("Hello", Hello);
 }
