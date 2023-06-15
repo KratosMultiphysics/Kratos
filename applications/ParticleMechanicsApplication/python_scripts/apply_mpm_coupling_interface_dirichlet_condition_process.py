@@ -20,7 +20,8 @@ class ApplyMPMCouplingInterfaceDirichletConditionProcess(ApplyMPMParticleDirichl
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
                 "constrained"               : "fixed",
-                "option"                    : ""
+                "option"                    : "",
+                "is_equal_distributed"      : false
             }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters)

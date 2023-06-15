@@ -90,6 +90,18 @@ public:
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * Called at the begining at each nonlinear iteration
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration process
+     */
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+
+    /**
      * Called at the end of each solution step
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -152,6 +164,7 @@ protected:
     ///@{
 
     array_1d<double, 3> m_unit_normal;
+    double m_penalty = 0.0;
 
     ///@}
     ///@name Protected Operators
@@ -185,6 +198,7 @@ protected:
     ///@}
     ///@name Protected Inquiry
     ///@{
+    virtual void CalculateInterfaceContactForce(array_1d<double, 3 >& rVariable, const ProcessInfo& rCurrentProcessInfo );
 
 
     ///@}
@@ -204,7 +218,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double m_penalty = 0.0;
+    
 
     ///@}
     ///@name Private Operators

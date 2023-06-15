@@ -23,6 +23,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "value"                     : [0.0, "0*t", 0.0],
                 "interval"                  : [0.0, 1e30],
                 "option"                    : "",
+                "is_equal_distributed"      : false,
                 "local_axes"                : {}
             }  """ )
 
@@ -38,6 +39,10 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.imposition_type = settings["imposition_type"].GetString()
         self.is_neumann_boundary = False
         self.option = settings["option"].GetString()
+
+        #is_equal_distributed = false (particle conditions at Gauss Point Positions) 
+        #is_equal_distributed = true (particle conditions equally distributed; also at nodes; only 2D) 
+        self.is_equal_distributed = settings["is_equal_distributed"].GetBool()
 
         """
         Set boundary_condition_type:
@@ -115,6 +120,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.CONTACT, self.is_contact_boundary)
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
+                condition.SetValue(KratosParticle.IS_EQUAL_DISTRIBUTED, self.is_equal_distributed)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(KratosParticle.MPC_BOUNDARY_CONDITION_TYPE, self.boundary_condition_type)
 

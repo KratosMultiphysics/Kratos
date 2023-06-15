@@ -55,16 +55,13 @@ namespace MPMParticleGeneratorUtility
     /// Get integration weights of the geometry for the given integration method
     void GetIntegrationPointVolumes(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
 
-    /// Get integration weights of the geometry for the given integration method
-    void GetIntegrationPointArea(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes);
-
     /// Get integration method and shape function values for the given element
     void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
 
-    /// Get integration method and shape function values for the given condition
-    void DetermineConditionIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
-        IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes);
+    /// Get integration method and shape function values for the given element
+    void DetermineGeometryIntegrationMethod(const GeometryType& rGeom, const SizeType ParticlesPerElement,
+        IndexType& rNumPointsPerSpan);
 
     /**
      * @brief Construct material points or particles from given initial mesh
