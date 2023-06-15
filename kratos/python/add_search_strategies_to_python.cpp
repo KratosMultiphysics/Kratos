@@ -210,6 +210,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     using ElementsContainerType = SpatialSearch::ElementsContainerType;
     using NodesContainerType = SpatialSearch::NodesContainerType;
     using ConditionsContainerType = SpatialSearch::ConditionsContainerType;
+    using NodeSpatialSearchResultContainerType = SpatialSearchResultContainer<Node>;
+    using ElementSpatialSearchResultContainerType = SpatialSearchResultContainer<GeometricalObject>;
+    using ConditionSpatialSearchResultContainerType = SpatialSearchResultContainer<GeometricalObject>;
 
     py::class_<SpatialSearch, SpatialSearch::Pointer>(m, "SpatialSearch")
     .def(py::init< >())
@@ -597,6 +600,54 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, const ConditionsContainerType& rInputConditions, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
         return self.SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchNodesOverPointInRadius", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, const array_1d<double,3>& rPoint, const double Radius, const DataCommunicator& rDataCommunicator) {
+        NodeSpatialSearchResultContainerType results;
+        self.SearchNodesOverPointInRadius(rStructureNodes, rPoint, Radius, results, rDataCommunicator);
+        return results;
+    })
+    .def("SearchNodesOverPointsInRadius", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, const NodesContainerType& rInputNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesOverPointsInRadius(rStructureNodes, rInputNodes.begin(), rInputNodes.end(), CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchNodesOverPointNearestPoint", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, const array_1d<double,3>& rPoint, const DataCommunicator& rDataCommunicator) {
+        NodeSpatialSearchResultContainerType results;
+        self.SearchNodesOverPointNearestPoint(rStructureNodes, rPoint, results, rDataCommunicator);
+        return results;
+    })
+    .def("SearchNodesOverPointsNearestPoint", [&](SpatialSearch& self, const NodesContainerType& rStructureNodes, const NodesContainerType& rInputNodes, const DataCommunicator& rDataCommunicator) {
+        return self.SearchNodesOverPointsNearestPoint(rStructureNodes, rInputNodes.begin(), rInputNodes.end(), rDataCommunicator);
+    })
+    .def("SearchElementsOverPointInRadius", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, const array_1d<double,3>& rPoint, const double Radius, const DataCommunicator& rDataCommunicator) {
+        ElementSpatialSearchResultContainerType results;
+        self.SearchElementsOverPointInRadius(rStructureElements, rPoint, Radius, results, rDataCommunicator);
+        return results;
+    })
+    .def("SearchElementsOverPointsInRadius", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, const NodesContainerType& rInputNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsOverPointsInRadius(rStructureElements, rInputNodes.begin(), rInputNodes.end(), CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchElementsOverPointNearestPoint", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, const array_1d<double,3>& rPoint, const DataCommunicator& rDataCommunicator) {
+        ElementSpatialSearchResultContainerType results;
+        self.SearchElementsOverPointNearestPoint(rStructureElements, rPoint, results, rDataCommunicator);
+        return results;
+    })
+    .def("SearchElementsOverPointsNearestPoint", [&](SpatialSearch& self, const ElementsContainerType& rStructureElements, const NodesContainerType& rInputNodes, const DataCommunicator& rDataCommunicator) {
+        return self.SearchElementsOverPointsNearestPoint(rStructureElements, rInputNodes.begin(), rInputNodes.end(), rDataCommunicator);
+    })
+    .def("SearchConditionsOverPointInRadius", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, const array_1d<double,3>& rPoint, const double Radius, const DataCommunicator& rDataCommunicator) {
+        ConditionSpatialSearchResultContainerType results;
+        self.SearchConditionsOverPointInRadius(rStructureConditions, rPoint, Radius, results, rDataCommunicator);
+        return results;
+    })
+    .def("SearchConditionsOverPointsInRadius", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, const NodesContainerType& rInputNodes, py::list& rListOfRadius, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsOverPointsInRadius(rStructureConditions, rInputNodes.begin(), rInputNodes.end(), CopyRadiusArrayToPython(rListOfRadius), rDataCommunicator);
+    })
+    .def("SearchConditionsOverPointNearestPoint", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, const array_1d<double,3>& rPoint, const DataCommunicator& rDataCommunicator) {
+        ConditionSpatialSearchResultContainerType results;
+        self.SearchConditionsOverPointNearestPoint(rStructureConditions, rPoint, results, rDataCommunicator);
+        return results;
+    })
+    .def("SearchConditionsOverPointsNearestPoint", [&](SpatialSearch& self, const ConditionsContainerType& rStructureConditions, const NodesContainerType& rInputNodes, const DataCommunicator& rDataCommunicator) {
+        return self.SearchConditionsOverPointsNearestPoint(rStructureConditions, rInputNodes.begin(), rInputNodes.end(), rDataCommunicator);
     })
     ;
 
