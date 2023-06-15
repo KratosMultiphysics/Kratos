@@ -50,15 +50,17 @@ namespace Kratos
     {
     public:
         KratosExecute();
-        ~KratosExecute(){};
 
-        int execute_flow_analysis(std::string workingDirectory, std::string parameterName,
-                                  double minCriticalHead, double maxCriticalHead, double stepCriticalHead,
-                                  std::string criticalHeadBoundaryModelPartName,
-                                  std::function<void(char*)> logCallback,
-                                  std::function<void(double)> reportProgress,
-                                  std::function<void(char*)> reportTextualProgress,
-                                  std::function<bool()> shouldCancel);
+        int ExecuteFlowAnalysis(const std::string&                       rWorkingDirectory,
+                                const std::string&                       rProjectParamsFileName,
+                                double                                   minCriticalHead,
+                                double                                   maxCriticalHead,
+                                double                                   stepCriticalHead,
+                                const std::string&                       rCriticalHeadBoundaryModelPartName,
+                                const std::function<void(const char*)>&  rLogCallback,
+                                const std::function<void(double)>&       rReportProgress,
+                                const std::function<void(const char*)>&  rReportTextualProgress,
+                                const std::function<bool()>&             rShouldCancel);
 
         typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -74,21 +76,6 @@ namespace Kratos
         typedef MixedGenericCriteria<SparseSpaceType, LocalSpaceType> MixedGenericCriteriaType;
         typedef typename MixedGenericCriteriaType::ConvergenceVariableListType ConvergenceVariableListType;
 
-        // The builder ans solver type
-        typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
-        typedef ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
-
-        // The time scheme
-        typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
-        typedef BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType> BackwardEulerQuasistaticPwSchemeType;
-
-        // The strategies
-        typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
-            ImplicitSolvingStrategyType;
-
-        typedef ResidualBasedNewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
-            ResidualBasedNewtonRaphsonStrategyType;
-
         typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
             GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
@@ -98,13 +85,13 @@ namespace Kratos
                                  std::equal_to<result_type>, Dof<double> *>
             DofsArrayType;
 
-        ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
-        LinearSolverType::Pointer setup_solver_dgeoflow();
-        GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
-        void parseMaterial(Model &model, std::string filepath);
+        static ConvergenceCriteriaType::Pointer setup_criteria_dgeoflow();
+        static LinearSolverType::Pointer setup_solver_dgeoflow();
+        static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart &model_part);
+        static void parseMaterial(Model &model, const std::string& rMaterialFilePath);
 
-        Parameters openProjectParamsFile(std::string filepath);
-        std::vector<std::shared_ptr<Process>> parseProcess(ModelPart &model_part, Parameters projFile);
+        static Parameters openProjectParamsFile(const std::string& rProjectParamsFilePath);
+        static std::vector<std::shared_ptr<Process>> parseProcess(ModelPart &model_part, Parameters projFile);
 
     private:
         // Initial Setup
@@ -116,19 +103,21 @@ namespace Kratos
 
         int echoLevel = 1;
 
-        int GetEchoLevel();
+        [[nodiscard]] int GetEchoLevel() const;
 
         void SetEchoLevel(int level);
 
-        shared_ptr<Process> FindRiverBoundaryByName(std::string criticalHeadBoundaryModelPartName,
-                                                    std::vector<std::shared_ptr<Process>> processes);
+        static shared_ptr<Process> FindRiverBoundaryByName(const std::string& rCriticalHeadBoundaryModelPartName,
+                                                           const std::vector<std::shared_ptr<Process>>& rProcesses);
 
-        shared_ptr<Process> FindRiverBoundaryAutomatically(KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-                                                           std::vector<std::shared_ptr<Process>> processes);
+        static shared_ptr<Process> FindRiverBoundaryAutomatically(const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
+                                                                  const std::vector<std::shared_ptr<Process>>& rProcesses);
 
-        int mainExecution(ModelPart &model_part,
-                          std::vector<std::shared_ptr<Process>> processes,
-                          KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
-                          double time, double delta_time, double number_iterations);
+        static int MainExecution(ModelPart&                                                          rModelPart,
+                                 const std::vector<std::shared_ptr<Process>>&                        rProcesses,
+                                 const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
+                                 double                                                              Time,
+                                 double                                                              DeltaTime,
+                                 unsigned int                                                        NumberOfIterations);
     };
 }
