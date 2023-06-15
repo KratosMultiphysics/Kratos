@@ -333,7 +333,7 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeStressVector(Vector& rStre
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// This method computes the tangent constitutive matrix
+// This method computes the algorithmic tangent constitutive matrix
 
 void ElastoPlasticModMohrCoulombCohesive3DLaw::ComputeTangentConstitutiveMatrix(Matrix& rConstitutiveMatrix, Matrix& ElasticConstitutiveMatrix, Vector& rStressVector, double& PlasticMultiplier, ConstitutiveLawVariables& rVariables, Parameters& rValues)
 {
@@ -384,13 +384,13 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::DerivativesPlasticPotentialSurfac
                                                                                   ConstitutiveLawVariables& rVariables, Parameters& rValues)
 {
     // Get the normal component of the strain vector
-    const Vector& StrainVector = rValues.GetStrainVector();
+    const Vector& StrainVector   = rValues.GetStrainVector();
     const unsigned int VoigtSize = StrainVector.size();
 
     // Get material properties
     double tanPsi = std::tan(rVariables.DilatancyAngle);
-    double c   = rVariables.Cohesion;
-    double ft  = rVariables.TensileStrength;
+    double c      = rVariables.Cohesion;
+    double ft     = rVariables.TensileStrength;
 
     // Vector normal to the plastic potential surface (np = diff(g,td))
     np = 2.0 * StressVector;
@@ -419,7 +419,7 @@ void ElastoPlasticModMohrCoulombCohesive3DLaw::DerivativesPlasticPotentialSurfac
 void ElastoPlasticModMohrCoulombCohesive3DLaw::DerivativesYieldSurface(Vector& StressVector,Vector& n, ConstitutiveLawVariables& rVariables, Parameters& rValues)
 {
     // Get the normal component of the strain vector
-    const Vector& StrainVector = rValues.GetStrainVector();
+    const Vector& StrainVector   = rValues.GetStrainVector();
     const unsigned int VoigtSize = StrainVector.size();
 
     // Get material properties
