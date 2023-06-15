@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "geometries/geometry.h"
 
 
 namespace Kratos {
@@ -68,6 +69,23 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+
+        template<class TPointType>
+        Point LineNearestPoint(TPointType const& ThePoint, Geometry<Node<3>> const& TheLine){
+            KRATOS_DEBUG_ERROR_IF_NOT(TheLine.Size() == 2) << "This function only accepts Line2D2 as input" << std::endl;
+            Point result;
+            const Point line_projected_point = GeometricalProjectionUtilities::FastProjectOnLine(TheLine, ThePoint, result);
+            array_1d<double,3> projected_local;
+            if(TheLine.IsInside(result.Coordinates(), projected_local))
+                return result;
+            
+            double distance1 = norm_2(TheLine[0] - result);
+            double distance2 = norm_2(TheLine[1] - result);
+
+            result = (distance1 < distance2) ? TheLine[0] : TheLine[1];
+            return result;
+        }
 
 
     ///@}
