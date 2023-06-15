@@ -59,6 +59,7 @@
 #include "custom_constitutive/dem_kdem_2d_cl.h"
 #include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_smooth_joint_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"

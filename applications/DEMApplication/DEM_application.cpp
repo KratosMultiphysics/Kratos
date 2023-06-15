@@ -46,6 +46,7 @@
 #include "custom_constitutive/DEM_compound_constitutive_law.h"
 #include "custom_constitutive/DEM_compound_constitutive_law_for_PBM.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_smooth_joint_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
@@ -266,6 +267,9 @@ KRATOS_CREATE_VARIABLE(double, BOND_INTERNAL_FRICC)
 KRATOS_CREATE_VARIABLE(double, BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL)
 KRATOS_CREATE_VARIABLE(double, BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL)
 KRATOS_CREATE_VARIABLE(double, BOND_RADIUS_FACTOR)
+KRATOS_CREATE_VARIABLE(double, JOINT_NORMAL_DIRECTION_X)
+KRATOS_CREATE_VARIABLE(double, JOINT_NORMAL_DIRECTION_Y)
+KRATOS_CREATE_VARIABLE(double, JOINT_NORMAL_DIRECTION_Z)
 KRATOS_CREATE_VARIABLE(double, K_ALPHA) // for DEM_D_Quadratic_LAW
 
 // *************** Continuum only END *************
@@ -735,6 +739,9 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL)
     KRATOS_REGISTER_VARIABLE(BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL)
     KRATOS_REGISTER_VARIABLE(BOND_RADIUS_FACTOR)
+    KRATOS_REGISTER_VARIABLE(JOINT_NORMAL_DIRECTION_X)
+    KRATOS_REGISTER_VARIABLE(JOINT_NORMAL_DIRECTION_Y)
+    KRATOS_REGISTER_VARIABLE(JOINT_NORMAL_DIRECTION_Z)
 
     // *************** Continuum only END *************
 

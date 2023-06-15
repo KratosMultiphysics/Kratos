@@ -236,6 +236,12 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, BOND_RADIUS_FACTOR)
   // ****** for parallel bond model END *****
 
+  // ****** for smooth joint model BEGIN ***
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, JOINT_NORMAL_DIRECTION_X)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, JOINT_NORMAL_DIRECTION_Y)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, JOINT_NORMAL_DIRECTION_Z)
+  // ****** for smooth joint model BEGIN ***
+
   // *************** Continuum only END *************
 
   // GEOMETRIC PARAMETERS
