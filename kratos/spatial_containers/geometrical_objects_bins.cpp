@@ -152,7 +152,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearest(const P
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const Point& rPoint)
+GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const Point& rPoint, const double ThisTolerance)
 {
     ResultType current_result;
     current_result.SetDistance(std::numeric_limits<double>::max());
@@ -163,7 +163,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const 
     }
 
     auto& r_cell = GetCell(position[0],position[1],position[2]);
-    SearchIsInsideInCell(r_cell, rPoint, current_result);
+    SearchIsInsideInCell(r_cell, rPoint, current_result,ThisTolerance);
 
     return current_result;
 }
@@ -263,13 +263,14 @@ void GeometricalObjectsBins::SearchNearestInCell(
 void GeometricalObjectsBins::SearchIsInsideInCell(
     const CellType& rCell,
     const Point& rPoint,
-    ResultType& rResult
+    ResultType& rResult,
+    const double ThisTolerance
     )
 {
     array_1d<double, 3> point_local_coordinates;
     for(auto p_geometrical_object : rCell){
         auto& r_geometry = p_geometrical_object->GetGeometry();
-        const bool is_inside = r_geometry.IsInside(rPoint,point_local_coordinates,Tolerance);
+        const bool is_inside = r_geometry.IsInside(rPoint,point_local_coordinates,ThisTolerance);
         if (is_inside) {
             rResult.Set(p_geometrical_object);
             rResult.SetDistance(0.0);

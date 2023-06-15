@@ -255,7 +255,7 @@ public:
      * @param rPoint The point to be checked
      * @return ResultType The result of the search
      */
-    ResultType SearchIsInside(const Point& rPoint);
+    ResultType SearchIsInside(const Point& rPoint, const double ThisTolerance = Tolerance);
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
@@ -533,7 +533,8 @@ private:
     void SearchIsInsideInCell(
         const CellType& rCell,
         const Point& rPoint,
-        ResultType& rResult
+        ResultType& rResult,
+        const double ThisTolerance = Tolerance
         );
 
     ///@}

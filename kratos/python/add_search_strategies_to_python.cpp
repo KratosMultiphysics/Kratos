@@ -567,9 +567,9 @@ void AddSearchStrategiesToPython(pybind11::module& m)
         }
         return list_results;
     })
-    .def("SearchIsInside", [&](GeometricalObjectsBins& self, const Point& rPoint) {
+    .def("SearchIsInside", [&](GeometricalObjectsBins& self, const Point& rPoint, const double ThisTolerance) {
         // Perform the search
-        return self.SearchIsInside(rPoint);
+        return self.SearchIsInside(rPoint,ThisTolerance);
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
