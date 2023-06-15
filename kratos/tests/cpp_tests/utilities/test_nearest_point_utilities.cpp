@@ -18,7 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
 #include "utilities/geometry_utilities/nearest_point_utilities.h"
 
 
@@ -36,8 +36,8 @@ namespace Kratos::Testing {
 
         Point nearest_point( 0.00, 0.00, 0.00);
 
-        Line2D2<Point> line_1(p_point_1, p_point_2);
-        Line2D2<Point> line_2(p_point_1, p_point_3);
+        Line3D2<Point> line_1(p_point_1, p_point_2);
+        Line3D2<Point> line_2(p_point_1, p_point_3);
 
         Point point_1(0.2 * length, 0.1 * length, 0.00);
         nearest_point = NearestPointUtilities::LineNearestPoint(point_1, line_1);
@@ -60,5 +60,6 @@ namespace Kratos::Testing {
         nearest_point = NearestPointUtilities::LineNearestPoint(point_3, line_2);
         KRATOS_CHECK_VECTOR_NEAR(nearest_point, Point(0.00, length, 0.00), 1e-6);     
     }
+
 
 } // namespace Kratos::Testing
