@@ -33,7 +33,7 @@ def CreateSolver(cls, model, custom_settings):
             linear_solver = self._GetLinearSolver()
             rom_parameters, solving_strategy = self._ValidateAndReturnRomParameters()
             available_solving_strategies = {
-                "galerkin": KratosROM.ROMBuilderAndSolver, 
+                "galerkin": KratosROM.GlobalROMBuilderAndSolver, 
                 "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver
             }
