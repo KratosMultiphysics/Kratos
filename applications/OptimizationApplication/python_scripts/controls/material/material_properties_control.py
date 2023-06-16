@@ -49,7 +49,6 @@ class MaterialPropertiesControl(Control):
         root_model_part = controlled_model_parts[0].GetRootModelPart()
         self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, root_model_part, controlled_model_parts, False)
 
-
     def Initialize(self) -> None:
         ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
 
