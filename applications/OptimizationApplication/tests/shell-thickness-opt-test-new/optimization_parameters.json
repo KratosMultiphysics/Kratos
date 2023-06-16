@@ -42,7 +42,9 @@
             "name": "strain_energy_shell",
             "type": "linear_strain_energy_response_function",
             "settings": {
-                "evaluated_model_part_names": ["shell"],
+                "evaluated_model_part_names": [
+                    "shell"
+                ],
                 "primal_analysis_name": "shell_static"
             }
         }
@@ -51,16 +53,24 @@
         {
             "name": "thickness_control",
             "type": "thickness.shell_thickness_control",
-            "controlled_model_part_names": [
-                    "shell"
-            ],
             "settings": {
-                "filter_settings": {"type" : "implicit","radius" : 0.2,                            "linear_solver_settings" : {
-                                "solver_type" : "LinearSolversApplication.pardiso_lu"
-                            } },
-                "initial_thickness":0.1,
-                "fixed_model_parts": ["shell.top_edge"],
-                "fixed_model_parts_thicknesses": [0.2]
+                "controlled_model_part_names": [
+                    "shell"
+                ],
+                "filter_settings": {
+                    "type": "implicit",
+                    "radius": 0.2,
+                    "linear_solver_settings": {
+                        "solver_type": "LinearSolversApplication.pardiso_lu"
+                    }
+                },
+                "initial_thickness": 0.1,
+                "fixed_model_parts": [
+                    "shell.top_edge"
+                ],
+                "fixed_model_parts_thicknesses": [
+                    0.2
+                ]
             }
         }
     ],
@@ -104,13 +114,15 @@
                     "type": "optimization_problem_vtu_output_process",
                     "module": "KratosMultiphysics.OptimizationApplication.processes",
                     "settings": {
-                        "custom_name_prefix"          : "dummy_vtu",
-                        "file_format"                 : "binary",
+                        "custom_name_prefix": "dummy_vtu",
+                        "file_format": "binary",
                         "write_deformed_configuration": false,
-                        "list_of_output_components"   : ["control.thickness_control"],
-                        "output_precision"            : 7,
-                        "output_interval"             : 1,
-                        "echo_level"                  : 0
+                        "list_of_output_components": [
+                            "control.thickness_control"
+                        ],
+                        "output_precision": 7,
+                        "output_interval": 1,
+                        "echo_level": 0
                     }
                 }
             ]
