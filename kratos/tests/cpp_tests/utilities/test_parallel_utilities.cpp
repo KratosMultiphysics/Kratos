@@ -66,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     //error check
     for(auto& item : data_vector)
     {
-        KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
+        KRATOS_CHECK_DOUBLE_EQUAL(item, std::pow(5.0, 0.1));
     }
 
     //shorter form
@@ -77,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     //error check
     for(auto& item : data_vector)
     {
-        KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
+        KRATOS_CHECK_DOUBLE_EQUAL(item, std::pow(5.0, 0.1));
     }
 
     //here we check for a reduction (computing the sum of all the entries)

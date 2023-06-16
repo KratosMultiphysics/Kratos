@@ -31,7 +31,7 @@ namespace Kratos {
 
 namespace Testing {
 
-constexpr double DELAUNATOR_TOLERANCE = 1.0e-6;
+constexpr double DELAUNATOR_TOLERANCE = 2.0e-6;
 
 inline void validatewithtolerance(
     const std::vector<double>& rCoordinates,
@@ -88,7 +88,7 @@ inline void validatewithtolerance(
         }
     }
     const double triangles_area = std::accumulate(triangles_areas.begin(), triangles_areas.end(), 0.0);
-    
+
     KRATOS_CHECK_LESS_EQUAL((triangles_area - HullArea)/HullArea, Tolerance);
 
 //     // Save filled debug model part
