@@ -24,20 +24,20 @@ class MassResponseFunction(ResponseFunction):
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
         self.model = model
-        self.model_part: Kratos.ModelPart = None
 
-        if len(self.model_part_names) == 0:
-            raise RuntimeError("No model parts were provided for MassResponseFunction.")
+        evaluated_model_parts = [model[model_part_name] for model_part_name in parameters["evaluated_model_part_names"].GetStringArray()]
+        if len(evaluated_model_parts) == 0:
+            raise RuntimeError(f"No model parts were provided for MassResponseFunction. [ response name = \"{self.GetName()}\"]")
+
+        root_model_part = evaluated_model_parts[0].GetRootModelPart()
+        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, root_model_part, evaluated_model_parts, False)
 
     def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
         return [KratosOA.SHAPE, Kratos.DENSITY, Kratos.THICKNESS, KratosOA.CROSS_AREA]
 
     def Initialize(self) -> None:
-        model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
-        root_model_part = model_parts_list[0].GetRootModelPart()
-        _, self.model_part = ModelPartUtilities.UnionModelParts(root_model_part, model_parts_list, False)
+        ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
 
     def Check(self) -> None:
         KratosOA.ResponseUtils.MassResponseUtils.Check(self.model_part)
