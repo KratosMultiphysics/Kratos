@@ -21,7 +21,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             self.model_part = model_part
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
+        def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
             pass
         def Check(self) -> None:
             pass
@@ -122,12 +122,12 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
     def __AddData(self, buffered_dict: BufferedDict, is_buffered_data: bool, component):
         step_v = self.optimization_problem.GetStep() + 1
 
-        nodal_data = Kratos.Expression.NodalNonHistoricalExpression(component.model_part)
-        nodal_data.Read(Kratos.VELOCITY)
+        nodal_data = Kratos.Expression.NodalExpression(component.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(nodal_data, Kratos.VELOCITY, False)
         buffered_dict[f"{component.GetName()}_data_nodal_{is_buffered_data}"] = nodal_data * step_v * 2.3
 
-        element_data = Kratos.Expression.ElementNonHistoricalExpression(component.model_part)
-        element_data.Read(Kratos.ACCELERATION)
+        element_data = Kratos.Expression.ElementExpression(component.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(element_data, Kratos.ACCELERATION)
         buffered_dict[f"{component.GetName()}_data_element_{is_buffered_data}"] = element_data * step_v * 2.3
 
     def test_OptimizationProblemVtuOutputProcess(self):
