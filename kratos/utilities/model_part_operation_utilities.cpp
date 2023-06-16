@@ -188,7 +188,7 @@ void ModelPartOperationUtilities::FillOutputSubModelPart(
     // of rMainModelPart assuming the communicators are not set yet in rOutputSubModelPart
     // since it is assumed to be empty in all contaienrs.
     const auto& r_data_communicator = rMainModelPart.GetCommunicator().GetDataCommunicator();
-    const auto& entity_info = r_data_communicator.SumAll(std::vector<IndexType>{
+    const auto& entity_info = r_data_communicator.SumAll(std::vector<long unsigned int>{
             rOutputSubModelPart.NumberOfNodes(),
             rOutputSubModelPart.NumberOfConditions(),
             rOutputSubModelPart.NumberOfElements()});
