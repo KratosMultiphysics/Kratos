@@ -55,12 +55,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_constant_scalar_expression(self) -> None:
         val = 1.234
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.PRESSURE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.PRESSURE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.TEMPERATURE)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
 
@@ -79,12 +75,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_constant_vector_expression(self):
         val = KM.Vector([1.234, -22.845, 11.775])
         KM.VariableUtils().SetVectorVar(KM.FORCE, val, self.interface_model_part_origin.Nodes)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.FORCE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.FORCE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.VELOCITY)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_destination), KM.VELOCITY, val)
 
@@ -101,12 +93,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_Map_non_constant_scalar_expression(self) -> None:
         SetHistoricalNonUniformSolutionScalar(self.interface_model_part_origin.Nodes, KM.PRESSURE)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.PRESSURE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.PRESSURE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.TEMPERATURE)
         mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.TEMPERATURE, GetFilePath(self._GetFileName("map_scalar")))
 
@@ -122,12 +110,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_Map_non_constant_vector_expression(self):
         SetHistoricalNonUniformSolutionVector(self.interface_model_part_origin.Nodes, KM.FORCE)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.FORCE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.FORCE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.VELOCITY)
         mapper_test_case.CheckHistoricalNonUniformValues(self.interface_model_part_destination, KM.VELOCITY, GetFilePath(self._GetFileName("map_vector")))
 
@@ -145,12 +129,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_SWAP_SIGN_Map_scalar_expression(self) -> None:
         val = 1.234
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.PRESSURE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.PRESSURE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.TEMPERATURE, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, -val)
 
@@ -169,12 +149,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_SWAP_SIGN_Map_vector_expression(self) -> None:
         val = KM.Vector([1.234, -22.845, 11.775])
         KM.VariableUtils().SetVectorVar(KM.FORCE, val, self.interface_model_part_origin.Nodes)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.FORCE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.FORCE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.VELOCITY, KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_destination), KM.VELOCITY, [-1.0 * v for v in val])
 
@@ -201,12 +177,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE) # set the initial field
 
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val_2, self.interface_model_part_origin.Nodes)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.PRESSURE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.PRESSURE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.TEMPERATURE, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val_1 + val_2)
 
@@ -237,12 +209,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.Map(KM.FORCE, KM.VELOCITY) # set the initial field
 
         KM.VariableUtils().SetVectorVar(KM.FORCE, val_2, self.interface_model_part_origin.Nodes)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.FORCE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.FORCE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.VELOCITY, KM.Mapper.ADD_VALUES)
         self._CheckHistoricalUniformValuesVector(GetNodes(self.interface_model_part_destination), KM.VELOCITY, val_1 + val_2)
 
@@ -273,12 +241,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE) # set the initial field
 
         KM.VariableUtils().SetScalarVar(KM.PRESSURE, val_2, self.interface_model_part_origin.Nodes)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.PRESSURE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.PRESSURE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.TEMPERATURE, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val_1 - val_2)
 
@@ -327,12 +291,8 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     def test_Map_constant_scalar_expression_TO_NON_HISTORICAL(self) -> None:
         val = 9.234
         KM.VariableUtils().SetVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
-        source_expression = KM.ContainerExpression.NodalExpression(self.interface_model_part_origin)
-        source_expression.SetExpression(KM.VariableExpressionIO.Input(
-            source_expression.GetModelPart(),
-            KM.PRESSURE,
-            KM.VariableExpressionIO.ContainerType.NodalHistorical
-        ).Execute())
+        source_expression = KM.Expression.NodalExpression(self.interface_model_part_origin)
+        KM.Expression.VariableExpressionIO.Read(source_expression, KM.PRESSURE, True)
         self.mapper.Map(source_expression.GetExpression(), KM.TEMPERATURE, KM.Mapper.TO_NON_HISTORICAL)
         self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
 

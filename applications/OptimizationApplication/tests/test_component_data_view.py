@@ -26,7 +26,7 @@ class TestComponentDataView(kratos_unittest.TestCase):
             return None
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, _: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
+        def CalculateGradient(self, _: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
             return None
 
     @classmethod
