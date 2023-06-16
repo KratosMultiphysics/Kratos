@@ -29,7 +29,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwDischargeCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
 {    
     double DischargeScalar = this->GetGeometry()[0].FastGetSolutionStepValue( DISCHARGE );
-    rRightHandSideVector[TDim+1] = DischargeScalar;
+    rRightHandSideVector[TDim] = DischargeScalar;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
