@@ -64,30 +64,34 @@ public:
         const bool ThrowError = false);
 
     /**
-     * @brief Create a Model Part with the specified operation.
+     * @brief Fill a sub model part with the specified operation.
      *
      * This method finds all the nodes, geometries in @ref rModelPartOperationModelParts in the @ref rMainModelPart
-     * which satisfies the specified @ref TModelPartOperation and adds them to a newly created sub model part with
-     * the name @ref rOutputSubModelPartName. The corresponding entities from @ref rMainModelPart are used
-     * to populate the newly created sub model part. Newly created sub model part is always a sub model part of the
-     * @ref rMainModelPart.
+     * which satisfies the specified @ref TModelPartOperation and adds them to a given @ref rOutputSubModelPart.
+     * The @ref TModelPartOperation check is done based on the memory locations of the entities.
+     * The corresponding entities from @ref rMainModelPart are usedto populate the sub model part.
+     * @ref rOutputSubModelPart must always a sub model part of the @ref rMainModelPart, but does not
+     * necessarily have to be an immediate sub model part.
      *
      * If @ref AddNeighbourEntities is true, then all the neighbours of the newly created model part
      * is found from @ref rMainModelPart and added as well.
      *
      * Please make sure to check validity of model parts using @see CheckValidityOfModelPartsForOperations.
      *
+     * @throws If @ref rOutputSubModelPart is not a sub model part of @ref rMainModelPart.
+     * @throws If @ref rOutputSubModelPart is not empty.
+     *
      * @tparam TModelPartOperation                  Type of the operation.
-     * @param rOutputSubModelPartName               Output sub model part name.
+     * @param rOutputSubModelPart                   Output sub model part.
      * @param rMainModelPart                        Main Model part.
      * @param rModelPartOperationModelParts         Model parts to to find satisfying entities w.r.t. @ref TModelPartOperation.
      * @param AddNeighbourEntities                  To add or not the neighbours.
      * @return ModelPart&                           Output sub model part.
      */
     template<class TModelPartOperation>
-    static ModelPart& CreateModelPartWithOperation(
-        const std::string& rOutputSubModelPartName,
-        ModelPart& rMainModelPart,
+    static void FillSubModelPartWithOperation(
+        ModelPart& rOutputSubModelPart,
+        const ModelPart& rMainModelPart,
         const std::vector<ModelPart const*>& rModelPartOperationModelParts,
         const bool AddNeighbourEntities)
     {
@@ -95,11 +99,23 @@ public:
         std::vector<ModelPart::ConditionType*> output_conditions;
         std::vector<ModelPart::ElementType*> output_elements;
 
-        // fill vectors
-        ModelPartOperation<TModelPartOperation>(output_nodes, output_conditions, output_elements, rMainModelPart, rModelPartOperationModelParts, AddNeighbourEntities);
+        // check whether the given rOutputSubModelPart is a sub model part of rMainModelPart
+        // This is done based on pointers to avoid having same names in model parts
+        // which are within two different models.
+        ModelPart* p_parent_model_part = &rOutputSubModelPart.GetParentModelPart();
+        while (p_parent_model_part->IsSubModelPart() && p_parent_model_part != &rMainModelPart) {
+            p_parent_model_part = &p_parent_model_part->GetParentModelPart();
+        }
 
-        // now create the sub model part
-        return CreateOutputModelPart(rOutputSubModelPartName, rMainModelPart, output_nodes, output_conditions, output_elements);
+        KRATOS_ERROR_IF_NOT(p_parent_model_part == &rMainModelPart)
+            << "The given sub model part " << rOutputSubModelPart.FullName()
+            << " is not a sub model part of " << rMainModelPart.FullName() << ".\n";
+
+        // fill vectors
+        ModelPartOperation<TModelPartOperation>(output_nodes, output_conditions, output_elements, *p_parent_model_part, rModelPartOperationModelParts, AddNeighbourEntities);
+
+        // now fill the sub model part
+        FillOutputSubModelPart(rOutputSubModelPart, *p_parent_model_part, output_nodes, output_conditions, output_elements);
     }
 
     /**
@@ -272,8 +288,8 @@ private:
         ModelPart& rOutputModelPart,
         ModelPart& rMainModelPart);
 
-    static ModelPart& CreateOutputModelPart(
-        const std::string& rOutputSubModelPartName,
+    static void FillOutputSubModelPart(
+        ModelPart& rOutputSubModelPart,
         ModelPart& rMainModelPart,
         std::vector<ModelPart::NodeType*>& rOutputNodes,
         std::vector<ModelPart::ConditionType*>& rOutputConditions,
