@@ -1,10 +1,19 @@
 from typing import Any
+from enum import Enum
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
 class ModelPartUtilities:
+    class OperationTypes(Enum):
+        UNION = 1,
+        INTERSECT = 2,
+        SUBSTRACT = 3
+
     @staticmethod
     def __GenerateUniqueModelPartName(prefix: str, list_of_names: 'list[str]', add_neighbours: bool) -> str:
+        if not all([name.find("#") == -1 for name in list_of_names]):
+            raise RuntimeError(f"The provided model part names has \"#\" which is invalid. Please remove all occurances of \"#\" character. Provided model part names:\n\t" + "\n\t".join(list_of_names))
+
         sorted_names = sorted(list_of_names)
         post_fix = "IN" if add_neighbours else "EN"
         return (f"{prefix}_{post_fix}_" + "_".join(sorted_names)).replace(".", "-")
