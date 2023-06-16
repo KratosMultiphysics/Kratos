@@ -510,9 +510,6 @@ private:
             << ") must be a multiple of the number of local nodes in the model part (" << mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes() << ')';
 
         if (expression_size) {
-            TSparseSpace::Resize(mpInterfaceVectorContainerOrigin->GetVector(), expression_size);
-            TSparseSpace::Resize(mpInterfaceVectorContainerDestination->GetVector(), TSparseSpace::Size1(*mpMappingMatrix));
-
             // Get the pointer to the first item in the local vector
             // Sadly, this isn't starightforward because operator[] in Trilinos vector types
             // returns a double*& instead of a double&, so both cases must be handled.
