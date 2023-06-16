@@ -42,9 +42,9 @@ Expression::Pointer PropertiesVariableExpressionIO::PropertiesVariableExpression
 {
     switch (mContainerType) {
         case ContainerType::ConditionNonHistorical:
-            return ExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mrModelPart.Conditions(), mpVariable);
+            return ExpressionIOUtils::ReadToExpression<ModelPart::ConditionsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mrModelPart.Conditions(), mpVariable, mrModelPart.GetCommunicator().GetDataCommunicator());
         case ContainerType::ElementNonHistorical:
-            return ExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mrModelPart.Elements(), mpVariable);
+            return ExpressionIOUtils::ReadToExpression<ModelPart::ElementsContainerType, ContainerDataIO<ContainerDataIOTags::Properties>, const VariableType>(mrModelPart.Elements(), mpVariable, mrModelPart.GetCommunicator().GetDataCommunicator());
         default:
             KRATOS_ERROR << "Invalid container type.";
     }
