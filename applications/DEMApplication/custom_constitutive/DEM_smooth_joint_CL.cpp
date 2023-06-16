@@ -224,13 +224,18 @@ void DEM_smooth_joint::CalculateElasticConstants(double& kn_el, double& kt_el, d
     GlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X];
     GlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y];
     GlobalJointNormal[2] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Z];
-    double OtherToMeVector[3] = {0.0};
+    array_1d<double, 3> OtherToMeVector;
     noalias(OtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
     double LocalCoordSystem[3][3];
     double Distance = DEM_MODULUS_3(OtherToMeVector);
     GeometryFunctions::ComputeContactLocalCoordSystem(OtherToMeVector, Distance, LocalCoordSystem);
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalJointNormal, mLocalJointNormal);
-    mInitialDistanceJoint = std::abs(DotProduct(OtherToMeVector, mLocalJointNormal));
+    double temp_OtherToMeVector[3] = {0.0};
+    temp_OtherToMeVector[0] = OtherToMeVector[0];
+    temp_OtherToMeVector[1] = OtherToMeVector[1];
+    temp_OtherToMeVector[2] = OtherToMeVector[2];
+    double temp_InitialDistanceJoint = GeometryFunctions::DotProduct(temp_OtherToMeVector, mLocalJointNormal);
+    mInitialDistanceJoint = std::abs(temp_InitialDistanceJoint);
     kn_el = bond_equiv_young * calculation_area / mInitialDistanceJoint;
     kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
 
@@ -364,9 +369,14 @@ void DEM_smooth_joint::CalculateNormalForces(double LocalElasticContactForce[3],
     KRATOS_TRY
     
     int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
-    double CurrentOtherToMeVector[3] = {0.0};
+    array_1d<double, 3> CurrentOtherToMeVector;
     noalias(CurrentOtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
-    const double joint_indentation = mInitialDistanceJoint - std::abs(DotProduct(CurrentOtherToMeVector, mLocalJointNormal));                                                                                                         
+    double temp_CurrentOtherToMeVector[3] = {0.0};
+    temp_CurrentOtherToMeVector[0] = CurrentOtherToMeVector[0];
+    temp_CurrentOtherToMeVector[1] = CurrentOtherToMeVector[1];
+    temp_CurrentOtherToMeVector[2] = CurrentOtherToMeVector[2];
+    double temp_distance = GeometryFunctions::DotProduct(temp_CurrentOtherToMeVector, mLocalJointNormal);
+    const double joint_indentation = mInitialDistanceJoint - std::abs(temp_distance);                                                                                               
 
     double JointLocalElasticContactForce2 = 0.0;
 
@@ -396,7 +406,7 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
                         double LocalElasticExtraContactForce[3],
                         double ViscoDampingLocalContactForce[3],
                         double LocalCoordSystem[3][3],
-                        double LocalDeltDisp[3],
+                        double LocalDeltSlidingDisp[3],
                         double LocalRelVel[3],
                         const double kt_el,
                         const double equiv_shear,
@@ -425,7 +435,10 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
     // bond force for joint contact
     if (!failure_type) {
         double JointSlidingLocalVel[3] = {0.0};
-        JointSlidingLocalVel = DotProduct(LocalRelVel, mLocalJointNormal) * mLocalJointNormal;
+        double temp_local_vel = GeometryFunctions::DotProduct(LocalRelVel, mLocalJointNormal);
+        JointSlidingLocalVel[0] =  temp_local_vel * mLocalJointNormal[0];
+        JointSlidingLocalVel[1] =  temp_local_vel * mLocalJointNormal[1];
+        JointSlidingLocalVel[2] =  temp_local_vel * mLocalJointNormal[2];
         LocalDeltSlidingDisp[0] = JointSlidingLocalVel[0] * time_steps;
         LocalDeltSlidingDisp[1] = JointSlidingLocalVel[1] * time_steps;
         mAccumulatedJointTangentialLocalDisplacement[0] += LocalDeltSlidingDisp[0];
@@ -484,7 +497,7 @@ void DEM_smooth_joint::CalculateMoments(SphericContinuumParticle* element,
 // Joint failure checking
 //*************************************
 
-void DEM_parallel_bond::CheckFailure(const int i_neighbour_count, 
+void DEM_smooth_joint::CheckFailure(const int i_neighbour_count, 
                                         SphericContinuumParticle* element1, 
                                         SphericContinuumParticle* element2,
                                         double& contact_sigma,
@@ -506,27 +519,12 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
         const double& bond_tau_zero = (*mpProperties)[BOND_TAU_ZERO];
         //const double& bond_tau_zero_deviation = (*mpProperties)[BOND_TAU_ZERO_DEVIATION];
         const double& bond_interanl_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
-        const double& bond_rotational_moment_coefficient_normal =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT_NORMAL];
-        const double& bond_rotational_moment_coefficient_tangential =(*mpProperties)[BOND_ROTATIONAL_MOMENT_COEFFICIENT_TANGENTIAL];
-        
-        double bond_rotational_moment[3] = {0.0};
-        bond_rotational_moment[0]  = ElasticLocalRotationalMoment[0];
-        bond_rotational_moment[1]  = ElasticLocalRotationalMoment[1];
-        bond_rotational_moment[2]  = ElasticLocalRotationalMoment[2];
-        double bond_rotational_moment_normal_modulus = 0.0;
-        double bond_rotational_moment_tangential_modulus = 0.0;
-
-        bond_rotational_moment_normal_modulus     = std::abs(bond_rotational_moment[2]);
-        bond_rotational_moment_tangential_modulus = sqrt(bond_rotational_moment[0] * bond_rotational_moment[0]
-                                                    + bond_rotational_moment[1] * bond_rotational_moment[1]);
 
         const double my_radius         = element1->GetRadius();
         const double other_radius      = element2->GetRadius();
         const double bond_radius_factor = (*mpProperties)[BOND_RADIUS_FACTOR];
         double bond_radius = std::min(my_radius, other_radius) * bond_radius_factor;
-
-        const double I = 0.25 * Globals::Pi * bond_radius * bond_radius * bond_radius * bond_radius;
-        const double J = 2.0 * I; // This is the polar inertia
+        double bond_calculation_area = Globals::Pi * bond_radius * bond_radius;
 
         double bond_current_tau_max = bond_tau_zero;
 
@@ -534,45 +532,25 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             bond_current_tau_max += tan(bond_interanl_friction * Globals::Pi / 180.0) * contact_sigma;
         }
 
-        if(( std::abs(contact_tau) + bond_rotational_moment_coefficient_tangential * bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 
-            && !(*mpProperties)[IS_UNBREAKABLE]) 
+        if(( std::abs(contact_tau) > bond_current_tau_max) && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for tangential 
             failure_type = 2; // failure in shear
-            contact_sigma = 0.0;
+            //contact_sigma = 0.0;
             contact_tau = 0.0;
             //If bond break in shear, the normal compressive force should still be there like before
-            LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
-            LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
-            //LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2; 
-            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
-            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
-            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
-            ElasticLocalRotationalMoment[0] = 0.0;
-            ElasticLocalRotationalMoment[1] = 0.0;
-            ElasticLocalRotationalMoment[2] = 0.0;
-            ViscoLocalRotationalMoment[0] = 0.0;
-            ViscoLocalRotationalMoment[1] = 0.0;
-            ViscoLocalRotationalMoment[2] = 0.0;
+            LocalElasticContactForce[0] = 0.0;
+            LocalElasticContactForce[1] = 0.0;
         } 
         else if (contact_sigma < 0.0  /*break only in tension*/
-                && (-1 * contact_sigma + bond_rotational_moment_coefficient_normal * bond_rotational_moment_tangential_modulus * bond_radius / I > bond_sigma_max) 
+                && (-1 * contact_sigma > bond_sigma_max) 
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
             contact_sigma = 0.0;
             contact_tau = 0.0;
-            LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
-            LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
-            LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2;
-            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
-            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
-            ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
-            ElasticLocalRotationalMoment[0] = 0.0;
-            ElasticLocalRotationalMoment[1] = 0.0;
-            ElasticLocalRotationalMoment[2] = 0.0;
-            ViscoLocalRotationalMoment[0] = 0.0;
-            ViscoLocalRotationalMoment[1] = 0.0;
-            ViscoLocalRotationalMoment[2] = 0.0;
+            LocalElasticContactForce[0] = 0.0;      
+            LocalElasticContactForce[1] = 0.0;      
+            LocalElasticContactForce[2] = 0.0;
         }
     }
 

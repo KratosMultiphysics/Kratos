@@ -884,7 +884,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for tangential 
             failure_type = 2; // failure in shear
-            contact_sigma = 0.0;
+            //contact_sigma = 0.0;
             contact_tau = 0.0;
             //If bond break in shear, the normal compressive force should still be there like before
             LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      

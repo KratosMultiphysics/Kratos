@@ -10,7 +10,7 @@ namespace Kratos {
     DEMContinuumConstitutiveLaw::~DEMContinuumConstitutiveLaw() {}
 
     std::string DEMContinuumConstitutiveLaw::GetTypeOfLaw() {
-        KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) shouldn't be accessed, use derived class instead"<<std::endl;
+        //KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) shouldn't be accessed, use derived class instead"<<std::endl;
         std::string type_of_law = "";
         return type_of_law;
     }

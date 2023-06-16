@@ -134,7 +134,7 @@ namespace Kratos
         unsigned int mInitialNeighborsSize;
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
         double mLocalRadiusAmplificationFactor = 1.0;
-        array_1d<double, 3> mLocalJointNormal = {0.0};
+        double mLocalJointNormal[3] = {0.0};
 
     protected:
 

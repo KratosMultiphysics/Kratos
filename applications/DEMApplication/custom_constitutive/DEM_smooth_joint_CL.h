@@ -30,20 +30,20 @@ namespace Kratos{
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        virtual std::string GetTypeOfLaw() override;
+        std::string GetTypeOfLaw() override;
 
         virtual void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
         virtual double CalculateContactArea(double radius, double other_radius, Vector& v) override;
         void GetcontactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area);
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                     double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
-        virtual void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
+        //virtual void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
 
         double LocalMaxSearchDistance(const int i,
                                     SphericContinuumParticle* element1,
                                     SphericContinuumParticle* element2) override;
         
-        virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
+        //virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
 
         virtual void CheckFailure(const int i_neighbour_count, 
                             SphericContinuumParticle* element1, 
