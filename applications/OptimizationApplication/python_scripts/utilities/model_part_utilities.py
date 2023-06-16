@@ -19,7 +19,7 @@ class ModelPartUtilities:
         return (f"{prefix}_{post_fix}_" + "_".join(sorted_names)).replace(".", "-")
 
     @staticmethod
-    def GetOperatingModelPart(operation_type: OperationType, main_model_part: Kratos.ModelPart, operation_model_parts: 'list[Kratos.ModelPart]', add_neighbours: bool):
+    def GetOperatingModelPart(operation_type: OperationType, main_model_part: Kratos.ModelPart, operation_model_parts: 'list[Kratos.ModelPart]', add_neighbours: bool) -> Kratos.ModelPart:
         model_part_names = [model_part.FullName() for model_part in operation_model_parts]
         unique_name = ModelPartUtilities.__GenerateUniqueModelPartName(operation_type.name, model_part_names, add_neighbours)
         if main_model_part.HasSubModelPart(unique_name):
