@@ -18,7 +18,7 @@ class ResponseRoutine:
         self.__response_value = None
 
         self.__contributing_controls_list: 'list[Control]' = []
-        self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]' = {}
+        self.__required_physical_gradients: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
 
     def GetMasterControl(self) -> MasterControl:
         return self.__master_control
@@ -70,7 +70,7 @@ class ResponseRoutine:
     def GetReponse(self) -> ResponseFunction:
         return self.__response
 
-    def CalculateValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions) -> float:
+    def CalculateValue(self, control_field: KratosOA.CollectiveExpression) -> float:
         """Calculates the value of the response.
 
         This method updates the design with the provided control field. If a control field is updated
@@ -78,7 +78,7 @@ class ResponseRoutine:
         value is returned.
 
         Args:
-            control_field (KratosOA.ContainerExpression.CollectiveExpressions): Control field of the new design.
+            control_field (KratosOA.CollectiveExpression): Control field of the new design.
 
         Returns:
             float: Respone value.
@@ -111,7 +111,7 @@ class ResponseRoutine:
 
         return self.__response_value
 
-    def CalculateGradient(self) -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def CalculateGradient(self) -> KratosOA.CollectiveExpression:
         """Returns Collective expression containing all the control space gradients for all control variable types (fields).
 
         Notes:
@@ -119,7 +119,7 @@ class ResponseRoutine:
             2. The gradients are computed with respect to updates from master control.
 
         Returns:
-            KratosOA.ContainerExpression.CollectiveExpressions: Returns mapped gradients collective expression.
+            KratosOA.CollectiveExpression: Returns mapped gradients collective expression.
         """
         # fills the proper physical gradients from the response
         self.__response.CalculateGradient(self.__required_physical_gradients)
@@ -127,14 +127,14 @@ class ResponseRoutine:
         # calculate and return the control space gradients from respective controls
         return self.__master_control.MapGradient(self.__required_physical_gradients)
 
-    def GetRequiredPhysicalGradients(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]':
+    def GetRequiredPhysicalGradients(self) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]':
         """Returns required physical gradients by this response
 
         This method returns required physical gradients. The expressions may or not be empty field
         depending on CalculateGradient is called or not.
 
         Returns:
-            dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]: Required physical gradients.
+            dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]: Required physical gradients.
         """
         return self.__required_physical_gradients
 

@@ -169,13 +169,12 @@ class ShellThicknessControl(Control):
         self.filter.Initialize()
 
         # create the control field
-        self.control_field = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
-        self.control_field.SetData(self.parameters["settings"]["initial_thickness"].GetDouble())
+        self.control_field = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(self.control_field, self.parameters["settings"]["initial_thickness"].GetDouble())
         self.SetFixedModelPartValues()
         thickness_physical_field = self.filter.FilterField(self.control_field)
         # now update physical field
-        thickness_physical_field.Evaluate(self.controlled_physical_variable)
-        return True
+        KratosOA.PropertiesVariableExpressionIO.Write(thickness_physical_field, self.controlled_physical_variable)
 
     def Check(self):
         return self.filter.Check()
@@ -187,8 +186,8 @@ class ShellThicknessControl(Control):
         return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
-        field.SetData(0.0)
+        field = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
         return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
@@ -215,12 +214,12 @@ class ShellThicknessControl(Control):
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
-        if KratosOA.ContainerExpressionUtils.NormL2(self.control_field - new_control_field) > 1e-9:
+        if KratosOA.ExpressionUtils.NormL2(self.control_field - new_control_field) > 1e-9:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}."):
                 self.SetFixedModelPartValues()
                 new_physical_field = self.filter.FilterField(new_control_field)
                 # now update physical field
-                new_physical_field.Evaluate(self.controlled_physical_variable)
+                KratosOA.PropertiesVariableExpressionIO.Write(new_physical_field, self.controlled_physical_variable)
                 return True
 
         return False
@@ -232,9 +231,9 @@ class ShellThicknessControl(Control):
             model_part_value = self.fixed_model_parts_thicknesses[i]
             if is_bachward:
                 model_part_value = 0.0
-            field =  Kratos.ContainerExpression.HistoricalExpression(self.model.GetModelPart(model_part_name))
-            field.SetData(model_part_value)
-            field.Evaluate(KratosOA.HELMHOLTZ_SCALAR)
+            field =  Kratos.Expression.NodalExpression(self.model[model_part_name])
+            Kratos.Expression.LiteralExpressionIO.SetData(field, model_part_value)
+            Kratos.Expression.VariableExpressionIO.Write(field, KratosOA.HELMHOLTZ_SCALAR, True)
 
     def __str__(self) -> str:
         return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}, control variable = {self.controlled_physical_variable.Name()}"
