@@ -70,6 +70,16 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Finds the nearest point to the given point on a line segment. 
+     * It first projects the point into the line. If the porjceted point is inside the segment boundary 
+     * it returns the projected point. If not it returns the nearest end point of the line.
+     * @tparam Type of the Point 
+     * @tparam TGeometryType The type of the line. Assumes to have [] access and IsInside method
+     * @param ThePoint The query point which we want to get nearest point to it on the line
+     * @param TheLine The line in which we want to find the nearest point to ThePoint
+     * @return The nearest point to ThePoint
+     */
 
         template<class TPointType, class TGeometryType>
         static Point LineNearestPoint(TPointType const& ThePoint, TGeometryType const& TheLine){
@@ -87,6 +97,17 @@ public:
             return result;
         }
 
+
+    /**
+     * @brief Finds the nearest point to the given point on a trianlge. 
+     * It first projects the point into the triangle surface. If the porjceted point is inside the triangle 
+     * it returns the projected point. If not it returns the nearest point on the edges of the triangle.
+     * @tparam Type of the Point 
+     * @tparam TGeometryType The type of the triangle. Assumes to have [] access and IsInside method
+     * @param ThePoint The query point which we want to get nearest point to it on the line
+     * @param TheTriangle The triangle in which we want to find the nearest point to ThePoint
+     * @return The nearest point to ThePoint
+     */    
     //  Dviding the plane of the triangle in 7 zones and find the nearest reflecting those zones
     //
     //             \       /
@@ -107,13 +128,14 @@ public:
         template<class TPointType, class TGeometryType>
         static Point TriangleNearestPoint(TPointType const& ThePoint, TGeometryType const& TheTriangle){
             constexpr double Tolerance = 1e-12;
-            array_1d<double, 3> result;
+            Point result;
             array_1d<double,3> local_coordinates = ZeroVector(3);
             const Point center = TheTriangle.Center();
             const array_1d<double, 3> normal = TheTriangle.UnitNormal(local_coordinates);
             double distance = 0.00;
             const Point point_projected = GeometricalProjectionUtilities::FastProject( center, ThePoint, normal, distance);
             TheTriangle.PointLocalCoordinates(local_coordinates, point_projected);
+            using line_point_type=TGeometryType::PointType;
 
             if(local_coordinates[0] < -Tolerance) { // case 2,5,6
                 if(local_coordinates[1] < -Tolerance) { // case 5
@@ -123,7 +145,7 @@ public:
                     result = TheTriangle[2];
                 }
                 else {
-                    result = GetLineNearestPoint(ThePoint, Line3D2<Node<3>>(TheTriangle.pGetPoint(0), TheTriangle.pGetPoint(2)));
+                    result = LineNearestPoint(ThePoint, Line3D2<line_point_type>(TheTriangle.pGetPoint(0), TheTriangle.pGetPoint(2)));
                 }
             }
             else if(local_coordinates[1] < -Tolerance) { // case 4,7 (case 5 is already covered in previous if)
@@ -131,11 +153,11 @@ public:
                     result = TheTriangle[1];
                 }
                 else { // case 4
-                    result = GetLineNearestPoint(ThePoint, Line3D2<Node<3>>(TheTriangle.pGetPoint(0), TheTriangle.pGetPoint(1)));
+                    result = LineNearestPoint(ThePoint, Line3D2<line_point_type>(TheTriangle.pGetPoint(0), TheTriangle.pGetPoint(1)));
                 }
             }
             else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 3
-                result = GetLineNearestPoint(ThePoint, Line3D2<Node<3>>(TheTriangle.pGetPoint(1), TheTriangle.pGetPoint(2)));
+                result = LineNearestPoint(ThePoint, Line3D2<line_point_type>(TheTriangle.pGetPoint(1), TheTriangle.pGetPoint(2)));
             } 
             else {  // inside
                 result = point_projected;
