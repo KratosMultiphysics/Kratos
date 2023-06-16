@@ -37,7 +37,7 @@ class RandomizedSingularValueDecomposition():
         if self.USE_RANDOMIZATION == False:
             Q='full'
         else:
-            Q, B, eORTH, a = self._RandomizedOrthogonalization(A)  #Randomized orthogonalization (machine precision parameter = mu)
+            Q, B, eORTH, a = self._RandomizedOrthogonalization(A, mu=1e-6)  #Changed with Joaquin #Randomized orthogonalization (machine precision parameter = mu)
         if len(Q)==0:
             U=S=V=np.array([])
             eSVD=0
@@ -79,14 +79,14 @@ class RandomizedSingularValueDecomposition():
         if mu==0:
             mu = max(M,N)*np.finfo(float).eps*nC/2  # Machine precision parameter
 
-        dRmax = np.ceil(0.25*(min(M,N)))
+        dRmax = np.ceil(0.01*(min(M,N)))#Change with Joaquin
         dRmin = min(1,min(M,N))
         dRmin = max(dRmin, np.ceil(0.05*min(M,N) )  )
 
         self.dRmax = dRmax
         self.dRmin = dRmin
         self.R = np.ceil(0.005*(min(M,N))) #Initial guess for the rank of C
-        self.TypeRankEstimate = 1 #Exponential
+        self.TypeRankEstimate = 0 #Exponential
 
         if R==0:
             R=self.R

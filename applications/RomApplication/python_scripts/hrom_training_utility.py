@@ -21,6 +21,15 @@ class HRomTrainingUtility(object):
 
     def __init__(self, solver, custom_settings):
         # Validate and assign the HROM training settings
+        self.projected_residuals_counter = 0
+        self.projected_residuals_file_counter = 0
+        # I am doing this for my revision
+        #################################
+        folder_path = "TrainningPhaseHROM"
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        # np.save(f"{folder_path}/ProjectedResidualsSnapshots.npy",residuals_snapshot_matrix)
+        #################################
         settings = custom_settings["hrom_settings"]
         settings.ValidateAndAssignDefaults(self.__GetHRomTrainingDefaultSettings())
 
@@ -74,6 +83,18 @@ class HRomTrainingUtility(object):
 
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
+        self.projected_residuals_counter += 1
+        if self.projected_residuals_counter==5:
+            self.projected_residuals_counter = 0
+            self.projected_residuals_file_counter += 1
+            residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
+            # I am doing this for my revision
+            #################################
+            print("HERE")
+            folder_path = "TrainningPhaseHROM"
+            np.save(f"{folder_path}/ProjectedResidualsSnapshots_{self.projected_residuals_file_counter}.npy",residuals_snapshot_matrix)
+            self.time_step_residual_matrix_container = []
+            #################################
 
     def CalculateAndSaveHRomWeights(self):
         # Calculate the residuals basis and compute the HROM weights from it
@@ -168,29 +189,29 @@ class HRomTrainingUtility(object):
 
     def __CalculateResidualBasis(self):
         # Set up the residual snapshots matrix
-        residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
+        # residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
 
-        # I am doing this for my revision
-        #################################
-        folder_path = "TrainningPhaseHROM"
-        if not os.path.exists(folder_path):
-            os.makedirs(folder_path)
-        # np.save(f"{folder_path}/ProjectedResidualsSnapshots.npy",residuals_snapshot_matrix)
-        #################################
+        # # I am doing this for my revision
+        # #################################
+        # folder_path = "TrainningPhaseHROM"
+        # if not os.path.exists(folder_path):
+        #     os.makedirs(folder_path)
+        # # np.save(f"{folder_path}/ProjectedResidualsSnapshots.npy",residuals_snapshot_matrix)
+        # #################################
 
         # Calculate the randomized and truncated SVD of the residual snapshots
-        u,s,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
-            residuals_snapshot_matrix,
-            self.element_selection_svd_truncation_tolerance)
+        # u,s,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
+        #     residuals_snapshot_matrix,
+        #     self.element_selection_svd_truncation_tolerance)
         
         # I am doing this for my revision
         #################################
-        s = np.diag(s)
-        us = np.dot(u, s)
-        np.save(f"{folder_path}/ProjectedResidualBasis.npy",us)
+        # s = np.diag(s)
+        # us = np.dot(u, s)
+        # np.save(f"{folder_path}/ProjectedResidualBasis.npy",us)
         #################################
 
-        return u
+        return None
 
 
 
@@ -304,4 +325,3 @@ class HRomTrainingUtility(object):
                     hrom_weights["Conditions"][int(indexes[j])-number_of_elements] = float(weights[j])
 
         return hrom_weights
-
