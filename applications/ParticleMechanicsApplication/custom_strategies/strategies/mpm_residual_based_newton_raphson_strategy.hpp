@@ -21,6 +21,7 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
 // Application includes
+#include "custom_utilities/mpm_boundary_rotation_utility.h"
 #include "particle_mechanics_application_variables.h"
 
 namespace Kratos
@@ -231,6 +232,7 @@ public:
             if (this->mpConvergenceCriteria->GetActualizeRHSflag() == true)
             {
                 TSparseSpace::SetToZero(rb);
+                MPMBoundaryRotationUtility<LocalSystemMatrixType, LocalSystemVectorType>::ClearFrictionFlag(BaseType::GetModelPart());
                 p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);
             }
 
@@ -301,7 +303,7 @@ public:
                 if (this->mpConvergenceCriteria->GetActualizeRHSflag() == true)
                 {
                     TSparseSpace::SetToZero(rb);
-
+                    MPMBoundaryRotationUtility<LocalSystemMatrixType, LocalSystemVectorType>::ClearFrictionFlag(BaseType::GetModelPart());
                     p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);
 
                 }

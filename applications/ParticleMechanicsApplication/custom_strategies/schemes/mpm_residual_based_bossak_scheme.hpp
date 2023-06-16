@@ -264,6 +264,14 @@ public:
         KRATOS_CATCH( "" );
     }
 
+    // Additionally resets INLET flag so that nodal friction can be properly set in every iteration
+    void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
+                                   TSystemVectorType &rb) override {
+        BossakBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        mRotationTool.ClearFrictionFlag(mGridModelPart);
+    }
+
     /**
      * @brief It initializes time step solution for MPM simulations.
      * @details The initialize solution step here also perform the following procedures:

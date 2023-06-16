@@ -128,6 +128,20 @@ public:
 		this->Rotate(rLocalVector,rGeometry);
 	}
 
+    // Auxilliary function to clear friction-related flags -- MUST be called before attempting re-building of RHS in the
+    // same non-linear iteration!!!
+    static void ClearFrictionFlag(const ModelPart &rModelPart) {
+        KRATOS_TRY
+        // Loop over the grid nodes performed to clear INLET flag for indicating that nodal friction has alr been set
+        for(int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter)
+        {
+            auto i = rModelPart.NodesBegin() + iter;
+
+            (i)->Reset(INLET);
+        }
+        KRATOS_CATCH( "" )
+    }
+
 	/// Apply roler type boundary conditions to the rotated local contributions.
 	/** This function takes the rotated local system contributions so each
 	 node's displacement are expressed using a base oriented with its normal
@@ -170,6 +184,29 @@ public:
 
                     // Set value of normal displacement at node directly to the normal displacement of the boundary mesh
 					rLocalVector[j] = inner_prod(rN,displacement);
+
+                    // TODO: refactor? [e.g. set INLET flag and local flag, unlock node and do another if based on local flag]
+                    // Prescribe a constant force of FRICTION_FORCE Newtons in the 1st tangential direction to all nodes
+                    // INLET flag (reset in MPMResidualBasedBossakScheme.InitializeSolutionStep) ensures that friction
+                    // is applied exactly once per node
+                    rGeometry[itNode].SetLock();
+                    if(!rGeometry[itNode].Is(INLET)) {
+                        // obtain nodal velocity and rotate it to the same frame of reference as the local geometry
+                        array_1d<double, 3> nodal_velocity = ZeroVector(3);
+
+                        nodal_velocity = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+
+                        // TODO: make threshold configurable?
+                        this->RotateVector(nodal_velocity, rGeometry[itNode], VELOCITY_THRESHOLD);
+
+                        // apply friction force in opposite direction of tangential velocity components
+                        for (unsigned dim = 1; dim < this->GetDomainSize(); dim++) {
+                            rLocalVector[j + dim] -= FRICTION_FORCE * nodal_velocity[dim];
+                        }
+
+                        rGeometry[itNode].Set(INLET);
+                    }
+                    rGeometry[itNode].UnSetLock();
 				}
 			}
 		}
@@ -449,6 +486,9 @@ private:
 
 	const Variable<double>& mrFlagVariable;
 
+    const double FRICTION_FORCE = 2000;
+    const double VELOCITY_THRESHOLD = 1e-10;
+
 	///@}
 	///@name Member Variables
 	///@{
@@ -460,6 +500,36 @@ private:
 	///@}
 	///@name Private Operations
 	///@{
+
+
+    /// Helper function to rotate a 3-vector to the coordinate system defined by the NORMAL defined at rNode
+    /**
+     @param rVector Vector to be rotated
+     @param rNode A reference to the node associated with the vector
+     @param threshold Value below which the value of the component is considered 0
+     */
+    void RotateVector(array_1d<double, 3> &rVector, const Node &rNode, const double threshold) const {
+        array_1d<double, 3> rotated_nodal_vector = ZeroVector(3);
+        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3);
+
+        // Check if velocity is close to zero [ALL components below threshold]
+        bool is_zero_vector = true;
+
+        // Evaluates to false if ANY of the rVector component is above threshold
+        for (auto component : rVector) {
+            is_zero_vector = is_zero_vector && (abs(component) < threshold);
+        }
+
+        // If not close to zero, rotate the vector and obtain its norm
+        // Otherwise do nothing (leaves rotated_vector as ZeroVector)
+        if(!is_zero_vector){
+            this->LocalRotationOperatorPure(rotation_matrix, rNode);
+            noalias(rotated_nodal_vector) = prod(rotation_matrix, rVector);
+            this->Normalize(rotated_nodal_vector);
+        }
+
+        rVector = rotated_nodal_vector;
+    }
 
 	///@}
 	///@name Private  Access
