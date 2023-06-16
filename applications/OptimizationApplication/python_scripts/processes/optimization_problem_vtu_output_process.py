@@ -51,7 +51,12 @@ class ExpressionVtuOutput:
             # now add back the new container expressions
             for container_expression_path in self.list_of_container_expression_paths:
                 container_expression = data_container[container_expression_path]
-                if not isinstance(container_expression, ContainerExpressionTypes):
+                if not (isinstance(container_expression, Kratos.ContainerExpression.HistoricalExpression) or
+                   isinstance(container_expression, Kratos.ContainerExpression.NodalNonHistoricalExpression) or
+                   isinstance(container_expression, Kratos.ContainerExpression.ConditionNonHistoricalExpression) or
+                   isinstance(container_expression, Kratos.ContainerExpression.ElementNonHistoricalExpression) or
+                   isinstance(container_expression, KratosOA.ContainerExpression.ConditionPropertiesExpression) or
+                   isinstance(container_expression, KratosOA.ContainerExpression.ElementPropertiesExpression)):
                     raise RuntimeError(
                         f"No container expression exists at \"{container_expression_path}\". The data container is not consistent between steps [ current data = {container_expression} ].")
 
@@ -75,15 +80,12 @@ class ExpressionVtuOutput:
         if container_expression_name in [ExpressionVtuOutput._GetContainerExpressionName(c_path) for c_path in self.list_of_container_expression_paths]:
             raise RuntimeError(f"Failed to add the container expression. There exists already a container expression with name \"{container_expression_name}\" [ expression path = \"{data_path}\" ].")
 
-        if container_expression_name in [ExpressionVtuOutput._GetContainerExpressionName(c_path) for c_path in self.list_of_collective_expression_paths]:
+        if container_expression_name in [ExpressionVtuOutput._GetContainerExpressionName(c_path) for c_path, _ in self.list_of_collective_expression_paths]:
             raise RuntimeError(f"Failed to add the container expression. There exists already a collective expression with name \"{container_expression_name}\" [ expression path = \"{data_path}\" ].")
 
     @staticmethod
     def _GetContainerExpressionName(container_expression_path: str) -> str:
 
-        # Was added to handle self.list_of_collective_expression_paths and self.list_of_container_expression_paths list elements directly
-        if isinstance(container_expression_path, list):
-            container_expression_path = container_expression_path[0]
         return container_expression_path[container_expression_path.rfind("/")+1:]
 
 
@@ -154,7 +156,12 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
 
             # if a valid component is found, add the expression
             if found_valid_component:
-                if isinstance(global_v, ContainerExpressionTypes):
+                if isinstance(global_v, Kratos.ContainerExpression.HistoricalExpression) or \
+                   isinstance(global_v, Kratos.ContainerExpression.NodalNonHistoricalExpression) or \
+                   isinstance(global_v, Kratos.ContainerExpression.ConditionNonHistoricalExpression) or \
+                   isinstance(global_v, Kratos.ContainerExpression.ElementNonHistoricalExpression) or \
+                   isinstance(global_v, KratosOA.ContainerExpression.ConditionPropertiesExpression) or \
+                   isinstance(global_v, KratosOA.ContainerExpression.ElementPropertiesExpression):
                     model_part = global_v.GetModelPart()
                     self._AddContainerExpression(component_data, global_k, model_part)
                 elif isinstance(global_v, KratosOA.ContainerExpression.CollectiveExpressions):
