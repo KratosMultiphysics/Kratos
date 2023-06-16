@@ -42,12 +42,12 @@ class MaterialPropertiesControl(Control):
 
         self.controlled_physical_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
-        evaluated_model_parts = [model[model_part_name] for model_part_name in parameters["model_part_names"].GetStringArray()]
-        if len(evaluated_model_parts) == 0:
+        controlled_model_parts = [model[model_part_name] for model_part_name in parameters["model_part_names"].GetStringArray()]
+        if len(controlled_model_parts) == 0:
             raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
 
-        root_model_part = evaluated_model_parts[0].GetRootModelPart()
-        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, root_model_part, evaluated_model_parts, False)
+        root_model_part = controlled_model_parts[0].GetRootModelPart()
+        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, root_model_part, controlled_model_parts, False)
 
 
     def Initialize(self) -> None:
