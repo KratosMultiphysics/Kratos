@@ -11,6 +11,7 @@
 #
 
 import time as timer
+import datetime
 import KratosMultiphysics as Kratos
 
 def AddFileLoggerOutput(logger_file_name):
@@ -49,4 +50,4 @@ class TimeLogger:
         self.start_time = timer.time()
 
     def __exit__(self, exit_type, exit_value, exit_traceback):
-        Kratos.Logger.PrintInfo(self.topic, "{:s} - [ Elapsed time: {:d} s.]".format(self.exit_msg, round(timer.time() - self.start_time)))
+        Kratos.Logger.PrintInfo(self.topic, "{:s} - [ Elapsed time: {:s} ]".format(self.exit_msg, str(datetime.timedelta(seconds=round(timer.time() - self.start_time)))))

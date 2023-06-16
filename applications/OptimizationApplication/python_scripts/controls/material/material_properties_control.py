@@ -64,13 +64,13 @@ class MaterialPropertiesControl(Control):
         return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
-        field.SetData(0.0)
+        field = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
         return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
         field = self.GetEmptyField()
-        field.Read(self.controlled_physical_variable)
+        KratosOA.PropertiesVariableExpressionIO.Read(field, self.controlled_physical_variable)
         return field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
@@ -96,11 +96,10 @@ class MaterialPropertiesControl(Control):
         # filtering mechanisms are implemented.
 
         # get the current unfiltered control field
-        unfiltered_control_field = self.GetEmptyField()
-        unfiltered_control_field.Read(self.controlled_physical_variable)
+        unfiltered_control_field = self.GetControlField()
 
-        if KratosOA.ContainerExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
-            control_field.Evaluate(self.controlled_physical_variable)
+        if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
+            KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
             return True
 
         return False

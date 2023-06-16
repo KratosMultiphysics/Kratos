@@ -17,7 +17,7 @@
 #include <iomanip>
 
 // Project includes
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "expression/literal_flat_expression.h"
 
 // Include base h
 #include "xml_ostream_ascii_writer.h"
@@ -29,7 +29,7 @@ namespace XmlOStreamAsciiWriterHelperUtilities
 template <class TExpressionType>
 void WriteExpression(
     std::ostream& rOStream,
-    const std::vector<Expression::Pointer>& rExpressions)
+    const std::vector<Expression::ConstPointer>& rExpressions)
 {
     std::vector<const TExpressionType*> transformed_expressions(rExpressions.size());
     std::transform(rExpressions.begin(), rExpressions.end(),
@@ -61,7 +61,7 @@ XmlOStreamAsciiWriter::XmlOStreamAsciiWriter(
 }
 
 void XmlOStreamAsciiWriter::WriteExpressions(
-    const std::vector<Expression::Pointer>& rExpressions,
+    const std::vector<Expression::ConstPointer>& rExpressions,
     const std::string& rTabbing)
 {
     mrOStream << " format=\"ascii\">\n" << rTabbing;
