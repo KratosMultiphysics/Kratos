@@ -509,44 +509,42 @@ private:
             << "Expression size (" << expression_size
             << ") must be a multiple of the number of local nodes in the model part (" << mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes() << ')';
 
-        if (expression_size) {
-            // Get the pointer to the first item in the local vector
-            // Sadly, this isn't starightforward because operator[] in Trilinos vector types
-            // returns a double*& instead of a double&, so both cases must be handled.
-            double* p_begin = nullptr;
-            using ComponentType = typename TSparseSpace::DataType;
-            using VectorSubscriptType = decltype(std::declval<typename TSparseSpace::VectorType>()[0]);
-            if constexpr (std::is_same_v<VectorSubscriptType,ComponentType*&>) {
-                p_begin = mpInterfaceVectorContainerOrigin->GetVector()[0];
-            } else if constexpr (std::is_same_v<VectorSubscriptType,ComponentType&>) {
-                p_begin = &mpInterfaceVectorContainerOrigin->GetVector()[0];
-            }
+        // Get the pointer to the first item in the local vector
+        // Sadly, this isn't starightforward because operator[] in Trilinos vector types
+        // returns a double*& instead of a double&, so both cases must be handled.
+        double* p_begin = nullptr;
+        using ComponentType = typename TSparseSpace::DataType;
+        using VectorSubscriptType = decltype(std::declval<typename TSparseSpace::VectorType>()[0]);
+        if constexpr (std::is_same_v<VectorSubscriptType,ComponentType*&>) {
+            p_begin = mpInterfaceVectorContainerOrigin->GetVector()[0];
+        } else if constexpr (std::is_same_v<VectorSubscriptType,ComponentType&>) {
+            p_begin = &mpInterfaceVectorContainerOrigin->GetVector()[0];
+        }
 
-            // Break the input expression down to its components and perform the transform on them
-            const unsigned source_stride = pOriginExpression->GetItemComponentCount();
-            const unsigned destination_stride = rDestinationVariable.Size() / sizeof(double); // <== assuming the variable consists of `double` components
-            KRATOS_ERROR_IF_NOT(source_stride == destination_stride)
-                << "Size mismatch between origin expression (" << source_stride << ") and destination variable (" << destination_stride << ')';
+        // Break the input expression down to its components and perform the transform on them
+        const unsigned source_stride = pOriginExpression->GetItemComponentCount();
+        const unsigned destination_stride = rDestinationVariable.Size() / sizeof(double); // <== assuming the variable consists of `double` components
+        KRATOS_ERROR_IF_NOT(source_stride == destination_stride)
+            << "Size mismatch between origin expression (" << source_stride << ") and destination variable (" << destination_stride << ')';
 
-            const auto variable_suffixes (1 < source_stride ? std::array<std::string,3> {"_X", "_Y", "_Z"} : std::array<std::string,3> {"", "", ""});
+        const auto variable_suffixes (1 < source_stride ? std::array<std::string,3> {"_X", "_Y", "_Z"} : std::array<std::string,3> {"", "", ""});
 
-            KRATOS_ERROR_IF_NOT(source_stride <= variable_suffixes.size())
-                << "Mapping is implemented for variables with a maximum of " << variable_suffixes.size() << " components."
-                << " The requested expression (" << *pOriginExpression << ") has " << source_stride;
+        KRATOS_ERROR_IF_NOT(source_stride <= variable_suffixes.size())
+            << "Mapping is implemented for variables with a maximum of " << variable_suffixes.size() << " components."
+            << " The requested expression (" << *pOriginExpression << ") has " << source_stride;
 
-            for (unsigned i_component=0; i_component<source_stride; ++i_component) {
-                const auto& r_destination_component = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + variable_suffixes[i_component]);
+        for (unsigned i_component=0; i_component<source_stride; ++i_component) {
+            const auto& r_destination_component = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + variable_suffixes[i_component]);
 
-                // Get the next component of the expression
-                Expression::ConstPointer p_slice = Slice(pOriginExpression, i_component, 1);
+            // Get the next component of the expression
+            Expression::ConstPointer p_slice = Slice(pOriginExpression, i_component, 1);
 
-                // Evaluate the sliced expression to the target array
-                CArrayExpressionIO::Output(p_begin, expression_size / source_stride).Execute(*p_slice);
+            // Evaluate the sliced expression to the target array
+            CArrayExpressionIO::Output(p_begin, expression_size / source_stride).Execute(*p_slice);
 
-                // Perform the transform and assign the output
-                this->ApplyTransform();
-                mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(r_destination_component, MappingOptions);
-            }
+            // Perform the transform and assign the output
+            this->ApplyTransform();
+            mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(r_destination_component, MappingOptions);
         }
 
         KRATOS_CATCH("");
