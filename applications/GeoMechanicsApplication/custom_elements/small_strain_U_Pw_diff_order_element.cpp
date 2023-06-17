@@ -315,6 +315,7 @@ void SmallStrainUPwDiffOrderElement::
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
          // retention law
         mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
@@ -797,6 +798,7 @@ void SmallStrainUPwDiffOrderElement::
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
          // retention law
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
@@ -2689,11 +2691,12 @@ double SmallStrainUPwDiffOrderElement::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
-    SetRetentionParameters(const ElementVariables& rVariables,
+    SetRetentionParameters(ElementVariables& rVariables,
                            RetentionLaw::Parameters& rRetentionParameters)
 {
     KRATOS_TRY
-
+    
+    rVariables.FluidPressure = CalculateFluidPressure(rVariables);
     rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
 
     KRATOS_CATCH( "" )

@@ -313,7 +313,7 @@ protected:
 
     double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
 
-    void SetRetentionParameters(const ElementVariables& rVariables,
+    void SetRetentionParameters(ElementVariables& rVariables,
                                 RetentionLaw::Parameters& rRetentionParameters);
 
     void CalculateRetentionResponse( ElementVariables &rVariables,
