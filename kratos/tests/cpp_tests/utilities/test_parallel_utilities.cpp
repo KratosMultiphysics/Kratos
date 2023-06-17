@@ -400,7 +400,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 
     auto partition = IndexPartition<unsigned int>(data_vector.size());
 
-    const auto [max_value, max_abs] = partition.for_each<CustomReducer>([&](unsigned int i){
+    auto [max_value, max_abs] = partition.for_each<CustomReducer>([&](unsigned int i){
             return data_vector[i]; //note that here the lambda returns the values to be reduced
         });
 
