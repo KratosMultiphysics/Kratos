@@ -18,7 +18,7 @@
 
 // Project includes
 #include "input_output/base_64_encoded_output.h"
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "expression/literal_flat_expression.h"
 
 // Include base h
 #include "xml_ostream_base64_binary_writer.h"

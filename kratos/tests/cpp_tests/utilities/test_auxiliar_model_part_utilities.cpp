@@ -26,6 +26,8 @@
 
 namespace Kratos::Testing {
 
+using DataLocation = Globals::DataLocation;
+
 /******************************************************************************************/
 /* Helper Functions */
 /******************************************************************************************/
@@ -269,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModeParts
 
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
     KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1); 
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
 
     utilities.RemoveOrphanNodesFromSubModelParts();
 

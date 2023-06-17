@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/container_expression/expressions/expression.h"
+#include "expression/expression.h"
 
 namespace Kratos {
 
