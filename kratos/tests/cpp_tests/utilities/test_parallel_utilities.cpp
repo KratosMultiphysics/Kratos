@@ -400,8 +400,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
 
     auto partition = IndexPartition<unsigned int>(data_vector.size());
 
-    double max_value,max_abs;
-    std::tie(max_value,max_abs) = partition.for_each<CustomReducer>([&](unsigned int i){
+    const auto [max_value, max_abs] = partition.for_each<CustomReducer>([&](unsigned int i){
             return data_vector[i]; //note that here the lambda returns the values to be reduced
         });
 
@@ -429,8 +428,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
             > MultipleReduction;
 
     //auto reduction_res
-    double sum,min,max,abs_min,abs_max,sub;
-    std::tie(sum,min,max,abs_min,abs_max,sub) = IndexPartition<unsigned int>(data_vector.size()).
+    const auto [sum,min,max,abs_min,abs_max,sub] = IndexPartition<unsigned int>(data_vector.size()).
         for_each<MultipleReduction>(
             [&](unsigned int i){
                     double to_sum = data_vector[i];
