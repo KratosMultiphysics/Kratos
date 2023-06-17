@@ -315,7 +315,7 @@ void SmallStrainUPwDiffOrderElement::
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
+        //this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
          // retention law
         mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
 
