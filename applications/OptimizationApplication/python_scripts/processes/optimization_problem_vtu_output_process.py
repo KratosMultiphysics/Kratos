@@ -27,14 +27,18 @@ class ExpressionVtuOutput:
         self.list_of_collective_expression_paths: 'list[tuple[str, int]]' = []
         self.list_of_component_names: 'list[str]' = []
 
-    def AddContainerExpressionPath(self, component_name: str, data_path: str):
-        self._CheckIfExists(data_path)
+    def AddContainerExpressionPath(self, component_name: str, data_path: str, container_expression: ContainerExpressionTypes):
+        self.vtu_output.AddContainerExpression(self._GetContainerExpressionName(data_path), container_expression)
+
+        # add the data path to list so no checks are required for future print outputs.
         self.list_of_container_expression_paths.append(data_path)
         if component_name not in self.list_of_component_names:
             self.list_of_component_names.append(component_name)
 
-    def AddCollectiveExpressionPath(self, component_name: str, data_path: str, index: int):
-        self._CheckIfExists(data_path)
+    def AddCollectiveExpressionPath(self, component_name: str, data_path: str, container_expression: ContainerExpressionTypes, index: int):
+        self.vtu_output.AddContainerExpression(self._GetContainerExpressionName(data_path), container_expression)
+
+        # add the data path to list so no checks are required for future print outputs.
         self.list_of_collective_expression_paths.append([data_path, index])
         if component_name not in self.list_of_component_names:
             self.list_of_component_names.append(component_name)
@@ -49,7 +53,9 @@ class ExpressionVtuOutput:
             # now add back the new container expressions
             for container_expression_path in self.list_of_container_expression_paths:
                 container_expression = data_container[container_expression_path]
-                if not isinstance(container_expression, ContainerExpressionTypes):
+                if not (isinstance(container_expression, Kratos.Expression.NodalExpression) or \
+                        isinstance(container_expression, Kratos.Expression.ConditionExpression) or \
+                        isinstance(container_expression, Kratos.Expression.ElementExpression)):
                     raise RuntimeError(f"No container expression exists at \"{container_expression_path}\". The data container is not consistent between steps [ current data = {container_expression} ].")
 
                 self.vtu_output.AddContainerExpression(self._GetContainerExpressionName(container_expression_path), container_expression)
@@ -63,15 +69,6 @@ class ExpressionVtuOutput:
                 self.vtu_output.AddContainerExpression(self._GetContainerExpressionName(container_expression_path), collective_expression.GetContainerExpressions()[index])
 
             self.vtu_output.PrintOutput(self.output_file_name_prefix + "_".join(self.list_of_component_names))
-
-    def _CheckIfExists(self, data_path: str) -> None:
-        container_expression_name = ExpressionVtuOutput._GetContainerExpressionName(data_path)
-
-        if container_expression_name in [ExpressionVtuOutput._GetContainerExpressionName(c_path) for c_path in self.list_of_container_expression_paths]:
-            raise RuntimeError(f"Failed to add the container expression. There exists already a container expression with name \"{container_expression_name}\" [ expression path = \"{data_path}\" ].")
-
-        if container_expression_name in [ExpressionVtuOutput._GetContainerExpressionName(c_path) for c_path in self.list_of_collective_expression_paths]:
-            raise RuntimeError(f"Failed to add the container expression. There exists already a collective expression with name \"{container_expression_name}\" [ expression path = \"{data_path}\" ].")
 
     @staticmethod
     def _GetContainerExpressionName(container_expression_path: str) -> str:
@@ -144,31 +141,33 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
 
             # if a valid component is found, add the expression
             if found_valid_component:
-                if isinstance(global_v, ContainerExpressionTypes):
+                if isinstance(global_v, Kratos.Expression.NodalExpression) or \
+                   isinstance(global_v, Kratos.Expression.ConditionExpression) or \
+                   isinstance(global_v, Kratos.Expression.ElementExpression):
                     model_part = global_v.GetModelPart()
-                    self._AddContainerExpression(component_data, global_k, model_part)
+                    self._AddContainerExpression(component_data, global_k, model_part, global_v)
                 elif isinstance(global_v, KratosOA.CollectiveExpression):
                     for i, container_expression in enumerate(global_v.GetContainerExpressions()):
                         model_part = container_expression.GetModelPart()
-                        self._AddContainerExpression(component_data, global_k, model_part, i)
+                        self._AddContainerExpression(component_data, global_k, model_part, container_expression, i)
 
-    def _AddContainerExpression(self, component_data: ComponentDataView, data_path: str, model_part: Kratos.ModelPart, index: int = -1):
+    def _AddContainerExpression(self, component_data: ComponentDataView, data_path: str, model_part: Kratos.ModelPart, container_expression: ContainerExpressionTypes, index: int = -1):
         found_vtu_output = False
         for expression_vtu_output in self.list_of_expresson_vtu_outputs:
             if model_part == expression_vtu_output.GetModelPart():
                 found_vtu_output = True
                 if index == -1:
-                    expression_vtu_output.AddContainerExpressionPath(component_data.GetComponentName(), data_path)
+                    expression_vtu_output.AddContainerExpressionPath(component_data.GetComponentName(), data_path, container_expression)
                 else:
-                    expression_vtu_output.AddCollectiveExpressionPath(component_data.GetComponentName(), data_path, index)
+                    expression_vtu_output.AddCollectiveExpressionPath(component_data.GetComponentName(), data_path, container_expression, index)
                 break
 
         if not found_vtu_output:
             expression_vtu_output = ExpressionVtuOutput(self.output_name_prefix, model_part, not self.write_deformed_configuration, self.writer_format, self.output_precision, self.optimization_problem)
             if index == -1:
-                expression_vtu_output.AddContainerExpressionPath(component_data.GetComponentName(), data_path)
+                expression_vtu_output.AddContainerExpressionPath(component_data.GetComponentName(), data_path, container_expression)
             else:
-                expression_vtu_output.AddCollectiveExpressionPath(component_data.GetComponentName(), data_path, index)
+                expression_vtu_output.AddCollectiveExpressionPath(component_data.GetComponentName(), data_path, container_expression, index)
 
             self.list_of_expresson_vtu_outputs.append(expression_vtu_output)
             if self.echo_level > 0:
