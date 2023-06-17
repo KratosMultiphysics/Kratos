@@ -130,6 +130,10 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
         Kratos.Expression.VariableExpressionIO.Read(element_data, Kratos.ACCELERATION)
         buffered_dict[f"{component.GetName()}_data_element_{is_buffered_data}"] = element_data * step_v * 2.3
 
+        collective_data = KratosOA.CollectiveExpression([nodal_data, element_data])
+        collective_data *= 2.0
+        buffered_dict[f"{component.GetName()}_collective_element_{is_buffered_data}"] = collective_data * step_v * 2.3
+
     def test_OptimizationProblemVtuOutputProcess(self):
         parameters = Kratos.Parameters(
             """
