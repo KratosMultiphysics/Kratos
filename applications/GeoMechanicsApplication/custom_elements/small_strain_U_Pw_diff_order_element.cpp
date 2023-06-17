@@ -2692,11 +2692,12 @@ double SmallStrainUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
     SetRetentionParameters(ElementVariables& rVariables,
-                           RetentionLaw::Parameters& rRetentionParameters)
+                           RetentionLaw::Parameters& rRetentionParameters,
+                           const unsigned int &GPoint )
 {
     KRATOS_TRY
-    
-    rVariables.FluidPressure = CalculateFluidPressure(rVariables);
+
+    rVariables.FluidPressure = CalculateFluidPressure(rVariables, GPoint);
     rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
 
     KRATOS_CATCH( "" )
