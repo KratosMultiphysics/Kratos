@@ -315,7 +315,7 @@ void SmallStrainUPwDiffOrderElement::
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
-
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
          // retention law
         mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
 
@@ -797,7 +797,7 @@ void SmallStrainUPwDiffOrderElement::
 
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
-
+        this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);  
          // retention law
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
      
@@ -1100,7 +1100,7 @@ void SmallStrainUPwDiffOrderElement::
             this->CalculateKinematics(Variables, GPoint);
 
             Variables.FluidPressure = CalculateFluidPressure(Variables, GPoint);
-            SetRetentionParameters(Variables, RetentionParameters);
+            SetRetentionParameters(Variables, RetentionParameters, GPoint);
 
             if (rVariable == DEGREE_OF_SATURATION)     rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
             if (rVariable == EFFECTIVE_SATURATION)     rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
@@ -1202,7 +1202,7 @@ void SmallStrainUPwDiffOrderElement::
             }
 
             CalculateFluidPressure(Variables, GPoint);
-            SetRetentionParameters(Variables, RetentionParameters);
+            SetRetentionParameters(Variables, RetentionParameters, GPoint);
 
             const double RelativePermeability = 
                 mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
@@ -2689,11 +2689,13 @@ double SmallStrainUPwDiffOrderElement::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
-    SetRetentionParameters(const ElementVariables& rVariables,
-                           RetentionLaw::Parameters& rRetentionParameters)
+    SetRetentionParameters(ElementVariables& rVariables,
+                           RetentionLaw::Parameters& rRetentionParameters,
+                           const unsigned int &GPoint)
 {
     KRATOS_TRY
 
+    rVariables.FluidPressure = CalculateFluidPressure(rVariables, GPoint);
     rRetentionParameters.SetFluidPressure(rVariables.FluidPressure);
 
     KRATOS_CATCH( "" )
@@ -2708,7 +2710,7 @@ void SmallStrainUPwDiffOrderElement::
     KRATOS_TRY
 
     rVariables.FluidPressure = CalculateFluidPressure(rVariables, GPoint);
-    SetRetentionParameters(rVariables, rRetentionParameters);
+    SetRetentionParameters(rVariables, rRetentionParameters, GPoint);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);
     rVariables.DerivativeOfSaturation = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(rRetentionParameters);
