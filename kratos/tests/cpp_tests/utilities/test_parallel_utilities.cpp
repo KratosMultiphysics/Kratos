@@ -408,7 +408,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
         });
 
     KRATOS_CHECK_DOUBLE_EQUAL(max_value, 0.0 );
-    KRATOS_CHECK_DOUBLE_EQUAL(max_abs, nsize-1 );
+    KRATOS_CHECK_DOUBLE_EQUAL(max_abs, static_cast<double>(nsize-1));
 
     //same but with short form with block version
     std::tie(max_value,max_abs) = block_for_each<CustomReducer>(data_vector,[&](double& item){
@@ -416,7 +416,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
         });
 
     KRATOS_CHECK_DOUBLE_EQUAL(max_value, 0.0 );
-    KRATOS_CHECK_DOUBLE_EQUAL(max_abs, nsize-1 );
+    KRATOS_CHECK_DOUBLE_EQUAL(max_abs, static_cast<double>(nsize-1));
 
 
 
