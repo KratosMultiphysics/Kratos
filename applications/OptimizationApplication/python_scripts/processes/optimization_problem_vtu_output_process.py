@@ -202,4 +202,4 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             expression_vtu_output.AddExpressionData(expression_data)
             self.list_of_expresson_vtu_outputs.append(expression_vtu_output)
             if self.echo_level > 0:
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Created expression vtu output for {model_part.FullName()}.")
+                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Created expression vtu output for {expression_data.GetModelPart().FullName()}.")
