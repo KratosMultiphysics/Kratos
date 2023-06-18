@@ -38,6 +38,11 @@ namespace Kratos{
                                     double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
         virtual void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
 
+        virtual void CalculateUnbondedViscoDampingForce(double LocalRelVel[3],
+                                                double UnbondedViscoDampingLocalContactForce[3],
+                                                SphericParticle* const element1,
+                                                SphericParticle* const element2);
+
         // TODO: check whether it is necessary 
         double LocalMaxSearchDistance(const int i,
                                     SphericContinuumParticle* element1,
