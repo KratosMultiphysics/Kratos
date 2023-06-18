@@ -43,6 +43,7 @@ from importlib import import_module
 
 
 def CreateSolverByParameters(model, custom_settings, parallelism):
+
     if (type(model) != KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
 
@@ -70,7 +71,8 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
             solver_module_name = "geomechanics_Pw_solver"
         else:
             err_msg = "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"geomechanics_U_Pw_solver\", \"geomechanics_Pw_solver\"" raise Exception(err_msg)
+            err_msg += "Available options are: \"geomechanics_U_Pw_solver\", \"geomechanics_Pw_solver\""
+            raise Exception(err_msg)
     else:
         err_msg = "The requested parallel type \"" + parallelism + "\" is not available!\n"
         err_msg += "Available options are: \"OpenMP\""
@@ -78,8 +80,11 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
 
     module_full_name = 'KratosMultiphysics.GeoMechanicsApplication.' + solver_module_name
     solver = import_module(module_full_name).CreateSolver(model, params)
+
     return solver
 
     return solver
+
+
 def CreateSolver(model, custom_settings):
  return CreateSolverByParameters(model, custom_settings, custom_settings["problem_data"]["parallel_type"].GetString())
