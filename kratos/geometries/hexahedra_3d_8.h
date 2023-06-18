@@ -603,6 +603,40 @@ public:
             MathUtils<double>::Norm3(p3-p7)) /12.0;
     }
 
+    /** This method calculates and returns the maximum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MinEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    double MaxEdgeLength() const override {
+        const auto edges = GenerateEdges();
+        double max_edge_length = 0.0;
+        for (const auto& r_edge: edges) {
+            max_edge_length = std::max(max_edge_length, r_edge.Length());
+        }
+        return max_edge_length;
+    }
+
+    /** This method calculates and returns the minimum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MaxEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    double MinEdgeLength() const override {
+        const auto edges = GenerateEdges();
+        double min_edge_length = std::numeric_limits<double>::max();
+        for (const auto& r_edge: edges) {
+            min_edge_length = std::min(min_edge_length, r_edge.Length());
+        }
+        return min_edge_length;
+    }
+
     ///@}
     ///@name Face
     ///@{

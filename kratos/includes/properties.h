@@ -29,6 +29,7 @@
 #include "containers/data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"
+#include "utilities/string_utilities.h"
 
 namespace Kratos
 {
@@ -95,19 +96,7 @@ public:
     using TablesContainerType = std::unordered_map<std::size_t, TableType>; // This is a provisional implementation and should be changed to hash. Pooyan.
 
     /// Properties container. A vector set of properties with their Id's as key.
-    typedef PointerVectorSet<Properties, IndexedObject> SubPropertiesContainerType;
-
-    /** Iterator over the properties. This iterator is an indirect
-    iterator over Properties::Pointer which turn back a reference to
-    properties by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename SubPropertiesContainerType::iterator SubPropertiesIterator;
-
-    /** Const iterator over the properties. This iterator is an indirect
-    iterator over Properties::Pointer which turn back a reference to
-    properties by * operator and not a pointer for more convenient
-    usage. */
-    typedef typename SubPropertiesContainerType::const_iterator SubPropertiesConstantIterator;
+    using SubPropertiesContainerType = PointerVectorSet<Properties, IndexedObject>;
 
     ///@}
     ///@name Life Cycle
@@ -145,7 +134,6 @@ public:
 
     /// Destructor.
     ~Properties() override {}
-
 
     ///@}
     ///@name Operators
@@ -295,15 +283,6 @@ public:
         }
     }
 
-    /*
-    Method to add Accessors to properties
-    */
-    template<class TVariableType>
-    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
-    {
-        mAccessors.emplace(rVariable.Key(), std::move(pAccessor));
-    }
-
     template<class TVariableType>
     void SetValue(TVariableType const& rV, typename TVariableType::Type const& rValue)
     {
@@ -313,6 +292,84 @@ public:
     bool HasVariables() const
     {
         return !mData.IsEmpty();
+    }
+
+    /**
+     * @brief Set the Accessor object
+     * This method sets a variable-accessor pair in current properties accessor container
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which the accessor will refer to
+     * @param pAccessor Pointer to the accessor instance
+     */
+    template <class TVariableType>
+    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
+    {
+        mAccessors.emplace(rVariable.Key(), std::move(pAccessor));
+    }
+
+    /**
+     * @brief Get the Accessor object
+     * If exists, this method returns a pointer to the requested variable accessor
+     * If doesn't exist, the method throws an error
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which the accessor refers to
+     * @return AccessorPointerType& Pointer to the requested variable accessor
+     */
+    template <class TVariableType>
+    Accessor& GetAccessor(const TVariableType& rVariable)
+    {
+        auto it_value = mAccessors.find(rVariable.Key());
+        KRATOS_ERROR_IF(it_value == mAccessors.end())
+            << "Trying to retrieve inexisting accessor for '" << rVariable.Name() << "' in properties " << Id() << "." << std::endl;
+        return *(it_value->second);
+    }
+
+    /**
+     * @brief Get the Accessor object
+     * If exists, this method returns a pointer to the requested variable accessor
+     * If doesn't exist, the method throws an error
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which the accessor refers to
+     * @return AccessorPointerType& Pointer to the requested variable accessor
+     */
+    template <class TVariableType>
+    Accessor& GetAccessor(const TVariableType& rVariable) const
+    {
+        const auto it_value = mAccessors.find(rVariable.Key());
+        KRATOS_ERROR_IF(it_value == mAccessors.end())
+            << "Trying to retrieve inexisting accessor for '" << rVariable.Name() << "' in properties " << Id() << "." << std::endl;
+        return *(it_value->second);
+    }
+
+    /**
+     * @brief Get the Accessor object
+     * If exists, this method returns a pointer to the requested variable accessor
+     * If doesn't exist, the method throws an error
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which the accessor refers to
+     * @return AccessorPointerType& Pointer to the requested variable accessor
+     */
+    template <class TVariableType>
+    AccessorPointerType& pGetAccessor(const TVariableType& rVariable)
+    {
+        const auto it_value = mAccessors.find(rVariable.Key());
+        KRATOS_ERROR_IF(it_value == mAccessors.end())
+            << "Trying to retrieve inexisting accessor for '" << rVariable.Name() << "' in properties " << Id() << "." << std::endl;
+        return it_value->second;
+    }
+
+    /**
+     * @brief Check if current properties have an accessor
+     * This method checks if current properties have an accessor for the requested variable
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which we are checking if an accessor exists
+     * @return true If there is accessor for the requested variable
+     * @return false If there is no accessor for the requested variable
+     */
+    template <class TVariableType>
+    bool HasAccessor(const TVariableType& rVariable) const
+    {
+        return (mAccessors.find(rVariable.Key()) == mAccessors.end()) ? false : true;
     }
 
     template<class TXVariableType, class TYVariableType>
@@ -388,7 +445,7 @@ public:
     Properties::Pointer pGetSubProperties(const IndexType SubPropertyIndex)
     {
         // Looking into the database
-        SubPropertiesIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator.base());
         } else {
@@ -405,7 +462,7 @@ public:
     const Properties::Pointer pGetSubProperties(const IndexType SubPropertyIndex) const
     {
         // Looking into the database
-        SubPropertiesConstantIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator.base());
         } else {
@@ -422,7 +479,7 @@ public:
     Properties& GetSubProperties(const IndexType SubPropertyIndex)
     {
         // Looking into the database
-        SubPropertiesIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);
+        auto property_iterator = mSubPropertiesList.find(SubPropertyIndex);
         if (property_iterator != mSubPropertiesList.end()) {
             return *(property_iterator);
         } else {
@@ -529,7 +586,6 @@ public:
         return (mTables.find(Key(XVariable.Key(), YVariable.Key())) != mTables.end());
     }
 
-
     ///@}
     ///@name Input and output
     ///@{
@@ -549,71 +605,79 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
+        // Id
+        rOStream << "Id : " << this->Id() << "\n";
+
+        // Data
         mData.PrintData(rOStream);
-        rOStream << "This properties contains " << mTables.size() << " tables";
-        if (mSubPropertiesList.size() > 0) {
-            rOStream << "\nThis properties contains the following subproperties " << mSubPropertiesList.size() << " subproperties" << std::endl;
-            for (auto& r_subprop : mSubPropertiesList) {
-                r_subprop.PrintData(rOStream);
+
+        // Tables
+        if (mTables.size() > 0) {
+            // Print the tables
+            rOStream << "This properties contains " << mTables.size() << " tables\n";
+            for (auto& r_table : mTables) {
+                rOStream << "Table key: " << r_table.first << "\n";
+                StringUtilities::PrintDataWithIdentation(rOStream, r_table.second);
             }
         }
+
+        // Subproperties
+        if (mSubPropertiesList.size() > 0) {
+            // Print the subproperties
+            rOStream << "\nThis properties contains " << mSubPropertiesList.size() << " subproperties\n";
+            for (auto& r_subprop : mSubPropertiesList) {
+                StringUtilities::PrintDataWithIdentation(rOStream, r_subprop);
+            }
+        }
+
+        // Accessors
         if (mAccessors.size() > 0) {
-            rOStream << "\nThis properties contains the following " << mAccessors.size() << " accessors" << std::endl;
+            // Print the accessors
+            rOStream << "\nThis properties contains " << mAccessors.size() << " accessors\n";
             for (auto& r_entry : mAccessors) {
-                (r_entry.second)->PrintData(rOStream);
+                rOStream << "Accessor for variable key: " << r_entry.first << "\n";
+                StringUtilities::PrintDataWithIdentation(rOStream, *r_entry.second);
             }
         }
     }
-
 
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -633,7 +697,7 @@ private:
 
     ///@}
     ///@name Private Operations
-    ///@{
+    ///@
 
     ///@}
     ///@name Serialization
@@ -679,11 +743,9 @@ private:
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
 
     ///@}
 
@@ -694,11 +756,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -715,6 +775,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
