@@ -33,6 +33,11 @@ void DEM_parallel_bond::TransferParametersToProperties(const Parameters& paramet
     BaseClassType::TransferParametersToProperties(parameters, pProp);
 }
 
+std::string DEM_parallel_bond::GetTypeOfLaw() {
+        std::string type_of_law = "parallel_bond_CL";
+        return type_of_law;
+    }
+
 void DEM_parallel_bond::Check(Properties::Pointer pProp) const {
     
     //two parts: discontinuum part and continuum part

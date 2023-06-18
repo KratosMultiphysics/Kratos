@@ -25,6 +25,7 @@ namespace Kratos{
         DEM_parallel_bond() {}
 
         void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
+        std::string GetTypeOfLaw() override;
         void Check(Properties::Pointer pProp) const override;
 
         ~DEM_parallel_bond() {}
