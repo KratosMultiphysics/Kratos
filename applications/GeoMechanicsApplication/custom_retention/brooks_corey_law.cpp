@@ -223,13 +223,16 @@ double BrooksCoreyLaw::
     KRATOS_TRY;
 
     const double effSat = CalculateEffectiveSaturation(rParameters);
+     const double sat = CalculateSaturation(rParameters);
 
     const auto &rMaterialProperties = rParameters.GetMaterialProperties();
     const double &satMin = rMaterialProperties[RESIDUAL_SATURATION];
     const double &Lambda  = rMaterialProperties[BROOKS_COREY_PORE_SIZE_INDEX];
     const double &n1  = rMaterialProperties[RELPERM_POWER];
     //double relPerm = pow(effSat, ((2+3*Lambda)/Lambda)); 
-    double relPerm = pow(effSat, n1);
+    //double relPerm = pow(effSat, n1);
+    double relPerm = pow(sat, n1);
+    
 
     const double &minRelPerm = rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY];
 
