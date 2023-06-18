@@ -269,6 +269,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
+    py::class_<DEM_smooth_joint, DEM_smooth_joint::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_smooth_joint")
+        .def(py::init<>())
+        ;
+
     py::class_<DEM_parallel_bond_for_membrane, DEM_parallel_bond_for_membrane::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_parallel_bond_for_membrane")
         .def(py::init<>())
         ;

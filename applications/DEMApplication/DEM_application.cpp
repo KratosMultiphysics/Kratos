@@ -1014,6 +1014,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_KDEM2D", DEM_KDEM2D());
     Serializer::Register("DEM_ExponentialHC", DEM_ExponentialHC());
     Serializer::Register("DEM_parallel_bond", DEM_parallel_bond());
+    Serializer::Register("DEM_smooth_joint", DEM_smooth_joint());
     Serializer::Register("DEM_parallel_bond_for_membrane", DEM_parallel_bond_for_membrane());
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
     Serializer::Register("DEMRollingFrictionModelViscousTorque", DEMRollingFrictionModelViscousTorque());
