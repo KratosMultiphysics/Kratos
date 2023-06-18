@@ -97,7 +97,7 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "DELTA_TIME: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME      : ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME])
 
-class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
+class GeomechanicsAnalysis(GeoMechanicsAnalysisBase):
 
     def __init__(self, model, project_parameters):
         super().__init__(model, project_parameters)
