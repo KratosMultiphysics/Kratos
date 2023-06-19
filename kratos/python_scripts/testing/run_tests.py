@@ -125,7 +125,7 @@ class Commander(object):
                         file=sys.stderr)
                     sys.stderr.flush()
 
-    def RunCppTests(self, applications, verbosity):
+    def RunCppTests(self, applications, verbosity = 1):
         ''' Calls the cpp tests directly
         '''
 
