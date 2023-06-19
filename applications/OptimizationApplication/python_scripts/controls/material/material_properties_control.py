@@ -36,18 +36,15 @@ class MaterialPropertiesControl(Control):
 
         control_variable_name = parameters["control_variable_name"].GetString()
         control_variable_type = Kratos.KratosGlobals.GetVariableType(control_variable_name)
-
         if control_variable_type != "Double":
             raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
-
         self.controlled_physical_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
         controlled_model_parts = [model[model_part_name] for model_part_name in parameters["model_part_names"].GetStringArray()]
         if len(controlled_model_parts) == 0:
             raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
 
-        root_model_part = controlled_model_parts[0].GetRootModelPart()
-        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, root_model_part, controlled_model_parts, False)
+        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
 
     def Initialize(self) -> None:
         ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)

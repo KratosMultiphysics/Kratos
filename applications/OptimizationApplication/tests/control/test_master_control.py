@@ -75,7 +75,7 @@ class TestMassterControl(kratos_unittest.TestCase):
             density_container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
-            ["test1.UNION_EN_test1", "test2.UNION_EN_test2", "test3.UNION_EN_test3"],
+            ["test1", "test2", "test3"],
             density_container_expression_model_part_names)
 
         thickness_collective_expression = result[Kratos.THICKNESS]
@@ -85,7 +85,7 @@ class TestMassterControl(kratos_unittest.TestCase):
             thickness_container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
-            ["test3.UNION_EN_test3"],
+            ["test3"],
             thickness_container_expression_model_part_names)
 
     def test_GetEmptyField(self):
@@ -97,7 +97,7 @@ class TestMassterControl(kratos_unittest.TestCase):
             container_expression_model_part_names.append(container_expression.GetModelPart().FullName())
 
         self.assertEqual(
-            ["test1.UNION_EN_test1", "test2.UNION_EN_test2", "test3.UNION_EN_test3", "test3.UNION_EN_test3"],
+            ["test1", "test2", "test3", "test3"],
             container_expression_model_part_names)
 
     def test_MapGradient(self):
