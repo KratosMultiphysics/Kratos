@@ -336,7 +336,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
         if (True):   
          print("CalculateTheError")  
          self.CalculateNodalArea()   
-         mu=0.001
+         #mu=0.001
+         mu=1.0
          rho=1.0
          totalerrorvelocitywithnodalarea=0.0
          totalerrorpressurewithnodalarea=0.0
