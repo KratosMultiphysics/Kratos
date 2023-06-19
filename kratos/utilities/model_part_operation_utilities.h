@@ -66,7 +66,7 @@ public:
     /**
      * @brief Fill a sub model part with the specified operation.
      *
-     * This method finds all the nodes, geometries in @ref rModelPartOperationModelParts in the @ref rMainModelPart
+     * This method finds all the nodes, geometries in @ref rOperands in the @ref rMainModelPart
      * which satisfies the specified @ref TModelPartOperation and adds them to a given @ref rOutputSubModelPart.
      * The @ref TModelPartOperation check is done based on the memory locations of the entities.
      * The corresponding entities from @ref rMainModelPart are used to populate the sub model part.
@@ -84,15 +84,15 @@ public:
      * @tparam TModelPartOperation                  Type of the operation.
      * @param rOutputSubModelPart                   Output sub model part.
      * @param rMainModelPart                        Main Model part.
-     * @param rModelPartOperationModelParts         Model parts to to find satisfying entities w.r.t. @ref TModelPartOperation.
+     * @param rOperands                             Model parts to to find satisfying entities w.r.t. @ref TModelPartOperation.
      * @param AddNeighbourEntities                  To add or not the neighbours.
      * @return ModelPart&                           Output sub model part.
      */
     template<class TModelPartOperation>
-    static void FillSubModelPartWithOperation(
+    static void FillSubModelPart(
         ModelPart& rOutputSubModelPart,
         const ModelPart& rMainModelPart,
-        const std::vector<ModelPart const*>& rModelPartOperationModelParts,
+        const std::vector<ModelPart const*>& rOperands,
         const bool AddNeighbourEntities)
     {
         std::vector<ModelPart::NodeType*> output_nodes;
@@ -103,7 +103,7 @@ public:
         // This is done based on pointers to avoid having same names in model parts
         // which are within two different models.
         ModelPart* p_parent_model_part = &rOutputSubModelPart.GetParentModelPart();
-        while (p_parent_model_part != &rMainModelPart) {
+        while (p_parent_model_part != &rMainModelPart && p_parent_model_part != &p_parent_model_part->GetParentModelPart()) {
             p_parent_model_part = &p_parent_model_part->GetParentModelPart();
         }
 
@@ -112,7 +112,7 @@ public:
             << " is not a sub model part of " << rMainModelPart.FullName() << ".\n";
 
         // fill vectors
-        ModelPartOperation<TModelPartOperation>(output_nodes, output_conditions, output_elements, *p_parent_model_part, rModelPartOperationModelParts, AddNeighbourEntities);
+        ModelPartOperation<TModelPartOperation>(output_nodes, output_conditions, output_elements, *p_parent_model_part, rOperands, AddNeighbourEntities);
 
         // now fill the sub model part
         FillOutputSubModelPart(rOutputSubModelPart, *p_parent_model_part, output_nodes, output_conditions, output_elements);
@@ -201,10 +201,10 @@ private:
         std::vector<ModelPart::ConditionType*>& rOutputConditions,
         std::vector<ModelPart::ElementType*>& rOutputElements,
         ModelPart& rMainModelPart,
-        const std::vector<ModelPart const*>& rModelPartOperationModelParts,
+        const std::vector<ModelPart const*>& rOperands,
         const bool AddNeighbourEntities)
     {
-        const IndexType number_of_operation_model_parts = rModelPartOperationModelParts.size();
+        const IndexType number_of_operation_model_parts = rOperands.size();
 
         std::vector<std::set<ModelPart::NodeType const*>> set_operation_node_sets(number_of_operation_model_parts);
         std::vector<std::set<CNodePointersType>> set_operation_condition_sets(number_of_operation_model_parts);
@@ -212,7 +212,7 @@ private:
 
         // now iterate through model parts' conditions/elements containers and get available main model part entities.
         for (IndexType i = 0; i < number_of_operation_model_parts; ++i) {
-            auto p_model_part = rModelPartOperationModelParts[i];
+            auto p_model_part = rOperands[i];
 
             // fill the set_operation nodes
             FillNodesPointerSet(set_operation_node_sets[i], p_model_part->Nodes());
