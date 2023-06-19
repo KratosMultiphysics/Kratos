@@ -112,7 +112,6 @@ public:
         InitializeIterationIO();
     }
 
-
     // Destructor
     ~FormfindingStrategy() = default;
 

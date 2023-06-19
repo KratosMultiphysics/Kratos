@@ -57,6 +57,9 @@ public:
     ///@{
 
     // Base class definition
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> BaseSolvingStrategyType;
+
+    // Base class definition
     typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     /// Definition of the current scheme
@@ -235,7 +238,7 @@ public:
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    typename BaseType::Pointer Create(
+    typename BaseSolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
         ) const override
