@@ -8,6 +8,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return AlgorithmSteepestDescent(model, parameters, optimization_problem)
@@ -72,7 +73,7 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__objective.Initialize()
         self.__objective.Check()
         self.master_control.Initialize()
-        self.__control_field = self.master_control.GetControlField() # GetInitialControlFields() later
+        self.__control_field = self.master_control.GetControlField()
 
     def Finalize(self):
         pass
@@ -86,19 +87,12 @@ class AlgorithmSteepestDescent(Algorithm):
     def GetCurrentControlField(self):
         return self.__control_field
 
-    def SolveOptimizationProblem(self) -> bool:
-        self.Initialize()
-        with TimeLogger("Solve Optimization problem", "Start", "End"):
-            self.Solve()
-        return self.converged
-
     def Solve(self):
         algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         while not self.converged:
-            print("")
-            with TimeLogger("Optimization", f" Start Iteration {self._optimization_problem.GetStep()}", f"End Iteration {self._optimization_problem.GetStep()}"):
+            with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
 
-                with TimeLogger("Calculate objective value", "Start", "End"):
+                with TimeLogger("Calculate objective value", None, "Finished"):
                     self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                     algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
                     algorithm_data.GetBufferedData()["rel_obj[%]"] = self.__objective.GetRelativeChange() * 100
@@ -107,10 +101,10 @@ class AlgorithmSteepestDescent(Algorithm):
                         algorithm_data.GetBufferedData()["abs_obj[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
                     print(self.__objective.GetInfo())
 
-                with TimeLogger("Calculate gradient", "Start", "End"):
+                with TimeLogger("Calculate gradient", None, "Finished"):
                     obj_grad = self.__objective.CalculateStandardizedGradient()
 
-                with TimeLogger("Calculate design update", "Start", "End"):
+                with TimeLogger("Calculate design update", None, "Finished"):
                     search_direction = self.ComputeSearchDirection(obj_grad)
                     algorithm_data.GetBufferedData()["search_direction"] = search_direction
 
@@ -128,7 +122,6 @@ class AlgorithmSteepestDescent(Algorithm):
 
                 self._optimization_problem.AdvanceStep()
 
-            self.Finalize()
 
     def GetOptimizedObjectiveValue(self) -> float:
         if self.converged:

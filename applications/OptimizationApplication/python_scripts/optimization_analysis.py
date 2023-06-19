@@ -8,6 +8,7 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import OptimizationComponentFactory
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAnalysisTimeLogger
 
 class OptimizationAnalysis:
     @classmethod
@@ -73,10 +74,11 @@ class OptimizationAnalysis:
         CallOnAll(self.optimization_problem.GetListOfResponses(), ResponseFunction.Finalize)
 
     def Run(self):
-        self.Initialize()
-        self.Check()
-        self.__algorithm.SolveOptimizationProblem()
-        self.Finalize()
+        with OptimizationAnalysisTimeLogger():
+            self.Initialize()
+            self.Check()
+            self.__algorithm.Solve()
+            self.Finalize()
 
     def _CreateModelPartControllers(self):
         default_settings = Kratos.Parameters("""{
