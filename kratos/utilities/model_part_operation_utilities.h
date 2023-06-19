@@ -70,7 +70,7 @@ public:
      * which satisfies the specified @ref TModelPartOperation and adds them to a given @ref rOutputSubModelPart.
      * The @ref TModelPartOperation check is done based on the memory locations of the entities.
      * The corresponding entities from @ref rMainModelPart are usedto populate the sub model part.
-     * @ref rOutputSubModelPart must always a sub model part of the @ref rMainModelPart, but does not
+     * @ref rOutputSubModelPart must be a sub model part of @ref rMainModelPart, but does not
      * necessarily have to be an immediate sub model part.
      *
      * If @ref AddNeighbourEntities is true, then all the neighbours of the newly created model part
