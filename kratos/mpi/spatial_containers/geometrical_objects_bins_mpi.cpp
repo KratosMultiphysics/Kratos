@@ -59,7 +59,7 @@ void GeometricalObjectsBinsMPI::SearchInRadius(
     )
 {
     // Check if the point is inside the set
-    if (BaseType::PointIsInsideBoundingBoxWithTolerance(rPoint, Radius)) {
+    if (SearchUtilities::PointIsInsideBoundingBoxWithTolerance(BaseType::mBoundingBox, rPoint, Radius)) {
         // Call local search
         BaseType::SearchInRadius(rPoint, Radius, rResults, false);
     }
@@ -87,7 +87,7 @@ void GeometricalObjectsBinsMPI::SearchNearestInRadius(
     const int current_rank = GetRank();
 
     // Check if the point is inside the set
-    if (BaseType::PointIsInsideBoundingBoxWithTolerance(rPoint, Radius)) {
+    if (SearchUtilities::PointIsInsideBoundingBoxWithTolerance(BaseType::mBoundingBox, rPoint, Radius)) {
         // Call local search
         local_result = BaseType::SearchNearestInRadius(rPoint, Radius);
     }
@@ -152,7 +152,7 @@ void GeometricalObjectsBinsMPI::SearchIsInside(
 
     // Check if the point is inside the set
     int computed_rank = std::numeric_limits<int>::max();
-    if (BaseType::PointIsInsideBoundingBox(rPoint)) {
+    if (SearchUtilities::PointIsInsideBoundingBox(BaseType::mBoundingBox, rPoint)) {
         // Call local search
         local_result = BaseType::SearchIsInside(rPoint);
 
