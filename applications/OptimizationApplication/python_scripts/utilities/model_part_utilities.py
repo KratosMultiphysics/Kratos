@@ -6,8 +6,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 class ModelPartUtilities:
     class OperationType(Enum):
         UNION = 1,
-        INTERSECT = 2,
-        SUBSTRACT = 3
+        INTERSECT = 2
 
     @staticmethod
     def __GenerateUniqueIdentifier(prefix: str, list_of_names: 'list[str]', add_neighbours: bool) -> str:
