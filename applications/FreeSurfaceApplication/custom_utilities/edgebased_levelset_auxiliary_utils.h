@@ -367,7 +367,7 @@ public:
             double zc = in->Z();
 
             double h = 0.0;
-            for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+            for (GlobalPointersVector< Node >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
                     i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
             {
                 double x = i->X();

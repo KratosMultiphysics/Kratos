@@ -4,28 +4,20 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                  
-//
 
-#if !defined(KRATOS_BOUNDING_BOX_H_INCLUDED )
-#define  KRATOS_BOUNDING_BOX_H_INCLUDED
-
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-
 
 namespace Kratos
 {
@@ -35,14 +27,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Representing a bounding box by storing the min and max points
-/** It stores the min and max points and have constructor for it construction with any container of points.
+/**
+ * @brief Representing a bounding box by storing the min and max points
+ * @details It stores the min and max points and have constructor for it construction with any container of points.
  *  TPointType should provide access operator [] to its coordinate and deep copy operator=
-*/
+ * @tparam TPointType The type of point considered
+ * @author Pooyan Dadvand
+ */
 template <typename TPointType>
 class BoundingBox 
 {
-	static constexpr int Dimension = 3;
 public:
     ///@name Type Definitions
     ///@{
@@ -54,28 +48,27 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor deleted.
-    BoundingBox(){
-        for (int i = 0; i < Dimension; i++)
-        {
-            GetMinPoint()[i] = 0.00;
-            GetMaxPoint()[i] = 0.00;
-        }
+    /// Default constructor
+    BoundingBox()
+    {
+        std::fill(GetMinPoint().begin(), GetMinPoint().end(), 0.0);
+        std::fill(GetMaxPoint().begin(), GetMaxPoint().end(), 0.0);
     };
 
-	BoundingBox(TPointType const& MinPoint, TPointType const& MaxPoint) :
+    BoundingBox(TPointType const& MinPoint, TPointType const& MaxPoint) :
 		mMinMaxPoints{MinPoint,MaxPoint} {}
 
     /// Copy constructor
-	BoundingBox( const BoundingBox &Other) :
+    BoundingBox( const BoundingBox &Other) :
 		mMinMaxPoints(Other.mMinMaxPoints) {}
 
 
     /// Construction with container of points.
-	template<typename TIteratorType>
-	BoundingBox(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd) {
+    template<typename TIteratorType>
+    BoundingBox(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd) 
+    {
         Set(PointsBegin, PointsEnd);
-	}
+    }
 
     /// Destructor.
     virtual ~BoundingBox(){}
@@ -84,9 +77,9 @@ public:
     ///@name Operators
     ///@{
 
-
     /// Assignment operator.
-    BoundingBox& operator=(BoundingBox const& rOther){
+    BoundingBox& operator=(BoundingBox const& rOther)
+    {
         GetMinPoint() = rOther.GetMinPoint();
         GetMaxPoint() = rOther.GetMaxPoint();
 
@@ -98,16 +91,15 @@ public:
     ///@{
 
     template<typename TIteratorType>
-    void Set(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd){
+    void Set(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd)
+    {
         if (PointsBegin == PointsEnd) {
-            for (int i = 0; i < Dimension; i++) {
-                GetMinPoint()[i] = 0.00;
-                GetMaxPoint()[i] = 0.00;
-            }
+            std::fill(GetMinPoint().begin(), GetMinPoint().end(), 0.0);
+            std::fill(GetMaxPoint().begin(), GetMaxPoint().end(), 0.0);
             return;
         }
 
-        for (int i = 0; i < Dimension; i++) {
+        for (unsigned int i = 0; i < Dimension; i++) {
             GetMinPoint()[i] = (*PointsBegin)[i];
             GetMaxPoint()[i] = (*PointsBegin)[i];
         }
@@ -116,41 +108,40 @@ public:
     }
 
     template<typename TIteratorType>
-    void Extend(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd){
-
+    void Extend(TIteratorType const& PointsBegin, TIteratorType const& PointsEnd)
+    {
         for (TIteratorType i_point = PointsBegin; i_point != PointsEnd; i_point++){
-            for (int i = 0; i < Dimension; i++)
-            {
+            for (unsigned int i = 0; i < Dimension; i++) {
                 if ((*i_point)[i] < GetMinPoint()[i]) GetMinPoint()[i] = (*i_point)[i];
                 if ((*i_point)[i] > GetMaxPoint()[i]) GetMaxPoint()[i] = (*i_point)[i];
             }
         }
     }
 
-    void Extend(double Margin){
-        for (int i = 0; i < Dimension; i++){
+    void Extend(const double Margin)
+    {
+        for (unsigned int i = 0; i < Dimension; i++){
             GetMinPoint()[i] -= Margin;
             GetMaxPoint()[i] += Margin;
         }
 
     }
 
-
     ///@}
     ///@name Access
     ///@{
 
-	TPointType& GetMinPoint() { return mMinMaxPoints[0]; }
-	TPointType const& GetMinPoint() const { return mMinMaxPoints[0]; }
+    TPointType& GetMinPoint() { return mMinMaxPoints[0]; }
+    
+    TPointType const& GetMinPoint() const { return mMinMaxPoints[0]; }
 
-	TPointType& GetMaxPoint() { return mMinMaxPoints[1]; }
-	TPointType const& GetMaxPoint() const { return mMinMaxPoints[1]; }
-
+    TPointType& GetMaxPoint() { return mMinMaxPoints[1]; }
+    
+    TPointType const& GetMaxPoint() const { return mMinMaxPoints[1]; }
 
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -177,34 +168,30 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
-
+    
+    static constexpr unsigned int Dimension = 3;
+    
     ///@}
     ///@name Member Variables
     ///@{
 
-        std::array<TPointType, 2> mMinMaxPoints;
+    std::array<TPointType, 2> mMinMaxPoints;  /// The min and max points 
 
     ///@}
 
 }; // Class BoundingBox
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template <typename TPointType>
@@ -229,7 +216,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_BOUNDING_BOX_H_INCLUDED  defined
-
-

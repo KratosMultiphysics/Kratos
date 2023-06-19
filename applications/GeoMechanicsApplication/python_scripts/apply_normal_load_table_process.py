@@ -2,8 +2,8 @@ import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyNormalLoadTableProcess(Model, settings["Parameters"])
 
 ## All the python processes should be derived from "python_process"
@@ -27,7 +27,7 @@ class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
                     self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.normal_params))
                 else:
                     self.normal_params.AddValue("table",settings["table"][0])
-                    self.components_process_list.append(KratosGeo.ApplyDoubleTableProcess(self.model_part, self.normal_params))
+                    self.components_process_list.append(KratosGeo.ApplyComponentTableProcess(self.model_part, self.normal_params))
             elif settings["fluid_pressure_type"].GetString() == "Hydrostatic":
                 self.normal_params.AddValue("gravity_direction",settings["gravity_direction"])
                 self.normal_params.AddValue("reference_coordinate",settings["reference_coordinate"])
@@ -71,7 +71,7 @@ class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
                 self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, tangential_params))
             else:
                 tangential_params.AddValue("table",settings["table"][1])
-                self.components_process_list.append(KratosGeo.ApplyDoubleTableProcess(self.model_part, tangential_params))
+                self.components_process_list.append(KratosGeo.ApplyComponentTableProcess(self.model_part, tangential_params))
 
     def ExecuteInitialize(self):
 

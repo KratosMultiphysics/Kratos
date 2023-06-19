@@ -1,8 +1,8 @@
 import KratosMultiphysics as Kratos
 
-import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-class TestMPIDataCommunicatorPython(UnitTest.TestCase):
+class TestMPIDataCommunicatorPython(KratosUnittest.TestCase):
 
     def setUp(self):
         self.world = Kratos.Testing.GetDefaultDataCommunicator()
@@ -12,7 +12,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
     def tearDown(self):
         pass
 
-    @UnitTest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
+    @KratosUnittest.skipIf(not Kratos.IsDistributedRun(), "This test is designed for distributed runs only.")
     def testDataCommunicatorRetrievalFromDataCommunicator(self):
         default_comm = Kratos.Testing.GetDefaultDataCommunicator()
 
@@ -32,7 +32,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         reduced_min_double = self.world.MinDoubles(local_double, root)
         reduced_max_double = self.world.MaxDoubles(local_double, root)
 
-        if (self.rank == root):
+        if self.rank == root:
             self.assertEqual(reduced_sum_int, [self.size, (self.size*(self.size-1))/2, (self.size*(self.size-1))/-2])
             self.assertEqual(reduced_min_int, [1, 0, 1-self.size])
             self.assertEqual(reduced_max_int, [1, self.size-1, 0])
@@ -52,7 +52,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         reduced_min_double = self.world.Min(-1.0*self.rank, root)
         reduced_max_double = self.world.Max(-1.0*self.rank, root)
 
-        if (self.rank == root):
+        if self.rank == root:
             self.assertEqual(reduced_sum_int, self.size)
             self.assertEqual(reduced_min_int, 0)
             self.assertEqual(reduced_max_int, self.size-1)
@@ -109,7 +109,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         self.assertEqual(partial_sum_int_list, [self.rank+1, -self.rank-1])
         self.assertEqual(partial_sum_double_list, [2.0*(self.rank+1), -2.0*(self.rank+1)])
 
-    @UnitTest.skipIf(Kratos.ParallelEnvironment.GetDefaultDataCommunicator().Size() < 2, "This test does not work for a single process.")
+    @KratosUnittest.skipIf(Kratos.ParallelEnvironment.GetDefaultDataCommunicator().Size() < 2, "This test does not work for a single process.")
     def testSendRecvOperations(self):
 
         if self.rank + 1 != self.size:
@@ -135,7 +135,7 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
             self.assertEqual(recv_ints, [self.rank-1, self.rank-1])
             self.assertEqual(recv_doubles, [2.0*self.rank-2, 2.0*self.rank-2])
 
-    @UnitTest.skipIf(Kratos.ParallelEnvironment.GetDefaultDataCommunicator().Size() < 2, "This test does not work for a single process.")
+    @KratosUnittest.skipIf(Kratos.ParallelEnvironment.GetDefaultDataCommunicator().Size() < 2, "This test does not work for a single process.")
     def testSendRecvString(self):
 
         if self.rank + 1 != self.size:
@@ -251,6 +251,16 @@ class TestMPIDataCommunicatorPython(UnitTest.TestCase):
         self.assertEqual(gathered_ints, [i for i in range(self.size)])
         self.assertEqual(gathered_doubles, [2.0*i for i in range(self.size)])
 
+    def testAllGathervOperations(self):
+        message_int = [self.rank, self.rank+1, self.rank+2]
+        message_double = [1.0 + self.rank, 2.0 + self.rank, 3.0 + self.rank]
+
+        gathered_ints = self.world.AllGathervInts(message_int)
+        gathered_doubles = self.world.AllGathervDoubles(message_double)
+
+        self.assertEqual(gathered_ints, [ [i, i+1, i+2] for i in range(self.size)])
+        self.assertEqual(gathered_doubles, [ [1.0 + i, 2.0 + i , 3.0 + i] for i in range(self.size)])
 
 if __name__ == "__main__":
-    UnitTest.main()
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+    KratosUnittest.main()

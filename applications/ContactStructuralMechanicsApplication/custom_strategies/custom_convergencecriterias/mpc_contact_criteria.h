@@ -83,7 +83,7 @@ public:
     typedef std::size_t                                     IndexType;
 
     // Geometry definition
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef CouplingGeometry<NodeType>           CouplingGeometryType;
 
     ///@}

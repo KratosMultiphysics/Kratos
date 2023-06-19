@@ -840,7 +840,7 @@ void MmgUtilities<MMGLibrary::MMGS>::BlockElement(const IndexType iElement)
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -865,7 +865,7 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG2D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -890,7 +890,7 @@ Node<3>::Pointer MmgUtilities<MMGLibrary::MMG3D>::CreateNode(
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
+Node::Pointer MmgUtilities<MMGLibrary::MMGS>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -3776,7 +3776,7 @@ void MmgUtilities<TMMGLibrary>::GenerateMeshDataFromModelPart(
     /* Nodes */
     IndexType counter_to_remesh = block_for_each<SumReduction<IndexType>>(
     r_nodes_array,
-    [](Node<3>& r_node){
+    [](Node& r_node){
         const bool old_entity = r_node.IsDefined(OLD_ENTITY) ? r_node.Is(OLD_ENTITY) : false;
         if (!old_entity) {
             return 1;
