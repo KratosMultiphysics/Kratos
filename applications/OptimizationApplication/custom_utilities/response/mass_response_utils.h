@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "expression/container_expression.h"
 
 // Application includes
 
@@ -39,7 +40,9 @@ public:
 
     using GeometryType = ModelPart::ElementType::GeometryType;
 
-    using GradientFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
+    using PhysicalFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
+
+    using ContainerExpressionType = std::variant<ContainerExpression<ModelPart::NodesContainerType>::Pointer, ContainerExpression<ModelPart::ConditionsContainerType>::Pointer, ContainerExpression<ModelPart::ElementsContainerType>::Pointer>;
 
     ///@}
     ///@name Static operations
@@ -50,9 +53,10 @@ public:
     static double CalculateValue(const ModelPart& rModelPart);
 
     static void CalculateGradient(
-        const std::vector<GradientFieldVariableTypes>& rListOfGradientVariables,
-        const std::vector<ModelPart*>& rListOfGradientRequiredModelParts,
-        const std::vector<ModelPart*>& rListOfGradientComputedModelParts);
+        const PhysicalFieldVariableTypes& rPhysicalVariable,
+        ModelPart& rGradientRequiredModelPart,
+        ModelPart& rGradientComputedModelPart,
+        std::vector<ContainerExpressionType>& rListOfContainerExpressions);
 
     ///@}
 private:

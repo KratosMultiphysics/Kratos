@@ -255,7 +255,7 @@ void ContainerExpression<TContainerType, TMeshType>::Evaluate(
         << NumberOfEntities
         << ", local container size = " << this->GetContainer().size() << " ].\n";
 
-    CArrayExpressionIO::Output(pBegin, NumberOfEntities * std::accumulate(pShapeBegin, pShapeBegin+ShapeSize, 1, [](const int V1, const int V2) { return V1 * V2; })).Execute(**this->mpExpression);
+    CArrayExpressionIO::Output(pBegin, NumberOfEntities * std::accumulate(pShapeBegin, pShapeBegin+ShapeSize, 1, [](const int V1, const int V2) { return V1 * V2; })).Execute(*this->mpExpression.value());
 
     KRATOS_CATCH("");
 }
@@ -289,14 +289,14 @@ bool ContainerExpression<TContainerType, TMeshType>::HasExpression() const
 template <class TContainerType, MeshType TMeshType>
 const Expression& ContainerExpression<TContainerType, TMeshType>::GetExpression() const
 {
-    return *(*mpExpression);
+    return *mpExpression.value();
 }
 
 
 template <class TContainerType, MeshType TMeshType>
 Expression::ConstPointer ContainerExpression<TContainerType, TMeshType>::pGetExpression() const
 {
-    return *mpExpression;
+    return mpExpression.value();
 }
 
 template <class TContainerType, MeshType TMeshType>
@@ -495,7 +495,7 @@ KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power)
     ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& ContainerExpression<CONTAINER_TYPE, MESH_TYPE>::OPERATOR_NAME( \
         const double Value)                                                                                        \
     {                                                                                                              \
-        this->mpExpression = EXPRESSION_OPERATOR_NAME(*this->mpExpression, Value);                                 \
+        this->mpExpression = EXPRESSION_OPERATOR_NAME(this->mpExpression.value(), Value);                          \
         return *this;                                                                                              \
     }                                                                                                              \
     template <>                                                                                                    \
@@ -503,7 +503,7 @@ KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power)
         const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& Value)                                               \
     {                                                                                                              \
         this->mpExpression =                                                                                       \
-            EXPRESSION_OPERATOR_NAME(*this->mpExpression, Value.pGetExpression());                                 \
+            EXPRESSION_OPERATOR_NAME(this->mpExpression.value(), Value.pGetExpression());                          \
         return *this;                                                                                              \
     }
 
@@ -539,7 +539,7 @@ KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power)
         const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& rScaling)                                    \
     {                                                                                                      \
         this->mpExpression =                                                                               \
-            Kratos::Scale(*this->mpExpression, rScaling.pGetExpression());                                 \
+            Kratos::Scale(this->mpExpression.value(), rScaling.pGetExpression());                          \
         return *this;                                                                                      \
     }
 
