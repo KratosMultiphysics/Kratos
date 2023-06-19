@@ -51,7 +51,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
             element.Properties[Kratos.DENSITY] = element.Id
 
         update_vector = self.properties_control.GetEmptyField()
-        update_vector.Read(Kratos.DENSITY)
+        KratosOA.PropertiesVariableExpressionIO.Read(update_vector, Kratos.DENSITY)
 
         # run for 3 iterations
         for i in range(1, 4, 1):
@@ -65,50 +65,50 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     def test_PropertiesControlUpdate(self):
         self.properties_control.Initialize()
 
-        control_model_part = self.model_part.GetSubModelPart("Union_Structure#structure_EN")
+        control_model_part = self.model_part.GetSubModelPart("structure")
 
         with self.assertRaises(RuntimeError):
-            self.properties_control.Update(Kratos.Expression.ConditionNonHistoricalExpression(control_model_part))
+            self.properties_control.Update(Kratos.Expression.ConditionExpression(control_model_part))
 
-        temp = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
-        temp.Read(Kratos.DENSITY)
+        temp = Kratos.Expression.ElementExpression(self.model_part)
+        KratosOA.PropertiesVariableExpressionIO.Read(temp, Kratos.DENSITY)
 
         with self.assertRaises(RuntimeError):
             self.properties_control.Update(temp)
 
-        temp = KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)
-        temp.Read(Kratos.DENSITY)
+        temp = Kratos.Expression.ElementExpression(control_model_part)
+        KratosOA.PropertiesVariableExpressionIO.Read(temp, Kratos.DENSITY)
 
         self.properties_control.Update(temp)
 
     def test_PropertiesControlMapGradient(self):
         self.properties_control.Initialize()
 
-        control_model_part = self.model_part.GetSubModelPart("Union_Structure#structure_EN")
+        control_model_part = self.model_part.GetSubModelPart("structure")
 
         with self.assertRaises(RuntimeError):
-            self.properties_control.MapGradient({Kratos.DENSITY: Kratos.Expression.NodalNonHistoricalExpression(control_model_part)})
+            self.properties_control.MapGradient({Kratos.DENSITY: Kratos.Expression.NodalExpression(control_model_part)})
 
         with self.assertRaises(RuntimeError):
-            self.properties_control.MapGradient({Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)})
+            self.properties_control.MapGradient({Kratos.DENSITY: Kratos.Expression.ElementExpression(self.model_part)})
 
         with self.assertRaises(RuntimeError):
-            self.properties_control.MapGradient({Kratos.THICKNESS: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)})
+            self.properties_control.MapGradient({Kratos.THICKNESS: Kratos.Expression.ElementExpression(control_model_part)})
 
         with self.assertRaises(RuntimeError):
             self.properties_control.MapGradient({
-                Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part),
-                Kratos.THICKNESS: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)})
+                Kratos.DENSITY: Kratos.Expression.ElementExpression(control_model_part),
+                Kratos.THICKNESS: Kratos.Expression.ElementExpression(control_model_part)})
 
         self.assertTrue(
             IsSameContainerExpression(
-                self.properties_control.MapGradient({Kratos.DENSITY: KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)}),
-                KratosOA.ContainerExpression.ElementPropertiesExpression(control_model_part)))
+                self.properties_control.MapGradient({Kratos.DENSITY: Kratos.Expression.ElementExpression(control_model_part)}),
+                Kratos.Expression.ElementExpression(control_model_part)))
 
     def test_GetControlFiield(self):
         self.properties_control.Initialize()
         field = self.properties_control.GetControlField()
-        field.Evaluate(Kratos.YOUNG_MODULUS)
+        KratosOA.PropertiesVariableExpressionIO.Write(field, Kratos.YOUNG_MODULUS)
         for element in self.model_part.Elements:
             properties = element.Properties
             self.assertEqual(properties[Kratos.DENSITY], properties[Kratos.YOUNG_MODULUS])

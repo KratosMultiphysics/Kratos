@@ -114,9 +114,11 @@ public:
 
         const IndexType number_of_entities = rContainer.size();
 
-        if (number_of_entities > 0) {
+        std::visit([&, number_of_entities](auto pVariable) {
             KRATOS_TRY
-            std::visit([&, number_of_entities](auto pVariable) {
+
+            if (number_of_entities > 0) {
+
                 using data_type = typename std::remove_const_t<std::remove_pointer_t<decltype(pVariable)>>::Type;
 
                 VariableExpressionDataIO<data_type> variable_flatten_data_io(rExpression.GetItemShape());
@@ -151,18 +153,20 @@ public:
                     variable_flatten_data_io.Assign(rValue, rExpression, Index);
                     TContainerDataIO::SetValue(*(rContainer.begin() + Index), *pVariable, rValue);
                 });
+            }
 
-                if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-                    // synchronize nodal values
-                    if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>) {
-                        rCommunicator.SynchronizeVariable(*pVariable);
-                    } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
-                        rCommunicator.SynchronizeNonHistoricalVariable(*pVariable);
-                    }
+            if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+                // synchronize nodal values
+                if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>) {
+                    rCommunicator.SynchronizeVariable(*pVariable);
+                } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
+                    rCommunicator.SynchronizeNonHistoricalVariable(*pVariable);
                 }
-            }, pVariable);
-            KRATOS_CATCH(" Variable: " + std::visit([](const auto& rpVariable) -> std::string {return rpVariable->Name();}, pVariable))
-        }
+            }
+
+            KRATOS_CATCH(" Variable: " + pVariable->Name())
+
+        }, pVariable);
 
         KRATOS_CATCH("");
     }
