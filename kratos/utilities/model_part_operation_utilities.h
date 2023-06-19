@@ -103,7 +103,7 @@ public:
         // This is done based on pointers to avoid having same names in model parts
         // which are within two different models.
         ModelPart* p_parent_model_part = &rOutputSubModelPart.GetParentModelPart();
-        while (p_parent_model_part->IsSubModelPart() && p_parent_model_part != &rMainModelPart) {
+        while (p_parent_model_part != &rMainModelPart) {
             p_parent_model_part = &p_parent_model_part->GetParentModelPart();
         }
 
