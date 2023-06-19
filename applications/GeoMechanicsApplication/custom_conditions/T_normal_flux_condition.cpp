@@ -94,80 +94,30 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(
 
 // ============================================================================================
 // ============================================================================================
-template< >
-void TNormalFluxCondition<2, 2>::CalculateIntegrationCoefficient(
+template<unsigned int TDim, unsigned int TNumNodes>
+void TNormalFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
     double& rIntegrationCoefficient,
     const Matrix& Jacobian,
     const double& Weight)
 {
-    const double dx_dxi = Jacobian(0, 0);
-    const double dy_dxi = Jacobian(1, 0);
-
-    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-
-    rIntegrationCoefficient = ds * Weight;
-}
-
-// ============================================================================================
-// ============================================================================================
-template< >
-void TNormalFluxCondition<2, 3>::CalculateIntegrationCoefficient(
-    double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
-{
-    const double dx_dxi = Jacobian(0, 0);
-    const double dy_dxi = Jacobian(1, 0);
-
-    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-
-    rIntegrationCoefficient = ds * Weight;
-}
-
-// ============================================================================================
-// ============================================================================================
-template< >
-void TNormalFluxCondition<3, 3>::CalculateIntegrationCoefficient(
-    double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
-{
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
-
-    NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
-
-    NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
-
-    const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
-        + NormalVector[1] * NormalVector[1]
-        + NormalVector[2] * NormalVector[2]);
-
-    rIntegrationCoefficient = dA * Weight;
-}
-
-// ============================================================================================
-// ============================================================================================
-template< >
-void TNormalFluxCondition<3, 4>::CalculateIntegrationCoefficient(
-    double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
-{
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
-
-    NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
-
-    NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
-
-    const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
-        + NormalVector[1] * NormalVector[1]
-        + NormalVector[2] * NormalVector[2]);
-
-    rIntegrationCoefficient = dA * Weight;
+    if (TDim == 2)
+    {
+        const double dx_dxi = Jacobian(0, 0);
+        const double dy_dxi = Jacobian(1, 0);
+        const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+        rIntegrationCoefficient = ds * Weight;
+    }
+    else if (TDim == 3)
+    {
+        double NormalVector[3];
+        NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
+        NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
+        NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
+        const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
+            + NormalVector[1] * NormalVector[1]
+            + NormalVector[2] * NormalVector[2]);
+        rIntegrationCoefficient = dA * Weight;
+    }
 }
 
 // ============================================================================================
