@@ -100,7 +100,7 @@ class ModelPartUtilities:
     def GetIntersectedMap(main_model_part: Kratos.ModelPart, input_dict: 'dict[Any, Kratos.ModelPart]', add_neghbours: bool) -> 'dict[Any, Kratos.ModelPart]':
         result: 'dict[Any, Kratos.ModelPart]' = {}
         for k, v in input_dict.items():
-            uniqe_identifier_name = ModelPartUtilities.__GenerateUniqueIdentifier("INTERSECT", [v.FullName()], add_neghbours)
+            uniqe_identifier_name = ModelPartUtilities.__GenerateUniqueIdentifier("INTERSECT", [main_model_part.FullName(), v.FullName()], add_neghbours)
             intersected_model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, uniqe_identifier_name, [main_model_part, v], add_neghbours)
             ModelPartUtilities.ExecuteOperationOnModelPart(intersected_model_part)
             result[k] = intersected_model_part
