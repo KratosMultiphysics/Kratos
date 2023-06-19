@@ -161,7 +161,7 @@ public:
         std::vector<double> all_points_coordinates;
         MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
 
-        // Performa the corresponding searchs
+        // Perform the corresponding searchs
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
@@ -217,7 +217,7 @@ public:
         std::vector<double> all_points_coordinates;
         MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
 
-        // Performa the corresponding searchs
+        // Perform the corresponding searchs
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             // Perform local search
@@ -268,7 +268,7 @@ public:
         std::vector<double> all_points_coordinates;
         MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
 
-        // Performa the corresponding searchs
+        // Perform the corresponding searchs
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             // Perform local search
@@ -323,7 +323,7 @@ public:
         std::vector<double> all_points_coordinates;
         MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
 
-        // Performa the corresponding searchs
+        // Perform the corresponding searchs
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             // Perform local search
