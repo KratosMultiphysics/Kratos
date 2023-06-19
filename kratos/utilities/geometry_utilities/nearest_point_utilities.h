@@ -150,16 +150,16 @@ public:
             } else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 6
                 result = rTriangle[2];
             } else {
-                result = LineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(2)));
+                result = LineNearestPoint(rPoint, Line3D2<typename line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(2)));
             }
         } else if(local_coordinates[1] < -Tolerance) { // case 4,7 (case 5 is already covered in previous if)
             if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 7
                 result = rTriangle[1];
             } else { // case 4
-                result = LineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(1)));
+                result = LineNearestPoint(rPoint, Line3D2<typename line_point_type>(rTriangle.pGetPoint(0), rTriangle.pGetPoint(1)));
             }
         } else if ((local_coordinates[0] + local_coordinates[1]) > (1.0+Tolerance)) { // case 3
-            result = LineNearestPoint(rPoint, Line3D2<line_point_type>(rTriangle.pGetPoint(1), rTriangle.pGetPoint(2)));
+            result = LineNearestPoint(rPoint, Line3D2<typename line_point_type>(rTriangle.pGetPoint(1), rTriangle.pGetPoint(2)));
         } else {  // inside
             result = point_projected;
         }
