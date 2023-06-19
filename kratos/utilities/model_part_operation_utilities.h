@@ -69,7 +69,7 @@ public:
      * This method finds all the nodes, geometries in @ref rModelPartOperationModelParts in the @ref rMainModelPart
      * which satisfies the specified @ref TModelPartOperation and adds them to a given @ref rOutputSubModelPart.
      * The @ref TModelPartOperation check is done based on the memory locations of the entities.
-     * The corresponding entities from @ref rMainModelPart are usedto populate the sub model part.
+     * The corresponding entities from @ref rMainModelPart are used to populate the sub model part.
      * @ref rOutputSubModelPart must be a sub model part of @ref rMainModelPart, but does not
      * necessarily have to be an immediate sub model part.
      *
