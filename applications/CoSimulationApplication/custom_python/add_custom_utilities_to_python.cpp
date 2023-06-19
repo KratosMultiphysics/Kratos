@@ -3,10 +3,11 @@
 //        | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |
 //         \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
 //
-//  License:		 BSD License
-//					 license: CoSimulationApplication/license.txt
+//  License:         BSD License
+//                   license: CoSimulationApplication/license.txt
 //
-//  Main authors:
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
+//                   Ashish Darekar
 //
 
 // System includes
@@ -19,10 +20,9 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "spaces/ublas_space.h"
 #include "custom_utilities/feti_dynamic_coupling_utilities.h"
+#include "custom_utilities/conversion_utilities.h"
 
-namespace Kratos{
-
-namespace Python{
+namespace Kratos::Python {
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
@@ -54,7 +54,12 @@ namespace Python{
             .value("Origin", FetiSolverIndexType::Origin)
             .value("Destination", FetiSolverIndexType::Destination)
             ;
+
+        pybind11::class_< ConversionUtilities>(m, "ConversionUtilities")
+            .def_static("ConvertElementalDataToNodalData",
+                &ConversionUtilities::ConvertElementalDataToNodalData)
+            ;
+
     }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.

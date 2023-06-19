@@ -1,5 +1,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
+from KratosMultiphysics.ShallowWaterApplication.utilities.wave_factory import WaveTheoryFactory
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -13,70 +14,50 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
     node to the nearest boundary condition
     """
 
-    def __init__(self, model, settings):
-        """The constructor of the ApplyAbsorbingBoundaryProcess
+    @staticmethod
+    def GetDefaultParameters():
+        return KM.Parameters("""{
+            "computing_model_part_name" : "",
+            "absorbing_boundary_name"   : "",
+            "r_squared_threshold"       : 0.99,
+            "relative_distance"         : 2.0,
+            "relative_damping"          : 2.0,
+            "wave_specifications"       : {}
+        }""")
 
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        model -- The model to be used
-        settings -- The ProjectParameters used
-        """
+    def __init__(self, model, settings):
+        """The constructor of the ApplyAbsorbingBoundaryProcess"""
 
         KM.Process.__init__(self)
 
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.processes = []
-        self.model_part = model[self.settings["computing_model_part_name"].GetString()]
-        boundaries_names = self.settings["absorbing_boundaries_list"].GetStringArray()
-        distance_calculator_settings = KM.Parameters()
-        distance_calculator_settings.AddValue("r_squared_threshold", self.settings["r_squared_threshold"])
-        for name in boundaries_names:
-            boundary_part = self.model_part.GetSubModelPart(name)
-            self.processes.append(SW.CalculateDistanceToBoundaryProcess(self.model_part, boundary_part, distance_calculator_settings))
+        self.model_part = model.GetModelPart(self.settings["computing_model_part_name"].GetString())
+        self.boundary_part = model.GetModelPart(self.settings["absorbing_boundary_name"].GetString())
+        self.distance_process = SW.CalculateDistanceToBoundaryProcess(self.model_part, self.boundary_part, self.settings["r_squared_threshold"].GetDouble())
 
-        for process in self.processes:
-            process.Check()
+        variables_names = KM.SpecificationsUtilities.GetDofsListFromConditionsSpecifications(self.boundary_part)
+        self.variables_to_fix = []
+        for variable_name in variables_names:
+            if variable_name.startswith("VELOCITY") or variable_name.startswith("MOMENTUM"):
+                variable = KM.KratosGlobals.GetVariable(variable_name)
+                self.variables_to_fix.append(variable)
 
     def Check(self):
-        direction = self.settings["velocity_direction"].GetVector()
-        if not direction.Size() == 3:
-            raise Exception("The boundary velocity direction must be specified with a three dimensional array")
-        if direction.norm_2() == 0.0:
-            raise Exception("The boundary velocity direction has zero norm")
-
-    def ExecuteInitialize(self):
-        KM.VariableUtils().SetVariable(KM.DISTANCE, 1e+38, self.model_part.Nodes)
-
-        if self.settings["apply_fixity"].GetBool():
-            boundaries_names = self.settings["absorbing_boundaries_list"].GetStringArray()
-            for name in boundaries_names:
-                boundary_part = self.model_part.GetSubModelPart(name)
-                KM.VariableUtils().ApplyFixity(KM.MOMENTUM_X, True, boundary_part.Nodes)
-                KM.VariableUtils().ApplyFixity(KM.MOMENTUM_Y, True, boundary_part.Nodes)
+        """Check the correctness of the input."""
+        self.distance_process.Check()
 
     def ExecuteBeforeSolutionLoop(self):
-        for process in self.processes:
-            process.ExecuteBeforeSolutionLoop()
+        """Calculate the distances and the damping parameters."""
+        self.distance_process.ExecuteBeforeSolutionLoop()
 
-    def ExecuteInitializeSolutionStep(self):
-        self.model_part.ProcessInfo.SetValue(SW.ABSORBING_DISTANCE, self.settings["absorbing_distance"].GetDouble())
-        self.model_part.ProcessInfo.SetValue(SW.DISSIPATION, self.settings["dissipation_factor"].GetDouble())
-        direction = self.settings["velocity_direction"].GetVector()
-        direction /= direction.norm_2()
-        boundary_velocity = self.settings["velocity_modulus"].GetDouble() * direction
-        self.model_part.ProcessInfo.SetValue(SW.BOUNDARY_VELOCITY, boundary_velocity)
+        wave = WaveTheoryFactory(self.boundary_part, self.settings["wave_specifications"])
+        absorbing_distance = wave.wavelength * self.settings["relative_distance"].GetDouble()
+        dissipation_factor = wave.frequency * self.settings["relative_damping"].GetDouble()
 
-    @staticmethod
-    def GetDefaultParameters():
-        return KM.Parameters("""{
-                "computing_model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
-                "absorbing_boundaries_list" : [],
-                "r_squared_threshold"       : 0.99,
-                "absorbing_distance"        : 0.0,
-                "dissipation_factor"        : 0.0,
-                "velocity_modulus"          : 0.0,
-                "velocity_direction"        : [1.0, 0.0, 0.0],
-                "apply_fixity"              : false
-            }""")
+        self.model_part.ProcessInfo.SetValue(SW.ABSORBING_DISTANCE, absorbing_distance)
+        self.model_part.ProcessInfo.SetValue(SW.DISSIPATION, dissipation_factor)
+
+        for variable in self.variables_to_fix:
+            KM.VariableUtils().ApplyFixity(variable, True, self.boundary_part.Nodes)

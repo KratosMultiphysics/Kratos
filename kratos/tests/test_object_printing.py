@@ -9,9 +9,10 @@ def GetFilePath(fileName):
 # The expected definitions are here to make the handling of the
 # multiline-strings easier (no need to deal with indentation)
 prop_str = '''Properties
+Id : 5
     VISCOSITY : 5.3
     DENSITY : -95.3
-This properties contains 0 tables'''
+'''
 
 model_part_str = '''-Main- model part
     AMBIENT_TEMPERATURE : 250
@@ -22,7 +23,7 @@ model_part_str = '''-Main- model part
     Number of sub model parts : 2
     Current solution step index : 0
 
-    Number of Geometries  : 0
+    Number of Geometries  : 9
     Mesh 0 :
         Number of Nodes       : 6
         Number of Properties  : 1
@@ -92,12 +93,13 @@ class TestObjectPrinting(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
         self.assertMultiLineEqual(str(model_part), model_part_str)
 
-
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
 

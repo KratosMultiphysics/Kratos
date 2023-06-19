@@ -99,7 +99,7 @@ namespace Kratos
 	  static FixedSizeMemoryPool* GetPoolWithBlockSize(std::size_t BlockSize) {
 		  PoolsContainerType& r_pools = GetInstance().mPools;
 
-		  // I would avoid it by defining a max block size, but befor that I should profile to see if is really slows done. Pooyan.
+		  // I would avoid it by defining a max block size, but before that I should profile to see if it really slows down. Pooyan.
 		  if (r_pools.size() <= BlockSize) { // This check is extra but is to avoid critical each time
 #pragma omp critical
 		  {
@@ -189,7 +189,7 @@ namespace Kratos
 			std::stringstream buffer;
 			double result = Bytes;
 			constexpr int units_size = 5;
-			constexpr char units[units_size] = { ' ', 'k','M','G','T' };
+			constexpr char units[units_size+1] = { ' ', 'k','M','G','T', 'T'};
 			int i = 0;
 			for (; i < units_size; i++)
 				if (result > 1024)

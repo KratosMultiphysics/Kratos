@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -86,6 +86,7 @@ struct crs {
         nrows(nrows), ncols(ncols), nnz(0),
         ptr(0), col(0), val(0), own_data(true)
     {
+        AMGCL_TIC("CSR copy");
         precondition(static_cast<ptrdiff_t>(nrows + 1) == std::distance(
                     std::begin(ptr_range), std::end(ptr_range)),
                 "ptr_range has wrong size in crs constructor");
@@ -108,11 +109,12 @@ struct crs {
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
             ptr[i+1] = ptr_range[i+1];
-            for(ptr_type j = ptr_range[i]; j < ptr_range[i+1]; ++j) {
+            for(auto j = ptr_range[i]; j < ptr_range[i+1]; ++j) {
                 col[j] = col_range[j];
                 val[j] = val_range[j];
             }
         }
+        AMGCL_TOC("CSR copy");
     }
 
     template <class Matrix>
@@ -120,6 +122,7 @@ struct crs {
         nrows(backend::rows(A)), ncols(backend::cols(A)),
         nnz(0), ptr(0), col(0), val(0), own_data(true)
     {
+        AMGCL_TIC("CSR copy");
         ptr = new ptr_type[nrows + 1];
         ptr[0] = 0;
 
@@ -144,6 +147,7 @@ struct crs {
                 ++row_head;
             }
         }
+        AMGCL_TOC("CSR copy");
     }
 
     crs(const crs &other) :
@@ -361,7 +365,7 @@ std::shared_ptr< crs<V,C,P> > transpose(const crs<V, C, P> &A)
             P head = T->ptr[A.col[j]]++;
 
             T->col[head] = static_cast<C>(i);
-            T->val[head] = A.val[j];
+            T->val[head] = math::adjoint(A.val[j]);
         }
     }
 
@@ -494,9 +498,11 @@ void scale(crs<Val, Col, Ptr> &A, T s) {
 }
 
 // Reduce matrix to a pointwise one
-template <class value_type>
-std::shared_ptr< crs<typename math::scalar_of<value_type>::type> >
-pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
+template <class value_type, class col_type, class ptr_type>
+std::shared_ptr<
+    crs< typename math::scalar_of<value_type>::type, col_type, ptr_type >
+    >
+pointwise_matrix(const crs<value_type, col_type, ptr_type> &A, unsigned block_size) {
     typedef value_type V;
     typedef typename math::scalar_of<V>::type S;
 
@@ -509,30 +515,30 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
     precondition(np * block_size == n,
             "Matrix size should be divisible by block_size");
 
-    auto ap = std::make_shared< crs<S> >();
-    crs<S> &Ap = *ap;
+    auto ap = std::make_shared< crs<S, col_type, ptr_type> >();
+    auto &Ap = *ap;
 
     Ap.set_size(np, mp, true);
 
 #pragma omp parallel
     {
-        std::vector<ptrdiff_t> j(block_size);
-        std::vector<ptrdiff_t> e(block_size);
+        std::vector<ptr_type> j(block_size);
+        std::vector<ptr_type> e(block_size);
 
         // Count number of nonzeros in block matrix.
 #pragma omp for
         for(ptrdiff_t ip = 0; ip < np; ++ip) {
             ptrdiff_t ia = ip * block_size;
-            ptrdiff_t cur_col = 0;
+            col_type cur_col = 0;
             bool done = true;
 
             for(unsigned k = 0; k < block_size; ++k) {
-                ptrdiff_t beg = j[k] = A.ptr[ia + k];
-                ptrdiff_t end = e[k] = A.ptr[ia + k + 1];
+                ptr_type beg = j[k] = A.ptr[ia + k];
+                ptr_type end = e[k] = A.ptr[ia + k + 1];
 
                 if (beg == end) continue;
 
-                ptrdiff_t c = A.col[beg];
+                col_type c = A.col[beg];
 
                 if (done) {
                     done = false;
@@ -547,13 +553,13 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                 ++Ap.ptr[ip + 1];
 
                 done = true;
-                ptrdiff_t col_end = (cur_col + 1) * block_size;
+                col_type col_end = (cur_col + 1) * block_size;
                 for(unsigned k = 0; k < block_size; ++k) {
-                    ptrdiff_t beg = j[k];
-                    ptrdiff_t end = e[k];
+                    ptr_type beg = j[k];
+                    ptr_type end = e[k];
 
                     while(beg < end) {
-                        ptrdiff_t c = A.col[beg++];
+                        col_type c = A.col[beg++];
 
                         if (c >= col_end) {
                             if (done) {
@@ -577,23 +583,23 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
 
 #pragma omp parallel
     {
-        std::vector<ptrdiff_t> j(block_size);
-        std::vector<ptrdiff_t> e(block_size);
+        std::vector<ptr_type> j(block_size);
+        std::vector<ptr_type> e(block_size);
 
 #pragma omp for
         for(ptrdiff_t ip = 0; ip < np; ++ip) {
             ptrdiff_t ia = ip * block_size;
-            ptrdiff_t cur_col = 0;
-            ptrdiff_t head = Ap.ptr[ip];
+            col_type cur_col = 0;
+            ptr_type head = Ap.ptr[ip];
             bool done = true;
 
             for(unsigned k = 0; k < block_size; ++k) {
-                ptrdiff_t beg = j[k] = A.ptr[ia + k];
-                ptrdiff_t end = e[k] = A.ptr[ia + k + 1];
+                ptr_type beg = j[k] = A.ptr[ia + k];
+                ptr_type end = e[k] = A.ptr[ia + k + 1];
 
                 if (beg == end) continue;
 
-                ptrdiff_t c = A.col[beg];
+                col_type c = A.col[beg];
 
                 if (done) {
                     done = false;
@@ -612,13 +618,13 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                 bool first = true;
                 S cur_val = math::zero<S>();
 
-                ptrdiff_t col_end = (cur_col + 1) * block_size;
+                col_type col_end = (cur_col + 1) * block_size;
                 for(unsigned k = 0; k < block_size; ++k) {
-                    ptrdiff_t beg = j[k];
-                    ptrdiff_t end = e[k];
+                    ptr_type beg = j[k];
+                    ptr_type end = e[k];
 
                     while(beg < end) {
-                        ptrdiff_t c = A.col[beg];
+                        col_type c = A.col[beg];
                         S v = math::norm(A.val[beg]);
                         ++beg;
 
@@ -909,19 +915,21 @@ spectral_radius(const Matrix &A, int power_iters = 0) {
  * moving the constructed hierarchy to the builtin backend, since the backend
  * is used internally during setup.
  */
-template <typename ValueType>
+template <typename ValueType, typename ColumnType = ptrdiff_t, typename PointerType = ColumnType>
 struct builtin {
     typedef ValueType      value_type;
-    typedef ptrdiff_t      index_type;
+    typedef ColumnType     index_type;
+    typedef ColumnType     col_type;
+    typedef PointerType    ptr_type;
 
     typedef typename math::rhs_of<value_type>::type rhs_type;
 
     struct provides_row_iterator : std::true_type {};
 
-    typedef crs<value_type, index_type>    matrix;
-    typedef numa_vector<rhs_type>          vector;
-    typedef numa_vector<value_type>        matrix_diagonal;
-    typedef solver::skyline_lu<value_type> direct_solver;
+    typedef crs<value_type, col_type, ptr_type>  matrix;
+    typedef numa_vector<rhs_type>                vector;
+    typedef numa_vector<value_type>              matrix_diagonal;
+    typedef solver::skyline_lu<value_type>       direct_solver;
 
     /// The backend has no parameters.
     typedef amgcl::detail::empty_params params;
@@ -1143,8 +1151,11 @@ struct inner_product_impl<
 
         if (nt < 64) {
             sum = _sum_stat;
+            for(int i = 0; i < nt; ++i) {
+                sum[i] = math::zero<return_type>();
+            }
         } else {
-            _sum_dyna.resize(nt);
+            _sum_dyna.resize(nt, math::zero<return_type>());
             sum = _sum_dyna.data();
         }
 
@@ -1271,25 +1282,20 @@ struct vmul_impl<
     static void apply(Alpha a, const Vec1 &x, const Vec2 &y, Beta b, Vec3 &z)
     {
         typedef typename value_type<Vec1>::type     M_type;
-        typedef typename math::rhs_of<M_type>::type x_type;
-
-        typedef typename math::replace_scalar<x_type, typename math::scalar_of<typename value_type<Vec2>::type>::type>::type y_type;
-        typedef typename math::replace_scalar<x_type, typename math::scalar_of<typename value_type<Vec3>::type>::type>::type z_type;
+        auto Y = backend::reinterpret_as_rhs<M_type>(y);
+        auto Z = backend::reinterpret_as_rhs<M_type>(z);
 
         const size_t n = x.size();
-
-        y_type const * yptr = reinterpret_cast<y_type const *>(&y[0]);
-        z_type       * zptr = reinterpret_cast<z_type       *>(&z[0]);
 
         if (!math::is_zero(b)) {
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-                zptr[i] = a * x[i] * yptr[i] + b * zptr[i];
+                Z[i] = a * x[i] * Y[i] + b * Z[i];
             }
         } else {
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-                zptr[i] = a * x[i] * yptr[i];
+                Z[i] = a * x[i] * Y[i];
             }
         }
     }
@@ -1314,19 +1320,24 @@ struct copy_impl<
     }
 };
 
-template <class T, class Vector>
-struct reinterpret_impl<
-    T, Vector, typename std::enable_if<is_builtin_vector<Vector>::value>::type
+template <class MatrixValue, class Vector, bool IsConst>
+struct reinterpret_as_rhs_impl<
+    MatrixValue, Vector, IsConst,
+    typename std::enable_if<is_builtin_vector<Vector>::value>::type
     >
 {
-    typedef amgcl::iterator_range<T*> return_type;
+    typedef typename backend::value_type<Vector>::type src_type;
+    typedef typename math::scalar_of<src_type>::type scalar_type;
+    typedef typename math::rhs_of<MatrixValue>::type rhs_type;
+    typedef typename math::replace_scalar<rhs_type, scalar_type>::type dst_type;
+    typedef typename std::conditional<IsConst, const dst_type*, dst_type*>::type ptr_type;
+    typedef iterator_range<ptr_type> return_type;
 
-    static return_type get(const Vector &x) {
-        typedef typename backend::value_type<Vector>::type V;
-        const size_t n = x.size() * sizeof(V) / sizeof(T);
-
-        auto ptr = reinterpret_cast<T*>(const_cast<V*>(&x[0]));
-        return amgcl::make_iterator_range(ptr, ptr + n);
+    template <class V>
+    static return_type get(V &&x) {
+        auto ptr = reinterpret_cast<ptr_type>(&x[0]);
+        const size_t n = x.size() * sizeof(src_type) / sizeof(dst_type);
+        return make_iterator_range(ptr, ptr + n);
     }
 };
 

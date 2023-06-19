@@ -167,11 +167,11 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
 
     inline void Initialize(const GeometryType& geom);
 
-    inline void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    inline void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
 
-    inline void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    inline void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo);
 
-    inline void FinalizeNonLinearIteration(const Vector& displacementVector, ProcessInfo& CurrentProcessInfo);
+    inline void FinalizeNonLinearIteration(const Vector& displacementVector, const ProcessInfo& CurrentProcessInfo);
 
    private:
 
@@ -291,15 +291,15 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
 
   Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-  void Initialize() override;
+  void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
   void ResetConstitutiveLaw() override;
 
-  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+  void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-  void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+  void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-  int Check(const ProcessInfo& rCurrentProcessInfo) override;
+  int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
   void GetValuesVector(Vector& values, int Step = 0) const override;
 
@@ -307,36 +307,36 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
 
   void GetSecondDerivativesVector(Vector& values, int Step = 0) const override;
 
-  void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+  void InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
 
-  void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
+  void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
 
-  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+  void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
-  void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+  void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
-  void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
   void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                             VectorType& rRightHandSideVector,
-                            ProcessInfo& rCurrentProcessInfo) override;
+                            const ProcessInfo& rCurrentProcessInfo) override;
 
   void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
   // Results calculation on integration points
 
-  void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+  void CalculateOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
   ///@}
 
@@ -377,7 +377,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ShellThickElement3D4N : public Ele
 
   void CalculateAll(MatrixType& rLeftHandSideMatrix,
                     VectorType& rRightHandSideVector,
-                    ProcessInfo& rCurrentProcessInfo,
+                    const ProcessInfo& rCurrentProcessInfo,
                     const bool LHSrequired,
                     const bool RHSrequired);
 

@@ -6,7 +6,6 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
 import os
-import math
 from decimal import Decimal
 
 def GetFilePath(fileName):
@@ -70,7 +69,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         map_parameters["consider_tessellation"].SetBool(consider_tessellation)
 
         if pure_implicit:
-            #linear_solver = ExternalSolversApplication.SuperLUSolver()
             linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         else:
             linear_solver = None

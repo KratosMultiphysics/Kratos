@@ -75,17 +75,17 @@ public:
 
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const override;
 
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
+    void EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    void GetDofList( DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo ) override;
+    void GetDofList( DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    void CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -94,7 +94,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
     ///@}
     ///@name Access
     ///@{
@@ -143,7 +143,7 @@ private:
     ///@{
 
     void CalculateElementalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                                   ProcessInfo& rCurrentProcessInfo,
+                                   const ProcessInfo& rCurrentProcessInfo,
                                    bool CalculateStiffnessMatrixFlag,
                                    bool CalculateResidualVectorFlag);
 
@@ -222,5 +222,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_LINE_HEAT_FLUX_CONDITION_H_INCLUDED  defined
-
-

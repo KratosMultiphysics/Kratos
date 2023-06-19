@@ -21,6 +21,7 @@
 #include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_operations_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -40,6 +41,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     AddCustomResponseFunctionUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomOperationsToPython(m);
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
@@ -70,6 +72,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     // Free stream magnitudes
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, FREE_STREAM_VELOCITY);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, FREE_STREAM_VELOCITY_DIRECTION);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREE_STREAM_DENSITY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREE_STREAM_MACH);
 
@@ -81,7 +84,6 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
 
     // Solver parameters
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MACH_LIMIT);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MACH_SQUARED_LIMIT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CRITICAL_MACH);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UPWIND_FACTOR_CONSTANT);
 
@@ -104,6 +106,7 @@ PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UPPER_WAKE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOWER_WAKE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AIRFOIL);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FAR_FIELD);
 
     // To be removed
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TRAILING_EDGE_ELEMENT);

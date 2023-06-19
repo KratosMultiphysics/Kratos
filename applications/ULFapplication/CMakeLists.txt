@@ -74,3 +74,6 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 ## Install targets
 install(TARGETS KratosULFApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosULFApplication" PARENT_SCOPE)

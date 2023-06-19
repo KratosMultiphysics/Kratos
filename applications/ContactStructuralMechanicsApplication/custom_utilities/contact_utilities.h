@@ -1,16 +1,16 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_CONTACT_UTILITIES)
-#define KRATOS_CONTACT_UTILITIES
+#pragma once
 
 // System includes
 
@@ -54,7 +54,7 @@ public:
     ///@{
 
     // Some geometrical definitions
-    typedef Node<3>                                              NodeType;
+    typedef Node                                              NodeType;
     typedef Point::CoordinatesArrayType              CoordinatesArrayType;
 
     /// Definition of geometries
@@ -225,11 +225,11 @@ public:
                 const array_1d<double, 3> tangent_slip = r_gt/norm_slip;
                 for (std::size_t i_dof = 0; i_dof < TDim; ++i_dof)
                     tangent_matrix(i_node, i_dof) = tangent_slip[i_dof];
-            } else { // We consider the tangent direction as auxiliar
+            } else { // We consider the tangent direction as auxiliary
                 const array_1d<double, 3>& r_normal = rGeometry[i_node].FastGetSolutionStepValue(NORMAL);
                 array_1d<double, 3> tangent_xi, tangent_eta;
                 MathUtils<double>::OrthonormalBasis(r_normal, tangent_xi, tangent_eta);
-                if (TDim == 3) {
+                if constexpr (TDim == 3) {
                     for (std::size_t i_dof = 0; i_dof < 3; ++i_dof)
                         tangent_matrix(i_node, i_dof) = tangent_xi[i_dof];
                 } else  {
@@ -321,4 +321,3 @@ private:
 };// class ContactUtilities
 
 }
-#endif /* KRATOS_CONTACT_UTILITIES defined */

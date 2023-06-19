@@ -12,15 +12,12 @@
 #if !defined(KRATOS_DISTRIBUTED_VECTOR_EXPORTER_H_INCLUDED )
 #define  KRATOS_DISTRIBUTED_VECTOR_EXPORTER_H_INCLUDED
 
-
 // System includes
 #include <string>
 #include <iostream>
 #include <functional>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -29,7 +26,7 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -53,7 +50,7 @@ namespace Kratos
 
 /// Provides a DistributedVectorExporter which implements FEM assemble capabilities
 template<class TIndexType=std::size_t>
-class DistributedVectorExporter
+class DistributedVectorExporter final
 {
 public:
     ///@name Type Definitions
@@ -173,15 +170,11 @@ public:
     }
 
     /// Destructor.
-    virtual ~DistributedVectorExporter(){}
+    ~DistributedVectorExporter(){}
 
     ///@}
     ///@name Operators
     ///@{
-    const DataCommunicator& GetComm() const{
-        return mrComm;
-    }
-
     
     ///@}
     ///@name Operations
@@ -191,6 +184,9 @@ public:
     ///@name Access
     ///@{
 
+    const DataCommunicator& GetComm() const{
+        return mrComm;
+    }
 
     ///@}
     ///@name Inquiry
@@ -202,18 +198,18 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
-    std::stringstream buffer;
-    buffer << "DistributedVectorExporter" ;
-    return buffer.str();
+        std::stringstream buffer;
+        buffer << "DistributedVectorExporter" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedVectorExporter";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedVectorExporter";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends

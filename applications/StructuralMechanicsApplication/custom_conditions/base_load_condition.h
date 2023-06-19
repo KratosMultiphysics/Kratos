@@ -3,15 +3,14 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -304,6 +303,13 @@ public:
     ///@name Input and output
     ///@{
 
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+    
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -437,5 +443,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined

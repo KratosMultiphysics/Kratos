@@ -35,7 +35,7 @@ class HarmonicAnalysisSolver(MechanicalSolver):
 
     #### Private functions ####
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         """Create the scheme to construct the global force vector.
 
         The scheme determines the initial force vector on all system dofs.
@@ -49,7 +49,7 @@ class HarmonicAnalysisSolver(MechanicalSolver):
 
         return solution_scheme
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         """Create a dummy linear solver.
 
         This overrides the base class method and returns an empty linear solver as the harmonic
@@ -57,9 +57,9 @@ class HarmonicAnalysisSolver(MechanicalSolver):
         """
         return KratosMultiphysics.LinearSolver()
 
-    def _create_mechanical_solution_strategy(self):
-        eigen_scheme = self.get_solution_scheme()
-        builder_and_solver = self.get_builder_and_solver()
+    def _CreateSolutionStrategy(self):
+        eigen_scheme = self._GetScheme()
+        builder_and_solver = self._GetBuilderAndSolver()
         computing_model_part = self.GetComputingModelPart()
 
         return StructuralMechanicsApplication.HarmonicAnalysisStrategy(computing_model_part,

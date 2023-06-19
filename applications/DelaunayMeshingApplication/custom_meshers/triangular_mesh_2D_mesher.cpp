@@ -49,7 +49,7 @@ namespace Kratos
 
     //*********************************************************************
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     //Generate Mesh
     ////////////////////////////////////////////////////////////
@@ -70,11 +70,11 @@ namespace Kratos
       std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
     }
 
-    //Print out the mesh generation time
-    if( this->GetEchoLevel() > 0 ){
-      double end_time = OpenMPUtils::GetCurrentTime();
-      std::cout<<" [ MESH GENERATION (TIME = "<<end_time-begin_time<<") ] "<<std::endl;
-    }
+    // //Print out the mesh generation time
+    // if( this->GetEchoLevel() > 0 ){
+    //   double end_time = OpenMPUtils::GetCurrentTime();
+    //   std::cout<<" [ MESH GENERATION (TIME = "<<end_time-begin_time<<") ] "<<std::endl;
+    // }
 
     //*********************************************************************
 
@@ -285,7 +285,7 @@ namespace Kratos
 	  if( (conditions_begin + i)->Is(TO_ERASE) )
 	    std::cout<<" ERROR: condition to erase present "<<std::endl;
 
-	  Geometry< Node<3> >& rGeometry = (conditions_begin + i)->GetGeometry();
+	  Geometry< Node >& rGeometry = (conditions_begin + i)->GetGeometry();
 	  in.segmentlist[base]   = rGeometry[0].Id();
 	  in.segmentlist[base+1] = rGeometry[1].Id();
          
@@ -304,7 +304,7 @@ namespace Kratos
 
       //regions
       double inside_factor = 2;
-      Geometry< Node<3> >& rGeometry = (conditions_begin)->GetGeometry();
+      Geometry< Node >& rGeometry = (conditions_begin)->GetGeometry();
 
       array_1d<double, 3>&  Normal   = rGeometry[0].FastGetSolutionStepValue(NORMAL);
       double NormNormal = norm_2(Normal);

@@ -1,9 +1,9 @@
 
 proc WriteMdpa { basename dir problemtypedir } {
-    
+
     ## Source auxiliar procedures
     source [file join $problemtypedir MdpaAuxProcs.tcl]
-    
+
     ## Start MDPA file
     set filename [file join $dir ${basename}.mdpa]
     set FileVar [open $filename w]
@@ -12,11 +12,11 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar "Begin Properties 0"
     puts $FileVar "End Properties"
     puts $FileVar ""
-    
+
     ## Properties
     set PropertyId 0
     set PropertyDict [dict create]
-    
+
     # Solid_Displacement
     ConstraintVectorTable FileVar TableId TableDict Solid_Displacement DISPLACEMENT
     # Force
@@ -46,7 +46,7 @@ proc WriteMdpa { basename dir problemtypedir } {
         puts $FileVar "    YOUNG_MODULUS            [lindex [lindex $Groups $i] 4]"
         puts $FileVar "    DENSITY                  [lindex [lindex $Groups $i] 5]"
         puts $FileVar "    POISSON_RATIO            [lindex [lindex $Groups $i] 6]"
-		
+
 		if {[lindex [lindex $Groups $i] 13] eq "true"} {
 			puts $FileVar "    YOUNG_MODULUS_STEEL      [lindex [lindex $Groups $i] 14]"
 			puts $FileVar "    DENSITY_STEEL            [lindex [lindex $Groups $i] 15]"
@@ -56,7 +56,7 @@ proc WriteMdpa { basename dir problemtypedir } {
 			puts $FileVar "    YIELD_STRESS_T_STEEL     [lindex [lindex $Groups $i] 19]"
 			puts $FileVar "    FRACTURE_ENERGY_STEEL    [lindex [lindex $Groups $i] 20]"
 			puts $FileVar "    HARDENING_LAW            [lindex [lindex $Groups $i] 21]"
-			
+
 			if {[lindex [lindex $Groups $i] 21] eq 3} {
 				puts $FileVar "    MAXIMUM_STRESS           [lindex [lindex $Groups $i] 22]"
 				puts $FileVar "    MAXIMUM_STRESS_POSITION  [lindex [lindex $Groups $i] 23]"
@@ -87,7 +87,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     puts $FileVar "End Nodes"
     puts $FileVar ""
     puts $FileVar ""
- 
+
     ## Elements
     set Groups [GiD_Info conditions Body_Part groups]
 
@@ -111,7 +111,7 @@ proc WriteMdpa { basename dir problemtypedir } {
                 set ElementName "SmallStrainMohrCoulombFemDemElement3D"
             } else {
                 set ElementName "SmallStrainModifiedMohrCoulombFemDemElement3D"
-            }        
+            }
         } else {
             if {[lindex [lindex $Groups $i] 3] eq "ModifiedMohrCoulomb"} {
                 set ElementName "TotalLagrangianModifiedMohrCoulombFemDemElement3D"
@@ -129,16 +129,14 @@ proc WriteMdpa { basename dir problemtypedir } {
                 set ElementName "TotalLagrangianMohrCoulombFemDemElement3D"
             } else {
                 set ElementName "TotalLagrangianModifiedMohrCoulombFemDemElement3D"
-            }  
-        }  
+            }
+        }
          # Elements Property
         set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
-		
+
 		set MatGroups [GiD_Info conditions Body_Part groups]
 		if {[lindex [lindex $MatGroups 0] 13] eq "true"} {
 			WriteElements FileVar [lindex $Groups $i] tetrahedra RomFemDem3DElement $BodyElemsProp Tetrahedron3D4Connectivities
-		} elseif {[GiD_AccessValue get gendata Use_Hexahedrons] eq "true"} {
-            WriteElements FileVar [lindex $Groups $i] Hexahedra FemDem3DHexahedronElement $BodyElemsProp Hexahedron3D8Connectivities
 		} else {
 			WriteElements FileVar [lindex $Groups $i] tetrahedra $ElementName $BodyElemsProp Tetrahedron3D4Connectivities
         }
@@ -153,7 +151,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     # Force
     set Groups [GiD_Info conditions Force groups]
     WriteNodalConditions FileVar ConditionId ConditionDict $Groups PointLoadCondition3D1N $BodyElemsProp
-    
+
     # Face_Load
     set Groups [GiD_Info conditions Face_Load groups]
     WriteFaceConditions FileVar ConditionId ConditionDict $Groups LineLoadCondition3D2N $PropertyDict
@@ -170,7 +168,7 @@ proc WriteMdpa { basename dir problemtypedir } {
         WriteTypeFaceConditions FileVar ConditionId MyConditionList [lindex $Groups $i] tetrahedra SurfaceLoadCondition3D3N $PropertyDict
         dict set ConditionDict [lindex [lindex $Groups $i] 1] $MyConditionList
     }
-    
+
     # Pressure_Load
     set Groups [GiD_Info conditions Pressure_Load groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -182,7 +180,7 @@ proc WriteMdpa { basename dir problemtypedir } {
 
     puts $FileVar ""
     puts $FileVar ""
-    
+
     ## SubModelParts
     # Body_Part
     WriteElementSubmodelPart FileVar Body_Part
@@ -201,11 +199,11 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteLoadSubmodelPart FileVar Surf_Load $TableDict $ConditionDict
     # Pressure_Load
     WriteLoadSubmodelPart FileVar Pressure_Load $TableDict $ConditionDict
-    
+
     close $FileVar
-    
+
     return $TableDict
 
- 
-    
+
+
 }

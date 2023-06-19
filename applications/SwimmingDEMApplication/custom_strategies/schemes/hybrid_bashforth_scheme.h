@@ -11,11 +11,11 @@
 #include <cfloat>
 
 // Project includes
-#include "../DEMApplication/custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "../DEMApplication/custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "utilities/quaternion.h"
 
 namespace Kratos {
@@ -50,7 +50,7 @@ namespace Kratos {
 
     void UpdateTranslationalVariables(
         int StepFlag,
-        Node < 3 > & i,
+        Node & i,
         array_1d<double, 3 >& coor,
         array_1d<double, 3 >& displ,
         array_1d<double, 3 >& delta_displ,

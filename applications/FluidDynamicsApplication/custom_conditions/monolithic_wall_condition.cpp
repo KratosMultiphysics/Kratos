@@ -236,7 +236,7 @@ void MonolithicWallCondition<TDim,TNumNodes>::CalculateOnIntegrationPoints(
 template <>
 void MonolithicWallCondition<2,2>::CalculateNormal(array_1d<double,3>& An)
 {
-    Geometry<Node<3> >& pGeometry = this->GetGeometry();
+    Geometry<Node >& pGeometry = this->GetGeometry();
 
     An[0] =   pGeometry[1].Y() - pGeometry[0].Y();
     An[1] = - (pGeometry[1].X() - pGeometry[0].X());
@@ -247,7 +247,7 @@ void MonolithicWallCondition<2,2>::CalculateNormal(array_1d<double,3>& An)
 template <>
 void MonolithicWallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
 {
-    Geometry<Node<3> >& pGeometry = this->GetGeometry();
+    Geometry<Node >& pGeometry = this->GetGeometry();
 
     array_1d<double,3> v1,v2;
     v1[0] = pGeometry[1].X() - pGeometry[0].X();
@@ -270,10 +270,10 @@ void MonolithicWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &
     {
         const unsigned int LocalSize = TDim+1;
         const GeometryType& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
         const unsigned int NumGauss = IntegrationPoints.size();
 
-        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        MatrixType NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         array_1d<double,3> Normal;
         this->CalculateNormal(Normal); //this already contains the area

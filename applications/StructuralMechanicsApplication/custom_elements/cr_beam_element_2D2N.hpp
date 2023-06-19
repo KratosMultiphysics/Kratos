@@ -3,16 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//  license:      structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(KRATOS_CR_BEAM_ELEMENT_2D2N_H_INCLUDED )
-#define  KRATOS_CR_BEAM_ELEMENT_2D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -34,7 +31,7 @@ namespace Kratos
  * @author Klaus B Sautter
  */
 
-class CrBeamElement2D2N : public Element
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CrBeamElement2D2N : public Element
 {
 protected:
     //const values
@@ -42,6 +39,13 @@ protected:
     static constexpr int msDimension = 2;
     static constexpr unsigned int msLocalSize = 3;
     static constexpr unsigned int msElementSize = msLocalSize * 2;
+
+    // stores the deformation modes
+    BoundedVector<double,msLocalSize> mDeformationForces = ZeroVector(msLocalSize);
+
+
+    // stores the globalized internal forces for calculation of the residual
+    Vector mInternalGlobalForces = ZeroVector(msElementSize);
 
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElement2D2N);
@@ -266,14 +270,9 @@ public:
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    const Parameters GetSpecifications() const override;
+
 private:
-
-    // stores the deformation modes
-    BoundedVector<double,msLocalSize> mDeformationForces = ZeroVector(msLocalSize);
-
-    // stores the globalized internal forces for calculation of the residual
-    Vector mInternalGlobalForces = ZeroVector(msElementSize);
-
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
@@ -282,5 +281,3 @@ private:
 };
 
 }
-
-#endif

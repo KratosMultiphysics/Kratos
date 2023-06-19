@@ -10,8 +10,7 @@
 //  Main authors:    Tobias Teschemacher
 //
 
-#if !defined(KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED )
-#define  KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -21,6 +20,7 @@
 #include "includes/variables.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_dimension.h"
+#include "utilities/integration_utilities.h"
 
 namespace Kratos
 {
@@ -87,7 +87,7 @@ public:
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             rIntegrationPoints,
             rShapeFunctionValues,
             rShapeFunctionsDerivativesVector)
@@ -104,7 +104,7 @@ public:
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             rIntegrationPoints,
             rShapeFunctionValues,
             rShapeFunctionsDerivativesVector)
@@ -146,7 +146,7 @@ public:
         , mGeometryData(
             &msGeometryDimension,
             GeometryShapeFunctionContainerType(
-                GeometryData::GI_GAUSS_1,
+                GeometryData::IntegrationMethod::GI_GAUSS_1,
                 ThisIntegrationPoint,
                 ThisShapeFunctionsValues,
                 ThisShapeFunctionsDerivatives))
@@ -164,7 +164,7 @@ public:
         , mGeometryData(
             &msGeometryDimension,
             GeometryShapeFunctionContainerType(
-                GeometryData::GI_GAUSS_1,
+                GeometryData::IntegrationMethod::GI_GAUSS_1,
                 ThisIntegrationPoint,
                 ThisShapeFunctionsValues,
                 ThisShapeFunctionsDerivatives))
@@ -173,36 +173,29 @@ public:
     }
 
     /// Constructor.
-    explicit QuadraturePointGeometry(
-        const PointsArrayType& ThisPoints)
-        : BaseType(ThisPoints, &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
-            {}, {}, {})
-    {
-    }
+    QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints) = delete;
 
     /// Constructor with Geometry Id
-    explicit QuadraturePointGeometry(
+    QuadraturePointGeometry(
         const IndexType GeometryId,
         const PointsArrayType& ThisPoints
     ) : BaseType( GeometryId, ThisPoints, &mGeometryData )
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             {}, {}, {})
     {
     }
 
     /// Constructor with Geometry Name
-    explicit QuadraturePointGeometry(
+    QuadraturePointGeometry(
         const std::string& GeometryName,
         const PointsArrayType& ThisPoints
     ) : BaseType( GeometryName, ThisPoints, &mGeometryData )
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             {}, {}, {})
     {
     }
@@ -280,7 +273,23 @@ public:
         p_geometry->SetData(rGeometry.GetData());
         return p_geometry;
     }
-    
+
+    ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            rOutput = this->IntegrationPoints()[0];
+            mpGeometryParent->Calculate(rVariable, rOutput);
+        }
+    }
+
     ///@}
     ///@name  Geometry Shape Function Container
     ///@{
@@ -329,15 +338,7 @@ public:
     /// Returns the domain size of this quadrature point.
     double DomainSize() const override
     {
-        Vector temp;
-        temp = this->DeterminantOfJacobian(temp);
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
-        double domain_size = 0.0;
-
-        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
-            domain_size += temp[i] * r_integration_points[i].Weight();
-        }
-        return domain_size;
+        return IntegrationUtilities::ComputeDomainSize(*this);
     }
 
     /**
@@ -518,6 +519,20 @@ public:
     }
 
     ///@}
+    ///@name Kratos Geometry Families
+    ///@{
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrature_Geometry;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -551,7 +566,7 @@ protected:
             &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             {}, {}, {})
     {
     }
@@ -597,12 +612,12 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values;
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients;
 
-        rSerializer.load("IntegrationPoints", integration_points[GeometryData::GI_GAUSS_1]);
-        rSerializer.load("ShapeFunctionsValues", shape_functions_values[GeometryData::GI_GAUSS_1]);
-        rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[GeometryData::GI_GAUSS_1]);
+        rSerializer.load("IntegrationPoints", integration_points[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
+        rSerializer.load("ShapeFunctionsValues", shape_functions_values[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
+        rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[static_cast<int>(GeometryData::IntegrationMethod::GI_GAUSS_1)]);
 
         mGeometryData.SetGeometryShapeFunctionContainer(GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
-            GeometryData::GI_GAUSS_1,
+            GeometryData::IntegrationMethod::GI_GAUSS_1,
             integration_points,
             shape_functions_values,
             shape_functions_local_gradients));
@@ -654,12 +669,9 @@ const GeometryDimension QuadraturePointGeometry<
     TWorkingSpaceDimension,
     TLocalSpaceDimension,
     TDimension>::msGeometryDimension(
-        TLocalSpaceDimension,
         TWorkingSpaceDimension,
         TLocalSpaceDimension);
 
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_QUADRATURE_POINT_GEOMETRY_H_INCLUDED  defined

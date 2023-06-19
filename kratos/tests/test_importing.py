@@ -41,11 +41,11 @@ class TestImporting(KratosUnittest.TestCase):
         self.assertTrue(KM.KratosGlobals.Kernel.IsImported("KratosMultiphysics"))
 
         try:
-            import KratosMultiphysics.ExternalSolversApplication
+            import KratosMultiphysics.LinearSolversApplication
         except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
+            self.skipTest("KratosMultiphysics.LinearSolversApplication is not available")
 
-        self.assertTrue(KM.KratosGlobals.Kernel.IsImported("ExternalSolversApplication"))
+        self.assertTrue(KM.KratosGlobals.Kernel.IsImported("LinearSolversApplication"))
 
     def test_variable_keys_reordering(self):
         key_vel_before_import = KM.VELOCITY.Key() # test a var from the Kernel

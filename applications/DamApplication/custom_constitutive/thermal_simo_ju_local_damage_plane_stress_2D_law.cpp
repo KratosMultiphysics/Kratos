@@ -37,7 +37,7 @@ ThermalSimoJuLocalDamagePlaneStress2DLaw::~ThermalSimoJuLocalDamagePlaneStress2D
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ThermalSimoJuLocalDamagePlaneStress2DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+int ThermalSimoJuLocalDamagePlaneStress2DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = ThermalLocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     if(ierr != 0) return ierr;

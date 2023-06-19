@@ -15,8 +15,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "../../applications/DEMApplication/custom_elements/spheric_particle.h"
-#include "../../applications/DEMApplication/custom_elements/nanoparticle.h"
+#include "custom_elements/spheric_particle.h"
+#include "custom_elements/nanoparticle.h"
 #include "custom_constitutive/hydrodynamic_interaction_law.h"
 #include "custom_constitutive/power_law_hydrodynamic_interaction_law.h"
 
@@ -29,7 +29,7 @@ namespace Kratos
     public:
 
       typedef std::size_t IndexType;
-      typedef Node <3> NodeType;
+      typedef Node NodeType;
       typedef Geometry<NodeType> GeometryType;
       typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
       typedef Properties PropertiesType;
@@ -78,7 +78,7 @@ namespace Kratos
                                    const ProcessInfo& rCurrentProcessInfo,
                                    const array_1d<double,3>& gravity) override;
 
-      std::vector<Node<3>::Pointer> mNeighbourNodes;
+      std::vector<Node::Pointer> mNeighbourNodes;
       std::vector<double> mNeighbourNodesDistances;
 
       /// Turn back information as a string.

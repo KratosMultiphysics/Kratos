@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -98,7 +98,7 @@ void BaseLoadCondition::EquationIdVector(
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
     const SizeType block_size = this->GetBlockSize();
-    if (rResult.size() != dim * number_of_nodes) {
+    if (rResult.size() != block_size * number_of_nodes) {
         rResult.resize(number_of_nodes * block_size, false);
     }
 
@@ -367,6 +367,38 @@ void BaseLoadCondition::AddExplicitContribution(
     }
 
     KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters BaseLoadCondition::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : [],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line2D2", "Line2D3", "Triangle3D3", "Triangle3D6", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        },
+        "required_polynomial_degree_of_geometry" : -1,
+        "documentation"   : "This is a pure displacement condition"
+    })");
+    return specifications;
 }
 
 /***********************************************************************************/

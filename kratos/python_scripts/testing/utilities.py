@@ -24,13 +24,10 @@ def ReadModelPart(mdpa_file_name, model_part, settings=None):
         mdpa_file_name (str): Name of the mdpa file (without ".mdpa" extension)
         model_part (Kratos.ModelPart): ModelPart to be filled
     """
-    if Kratos.DOMAIN_SIZE not in model_part.ProcessInfo:
-        raise Exception('"DOMAIN_SIZE" needs to be specified in ProcessInfo!')
-
     if model_part.NumberOfNodes() > 0:
         raise Exception("ModelPart must not contain Nodes!")
 
-    communicator = Kratos.DataCommunicator.GetDefault()
+    communicator = Kratos.Testing.GetDefaultDataCommunicator()
     if communicator.IsDistributed():
         ReadDistributedModelPart(mdpa_file_name, model_part, settings)
     else:

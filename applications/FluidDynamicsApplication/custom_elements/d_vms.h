@@ -59,8 +59,11 @@ public:
     /// Pointer definition of DVMS
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DVMS);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Base type definition
+    using BaseType = QSVMS<TElementData>;
+
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -93,11 +96,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = QSVMS<TElementData>::Dim;
-    constexpr static unsigned int NumNodes = QSVMS<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = QSVMS<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = QSVMS<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = QSVMS<TElementData>::StrainSize;
+    constexpr static unsigned int Dim = BaseType::Dim;
+    constexpr static unsigned int NumNodes = BaseType::NumNodes;
+    constexpr static unsigned int BlockSize = BaseType::BlockSize;
+    constexpr static unsigned int LocalSize = BaseType::LocalSize;
+    constexpr static unsigned int StrainSize = BaseType::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -195,13 +198,13 @@ public:
 
     /// Set up the element.
     /** Allocate the subscale velocity containers and let base class initialize the constitutive law */
-    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
+    virtual void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Update the values of tracked small scale quantities.
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Predict the value of the small scale velocity for the current iteration.
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -241,6 +244,8 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override;
@@ -298,13 +303,13 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
-    void AddMassLHS(
+    virtual void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
     // Implementation details of DVMS /////////////////////////////////////////
 
-    void AddMassStabilization(
+    virtual void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
 
@@ -317,18 +322,18 @@ protected:
         double &TauTwo,
         double &TauP) const;
 
-    void SubscaleVelocity(
+    virtual void SubscaleVelocity(
         const TElementData& rData,
         array_1d<double,3>& rVelocitySubscale) const override;
 
-    void SubscalePressure(
+    virtual void SubscalePressure(
         const TElementData& rData,
         double &rPressureSubscale) const override;
 
-    array_1d<double,3> FullConvectiveVelocity(
+    virtual array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const;
 
-    void UpdateSubscaleVelocityPrediction(
+    virtual void UpdateSubscaleVelocityPrediction(
         const TElementData& rData);
     ///@}
     ///@name Protected  Access

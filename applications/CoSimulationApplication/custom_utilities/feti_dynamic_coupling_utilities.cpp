@@ -13,6 +13,9 @@
 // System includes
 
 // External includes
+#ifdef KRATOS_SMP_OPENMP
+#include <omp.h>
+#endif
 
 // Project includes
 #include "feti_dynamic_coupling_utilities.h"
@@ -257,7 +260,7 @@ namespace Kratos
 
         DenseMatrixType temp(rInterfaceMP.NumberOfNodes() * dim, domain_dofs, 0.0);
 
-        block_for_each(rInterfaceMP.Nodes(), [&](const Node<3>& rNode)
+        block_for_each(rInterfaceMP.Nodes(), [&](const Node& rNode)
             {
                 IndexType interface_equation_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                 IndexType domain_equation_id = (is_implicit)
@@ -427,7 +430,7 @@ namespace Kratos
 
         if (IsImplicit)
         {
-            block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
+            block_for_each(pDomain->Nodes(), [&](Node& rNode)
                 {
                     IndexType equation_id = rNode.GetDof(DISPLACEMENT_X).EquationId();
                     array_1d<double, 3>& r_nodal_quantity = rNode.FastGetSolutionStepValue(rVariable);
@@ -438,7 +441,7 @@ namespace Kratos
         }
         else
         {
-            block_for_each(pDomain->Nodes(), [&](Node<3>& rNode)
+            block_for_each(pDomain->Nodes(), [&](Node& rNode)
                 {
                     if (rNode.Has(EXPLICIT_EQUATION_ID))
                     {
@@ -473,7 +476,7 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(r_slave_modelpart.NumberOfNodes() * dim == rLagrange.size())
             << "Trying to set Lagrange Multiplier results on the wrong domain!\n";
 
-        block_for_each(r_slave_modelpart.Nodes(), [&](Node<3>& rNode)
+        block_for_each(r_slave_modelpart.Nodes(), [&](Node& rNode)
             {
                 IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
 
@@ -508,7 +511,7 @@ namespace Kratos
             << "This is created by the mapper.\n";
 
         // Fill up container
-        block_for_each(rInterface.Nodes(), [&](Node<3>& rNode)
+        block_for_each(rInterface.Nodes(), [&](Node& rNode)
             {
                 IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                 array_1d<double, 3>& r_quantity = rNode.FastGetSolutionStepValue(rVariable);
@@ -538,7 +541,7 @@ namespace Kratos
             << "This is created by the mapper.\n";
 
         // Fill up container
-        block_for_each(rInterface.Nodes(), [&](Node<3>& rNode)
+        block_for_each(rInterface.Nodes(), [&](Node& rNode)
             {
                 IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                 rContainer[interface_id] = rNode.FastGetSolutionStepValue(rVariable);
@@ -692,8 +695,10 @@ namespace Kratos
         Parameters solver_parameters(mParameters["linear_solver_settings"]);
         if (!solver_parameters.Has("solver_type")) solver_parameters.AddString("solver_type", "skyline_lu_factorization");
 
+        #ifdef KRATOS_SMP_OPENMP
         const int omp_nest = omp_get_nested();
         omp_set_nested(0); // disable omp nesting, forces solvers to be serial
+        #endif
 
         IndexPartition<>(interface_dofs).for_each([&](SizeType i)
             {
@@ -707,7 +712,9 @@ namespace Kratos
             }
         );
 
+        #ifdef KRATOS_SMP_OPENMP
         omp_set_nested(omp_nest);
+        #endif
         rUnitResponse = SparseMatrixType(result);
 
         //auto end = std::chrono::system_clock::now();
@@ -745,7 +752,7 @@ namespace Kratos
 
             ModelPart& r_interface = (solverIndex == SolverIndex::Origin) ? mrOriginInterfaceModelPart : mrDestinationInterfaceModelPart;
 
-            block_for_each(r_interface.Nodes(), [&](Node<3>& rNode)
+            block_for_each(r_interface.Nodes(), [&](Node& rNode)
                 {
                     IndexType interface_id = rNode.GetValue(INTERFACE_EQUATION_ID);
                     array_1d<double, 3>& vel = rNode.FastGetSolutionStepValue(rVariable);
@@ -802,13 +809,13 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::SetEffectiveStiffnessMatrixImplicit(
-        SparseMatrixType& rK, const SolverIndex SolverIndex)
+        SparseMatrixType& rK, const SolverIndex iSolverIndex)
     {
-        if (SolverIndex == SolverIndex::Origin) mpKOrigin = &rK;
-        else if (SolverIndex == SolverIndex::Destination) mpKDestination = &rK;
+        if (iSolverIndex == SolverIndex::Origin) mpKOrigin = &rK;
+        else if (iSolverIndex == SolverIndex::Destination) mpKDestination = &rK;
         else KRATOS_ERROR << "SetEffectiveStiffnessMatrices, SolverIndex must be Origin or Destination";
 
-        this->SetEffectiveStiffnessMatrixExplicit(SolverIndex);
+        this->SetEffectiveStiffnessMatrixExplicit(iSolverIndex);
     };
 
     template<class TSparseSpace, class TDenseSpace>

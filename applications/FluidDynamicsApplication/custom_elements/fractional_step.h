@@ -70,8 +70,8 @@ namespace Kratos
         /// Pointer definition of FractionalStep
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FractionalStep);
 
-        /// Node type (default is: Node<3>)
-        typedef Node <3> NodeType;
+        /// Node type (default is: Node)
+        typedef Node NodeType;
 
         /// Geometry type (using with given NodeType)
         typedef Geometry<NodeType> GeometryType;
@@ -368,6 +368,8 @@ namespace Kratos
         ///@}
         ///@name Input and output
         ///@{
+
+        const Parameters GetSpecifications() const override;
 
         /// Turn back information as a string.
         std::string Info() const override
@@ -679,7 +681,7 @@ namespace Kratos
         void GetElementalValueForOutput(const Kratos::Variable<TValueType>& rVariable,
                                         std::vector<TValueType>& rOutput)
         {
-            unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
+            unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2);
             rOutput.resize(NumValues);
             /*
              The cast is done to avoid modification of the element's data. Data modification

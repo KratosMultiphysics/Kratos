@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +41,7 @@ namespace detail {
 template <class Backend>
 struct default_direct_solver {
     typedef typename Backend::value_type   real;
+    typedef typename math::scalar_of<real>::type scalar;
     typedef typename Backend::matrix       matrix;
     typedef typename builtin<real>::matrix host_matrix;
 
@@ -58,7 +59,7 @@ struct default_direct_solver {
 
     template <class Vec1, class Vec2>
     void operator()(const Vec1 &rhs, Vec2 &x) const {
-        backend::spmv(1, *Ainv, rhs, 0, x);
+        backend::spmv(math::identity<scalar>(), *Ainv, rhs, math::zero<scalar>(), x);
     }
 
     static size_t coarse_enough() { return 500; }

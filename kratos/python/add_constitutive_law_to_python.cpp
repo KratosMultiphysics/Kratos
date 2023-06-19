@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -19,19 +19,15 @@
 
 // Project includes
 #include "add_constitutive_law_to_python.h"
+
+#include "includes/properties.h"
 #include "includes/define_python.h"
 #include "includes/constitutive_law.h"
-#include "includes/node.h"
-#include "includes/variables.h"
-#include "includes/mesh.h"
-#include "includes/element.h"
-#include "includes/condition.h"
-#include "includes/properties.h"
+
+#include "containers/variable.h"
 
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -73,14 +69,14 @@ Flags GetLawOptions(ConstitutiveLaw::Parameters& rThisParameters){ return rThisP
 
 double GetDeterminantF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeterminantF();}
 
-Vector& GetStrainVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStrainVector();}
-Vector& GetStrainVector2(ConstitutiveLaw::Parameters& rThisParameters, Vector& strain){ return rThisParameters.GetStrainVector(strain);}
-Vector& GetStressVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStressVector();}
-Vector& GetStressVector2(ConstitutiveLaw::Parameters& rThisParameters, Vector& stress){ return rThisParameters.GetStressVector(stress);}
-Matrix& GetConstitutiveMatrix1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetConstitutiveMatrix();}
-Matrix& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& rThisParameters, Matrix& C){ return rThisParameters.GetConstitutiveMatrix(C);}
-const Matrix& GetDeformationGradientF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeformationGradientF();}
-Matrix& GetDeformationGradientF2(ConstitutiveLaw::Parameters& rThisParameters, Matrix& F){ return rThisParameters.GetDeformationGradientF(F);}
+ConstitutiveLaw::StrainVectorType& GetStrainVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStrainVector();}
+ConstitutiveLaw::StrainVectorType& GetStrainVector2(ConstitutiveLaw::Parameters& rThisParameters, ConstitutiveLaw::StrainVectorType& strain){ return rThisParameters.GetStrainVector(strain);}
+ConstitutiveLaw::StressVectorType& GetStressVector1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetStressVector();}
+ConstitutiveLaw::StressVectorType& GetStressVector2(ConstitutiveLaw::Parameters& rThisParameters, ConstitutiveLaw::StressVectorType& stress){ return rThisParameters.GetStressVector(stress);}
+ConstitutiveLaw::VoigtSizeMatrixType& GetConstitutiveMatrix1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetConstitutiveMatrix();}
+ConstitutiveLaw::VoigtSizeMatrixType& GetConstitutiveMatrix2(ConstitutiveLaw::Parameters& rThisParameters, ConstitutiveLaw::VoigtSizeMatrixType& C){ return rThisParameters.GetConstitutiveMatrix(C);}
+const ConstitutiveLaw::DeformationGradientMatrixType& GetDeformationGradientF1(ConstitutiveLaw::Parameters& rThisParameters){ return rThisParameters.GetDeformationGradientF();}
+ConstitutiveLaw::DeformationGradientMatrixType& GetDeformationGradientF2(ConstitutiveLaw::Parameters& rThisParameters, ConstitutiveLaw::DeformationGradientMatrixType& F){ return rThisParameters.GetDeformationGradientF(F);}
 
 ConstitutiveLaw::Pointer CreateWithoutProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters){ return rThisConstitutiveLaw.Create(NewParameters);}
 ConstitutiveLaw::Pointer CreateWithProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters, const Properties& rProperties){ return rThisConstitutiveLaw.Create(NewParameters, rProperties);}
@@ -245,5 +241,4 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     ;
 
 }
-}  // namespace Python.
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

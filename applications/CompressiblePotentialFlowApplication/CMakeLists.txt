@@ -18,6 +18,7 @@ file( GLOB_RECURSE KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_operations/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
@@ -77,3 +78,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosCompressiblePotentialFlowCore DESTINATION libs )
 install(TARGETS KratosCompressiblePotentialFlowApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCompressiblePotentialFlowCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosCompressiblePotentialFlowApplication" PARENT_SCOPE)

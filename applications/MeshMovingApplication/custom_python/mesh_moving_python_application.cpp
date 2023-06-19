@@ -36,7 +36,6 @@ PYBIND11_MODULE(KratosMeshMovingApplication,m) {
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
-
 }
 
 } // namespace Python.

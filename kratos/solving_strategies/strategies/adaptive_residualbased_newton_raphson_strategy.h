@@ -26,7 +26,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/matrix_market_interface.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 //default builder and solver
@@ -87,7 +87,7 @@ template<class TSparseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
 class AdaptiveResidualBasedNewtonRaphsonStrategy
-    : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     /**@name Type Definitions */
@@ -97,7 +97,9 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( AdaptiveResidualBasedNewtonRaphsonStrategy );
 
-    typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
+
+    typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
     typedef AdaptiveResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
 
@@ -215,7 +217,7 @@ public:
                                  new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(mpLinearSolver)
                              );
 
-        //set flags to start correcty the calculations
+        //set flags to start the calculations correctly
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -296,7 +298,7 @@ public:
         //setting up the default builder and solver
         mpBuilderAndSolver = pNewBuilderAndSolver;
 
-        //set flags to start correcty the calculations
+        //set flags to start the calculations correctly
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -373,9 +375,9 @@ public:
 
     //level of echo for the solving strategy
     // 0 -> mute... no echo at all
-    // 1 -> printing time and basic informations
+    // 1 -> printing time and basic information
     // 2 -> printing linear solver data
-    // 3 -> Print of debug informations:
+    // 3 -> Print of debug information:
     //		Echo of stiffness matrix, Dx, b...
     void SetEchoLevel(int Level) override
     {
@@ -391,7 +393,7 @@ public:
     * @param rModelPart The model part of the problem
     * @param ThisParameters The configuration parameters
     */
-    typename BaseType::Pointer Create(
+    typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
         ) const override
@@ -464,7 +466,7 @@ public:
             pBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
         }
 
-        //prints informations about the current time
+        //prints information about the current time
         if (this->GetEchoLevel()!=0)
         {
             std::cout << " " << std::endl;

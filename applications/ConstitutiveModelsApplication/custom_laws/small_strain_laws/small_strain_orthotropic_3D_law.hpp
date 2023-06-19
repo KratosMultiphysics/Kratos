@@ -91,7 +91,7 @@ namespace Kratos
       SizeType WorkingSpaceDimension() override { return 3; }
 
       /// Law Voigt Strain Size
-      SizeType GetStrainSize() override { return 6; }
+      SizeType GetStrainSize() const override { return 6; }
 
       /// Law Features
       void GetLawFeatures(Features& rFeatures) override
@@ -185,7 +185,7 @@ namespace Kratos
        */
       int Check(const Properties& rProperties,
 		const GeometryType& rElementGeometry,
-		const ProcessInfo& rCurrentProcessInfo) override
+		const ProcessInfo& rCurrentProcessInfo) const override
       {
 
 	if(YOUNG_MODULUS_X.Key() == 0 || !rProperties.Has(YOUNG_MODULUS_X))

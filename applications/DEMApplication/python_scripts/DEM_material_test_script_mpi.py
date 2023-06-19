@@ -132,7 +132,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
 
       if(math.fabs(self.total_check)!=2):
 
-        Logger.PrintInfo(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
+        Logger.PrintWarning(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
 
   def MeasureForcesAndPressure(self):
 
@@ -177,7 +177,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
       total_force_top_gath = mpi.allgather_double(mpi.world, total_force_top)
       total_force_top = reduce(lambda x, y: x + y, total_force_top_gath)
 
-      self.total_stress_top = total_force_top/(self.parameters.MeasuringSurface*1000000)
+      self.total_stress_top = total_force_top/(self.MeasuringSurface * 1000000)
 
       for node in self.bot_mesh_nodes:
 
@@ -188,7 +188,7 @@ class MaterialTest(DEM_material_test_script.MaterialTest):
       total_force_bot_gath = mpi.allgather_double(mpi.world, total_force_bot)
       total_force_bot = reduce(lambda x, y: x + y, total_force_bot_gath)
 
-      self.total_stress_bot = total_force_bot/(self.parameters.MeasuringSurface*1000000)
+      self.total_stress_bot = total_force_bot/(self.MeasuringSurface * 1000000)
       self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
 
       if( ( (self.parameters.TestType == "Triaxial") or (self.parameters.TestType == "Hydrostatic") ) and (self.parameters.ConfinementPressure != 0.0) ):

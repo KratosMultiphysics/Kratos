@@ -185,56 +185,6 @@ public:
     }
 
     /**
-     * @brief It initializes a non-linear iteration (for the element)
-     * @param rModelPart The model of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY;
-
-        // Initializes non-linear iteration for all of the elements, conditions and constraints
-        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
-
-        KRATOS_CATCH( "" );
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual condition)
-     * @param rCurrentConditiont The condition to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void InitializeNonLinearIteration(
-        Condition::Pointer rCurrentCondition,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        const auto& r_const_process_info = rCurrentProcessInfo;
-        (rCurrentCondition)->InitializeNonLinearIteration(r_const_process_info);
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual element)
-     * @param pCurrentElement The element to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void InitializeNonLinearIteration(
-        Element::Pointer pCurrentElement,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        const auto& r_const_process_info = rCurrentProcessInfo;
-        (pCurrentElement)->InitializeNonLinearIteration(r_const_process_info);
-    }
-
-    /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
      * @details It "asks" the matrix needed to the element and performs the operations needed to introduce the selected time integration scheme. This function calculates at the same time the contribution to the LHS and to the RHS of the system
      * @param rCurrentElement The element to compute

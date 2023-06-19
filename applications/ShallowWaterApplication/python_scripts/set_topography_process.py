@@ -18,16 +18,22 @@ class SetTopographyProcess(KM.Process):
                 "model_part_name"      : "please_specify_model_part_name",
                 "interval"             : [0.0, 1e30],
                 "constrained"          : false,
-                "value"                : "z",
+                "value"                : 0.0,
                 "set_mesh_z_to_zero"   : true
             }
             """
             )
+        if settings.Has("value"):
+            if settings["value"].IsString():
+                default_settings["value"].SetString("z")
         settings.ValidateAndAssignDefaults(default_settings)
         settings.AddEmptyValue("variable_name").SetString("TOPOGRAPHY")
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.depends_on_time = settings["value"].GetString().find('t') != -1
+        if settings["value"].IsString():
+            self.depends_on_time = settings["value"].GetString().find('t') != -1
+        else:
+            self.depends_on_time = False
         self.set_mesh_z_to_zero = settings["set_mesh_z_to_zero"].GetBool()
         process_settings = settings.Clone()
         process_settings.RemoveValue("set_mesh_z_to_zero")

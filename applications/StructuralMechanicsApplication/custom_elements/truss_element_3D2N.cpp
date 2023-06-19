@@ -3,12 +3,10 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
 // System includes
@@ -188,7 +186,7 @@ TrussElement3D2N::CalculateBodyForces()
     KRATOS_TRY
     // getting shapefunctionvalues
     const Matrix& Ncontainer =
-        GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     // creating necessary values
     const double A = GetProperties()[CROSS_AREA];
@@ -418,6 +416,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
+
     if (rVariable == TRUSS_PRESTRESS_PK2) {
         rOutput[0] = 0.00;
         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
@@ -442,6 +441,7 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
     if (rOutput.size() != integration_points.size()) {
         rOutput.resize(integration_points.size());
     }
+
     if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         Vector strain = ZeroVector(msDimension);
         strain[0] = CalculateGreenLagrangeStrain();
@@ -979,6 +979,36 @@ bool TrussElement3D2N::HasSelfWeight() const
     } else {
         return true;
     }
+}
+
+const Parameters TrussElement3D2N::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : ["DISPLACEMENT","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line3D2"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["TrussConstitutiveLaw"],
+            "dimension"   : ["3D"],
+            "strain_size" : [1]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This elements implements a non-linear truss formulation."
+    })");
+
+    return specifications;
 }
 
 void TrussElement3D2N::CalculateLumpedMassVector(

@@ -23,7 +23,7 @@
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
 
-#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_FIC_element.h"
 
 namespace Kratos
 {
@@ -54,7 +54,7 @@ namespace Kratos
   /**
    */
   template <unsigned int TDim>
-  class TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement : public TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>
+  class TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement : public TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim>
   {
 
   public:
@@ -65,10 +65,10 @@ namespace Kratos
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement);
 
     ///base type:
-    typedef TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim> BaseType;
+    typedef TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -107,7 +107,7 @@ namespace Kratos
 
     typedef typename BaseType::ElementalVariables ElementalVariables;
 
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -185,12 +185,12 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override {};
 
     /// Initializes the element and all geometric information required for the problem.
-    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override{};
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
                                const ProcessInfo &rCurrentProcessInfo) override

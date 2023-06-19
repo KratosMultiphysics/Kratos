@@ -30,7 +30,7 @@ namespace Kratos
 /** This class implements the flags needed in the IGAApplication.
 * Some of them are exposed to Python
 */
-class IgaFlags
+class KRATOS_API(IGA_APPLICATION) IgaFlags
 {
 public:
     ///@name Type Definitions

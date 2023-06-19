@@ -1,116 +1,119 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
+from KratosMultiphysics.ShallowWaterApplication.utilities.wave_factory import WaveTheoryFactory
+
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return WaveGeneratorProcess(Model, settings["Parameters"])
 
-## All the processes python should be derived from "Process"
+
 class WaveGeneratorProcess(KM.Process):
 
-    __formulation = {
-        # Json input
-        "primitive_variables" : SW.Formulation.PrimitiveVariables,
-        "conserved_variables" : SW.Formulation.ConservativeVariables
-    }
+    @staticmethod
+    def GetDefaultParameters():
+        """Default parameters for wave generator process.
 
-    __variables = {
-        # Json input
-        "free_surface" : SW.Variables.FreeSurfaceVariable,
-        "velocity" : SW.Variables.VelocityVariable,
-        "free_surface_and_velocity" : SW.Variables.FreeSurfaceAndVelocity
-    }
+        A zero value in the wave specifications will be ignored.
+        The direction can be specified with a vector or the 'normal' keyword. If the direction is missing,
+        it will be taken as the normal to the boundary.
+        """
+        return KM.Parameters("""{
+            "model_part_name"          : "model_part",
+            "interval"                 : [0.0, "End"],
+            "direction"                : [0.0, 0.0, 0.0],
+            "normal_positive_outwards" : true,
+            "smooth_time"              : 0.0,
+            "wave_specifications"      : {
+                "wave_theory"               : "boussinesq",
+                "period"                    : 0.0,
+                "wavelength"                : 0.0,
+                "amplitude"                 : 0.0,
+                "get_depth_from_model_part" : true
+            }
+        }""")
+
 
     def __init__(self, model, settings ):
+        """"""
         KM.Process.__init__(self)
 
-        ## Settings string in json format
-        default_parameters = KM.Parameters("""
-        {
-            "model_part_name"   : "model_part",
-            "formulation"       : "reduced_variables",
-            "variables"         : "free_surface",
-            "interval"          : [0.0, 1e30],
-            "wave_length"       : 10.0,
-            "wave_period"       : 10.0,
-            "wave_height"       : 1.0
-        }
-        """)
+        # Check if the direction is specified by 'normal'
+        self.settings = settings
+        self.direction_by_normal = False
+        if self.settings.Has("direction"):
+            if self.settings["direction"].IsString():
+                if self.settings["direction"].GetString() == "normal":
+                    self.settings["direction"].SetVector(KM.Vector(3))
+                    self.direction_by_normal = True
+        else:
+            self.direction_by_normal = True
 
         # Overwrite the default settings with user-provided parameters
-        settings.ValidateAndAssignDefaults(default_parameters)
+        self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.model_part = model[settings["model_part_name"].GetString()]
-        self.interval = KM.IntervalUtility(settings)
-        self.formulation = self.__formulation[settings["formulation"].GetString()]
-        self.variables = self.__variables[settings["variables"].GetString()]
-        self.fix_dofs = True
+        # Get the custom settings
+        self.model_part = model[self.settings["model_part_name"].GetString()]
+        self.interval = KM.IntervalUtility(self.settings)
+        variables_names_list = KM.SpecificationsUtilities.GetDofsListFromConditionsSpecifications(self.model_part)
+        self.variables_to_fix = []
+        self.compute_momentum = False
+        for variable_name in variables_names_list:
+            if variable_name.startswith("VELOCITY") or variable_name.startswith("MOMENTUM"):
+                variable = KM.KratosGlobals.GetVariable(variable_name)
+                self.variables_to_fix.append(variable)
+            if variable_name.startswith("MOMENTUM"):
+                self.compute_momentum = True
 
-        # Definition of pi number
-        import math
 
-        # Wave parameters
-        wave_height = settings["wave_height"].GetDouble()
-        wave_period = settings["wave_period"].GetDouble()
-        wave_length = settings["wave_length"].GetDouble()
+    def ExecuteInitialize(self):
+        """Initialize the wave theory and the periodic function."""
+
+        # Check the direction
+        if self.direction_by_normal:
+            direction = self._CalculateUnitNormal()
+            if self.settings["normal_positive_outwards"].GetBool():
+                direction *= -1
+            self.settings["direction"].SetVector(direction)
+
+        # Setup the wave theory
+        wave_settings = self.settings["wave_specifications"]
+        wave_theory = WaveTheoryFactory(self.model_part, wave_settings)
 
         # Creation of the parameters for the c++ process
-        free_surface_parameters = KM.Parameters("""{}""")
-        free_surface_parameters.AddEmptyValue("amplitude").SetDouble(0.5 * wave_height)
-        free_surface_parameters.AddEmptyValue("period").SetDouble(wave_period)
-        free_surface_parameters.AddEmptyValue("phase_shift").SetDouble(0.0)
-        free_surface_parameters.AddEmptyValue("vertical_shift").SetDouble(0.0)
-
         velocity_parameters = KM.Parameters("""{}""")
-        velocity_parameters.AddEmptyValue("amplitude").SetDouble(math.pi * wave_height / wave_period)
-        velocity_parameters.AddEmptyValue("period").SetDouble(wave_period)
-        velocity_parameters.AddEmptyValue("phase_shift").SetDouble(wave_period / 4)
-        velocity_parameters.AddEmptyValue("vertical_shift").SetDouble(0.0)
-
-        if self.variables == SW.Variables.VelocityVariable:
-            velocity_parameters.AddEmptyValue("phase_shift").SetDouble(0.0)
-
-        self.free_surface_process = SW.ApplySinusoidalFunctionToScalar(self.model_part, SW.FREE_SURFACE_ELEVATION, free_surface_parameters)
+        velocity_parameters.AddDouble("amplitude", wave_theory.horizontal_velocity)
+        velocity_parameters.AddDouble("wavelength", wave_theory.wavelength)
+        velocity_parameters.AddDouble("period", wave_theory.period)
+        velocity_parameters.AddValue("phase", self.settings["wave_specifications"]["t_shift"])
+        velocity_parameters.AddValue("shift", self.settings["wave_specifications"]["x_shift"])
+        velocity_parameters.AddValue("direction", self.settings["direction"])
+        velocity_parameters.AddValue("smooth_time", self.settings["smooth_time"])
+        velocity_parameters.AddValue("smooth_time_centers", self.settings["interval"])
         self.velocity_process = SW.ApplySinusoidalFunctionToVector(self.model_part, KM.VELOCITY, velocity_parameters)
 
-        KM.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KM.DOMAIN_SIZE])
-        SW.ShallowWaterUtilities().NormalizeVector(self.model_part, KM.NORMAL)
+
+    def Check(self):
+        self.velocity_process.Check()
+
 
     def ExecuteInitializeSolutionStep(self):
         if self._IsInInterval():
-            set_free_surface = self.variables == SW.Variables.FreeSurfaceVariable or self.variables == SW.Variables.FreeSurfaceAndVelocity
-            set_velocity = self.variables == SW.Variables.VelocityVariable or self.variables == SW.Variables.FreeSurfaceAndVelocity
-
-            # Set the free surface if needed
-            if set_free_surface:
-                self.free_surface_process.ExecuteInitializeSolutionStep()
-            
-            # Set the velocity if needed
-            if set_velocity:
-                self.velocity_process.ExecuteInitializeSolutionStep()
-            
-            # Compute the free surface
-            SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
-
-            # Compute the momentum if needed
-            if self.formulation == SW.Formulation.ConservativeVariables and set_velocity:
+            self.velocity_process.ExecuteInitializeSolutionStep()
+            if self.compute_momentum:
                 SW.ShallowWaterUtilities().ComputeMomentum(self.model_part)
+            for variable in self.variables_to_fix:
+                KM.VariableUtils().ApplyFixity(variable, True, self.model_part.Nodes)
 
-            # Fix the free surface if needed
-            if self.fix_dofs and self.variables == set_free_surface:
-                KM.VariableUtils().ApplyFixity(SW.HEIGHT, True, self.model_part.Nodes)
-            
-            # Fix the velocity or the momentum if needed
-            if self.fix_dofs and self.variables == set_velocity:
-                if self.formulation == SW.Formulation.PrimitiveVariables:
-                    KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, True, self.model_part.Nodes)
-                    KM.VariableUtils().ApplyFixity(KM.VELOCITY_Y, True, self.model_part.Nodes)
-                if self.formulation == SW.Formulation.ConservativeVariables:
-                    KM.VariableUtils().ApplyFixity(KM.MOMENTUM_X, True, self.model_part.Nodes)
-                    KM.VariableUtils().ApplyFixity(KM.MOMENTUM_Y, True, self.model_part.Nodes)
 
     def _IsInInterval(self):
-        """ Returns if we are inside the time interval or not """
+        """Returns if we are inside the time interval or not."""
         current_time = self.model_part.ProcessInfo[KM.TIME]
         return self.interval.IsInInterval(current_time)
+
+
+    def _CalculateUnitNormal(self):
+        geometry = self.model_part.Conditions.__iter__().__next__().GetGeometry()
+        normal = geometry.UnitNormal()
+        return normal

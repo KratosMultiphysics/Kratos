@@ -10,7 +10,7 @@
 #include "includes/kratos_flags.h"
 #include "swimming_DEM_application.h"
 #include "swimming_particle.h"
-#include "../applications/DEMApplication/custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos
 {
@@ -29,6 +29,7 @@ SwimmingParticle<TBaseElement>& SwimmingParticle<TBaseElement>::operator=(const 
     mSphericity = rOther.mSphericity;
     mNormOfSlipVel = rOther.mNormOfSlipVel;
     noalias(mSlipVel) = rOther.mSlipVel;
+    mHydrodynamicInteractionLaw = rOther.mHydrodynamicInteractionLaw->Clone();
 
     return *this;
 }
@@ -70,7 +71,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
     array_1d<double, 3> vorticity_induced_lift = ZeroVector(3);
     array_1d<double, 3> rotation_induced_lift = ZeroVector(3);
     array_1d<double, 3> steady_viscous_torque = ZeroVector(3);
-    Geometry<Node<3> >& r_geometry = GetGeometry();
+    Geometry<Node >& r_geometry = GetGeometry();
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by non_contact_force here
@@ -84,7 +85,7 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                       buoyancy,
                                                       r_current_process_info);
 
-    mHydrodynamicInteractionLaw->ComputeDragForce(r_geometry,
+    mHydrodynamicInteractionLaw->ComputeDragForce(this,
                                                   mRadius,
                                                   mFluidDensity,
                                                   mKinematicViscosity,

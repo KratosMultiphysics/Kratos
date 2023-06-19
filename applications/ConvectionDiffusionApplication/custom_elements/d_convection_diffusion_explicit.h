@@ -55,6 +55,7 @@ namespace Kratos
  * $ f $ the forcing term.
  * Dynamic algebraic subgrid scale and dynamic orthogonal subgrid scale methods are exploited for stabilization.
  * The element is designed to use an explicit integration method.
+ * The formulation is described in https://github.com/KratosMultiphysics/Documentation/blob/master/Resources_files/convection_diffusion_explicit_elements/Eulerian_convection_diffusion_explicit_element.pdf
  * @author Riccardo Tosi
  */
 template< unsigned int TDim, unsigned int TNumNodes>
@@ -66,7 +67,7 @@ public:
 
         typedef QSConvectionDiffusionExplicit<TDim,TNumNodes> BaseType;
         typedef typename BaseType::ElementData ElementData;
-        typedef Node < 3 > NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
         typedef Vector VectorType;

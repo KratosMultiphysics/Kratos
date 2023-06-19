@@ -1,11 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher
 //                   Vicente Mataix Ferrandiz
@@ -308,6 +307,39 @@ double CalculateCurrentLength3D2N(const Element& rElement)
     return l;
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void InitialCheckLocalAxes(
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3,
+    const double Tolerance
+    )
+{
+    if (MathUtils<double>::Norm3(rv1) > 1.0 + Tolerance ||
+        MathUtils<double>::Norm3(rv2) > 1.0 + Tolerance ||
+        MathUtils<double>::Norm3(rv3) > 1.0 + Tolerance) {
+            KRATOS_ERROR << "The norm of one of the LOCAL_AXIS is greater than 1.0!" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildRotationMatrix(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3
+    )
+{
+    rRotationMatrix(0, 0) = rv1[0]; rRotationMatrix(0, 1) = rv1[1]; rRotationMatrix(0, 2) = rv1[2];
+    rRotationMatrix(1, 0) = rv2[0]; rRotationMatrix(1, 1) = rv2[1]; rRotationMatrix(1, 2) = rv2[2];
+    rRotationMatrix(2, 0) = rv3[0]; rRotationMatrix(2, 1) = rv3[1]; rRotationMatrix(2, 2) = rv3[2];
+
 }
 
 } // namespace StructuralMechanicsElementUtilities.

@@ -1,25 +1,22 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license:
-//kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B Sautter
 //  Based on : "An accurate two‐stage explicit time integration scheme for structural dynamics and various dynamic problems" - Wooram Kim
 //
 
-#if !defined(KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED)
-#define KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/explicit_integration_utilities.h"
@@ -234,42 +231,6 @@ public:
     }
 
     /**
-     * @brief It initializes the non-linear iteration
-     * @param rModelPart The model of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     * @todo I cannot find the formula for the higher orders with variable time step. I tried to deduce by myself but the result was very unstable
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY;
-
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-        #pragma omp parallel for schedule(guided,512)
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-        #pragma omp parallel for schedule(guided,512)
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_elem = it_cond_begin + i;
-            it_elem->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        KRATOS_CATCH( "" );
-    }
-
-    /**
      * @brief This method initializes the residual in the nodes of the model part
      * @param rModelPart The model of the problem to solve
      */
@@ -280,7 +241,7 @@ public:
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        // Auxiliar values
+        // Auxiliary values
         const Double3DArray zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVariable(FORCE_RESIDUAL, zero_array,r_nodes);
@@ -600,7 +561,7 @@ public:
         // The fisrt node interator
         const auto it_node_begin = rModelPart.NodesBegin();
 
-        // Auxiliar zero array
+        // Auxiliary zero array
         const Double3DArray zero_array = ZeroVector(3);
 
         // If we consider the rotation DoF
@@ -1006,5 +967,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_MULTI_STAGE_KIM_SCHEME_HPP_INCLUDED  defined */

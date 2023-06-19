@@ -47,17 +47,17 @@ namespace Kratos
             if(rParameters["force_settings"]["value"][i].IsNull()) {
                 mForceValueIsNumeric[i] = true;
                 mForceValues[i] = 0.0;
-                mForceFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                mForceFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
             }
             else {
                 if(rParameters["force_settings"]["value"][i].IsNumber()) {
                     mForceValueIsNumeric[i] = true;
                     mForceValues[i] = rParameters["force_settings"]["value"][i].GetDouble();
-                    mForceFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                    mForceFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
                 }
                 else {
                     mForceValueIsNumeric[i] = false;
-                    mForceFunctions.push_back(PythonGenericFunctionUtility(rParameters["force_settings"]["value"][i].GetString()));
+                    mForceFunctions.push_back(GenericFunctionUtility(rParameters["force_settings"]["value"][i].GetString()));
                 }
             }
 
@@ -72,17 +72,17 @@ namespace Kratos
             if(rParameters["moment_settings"]["value"][i].IsNull()) {
                 mMomentValueIsNumeric[i] = true;
                 mMomentValues[i] = 0.0;
-                mMomentFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                mMomentFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
             }
             else {
                 if(rParameters["moment_settings"]["value"][i].IsNumber()) {
                     mMomentValueIsNumeric[i] = true;
                     mMomentValues[i] = rParameters["moment_settings"]["value"][i].GetDouble();
-                    mMomentFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                    mMomentFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
                 }
                 else {
                     mMomentValueIsNumeric[i] = false;
-                    mMomentFunctions.push_back(PythonGenericFunctionUtility(rParameters["moment_settings"]["value"][i].GetString()));
+                    mMomentFunctions.push_back(GenericFunctionUtility(rParameters["moment_settings"]["value"][i].GetString()));
                 }
             }
 

@@ -82,7 +82,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
   struct dof_iterator_hash
   {
-    size_t operator()(const Node<3>::DofType::Pointer& it) const
+    size_t operator()(const Node::DofType::Pointer& it) const
     {
       std::size_t seed = 0;
       HashCombine(seed, it->Id());
@@ -93,7 +93,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
   struct dof_iterator_equal
   {
-    size_t operator()(const Node<3>::DofType::Pointer& it1, const Node<3>::DofType::Pointer& it2) const
+    size_t operator()(const Node::DofType::Pointer& it1, const Node::DofType::Pointer& it2) const
     {
       return (((it1->Id() == it2->Id() && (it1->GetVariable()).Key()) == (it2->GetVariable()).Key()));
     }
@@ -296,7 +296,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     Element::EquationIdVectorType EquationId;
 
     // assemble all elements
-    double start_build = OpenMPUtils::GetCurrentTime();
+    // double start_build = OpenMPUtils::GetCurrentTime();
 
 #pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, EquationId )
     {
@@ -357,9 +357,9 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
       }
     }
 
-    double stop_build = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("parallel_build_time") << stop_build - start_build << std::endl;
+    // double stop_build = OpenMPUtils::GetCurrentTime();
+    // if (this->mEchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0)
+    //   KRATOS_INFO("parallel_build_time") << stop_build - start_build << std::endl;
 
     if (this->mEchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0){
       KRATOS_INFO("parallel_build") << "finished" << std::endl;
@@ -414,12 +414,12 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
   {
     KRATOS_TRY
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
     Build(pScheme, rModelPart, rA, rb);
-    double end_time = OpenMPUtils::GetCurrentTime();
+    // double end_time = OpenMPUtils::GetCurrentTime();
 
-    if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_build_time") << end_time - begin_time << std::endl;
+    // if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+    //   KRATOS_INFO("system_build_time") << end_time - begin_time << std::endl;
 
     ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
@@ -430,13 +430,13 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
       KRATOS_INFO("RHS before solve") << "Vector = " << rb << std::endl;
     }
 
-    begin_time = OpenMPUtils::GetCurrentTime();
+    // begin_time = OpenMPUtils::GetCurrentTime();
     SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
-    end_time = OpenMPUtils::GetCurrentTime();
+    // end_time = OpenMPUtils::GetCurrentTime();
 
 
-    if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_solve_time") << end_time - begin_time << std::endl;
+    // if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+    //   KRATOS_INFO("system_solve_time") << end_time - begin_time << std::endl;
 
     if (this->mEchoLevel == 3)
     {
@@ -504,12 +504,12 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-    unsigned int nthreads = OpenMPUtils::GetNumThreads();
+    unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
 #ifdef USE_GOOGLE_HASH
-    typedef google::dense_hash_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
+    typedef google::dense_hash_set < Node::DofType::Pointer, dof_iterator_hash>  set_type;
 #else
-    typedef std::unordered_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
+    typedef std::unordered_set < Node::DofType::Pointer, dof_iterator_hash>  set_type;
 #endif
 
     std::vector<set_type> dofs_aux_list(nthreads);
@@ -522,7 +522,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     for (int i = 0; i < static_cast<int>(nthreads); i++)
     {
 #ifdef USE_GOOGLE_HASH
-      dofs_aux_list[i].set_empty_key(Node<3>::DofType::Pointer());
+      dofs_aux_list[i].set_empty_key(Node::DofType::Pointer());
 #else
       dofs_aux_list[i].reserve(nelements);
 #endif
@@ -948,7 +948,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
                                         ProcessInfo& rCurrentProcessInfo)
   {
     //filling with zero the matrix (creating the structure)
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     const std::size_t equation_size = this->mEquationSystemSize;
 
@@ -1063,9 +1063,9 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
     rA.set_filled(indices.size() + 1, nnz);
 
-    double end_time = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel >= 2)
-      KRATOS_INFO("BlockBuilderAndSolver") << "construct matrix structure time:" << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    // double end_time = OpenMPUtils::GetCurrentTime();
+    // if (this->mEchoLevel >= 2)
+    //   KRATOS_INFO("BlockBuilderAndSolver") << "construct matrix structure time:" << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
 
   }
 

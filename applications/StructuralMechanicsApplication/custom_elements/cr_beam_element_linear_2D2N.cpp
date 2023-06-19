@@ -3,13 +3,12 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//  license: 	 structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
+//  Main authors:    Klaus B. Sautter
 //
-//
-//
+
 // System includes
 
 // External includes
@@ -147,7 +146,7 @@ void CrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
     KRATOS_TRY
     // element with two nodes can only represent results at one node
     const unsigned int& write_points_number =
-        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+        GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
     }

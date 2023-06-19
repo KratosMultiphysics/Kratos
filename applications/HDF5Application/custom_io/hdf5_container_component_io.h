@@ -41,7 +41,7 @@ namespace HDF5
 
 /// A class for IO of element data in HDF5.
 template <typename TContainerType, typename TContainerItemType, typename... TComponents>
-class ContainerComponentIO
+class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO
 {
 public:
     ///@name Type Definitions
@@ -64,6 +64,16 @@ public:
     ///@}
 
 protected:
+    ///@name Protected Member Variables
+    ///@{
+
+    File::Pointer mpFile;
+
+    std::vector<std::string> mComponentNames;
+
+    std::string mComponentPath;
+
+    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -74,12 +84,6 @@ protected:
     ///@}
 
 private:
-    ///@name Member Variables
-    ///@{
-    File::Pointer mpFile;
-    std::string mComponentPath;
-    std::vector<std::string> mComponentNames;
-    ///@}
     ///@name Private Operations
     ///@{
 
@@ -92,6 +96,7 @@ private:
     ///@}
 
 }; // class ContainerComponentIO.
+
 
 ///@} // Kratos Classes
 ///@} addtogroup

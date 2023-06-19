@@ -3,21 +3,20 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main author:    Manuel Messmer
+//  Main author:     Manuel Messmer
 //
 
-#if !defined(KRATOS_PREBUCKLING_STRATEGY)
-#define KRATOS_PREBUCKLING_STRATEGY
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
 
 // Application includes
@@ -55,7 +54,7 @@ template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver>
 class PrebucklingStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -63,8 +62,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PrebucklingStrategy);
 
-    // Base class definition
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     /// Definition of the current scheme
     typedef PrebucklingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
@@ -965,5 +963,3 @@ private:
 ///@}
 
 } /* namespace Kratos */
-
-#endif /* KRATOS_EIGENSOLVER_STRATEGY  defined */

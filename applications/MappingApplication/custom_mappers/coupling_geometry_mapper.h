@@ -4,24 +4,22 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
 //                   Tobias Teschemachen
 //
 
-#if !defined(KRATOS_COUPLING_GEOMETRY_MAPPER_H_INCLUDED)
-#define  KRATOS_COUPLING_GEOMETRY_MAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "mapper.h"
+#include "mappers/mapper.h"
 #include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
 #include "custom_utilities/mapping_intersection_utilities.h"
@@ -68,7 +66,7 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string PairingInfo(const int EchoLevel) const override;
+    void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override {KRATOS_ERROR << "Not implemented!"<<std::endl;}
 
 private:
     GeometryPointerType mpGeom;
@@ -383,5 +381,3 @@ private:
 
 ///@} addtogroup block
 }  // namespace Kratos.
-
-#endif // KRATOS_COUPLING_GEOMETRY_MAPPER_H_INCLUDED defined

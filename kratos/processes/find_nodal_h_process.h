@@ -4,16 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
 
-#if !defined(KRATOS_FIND_NODAL_H_PROCESS_INCLUDED )
-#define  KRATOS_FIND_NODAL_H_PROCESS_INCLUDED
+#pragma once
 
 // System includes
 
@@ -79,7 +78,7 @@ public:
     typedef std::size_t SizeType;
 
     /// The definition of the node
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The definition of the node iterator
     typedef ModelPart::NodeIterator NodeIterator;
@@ -119,11 +118,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -150,12 +147,10 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -178,38 +173,13 @@ private:
      */
     double& GetHValue(NodeType& rNode);
 
-    /**
-     * @brief This method sets the current value of the NODAL_H to the given one
-     * @param rNode The node iterator to be get
-     * @param Value The current value of NODAL_H
-     */
-    void SetHValue(
-        NodeType& rNode,
-        const double Value
-        );
-
-    /**
-     * @brief This method sets the current value of the NODAL_H to the maximum
-     * @param itNode The node iterator to be set
-     */
-    void SetInitialValue(NodeIterator itNode);
-
-    /**
-     * @brief NODAL_H synchornization
-     * In parallel runs, this method does the synchronization to the minimum
-     * NODAL_H value between processes.
-     */
-    void SynchronizeValues();
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -252,7 +222,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_FIND_NODAL_H_PROCESS_INCLUDED  defined

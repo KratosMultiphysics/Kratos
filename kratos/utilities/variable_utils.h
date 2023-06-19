@@ -4,29 +4,27 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Ruben Zorrilla
 //                   Vicente Mataix Ferrandiz
 //
-//
 
-#if !defined(KRATOS_VARIABLE_UTILS )
-#define  KRATOS_VARIABLE_UTILS
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
-
+#include "utilities/reduction_utilities.h"
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -117,15 +115,18 @@ public:
      * @param rDestinationVariable reference to the variable to be set
      * @param rOriginModelPart origin model part from where the values are retrieved
      * @param rDestinationModelPart destination model part to where the values are copied to
-     * @param BuffStep buffer step
+     * @param ReadBufferStep origin buffer step
+     * @param WriteBufferStep destination buffer step
+     *
      */
-    template< class TVarType >
+    template <class TVarType>
     void CopyModelPartNodalVar(
-        const TVarType& rVariable,
-        const TVarType& rDestinationVariable,
-        const ModelPart& rOriginModelPart,
-        ModelPart& rDestinationModelPart,
-        const unsigned int BuffStep = 0)
+        const TVarType &rVariable,
+        const TVarType &rDestinationVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int ReadBufferStep,
+        const unsigned int WriteBufferStep )
     {
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
@@ -135,14 +136,35 @@ public:
             << "\n\t- Number of origin nodes: " << n_orig_nodes
             << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
-        IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
+        IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index)
+                                                           {
             auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
             const auto it_orig_node = rOriginModelPart.NodesBegin() + index;
-            const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
-            it_dest_node->FastGetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
-        });
+            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, ReadBufferStep);
+            it_dest_node->FastGetSolutionStepValue(rDestinationVariable, WriteBufferStep) = r_value; });
 
         rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
+    }
+
+    /**
+     * @brief Copies the nodal value of a variable from an origin model
+     * part nodes to the nodes in a destination model part. It is assumed that
+     * both origin and destination model parts have the same number of nodes.
+     * @param rVariable reference to the variable to get the value from
+     * @param rDestinationVariable reference to the variable to be set
+     * @param rOriginModelPart origin model part from where the values are retrieved
+     * @param rDestinationModelPart destination model part to where the values are copied to
+     * @param BuffStep buffer step
+     */
+    template <class TVarType>
+    void CopyModelPartNodalVar(
+        const TVarType &rVariable,
+        const TVarType &rDestinationVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int BuffStep = 0)
+    {
+        this->CopyModelPartNodalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep, BuffStep);
     }
 
     /**
@@ -650,13 +672,13 @@ public:
     void SetVariable(
         const TVarType& rVariable,
         const TDataType& rValue,
-        NodesContainerType& rNodes
-        )
+        NodesContainerType& rNodes,
+        const unsigned int Step = 0)
     {
         KRATOS_TRY
 
-        block_for_each(rNodes, [&](Node<3>& rNode) {
-            rNode.FastGetSolutionStepValue(rVariable) = rValue;
+        block_for_each(rNodes, [&](Node& rNode) {
+            rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
         });
 
         KRATOS_CATCH("")
@@ -682,7 +704,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodes, [&](Node<3>& rNode){
+        block_for_each(rNodes, [&](Node& rNode){
             if(rNode.Is(Flag) == CheckValue){
                 rNode.FastGetSolutionStepValue(rVariable) = rValue;}
         });
@@ -706,6 +728,24 @@ public:
     }
 
     /**
+     * @brief Set the Non Historical Variables To Zero
+     * This method sets the provided list of variables to zero in the non-historical database
+     * @tparam TContainerType Container type (nodes, elements or conditions)
+     * @tparam TVariableArgs Variadic template argument representing the variables types
+     * @param rContainer Container to be initialized to zero
+     * @param rVariableArgs Variables to be set to zero
+     */
+    template<class TContainerType, class... TVariableArgs>
+    static void SetNonHistoricalVariablesToZero(
+        TContainerType& rContainer,
+        const TVariableArgs&... rVariableArgs)
+    {
+        block_for_each(rContainer, [&](auto& rEntity){
+            (rEntity.SetValue(rVariableArgs, rVariableArgs.Zero()), ...);
+        });
+    }
+
+    /**
      * @brief Sets the nodal value of any variable to zero
      * @param rVariable reference to the scalar variable to be set
      * @param rNodes reference to the objective node set
@@ -718,6 +758,23 @@ public:
         KRATOS_TRY
         this->SetVariable(rVariable, rVariable.Zero(), rNodes);
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Set the Historical Variables To Zero
+     * This method sets the provided list of variables to zero in the nodal historical database
+     * @tparam TVariableArgs Variadic template argument representing the variables types
+     * @param rNodes Nodes container to be initialized to zero
+     * @param rVariableArgs Variables to be set to zero
+     */
+    template<class... TVariableArgs>
+    static void SetHistoricalVariablesToZero(
+        NodesContainerType& rNodes,
+        const TVariableArgs&... rVariableArgs)
+    {
+        block_for_each(rNodes, [&](NodeType& rNode){(
+            AuxiliaryHistoricalValueSetter<typename TVariableArgs::Type>(rVariableArgs, rVariableArgs.Zero(), rNode), ...);
+        });
     }
 
     /**
@@ -770,6 +827,26 @@ public:
     }
 
     /**
+     * @brief Erases the container non historical variable
+     * @param rVariable reference to the scalar variable to be erased
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType, class TVarType>
+    void EraseNonHistoricalVariable(
+        const TVarType& rVariable,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        block_for_each(rContainer, [&rVariable](auto& rEntity){
+                rEntity.GetData().Erase(rVariable);
+        });
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Clears the container data value container
      * @param rContainer Reference to the objective container
      */
@@ -779,7 +856,7 @@ public:
         KRATOS_TRY
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-                rEntity.Data().Clear();
+                rEntity.GetData().Clear();
         });
 
         KRATOS_CATCH("")
@@ -813,20 +890,20 @@ public:
     /**
      * @brief Sets a flag according to a given status over a given container
      * @param rFlag flag to be set
-     * @param rFlagValue flag value to be set
+     * @param FlagValue flag value to be set
      * @param rContainer Reference to the objective container
      */
     template< class TContainerType >
     void SetFlag(
         const Flags& rFlag,
-        const bool& rFlagValue,
+        const bool FlagValue,
         TContainerType& rContainer
         )
     {
         KRATOS_TRY
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-                rEntity.Set(rFlag, rFlagValue);
+                rEntity.Set(rFlag, FlagValue);
         });
 
         KRATOS_CATCH("")
@@ -890,7 +967,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+        block_for_each(rNodesContainer, [&](Node& rNode){
             rNode.SetValue(rSavedVariable, rNode.FastGetSolutionStepValue(rOriginVariable));
         });
 
@@ -941,7 +1018,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+        block_for_each(rNodesContainer, [&](Node& rNode){
             rNode.FastGetSolutionStepValue(rDestinationVariable) = rNode.FastGetSolutionStepValue(rOriginVariable);
         });
 
@@ -955,7 +1032,7 @@ public:
      * @param rOriginNodes Reference to the objective node set
      * @return selected_nodes: List of filtered nodes
      */
-    NodesContainerType SelectNodeList(
+    [[nodiscard]] NodesContainerType SelectNodeList(
         const DoubleVarType& Variable,
         const double Value,
         const NodesContainerType& rOriginNodes
@@ -1011,11 +1088,11 @@ public:
             CheckVariableExists(rVar, rNodes);
 
             if (IsFixed) {
-                block_for_each(rNodes,[&](Node<3>& rNode){
+                block_for_each(rNodes,[&](Node& rNode){
                     rNode.pGetDof(rVar)->FixDof();
                 });
             } else {
-                block_for_each(rNodes,[&](Node<3>& rNode){
+                block_for_each(rNodes,[&](Node& rNode){
                     rNode.pGetDof(rVar)->FreeDof();
                 });
             }
@@ -1066,20 +1143,18 @@ public:
             CheckVariableExists(rVariable, rNodes);
 
             if (IsFixed) {
-                BlockPartition<NodesContainerType>(rNodes).for_each(
-                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
-                        if (rNode.Is(rFlag) == CheckValue) {
-                            rNode.pGetDof(rVariable)->FixDof();
-                        }
-                    });
+                block_for_each(rNodes, [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                    if (rNode.Is(rFlag) == CheckValue) {
+                        rNode.pGetDof(rVariable)->FixDof();
+                    }
+                });
             }
             else {
-                BlockPartition<NodesContainerType>(rNodes).for_each(
-                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
-                        if (rNode.Is(rFlag) == CheckValue) {
-                            rNode.pGetDof(rVariable)->FreeDof();
-                        }
-                    });
+                block_for_each(rNodes, [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                    if (rNode.Is(rFlag) == CheckValue) {
+                        rNode.pGetDof(rVariable)->FreeDof();
+                    }
+                });
             }
         }
 
@@ -1125,7 +1200,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value: summation vector result
      */
-    array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -1137,7 +1212,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumNonHistoricalNodeScalarVariable(
+    [[nodiscard]] double SumNonHistoricalNodeScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1151,7 +1226,7 @@ public:
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_nodes_array = r_local_mesh.Nodes();
 
-        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node<3>& rNode){
+        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node& rNode){
             return rNode.GetValue(rVar);
         });
 
@@ -1172,7 +1247,7 @@ public:
      * @return TDataType Value of the summation
      */
     template< class TDataType, class TVarType = Variable<TDataType> >
-    TDataType SumHistoricalVariable(
+    [[nodiscard]] TDataType SumHistoricalVariable(
         const TVarType &rVariable,
         const ModelPart &rModelPart,
         const unsigned int BuffStep = 0
@@ -1182,7 +1257,7 @@ public:
 
         const auto &r_communicator = rModelPart.GetCommunicator();
 
-        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
+        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node& rNode){
             return rNode.GetSolutionStepValue(rVariable, BuffStep);
         });
 
@@ -1198,7 +1273,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective condition set
      * @return sum_value: summation result
      */
-    array_1d<double, 3> SumConditionVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumConditionVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -1210,7 +1285,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumConditionScalarVariable(
+    [[nodiscard]] double SumConditionScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1251,7 +1326,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumElementScalarVariable(
+    [[nodiscard]] double SumElementScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1293,7 +1368,7 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar);
 
-        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(),[&](Node& rNode){
             rNode.AddDof(rVar);
         });
 
@@ -1328,12 +1403,34 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar, &rReactionVar);
 
-        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(),[&](Node& rNode){
             rNode.AddDof(rVar,rReactionVar);
         });
 
         KRATOS_CATCH("")
     }
+
+    /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs variable names, this method adds such variables as DOFs
+     * to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsVarNamesList List with the string variable names to be added as DOFs
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsList(
+        const std::vector<std::string>& rDofsVarNamesList,
+        ModelPart& rModelPart);
+
+    /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs and reactions variable names, this method adds such variables
+     * as DOFs and reaction to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsAndReactionsNamesList List with the DOF and reaction string variable names to be added as DOFs and reaction
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsWithReactionsList(
+        const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
+        ModelPart& rModelPart);
 
     /**
      * @brief This method checks the variable keys
@@ -1365,6 +1462,207 @@ public:
         const ArrayVarType& rUpdateVariable = DISPLACEMENT,
         const IndexType BufferPosition = 0
         );
+
+    /**
+     * @brief This function returns the CURRENT coordinates of all the nodes in a consecutive vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * in case Dimension == 1 the vector is in the form (X X X ....)
+     * in case Dimension == 2 the vector is in the form (X Y X Y X Y ....)
+     * in case Dimension == 3 the vector is in the form (X Y Z X Y Z ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param Dimension number of desired components
+     */
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetCurrentPositionsVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const unsigned int Dimension
+        );
+
+    /**
+     * @brief This function returns the INITIAL coordinates of all the nodes in a consecutive vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * in case Dimension == 1 the vector is in the form (X0 X0 X0 ....)
+     * in case Dimension == 2 the vector is in the form (X0 Y0 X0 Y0 X0 Y0 ....)
+     * in case Dimension == 3 the vector is in the form (X0 Y0 Z0 X0 Y0 Z0 ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param Dimension number of desired components
+     */
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetInitialPositionsVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const unsigned int Dimension
+        );
+
+    /**
+     * @brief This function represent the "set" counterpart of GetCurrentPositionsVector and allows
+     * setting the CURRENT coordinates of all the nodes considering them stored in a consecutive 1D vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X, Y, Z) plus such variable value
+     * in case Dimension == 1 the expected input vector is in the form (X X X ....)
+     * in case Dimension == 2 the expected input vector is in the form (X Y X Y X Y ....)
+     * in case Dimension == 3 the expected input vector is in the form (X Y Z X Y Z ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param rPositions vector containing the CURRENT positions
+     */
+     void SetCurrentPositionsVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Vector& rPositions
+        );
+
+    /**
+     * @brief This function represent the "set" counterpart of GetInitialPositionsVector and allows
+     * setting the INITIAL coordinates of all the nodes considering them stored in a consecutive 1D vector.
+     * it allows working in 1D,2D or 3D
+     * For each node, this method takes the value of the provided variable and updates the
+     * current position as the initial position (X0, Y0, Z0) plus such variable value
+     * in case Dimension == 1 the expected input vector is in the form (X0 X0 X0 ....)
+     * in case Dimension == 2 the expected input vector is in the form (X0 Y0 X0 Y0 X0 Y0 ....)
+     * in case Dimension == 3 the expected input vector is in the form (X0 Y0 Z0 X0 Y0 Z0 ....)
+     * @param rNodes array of nodes from which coordinates will be extracted
+     * @param rPositions vector containing the INITIAL positions
+     */
+    void SetInitialPositionsVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Vector& rPositions
+        );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     * @param Dimension number of components in output
+     */
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
+                                const ModelPart::NodesContainerType& rNodes,
+                                const Variable<array_1d<double,3>>& rVar,
+                                const unsigned int Step,
+                                const unsigned int Dimension=3
+                                );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     */
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
+                                const ModelPart::NodesContainerType& rNodes,
+                                const Variable<double>& rVar,
+                                const unsigned int Step
+                                );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetSolutionStepValuesVector(
+                                ModelPart::NodesContainerType& rNodes,
+                                const Variable<array_1d<double,3>>& rVar,
+                                const Vector& rData,
+                                const unsigned int Step
+                                );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetSolutionStepValuesVector(
+                                ModelPart::NodesContainerType& rNodes,
+                                const Variable<double>& rVar,
+                                const Vector& rData,
+                                const unsigned int Step
+                                );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     * @param Dimension number of components in output
+     */
+    [[nodiscard]] Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const unsigned int Dimension=3
+        );
+
+    /**
+     * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
+     * flattened so that the components of interest appear in the output vector.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * In case Dimension is 1 one would obtain only the first component, for Dimension 2 the x and y component
+     * and for Dimension==3 the 3 components at once
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param Step step in the database
+     */
+    [[nodiscard]] Vector GetValuesVector(
+        const ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with VECTOR VARIABLES (of type Variable<array_1d<double,3>>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<array_1d<double,3>>& rVar,
+        const Vector& rData
+        );
+
+    /**
+     * @brief This function allows setting the database entries corresponding to rVar contained on all rNodes
+     * given a flat array in which all the variable components are present consecutively.
+     * This version works with SCALAR VARIABLES (of type Variable<double>)
+     * also note that this version accesses NON HISTORICAL data
+     * @param rNodes array of nodes from which data will be extracted
+     * @param rVar the variable being addressed
+     * @param rData input vector (must be of size rNodes.size()*Dimension)
+     * @param Step database step to which we will write
+     */
+    void SetValuesVector(
+        ModelPart::NodesContainerType& rNodes,
+        const Variable<double>& rVar,
+        const Vector& rData
+        );
+
 
     ///@}
     ///@name Acces
@@ -1423,10 +1721,16 @@ private:
     }
 
     template <class TContainerType>
-    TContainerType& GetContainer(ModelPart& rModelPart);
+    [[nodiscard]] TContainerType& GetContainer(ModelPart& rModelPart);
 
     template <class TContainerType>
-    const TContainerType& GetContainer(const ModelPart& rModelPart);
+    [[nodiscard]] const TContainerType& GetContainer(const ModelPart& rModelPart);
+
+    template<class TDataType>
+    static void AuxiliaryHistoricalValueSetter(
+        const Variable<TDataType>& rVariable,
+        const TDataType& rValue,
+        NodeType& rNode);
 
     template <class TContainerType, class TSetterFunction, class TGetterFunction>
     void CopyModelPartFlaggedVariable(
@@ -1463,7 +1767,6 @@ private:
         KRATOS_CATCH("");
     }
 
-
     ///@}
     ///@name Private  Acces
     ///@{
@@ -1492,5 +1795,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_VARIABLE_UTILS  defined */

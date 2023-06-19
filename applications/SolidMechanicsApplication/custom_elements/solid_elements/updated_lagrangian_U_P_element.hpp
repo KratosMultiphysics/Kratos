@@ -128,7 +128,7 @@ public:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -138,7 +138,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     //************************************************************************************
     //************************************************************************************

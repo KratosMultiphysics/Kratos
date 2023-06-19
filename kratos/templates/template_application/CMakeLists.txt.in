@@ -47,6 +47,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_CAMEL}Application.py KratosMultiphysics/@{APP_NAME_CAMEL}Application/__init__.py )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_registry_lists.py KratosMultiphysics/@{APP_NAME_CAMEL}Application/python_registry_lists.py )
 
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -67,3 +68,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS Kratos@{APP_NAME_CAMEL}Core DESTINATION libs )
 install(TARGETS Kratos@{APP_NAME_CAMEL}Application DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};Kratos@{APP_NAME_CAMEL}Core" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};Kratos@{APP_NAME_CAMEL}Application" PARENT_SCOPE)

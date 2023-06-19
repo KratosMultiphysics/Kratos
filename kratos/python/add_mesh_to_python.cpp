@@ -49,10 +49,10 @@ typename TVariableType::Type GetValueHelperFunction(TContainerType& el, const TV
     return el.GetValue(rVar);
 }
 
-typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+typedef Mesh<Node, Properties, Element, Condition> MeshType;
 typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
-typedef Geometry<Node<3> > GeometryType;
+typedef Geometry<Node > GeometryType;
 typedef GeometryType::PointsArrayType NodesArrayType;
 typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
@@ -234,8 +234,8 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
     dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
-template< class TDataType >
-TDataType ElementCalculateInterface(Element& dummy, Variable<TDataType>& rVariable, const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType, class TDataType >
+TDataType EntityCalculateInterface(TEntityType& dummy, Variable<TDataType>& rVariable, const ProcessInfo& rCurrentProcessInfo)
 {
     TDataType aux;
     dummy.Calculate(rVariable, aux, rCurrentProcessInfo);
@@ -254,6 +254,15 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
             KRATOS_ERROR << "expecting a list of ConstitutiveLaw::Pointer";
      }
     dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+}
+
+template<class TEntityType>
+void EntityCalculateRightHandSide(
+    TEntityType& dummy,
+    Vector& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template<class TEntityType>
@@ -373,7 +382,7 @@ void EntityGetSecondDerivativesVector2(
 
 void  AddMeshToPython(pybind11::module& m)
 {
-//             typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+//             typedef Mesh<Node, Properties, Element, Condition> MeshType;
 //             typedef MeshType::NodeType NodeType;
 
     //     py::class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
@@ -486,14 +495,15 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Element>)
     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
-    .def("Calculate", &ElementCalculateInterface<double>)
-    .def("Calculate", &ElementCalculateInterface<array_1d<double,3> >)
-    .def("Calculate", &ElementCalculateInterface<Vector >)
-    .def("Calculate", &ElementCalculateInterface<Matrix >)
+    .def("Calculate", &EntityCalculateInterface<Element, double>)
+    .def("Calculate", &EntityCalculateInterface<Element, array_1d<double,3> >)
+    .def("Calculate", &EntityCalculateInterface<Element, Vector >)
+    .def("Calculate", &EntityCalculateInterface<Element, Matrix >)
     .def("CalculateLumpedMassVector", &ElementCalculateLumpedMassVector)
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Element>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Element>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Element>)
+    .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Element>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Element>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Element>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Element>)
@@ -515,7 +525,19 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
     .def("Initialize", &EntityInitialize<Element>)
-    //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
+    .def("EquationIdVector", [](const Element& self, const ProcessInfo& rProcessInfo){
+        Element::EquationIdVectorType ids;
+        self.EquationIdVector(ids,rProcessInfo);
+        return ids;
+    })
+    .def("GetDofList", [](const Element& self, const ProcessInfo& rProcessInfo){
+        std::vector<Dof<double>*> dofs_list;
+        self.GetDofList(dofs_list,rProcessInfo);
+        return dofs_list;
+    })
+    .def("CalculateLocalSystem", &Element::CalculateLocalSystem)
+    .def("GetSpecifications", &Element::GetSpecifications)
+    .def("Info", &Element::Info)
     .def("__str__", PrintObject<Element>)
     ;
 
@@ -623,12 +645,26 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<DenseMatrix<double> > >())
-
+    .def("Calculate", &EntityCalculateInterface<Condition, double>)
+    .def("Calculate", &EntityCalculateInterface<Condition, array_1d<double,3> >)
+    .def("Calculate", &EntityCalculateInterface<Condition, Vector >)
+    .def("Calculate", &EntityCalculateInterface<Condition, Matrix >)
 
     .def("Initialize", &EntityInitialize<Condition>)
+    .def("EquationIdVector", [](const Condition& self, const ProcessInfo& rProcessInfo){
+        Condition::EquationIdVectorType ids;
+        self.EquationIdVector(ids,rProcessInfo);
+        return ids;
+    })
+    .def("GetDofList", [](const Condition& self, const ProcessInfo& rProcessInfo){
+        std::vector<Dof<double>*> dofs_list;
+        self.GetDofList(dofs_list,rProcessInfo);
+        return dofs_list;
+    })
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Condition>)
     .def("CalculateLocalSystem", &EntityCalculateLocalSystem<Condition>)
+    .def("CalculateRightHandSide", &EntityCalculateRightHandSide<Condition>)
     .def("CalculateFirstDerivativesLHS", &EntityCalculateFirstDerivativesLHS<Condition>)
     .def("CalculateSecondDerivativesLHS", &EntityCalculateSecondDerivativesLHS<Condition>)
     .def("CalculateLocalVelocityContribution", &EntityCalculateLocalVelocityContribution<Condition>)
@@ -638,6 +674,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector2<Condition>)
     .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Condition, double>)
     .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Condition, array_1d<double,3>>)
+    .def("GetSpecifications", &Condition::GetSpecifications)
     .def("Info", &Condition::Info)
     .def("__str__", PrintObject<Condition>)
     ;
@@ -666,6 +703,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("HasProperties", &MeshType::HasProperties)
     .def("HasElement", &MeshType::HasElement)
     .def("HasCondition", &MeshType::HasCondition)
+    .def("HasMasterSlaveConstraint ", &MeshType::HasMasterSlaveConstraint )
     .def("__str__", PrintObject<MeshType>)
     ;
 }

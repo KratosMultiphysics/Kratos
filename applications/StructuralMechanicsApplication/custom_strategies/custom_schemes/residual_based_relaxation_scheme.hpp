@@ -3,22 +3,19 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME )
-#define  KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME
+#pragma once
 
+// System includes
 
-/* System includes */
+// External includes
 
-
-/* External includes */
-
-/* Project includes */
+// Project includes
 #include "includes/define.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
@@ -241,7 +238,6 @@ public:
         double DeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         for (auto i = rModelPart.NodesBegin(); i != rModelPart.NodesEnd(); ++i) {
-
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
             array_1d<double, 3 > & OldDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
             //predicting displacement = OldDisplacement + OldVelocity * DeltaTime;
@@ -294,13 +290,12 @@ public:
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
-        rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
-
         //basic operations for the element considered
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         rCurrentElement.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentElement.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
+        //adding the dynamic contributions (statics is already included)
 
         //adding the dynamic contributions (statics is already included)
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
@@ -319,7 +314,6 @@ public:
     {
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
-        rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
 
         //basic operations for the element considered
         rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
@@ -344,7 +338,6 @@ public:
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
-        rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
         rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentCondition.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
@@ -366,7 +359,6 @@ public:
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current condition
-        rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
 
         //basic operations for the element considered
         rCurrentCondition.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
@@ -579,7 +571,6 @@ protected:
         if (M.size1() != 0) {
             int k = OpenMPUtils::ThisThread();
             const auto& r_const_elem_ref = rCurrentElement;
-
             r_const_elem_ref.GetFirstDerivativesVector(mvel[k], 0);
             noalias(RHS_Contribution) -= mDampingFactor * prod(M, mvel[k]);
         }
@@ -691,6 +682,4 @@ private:
 /*@} */
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME  defined */
 

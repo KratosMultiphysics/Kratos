@@ -1,4 +1,4 @@
-import os
+import pathlib
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -7,10 +7,6 @@ import KratosMultiphysics.kratos_utilities as KratosUtils
 
 from KratosMultiphysics.testing.utilities import ReadDistributedModelPart
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
-
-
-def GetFilePath(fileName):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 def BaseDistance(x, y, z):
     if (x <= 5.0):
@@ -29,6 +25,9 @@ def ConvectionVelocity(x, y, z):
     vel[0] = 1.0
     return vel
 
+def GetFilePath(fileName):
+    return str(pathlib.Path(__file__).absolute().parent / fileName)
+
 class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
     @classmethod
@@ -36,7 +35,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         return KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": \"""" + GetFilePath("levelset_convection_process_mesh") + """\",
+                "input_filename": \"""" + GetFilePath("auxiliary_files/mdpa_files/levelset_convection_process_mesh") + """\",
                 "partition_in_memory" : false
             },
             "echo_level" : 0
@@ -50,11 +49,11 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        ReadDistributedModelPart(GetFilePath("levelset_convection_process_mesh"), self.model_part, self.GetPartitioningParameters())
+        ReadDistributedModelPart(GetFilePath( "auxiliary_files/mdpa_files/levelset_convection_process_mesh"), self.model_part, self.GetPartitioningParameters())
 
     def tearDown(self):
         # Remove the Metis partitioning files
-        KratosUtils.DeleteDirectoryIfExisting("levelset_convection_process_mesh_partitioned")
+        KratosUtils.DeleteDirectoryIfExisting("auxiliary_files/mdpa_files/levelset_convection_process_mesh_partitioned")
         # next test can only start after all the processes arrived here, otherwise race conditions with deleting the files can occur
         self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
@@ -80,11 +79,17 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         self.model_part.CloneTimeStep(40.0)
 
         # Convect the distance field
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "eulerian_error_compensation" : false,
+            "element_type" : "levelset_convection_supg"
+        }""")
         TrilinosApplication.TrilinosLevelSetConvectionProcess2D(
             epetra_comm,
-            KratosMultiphysics.DISTANCE,
             self.model_part,
-            trilinos_linear_solver).Execute()
+            trilinos_linear_solver,
+            levelset_convection_settings).Execute()
 
         # Check the obtained values
         max_distance = -1.0
@@ -123,25 +128,13 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         # Fake time advance
         self.model_part.CloneTimeStep(30.0)
 
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-        KratosMultiphysics.FindGlobalNodalNeighboursProcess(
-                kratos_comm, self.model_part).Execute()
-
-        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
-            self.model_part,
-            KratosMultiphysics.DISTANCE,
-            KratosMultiphysics.DISTANCE_GRADIENT,
-            KratosMultiphysics.NODAL_AREA).Execute()
+        KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.model_part).Execute()
 
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "DISTANCE",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
+            "element_type" : "levelset_convection_supg"
         }""")
         TrilinosApplication.TrilinosLevelSetConvectionProcess2D(
             epetra_comm,
@@ -157,6 +150,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
             max_distance = max(max_distance, d)
             min_distance = min(min_distance, d)
 
+        kratos_comm = self.model_part.GetCommunicator().GetDataCommunicator()
         min_distance = kratos_comm.MinAll(min_distance)
         max_distance = kratos_comm.MaxAll(max_distance)
 
@@ -184,8 +178,8 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         # gid_output.ExecuteFinalizeSolutionStep()
         # gid_output.ExecuteFinalize()
 
-        self.assertAlmostEqual(max_distance, 1.0617777301844604)
-        self.assertAlmostEqual(min_distance, -0.061745786561321375)
+        self.assertAlmostEqual(max_distance, 1.0634680107706003)
+        self.assertAlmostEqual(min_distance, -0.06361967738862996)
 
 class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
 
@@ -194,11 +188,12 @@ class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
         return KratosMultiphysics.Parameters("""{
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": \"""" + GetFilePath("levelset_convection_process_mesh") + """\",
+                "input_filename": \"""" + GetFilePath( "auxiliary_files/mdpa_files/levelset_convection_process_mesh") + """\",
                 "partition_in_memory" : true
             },
             "echo_level" : 0
         }""")
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

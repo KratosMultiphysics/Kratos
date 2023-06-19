@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,9 @@ class as_preconditioner {
         typedef typename Backend::params  backend_params;
 
         typedef typename Backend::value_type value_type;
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename Backend::col_type col_type;
+        typedef typename Backend::ptr_type ptr_type;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
 
         template <class Matrix>
         as_preconditioner(

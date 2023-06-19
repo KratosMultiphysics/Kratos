@@ -13,13 +13,14 @@
 #include "vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
 #include "rotation_induced_lift_laws/rotation_induced_lift_law.h"
 #include "steady_viscous_torque_laws/steady_viscous_torque_law.h"
+#include "../DEMApplication/custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
 class KRATOS_API(SWIMMING_DEM_APPLICATION) HydrodynamicInteractionLaw : public Flags {
 
 public:
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
 
     // Pointer types for HydrodynamicInteractionLaw
     KRATOS_CLASS_POINTER_DEFINITION(HydrodynamicInteractionLaw);
@@ -59,14 +60,14 @@ public:
                                          const double fluid_kinematic_viscosity,
                                          const double modulus_of_minus_slip_velocity);
 
-    virtual void ComputeBuoyancyForce(Geometry<Node<3> >& r_geometry,
+    virtual void ComputeBuoyancyForce(Geometry<Node >& r_geometry,
                                       const double fluid_density,
                                       const double displaced_volume,
                                       const array_1d<double, 3>& body_force,
                                       array_1d<double, 3>& buoyancy,
                                       const ProcessInfo& r_current_process_info);
 
-    virtual void ComputeDragForce(Geometry<Node<3> >& r_geometry,
+    void ComputeDragForce(SphericParticle* p_particle,
                                   double particle_radius,
                                   double fluid_density,
                                   double fluid_kinematic_viscosity,
@@ -74,17 +75,17 @@ public:
                                   array_1d<double, 3>& drag_force,
                                   const ProcessInfo& r_current_process_info);
 
-    virtual void ComputeInviscidForce(Geometry<Node<3> >& r_geometry,
+    virtual void ComputeInviscidForce(Geometry<Node >& r_geometry,
                                       const double fluid_density,
                                       const double displaced_volume,
                                       array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force,
                                       const ProcessInfo& r_current_process_info);
 
-    virtual double GetInviscidAddedMass(Geometry<Node<3> >& r_geometry,
+    virtual double GetInviscidAddedMass(Geometry<Node >& r_geometry,
                                         double fluid_density,
                                         const ProcessInfo& r_current_process_info);
 
-    virtual void ComputeHistoryForce(Geometry<Node<3> >& r_geometry,
+    virtual void ComputeHistoryForce(Geometry<Node >& r_geometry,
                                      double particle_radius,
                                      double fluid_density,
                                      double fluid_kinematic_viscosity,
@@ -92,10 +93,10 @@ public:
                                      array_1d<double, 3>& drag_force,
                                      const ProcessInfo& r_current_process_info);
 
-    virtual double GetHistoryForceAddedMass(Geometry<Node<3> >& r_geometry,
+    virtual double GetHistoryForceAddedMass(Geometry<Node >& r_geometry,
                                             const ProcessInfo& r_current_process_info);
 
-    virtual void ComputeVorticityInducedLift(Geometry<Node<3> >& r_geometry,
+    virtual void ComputeVorticityInducedLift(Geometry<Node >& r_geometry,
                                              double particle_radius,
                                              double fluid_density,
                                              double fluid_kinematic_viscosity,
@@ -103,7 +104,7 @@ public:
                                              array_1d<double, 3>& vorticity_induced_lift,
                                              const ProcessInfo& r_current_process_info);
 
-    virtual void ComputeRotationInducedLift(Geometry<Node<3> >& r_geometry,
+    virtual void ComputeRotationInducedLift(Geometry<Node >& r_geometry,
                                             double particle_radius,
                                             double fluid_density,
                                             double fluid_kinematic_viscosity,
@@ -111,7 +112,7 @@ public:
                                             array_1d<double, 3>& rotation_induced_lift,
                                             const ProcessInfo& r_current_process_info);
 
-    virtual void ComputeSteadyViscousTorque(Geometry<Node<3> >& r_geometry,
+    virtual void ComputeSteadyViscousTorque(Geometry<Node >& r_geometry,
                                             double particle_radius,
                                             double fluid_density,
                                             double fluid_kinematic_viscosity,

@@ -31,7 +31,7 @@ QUESTION: Internal_Friction_Angle
 VALUE: 32.0
 HELP: Units Degrees
 QUESTION: Rayleigh_Beta
-VALUE: 0.02
+VALUE: 0.002
 HELP: D = R_alpha*M + r_beta*K
 QUESTION: Rayleigh_Alpha
 VALUE: 0.5
@@ -43,7 +43,7 @@ END CONDITION
 CONDITION: Initial_DEM_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
-GROUPALLOW: points lines 
+GROUPALLOW: points lines
 HELP: Select the nodes to create initial DEM elements (skin elements)
 QUESTION: Apply_initial_DEM#CB#(true,false)
 VALUE: false
@@ -160,7 +160,7 @@ CONDTYPE: over groups
 CONDMESHTYPE: over face elements
 GROUPALLOW: lines faces
 QUESTION: Modulus
-VALUE: 0.0 
+VALUE: 0.0
 HELP: If it is a function write the expression between ""
 QUESTION: FACE_LOAD_X#CB#(true,false)
 VALUE: true

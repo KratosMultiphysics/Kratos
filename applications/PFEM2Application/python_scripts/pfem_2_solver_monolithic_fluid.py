@@ -1,4 +1,3 @@
-from __future__ import print_function
 from KratosMultiphysics import *
 from KratosMultiphysics.PFEM2Application import *
 from KratosMultiphysics.ExternalSolversApplication import *
@@ -92,7 +91,7 @@ class PFEM2Solver:
         number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part)
         (self.neighbour_search).Execute()
-        self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
+        self.neighbour_elements_search= GenericFindElementalNeighboursProcess(model_part)
         (self.neighbour_elements_search).Execute()
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()

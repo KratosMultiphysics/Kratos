@@ -4,13 +4,12 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRAIN_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRAIN_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -39,7 +38,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class LinearPlaneStrain
  * @ingroup StructuralMechanicsApplication
@@ -48,7 +47,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStrain 
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStrain
     : public ElasticIsotropic3D
 {
 public:
@@ -57,22 +56,22 @@ public:
 
     /// The process info definition
     typedef ProcessInfo      ProcessInfoType;
-    
+
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw       CLBaseType;
-    
+
     /// The base class ElasticIsotropic3D type definition
     typedef ElasticIsotropic3D      BaseType;
-    
+
     /// The size type definition
     typedef std::size_t             SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 2;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
-    
+
     /// Counted pointer of LinearPlaneStrain
     KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrain );
 
@@ -116,7 +115,7 @@ public:
 
     /**
      * @brief Dimension of the law:
-     * @return The dimension were the law is working 
+     * @return The dimension were the law is working
      */
     SizeType WorkingSpaceDimension() override
     {
@@ -127,7 +126,7 @@ public:
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     }
@@ -156,7 +155,11 @@ public:
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
     Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+    // ConstitutiveLaw::VoigtSizeMatrixType& GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, ConstitutiveLaw::VoigtSizeMatrixType& rValue) override;
+    // ConstitutiveLaw::DeformationGradientMatrixType& GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, ConstitutiveLaw::DeformationGradientMatrixType& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    // ConstitutiveLaw::StrainVectorType& GetValue(const Variable<StrainVectorType>& rThisVariable, ConstitutiveLaw::StrainVectorType& rValue) override;
+    // ConstitutiveLaw::StressVectorType& GetValue(const Variable<StressVectorType>& rThisVariable, ConstitutiveLaw::StressVectorType& rValue) override;
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
     ///@}
@@ -184,7 +187,7 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     void CalculateElasticMatrix(
-        Matrix& C, 
+        ConstitutiveLaw::VoigtSizeMatrixType& C,
         ConstitutiveLaw::Parameters& rValues
         ) override;
 
@@ -195,8 +198,8 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     void CalculatePK2Stress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
         ConstitutiveLaw::Parameters& rValues
         ) override;
 
@@ -207,7 +210,7 @@ protected:
      */
     void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
+        ConstitutiveLaw::StrainVectorType& rStrainVector
         ) override;
 
     ///@}
@@ -253,4 +256,3 @@ private:
 
 }; // Class LinearPlaneStrain
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRAIN_LAW_H_INCLUDED  defined

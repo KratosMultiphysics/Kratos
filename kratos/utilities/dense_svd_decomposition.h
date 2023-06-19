@@ -139,6 +139,15 @@ public:
     virtual std::size_t NonZeroSingularValues() = 0;
 
     /**
+     * @brief Set the relative threshold tolerance
+     * This method sets the relative threshold tolerance to consider singular values as non-zero
+     * This is required by some methods like Rank() or Solve(), which is not available yet
+     * Non-zero values are checed as sing_val > rel_tol * max_sing_val
+     * @param RelTolerance
+     */
+    virtual void SetThreshold(const double RelTolerance) = 0;
+
+    /**
      * @brief Rank of the provided array
      * Calculates and returns the rank of the array decomposed with the SVD
      * @return std::size_t Rank of the provided array

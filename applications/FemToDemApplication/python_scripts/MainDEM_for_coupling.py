@@ -1,13 +1,8 @@
 
 import KratosMultiphysics.DEMApplication as DEM
-# import KratosMultiphysics.DEMApplication.main_script as MainDEM
-import KratosMultiphysics.FemToDemApplication as FEMDEM
-import KratosMultiphysics.FemToDemApplication.DEMmain_script as MainDEM
+import KratosMultiphysics.DEMApplication.DEM_analysis_stage as MainDEM
 
-class DEM_for_coupling_Solution(MainDEM.Solution):
-
-    def Info(self):
-        print("DEM part of the FEM-DEM application")
+class DEM_for_coupling_Solution(MainDEM.DEMAnalysisStage):
 
     def SetAnalyticParticleWatcher(self):
         pass
@@ -16,3 +11,18 @@ class DEM_for_coupling_Solution(MainDEM.Solution):
         super(DEM_for_coupling_Solution, self).AddVariables()
         # For averaging forces when substepping
         self.spheres_model_part.AddNodalSolutionStepVariable(DEM.CONTACT_IMPULSE)
+
+    def GraphicalOutputInitialize(self):
+        pass
+
+    def PrintResultsForGid(self, time):
+        pass
+
+    def GraphicalOutputFinalize(self):
+        pass
+
+    def PrintResults(self):
+        pass
+
+    def RunAnalytics(self, time, is_time_to_print=True):
+        pass

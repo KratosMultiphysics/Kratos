@@ -90,7 +90,7 @@ public:
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(LineSearchStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> SolvingStrategyType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef LineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
 
@@ -549,7 +549,7 @@ protected:
     }
 
     /**
-     * @brief This method overrides the default settings wiht user provided parameters
+     * @brief This method overrides the default settings with user provided parameters
      * @param rDefaultSettings Parameters with default settings
      * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
      * @param CalculateReactions The flag for the reaction calculation

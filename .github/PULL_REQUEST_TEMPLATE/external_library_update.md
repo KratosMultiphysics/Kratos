@@ -1,5 +1,5 @@
 ---
-name: Update external library
+name: ⚙️ Update external library
 about: Bringing updates in an external library
 
 ---

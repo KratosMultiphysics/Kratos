@@ -79,6 +79,8 @@ class MultiaxialControlModuleFEMDEMGeneralized2DUtility(MultiaxialControlModuleG
         if self.cm_step % self.output_interval != 0:
             return
 
+        import matplotlib
+        matplotlib.use('agg')
         import matplotlib.pyplot as plt
 
         f = plt.figure()

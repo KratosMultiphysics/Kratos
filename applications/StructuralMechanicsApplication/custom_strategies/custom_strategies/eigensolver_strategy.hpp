@@ -1,24 +1,22 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_EIGENSOLVER_STRATEGY )
-#define  KRATOS_EIGENSOLVER_STRATEGY
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
@@ -54,7 +52,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class EigensolverStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -62,8 +60,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(EigensolverStrategy);
 
-    // Base class definition
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     /// Definition of the current scheme
     typedef EigensolverStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
@@ -111,9 +108,9 @@ public:
         bool ComputeModalDecomposition = false
         )
         : BaseType(rModelPart),
-          mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
-          mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
-          mComputeModalDecompostion(ComputeModalDecomposition)
+            mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
+            mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
+            mComputeModalDecompostion(ComputeModalDecomposition)
     {
         KRATOS_TRY
 
@@ -764,12 +761,10 @@ private:
         const int NumDofs = static_cast<int>(rDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively
-        #pragma omp parallel for firstprivate(NumDofs)
-        for(int k = 0; k<NumDofs; k++)
-        {
+        IndexPartition(NumDofs).for_each([&rDofSet, &ScalingFactors](std::size_t k){
             auto dof_iterator = std::begin(rDofSet) + k;
             ScalingFactors[k] = (dof_iterator->IsFixed()) ? 0.0 : 1.0;
-        }
+        });
 
         double* AValues = std::begin(rA.value_data());
         std::size_t* ARowIndices = std::begin(rA.index1_data());
@@ -792,9 +787,7 @@ private:
         //         rA(k,k) = 1.0;
         // }
 
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(SystemSize); ++k)
-        {
+        IndexPartition(SystemSize).for_each([&](std::size_t k){
             std::size_t ColBegin = ARowIndices[k];
             std::size_t ColEnd = ARowIndices[k+1];
             if (ScalingFactors[k] == 0.0)
@@ -802,7 +795,7 @@ private:
                 // row dof is fixed. zero off-diagonal columns and factor diagonal
                 for (std::size_t j = ColBegin; j < ColEnd; ++j)
                 {
-                    if (static_cast<int>(AColIndices[j]) != k)
+                    if (AColIndices[j] != k)
                     {
                         AValues[j] = 0.0;
                     }
@@ -820,7 +813,7 @@ private:
                     AValues[j] *= ScalingFactors[AColIndices[j]];
                 }
             }
-        }
+        });
 
         KRATOS_INFO_IF("EigensolverStrategy", BaseType::GetEchoLevel() > 2 && rank == 0)
             <<  "Exiting ApplyDirichletConditions" << std::endl;
@@ -934,5 +927,3 @@ private:
 ///@}
 
 } /* namespace Kratos */
-
-#endif /* KRATOS_EIGENSOLVER_STRATEGY  defined */

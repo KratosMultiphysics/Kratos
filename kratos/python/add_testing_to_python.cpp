@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand, Carlos A. Roig
 //
@@ -15,18 +15,15 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "includes/parallel_environment.h"
 #include "testing/testing.h"
 #include "add_testing_to_python.h"
 
-
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void ListOfAllTestCases() {
-	std::cout << Testing::Tester::GetInstance() << std::endl;
+    std::cout << Testing::Tester::GetInstance() << std::endl;
 }
 
 void  AddTestingToPython(pybind11::module& m) {
@@ -39,11 +36,13 @@ void  AddTestingToPython(pybind11::module& m) {
         .def_static("SetVerbosity",&Testing::Tester::SetVerbosity)
         // Run methods
         .def_static("RunAllTestCases", &Testing::Tester::RunAllTestCases)
+        .def_static("RunAllDistributedTestCases", &Testing::Tester::RunAllDistributedTestCases)
         .def_static("RunTestSuite", &Testing::Tester::RunTestSuite)
         .def_static("RunTestCases", &Testing::Tester::RunTestCases)
 
         // Profile tests
         .def_static("ProfileAllTestCases", &Testing::Tester::ProfileAllTestCases)
+        .def_static("ProfileAllDistributedTestCases", &Testing::Tester::ProfileAllDistributedTestCases)
         .def_static("ProfileTestSuite", &Testing::Tester::ProfileTestSuite)
 
         // Utils
@@ -61,7 +60,11 @@ void  AddTestingToPython(pybind11::module& m) {
         .value("FAILED_TESTS_OUTPUTS", Testing::Tester::Verbosity::FAILED_TESTS_OUTPUTS)
         .value("TESTS_OUTPUTS", Testing::Tester::Verbosity::TESTS_OUTPUTS)
     ;
+
+    auto m_testing = m.def_submodule("Testing");
+    m_testing.def("GetDefaultDataCommunicator", []() -> DataCommunicator& {
+        return ParallelEnvironment::GetDefaultDataCommunicator();
+    }, py::return_value_policy::reference);
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.

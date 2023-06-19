@@ -50,10 +50,8 @@ set( KRATOS_DAM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_strain_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/thermal_modified_mises_nonlocal_damage_plane_stress_2D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_cohesion_driven_3D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_cohesion_driven_2D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_stress_driven_3D_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/joint_stress_driven_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dam_joint_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dam_joint_2D_law.cpp
 
     # Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_thermo_mechanic_element.cpp
@@ -159,3 +157,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosDamCore DESTINATION libs )
 install(TARGETS KratosDamApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosDamCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosDamApplication" PARENT_SCOPE)

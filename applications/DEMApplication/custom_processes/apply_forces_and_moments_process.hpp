@@ -59,7 +59,7 @@ namespace Kratos
   /** This process sets the EXTERNAL_APPLIED_FORCE and EXTERNAL_APPLIED_MOMENT variables
       over particles.
    */
-  class ApplyForcesAndMomentsProcess: public Process
+  class KRATOS_API(DEM_APPLICATION) ApplyForcesAndMomentsProcess: public Process
   {
   public:
       ///@name Type Definitions
@@ -180,8 +180,8 @@ namespace Kratos
       array_1d<bool, 3> mMomentValueIsNumeric;
       array_1d<double, 3> mForceValues;
       array_1d<double, 3> mMomentValues;
-      std::vector<PythonGenericFunctionUtility> mForceFunctions;
-      std::vector<PythonGenericFunctionUtility> mMomentFunctions;
+      std::vector<GenericFunctionUtility> mForceFunctions;
+      std::vector<GenericFunctionUtility> mMomentFunctions;
       array_1d<int, 3> mForceTableId;
       array_1d<int, 3> mMomentTableId;
       std::vector<TableType::Pointer> mpForceTable;

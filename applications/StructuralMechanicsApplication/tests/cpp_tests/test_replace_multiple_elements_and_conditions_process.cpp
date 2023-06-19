@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Armin Geiser
 //
@@ -27,7 +27,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
         void ReplaceMultipleProcessCreateModelPart(ModelPart& ThisModelPart)
         {

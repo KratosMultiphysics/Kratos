@@ -4,14 +4,13 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MMG_PROCESS)
-#define KRATOS_MMG_PROCESS
+#pragma once
 
 // System includes
 #include <unordered_set>
@@ -103,7 +102,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
 
     /// Node definition
-    typedef Node <3>                                                   NodeType;
+    typedef Node                                                   NodeType;
     // Geometry definition
     typedef Geometry<NodeType>                                     GeometryType;
 
@@ -218,6 +217,11 @@ public:
      * @brief Ths function removes superfluous (defined by "not belonging to an element") nodes from the model part
      */
     void CleanSuperfluousNodes();
+
+    /**
+     * @brief Ths function removes superfluous (defined by "not belonging to an element") conditions from the model part
+     */
+    void CleanSuperfluousConditions();
 
     /**
      * @brief This method retrieves the current Mmg version
@@ -393,7 +397,7 @@ protected:
         // Firts we generate the variable list
         std::unordered_set<std::string> list_variables;
         const auto it_begin_old = rOldContainer.begin();
-        auto& data = it_begin_old->Data();
+        auto& data = it_begin_old->GetData();
         for(auto i = data.begin() ; i != data.end() ; ++i) {
             list_variables.insert((i->first)->Name());
         }
@@ -444,6 +448,12 @@ protected:
      * @param rOldModelPart The old model part before remesh
      */
     virtual void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
+
+    /**
+     * @brief Applies local hmin, hmax and hausd values to entitities as specified
+     * in the parameters, to locally control the size and curvature of the remeshing.
+    */
+    void ApplyLocalParameters();
 
     ///@}
     ///@name Protected  Access
@@ -546,4 +556,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 }// namespace Kratos.
-#endif /* KRATOS_MMG_PROCESS defined */

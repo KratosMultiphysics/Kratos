@@ -88,7 +88,7 @@ public:
     /**
      * @return Size of the strain vector (in Voigt notation) for the constitutive law
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
@@ -102,7 +102,10 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output
@@ -169,4 +172,4 @@ private:
 
 }; // Class HerschelBulkley3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HERSCHEL_BULKLEY_LAW_3D_H_INCLUDED  defined 
+#endif // KRATOS_HERSCHEL_BULKLEY_LAW_3D_H_INCLUDED  defined

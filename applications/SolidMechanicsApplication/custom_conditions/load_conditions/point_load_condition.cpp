@@ -223,7 +223,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int PointLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int PointLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 

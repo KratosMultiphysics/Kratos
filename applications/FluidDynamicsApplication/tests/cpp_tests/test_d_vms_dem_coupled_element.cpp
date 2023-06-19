@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     reference_velocity(3,0) = 0.3; reference_velocity(3,1) = 0.4;
 
 
-    Geometry<Node<3>>& r_geometry = model_part.ElementsBegin()->GetGeometry();
+    Geometry<Node>& r_geometry = model_part.ElementsBegin()->GetGeometry();
 
 
     for(unsigned int i=0; i<4; i++){
@@ -114,7 +114,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {2.64281021,3.429294049,-0.06416213274,-2.614965629,2.623986294,-0.04749997559,-2.918315118,-2.626554399,-0.03583749724,2.884198912,-3.43299757,-0.05250039442}; // DVMSDEMCoupled2D4N
+    std::vector<double> output = {6.286527961,8.056113874,-0.05929579635,-6.100463608,5.687177253,-0.04745013508,-8.286558938,-7.630094687,-0.04034752758,5.077121113,-9.136569912,-0.05290654099}; // DVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();

@@ -41,7 +41,7 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-
+ 
 class KRATOS_API(KRATOS_CORE) IndexedPoint : public Point, public IndexedObject
 {
 public:
@@ -162,6 +162,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 };
 
+template<class TPointType>
 class KRATOS_API(KRATOS_CORE) DivideGeometry
 {
 public:
@@ -173,7 +174,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DivideGeometry);
 
     // General type definitions
-    typedef Geometry < Node<3> >                                    GeometryType;
+    typedef Geometry < TPointType >                                    GeometryType;
     typedef IndexedPoint                                            IndexedPointType;
     typedef IndexedPoint::Pointer                                   IndexedPointPointerType;
     typedef Geometry < IndexedPoint >                               IndexedPointGeometryType;
@@ -186,12 +187,6 @@ public:
     int mDivisionsNumber;   // Number of generated subdivisions.
 
     IndexedPointsContainerType mAuxPointsContainer;                         // Indexed points container to store the original plus the intersection points.
-    std::vector < IndexedPointGeometryPointerType > mPositiveSubdivisions;  // Array to store the generated positive subdivisions geometries.
-    std::vector < IndexedPointGeometryPointerType > mNegativeSubdivisions;  // Array to store the generated negative subdivisions geometries.
-    std::vector < IndexedPointGeometryPointerType > mPositiveInterfaces;    // Array to store the generated positive interfaces geometries.
-    std::vector < IndexedPointGeometryPointerType > mNegativeInterfaces;    // Array to store the generated negative interfaces geometries.
-    std::vector < unsigned int > mPositiveInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated positive interfaces.
-    std::vector < unsigned int > mNegativeInterfacesParentIds;              // Array to store the parent subgeometries ids of the generated negative interfaces.
 
     ///@}
     ///@name Life Cycle
@@ -206,6 +201,48 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * @brief Get the Positive Subdivisions object
+     * This method returns the container with the positive side subgeometries
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the positive side subgeometries
+     */
+    std::vector<IndexedPointGeometryPointerType> GetPositiveSubdivisions() const;
+
+    /**
+     * @brief Get the Negative Subdivisions object
+     * This method returns the container with the negative side subgeometries
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the negative side subgeometries
+     */
+    std::vector<IndexedPointGeometryPointerType> GetNegativeSubdivisions() const;
+
+    /**
+     * @brief Get the Positive Interfaces object
+     * This method returns the container with the positive side interfaces
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the positive side subinterfaces
+     */
+    std::vector<IndexedPointGeometryPointerType> GetPositiveInterfaces() const;
+
+    /**
+     * @brief Get the Negaitive Interfaces object
+     * This method returns the container with the negative side interfaces
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing pointers to the negative side subinterfaces
+     */
+    std::vector<IndexedPointGeometryPointerType> GetNegativeInterfaces() const;
+
+    /**
+     * @brief Get the Positive Interfaces Parent Ids object
+     * This method returns the container with the positive side interfaces parent ids
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing the ids of the positive side interfaces parents
+     */
+    std::vector<unsigned int> GetPositiveInterfacesParentIds() const;
+
+    /**
+     * @brief Get the Negative Interfaces Parent Ids object
+     * This method returns the container with the negative side interfaces parent ids
+     * @return std::vector<IndexedPointGeometryPointerType> A vector containing the ids of the negative side interfaces parents
+     */
+    std::vector<unsigned int> GetNegativeInterfacesParentIds() const;
 
     ///@}
     ///@name Inquiry
@@ -276,7 +313,10 @@ public:
     virtual void GenerateExteriorFaces(
         std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
         std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
-        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) = 0;
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer)
+    {
+        KRATOS_ERROR << "Accessing base class \'GenerateExteriorFaces\' method."<< std::endl;
+    };
 
     /**
      * Given a father face id, generates a list containing the exterior (boundary)
@@ -290,7 +330,10 @@ public:
         std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
         std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
         const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
-        const unsigned int FatherFaceId) = 0;
+        const unsigned int FatherFaceId)
+    {
+        KRATOS_ERROR << "Accessing base class \'GenerateExteriorFaces\' method."<< std::endl;
+    };
 
     ///@}
 
@@ -301,6 +344,13 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    std::vector<IndexedPointGeometryPointerType> mPositiveSubdivisions; // Array to store the generated positive subdivisions geometries.
+    std::vector<IndexedPointGeometryPointerType> mNegativeSubdivisions; // Array to store the generated negative subdivisions geometries.
+    std::vector<IndexedPointGeometryPointerType> mPositiveInterfaces;   // Array to store the generated positive interfaces geometries.
+    std::vector<IndexedPointGeometryPointerType> mNegativeInterfaces;   // Array to store the generated negative interfaces geometries.
+    std::vector<unsigned int> mPositiveInterfacesParentIds;             // Array to store the parent subgeometries ids of the generated positive interfaces.
+    std::vector<unsigned int> mNegativeInterfacesParentIds;             // Array to store the parent subgeometries ids of the generated negative interfaces.
 
     ///@}
     ///@name Protected Operators

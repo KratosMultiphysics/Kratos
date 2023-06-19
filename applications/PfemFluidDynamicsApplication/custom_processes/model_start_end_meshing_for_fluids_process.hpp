@@ -271,7 +271,7 @@ namespace Kratos
           // 	  PreservedConditions.back().SetId(condId);
           // 	  condId+=1;
 
-          // 	  Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
+          // 	  Geometry< Node >& rGeometry = i_cond->GetGeometry();
           // 	  unsigned int NumNodes=rGeometry.size();
           // 	  unsigned int freeSurfaceNodes=0;
           // 	  unsigned int rigidNodes=0;
@@ -346,17 +346,12 @@ namespace Kratos
 
       // rModelPart.Conditions().swap(PreservedConditions);
 
-      //Sort
-      rModelPart.Nodes().Sort();
-      rModelPart.Elements().Sort();
-      // rModelPart.Conditions().Sort();
-
-      //Unique
+      // Unique (it includes sort())
       rModelPart.Nodes().Unique();
       rModelPart.Elements().Unique();
       // rModelPart.Conditions().Unique();
 
-      //Sort Again to have coherent numeration for nodes (mesh with shared nodes)
+      // Sort Again to have coherent numeration for nodes (mesh with shared nodes)
       unsigned int consecutive_index = 1;
       for (ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); in++)
         in->SetId(consecutive_index++);
@@ -416,12 +411,12 @@ namespace Kratos
         }
       }
 
-      //Sort
-      rComputingModelPart.Nodes().Sort();
-      rComputingModelPart.Elements().Sort();
-      // rComputingModelPart.Conditions().Sort();
+      // // // Sort
+      // // rComputingModelPart.Nodes().Sort();
+      // // rComputingModelPart.Elements().Sort();
+      // // // rComputingModelPart.Conditions().Sort();
 
-      //Unique
+      // Unique (Sort is included)
       rComputingModelPart.Nodes().Unique();
       rComputingModelPart.Elements().Unique();
       // rComputingModelPart.Conditions().Unique();
@@ -443,7 +438,7 @@ namespace Kratos
 
       //BOUNDARY NORMALS SEARCH and SHRINKAGE FACTOR
       BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateWeightedBoundaryNormals(mrMainModelPart, mEchoLevel);
+      BoundaryComputation.CalculateUnitBoundaryNormals(mrMainModelPart, mEchoLevel);
 
       KRATOS_CATCH(" ")
     }

@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
 
 //default builder and solver
@@ -60,7 +60,7 @@ template<class TSparseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
 class ResidualBasedLinearStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions */
@@ -69,7 +69,9 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedLinearStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
+
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
 
@@ -119,7 +121,7 @@ public:
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
 
-        // Set flags to start correcty the calculations
+        // Set flags to start the calculations correctly
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -163,7 +165,7 @@ public:
                                  new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewLinearSolver)
                              );
 
-        // Set flag to start correcty the calculations
+        // Set flag to start the calculations correctly
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -211,7 +213,7 @@ public:
     {
         KRATOS_TRY
 
-        // Set flag to start correcty the calculations
+        // Set flag to start the calculations correctly
         mSolutionStepIsInitialized = false;
         mInitializeWasPerformed = false;
 
@@ -339,9 +341,9 @@ public:
      * @param Level The level to set
      * @details The different levels of echo are:
      * - 0: Mute... no echo at all
-     * - 1: Printing time and basic informations
+     * - 1: Printing time and basic information
      * - 2: Printing linear solver data
-     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      */
 
     void SetEchoLevel(int Level) override
@@ -358,7 +360,7 @@ public:
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    typename BaseType::Pointer Create(
+    typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
         ) const override
@@ -539,21 +541,21 @@ public:
                 //setting up the list of the DOFs to be solved
                 BuiltinTimer setup_dofs_time;
                 p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time" << setup_dofs_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: " << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 //shaping correctly the system
                 BuiltinTimer setup_system_time;
                 p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time" << setup_system_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: " << setup_system_time.ElapsedSeconds() << std::endl;
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time" << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: " << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
 
-            KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time" << system_construction_time.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: " << system_construction_time.ElapsedSeconds() << std::endl;
 
             TSystemMatrixType& rA  = *mpA;
             TSystemVectorType& rDx = *mpDx;

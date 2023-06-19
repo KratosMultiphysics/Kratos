@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B. Sautter
 //
@@ -164,7 +164,7 @@ int TrussConstitutiveLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-)
+) const
 {
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.00)

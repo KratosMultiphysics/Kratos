@@ -3,12 +3,18 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Massimo Petracca
 //                   Philipp Bucher
 //
+
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/element.h"
 #include "shell_cross_section.hpp"
 #include "structural_mechanics_application_variables.h"
@@ -1302,6 +1308,18 @@ void ShellCrossSection::Ply::RecoverOrthotropicProperties(const IndexType IdxCur
     }
 
     laminaProps[SHELL_ORTHOTROPIC_LAYERS] = current_ply_properties;
+}
+
+
+std::vector<ConstitutiveLaw::Pointer> ShellCrossSection::GetConstitutiveLawsVector(const Properties& rProps)
+{
+    std::vector<ConstitutiveLaw::Pointer> claws_vector;
+    for (auto& r_ply : mStack) {
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rProps)) {
+            claws_vector.push_back(r_int_point.GetConstitutiveLaw());
+        }
+    }
+    return claws_vector;
 }
 
 }

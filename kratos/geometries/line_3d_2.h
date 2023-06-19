@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_LINE_3D_2_H_INCLUDED )
-#define  KRATOS_LINE_3D_2_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -25,7 +24,8 @@
 #include "geometries/geometry.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
-
+#include "utilities/intersection_utilities.h"
+#include "utilities/geometry_utilities.h"
 namespace Kratos
 {
 
@@ -239,12 +239,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Linear;
+        return GeometryData::KratosGeometryFamily::Kratos_Linear;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Line3D2;
+        return GeometryData::KratosGeometryType::Kratos_Line3D2;
     }
 
     ///@}
@@ -403,9 +403,54 @@ public:
 
 
     ///@}
-    ///@name Jacobian
+    ///@name Intersections
     ///@{
 
+    /**
+     * @brief Test if this geometry intersects with other geometry
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     * @details We always check the intersection from the higher LocalSpaceDimension to the lower one
+     */
+    bool HasIntersection(const BaseType& rThisGeometry) const override
+    {
+        const BaseType& r_geom = *this;
+        if (rThisGeometry.LocalSpaceDimension() > r_geom.LocalSpaceDimension()) {
+            return rThisGeometry.HasIntersection(r_geom);
+        }
+        // Both objects are lines
+        Point intersection_point;
+        return IntersectionUtilities::ComputeLineLineIntersection(r_geom, rThisGeometry[0], rThisGeometry[1], intersection_point);
+    }
+
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToLineSegment3D(this->GetPoint(0), this->GetPoint(1), point);
+    }
+
+    ///@}
+    ///@name Jacobian
+    ///@{
 
     /** Jacobians for given  method. This method
     calculate jacobians matrices in all integrations points of
@@ -711,6 +756,14 @@ public:
     ///@name Shape Function
     ///@{
 
+    /**
+     * @brief This method gives all non-zero shape functions values evaluated at the rCoordinates provided
+     * @note There is no control if the return vector is empty or not!
+     * @return Vector of values of shape functions \f$ F_{i} \f$ where i is the shape function index (for NURBS it is the inde of the local enumeration in the element).
+     * @see ShapeFunctionValue
+     * @see ShapeFunctionsLocalGradients
+     * @see ShapeFunctionLocalGradient
+     */
     Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
         if(rResult.size() != 2) {
@@ -723,6 +776,15 @@ public:
         return rResult;
     }
 
+    /**
+     * @brief This method gives value of given shape function evaluated in given point.
+     * @param rPoint Point of evaluation of the shape function. This point must be in local coordinate.
+     * @param ShapeFunctionIndex index of node which correspounding shape function evaluated in given integration point.
+     * @return Value of given shape function in given point.
+     * @see ShapeFunctionsValues
+     * @see ShapeFunctionsLocalGradients
+     * @see ShapeFunctionLocalGradient
+     */
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
@@ -760,11 +822,6 @@ public:
         return ZeroVector(3);
     }
 
-    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
     /**
      * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
@@ -786,6 +843,20 @@ public:
         }
 
         return false;
+    }
+
+    /** Test intersection of the geometry with a box (AABB)
+     * Tests the intersection of the geometry with
+     * a 3D box defined by rLowPoint and rHighPoint
+     *
+     * @param  rLowPoint  Lower point of the box to test the intersection
+     * @param  rHighPoint Higher point of the box to test the intersection
+     * @return            True if the geometry intersects the box, False in any other case.
+     */
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
+    {
+        return IntersectionUtilities::ComputeLineBoxIntersection(
+            rLowPoint, rHighPoint, this->GetPoint(0), this->GetPoint(1));
     }
 
     /**
@@ -827,6 +898,10 @@ public:
 
         return rResult ;
     }
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /** Turn back information as a string.
 
@@ -954,7 +1029,7 @@ private:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues( typename BaseType::IntegrationMethod ThisMethod )
     {
         const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
-        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
+        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[static_cast<int>(ThisMethod)];
         int integration_points_number = IntegrationPoints.size();
         Matrix N( integration_points_number, 2 );
 
@@ -971,7 +1046,7 @@ private:
     static ShapeFunctionsGradientsType CalculateShapeFunctionsIntegrationPointsLocalGradients( typename BaseType::IntegrationMethod ThisMethod )
     {
         const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
-        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
+        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[static_cast<int>(ThisMethod)];
         ShapeFunctionsGradientsType DN_De( IntegrationPoints.size() );
 
         for ( unsigned int it_gp = 0; it_gp < IntegrationPoints.size(); it_gp++ )
@@ -1007,16 +1082,16 @@ private:
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values = {{
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_1 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_2 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_4 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_5 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_EXTENDED_GAUSS_1 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_EXTENDED_GAUSS_2 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_EXTENDED_GAUSS_3 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_EXTENDED_GAUSS_4 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_EXTENDED_GAUSS_5 )
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1025,16 +1100,16 @@ private:
     static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {{
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_1 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_2 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_3 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_4 ),
-                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_5 )
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                Line3D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
 
             }
         };
@@ -1099,15 +1174,12 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 template<class TPointType>
 const GeometryData Line3D2<TPointType>::msGeometryData(
         &msGeometryDimension,
-        GeometryData::GI_GAUSS_1,
+        GeometryData::IntegrationMethod::GI_GAUSS_1,
         Line3D2<TPointType>::AllIntegrationPoints(),
         Line3D2<TPointType>::AllShapeFunctionsValues(),
         AllShapeFunctionsLocalGradients() );
 
 template<class TPointType>
-const GeometryDimension Line3D2<TPointType>::msGeometryDimension(
-    3, 3, 1);
+const GeometryDimension Line3D2<TPointType>::msGeometryDimension(3, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_3D_2_H_INCLUDED  defined

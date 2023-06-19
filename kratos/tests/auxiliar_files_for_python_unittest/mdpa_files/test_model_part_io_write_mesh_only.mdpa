@@ -25,6 +25,10 @@ Begin Elements	Element2D4N
 	3	1	2	1	3	6	
 End Elements
 
+Begin Geometries	Quadrilateral2D4
+	1	4	6	2	3	
+End Geometries
+
 Begin SubModelPart	Parts_Parts_Auto1
 	Begin SubModelPartData
 	End SubModelPartData

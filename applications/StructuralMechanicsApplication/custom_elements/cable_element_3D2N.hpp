@@ -3,16 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(KRATOS_CABLE_ELEMENT_3D2N_H_INCLUDED )
-#define  KRATOS_CABLE_ELEMENT_3D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -32,7 +29,7 @@ namespace Kratos
  *
  * @author Klaus B Sautter
  */
-class CableElement3D2N : public TrussElement3D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CableElement3D2N : public TrussElement3D2N
 {
 
 public:
@@ -109,5 +106,3 @@ private:
 };
 
 }
-
-#endif

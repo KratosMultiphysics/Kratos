@@ -16,7 +16,6 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 
-
 namespace Kratos
 {
 // Constructor for DefineEmbeddedWakeProcess Process
@@ -34,115 +33,127 @@ void DefineEmbeddedWakeProcess::Execute()
 
     KRATOS_ERROR_IF(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]>2) << "DOMAIN_SIZE is greater than 2. DefineEmbeddedWakeProcess is only implemented for 2D cases!" << std::endl;
 
+    ExecuteInitialize();
     ComputeDistanceToWake();
     MarkWakeElements();
     ComputeTrailingEdgeNode();
-    MarkKuttaWakeElements();
 
     KRATOS_CATCH("");
 }
 
+void DefineEmbeddedWakeProcess::ExecuteInitialize() {
+
+    KRATOS_TRY;
+
+    block_for_each(mrModelPart.Elements(), [&](Element& rElem) {
+        rElem.SetValue(WAKE, false);
+    });
+    block_for_each(mrModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+        rNode.SetValue(WAKE_DISTANCE, 0.0);
+        rNode.SetValue(WAKE, false);
+        rNode.SetValue(KUTTA, false);
+    });
+
+    const auto free_stream_velocity = mrModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
+    KRATOS_ERROR_IF(free_stream_velocity.size() != 3)
+        << "The free stream velocity should be a vector with 3 components!"
+        << std::endl;
+    const double norm = norm_2(free_stream_velocity);
+    KRATOS_ERROR_IF(norm < std::numeric_limits<double>::epsilon())
+        << "The norm of the free stream velocity should be different than 0."
+        << std::endl;
+    // The wake direction is the free stream direction
+    const auto wake_direction = free_stream_velocity / norm;
+    array_1d<double, 3> wake_normal;
+
+    wake_normal[0] = -wake_direction[1];
+    wake_normal[1] = wake_direction[0];
+    wake_normal[2] = 0.0;
+    mrModelPart.GetRootModelPart().GetProcessInfo()[WAKE_NORMAL] = wake_normal;
+
+    KRATOS_CATCH("");
+}
 
 void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 
+    KRATOS_TRY;
+
     CalculateDiscontinuousDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
     distance_calculator.Execute();
+
+    KRATOS_CATCH("");
 }
 
 void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
-    ModelPart& deactivated_model_part = mrModelPart.CreateSubModelPart("deactivated_model_part");
-    std::vector<std::size_t> deactivated_elements_id_list;
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
+    KRATOS_TRY;
 
-        BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(ELEMENTAL_DISTANCES);
-        it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
+    block_for_each(mrModelPart.Elements(), [&](Element& rElem)
+    {
+        auto& r_geometry = rElem.GetGeometry();
+        BoundedVector<double, 3> nodal_distances_to_wake = rElem.GetValue(ELEMENTAL_DISTANCES);
+        rElem.SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
 
         // Selecting the cut (wake) elements
         const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);
 
         BoundedVector<double,3> geometry_distances;
-        for(unsigned int i_node = 0; i_node<3; i_node++){
-            geometry_distances[i_node] = it_elem->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        for(unsigned int i_node = 0; i_node< r_geometry.size(); i_node++){
+            geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
         const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
 
         // Mark wake element and save their nodal distances to the wake
-        if (is_wake_element) {
+        if (is_wake_element && rElem.Is(ACTIVE)) {
+            rElem.SetValue(WAKE, true);
             if (is_embedded){
-                #pragma omp critical
-                {
-                    deactivated_elements_id_list.push_back(it_elem->Id());
-                }
-                it_elem->Set(ACTIVE, false);
-            }
-            else{
-                it_elem->SetValue(WAKE, true);
-                auto r_geometry = it_elem->GetGeometry();
-                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
+                rElem.Set(STRUCTURE, true);
+                for (unsigned int i = 0; i < r_geometry.size(); i++) {
                     r_geometry[i].SetLock();
+                    r_geometry[i].SetValue(KUTTA, true);
                     r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
                     r_geometry[i].UnSetLock();
                 }
             }
+            else{
+                for (unsigned int i = 0; i < r_geometry.size(); i++) {
+                    r_geometry[i].SetLock();
+                    r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
+                    r_geometry[i].SetValue(WAKE, true);
+                    r_geometry[i].UnSetLock();
+                }
+            }
+        }
+    });
+
+    KRATOS_CATCH("");
+
+}
+
+ModelPart::NodeType::Pointer DefineEmbeddedWakeProcess::pGetTrailingEdgeNode(){
+
+    for (auto& r_node : mrModelPart.Nodes()) {
+        bool is_positive = r_node.GetValue(WAKE_DISTANCE) > 0.0;
+        bool is_wake = r_node.GetValue(WAKE);
+        bool is_kutta = r_node.GetValue(KUTTA);
+        if (is_positive && is_wake && is_kutta) {
+            r_node.SetValue(TRAILING_EDGE, true);
+            return &r_node;
         }
     }
-    deactivated_model_part.AddElements(deactivated_elements_id_list);
+    KRATOS_ERROR << "No trailing edge node was found!" << std::endl;
+    return nullptr;
+
 }
 
 void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
-    double max_distance = 0.0;
-    ModelPart& deactivated_model_part = mrModelPart.GetSubModelPart("deactivated_model_part");
-    Element::Pointer p_max_elem;
+    KRATOS_TRY;
 
-    auto wake_origin = mrModelPart.GetProcessInfo()[WAKE_ORIGIN];
+    auto p_node = pGetTrailingEdgeNode();
 
-    // Find furthest deactivated element to the wake origin
-    for (int i = 0; i < static_cast<int>(deactivated_model_part.Elements().size()); i++) {
-        ModelPart::ElementIterator it_elem = deactivated_model_part.ElementsBegin() + i;
-
-        BoundedVector<double,2> distance_vector;
-        distance_vector[0] = wake_origin[0] - it_elem->GetGeometry().Center().X();
-        distance_vector[1] = wake_origin[1] - it_elem->GetGeometry().Center().Y();
-        double norm = norm_2(distance_vector);
-        if(norm>max_distance){
-            max_distance = norm;
-            p_max_elem = mrModelPart.pGetElement(it_elem->Id());
-        }
-    }
-
-    // Mark nodes of the furthest deactivated element and store its neighbour elements
-    for (unsigned int i_node= 0; i_node < p_max_elem->GetGeometry().size(); i_node++) {
-        p_max_elem->GetGeometry()[i_node].SetValue(TRAILING_EDGE,true);
-        const GlobalPointersVector<Element>& r_node_elem_candidates = p_max_elem -> GetGeometry()[i_node].GetValue(NEIGHBOUR_ELEMENTS);
-        for (std::size_t j = 0; j < r_node_elem_candidates.size(); j++) {
-            mKuttaWakeElementCandidates.push_back(r_node_elem_candidates(j));
-        }
-    }
-
-    mrModelPart.RemoveSubModelPart("deactivated_model_part");
-}
-
-void DefineEmbeddedWakeProcess::MarkKuttaWakeElements(){
-
-    // Find elements that touch the furthest deactivated element and that are part of the wake.
     std::vector<std::size_t> trailing_edge_node_list;
-    for (std::size_t i = 0; i < mKuttaWakeElementCandidates.size(); i++)
-    {
-        auto& r_geometry = mKuttaWakeElementCandidates[i].GetGeometry();
-        if (mKuttaWakeElementCandidates[i].GetValue(WAKE) && mKuttaWakeElementCandidates[i].Is(ACTIVE)) {
-            for (std::size_t i_node= 0; i_node < r_geometry.size(); i_node++) {
-                if(r_geometry[i_node].GetValue(TRAILING_EDGE)){
-                    trailing_edge_node_list.push_back(r_geometry[i_node].Id());
-                    mKuttaWakeElementCandidates[i].Set(STRUCTURE);
-                }
-            }
-        }
-
-    }
+    trailing_edge_node_list.push_back(p_node->Id());
 
     if (mrModelPart.HasSubModelPart("trailing_edge_sub_model_part")){
         mrModelPart.RemoveSubModelPart("trailing_edge_sub_model_part");
@@ -153,5 +164,6 @@ void DefineEmbeddedWakeProcess::MarkKuttaWakeElements(){
               trailing_edge_node_list.end());
     mrModelPart.GetSubModelPart("trailing_edge_sub_model_part").AddNodes(trailing_edge_node_list);
 
+    KRATOS_CATCH("");
 }
-}// Namespace Kratos
+}

@@ -62,7 +62,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "SmallDisplacementElement3D4N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D4N",
                     "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
                     "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
-                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N"
+                    "SpringDamperElement3D"          : "AdjointFiniteDifferenceSpringDamperElement3D2N",
+                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N" 
                 },
                 "condition_name_table" :
                 {
@@ -81,7 +82,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "PointCondition3D1N"
                 ]
             }
-        """) # TODO remove "Condition3D" after issue#4439 is resolved
+        """) # TODO remove "Condition3D" after issue#4439 is resolved; remove SpringDamperElement3D2N, it is deprecated
 
         StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
         process_info.SetValue(StructuralMechanicsApplication.IS_ADJOINT, True)
@@ -146,7 +147,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                 adjoint_rotation = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
                 node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation )
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
             if self.settings["compute_reactions"].GetBool():
@@ -160,5 +161,5 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             raise Exception(err_msg)
         return mechanical_solution_strategy
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         return KratosMultiphysics.ResidualBasedAdjointStaticScheme(self.response_function)

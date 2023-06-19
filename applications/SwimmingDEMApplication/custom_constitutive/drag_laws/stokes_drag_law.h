@@ -5,18 +5,19 @@
 #define SDEM_STOKES_DRAG_LAW_H_INCLUDED
 
 #include "drag_law.h"
+#include "../DEMApplication/custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
     class KRATOS_API(SWIMMING_DEM_APPLICATION) StokesDragLaw : public DragLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(StokesDragLaw);
 
         StokesDragLaw(){}
 
-        StokesDragLaw(Parameters& r_parameters){}
+        StokesDragLaw(Parameters r_parameters){}
 
         ~StokesDragLaw(){}
 
@@ -26,7 +27,7 @@ namespace Kratos {
 
         std::string GetTypeOfLaw() override;
 
-        void ComputeForce(Geometry<Node<3> >& r_geometry,
+        void ComputeForce(SphericParticle* p_particle,
                           const double reynolds_number,
                           double particle_radius,
                           double fluid_density,

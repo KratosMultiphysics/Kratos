@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -42,8 +42,7 @@
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -55,7 +54,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 //     typedef BaseSolvingStrategyType::Pointer BaseSolvingStrategyPointer;
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
@@ -184,6 +183,5 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

@@ -53,7 +53,7 @@ public:
 	KRATOS_CLASS_POINTER_DEFINITION(FluidCharacteristicNumbersUtilities);
 
     /// Function type for the element size calculator function
-    typedef std::function<double(const Geometry<Node<3>>&)> ElementSizeFunctionType;
+    typedef std::function<double(const Geometry<Node>&)> ElementSizeFunctionType;
 
 	///@}
 	///@name Life Cycle
@@ -85,6 +85,21 @@ public:
         const Element &rElement,
         const ElementSizeFunctionType& rElementSizeCalculator,
         const double Dt);
+
+
+    /**
+     * @brief Calulate element CFL number for compressible flows (considering sound velocity)
+     * For the given element, this method calculates the CFL number
+     * @param rElement Element to calculate the CFL number
+     * @param rGeometryInfo Auxiliary geometry data container
+     * @param Dt Current time increment
+     * @return double The element CFL number
+     */
+    static double CalculateElementCFLWithSoundVelocity(
+        const Element &rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator,
+        const double Dt);
+
 
     /**
      * @brief Calculate the element Prandtl number
@@ -196,7 +211,7 @@ public:
      * @param rGeometry Geoemtry in which the element size is to be computed
      * @return ElementSizeFunctionType Function to calculate the minimum element size
      */
-    static ElementSizeFunctionType GetMinimumElementSizeFunction(const Geometry<Node<3>>& rGeometry);
+    static ElementSizeFunctionType GetMinimumElementSizeFunction(const Geometry<Node>& rGeometry);
 
     /**
      * @brief Get the average element size calculation function
@@ -205,7 +220,7 @@ public:
      * @param rGeometry Geoemtry in which the element size is to be computed
      * @return ElementSizeFunctionType Function to calculate the average element size
      */
-    static ElementSizeFunctionType GetAverageElementSizeFunction(const Geometry<Node<3>>& rGeometry);
+    static ElementSizeFunctionType GetAverageElementSizeFunction(const Geometry<Node>& rGeometry);
 
     ///@}
 

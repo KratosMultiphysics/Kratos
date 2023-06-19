@@ -73,7 +73,7 @@ public:
     - GI_GAUSS_4 gaussian integration with order 4.
     - GI_GAUSS_5 gaussian integration with order 5.
     */
-    enum IntegrationMethod {
+    enum class IntegrationMethod {
         GI_GAUSS_1,
         GI_GAUSS_2,
         GI_GAUSS_3,
@@ -84,10 +84,10 @@ public:
         GI_EXTENDED_GAUSS_3,
         GI_EXTENDED_GAUSS_4,
         GI_EXTENDED_GAUSS_5,
-        NumberOfIntegrationMethods
+        NumberOfIntegrationMethods // Note that this entry needs to be always the last to be used as integration methods counter
     };
 
-    enum KratosGeometryFamily
+    enum class KratosGeometryFamily
     {
         Kratos_NoElement,
         Kratos_Point,
@@ -97,11 +97,16 @@ public:
         Kratos_Tetrahedra,
         Kratos_Hexahedra,
         Kratos_Prism,
+        Kratos_Pyramid,
+        Kratos_Nurbs,
         Kratos_Brep,
-        Kratos_generic_family
+        Kratos_Quadrature_Geometry,
+        Kratos_Composite,
+        Kratos_generic_family,
+        NumberOfGeometryFamilies // Note that this entry needs to be always the last to be used as geometry families counter
     };
 
-    enum KratosGeometryType
+    enum class KratosGeometryType
     {
         Kratos_generic_type,
         Kratos_Hexahedra3D20,
@@ -109,6 +114,8 @@ public:
         Kratos_Hexahedra3D8,
         Kratos_Prism3D15,
         Kratos_Prism3D6,
+        Kratos_Pyramid3D13,
+        Kratos_Pyramid3D5,
         Kratos_Quadrilateral2D4,
         Kratos_Quadrilateral2D8,
         Kratos_Quadrilateral2D9,
@@ -119,19 +126,33 @@ public:
         Kratos_Tetrahedra3D4,
         Kratos_Triangle2D3,
         Kratos_Triangle2D6,
+        Kratos_Triangle2D10,
+        Kratos_Triangle2D15,
         Kratos_Triangle3D3,
         Kratos_Triangle3D6,
         Kratos_Line2D2,
         Kratos_Line2D3,
+        Kratos_Line2D4,
+        Kratos_Line2D5,
         Kratos_Line3D2,
         Kratos_Line3D3,
         Kratos_Point2D,
         Kratos_Point3D,
         Kratos_Sphere3D1,
+        Kratos_Nurbs_Curve,
+        Kratos_Nurbs_Surface,
+        Kratos_Nurbs_Volume,
+        Kratos_Nurbs_Curve_On_Surface,
+        Kratos_Surface_In_Nurbs_Volume,
+        Kratos_Brep_Curve,
         Kratos_Brep_Surface,
-        Kratos_Brep_Curve
+        Kratos_Brep_Curve_On_Surface,
+        Kratos_Quadrature_Point_Geometry,
+        Kratos_Coupling_Geometry,
+        Kratos_Quadrature_Point_Curve_On_Surface_Geometry,
+        Kratos_Quadrature_Point_Surface_In_Volume_Geometry,
+        NumberOfGeometryTypes // Note that this entry needs to be always the last to be used as geometry types counter
     };
-
     ///@}
     ///@name Type Definitions
     ///@{
@@ -333,21 +354,15 @@ public:
         mGeometryShapeFunctionContainer = rGeometryShapeFunctionContainer;
     }
 
+    /// Returns the GeometryShapeFunctionContainer.
+    const GeometryShapeFunctionContainer<IntegrationMethod>& GetGeometryShapeFunctionContainer() const
+    {
+        return mGeometryShapeFunctionContainer;
+    }
+
     ///@}
     ///@name Informations
     ///@{
-
-    /** Dimension of the geometry for example a triangle2d is a 2
-    dimensional shape
-
-    @return SizeType, dimension of this geometry.
-    @see WorkingSpaceDimension()
-    @see LocalSpaceDimension()
-    */
-    SizeType Dimension() const
-    {
-        return mpGeometryDimension->Dimension();
-    }
 
     /** Working space dimension. for example a triangle is a 2
     dimensional shape but can be used in 3 dimensional space.
@@ -398,7 +413,7 @@ public:
     ///@name Integration
     ///@{
 
-    /** Number of integtation points for default integration
+    /** Number of integration points for default integration
     method. This method just call IntegrationPointsNumber(enum
     IntegrationMethod ThisMethod) with default integration
     method.
@@ -715,8 +730,7 @@ public:
     /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
-        rOStream << "    Dimension               : " << mpGeometryDimension->Dimension() << std::endl;
-        rOStream << "    working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
+        rOStream << "    Working space dimension : " << mpGeometryDimension->WorkingSpaceDimension() << std::endl;
         rOStream << "    Local space dimension   : " << mpGeometryDimension->LocalSpaceDimension();
     }
 

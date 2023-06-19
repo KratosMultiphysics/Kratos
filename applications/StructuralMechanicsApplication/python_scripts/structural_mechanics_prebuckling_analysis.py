@@ -60,7 +60,7 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
             is_converged = self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-            if self._GetSolver().get_mechanical_solution_strategy().GetSolutionFoundFlag():
+            if self._GetSolver()._GetSolutionStrategy().GetSolutionFoundFlag():
                 break
 
     def KeepAdvancingSolutionLoop(self):
@@ -96,4 +96,3 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
 
             for process in self._GetListOfProcesses():
                 process.ExecuteAfterOutputStep()
-

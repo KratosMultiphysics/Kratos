@@ -194,7 +194,7 @@ template <>
 void FractionalStepKBasedWallCondition<2, 2>::CalculateNormal(
     array_1d<double, 3>& An) const
 {
-    const Geometry<Node<3>>& r_geometry = this->GetGeometry();
+    const Geometry<Node>& r_geometry = this->GetGeometry();
 
     An[0] = r_geometry[1].Y() - r_geometry[0].Y();
     An[1] = -(r_geometry[1].X() - r_geometry[0].X());
@@ -205,7 +205,7 @@ template <>
 void FractionalStepKBasedWallCondition<3, 3>::CalculateNormal(
     array_1d<double, 3>& An) const
 {
-    const Geometry<Node<3>>& r_geometry = this->GetGeometry();
+    const Geometry<Node>& r_geometry = this->GetGeometry();
 
     array_1d<double, 3> v1, v2;
     v1[0] = r_geometry[1].X() - r_geometry[0].X();
@@ -229,11 +229,11 @@ void FractionalStepKBasedWallCondition<TDim, TNumNodes>::ApplyNeumannCondition(
     if (!r_condition.Is(SLIP)) {
         const unsigned int local_size = TDim;
         const auto& r_geometry = this->GetGeometry();
-        const auto& IntegrationPoints = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const auto& IntegrationPoints = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
         const unsigned int number_of_gauss_points = IntegrationPoints.size();
         Vector gauss_weight = ZeroVector(number_of_gauss_points);
 
-        MatrixType shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        MatrixType shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         array_1d<double, 3> normal;
         this->CalculateNormal(normal); // this already contains the area

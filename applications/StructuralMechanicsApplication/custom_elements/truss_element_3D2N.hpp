@@ -3,16 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(KRATOS_TRUSS_ELEMENT_3D2N_H_INCLUDED )
-#define  KRATOS_TRUSS_ELEMENT_3D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -33,7 +30,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class TrussElement3D2N : public Element
+    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussElement3D2N : public Element
     {
     protected:
         //const values
@@ -258,6 +255,8 @@ namespace Kratos
          */
         bool HasSelfWeight() const;
 
+        const Parameters GetSpecifications() const override;
+
 private:
     /**
      * @brief This method computes directly the lumped mass vector
@@ -274,6 +273,3 @@ private:
 
 
 }
-
-
-#endif

@@ -3,21 +3,20 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Quirin Aumann
 //
 
-#if !defined(KRATOS_HARMONIC_ANALYSIS_STRATEGY )
-#define  KRATOS_HARMONIC_ANALYSIS_STRATEGY
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
 
 // Application includes
@@ -51,7 +50,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class HarmonicAnalysisStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -59,8 +58,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(HarmonicAnalysisStrategy);
 
-    // Base class definition
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     /// Definition of the current scheme
     typedef HarmonicAnalysisStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
@@ -743,6 +741,4 @@ private:
 ///@}
 
 } /* namespace Kratos */
-
-#endif /* KRATOS_HARMONIC_ANALYSIS_STRATEGY  defined */
 

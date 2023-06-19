@@ -1,0 +1,131 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "rectangular_channel",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 10
+    },
+    "output_processes" : {
+        "gid_output" : []
+    },
+    "solver_settings"  : {
+        "model_part_name"             : "FluidModelPart",
+        "domain_size"                 : 3,
+        "solver_type"                 : "TwoFluids",
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "rectangular_channel_3d"
+        },
+        "material_import_settings"    : {
+            "materials_filename" : "TwoFluidMassConservation3DTestMaterials.json"
+        },
+        "maximum_iterations"			: 5,
+    	"echo_level"					: 0,
+    	"time_order"					: 2,
+    	"compute_reactions"				: false,
+    	"reform_dofs_at_each_step"		: false,
+    	"relative_velocity_tolerance"	: 0.001,
+    	"absolute_velocity_tolerance"	: 0.00001,
+    	"relative_pressure_tolerance"	: 0.001,
+    	"absolute_pressure_tolerance"	: 0.00001,
+        "volume_model_part_name"      : "FluidParts_Boundary-Fluid",
+        "skin_parts"                  : ["AutomaticInlet3D_Boundary-Inlet","Outlet3D_Boundary-Outlet","NoSlip3D_Boundary-Wall1","NoSlip3D_Boundary-Wall2","NoSlip3D_Boundary-Top","NoSlip3D_Boundary-Floor"],
+        "no_skin_parts"              	: [],
+        "move_mesh_flag"				: false,
+		"formulation": {
+			"dynamic_tau": 1.0
+		},
+        "time_stepping"  : {
+            "automatic_time_step" 	: false,
+            "time_step"           	: 0.025
+        },
+    	"linear_solver_settings": {
+        	"solver_type": "amgcl"
+    	}
+    },
+    "processes"        : {      
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{   
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
+            "model_part_name" : "FluidModelPart.NoSlip3D_Boundary-Wall1",
+            "variable_name"      : "VELOCITY",
+            "constrained"        : [false,true,false],
+            "value"              : [null,0,null]
+
+        }
+
+    },{
+        "python_module" : "apply_inlet_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "Parameters"    : {
+            "model_part_name" : "FluidModelPart.AutomaticInlet3D_Boundary-Inlet",
+            "variable_name"   : "VELOCITY",
+            "modulus"         : 1.0,
+            "direction"       : [1.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+    } 
+    },{
+        
+            "python_module" : "apply_outlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Outlet3D_Boundary-Outlet",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 0.0,
+                "hydrostatic_outlet" : false,
+                "h_top"              : 0.0
+    }
+    },{
+
+        "python_module" : "apply_noslip_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyNoSlipProcess",
+        "Parameters"    : {
+            "model_part_name" : "FluidModelPart.NoSlip3D_Boundary-Wall2",
+            "variable_name"      : "VELOCITY",
+            "constrained"        : [false,true,false],
+            "value"              : [null,0,null]
+    } 
+},{
+    "python_module" : "apply_noslip_process",
+    "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+    "process_name"  : "ApplyNoSlipProcess",
+    "Parameters"    : {
+        "model_part_name" : "FluidModelPart.NoSlip3D_Boundary-Top",
+        "variable_name"      : "VELOCITY",
+        "constrained"        : [false,false,true],
+        "value"              : [null,null,0]
+    }
+    },{        
+        
+    "python_module" : "apply_noslip_process",
+    "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+    "process_name"  : "ApplyNoSlipProcess",
+    "Parameters"    : {
+        "model_part_name" : "FluidModelPart.NoSlip3D_Boundary-Floor",
+        "variable_name"      : "VELOCITY",
+        "constrained"        : [false,false,true],
+        "value"              : [null,null,0]
+    }
+        }],
+        "gravity"                          : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.FluidParts_Boundary-Fluid",
+                "variable_name"   : "BODY_FORCE",
+                "modulus"         : 9.81,
+                "constrained"     : false,
+                "direction"       : [-1,0,0]
+            }
+        }],
+        "auxiliar_process_list"            : [],
+        "json_check_process_list" : []
+        }
+    }

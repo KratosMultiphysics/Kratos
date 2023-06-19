@@ -76,3 +76,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 install(TARGETS KratosChimeraApplicationCore DESTINATION libs )
 install(TARGETS KratosChimeraApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosChimeraApplicationCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosChimeraApplication" PARENT_SCOPE)

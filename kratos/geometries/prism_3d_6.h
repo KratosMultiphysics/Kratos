@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_PRISM_3D_6_H_INCLUDED )
-#define  KRATOS_PRISM_3D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -24,6 +23,7 @@
 // Project includes
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "utilities/integration_utilities.h"
 #include "integration/prism_gauss_legendre_integration_points.h"
 
 namespace Kratos
@@ -277,12 +277,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Prism;
+        return GeometryData::KratosGeometryFamily::Kratos_Prism;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Prism3D6;
+        return GeometryData::KratosGeometryType::Kratos_Prism3D6;
     }
 
     /**
@@ -406,33 +406,17 @@ public:
         return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
-
     /**
-     * This method calculates and returns the volume of this geometry.
-     * This method calculates and returns the volume of this geometry.
-     *
-     * This method uses the V = (A x B) * C / 6 formula.
-     *
-     * @return double value contains length, area or volume.
-     *
+     * @brief This method calculate and return volume of this geometry.
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
      * @see Length()
      * @see Area()
-     * @see Volume()
-     *
-     * :TODO: might be necessary to reimplement
+     * @see DomainSize()
      */
     double Volume() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double volume = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            volume += temp[i] * integration_points[i].Weight();
-        }
-
-        return volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
 
     /**
@@ -631,7 +615,7 @@ public:
         return faces;
     }
 
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
         // Check if faces have intersection
         if(FaceType1(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
@@ -872,7 +856,7 @@ private:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod )
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -920,8 +904,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -991,25 +974,25 @@ private:
         {
             {
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1025,25 +1008,25 @@ private:
         {
             {
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Prism3D6<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
@@ -1086,16 +1069,13 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Prism3D6<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_2,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     Prism3D6<TPointType>::AllIntegrationPoints(),
     Prism3D6<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
 template<class TPointType> const
-GeometryDimension Prism3D6<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Prism3D6<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_PRISM_3D_6_H_INCLUDED  defined

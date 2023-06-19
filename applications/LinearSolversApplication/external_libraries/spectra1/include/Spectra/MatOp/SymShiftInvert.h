@@ -119,6 +119,7 @@ public:
 ///                        is a sparse matrix.
 /// \tparam StorageIndexB  The storage index type of the \f$B\f$ matrix, only used when \f$B\f$
 ///                        is a sparse matrix.
+///
 template <typename Scalar_, typename TypeA = Eigen::Sparse, typename TypeB = Eigen::Sparse,
           int UploA = Eigen::Lower, int UploB = Eigen::Lower,
           int FlagsA = Eigen::ColMajor, int FlagsB = Eigen::ColMajor,
@@ -186,9 +187,18 @@ public:
     ///          `Eigen::Ref<Eigen::SparseMatrix<...>>`, etc.
     /// \param B A dense or sparse matrix object.
     ///
-    SymShiftInvert(ConstGenericMatrixA& A, ConstGenericMatrixB& B) :
-        m_matA(A), m_matB(B), m_n(A.rows())
+    template <typename DerivedA, typename DerivedB>
+    SymShiftInvert(const Eigen::EigenBase<DerivedA>& A, const Eigen::EigenBase<DerivedB>& B) :
+        m_matA(A.derived()), m_matB(B.derived()), m_n(A.rows())
     {
+        static_assert(
+            static_cast<int>(DerivedA::PlainObject::IsRowMajor) == static_cast<int>(MatrixA::IsRowMajor),
+            "SymShiftInvert: the \"FlagsA\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+
+        static_assert(
+            static_cast<int>(DerivedB::PlainObject::IsRowMajor) == static_cast<int>(MatrixB::IsRowMajor),
+            "SymShiftInvert: the \"FlagsB\" template parameter does not match the input matrix (Eigen::ColMajor/Eigen::RowMajor)");
+
         if (m_n != A.cols() || m_n != B.rows() || m_n != B.cols())
             throw std::invalid_argument("SymShiftInvert: A and B must be square matrices of the same size");
     }

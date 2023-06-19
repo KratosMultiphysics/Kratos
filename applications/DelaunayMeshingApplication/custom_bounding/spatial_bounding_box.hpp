@@ -202,7 +202,7 @@ public:
 protected:
 
 
-  typedef struct
+  struct BoundingBoxVariables
   {
 
     int        Dimension;          // 2D or 3D
@@ -274,7 +274,7 @@ protected:
     }
 
 
-  } BoundingBoxVariables;
+  };
 
 
 

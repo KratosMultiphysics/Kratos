@@ -1,0 +1,11 @@
+{
+	"wheel_name": "KratosContactStructuralMechanicsApplication",
+	"included_modules": ["ContactStructuralMechanicsApplication"],
+	"included_binaries": ["KratosContactStructuralMechanicsApplication.*", "KratosContactStructuralMechanicsCore.*", "KratosContactStructuralMechanicsCore.*"],
+    "excluded_binaries": ["libKratosStructuralMechanicsCore.*"],
+	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}", "KratosStructuralMechanicsApplication==${KRATOS_VERSION}"],
+	"author": "Vicente Mataix Ferrándiz",
+	"author_email": "vmataix@altair.com",
+	"description": "The Contact Structural Mechanics Application contains the contact mechanics implementations that can be used by the Structural Mechanics Application within Kratos Multiphysics.",
+	"readme": "applications/ContactStructuralMechanicsApplication/README.md"
+}

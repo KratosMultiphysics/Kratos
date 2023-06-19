@@ -1,12 +1,13 @@
-// KRATOS  ___|  |       |       |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//           | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License: BSD License
-//   license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -213,6 +214,18 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::CalculateLocalRHS(
+    Vector& rLocalRHS,
+    const MortarConditionMatrices& rMortarConditionMatrices,
+    const DerivativeDataType& rDerivativeData,
+    const IndexType rActiveInactive,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    StaticCalculateLocalRHS(this, mPreviousMortarOperators, GetFrictionCoefficient(), rLocalRHS, rMortarConditionMatrices, rDerivativeData, rActiveInactive, rCurrentProcessInfo);
+}
+
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
 
@@ -243,7 +256,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
         const NodeType& r_master_node = r_master_geometry[i_master];
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
-        if (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+        if constexpr (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
     }
 
     // Slave Nodes Displacement Equation IDs
@@ -251,7 +264,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
         const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
-        if (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
+        if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
     }
 
     KRATOS_CATCH( "" );
@@ -282,7 +295,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
         const NodeType& r_master_node = r_master_geometry[i_master];
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Y );
-        if (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
+        if constexpr (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
     }
 
     // Slave Nodes Displacement Equation IDs
@@ -290,7 +303,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
         const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Y );
-        if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
+        if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
     }
 
     KRATOS_CATCH( "" );

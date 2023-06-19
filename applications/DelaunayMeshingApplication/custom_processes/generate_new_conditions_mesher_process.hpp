@@ -40,11 +40,11 @@ typedef ModelPart::NodesContainerType NodesContainerType;
 typedef ModelPart::ElementsContainerType ElementsContainerType;
 typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-typedef Node<3>::WeakPointer NodeWeakPtrType;
+typedef Node::WeakPointer NodeWeakPtrType;
 typedef Element::WeakPointer ElementWeakPtrType;
 typedef Condition::WeakPointer ConditionWeakPtrType;
 
-typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
 typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
@@ -113,7 +113,7 @@ class GenerateNewConditionsMesherProcess
 
     bool success=false;
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     if( mEchoLevel > 0 )
       std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
@@ -126,14 +126,14 @@ class GenerateNewConditionsMesherProcess
     {
       std::cout<<"  ERROR:  BOUNDARY BUILD FAILED ModelPart : ["<<mrModelPart<<"] "<<std::endl;
     }
-    else
-    {
-      if( mEchoLevel >= 1 ){
-        double end_time = OpenMPUtils::GetCurrentTime();
-        std::cout<<" [ Search performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
-      }
-      //PrintSkin(mrModelPart);
-    }
+    // else
+    // {
+    //   if( mEchoLevel >= 1 ){
+    //     double end_time = OpenMPUtils::GetCurrentTime();
+    //     std::cout<<" [ Search performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
+    //   }
+    //   //PrintSkin(mrModelPart);
+    // }
 
     KRATOS_CATCH(" ")
   }
@@ -211,7 +211,7 @@ class GenerateNewConditionsMesherProcess
     //clear nodal boundary flag
     for(auto& i_elem : rModelPart.Elements())
     {
-      Geometry<Node<3> >& eGeometry = i_elem.GetGeometry();
+      Geometry<Node >& eGeometry = i_elem.GetGeometry();
 
       for(unsigned int j=0; j<eGeometry.size(); ++j)
       {
@@ -227,7 +227,7 @@ class GenerateNewConditionsMesherProcess
     rConditionId=0;
     for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
     {
-      Geometry< Node<3> >& eGeometry = i_elem->GetGeometry();
+      Geometry< Node >& eGeometry = i_elem->GetGeometry();
 
       const unsigned int dimension = eGeometry.WorkingSpaceDimension();
 
@@ -308,7 +308,7 @@ class GenerateNewConditionsMesherProcess
             bool inserted = false;
             for(auto i_cond(rTemporaryConditions.begin()); i_cond != rTemporaryConditions.end(); ++i_cond)
             {
-              Geometry< Node<3> >& cGeometry = i_cond->GetGeometry();
+              Geometry< Node >& cGeometry = i_cond->GetGeometry();
 
               if( i_cond->IsNot(TO_ERASE) ){
 
@@ -483,7 +483,7 @@ class GenerateNewConditionsMesherProcess
     bool node_not_preserved = false;
     bool condition_not_preserved = false;
 
-    Geometry< Node<3> >& cGeometry = rCondition.GetGeometry();
+    Geometry< Node >& cGeometry = rCondition.GetGeometry();
 
     for(unsigned int j=0; j<cGeometry.size(); ++j)
     {
@@ -564,7 +564,7 @@ class GenerateNewConditionsMesherProcess
   ///@{
 
 
-  bool FindNodeInCondition(Geometry< Node<3> >& cGeometry,Geometry< Node<3> >& eGeometry , DenseMatrix<unsigned int>& lpofa, DenseVector<unsigned int>& lnofa, unsigned int& iface)
+  bool FindNodeInCondition(Geometry< Node >& cGeometry,Geometry< Node >& eGeometry , DenseMatrix<unsigned int>& lpofa, DenseVector<unsigned int>& lnofa, unsigned int& iface)
   {
     KRATOS_TRY
 

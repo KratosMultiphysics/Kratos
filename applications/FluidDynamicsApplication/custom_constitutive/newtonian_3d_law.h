@@ -10,8 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined (KRATOS_NEWTONIAN_LAW_3D_H_INCLUDED)
-#define  KRATOS_NEWTONIAN_LAW_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -80,11 +79,31 @@ public:
     /**
      * @return Size of the strain vector (in Voigt notation) for the constitutive law
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
 
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
+
+    void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<double>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        double& rOutput) override;
+
+
+    void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Vector>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Vector& rOutput) override;
+
+
+    void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Matrix>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Matrix& rOutput) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -95,7 +114,10 @@ public:
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output
@@ -119,10 +141,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
     double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
-    
+
     ///@}
 private:
 
@@ -159,4 +181,3 @@ private:
 
 }; // Class Newtonian3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_LAW_3D_H_INCLUDED  defined 

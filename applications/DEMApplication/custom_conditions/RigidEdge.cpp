@@ -147,8 +147,11 @@ void RigidEdge2D::ComputeConditionRelativeData(int rigid_neighbour_index,
 void RigidEdge2D::CalculateNormal(array_1d<double, 3>& rnormal){
 
     if (GetGeometry().size()>1){
-        double delta_x = GetGeometry()[1].X() - GetGeometry()[0].X();
-        double delta_y = GetGeometry()[1].Y() - GetGeometry()[0].Y();
+        const auto& n0 = GetGeometry()[0];
+        const auto& n1 = GetGeometry()[1];
+
+        double delta_x = n1.X() - n0.X();
+        double delta_y = n1.Y() - n0.Y();
 
         rnormal[0] = - delta_y;
         rnormal[1] = delta_x;
@@ -157,8 +160,6 @@ void RigidEdge2D::CalculateNormal(array_1d<double, 3>& rnormal){
         rnormal /= MathUtils<double>::Norm3(rnormal);
     }
 }
-
-
 
 void RigidEdge2D::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
 {

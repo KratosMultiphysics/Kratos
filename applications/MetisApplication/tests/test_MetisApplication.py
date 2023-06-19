@@ -6,14 +6,13 @@ import KratosMultiphysics.MetisApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
-from generalTests import KratosMetisGeneralTests
-from test_metis_submodelpart_list import TestMetisSubModelPartList
+from quad_partition_test import QuadPartitionTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -27,22 +26,21 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     # smallSuite will contain the following tests:
     # - testSmallExample
-    smallSuite = suites['small']
-    smallSuite.addTest(KratosMetisGeneralTests('testSmallExample'))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMetisSubModelPartList]))
+    smallMPISuite = suites['small']
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([QuadPartitionTest]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
     # - testSmallExample
     # - testNightlyFirstExample
     # - testNightlySecondExample
-    nightSuite = suites['nightly']
-    nightSuite.addTests(smallSuite)
+    nightMPISuite = suites['nightly']
+    nightMPISuite.addTests(smallMPISuite)
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
-    allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allMPISuite = suites['all']
+    allMPISuite.addTests(nightMPISuite)
 
     return suites
 

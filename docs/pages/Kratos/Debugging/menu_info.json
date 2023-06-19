@@ -1,0 +1,8 @@
+{
+    "side_bar_name": "kratos_debugging",
+    "landing_page": "General/Checking-memory-usage-with-Valgrind.md",
+    "additional_menu_options": {
+        "product": "Debugging",
+        "title": "sidebar"
+    }
+}

@@ -21,6 +21,7 @@
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
+#include "includes/kratos_parameters.h"
 #include "containers/global_pointers_vector.h"
 
 namespace Kratos
@@ -69,8 +70,8 @@ public:
     ///base type: an GeometricalObject that automatically has a unique number
     typedef GeometricalObject BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters
@@ -92,11 +93,13 @@ public:
 
     typedef std::size_t SizeType;
 
+    typedef Dof<double> DofType;
+
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    typedef std::vector<DofType::Pointer> DofsVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
@@ -111,7 +114,7 @@ public:
 
     /**
      * CONDITIONS inherited from this class have to implement next
-     * contructors, copy constructors and destructor: MANDATORY
+     * constructors, copy constructors and destructor: MANDATORY
      */
 
     /**
@@ -282,7 +285,7 @@ public:
      * @return default integration method of the used Geometry
      * this method is: OPTIONAL ( is recommended to reimplement it in the derived class )
      */
-    virtual IntegrationMethod GetIntegrationMethod()
+    virtual IntegrationMethod GetIntegrationMethod() const
     {
         return pGetGeometry()->GetDefaultIntegrationMethod();
     }
@@ -473,7 +476,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition left hand side matrix for the first derivatives constributions
+     * to calculate the condition left hand side matrix for the first derivatives contributions
      * @param rLeftHandSideMatrix the condition left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -487,7 +490,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition right hand side vector for the first derivatives constributions
+     * to calculate the condition right hand side vector for the first derivatives contributions
      * @param rRightHandSideVector the condition right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -530,7 +533,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition left hand side matrix for the second derivatives constributions
+     * to calculate the condition left hand side matrix for the second derivatives contributions
      * @param rLeftHandSideMatrix the condition left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -544,7 +547,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition right hand side vector for the second derivatives constributions
+     * to calculate the condition right hand side vector for the second derivatives contributions
      * @param rRightHandSideVector the condition right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -960,6 +963,64 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * {
+        "time_integration"           : [],                                   // NOTE: Options are static, implicit, explicit
+        "framework"                  : "eulerian",                           // NOTE: Options are eulerian, lagrangian, ALE
+        "symmetric_lhs"              : true,                                 // NOTE: Options are true/false
+        "positive_definite_lhs"      : false,                                // NOTE: Options are true/false
+        "output"                     : {                                     // NOTE: Values compatible as output
+                "gauss_point"            : ["INTEGRATION_WEIGTH"],
+                "nodal_historical"       : ["DISPLACEMENT"],
+                "nodal_non_historical"   : [],
+                "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT"],                     // NOTE: Fill with the required variables
+        "required_dofs"              : ["DISPLACEMENT_X", "DISPLACEMENT_Y"], // NOTE: Fill with the required dofs
+        "flags_used"                 : ["BOUNDARY", "ACTIVE"],               // NOTE: Fill with the flags used
+        "compatible_geometries"      : ["Triangle2D3"],                      // NOTE: Compatible geometries. Options are "Point2D", "Point3D", "Sphere3D1", "Line2D2", "Line2D3", "Line3D2", "Line3D3", "Triangle2D3", "Triangle2D6", "Triangle3D3", "Triangle3D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9", "Tetrahedra3D4" , "Tetrahedra3D10" , "Prism3D6" , "Prism3D15" , "Hexahedra3D8" , "Hexahedra3D20" , "Hexahedra3D27"
+        "element_integrates_in_time" : true,                                 // NOTE: Options are true/false
+        "compatible_constitutive_laws": {
+            "type"         : ["PlaneStress","PlaneStrain"],                  // NOTE: List of CL compatible types. Options are "PlaneStress", "PlaneStrain", "3D"
+            "dimension"   : ["2D", "2D"],                                    // NOTE: List of dimensions. Options are "2D", "3D", "2DAxysimm"
+            "strain_size" : [3,3]                                            // NOTE: List of strain sizes
+            },
+        "documentation"              : "This is a condition"                 // NOTE: The documentation of the entity
+        }
+     * @return specifications The required specifications/requirements
+     */
+    virtual const Parameters GetSpecifications() const
+    {
+        const Parameters specifications = Parameters(R"({
+            "time_integration"           : [],
+            "framework"                  : "lagrangian",
+            "symmetric_lhs"              : false,
+            "positive_definite_lhs"      : false,
+            "output"                     : {
+                "gauss_point"            : [],
+                "nodal_historical"       : [],
+                "nodal_non_historical"   : [],
+                "entity"                 : []
+            },
+            "required_variables"         : [],
+            "required_dofs"              : [],
+            "flags_used"                 : [],
+            "compatible_geometries"      : [],
+            "element_integrates_in_time" : true,
+            "compatible_constitutive_laws": {
+                "type"        : [],
+                "dimension"   : [],
+                "strain_size" : []
+            },
+            "required_polynomial_degree_of_geometry" : -1,
+            "documentation"   : "This is the base condition"
+
+        })");
+        return specifications;
+    }
 
     /// Turn back information as a string.
 

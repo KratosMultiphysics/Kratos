@@ -1,0 +1,85 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Parts_Parts_Auto1",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                  : "adjoint_potential_flow",
+            "model_import_settings"        : {
+                "input_type"     : "mdpa",
+                "input_filename" : "../naca0012_small_mdpa/naca0012_small"
+            },
+        "model_part_name" : "MainModelPart",
+        "volume_model_part_name" : "Parts_Parts_Auto1",
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
+        "domain_size"     : 2,
+        "compute_reactions"			   : false,
+        "response_function_settings" : {
+                "response_type"     : "adjoint_lift_far_field",
+                "far_field_model_part_name"   : "PotentialWallCondition2D_Far_field_Auto1",
+                "gradient_mode"     : "semi_analytic",
+                "step_size"         : 1e-9
+            },
+        "sensitivity_settings" : {
+                "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+                "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false,
+                "build_mode": "static"
+            },
+        "echo_level"                   : 0,
+        "linear_solver_settings"       : {
+            "solver_type"         : "LinearSolversApplication.sparse_lu"
+        },
+        "reference_chord": 1.0
+    },
+    "processes" : {
+        "boundary_conditions_process_list" : [
+        {
+            "python_module" : "apply_far_field_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "Parameters"    : {
+                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "angle_of_attack": 0.0,
+                "mach_infinity": 0.02941176471,
+                "inlet_potential"         : 1.0
+            }
+        },{
+            "python_module" : "define_wake_process_2d",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "DefineWakeProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Body2D_Body",
+                "epsilon"         : 1e-9
+            }
+        }],
+        "list_other_processes" :[{
+            "kratos_module" : "KratosMultiphysics.HDF5Application",
+            "python_module" : "single_mesh_temporal_input_process",
+            "help"          : "",
+            "process_name"  : "",
+            "Parameters" : {
+                "model_part_name" : "MainModelPart",
+                "file_settings" : {
+                    "file_access_mode" : "read_only"
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"]
+                }
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables" : ["SHAPE_SENSITIVITY","ADJOINT_VELOCITY_POTENTIAL","ADJOINT_AUXILIARY_VELOCITY_POTENTIAL"],
+                "input_file_name" : "shape_sensitivity_far_field_test_results.json",
+                "model_part_name"  : "MainModelPart.Body2D_Body",
+                "time_frequency"   : -2
+            }
+        }],
+        "auxiliar_process_list" :[]
+    }
+}

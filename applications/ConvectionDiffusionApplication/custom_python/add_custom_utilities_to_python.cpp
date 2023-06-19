@@ -26,7 +26,7 @@
 #include "custom_utilities/move_particle_utility.h"
 // #include "custom_utilities/bfecc_elemental_convection.h"
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
-
+#include "custom_utilities/embedded_mls_constraint_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -48,6 +48,18 @@ void GenerateModelPart(FaceHeatUtilities& FaceHeatUtilities,ModelPart& origin_mo
     {
         FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part,KratosComponents<Element>::Get("ConvDiff3D"),KratosComponents<Condition>::Get("ThermalFace3D3N")	);
     }
+}
+
+template<unsigned int TDim>
+void MountBin1(MoveParticleUtilityScalarTransport<TDim>& rMoveParticleUtility)
+{
+    rMoveParticleUtility.MountBin();
+}
+
+template<unsigned int TDim>
+void MountBin2(MoveParticleUtilityScalarTransport<TDim>& rMoveParticleUtility, const double CellSize)
+{
+    rMoveParticleUtility.MountBin(CellSize);
 }
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
@@ -96,7 +108,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<BFECCConvection<2> > (m,"BFECCConvection2D")
     .def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool >())
-    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool, const bool >())
     .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<2>::CopyScalarVarToPreviousTimeStep)
@@ -105,14 +116,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<BFECCConvection<3> > (m,"BFECCConvection3D")
     .def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool >())
-    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool, const bool >())
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<3>::CopyScalarVarToPreviousTimeStep)
     ;
 
     py::class_< MoveParticleUtilityScalarTransport<2> > (m,"MoveParticleUtilityScalarTransport2D").def(py::init<ModelPart& , int >())
-    .def("MountBin", &MoveParticleUtilityScalarTransport<2>::MountBin)
+    .def("MountBin", MountBin1<2>)
+    .def("MountBin", MountBin2<2>)
     .def("MoveParticles", &MoveParticleUtilityScalarTransport<2>::MoveParticles)
     .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveParticleUtilityScalarTransport<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
     .def("PreReseed", &MoveParticleUtilityScalarTransport<2>::PreReseed)
@@ -126,7 +137,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     py::class_< MoveParticleUtilityScalarTransport<3> > (m,"MoveParticleUtilityScalarTransport3D").def(py::init<ModelPart& , int >())
-    .def("MountBin", &MoveParticleUtilityScalarTransport<3>::MountBin)
+    .def("MountBin", MountBin1<3>)
+    .def("MountBin", MountBin2<3>)
     .def("MoveParticles", &MoveParticleUtilityScalarTransport<3>::MoveParticles)
     .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveParticleUtilityScalarTransport<3>::CorrectParticlesWithoutMovingUsingDeltaVariables)
     .def("PreReseed", &MoveParticleUtilityScalarTransport<3>::PreReseed)
@@ -145,6 +157,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
 	py::class_<BFECCLimiterConvection<3> > (m,"BFECCLimiterConvection3D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def("BFECCconvect", &BFECCLimiterConvection<3>::BFECCconvect)
+    ;
+
+    py::class_<EmbeddedMLSConstraintProcess, EmbeddedMLSConstraintProcess::Pointer, Process>(m,"EmbeddedMLSConstraintProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 
 }

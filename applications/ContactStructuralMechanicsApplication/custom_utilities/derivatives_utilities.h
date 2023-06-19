@@ -1,16 +1,16 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_DERIVATIVES_UTILITIES)
-#define KRATOS_DERIVATIVES_UTILITIES
+#pragma once
 
 // System includes
 
@@ -99,16 +99,16 @@ public:
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                  DecompositionType;
 
     /// The derivative data type
-    typedef typename std::conditional<TFrictional, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> >::type DerivativeDataType;
+    typedef typename std::conditional<TFrictional, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type DerivativeDataType;
 
     /// The kinematic variables
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>                             GeneralVariables;
 
     /// The dual LM operators
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster> AeData;
+    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNumNodesMaster>                   AeData;
 
     /// The mortar operators
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster> MortarConditionMatrices;
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNumNodesMaster>                   MortarConditionMatrices;
 
     /// Definition of epsilon
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -255,7 +255,7 @@ public:
         DerivativeDataType& rDerivativeData,
         const GeometryType& rSlaveGeometry,
         const GeometryType& rMasterGeometry,
-        const array_1d<double, 3> rSlaveNormal,
+        const array_1d<double, 3>& rSlaveNormal,
         const DecompositionType& rDecompGeom,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
@@ -421,10 +421,10 @@ private:
         );
 
     /**
-     * @brief This method computes the auxiliar matrix used to keep unitary the normal
-     * @param rDiffVector The auxiliar vector of difference of two normal vectors
+     * @brief This method computes the auxiliary matrix used to keep unitary the normal
+     * @param rDiffVector The auxiliary vector of difference of two normal vectors
      * @param rDeltaNormal The vector containing the delta normal
-     * @return The auxiliar matrix computed
+     * @return The auxiliary matrix computed
      */
     static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
         const array_1d<double, 3>& rDiffVector,
@@ -432,11 +432,11 @@ private:
         );
 
     /**
-     * @brief This method computes the auxiliar matrix used to keep unitary the normal
-     * @param rDiffMatrix The auxiliar matrix of difference of two normal matrices
+     * @brief This method computes the auxiliary matrix used to keep unitary the normal
+     * @param rDiffMatrix The auxiliary matrix of difference of two normal matrices
      * @param rDeltaNormal The matrix containing the delta normal
      * @param iGeometry The index of the node of the geometry computed
-     * @return The auxiliar matrix computed
+     * @return The auxiliary matrix computed
      */
     static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
         const BoundedMatrix<double, TNumNodes, TDim>& rDiffMatrix,
@@ -456,8 +456,8 @@ private:
         );
 
     /**
-     * @brief This method computes the equivalent indexes to the auxiliar hash
-     * @param AuxIndex The auxiliar index to decompose
+     * @brief This method computes the equivalent indexes to the auxiliary hash
+     * @param AuxIndex The auxiliary index to decompose
      * @param riBelongSlaveStart The index of the first/slave segment and first node
      * @param riBelongSlaveEnd The index of the first/slave segment and end node
      * @param riBelongMasterStart The index of the second/master segment and first node
@@ -575,4 +575,3 @@ private:
 };// class DerivativesUtilities
 
 }
-#endif /* KRATOS_DERIVATIVES_UTILITIES defined */

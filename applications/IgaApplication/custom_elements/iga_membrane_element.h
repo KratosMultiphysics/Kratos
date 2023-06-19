@@ -121,7 +121,7 @@ public:
     typedef std::size_t IndexType;
 
     // GometryType
-    typedef Geometry<Node<3>> GeometryType;
+    typedef Geometry<Node> GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -415,12 +415,6 @@ private:
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
-    );
-
-    /// Calculates Initial Stiffness Matrix for Damping
-    void CalculateInitialStiffnessMatrix(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
     );
 
     /// Initialize Operations

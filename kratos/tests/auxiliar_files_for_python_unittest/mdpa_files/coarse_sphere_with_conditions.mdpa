@@ -349,6 +349,28 @@ Begin Elements Element3D4N// GUI group identifier: Parts Auto1
        249          1          3         16         23         17
 End Elements
 
+Begin SubModelPart Partial_Skin_Part
+    Begin SubModelPartNodes
+            34
+            37
+            48
+            51
+            52
+            60
+            64
+            68
+            70
+            73
+            74
+            79
+            80
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
 Begin Conditions	SurfaceCondition3D3N
 	1	1	77	85	82
 	2	1	79	73	78
@@ -862,28 +884,6 @@ Begin SubModelPart Skin_Part
             83
             84
             85
-    End SubModelPartNodes
-    Begin SubModelPartElements
-    End SubModelPartElements
-    Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart
-
-Begin SubModelPart Partial_Skin_Part
-    Begin SubModelPartNodes
-            34
-            37
-            48
-            51
-            52
-            60
-            64
-            68
-            70
-            73
-            74
-            79
-            80
     End SubModelPartNodes
     Begin SubModelPartElements
     End SubModelPartElements

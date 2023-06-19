@@ -31,10 +31,11 @@ set( KRATOS_FLUID_TRANSPORT_APPLICATION_PYTHON_INTERFACE_SOURCES
 ###############################################################################
 ## FluidTransportApplication core library (C++ parts)
 add_library(KratosFluidTransportCore SHARED ${KRATOS_FLUID_TRANSPORT_APPLICATION_CORE_SOURCES})
-target_link_libraries(KratosFluidTransportCore PRIVATE KratosCore KratosFluidDynamicsCore)
+target_link_libraries(KratosFluidTransportCore PUBLIC KratosCore KratosFluidDynamicsCore)
+set_target_properties( KratosFluidTransportCore PROPERTIES COMPILE_DEFINITIONS "FLUID_TRANSPORT_APPLICATION=EXPORT,API")
 
 ## FluidTransportApplication python module
-pybind11_add_module(KratosFluidTransportApplication MODULE ${KRATOS_FLUID_TRANSPORT_APPLICATION_PYTHON_INTERFACE_SOURCES})
+pybind11_add_module(KratosFluidTransportApplication MODULE THIN_LTO ${KRATOS_FLUID_TRANSPORT_APPLICATION_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosFluidTransportApplication PRIVATE KratosFluidTransportCore)
 set_target_properties(KratosFluidTransportApplication PROPERTIES PREFIX "")
 
@@ -77,3 +78,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosFluidTransportCore DESTINATION libs )
 install(TARGETS KratosFluidTransportApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFluidTransportCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFluidTransportApplication" PARENT_SCOPE)

@@ -1,5 +1,5 @@
 ---
-name: Request
+name: 🙇 Request
 about: Petitions for features, changes, etc...
 
 ---

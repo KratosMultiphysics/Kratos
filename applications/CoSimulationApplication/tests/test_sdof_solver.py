@@ -164,7 +164,6 @@ class TestSdofSolver(KratosUnittest.TestCase):
         sdof_solver_wrapper = CreateSDofSolverWrapper(wrapper_settings, None, "custom_sdof_solver_wrapper")
 
         sdof_solver_wrapper.Initialize()
-        sdof_solver_wrapper.InitializeCouplingInterfaceData()
         with self.assertRaisesRegex(Exception, 'Variable "DISPLACEMENT" of interface data "disp" of solver "custom_sdof_solver_wrapper" cannot be used for the SDof Solver!'):
             sdof_solver_wrapper.Check()
 

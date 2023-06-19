@@ -20,7 +20,7 @@
 #include "includes/serializer.h"
 #include "includes/condition.h"
 #include "includes/variables.h"
-//#include "../custom_elements/spheric_particle.h"
+//#include "custom_elements/spheric_particle.h"
 
 namespace Kratos
 {

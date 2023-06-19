@@ -67,7 +67,7 @@ template<class TKeyType,class TDataType,
          class TCompareType = std::less<TKeyType>,
          class TPointerType = Kratos::shared_ptr<TDataType>,
          class TContainerType = std::vector<std::pair<TKeyType, TPointerType> > >
-class PointerVectorMap
+class PointerVectorMap final
 {
 public:
     ///@name Type Definitions
@@ -115,7 +115,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~PointerVectorMap() {}
+    ~PointerVectorMap() {}
 
 
     ///@}
@@ -483,19 +483,40 @@ public:
         return mData;
     }
 
+    /**
+     * @brief Get the maximum size of buffer used in the container.
+     */
+    size_type GetMaxBufferSize() const 
+    {
+        return mMaxBufferSize;
+    }
 
-    /** Set the maximum size of buffer used in the container.
-
-    This container uses a buffer which keep data unsorted. After
-    buffer size arrived to the MaxBufferSize it will sort all
-    container and empties buffer.
-
-    @param NewSize Is the new buffer maximum size. */
-    void SetMaxBufferSize(size_type NewSize)
+    /** 
+     * @brief Set the maximum size of buffer used in the container.
+     * @details This container uses a buffer which keep data unsorted. After buffer size arrived to the MaxBufferSize it will sort all container and empties buffer.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetMaxBufferSize(const size_type NewSize)
     {
         mMaxBufferSize = NewSize;
     }
 
+    /**
+     * @brief Get the sorted part size of buffer used in the container.
+     */
+    size_type GetSortedPartSize() const 
+    {
+        return mSortedPartSize;
+    }
+
+    /** 
+     * @brief Set the sorted part size of buffer used in the container.
+     * @param NewSize Is the new buffer maximum size. 
+     */
+    void SetSortedPartSize(const size_type NewSize)
+    {
+        mSortedPartSize = NewSize;
+    }
 
     ///@}
     ///@name Inquiry
@@ -516,7 +537,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "Pointer vector map (size = " << size() << ") : ";
@@ -525,13 +546,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         for(typename TContainerType::const_iterator i = mData.begin() ; i != mData.end() ; i++)
             rOStream << "(" << i->first << " , " << *(i->second) << ")" << std::endl;
@@ -583,7 +604,7 @@ protected:
     ///@}
 
 private:
-    class CompareKey : public std::binary_function<value_type, key_type, bool>
+    class CompareKey
     {
     public:
         bool operator()(value_type const& a, key_type b) const
@@ -604,7 +625,7 @@ private:
 //       bool operator()(value_type& a, value_type& b) const
 //       {return TCompareType()(a.first, b.first);}
 //     };
-    class EqualKeyTo : public std::binary_function<value_type&, value_type&, bool>
+    class EqualKeyTo
     {
         key_type mKey;
     public:
@@ -618,9 +639,6 @@ private:
             return a.first == mKey;
         }
     };
-
-//        static typename TCompareType::result_type TCompareType(TDataType const & a, TDataType const & b)
-//        {return TCompareType()(KeyOf(a), KeyOf(b));}
 
     ///@name Static Member Variables
     ///@{

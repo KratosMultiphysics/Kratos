@@ -1,6 +1,6 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: G.Casas (gcasas@cimmne.upc.edu) $
+//   Last Modified by:    $Author: G.Casas (gcasas@cimmne.upc.edu)$
 //   Date:                $Date: 2011-6-13 08:56:42 $
 //   Revision:            $Revision: 1.5 $
 //
@@ -22,18 +22,17 @@
 #include "includes/model_part.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 
 //Database includes
 #include "custom_utilities/search/discrete_particle_configure.h"
 #include "includes/define.h"
-#include "../../DEMApplication/custom_elements/discrete_element.h"
+#include "custom_elements/discrete_element.h"
 #include "custom_elements/swimming_particle.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
-#include "../../DEMApplication/custom_elements/spheric_particle.h"
-#include "../swimming_DEM_application.h"
-#include "../../../kratos/utilities/geometry_utilities.h"
+#include "custom_elements/spheric_particle.h"
+#include "swimming_DEM_application.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -71,7 +70,7 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
         double Volume;
 
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
@@ -149,7 +148,7 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
             mLastPressureVariation = pressure_spatial_variation;
             const double characteristic_pressure_variation = 0.5 * (pressure_spatial_variation + mLastPressureVariation);
 
-            if (std::abs(characteristic_pressure_variation) < std::numeric_limits<double>::epsilon() || std::abs(reciprocal_of_characteristic_time) < std::numeric_limits<double>::epsilon()){ // unlikely
+            if (std::abs(characteristic_pressure_variation) == 0.0 || std::abs(reciprocal_of_characteristic_time) == 0.0){ // unlikely
                 std::cout << "Uniform problem: stationarity check being performed with dimensional values...! " << "\n";
 
                 if (max_pressure_change_rate <= tol){ // go with the absolute value
@@ -187,7 +186,7 @@ double CalculateDomainVolume(ModelPart& r_fluid_model_part)
     for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
-            added_volume += CalculateElementalVolume(it->GetGeometry());
+            added_volume += it->GetGeometry().DomainSize();
         }
     }
 
@@ -213,7 +212,7 @@ void CalculateTotalHydrodynamicForceOnParticles(ModelPart& r_dem_model_part, arr
     for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_dem_model_part, k); it != GetElementPartitionEnd(r_dem_model_part, k); ++it){
-            Geometry< Node<3> >& geom = it->GetGeometry();
+            Geometry< Node >& geom = it->GetGeometry();
             array_1d <double, 3> element_force;
 
             if (geom[0].SolutionStepsDataHas(HYDRODYNAMIC_FORCE)){
@@ -257,7 +256,7 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
     for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
-            Geometry< Node<3> >& geom = it->GetGeometry();
+            Geometry< Node >& geom = it->GetGeometry();
             double element_volume;
             array_1d <double, 3> element_force;
             array_1d <double, 3> element_mean_force;
@@ -306,7 +305,7 @@ double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
     for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
-            Geometry< Node<3> >& geom = it->GetGeometry();
+            Geometry< Node >& geom = it->GetGeometry();
             double element_volume;
             double element_fluid_volume;
 
@@ -315,7 +314,7 @@ double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
             }
 
             else {
-                element_fluid_volume = CalculateElementalVolume(geom);
+                element_fluid_volume = geom.DomainSize();
             }
 
             added_fluid_volume += element_fluid_volume;
@@ -489,7 +488,7 @@ void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<double>
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
         const double& origin_value = p_node->FastGetSolutionStepValue(origin_variable);
         destination_value = origin_value;
@@ -502,7 +501,7 @@ void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<array_1
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         array_1d<double, 3>& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
         const array_1d<double, 3>& origin_value = p_node->FastGetSolutionStepValue(origin_variable);
         noalias(destination_value) = origin_value;
@@ -515,7 +514,7 @@ void SetValueOfAllNotes(ModelPart& r_model_part, const double& value, const Vari
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
         destination_value = value;
     }
@@ -527,7 +526,7 @@ void SetValueOfAllNotes(ModelPart& r_model_part, const array_1d<double, 3>& valu
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         array_1d<double, 3>& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
         noalias(destination_value) = value;
     }
@@ -596,18 +595,20 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-double CalculateElementalVolume(const Geometry<Node <3> >& geom)
+double CalculateElementalVolume(const Geometry<Node >& geom)
 {
     double vol;
-
-    if (TDim == 2){
+    double h;
+    if constexpr (TDim == 2){
         double x0 = geom[0].X();
         double y0 = geom[0].Y();
         double x1 = geom[1].X();
         double y1 = geom[1].Y();
         double x2 = geom[2].X();
         double y2 = geom[2].Y();
+
         vol = CalculateArea(x0, y0, x1, y1, x2, y2);
+        h = CalculateDiameter(x0, y0, x1, y1, x2, y2);
     }
 
     else {
@@ -625,9 +626,9 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
         double z3 = geom[3].Z();
 
         vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+        h = CalculateDiameter(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
     }
-
-    if (std::abs(vol) < std::numeric_limits<double>::epsilon()){
+    if (std::abs(vol)/std::pow(h, 3) < std::numeric_limits<double>::epsilon()){
         KRATOS_ERROR << "Element with zero area found with the current geometry "<< geom << std::endl;
     }
 
@@ -637,39 +638,101 @@ double CalculateElementalVolume(const Geometry<Node <3> >& geom)
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >& geom, const Variable<double>& r_var, double& vol)
+double CalculateDiameter(const double x0, const double y0,
+                        const double x1, const double y1,
+                        const double x2, const double y2)
 {
-    array_1d<double, 4> N;
-    double x0 = geom[0].X();
-    double y0 = geom[0].Y();
-    double z0 = geom[0].Z();
-    double x1 = geom[1].X();
-    double y1 = geom[1].Y();
-    double z1 = geom[1].Z();
-    double x2 = geom[2].X();
-    double y2 = geom[2].Y();
-    double z2 = geom[2].Z();
-    double x3 = geom[3].X();
-    double y3 = geom[3].Y();
-    double z3 = geom[3].Z();
+    double x10 = x1 - x0;
+    double y10 = y1 - y0;
 
-    double xc = 0.25 * (x0 + x1 + x2 + x3);
-    double yc = 0.25 * (y0 + y1 + y2 + y3);
-    double zc = 0.25 * (z0 + z1 + z2 + z3);
+    double x12 = x1 - x0;
+    double y12 = y1 - y0;
 
-    vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    double x20 = x2 - x0;
+    double y20 = y2 - y0;
 
-    KRATOS_ERROR_IF(std::abs(vol) < std::numeric_limits<double>::epsilon()) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
+    double dist_10 = std::sqrt(std::pow(x10,2) + std::pow(y10,2));
+    double dist_12 = std::sqrt(std::pow(x12,2) + std::pow(y12,2));
+    double dist_20 = std::sqrt(std::pow(x20,2) + std::pow(y20,2));
 
-    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
-    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
-    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc);
-    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc);
+    double arr[] = {dist_10, dist_12, dist_20};
 
-    double value_at_gauss_point = N[0] * geom[0].FastGetSolutionStepValue(r_var);
+    double *max = std::max_element(std::begin(arr), std::end(arr));
 
-    for (unsigned int i = 1; i != 4; ++i){
-        value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var, 0);
+    return *max;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+double CalculateDiameter(const double x0, const double y0, const double z0,
+                        const double x1, const double y1, const double z1,
+                        const double x2, const double y2, const double z2,
+                        const double x3, const double y3, const double z3)
+{
+    double x10 = x1 - x0;
+    double y10 = y1 - y0;
+    double z10 = z1 - z0;
+
+    double x12 = x1 - x0;
+    double y12 = y1 - y0;
+    double z12 = z1 - z0;
+
+    double x13 = x1 - x3;
+    double y13 = y1 - y3;
+    double z13 = z1 - z3;
+
+    double x20 = x2 - x0;
+    double y20 = y2 - y0;
+    double z20 = z2 - z0;
+
+    double x23 = x2 - x3;
+    double y23 = y2 - y3;
+    double z23 = z2 - z3;
+
+    double x30 = x3 - x0;
+    double y30 = y3 - y0;
+    double z30 = z3 - z0;
+
+    double dist_10 = std::sqrt(std::pow(x10,2) + std::pow(y10,2) + std::pow(z10,2));
+    double dist_12 = std::sqrt(std::pow(x12,2) + std::pow(y12,2) + std::pow(z12,2));
+    double dist_13 = std::sqrt(std::pow(x13,2) + std::pow(y13,2) + std::pow(z13,2));
+    double dist_20 = std::sqrt(std::pow(x20,2) + std::pow(y20,2) + std::pow(z20,2));
+    double dist_23 = std::sqrt(std::pow(x23,2) + std::pow(y23,2) + std::pow(z23,2));
+    double dist_30 = std::sqrt(std::pow(x30,2) + std::pow(y30,2) + std::pow(z30,2));
+
+    double arr[] = {dist_10, dist_12, dist_13, dist_20, dist_23, dist_30};
+
+    double *max = std::max_element(std::begin(arr), std::end(arr));
+
+    return *max;
+}
+
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+
+double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node >& geom, const Variable<double>& r_var, double& vol)
+{
+
+    vol = geom.DomainSize();
+
+    KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by "<< geom << std::endl;
+
+    const std::size_t n_nodes = geom.PointsNumber();
+    const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const IndexType number_of_gauss_points = integration_points.size();
+
+    const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    Vector N;
+
+    for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+        N = row(N_container, g);
+    }
+
+    double value_at_gauss_point = 0.0;
+
+    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+        value_at_gauss_point += N[i_node] * geom[i_node].FastGetSolutionStepValue(r_var, 0);
     }
 
     return value_at_gauss_point;
@@ -678,39 +741,28 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry<Node < 3 > >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
+array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry<Node >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
 {
-    array_1d<double, 4> N;
-    double x0 = geom[0].X();
-    double y0 = geom[0].Y();
-    double z0 = geom[0].Z();
-    double x1 = geom[1].X();
-    double y1 = geom[1].Y();
-    double z1 = geom[1].Z();
-    double x2 = geom[2].X();
-    double y2 = geom[2].Y();
-    double z2 = geom[2].Z();
-    double x3 = geom[3].X();
-    double y3 = geom[3].Y();
-    double z3 = geom[3].Z();
 
-    double xc = 0.25 * (x0 + x1 + x2 + x3);
-    double yc = 0.25 * (y0 + y1 + y2 + y3);
-    double zc = 0.25 * (z0 + z1 + z2 + z3);
+    vol = geom.DomainSize();
 
-    vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
-    KRATOS_ERROR_IF(std::abs(vol) < std::numeric_limits<double>::epsilon()) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
+    const std::size_t n_nodes = geom.PointsNumber();
+    const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const IndexType number_of_gauss_points = integration_points.size();
 
-    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
-    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
-    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc);
-    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc);
+    const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    Vector N;
+
+    for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+        N = row(N_container, g);
+    }
 
     array_1d <double, 3> value_at_gauss_point = N[0] * geom[0].FastGetSolutionStepValue(r_var);
 
-    for (unsigned int i = 1; i != 4; ++i){
-        value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var);
+    for (unsigned int i_node = 1; i_node < n_nodes; ++i_node){
+        value_at_gauss_point += N[i_node] * geom[i_node].FastGetSolutionStepValue(r_var);
     }
 
     return value_at_gauss_point;
@@ -719,39 +771,35 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(const Geometry<Node < 3 > >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
+array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(const Geometry<Node >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
 {
-    array_1d<double, 4> N;
-    double x0 = geom[0].X();
-    double y0 = geom[0].Y();
-    double z0 = geom[0].Z();
-    double x1 = geom[1].X();
-    double y1 = geom[1].Y();
-    double z1 = geom[1].Z();
-    double x2 = geom[2].X();
-    double y2 = geom[2].Y();
-    double z2 = geom[2].Z();
-    double x3 = geom[3].X();
-    double y3 = geom[3].Y();
-    double z3 = geom[3].Z();
 
-    double xc = 0.25 * (x0 + x1 + x2 + x3);
-    double yc = 0.25 * (y0 + y1 + y2 + y3);
-    double zc = 0.25 * (z0 + z1 + z2 + z3);
+    vol = geom.DomainSize();
 
-    vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+    KRATOS_ERROR_IF(std::abs(vol) == 0.0) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
 
-    KRATOS_ERROR_IF(std::abs(vol) < std::numeric_limits<double>::epsilon()) << "Element with zero area found. Its geometry is given by " << geom << std::endl;
+    const std::size_t n_nodes = geom.PointsNumber();
+    const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const IndexType number_of_gauss_points = integration_points.size();
 
-    N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc);
-    N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc);
-    N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc);
-    N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc);
+    const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-    array_1d <double, 3> value_at_gauss_point = N[0] * geom[0].FastGetSolutionStepValue(r_var) * geom[0].FastGetSolutionStepValue(DENSITY) * geom[0].FastGetSolutionStepValue(FLUID_FRACTION);
+    Vector detJ_vector(number_of_gauss_points);
+    geom.DeterminantOfJacobian(detJ_vector, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    Vector N;
 
-    for (unsigned int i = 1; i != 4; ++i){
-        value_at_gauss_point += N[i] * geom[i].FastGetSolutionStepValue(r_var) * geom[i].FastGetSolutionStepValue(DENSITY) * geom[i].FastGetSolutionStepValue(FLUID_FRACTION);
+    double integration_weight;
+
+    array_1d <double, 3> value_at_gauss_point = {};
+
+    for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+        N = row(N_container, g);
+        integration_weight = integration_points[g].Weight() * detJ_vector[g];
+
+
+        for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+            value_at_gauss_point += integration_weight * N[i_node] * geom[i_node].FastGetSolutionStepValue(r_var) * geom[i_node].FastGetSolutionStepValue(DENSITY) * geom[i_node].FastGetSolutionStepValue(FLUID_FRACTION);
+        }
     }
 
     return value_at_gauss_point;
@@ -813,7 +861,7 @@ double CalculateTheMaximumEdgeLength(ModelPart& r_model_part)
     double max_distance_yet = 0.0;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
         unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
 
         for (unsigned int k = 1; k < n_nodes - 1; ++k){
@@ -838,7 +886,7 @@ double CalculateTheMinumumEdgeLength(ModelPart& r_model_part)
     bool first_node = true;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
 
         if (first_node){ // assign the distance (squared) between any two nodes to min_distance_yet
             array_1d <double, 3> delta = geom[0] - geom[1];

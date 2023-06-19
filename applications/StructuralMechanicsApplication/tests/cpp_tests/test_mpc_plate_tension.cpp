@@ -36,7 +36,7 @@ typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > Bu
 typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
 typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
 typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
-typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
 typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
 
 KRATOS_TEST_CASE_IN_SUITE(PatchTestMPCPlateTension, KratosStructuralMechanicsFastSuite)

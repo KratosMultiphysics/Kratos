@@ -66,8 +66,8 @@ public:
     /// Pointer definition of QSVMSDEMCoupled
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(QSVMSDEMCoupled);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -268,7 +268,7 @@ protected:
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
         BoundedMatrix<double,Dim,Dim> &TauOne,
-        double &TauTwo);
+        double &TauTwo) const;
 
     void AddVelocitySystem(
         TElementData& rData,
@@ -282,6 +282,14 @@ protected:
     void MassProjTerm(
         const TElementData& rData,
         double &rMassRHS) const override;
+
+    void SubscaleVelocity(
+        const TElementData& rData,
+        array_1d<double,3> &rVelocitySubscale) const override;
+
+    void SubscalePressure(
+        const TElementData& rData,
+        double &rPressureSubscale) const override;
 
     ///@}
     ///@name Protected  Access

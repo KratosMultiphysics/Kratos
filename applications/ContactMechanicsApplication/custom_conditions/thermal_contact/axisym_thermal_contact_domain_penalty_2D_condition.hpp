@@ -50,7 +50,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     ///NodeType
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     ///Geometry Type
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
@@ -127,7 +127,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     //std::string Info() const;
 
@@ -169,7 +169,7 @@ protected:
      * Calculate Condition Kinematics
      */
     void CalculateKinematics(GeneralVariables& rVariables,
-			     ProcessInfo& rCurrentProcessInfo,
+			     const ProcessInfo& rCurrentProcessInfo,
 			     const unsigned int& rPointNumber) override;
 
     /**

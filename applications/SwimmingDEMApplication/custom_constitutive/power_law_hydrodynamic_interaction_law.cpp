@@ -31,7 +31,7 @@ namespace Kratos {
         return 2 * std::pow(particle_radius, n) * std::pow(modulus_of_minus_slip_velocity, 2 - n) * fluid_density / K;
     }
 
-    void PowerLawFluidHydrodynamicInteractionLaw::ComputeDragForce(Geometry<Node<3> >& r_geometry,
+    void PowerLawFluidHydrodynamicInteractionLaw::ComputeDragForce(SphericParticle* p_particle,
                                                                    double particle_radius,
                                                                    double fluid_density,
                                                                    double fluid_kinematic_viscosity,
@@ -46,7 +46,7 @@ namespace Kratos {
                                                                          consistency_index,
                                                                          flow_behavior_index,
                                                                          SWIMMING_MODULUS_3(minus_slip_velocity));
-        mpDragLaw->ComputeForce(r_geometry,
+        mpDragLaw->ComputeForce(p_particle,
                                 reynolds_number,
                                 particle_radius,
                                 fluid_density,

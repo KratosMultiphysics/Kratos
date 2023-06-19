@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,8 @@ THE SOFTWARE.
  */
 
 #include <amgcl/backend/interface.hpp>
+#include <amgcl/backend/builtin.hpp>
+#include <amgcl/backend/builtin_hybrid.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
@@ -44,10 +46,12 @@ class ilu_solve {
     public:
         typedef typename Backend::params backend_params;
         typedef typename Backend::value_type value_type;
+        typedef typename Backend::col_type col_type;
+        typedef typename Backend::ptr_type ptr_type;
         typedef typename Backend::matrix matrix;
         typedef typename Backend::vector vector;
         typedef typename Backend::matrix_diagonal matrix_diagonal;
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
         struct params {
@@ -124,15 +128,15 @@ class ilu_solve {
         std::shared_ptr<vector> t1, t2;
 };
 
-template <class value_type>
-class ilu_solve< backend::builtin<value_type> > {
+template <class value_type, class col_type, class ptr_type>
+class ilu_solve< backend::builtin<value_type, col_type, ptr_type> > {
     public:
-        typedef backend::builtin<value_type> Backend;
+        typedef backend::builtin<value_type, col_type, ptr_type> Backend;
         typedef typename Backend::params backend_params;
         typedef typename Backend::matrix matrix;
         typedef typename Backend::vector vector;
         typedef typename Backend::matrix_diagonal matrix_diagonal;
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
         typedef typename Backend::rhs_type rhs_type;
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
@@ -289,7 +293,7 @@ class ilu_solve< backend::builtin<value_type> > {
                 for(ptrdiff_t i = beg; i != end; i += inc) {
                     ptrdiff_t l = level[i];
 
-                    for(ptrdiff_t j = A.ptr[i]; j < A.ptr[i+1]; ++j)
+                    for(auto j = A.ptr[i]; j < A.ptr[i+1]; ++j)
                         l = std::max(l, level[A.col[j]]+1);
 
                     level[i] = l;
@@ -369,7 +373,7 @@ class ilu_solve< backend::builtin<value_type> > {
 
                             ord[tid].push_back(i);
 
-                            for(ptrdiff_t j = A.ptr[i]; j < A.ptr[i+1]; ++j) {
+                            for(auto j = A.ptr[i]; j < A.ptr[i+1]; ++j) {
                                 col[tid].push_back(A.col[j]);
                                 val[tid].push_back(A.val[j]);
                             }
@@ -408,6 +412,7 @@ class ilu_solve< backend::builtin<value_type> > {
                         // each task corresponds to a level, so we need
                         // to synchronize across threads at this point:
 #pragma omp barrier
+                        ;
                     }
                 }
             }
@@ -447,7 +452,16 @@ class ilu_solve< backend::builtin<value_type> > {
             lower->solve(x);
             upper->solve(x);
         }
+};
 
+template <class Block, class Col, class Ptr>
+class ilu_solve< backend::builtin_hybrid<Block, Col, Ptr> >
+    : public ilu_solve< backend::builtin<typename math::scalar_of<Block>::type, Col, Ptr> >
+{
+    typedef ilu_solve< backend::builtin<typename math::scalar_of<Block>::type> > Base;
+
+    public:
+        using Base::Base;
 };
 
 } // namespace detail

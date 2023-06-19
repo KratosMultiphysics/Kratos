@@ -43,6 +43,14 @@
    "ControlTime"                    : 4.0,
    "NeighbourSearchFrequency"       : 1,
 
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy",
+		"material_import_settings"   : {
+					"materials_filename" : "small_tests/table_bc_imposition/MaterialsDEM.json"
+		}
+    },
+    
    "GraphExportFreq"                : 1e-3,
    "VelTrapGraphExportFreq"         : 1e-3,
    "OutputTimeStep"                 : 5,

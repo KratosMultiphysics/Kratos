@@ -9,29 +9,35 @@ The Geo-Mechanics Application contains features needed for common geotechnical/g
 
 - Automatic time stepping
 
-- UPw small displacement element for saturated porous media (with
+- 2D (plane strain and axisymmetric) and 3D UPw small displacement element for saturated and partially saturated porous media (with
 equal order interpolation, unstable under incompressible-undrained
 conditions)
 
-- Stable UPw small displacement element for saturated porous media
+- 2D (plane strain and axisymmetric) and 3D  Stable UPw small displacement element for saturated and partially saturated porous media
 (with higher order interpolation for displacements)
 
-- FIC-Stabilized UPw small displacement element for saturated porous media
+- 2D (plane strain and axisymmetric) and 3D FIC-Stabilized UPw small displacement element for saturated and partially saturated porous media
 (with equal order interpolation for displacements)
 
 - UPw Quasi-zero-thickness interface elements for defining cracks and
-joints
+joints under saturated and partially saturated conditions
 
-- UPw Updated-Lagrangian element for saturated porous media (with
+- UPw Updated-Lagrangian element for saturated and partially saturated porous media (with
 equal order interpolation, unstable under incompressible-undrained
 conditions)
 
-- Stable UPw Updated-Lagrangian element for saturated porous media
+- Stable UPw Updated-Lagrangian element for saturated and partially saturated porous media
 (with higher order interpolation for displacements)
 
-- Reading and using dll/so of User Defined Soil Models (UDSM) based on PLAXIS forrmat
+- 2D and 3D truss and cable elements
 
-- Reading and using dll/so of UMAT based on ABAQUS forrmat
+- 2D curved beam elemens with 3 nodes
+
+- 1D, 2D and 3D steady-state and transient groundwater flow elements
+
+- Loading User Defined Soil Models (UDSM) dll/so, written in PLAXIS forrmat
+
+- Loading User Materials (UMAT) dll/so, written in ABAQUS forrmat
 
 ### How to compile Geo-Mechanics Application
 
@@ -51,4 +57,10 @@ add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
 ~~~
 
-*Note*: For the moment, MPI does not work.
+#### Note: 
+- MPI has not been tested and does not work.
+
+- The UMAT/UDSM constitutive models are not included in this repository. Some practical constitutive models can be found at https://soilmodels.com/ or https://github.com/Vahid-Galavi/GeoMaterials.
+
+
+

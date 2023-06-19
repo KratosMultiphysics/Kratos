@@ -22,7 +22,6 @@
         "time_stepping"                   : {
             "time_step" : 0.2
         },
-        "line_search"                     : false,
         "convergence_criterion"           : "residual_criterion",
         "displacement_relative_tolerance" : 0.0001,
         "displacement_absolute_tolerance" : 1e-9,
@@ -117,18 +116,7 @@
                 "check_variables"      : ["DISPLACEMENT_X"],
                 "input_file_name"      : "mpc_contact_tests/contact_beams_axil_test_results.json",
                 "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
-                "time_frequency"       : 0.0
-            }
-        },{
-            "python_module"   : "from_json_check_result_process",
-            "kratos_module" : "KratosMultiphysics",
-            "help"                  : "",
-            "process_name"          : "FromJsonCheckResultProcess",
-            "Parameters"            : {
-                "check_variables"      : ["REACTION"],
-                "input_file_name"      : "mpc_contact_tests/contact_beams_axil_test_results_LM.json",
-                "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
-                "relative_tolerance"   : 1e-5,
+                "relative_tolerance"   : 7.5e-2,
                 "time_frequency"       : 0.0
             }
         }
@@ -143,17 +131,6 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_X"],
             "output_file_name"     : "mpc_contact_tests/contact_beams_axil_test_results.json",
-            "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
-            "time_frequency"       : 0.0
-        }
-    },{
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables"     : ["REACTION"],
-            "output_file_name"     : "mpc_contact_tests/contact_beams_axil_test_results_LM.json",
             "model_part_name"      : "Structure.CONTACT_Contact_slave_Auto1",
             "time_frequency"       : 0.0
         }

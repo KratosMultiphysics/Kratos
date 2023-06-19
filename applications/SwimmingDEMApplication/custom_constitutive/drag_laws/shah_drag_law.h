@@ -11,12 +11,12 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) ShahDragLaw : public StokesDragLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(ShahDragLaw);
 
         ShahDragLaw(): StokesDragLaw(){}
 
-        ShahDragLaw(Parameters& r_parameters): StokesDragLaw(r_parameters){}
+        ShahDragLaw(Parameters r_parameters): StokesDragLaw(r_parameters){}
 
         ~ShahDragLaw(){}
 
@@ -26,7 +26,7 @@ namespace Kratos {
 
         std::string GetTypeOfLaw() override;
 
-        void ComputeForce(Geometry<Node<3> >& r_geometry,
+        void ComputeForce(SphericParticle* p_particle,
                           const double reynolds_number,
                           double particle_radius,
                           double fluid_density,

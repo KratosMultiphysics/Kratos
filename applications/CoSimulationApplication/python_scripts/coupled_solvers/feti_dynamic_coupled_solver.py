@@ -225,7 +225,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         # Provision to expand to other solver wrappers in the future.
         solver_type = str(self.solver_wrappers[solverName]._ClassName())
         if solver_type == "StructuralMechanicsWrapper":
-            return self.solver_wrappers[solverName]._analysis_stage._GetSolver().get_mechanical_solution_strategy()
+            return self.solver_wrappers[solverName]._analysis_stage._GetSolver()._GetSolutionStrategy()
         else:
             raise Exception("_GetSolverStrategy not implemented for solver wrapper = " + solver_type)
 

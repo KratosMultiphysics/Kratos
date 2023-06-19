@@ -66,6 +66,8 @@
 #include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/johnson_cook_thermal_plastic_axisym_2D_law.hpp"
+#include "custom_constitutive/displacement_newtonian_fluid_3D_law.hpp"
+#include "custom_constitutive/displacement_newtonian_fluid_plane_strain_2D_law.hpp"
 
 namespace Kratos{
 namespace Python{
@@ -76,7 +78,7 @@ namespace Python{
     typedef ParticleYieldCriterion::Pointer      MPMYieldCriterionPointer;
     typedef ParticleHardeningLaw::Pointer          MPMHardeningLawPointer;
     typedef Properties::Pointer                    PropertiesPointer;
-    typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
+    typedef Mesh<Node, Properties, Element, Condition>   MeshType;
 
     typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
     typedef ConstitutiveLaw::Pointer          ConstitutiveLawPointer;
@@ -94,7 +96,7 @@ namespace Python{
     {
         // Linear Elastic laws
         py::class_< LinearElastic3DLaw, typename LinearElastic3DLaw::Pointer, ConstitutiveLaw >
-        (m, "LinearElasticIsotropic3DLaw").def(py::init<>() )
+        (m, "LinearElasticIsotropic3DLaw", py::module_local()).def(py::init<>())
         ;
 
         py::class_< LinearElasticPlaneStress2DLaw, typename LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
@@ -102,16 +104,16 @@ namespace Python{
         ;
 
         py::class_< LinearElasticPlaneStrain2DLaw, typename LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-        (m, "LinearElasticIsotropicPlaneStrain2DLaw").def(py::init<>() )
+        (m, "LinearElasticIsotropicPlaneStrain2DLaw", py::module_local()).def(py::init<>() )
         ;
 
         py::class_< LinearElasticAxisym2DLaw, typename LinearElasticAxisym2DLaw::Pointer, ConstitutiveLaw >
-        (m, "LinearElasticIsotropicAxisym2DLaw").def(py::init<>() )
+        (m, "LinearElasticIsotropicAxisym2DLaw", py::module_local()).def(py::init<>() )
         ;
 
         // Hyperelastic laws
         py::class_< HyperElastic3DLaw, typename HyperElastic3DLaw::Pointer, ConstitutiveLaw >
-        (m, "HyperElasticNeoHookean3DLaw").def(py::init<>() )
+        (m, "HyperElasticNeoHookean3DLaw", py::module_local()).def(py::init<>() )
         ;
 
         py::class_< HyperElasticPlaneStrain2DLaw, typename HyperElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
@@ -214,6 +216,17 @@ namespace Python{
         (m, "JohnsonCookThermalPlastic2DAxisymLaw")
         .def(py::init<>())
         ;
+
+        // Displacement Newtonian Fluid
+        py::class_< DispNewtonianFluid3DLaw, typename DispNewtonianFluid3DLaw::Pointer, ConstitutiveLaw >
+                (m, "DispNewtonianFluid3DLaw")
+        .def(py::init<>())
+                ;
+
+        py::class_< DispNewtonianFluidPlaneStrain2DLaw, typename DispNewtonianFluidPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+                (m, "DispNewtonianFluidPlaneStrain2DLaw")
+        .def(py::init<>())
+            ;
     }
 }  // namespace Python.
 }  // namespace Kratos.

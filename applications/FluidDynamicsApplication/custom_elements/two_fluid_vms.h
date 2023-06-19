@@ -87,8 +87,8 @@ public:
     typedef IndexedObject BaseType;
     ///Element from which it is derived
     typedef VMS<TDim, TNumNodes> ElementBaseType;
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
     /**
      * Properties are used to store any parameters
      * related to the constitutive law
@@ -245,7 +245,7 @@ public:
 
         //estimate a minimal h
         /*double h=0.0;
-        if(TDim == 3) h = pow(6.0*Area, 1.0/3.0);
+        if constexpr (TDim == 3) h = pow(6.0*Area, 1.0/3.0);
         else h = sqrt(2.0*Area);*/
 
 
@@ -291,13 +291,13 @@ public:
 
         if(ndivisions == 1) //compute gauss points for exact integration of a tetra element
         {
-            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-            Ngauss = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            Ngauss = this->GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             volumes.resize(IntegrationPoints.size(),false);
 
-            for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+            for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2); g++)
 	    {
                 volumes[g] = 6.0*Area * IntegrationPoints[g].Weight();
 		        signs[g] = signs[0];

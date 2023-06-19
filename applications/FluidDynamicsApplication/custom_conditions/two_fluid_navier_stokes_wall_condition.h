@@ -10,8 +10,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#ifndef KRATOS_TWO_FLUIDS_NAVIER_STOKES_WALL_CONDITION_H
-#define KRATOS_TWO_FLUIDS_NAVIER_STOKES_WALL_CONDITION_H
+#pragma once
 
 // System includes
 #include <string>
@@ -22,11 +21,7 @@
 
 
 // Project includes
-// #include "includes/define.h"
-// #include "includes/condition.h"
-// #include "includes/model_part.h"
-// #include "includes/serializer.h"
-// #include "includes/process_info.h"
+
 
 // Application includes
 #include "custom_conditions/navier_stokes_wall_condition.h"
@@ -66,8 +61,8 @@ namespace Kratos
   slip conditions.
   @see NavierStokes,EmbeddedNavierStokes,ResidualBasedIncrementalUpdateStaticSchemeSlip
  */
-template< unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) TwoFluidNavierStokesWallCondition : public NavierStokesWallCondition<TDim, TNumNodes>
+template< unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) TwoFluidNavierStokesWallCondition : public NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>
 {
 public:
     ///@name Type Definitions
@@ -76,11 +71,13 @@ public:
     /// Pointer definition of TwoFluidNavierStokesWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoFluidNavierStokesWallCondition);
 
-    typedef NavierStokesWallCondition<TDim, TNumNodes> BaseType;
+    typedef NavierStokesWallCondition<TDim, TNumNodes, TWallModel...> BaseType;
+
+    using BaseType::LocalSize;
 
     typedef typename BaseType::ConditionDataStruct ConditionDataStruct;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 
@@ -109,7 +106,7 @@ public:
         this->FillElementData(data, rCurrentProcessInfo);condition
       */
     TwoFluidNavierStokesWallCondition(IndexType NewId = 0)
-        : NavierStokesWallCondition<TDim, TNumNodes>(NewId)
+        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId)
     {
     }
 
@@ -121,7 +118,7 @@ public:
     TwoFluidNavierStokesWallCondition(
         IndexType NewId,
         const NodesArrayType& ThisNodes)
-        : NavierStokesWallCondition<TDim, TNumNodes>(NewId, ThisNodes)
+        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId, ThisNodes)
     {
     }
 
@@ -133,7 +130,7 @@ public:
     TwoFluidNavierStokesWallCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry)
-        : NavierStokesWallCondition<TDim, TNumNodes>(NewId, pGeometry)
+        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId, pGeometry)
     {
     }
 
@@ -147,13 +144,13 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
-        : NavierStokesWallCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+        : NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
     TwoFluidNavierStokesWallCondition(TwoFluidNavierStokesWallCondition const& rOther):
-        NavierStokesWallCondition<TDim, TNumNodes>(rOther)
+        NavierStokesWallCondition<TDim, TNumNodes, TWallModel...>(rOther)
     {
     }
 
@@ -286,31 +283,31 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
-     * The (Navier) slip length is read as a nodal variable.
-     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-     * Though only tangential velocities should appear, a tangetial projection is added.
-     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-     * @param rRightHandSideVector reference to the RHS vector
-     * @param rDataStruct reference to a struct to hand over data
-     */
-    void ComputeGaussPointNavierSlipRHSContribution(
-        array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
-        const ConditionDataStruct& rDataStruct) override;
+    // /**
+    //  * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
+    //  * The (Navier) slip length is read as a nodal variable.
+    //  * If a smaller value is set, tangential velocities lead to a higher tangential traction.
+    //  * Though only tangential velocities should appear, a tangetial projection is added.
+    //  * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+    //  * @param rRightHandSideVector reference to the RHS vector
+    //  * @param rDataStruct reference to a struct to hand over data
+    //  */
+    // void ComputeGaussPointNavierSlipRHSContribution(
+    //     array_1d<double,LocalSize>& rRightHandSideVector,
+    //     const ConditionDataStruct& rDataStruct) override;
 
-    /**
-     * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
-     * The (Navier) slip length is read as a nodal variable.
-     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-     * Though only tangential velocities should appear, a tangetial projection is added.
-     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-     * @param rLeftHandSideMatrix reference to the LHS matrix
-     * @param rDataStruct reference to a struct to hand over data
-     */
-    void ComputeGaussPointNavierSlipLHSContribution(
-        BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
-        const ConditionDataStruct& rDataStruct ) override;
+    // /**
+    //  * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
+    //  * The (Navier) slip length is read as a nodal variable.
+    //  * If a smaller value is set, tangential velocities lead to a higher tangential traction.
+    //  * Though only tangential velocities should appear, a tangetial projection is added.
+    //  * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+    //  * @param rLeftHandSideMatrix reference to the LHS matrix
+    //  * @param rDataStruct reference to a struct to hand over data
+    //  */
+    // void ComputeGaussPointNavierSlipLHSContribution(
+    //     BoundedMatrix<double,LocalSize,LocalSize>& rLeftHandSideMatrix,
+    //     const ConditionDataStruct& rDataStruct ) override;
 
     ///@}
     ///@name Protected  Access
@@ -346,12 +343,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     }
 
     ///@}
@@ -392,15 +389,15 @@ private:
 ///@{
 
 /// input stream function
-template< unsigned int TDim, unsigned int TNumNodes >
-inline std::istream& operator >> (std::istream& rIStream, TwoFluidNavierStokesWallCondition<TDim,TNumNodes>& rThis)
+template< unsigned int TDim, unsigned int TNumNodes, class TWallModel >
+inline std::istream& operator >> (std::istream& rIStream, TwoFluidNavierStokesWallCondition<TDim,TNumNodes,TWallModel>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim, unsigned int TNumNodes >
-inline std::ostream& operator << (std::ostream& rOStream, const TwoFluidNavierStokesWallCondition<TDim,TNumNodes>& rThis)
+template< unsigned int TDim, unsigned int TNumNodes, class TWallModel >
+inline std::ostream& operator << (std::ostream& rOStream, const TwoFluidNavierStokesWallCondition<TDim,TNumNodes,TWallModel>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -412,5 +409,3 @@ inline std::ostream& operator << (std::ostream& rOStream, const TwoFluidNavierSt
 ///@}
 ///@} addtogroup block
 }  // namespace Kratos.
-
-#endif // KRATOS_TWO_FLUIDS_NAVIER_STOKES_WALL_CONDITION_H

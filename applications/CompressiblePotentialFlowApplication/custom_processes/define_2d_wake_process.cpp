@@ -114,6 +114,7 @@ void Define2DWakeProcess::SetWakeDirectionAndNormal()
     mWakeNormal(0) = -mWakeDirection(1);
     mWakeNormal(1) = mWakeDirection(0);
     mWakeNormal(2) = 0.0;
+    mrBodyModelPart.GetRootModelPart().GetProcessInfo()[WAKE_NORMAL] = mWakeNormal;
 }
 
 // This function finds and saves the trailing edge for further computations

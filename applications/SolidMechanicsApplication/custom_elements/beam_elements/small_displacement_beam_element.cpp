@@ -427,7 +427,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int  SmallDisplacementBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  int  SmallDisplacementBeamElement::Check(const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 

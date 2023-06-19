@@ -26,7 +26,7 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
 #============================================================================================================================
     def CheckControlValuesForTesting(self):  # KratosPrintInfo(str(dy))
         tol = 1e-6
-        
+
         # Here we check the damage obtained at each FE
         element = self.FEM_Solution.main_model_part.GetElement(1)
         damage = element.CalculateOnIntegrationPoints(KratosFemDem.DAMAGE_ELEMENT, self.FEM_Solution.main_model_part.ProcessInfo)[0]
@@ -88,18 +88,18 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
                 raise ValueError('The computed stress at step = 26 is not correct')
             if not IsOk(Ex, 3.4026366842798694e-05, tol):
                 raise ValueError('The computed strain at step = 26 is not correct')
-        
+
 
 
 class TestAnalytics(KratosUnittest.TestCase):
-    
+
     def setUp(self):
         pass
 
     @classmethod
     def total_lagrangian(self):
         model = KratosMultiphysics.Model()
-        MainCouplingFemDemForTestingSolution(model, "small_tests/total_lagrangian/").Run()
+        MainCouplingFemDemForTestingSolution(model, os.path.join(os.path.dirname(os.path.realpath(__file__)), "small_tests", "total_lagrangian")).Run()
 
 
 

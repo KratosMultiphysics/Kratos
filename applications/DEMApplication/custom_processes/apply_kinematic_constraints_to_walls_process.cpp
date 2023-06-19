@@ -51,17 +51,17 @@ namespace Kratos
             if(rParameters["velocity_constraints_settings"]["value"][i].IsNull()) {
                 mVelocityValueIsNumeric[i] = true;
                 mVelocityValues[i] = 0.0;
-                mVelocityFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                mVelocityFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
             }
             else {
                 if(rParameters["velocity_constraints_settings"]["value"][i].IsNumber()) {
                     mVelocityValueIsNumeric[i] = true;
                     mVelocityValues[i] = rParameters["velocity_constraints_settings"]["value"][i].GetDouble();
-                    mVelocityFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                    mVelocityFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
                 }
                 else {
                     mVelocityValueIsNumeric[i] = false;
-                    mVelocityFunctions.push_back(PythonGenericFunctionUtility(rParameters["velocity_constraints_settings"]["value"][i].GetString()));
+                    mVelocityFunctions.push_back(GenericFunctionUtility(rParameters["velocity_constraints_settings"]["value"][i].GetString()));
                 }
             }
 
@@ -76,17 +76,17 @@ namespace Kratos
             if(rParameters["angular_velocity_constraints_settings"]["value"][i].IsNull()) {
                 mAngularVelocityValueIsNumeric[i] = true;
                 mAngularVelocityValues[i] = 0.0;
-                mAngularVelocityFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                mAngularVelocityFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
             }
             else {
                 if(rParameters["angular_velocity_constraints_settings"]["value"][i].IsNumber()) {
                     mAngularVelocityValueIsNumeric[i] = true;
                     mAngularVelocityValues[i] = rParameters["angular_velocity_constraints_settings"]["value"][i].GetDouble();
-                    mAngularVelocityFunctions.push_back(PythonGenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
+                    mAngularVelocityFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
                 }
                 else {
                     mAngularVelocityValueIsNumeric[i] = false;
-                    mAngularVelocityFunctions.push_back(PythonGenericFunctionUtility(rParameters["angular_velocity_constraints_settings"]["value"][i].GetString()));
+                    mAngularVelocityFunctions.push_back(GenericFunctionUtility(rParameters["angular_velocity_constraints_settings"]["value"][i].GetString()));
                 }
             }
             if(rParameters["angular_velocity_constraints_settings"]["table"][i].IsNull()) {

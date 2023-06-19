@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(MEMBRANE_ELEMENT_3D_H_INCLUDED )
-#define  MEMBRANE_ELEMENT_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -22,7 +21,7 @@
 namespace Kratos
 {
 
-  class MembraneElement
+  class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MembraneElement
     : public Element
   {
   public:
@@ -154,6 +153,8 @@ namespace Kratos
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
+    const Parameters GetSpecifications() const override;
+
   private:
      /**
      * @brief Calculates the covariant base vectors
@@ -210,7 +211,7 @@ namespace Kratos
 
 
       /**
-     * @brief Calculates the determinant of the Jacobian
+     * @brief Calculates the determinant of the Jacobian for mapping between parameter and physical space
      * @param rDetJacobi The determinant of the Jacobian
      * @param rReferenceBaseVectors Reference base vectors
      */
@@ -405,5 +406,3 @@ namespace Kratos
   };	// class MembraneElement.
 
 }	// namespace Kratos.
-
-#endif // KRATOS_MEMBRANE_ELEMENT_3D_H_INCLUDED  defined

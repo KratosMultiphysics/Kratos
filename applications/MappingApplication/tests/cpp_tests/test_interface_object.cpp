@@ -4,7 +4,7 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher
@@ -15,9 +15,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "custom_searching/interface_object.h"
 
-namespace Kratos {
-namespace Testing {
-
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSerialTestSuite)
 {
@@ -27,9 +25,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSeria
     init_coords[2] = 0.0;
 
     InterfaceObject interface_obj(init_coords);
-
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(interface_obj.UpdateCoordinates(),
-        "Error: Base class function called!");
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(interface_obj.pGetBaseNode(),
         "Error: Base class function called!");
@@ -55,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite
 {
     Point coords(1.0, 2.5, 30.0);
 
-    const auto node_1(Kratos::make_shared<Node<3>>(1, coords));
+    const auto node_1(Kratos::make_shared<Node>(1, coords));
 
     Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceNode>(node_1.get()));
 
@@ -65,27 +60,18 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceNode, KratosMappingApplicationSerialTestSuite
     for (std::size_t i=0; i<3; ++i)
         KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], coords[i]);
 
-    Point new_coords(18.3, -89.123, 125.7);
-
-    noalias(node_1->Coordinates()) = new_coords;
-
-    p_interface_obj->UpdateCoordinates();
-
-    for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], new_coords[i]);
-
     KRATOS_CHECK_EQUAL(*(p_interface_obj->pGetBaseNode()), *node_1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSuite)
 {
-    Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-    Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-    Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-    Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
+    Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+    Node::Pointer p_point2(new Node(2, 0.00, 10.00, 0.00));
+    Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+    Node::Pointer p_point4(new Node(4, 10.00, 0.00, 0.00));
 
-    const Kratos::shared_ptr<Geometry<Node<3>>> p_quad(
-        Kratos::make_shared<Quadrilateral2D4<Node<3>>>(
+    const Kratos::shared_ptr<Geometry<Node>> p_quad(
+        Kratos::make_shared<Quadrilateral2D4<Node>>(
             p_point1, p_point2, p_point3, p_point4));
 
     Kratos::unique_ptr<InterfaceObject> p_interface_obj(Kratos::make_unique<InterfaceGeometryObject>(p_quad.get()));
@@ -98,28 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceObject, KratosMappingApplicationSerialTestSui
     for (std::size_t i=0; i<3; ++i)
         KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], center_coords[i]);
 
-    p_point1->X() -= 2.5;
-    p_point2->X() -= 2.5;
-    p_point3->X() -= 2.5;
-    p_point4->X() -= 2.5;
-
-    p_point1->Y() += 2.0;
-    p_point4->Y() += 2.0;
-
-    p_point1->Z() = 2.0;
-    p_point2->Z() = 2.0;
-    p_point3->Z() = 2.0;
-    p_point4->Z() = 2.0;
-
-    Point new_center_coords(2.5, 6.0, 2.0);
-
-    p_interface_obj->UpdateCoordinates();
-
-    for (std::size_t i=0; i<3; ++i)
-        KRATOS_CHECK_DOUBLE_EQUAL(p_interface_obj->Coordinates()[i], new_center_coords[i]);
-
     // KRATOS_CHECK_EQUAL(*(p_interface_obj->pGetBaseGeometry()), *p_quad); // does not compile ...
 }
 
-}  // namespace Testing
-}  // namespace Kratos
+}  // namespace Kratos::Testing

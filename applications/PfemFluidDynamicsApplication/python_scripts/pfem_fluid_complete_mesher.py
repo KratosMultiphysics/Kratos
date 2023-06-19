@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
@@ -63,11 +62,4 @@ class PfemFluidCompleteMesher(fluid_mesher.FluidMesher):
         #######################################################################
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
-        #unactive_peak_elements = False
-        #unactive_sliver_elements = False
-        #set_active_flag = KratosPfemFluid.SetActiveFlagMesherProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.echo_level)
-        #self.mesher.SetPostMeshingProcess(set_active_flag)
-
-        #inlet_management = KratosPfemFluid.InletManagement(self.model_part, self.MeshingParameters, self.echo_level)
-        #self.mesher.SetPostMeshingProcess(inlet_management)
 

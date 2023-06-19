@@ -1,4 +1,5 @@
 {
+    "analysis_stage": "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis",
     "problem_data": {
         "problem_name": "Square_Radiation_Transient",
         "parallel_type": "OpenMP",
@@ -14,10 +15,10 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "Square_Radiation_Transient"
+            "input_filename": "../Square_Radiation_Transient"
         },
         "material_import_settings": {
-            "materials_filename": "ConvectionDiffusionMaterials.json"
+            "materials_filename": "../ConvectionDiffusionMaterials.json"
         },
         "line_search": false,
         "echo_level": 0,

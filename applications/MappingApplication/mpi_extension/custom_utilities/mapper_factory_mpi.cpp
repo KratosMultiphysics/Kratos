@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/mapper_factory.h"
+#include "factories/mapper_factory.h"
 #include "mapper_mpi_define.h"
 
 

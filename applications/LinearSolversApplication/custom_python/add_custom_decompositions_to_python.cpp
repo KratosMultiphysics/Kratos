@@ -18,12 +18,15 @@
 #include "includes/define.h"
 #include "includes/define_python.h"
 #include "spaces/ublas_space.h"
+#include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"
 
 // Application includes
 #include "custom_python/add_custom_decompositions_to_python.h"
 #include "custom_decompositions/eigen_dense_bdc_svd_decomposition.h"
 #include "custom_decompositions/eigen_dense_jacobi_svd_decomposition.h"
+#include "custom_decompositions/eigen_dense_householder_qr_decomposition.h"
+#include "custom_decompositions/eigen_dense_column_pivoting_householder_qr_decomposition.h"
 
 namespace Kratos {
 namespace Python {
@@ -35,7 +38,31 @@ void AddCustomDecompositionsToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> DenseSpaceType;
     typedef typename DenseSpaceType::MatrixType MatrixType;
     typedef typename DenseSpaceType::VectorType VectorType;
+    typedef DenseQRDecomposition<DenseSpaceType> BaseQRType;
     typedef DenseSingularValueDecomposition<DenseSpaceType> BaseSVDType;
+
+    typedef EigenDenseHouseholderQRDecomposition<DenseSpaceType> HouseholderQRType;
+    py::class_<HouseholderQRType, typename HouseholderQRType::Pointer, BaseQRType>(m,"EigenDenseHouseholderQRDecomposition")
+        .def(py::init<>())
+        .def("Compute", [](HouseholderQRType& rHouseholderQR, MatrixType& rInputMatrix){rHouseholderQR.Compute(rInputMatrix);})
+        .def("Solve", [](HouseholderQRType& rHouseholderQR, MatrixType& rB, MatrixType& rX){rHouseholderQR.Solve(rB, rX);})
+        .def("Solve", [](HouseholderQRType& rHouseholderQR, VectorType& rB, VectorType& rX){rHouseholderQR.Solve(rB, rX);})
+        .def("MatrixQ", &HouseholderQRType::MatrixQ)
+        .def("MatrixR", &HouseholderQRType::MatrixR)
+        ;
+
+    typedef EigenDenseColumnPivotingHouseholderQRDecomposition<DenseSpaceType> ColPivHouseholderQRType;
+    py::class_<ColPivHouseholderQRType, typename ColPivHouseholderQRType::Pointer, BaseQRType>(m,"EigenDenseColumnPivotingHouseholderQRDecomposition")
+        .def(py::init<>())
+        .def("Compute", [](ColPivHouseholderQRType& rColPivHouseholderQR, MatrixType& rInputMatrix){rColPivHouseholderQR.Compute(rInputMatrix);})
+        .def("Compute", [](ColPivHouseholderQRType& rColPivHouseholderQR, MatrixType& rInputMatrix, MatrixType& rMatrixQ, MatrixType& rMatrixR){rColPivHouseholderQR.Compute(rInputMatrix, rMatrixQ, rMatrixR);})
+        .def("Solve", [](ColPivHouseholderQRType& rColPivHouseholderQR, MatrixType& rB, MatrixType& rX){rColPivHouseholderQR.Solve(rB, rX);})
+        .def("Solve", [](ColPivHouseholderQRType& rColPivHouseholderQR, VectorType& rB, VectorType& rX){rColPivHouseholderQR.Solve(rB, rX);})
+        .def("MatrixQ", &ColPivHouseholderQRType::MatrixQ)
+        .def("MatrixR", &ColPivHouseholderQRType::MatrixR)
+        .def("MatrixP", &ColPivHouseholderQRType::MatrixP)
+        .def("Rank", &ColPivHouseholderQRType::Rank)
+        ;
 
     typedef EigenDenseBDCSVD<DenseSpaceType> BDCSVDType;
     py::class_<BDCSVDType, typename BDCSVDType::Pointer, BaseSVDType>(m,"EigenDenseBDCSVD")
@@ -45,6 +72,7 @@ void AddCustomDecompositionsToPython(pybind11::module& m)
         .def("SingularValues", &BDCSVDType::SingularValues)
         .def("MatrixU", &BDCSVDType::MatrixU)
         .def("MatrixV", &BDCSVDType::MatrixV)
+        .def("SetThreshold", &BDCSVDType::SetThreshold)
         .def("Rank", &BDCSVDType::Rank)
         .def("NonZeroSingularValues", &BDCSVDType::NonZeroSingularValues)
         ;
@@ -57,6 +85,7 @@ void AddCustomDecompositionsToPython(pybind11::module& m)
         .def("SingularValues", &JacobiSVDType::SingularValues)
         .def("MatrixU", &JacobiSVDType::MatrixU)
         .def("MatrixV", &JacobiSVDType::MatrixV)
+        .def("SetThreshold", &JacobiSVDType::SetThreshold)
         .def("Rank", &JacobiSVDType::Rank)
         .def("NonZeroSingularValues", &JacobiSVDType::NonZeroSingularValues)
         ;

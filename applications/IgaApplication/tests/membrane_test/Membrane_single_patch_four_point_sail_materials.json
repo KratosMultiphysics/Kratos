@@ -29,8 +29,7 @@
                 "DENSITY": 8300,
                 "THICKNESS": 0.006,
                 "CROSS_AREA": 0.000113097335529233,
-                "PRESTRESS_CAUCHY": 530516476.972985,
-                "TANGENTS": [1.0, 0.0]
+                "PRESTRESS_CAUCHY": 530516476.972985
             },
             "Tables": {}
         }
@@ -47,8 +46,7 @@
                 "DENSITY": 8300,
                 "THICKNESS": 0.006,
                 "CROSS_AREA": 0.000113097335529233,
-                "PRESTRESS_CAUCHY": 530516476.972985,
-                "TANGENTS": [0.0, 1.0]
+                "PRESTRESS_CAUCHY": 530516476.972985
             },
             "Tables": {}
         }

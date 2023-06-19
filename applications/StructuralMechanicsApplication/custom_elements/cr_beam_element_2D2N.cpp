@@ -3,13 +3,12 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//  license: 	 structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
+//  Main authors:    Klaus B. Sautter
 //
-//
-//
+
 // System includes
 
 // External includes
@@ -295,7 +294,7 @@ CrBeamElement2D2N::CalculateBodyForces() const
     KRATOS_TRY
     // getting shapefunctionvalues for linear SF
     const Matrix& Ncontainer =
-        GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     BoundedVector<double, 3> equivalent_line_load = ZeroVector(3);
     BoundedVector<double, msElementSize> body_forces_global =
@@ -648,11 +647,24 @@ CrBeamElement2D2N::CalculateDeformationParameters()
     Vector current_displacement = ZeroVector(msElementSize);
     GetValuesVector(current_displacement, 0);
 
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+
+    BoundedVector<double, 2> initial_strain_vector = ZeroVector(2);
+    double initial_unit_elongation = 0.0;
+    double initial_unit_rotation = 0.0;
+
+    if (Has(BEAM_INITIAL_STRAIN_VECTOR)) {
+    initial_strain_vector = GetValue(BEAM_INITIAL_STRAIN_VECTOR);
+    initial_unit_elongation = initial_strain_vector[0];
+    initial_unit_rotation = initial_strain_vector[1];
+    }
+
     BoundedVector<double, msLocalSize> deformation_parameters =
         ZeroVector(msLocalSize);
-    deformation_parameters[0] =
-        CalculateLength() - StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+    deformation_parameters[0] = CalculateLength() - L;
+    deformation_parameters[0] -= initial_unit_elongation * L; // adding initial strain contributions
     deformation_parameters[1] = current_displacement[5] - current_displacement[2];
+    deformation_parameters[1] -= initial_unit_rotation * L; // adding initial curvature contributions
     deformation_parameters[2] = current_displacement[5] + current_displacement[2];
     deformation_parameters[2] -= 2.00 * (CalculateDeformedElementAngle() -
                                          CalculateInitialElementAngle());
@@ -669,10 +681,7 @@ BoundedVector<double, CrBeamElement2D2N::msLocalSize>
 CrBeamElement2D2N::CalculateInternalStresses_DeformationModes()
 {
     KRATOS_TRY;
-    // calculate t
-
-    BoundedVector<double, msLocalSize> deformation_stresses =
-        ZeroVector(msLocalSize);
+    // calculate the deformation parameters
 
     BoundedVector<double, msLocalSize> deformation_modes =
         CalculateDeformationParameters();
@@ -683,7 +692,7 @@ CrBeamElement2D2N::CalculateInternalStresses_DeformationModes()
         CreateElementStiffnessMatrix_Kd_geo();
     BoundedMatrix<double, msLocalSize, msLocalSize> K_d = K_d_mat + K_d_geo;
 
-    deformation_stresses = prod(K_d, deformation_modes);
+    BoundedVector<double, msLocalSize> deformation_stresses = prod(K_d, deformation_modes);
 
     return deformation_stresses;
     KRATOS_CATCH("")
@@ -747,7 +756,7 @@ void CrBeamElement2D2N::CalculateOnIntegrationPoints(
 
     // Element with two nodes can only represent results at one node
     const auto& r_geometry = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::GI_GAUSS_3);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     const SizeType write_points_number = r_integration_points.size();
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
@@ -800,7 +809,7 @@ CrBeamElement2D2N::IntegrationMethod
 CrBeamElement2D2N::GetIntegrationMethod() const
 {
     // do this to have 3GP as an output in GID
-    return Kratos::GeometryData::GI_GAUSS_3;
+    return Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3;
 }
 
 BoundedVector<double, CrBeamElement2D2N::msElementSize>
@@ -969,6 +978,36 @@ int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
     return 0;
 
     KRATOS_CATCH("")
+}
+
+const Parameters CrBeamElement2D2N::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["MOMENT","FORCE","INTEGRATION_COORDINATES"],
+            "nodal_historical"       : ["DISPLACEMENT","ROTATION","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","ROTATION"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","ROTATION_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line2D2"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["BeamConstitutiveLaw"],
+            "dimension"   : ["2D"],
+            "strain_size" : [3]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This elements implements a 2D non-linear beam formulation."
+    })");
+
+    return specifications;
 }
 
 void CrBeamElement2D2N::save(Serializer& rSerializer) const

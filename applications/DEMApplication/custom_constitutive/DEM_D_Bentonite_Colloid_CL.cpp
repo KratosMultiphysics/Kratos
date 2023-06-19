@@ -39,9 +39,8 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Bentonite_Colloid::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_D_Bentonite_Colloid to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Bentonite_Colloid::CloneUnique() {
+        return Kratos::make_unique<DEM_D_Bentonite_Colloid>();
     }
 
     std::string DEM_D_Bentonite_Colloid::GetTypeOfLaw() {
@@ -68,25 +67,25 @@ namespace Kratos {
                                                   double LocalCoordSystem[3][3]){
 
         //InitializeContact(element1, element2, indentation);
-//G
+
         //LocalElasticContactForce[2]  = CalculateNormalForce(indentation);
         if ((element2->Is(BLOCKED) && element1->Is(NEW_ENTITY)) || (element2->Is(NEW_ENTITY) && element1->Is(BLOCKED))){ // you are contacting an injector
-//            const array_1d<double, 3>& global_force = element2->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-//            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, global_force, LocalElasticContactForce);
-//            if (element2->Is(ACTIVE) && element1->IsNot(NEW_ENTITY)){ // it has a particle inside, which should already be doing the pushing, or else it is an injected particle, which already has had its force imposed
-//                LocalElasticContactForce[2] = 0.0;
-//
-//            }
+            //            const array_1d<double, 3>& global_force = element2->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+            //            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, global_force, LocalElasticContactForce);
+            //            if (element2->Is(ACTIVE) && element1->IsNot(NEW_ENTITY)){ // it has a particle inside, which should already be doing the pushing, or else it is an injected particle, which already has had its force imposed
+            //                LocalElasticContactForce[2] = 0.0;
+            //
+            //            }
 
-//            else if (element2->Is(ACTIVE) && element1->Is(NEW_ENTITY)){
-//                const array_1d<double, 3>& global_force = element2->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-//                //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, global_force, LocalElasticContactForce);
-//            }
+            //            else if (element2->Is(ACTIVE) && element1->Is(NEW_ENTITY)){
+            //                const array_1d<double, 3>& global_force = element2->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+            //                //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, global_force, LocalElasticContactForce);
+            //            }
 
-//            else { // it must push to keep neighbours away and allow a new particle to be inserted inside
-//                const double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
-//                LocalElasticContactForce[2] = CalculateNormalForce(5e-8, cation_concentration);
-//            }
+            //            else { // it must push to keep neighbours away and allow a new particle to be inserted inside
+            //                const double cation_concentration = element1->GetGeometry()[0].FastGetSolutionStepValue(CATION_CONCENTRATION);
+            //                LocalElasticContactForce[2] = CalculateNormalForce(5e-8, cation_concentration);
+            //            }
 
         }
 
@@ -97,7 +96,7 @@ namespace Kratos {
             LocalElasticContactForce[1] = 0.0;
             LocalElasticContactForce[2] = CalculateNormalForce(distance, cation_concentration);
         }
-//Z
+
         cohesive_force              = CalculateCohesiveNormalForce(element1, element2, indentation);
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
 
@@ -118,20 +117,18 @@ namespace Kratos {
                                                              SphericParticle* const element1,
                                                              SphericParticle* const element2) {
 
-//        const double my_mass    = element1->GetMass();
-//        const double other_mass = element2->GetMass();
+        //        const double my_mass    = element1->GetMass();
+        //        const double other_mass = element2->GetMass();
 
-//        const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
+        //        const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
-//        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-//        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-//        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
-//        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
-//        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
+        //        const double& equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
+        //        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
+        //        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
 
-//        ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-//        ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-//        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
+        //        ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+        //        ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+        //        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
 
         ViscoDampingLocalContactForce[0] = 0.0;
         ViscoDampingLocalContactForce[1] = 0.0;
@@ -177,13 +174,7 @@ namespace Kratos {
                                                                           SphericParticle* const element,
                                                                           NeighbourClassType* const neighbour,
                                                                           double indentation,
-                                                                          double previous_indentation) {
-
-//        LocalElasticContactForce[0] = 0.0;
-//        LocalElasticContactForce[1] = 0.0;
-//        ViscoDampingLocalContactForce[0] = 0.0;
-//        ViscoDampingLocalContactForce[1] = 0.0;
-    }
+                                                                          double previous_indentation) {}
 
     void DEM_D_Bentonite_Colloid::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                                     double ViscoDampingLocalContactForce[3],
@@ -191,9 +182,12 @@ namespace Kratos {
                                                                     Condition* const wall) {
 
         const double my_mass    = element->GetMass();
-        const double gamma = element->GetProperties()[DAMPING_GAMMA];
-        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
-        const double tangential_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKt);
+
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
+
+        const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
+        const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt);
 
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];

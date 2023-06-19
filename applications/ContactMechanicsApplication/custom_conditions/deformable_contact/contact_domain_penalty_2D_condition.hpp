@@ -53,7 +53,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     ///NodeType
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     ///Geometry Type
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
@@ -174,14 +174,14 @@ protected:
     /**
      * Calculate Tau stabilization or Penalty factor
      */
-    void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
     void CalculateExplicitFactors(ConditionVariables& rVariables,
-				  ProcessInfo& rCurrentProcessInfo) override;
+				  const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**

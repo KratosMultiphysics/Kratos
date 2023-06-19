@@ -22,7 +22,7 @@
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 #include "processes/process.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/variable_utils.h"
 #include "utilities/entities_utilities.h"
 
@@ -73,7 +73,7 @@ namespace Kratos {
  * @tparam TLinearSolver Linear solver template type
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class FractionalStepStrategy : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+class FractionalStepStrategy : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -82,13 +82,13 @@ public:
     /// Counted pointer of FractionalStepStrategy
     KRATOS_CLASS_POINTER_DEFINITION(FractionalStepStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-    typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+    typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
     typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
 
@@ -737,7 +737,7 @@ protected:
         for (int i = 0; i < num_nodes_in_model_part; i++)
         {
             ModelPart::NodeIterator itNode = rModelPart.NodesBegin() + i;
-            const Node<3>& r_const_node = *itNode;
+            const Node& r_const_node = *itNode;
 
             if ( r_const_node.Is(rSlipWallFlag) )
             {
@@ -778,10 +778,10 @@ protected:
                  ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
                  if (rGeom.PointsNumber() == 2)
                  {
-                     Node<3>& rNode0 = rGeom[0];
+                     Node& rNode0 = rGeom[0];
                      int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                     Node<3>& rNode1 = rGeom[1];
+                     Node& rNode1 = rGeom[1];
                      int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
 
                      // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
@@ -864,10 +864,10 @@ protected:
                  ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
                  if (rGeom.PointsNumber() == 2)
                  {
-                     Node<3>& rNode0 = rGeom[0];
+                     Node& rNode0 = rGeom[0];
                      int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
 
-                     Node<3>& rNode1 = rGeom[1];
+                     Node& rNode1 = rGeom[1];
                      int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
 
                      // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)

@@ -804,10 +804,10 @@ namespace Kratos
       }
 
       const unsigned int number_of_nodes = GetGeometry().size();
-      for (unsigned int Node = 0; Node < number_of_nodes; Node++) {
-         double& DetFNodal = GetGeometry()[Node].GetSolutionStepValue(JACOBIAN );
+      for (unsigned int iNode = 0; iNode < number_of_nodes; iNode++) {
+         double& DetFNodal = GetGeometry()[iNode].GetSolutionStepValue(JACOBIAN );
          DetFNodal = 1.0;
-         double& DetFNodalPrev = GetGeometry()[Node].GetSolutionStepValue(JACOBIAN , 1);
+         double& DetFNodalPrev = GetGeometry()[iNode].GetSolutionStepValue(JACOBIAN , 1);
          DetFNodalPrev = 1.0;
       }
 
@@ -1420,7 +1420,7 @@ namespace Kratos
 
       Vector KuJ(number_of_nodes*dimension);
       noalias( KuJ ) = prod( trans( rVariables.B), (ConstVector) );
-      
+
 
       Matrix SecondMatrix(dimension*number_of_nodes, number_of_nodes);
       noalias(  SecondMatrix ) = ZeroMatrix( dimension*number_of_nodes, number_of_nodes);
@@ -1681,7 +1681,7 @@ namespace Kratos
       // Not Lumped Mass Matrix (numerical integration):
 
       //reading integration points
-      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 

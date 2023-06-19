@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 
@@ -8,18 +7,15 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.CableNetApplication import empirical_spring_element_process
 
-
-numpy_available = False
 numpy_polyfit_available = False
 
+import numpy as np
+
 try:
-    import numpy as np
-    numpy_available = True
-    try:
-        from numpy import polyfit
-        numpy_polyfit_available = True
-    except: pass
+    from numpy import polyfit
+    numpy_polyfit_available = True
 except: pass
+
 
 import sys
 
@@ -192,7 +188,6 @@ class EmpiricalSpringTests(KratosUnittest.TestCase):
         return current_model,mp,bcs_neumann
 
     def test_quasi_static(self):
-        if not numpy_available: self.skipTest("python package \"numpy\" not available")
         mp,bcs_neumann = self._set_up_standard_test(is_process_test=False)
 
         #apply boundary conditions

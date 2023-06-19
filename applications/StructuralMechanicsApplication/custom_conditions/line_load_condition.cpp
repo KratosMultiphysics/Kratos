@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -191,7 +191,7 @@ void LineLoadCondition<TDim>::CalculateAll(
 
     // Pressure applied to the element itself
     double pressure_on_condition = 0.0;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         if( this->Has( PRESSURE ) ) {
             pressure_on_condition += this->GetValue( PRESSURE );
         }

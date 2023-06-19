@@ -56,7 +56,7 @@ namespace Kratos
 * @details The class behaves as a manager of the different model parts. It uses unordered_maps of the variables and the model parts for that purpose
 * @author Riccardo Rossi
 */
-class KRATOS_API(KRATOS_CORE) Model
+class KRATOS_API(KRATOS_CORE) Model final
 {
 public:
     ///@name Type Definitions
@@ -76,7 +76,7 @@ public:
     Model(){};
 
     /// Destructor.
-    virtual ~Model()
+    ~Model()
     {
         mRootModelPartMap.clear();
     }
@@ -104,14 +104,14 @@ public:
      * @param ModelPartName The name of the new model part to be created
      * @param NewBufferSize The size of the buffer of the new model part created
      */
-    ModelPart& CreateModelPart( const std::string ModelPartName, IndexType NewBufferSize=1 );
+    ModelPart& CreateModelPart( const std::string& ModelPartName, IndexType NewBufferSize=1 );
 
     /**
      * @brief This method deletes a modelpart with a given name
      * @details Raises a warning in case the model part does not exists
      * @param ModelPartName The name of the model part to be removed
      */
-    void DeleteModelPart( const std::string ModelPartName );
+    void DeleteModelPart( const std::string& ModelPartName );
 
     /**
      * @brief This method renames a modelpart with a given name
@@ -119,7 +119,7 @@ public:
      * @param OldName The name of the model part to be renamed
      * @param NewName The new name for the model part to be renamed
      */
-    void RenameModelPart( const std::string OldName, const std::string NewName );
+    void RenameModelPart( const std::string& OldName, const std::string& NewName );
 
     /**
      * @brief This method returns a model part given a certain name
@@ -167,13 +167,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -253,6 +253,13 @@ private:
      * @return The vector containing each part of the name defining the model part hierarchy
      */
     std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
+
+    /**
+     * @brief This method creates a new model part contained in the current Model with a given name and buffer size
+     * @param ModelPartName The name of the new model part to be created
+     * @param NewBufferSize The size of the buffer of the new model part created
+     */
+    void CreateRootModelPart(const std::string& ModelPartName, ModelPart::IndexType NewBufferSize);
 
     ///@}
     ///@name Private  Access

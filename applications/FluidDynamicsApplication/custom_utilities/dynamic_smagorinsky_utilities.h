@@ -22,6 +22,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/geometry_utilities.h"
 
 #include "includes/cfd_variables.h"
@@ -103,7 +104,7 @@ public:
         }
 
         // Count the number of patches in the model (in parallel)
-        const int NumThreads = OpenMPUtils::GetNumThreads();
+        const int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector ElementPartition;
         OpenMPUtils::DivideInPartitions(mCoarseMesh.size(),NumThreads,ElementPartition);
 
@@ -146,7 +147,7 @@ public:
         this->SetCoarseVel();
 
         // Partitioning
-        const int NumThreads = OpenMPUtils::GetNumThreads();
+        const int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector CoarseElementPartition,FineElementPartition;
         OpenMPUtils::DivideInPartitions(mCoarseMesh.size(),NumThreads,CoarseElementPartition);
         OpenMPUtils::DivideInPartitions(mrModelPart.Elements().size(),NumThreads,FineElementPartition);
@@ -305,7 +306,7 @@ public:
     void CorrectFlagValues(Variable<double>& rThisVariable = FLAG_VARIABLE)
     {
         // Loop over coarse mesh to evaluate all terms that do not involve the fine mesh
-        const int NumThreads = OpenMPUtils::GetNumThreads();
+        const int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector NodePartition;
         OpenMPUtils::DivideInPartitions(mrModelPart.NumberOfNodes(),NumThreads,NodePartition);
 
@@ -390,8 +391,8 @@ private:
         {
             if( itNode->GetValue(FATHER_NODES).size() == 2 )
             {
-                Node<3>& rParent1 = itNode->GetValue(FATHER_NODES)[0];
-                Node<3>& rParent2 = itNode->GetValue(FATHER_NODES)[1];
+                Node& rParent1 = itNode->GetValue(FATHER_NODES)[0];
+                Node& rParent2 = itNode->GetValue(FATHER_NODES)[1];
 
                 itNode->GetValue(COARSE_VELOCITY) = 0.5 * ( rParent1.FastGetSolutionStepValue(VELOCITY) + rParent2.FastGetSolutionStepValue(VELOCITY) );
             }

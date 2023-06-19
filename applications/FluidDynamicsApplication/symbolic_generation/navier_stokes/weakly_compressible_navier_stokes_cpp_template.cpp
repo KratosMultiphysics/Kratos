@@ -75,6 +75,46 @@ int WeaklyCompressibleNavierStokes<TElementData>::Check(const ProcessInfo &rCurr
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public I/O
 
+template<class TElementData>
+const Parameters WeaklyCompressibleNavierStokes<TElementData>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["implicit"],
+        "framework"                  : "ale",
+        "symmetric_lhs"              : false,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["VORTICITY","Q_VALUE","VORTICITY_MAGNITUDE"],
+            "nodal_historical"       : ["VELOCITY","PRESSURE","DENSITY","DYNAMIC_VISCOSITY"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["VELOCITY","ACCELERATION","MESH_VELOCITY","PRESSURE","IS_STRUCTURE","DISPLACEMENT","BODY_FORCE","NODAL_AREA","NODAL_H","ADVPROJ","DIVPROJ","REACTION","REACTION_WATER_PRESSURE","EXTERNAL_PRESSURE","NORMAL","Y_WALL","Q_VALUE"]
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : ["Newtonian2DLaw","Newtonian3DLaw","NewtonianTemperatureDependent2DLaw","NewtonianTemperatureDependent3DLaw","Euler2DLaw","Euler3DLaw"],
+            "dimension"   : ["2D","3D"],
+            "strain_size" : [3,6]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   :
+            "This implements a weakly compressible Navier-Stokes element with quasi-static Variational MultiScales (VMS) stabilization. Note that this formulation allows a weak coupling with a custom Equation of State that updates the nodal DENSITY from the obtained PRESSURE values. Also note that no viscous behavior is hardcoded, meaning that any fluid constitutive model can be used through a constitutive law."
+    })");
+
+    if (Dim == 2) {
+        std::vector<std::string> dofs_2d({"VELOCITY_X","VELOCITY_Y","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
+    return specifications;
+}
+
 template <class TElementData>
 std::string WeaklyCompressibleNavierStokes<TElementData>::Info() const
 {

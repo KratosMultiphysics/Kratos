@@ -1,0 +1,138 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Properties 2
+End Properties
+
+Begin Nodes
+    1   0.0000000000   0.0000000000   0.0000000000
+    2   0.0000000000   0.0000000000   0.5000000000
+    3   1.0000000000   0.0000000000   0.2500000000
+    4   2.0000000000   0.0000000000   0.0000000000
+    5   2.0000000000   0.0000000000   0.5000000000
+    6   3.0000000000   0.0000000000   0.2500000000
+End Nodes
+
+
+Begin Elements ContactInfoSphericParticle3D// GUI group identifier: Parts Auto1
+        1          1     1
+        2          1     2
+        3          1     3
+        4          2     4
+        5          2     5
+        6          2     6
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: Parts Auto1
+          1 0       0.25
+          2 0       0.25
+          3 0       0.25
+          4 0       0.25
+          5 0       0.25
+          6 0       0.25
+End NodalData
+
+Begin SubModelPart Mat1 // Group Parts Auto1 // Subtree Parts
+    Begin SubModelPartNodes
+            1
+            2
+            3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Mat2 // Group Parts Auto1 // Subtree Parts
+    Begin SubModelPartNodes
+            4
+            5
+            6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            4
+            5
+            6
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Ball1
+    Begin SubModelPartNodes
+            1
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
+End SubModelPart
+Begin SubModelPart Ball2
+    Begin SubModelPartNodes
+            2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
+End SubModelPart
+Begin SubModelPart Ball3
+    Begin SubModelPartNodes
+            3
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            3
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
+End SubModelPart
+Begin SubModelPart Ball4
+    Begin SubModelPartNodes
+            4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            4
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
+End SubModelPart
+Begin SubModelPart Ball5
+    Begin SubModelPartNodes
+            5
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            5
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
+End SubModelPart
+Begin SubModelPart Ball6
+    Begin SubModelPartNodes
+            6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            6
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+    Begin SubModelPartTables
+    End SubModelPartTables
+End SubModelPart

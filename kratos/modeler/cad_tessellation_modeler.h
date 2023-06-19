@@ -11,6 +11,8 @@
 //                   Ruben Zorrilla
 //
 
+#if USE_TRIANGLE_NONFREE_TPL
+
 #if !defined(KRATOS_CAD_TESSELLATION_MODELER_INCLUDED)
 #define KRATOS_CAD_TESSELLATION_MODELER_INCLUDED
 
@@ -20,7 +22,7 @@
 
 // Project includes
 #include "modeler.h"
-#include "utilities/nurbs_curve_tessellation.h"
+#include "utilities/tessellation_utilities/curve_tessellation.h"
 #include "geometries/brep_surface.h"
 #include "geometries/brep_curve_on_surface.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
@@ -45,7 +47,7 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Point EmbeddedNodeType;
 
@@ -250,3 +252,4 @@ inline std::ostream& operator<<(std::ostream& rOStream, const CadTessellationMod
 } // namespace Kratos.
 
 #endif // KRATOS_CAD_TESSELLATION_MODELER_INCLUDED  defined
+#endif

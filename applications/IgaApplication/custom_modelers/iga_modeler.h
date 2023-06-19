@@ -23,6 +23,7 @@
 #include "includes/properties.h"
 #include "includes/define.h"
 
+#include "integration/integration_info.h"
 
 namespace Kratos
 {
@@ -46,7 +47,7 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
 
@@ -137,7 +138,8 @@ private:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
-        const Parameters rParameters) const;
+        const Parameters rParameters,
+        std::string GeometryType) const;
 
     ///@}
     ///@name CAD functionalities

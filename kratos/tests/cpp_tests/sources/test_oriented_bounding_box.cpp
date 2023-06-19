@@ -13,7 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/oriented_bounding_box.h"
+#include "geometries/oriented_bounding_box.h"
 #include "includes/checks.h"
 #include "geometries/point.h"
 #include "utilities/intersection_utilities.h"

@@ -9,6 +9,7 @@ file(GLOB_RECURSE KRATOS_MESH_MOVING_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/mesh_moving_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
 )
 
 ## MeshMoving python interface sources
@@ -69,7 +70,11 @@ install(TARGETS KratosMeshMovingCore DESTINATION libs )
 install(TARGETS KratosMeshMovingApplication DESTINATION libs )
 
 ## If trilinos is avaliable, switch on the Fluid trilinos extension
-if(${USE_MPI})
+if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling trilinos extension for KratosMeshMovingApplication")
   add_subdirectory(trilinos_extension)
-endif(${USE_MPI})
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMeshMovingCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMeshMovingApplication" PARENT_SCOPE)

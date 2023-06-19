@@ -147,46 +147,46 @@ void CheckIntegrationPointWeightSensitivity(
 KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line2D2N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateLine2D2N();
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_1);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_2);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_3);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_4);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_3);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line2D3N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateLine2D3N();
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_1);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_2);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_3);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_4);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_3);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line3D2N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateLine3D2N();
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_1);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_2);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_3);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_4);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_3);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineGeometricalSensitivity_Line3D3N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateLine3D3N();
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_1);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_2);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_3);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_4);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_3);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SurfaceGeometricalSensitivity_Triangle3D3N, KratosCoreFastSuite)
 {
     auto p_geometry = CreateTriangle3D3N();
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_1);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_2);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_3);
-    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::GI_GAUSS_4);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_3);
+    CheckIntegrationPointWeightSensitivity(p_geometry, GeometryData::IntegrationMethod::GI_GAUSS_4);
 }
 
 } // namespace Testing

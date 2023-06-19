@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,9 +46,6 @@ namespace perf_counter {
 
 /// Clock class.
 /**
- * Designed to interchangeable (in context of amgcl::profiler) with either
- * std::chrono or boost::chrono clocks.
- *
  * Uses omp_get_wtime() when available, std::clock() otherwise.
  */
 struct clock {

@@ -3,16 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED )
-#define  KRATOS_CR_BEAM_ELEMENT_3D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -34,7 +31,7 @@ namespace Kratos
  * @author Klaus B Sautter
  */
 
-class CrBeamElement3D2N : public Element
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CrBeamElement3D2N : public Element
 {
 protected:
     //const values
@@ -161,9 +158,9 @@ public:
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void ConstCalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) const;
+    virtual void ConstCalculateRightHandSide(
+                 VectorType& rRightHandSideVector,
+                  const ProcessInfo& rCurrentProcessInfo) const;
 
     void ConstCalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
@@ -230,11 +227,13 @@ public:
 
     /**
      * @brief This function is used to assemble single transformation matrix in the big global rotation matrix
-     * @param SmallMatrix The local transformation matrix
-     * @param BigMatrix The total global rotation matrix
+     * @param rSmallMatrix The local transformation matrix
+     * @param rBigMatrix The total global rotation matrix
      */
-    void AssembleSmallInBigMatrix(Matrix SmallMatrix, BoundedMatrix<double,
-                                  msElementSize,msElementSize>& BigMatrix) const;
+    void AssembleSmallInBigMatrix(
+        const Matrix& rSmallMatrix,
+        BoundedMatrix<double,msElementSize,msElementSize>& rBigMatrix
+        ) const;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
@@ -310,6 +309,8 @@ public:
     void UpdateQuaternionParameters(double& rScalNodeA,double& rScalNodeB,
          Vector& rVecNodeA,Vector& rVecNodeB) const;
 
+    const Parameters GetSpecifications() const override;
+
 private:
 
 
@@ -331,5 +332,3 @@ private:
 
 
 }
-
-#endif

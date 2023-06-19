@@ -48,9 +48,90 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 void MoveMesh(ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    block_for_each(rNodes, [](Node<3>& rNode ){
+    block_for_each(rNodes, [](Node& rNode ){
         noalias(rNode.Coordinates()) = rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
     });
+
+    KRATOS_CATCH("");
+}
+
+//******************************************************************************
+//******************************************************************************
+void MoveModelPart(
+    ModelPart& rModelPart,
+    const array_1d<double,3>& rRotationAxis,
+    const double rotationAngle,
+    const array_1d<double,3>& rReferencePoint,
+    const array_1d<double,3>& rTranslationVector)
+{
+    KRATOS_TRY
+
+    const LinearTransform transform(
+        rRotationAxis,
+        rotationAngle,
+        rReferencePoint,
+        rTranslationVector);
+
+    MoveModelPart(rModelPart, transform);
+
+    KRATOS_CATCH("");
+}
+
+void MoveModelPart(
+    ModelPart& rModelPart,
+    const Parameters rotationAxis,
+    const Parameters rotationAngle,
+    const Parameters referencePoint,
+    const Parameters translationVector)
+{
+    KRATOS_TRY
+
+    ParametricLinearTransform transform(
+        rotationAxis,
+        rotationAngle,
+        referencePoint,
+        translationVector);
+
+    MoveModelPart(rModelPart, transform);
+
+    KRATOS_CATCH("");
+}
+
+void MoveModelPart(
+    ModelPart& rModelPart,
+    const LinearTransform& rTransform)
+{
+    KRATOS_TRY
+
+    block_for_each(
+        rModelPart.Nodes(),
+        [&rTransform](Node& rNode){
+            const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(initial_position) - initial_position;
+        });
+
+    KRATOS_CATCH("");
+}
+
+void MoveModelPart(
+    ModelPart& rModelPart,
+    ParametricLinearTransform& rTransform)
+{
+    KRATOS_TRY
+
+    const double time = rModelPart.GetProcessInfo().GetValue(TIME);
+
+    block_for_each(
+        rModelPart.Nodes(),
+        [&rTransform, time](Node& rNode){
+            const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(
+                initial_position,
+                time,
+                rNode.X0(),
+                rNode.Y0(),
+                rNode.Z0()) - initial_position;
+        });
 
     KRATOS_CATCH("");
 }
@@ -126,7 +207,7 @@ void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double
 {
     KRATOS_TRY;
 
-    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(rModelPart.Nodes(), [&](Node& rNode){
         if (rNode.Has(rVariableToSuperImpose)) {
             rNode.GetSolutionStepValue(rVariable,0) += rNode.GetValue(rVariableToSuperImpose);
         }

@@ -38,7 +38,7 @@ public:
 
     using BaseType = LaplaceElement<TDim, TNumNodes>;
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Geometry type (using with given NodeType)
     using GeometryType = Geometry<NodeType>;
@@ -138,7 +138,7 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
-            NewId, Element::GetGeometry().Create(ThisNodes), pProperties);
+            NewId, this->GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
@@ -173,7 +173,7 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_intrusive<IncompressiblePotentialFlowVelocityElement>(
-            NewId, Element::GetGeometry().Create(ThisNodes), Element::pGetProperties());
+            NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
         KRATOS_CATCH("");
     }
 

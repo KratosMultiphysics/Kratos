@@ -1,25 +1,31 @@
 # import Kratos
 import KratosMultiphysics as KM
 
-# cpp tests
-import run_cpp_unit_tests
-
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.KratosUnittest import TestLoader
 
 # Small tests
-from shallow_water_test_factory import TestShallowWaterElement
-from shallow_water_test_factory import TestLagrangianShallowWaterElement
-from shallow_water_test_factory import TestShallowWater2D3NElement
-from shallow_water_test_factory import TestMonotonicShallowWater2D3NElement
+from shallow_water_test_factory import TestConservativeResidualViscosity2D3NElement
+from shallow_water_test_factory import TestConservativeGradientJump2D3NElement
+from shallow_water_test_factory import TestConservativeFluxCorrected2D3NElement
+from shallow_water_test_factory import TestPrimitive2D3NElement
+from shallow_water_test_factory import TestBoussinesq2D3NElement
 from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
-from shallow_water_test_factory import TestNodesOutputProcess
 from shallow_water_test_factory import TestMacDonaldShockBenchmark
+from shallow_water_test_factory import TestMacDonaldTransitionBenchmark
 from shallow_water_test_factory import TestDamBreakBenchmark
 from shallow_water_test_factory import TestDryDamBreakBenchmark
 from shallow_water_test_factory import TestPlanarSurfaceInParabolaBenchmark
-from processes_tests.test_convergence_output_process import TestConvergenceOutputProcess
+from shallow_water_test_factory import TestSolitaryWaveBenchmark
+from shallow_water_test_factory import TestMeshMovingStrategy
+from shallow_water_test_factory import TestDamBreakValidation
+from shallow_water_test_factory import TestMacDonaldShockValidation
+from shallow_water_test_factory import TestSolitaryWaveValidation
+from processes_tests.test_line_graph_output_process import TestLineGraphOutputProcess
+from processes_tests.test_derivatives_recovery_process import TestDerivativesRecoveryProcess
+from processes_tests.test_wave_generator_process import TestWaveGeneratorProcess
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -37,33 +43,44 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TestShallowWater2D3NElement('test_execution'))
-    smallSuite.addTest(TestMonotonicShallowWater2D3NElement('test_execution'))
-    smallSuite.addTest(TestSetTopographyProcess('test_execution'))
-    smallSuite.addTest(TestVisualizationMeshProcess('test_execution'))
-    smallSuite.addTest(TestNodesOutputProcess('test_execution'))
-    smallSuite.addTest(TestMacDonaldShockBenchmark('test_execution'))
-    smallSuite.addTest(TestDamBreakBenchmark('test_execution'))
-    smallSuite.addTest(TestDryDamBreakBenchmark('test_execution'))
-    smallSuite.addTest(TestPlanarSurfaceInParabolaBenchmark('test_execution'))
-    smallSuite.addTests(_loadTestsFromTestCases(TestConvergenceOutputProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestConservativeResidualViscosity2D3NElement))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestConservativeGradientJump2D3NElement))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestConservativeFluxCorrected2D3NElement))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestPrimitive2D3NElement))
+    # smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestBoussinesq2D3NElement)) # FIXME: This test is failing randomly with clang
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestSetTopographyProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestVisualizationMeshProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestMacDonaldShockBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestMacDonaldTransitionBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestDamBreakBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestDryDamBreakBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestPlanarSurfaceInParabolaBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestSolitaryWaveBenchmark))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestLineGraphOutputProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestDerivativesRecoveryProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCase(TestWaveGeneratorProcess))
 
     # Create a test suit with the selected tests plus all small tests
     nightlySuite = suites['nightly']
     nightlySuite.addTests(smallSuite)
-    nightlySuite.addTest(TestShallowWaterElement('test_execution'))
-    nightlySuite.addTest(TestLagrangianShallowWaterElement('test_execution'))
+    nightlySuite.addTests(TestLoader().loadTestsFromTestCase(TestMeshMovingStrategy))
+
+    # Create a test suit with the validation tests plus all the nightly tests
+    validationSuite = suites['validation']
+    validationSuite.addTests(nightlySuite)
+    validationSuite.addTests(TestLoader().loadTestsFromTestCase(TestDamBreakValidation))
+    validationSuite.addTests(TestLoader().loadTestsFromTestCase(TestMacDonaldShockValidation))
+    validationSuite.addTests(TestLoader().loadTestsFromTestCase(TestSolitaryWaveValidation))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightlySuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 
-def _loadTestsFromTestCases(test_case_module):
-    return KratosUnittest.TestLoader().loadTestsFromTestCases([test_case_module])
+def run():
+    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
+    KratosUnittest.runTests(AssembleTestSuites())
 
 if __name__ == '__main__':
-    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
-    run_cpp_unit_tests.run()
-    KratosUnittest.runTests(AssembleTestSuites())
+    run()

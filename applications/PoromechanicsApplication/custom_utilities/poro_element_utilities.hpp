@@ -363,6 +363,29 @@ public:
         rPermeabilityMatrix(0,2) = rPermeabilityMatrix(2,0);
     }
 
+    //----------------------------------------------------------------------------------------
+
+    static inline void CalculatePermeabilityMatrix(Matrix& rPermeabilityMatrix,
+                                                    const Element::PropertiesType& Prop,
+                                                    const unsigned int& Dim)
+    {
+        if ( rPermeabilityMatrix.size1() != Dim )
+            rPermeabilityMatrix.resize( Dim, Dim, false );
+
+        rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
+        rPermeabilityMatrix(1,1) = Prop[PERMEABILITY_YY];
+        rPermeabilityMatrix(0,1) = Prop[PERMEABILITY_XY];
+        rPermeabilityMatrix(1,0) = rPermeabilityMatrix(0,1);
+        if(Dim==3)
+        {
+            rPermeabilityMatrix(2,2) = Prop[PERMEABILITY_ZZ];
+            rPermeabilityMatrix(2,0) = Prop[PERMEABILITY_ZX];
+            rPermeabilityMatrix(1,2) = Prop[PERMEABILITY_YZ];
+            rPermeabilityMatrix(0,2) = rPermeabilityMatrix(2,0);
+            rPermeabilityMatrix(2,1) = rPermeabilityMatrix(1,2);
+        }
+    }
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

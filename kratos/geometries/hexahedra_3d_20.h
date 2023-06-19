@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_HEXAHEDRA_3D_20_H_INCLUDED )
-#define  KRATOS_HEXAHEDRA_3D_20_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -23,6 +22,7 @@
 
 // Project includes
 #include "geometries/quadrilateral_3d_8.h"
+#include "utilities/integration_utilities.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
 
 namespace Kratos
@@ -317,12 +317,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Hexahedra;
+        return GeometryData::KratosGeometryFamily::Kratos_Hexahedra;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Hexahedra3D20;
+        return GeometryData::KratosGeometryType::Kratos_Hexahedra3D20;
     }
 
     /**
@@ -441,27 +441,18 @@ public:
 
     }
 
-
-
-    double Volume() const override //Not a closed formula for a hexahedra
+    /**
+     * @brief This method calculate and return volume of this geometry.
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
+     * @return double value contains volume.
+     * @see Length()
+     * @see Area()
+     * @see DomainSize()
+     */
+    double Volume() const override
     {
-
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        //KRATOS_WATCH(temp)
-        return Volume;
+        return IntegrationUtilities::ComputeVolume3DGeometry(*this);
     }
-
-
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -551,56 +542,56 @@ public:
         //0
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 8 ),
-                                              this->pGetPoint( 1 ) ) ) );
+                                              this->pGetPoint( 1 ),
+                                              this->pGetPoint( 8 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 9 ),
-                                              this->pGetPoint( 2 ) ) ) );
+                                              this->pGetPoint( 2 ),
+                                              this->pGetPoint( 9 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 10 ),
-                                              this->pGetPoint( 3 ) ) ) );
+                                              this->pGetPoint( 3 ),
+                                              this->pGetPoint( 10 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 11 ),
-                                              this->pGetPoint( 0 ) ) ) );
+                                              this->pGetPoint( 0 ),
+                                              this->pGetPoint( 11 ) ) ) );
 
         //4
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 4 ),
-                                              this->pGetPoint( 16 ),
-                                              this->pGetPoint( 5 ) ) ) );
+                                              this->pGetPoint( 5 ),
+                                              this->pGetPoint( 16 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 5 ),
-                                              this->pGetPoint( 17 ),
-                                              this->pGetPoint( 6 ) ) ) );
+                                              this->pGetPoint( 6 ),
+                                              this->pGetPoint( 17 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 6 ),
-                                              this->pGetPoint( 18 ),
-                                              this->pGetPoint( 7 ) ) ) );
+                                              this->pGetPoint( 7 ),
+                                              this->pGetPoint( 18 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 7 ),
-                                              this->pGetPoint( 19 ),
-                                              this->pGetPoint( 4 ) ) ) );
+                                              this->pGetPoint( 4 ),
+                                              this->pGetPoint( 19 ) ) ) );
 
         //8
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 0 ),
-                                              this->pGetPoint( 12 ),
-                                              this->pGetPoint( 4 ) ) ) );
+                                              this->pGetPoint( 4 ),
+                                              this->pGetPoint( 12 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 1 ),
-                                              this->pGetPoint( 13 ),
-                                              this->pGetPoint( 5 ) ) ) );
+                                              this->pGetPoint( 5 ),
+                                              this->pGetPoint( 13 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 2 ),
-                                              this->pGetPoint( 14 ),
-                                              this->pGetPoint( 6 ) ) ) );
+                                              this->pGetPoint( 6 ),
+                                              this->pGetPoint( 14 ) ) ) );
         edges.push_back( EdgePointerType( new EdgeType(
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 15 ),
-                                              this->pGetPoint( 7 ) ) ) );
+                                              this->pGetPoint( 7 ),
+                                              this->pGetPoint( 15 ) ) ) );
         return edges;
     }
 
@@ -1119,8 +1110,7 @@ private:
     {
         const IntegrationPointsContainerType  all_integration_points =
             AllIntegrationPoints();
-        const IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        const IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1238,8 +1228,7 @@ private:
     {
         const IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        const IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        const IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1531,15 +1520,15 @@ private:
         {
             {
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1555,15 +1544,15 @@ private:
         {
             {
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Hexahedra3D20<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
@@ -1610,16 +1599,13 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Hexahedra3D20<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_3,
+    GeometryData::IntegrationMethod::GI_GAUSS_3,
     Hexahedra3D20<TPointType>::AllIntegrationPoints(),
     Hexahedra3D20<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
 template<class TPointType> const
-GeometryDimension Hexahedra3D20<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Hexahedra3D20<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_HEXAHEDRA_3D_20_H_INCLUDED  defined

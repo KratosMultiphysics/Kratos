@@ -3,7 +3,6 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.MappingApplication as KratosMapping
 from KratosMultiphysics.MappingApplication import python_mapper_factory
 
 # CoSimulation imports
@@ -11,10 +10,11 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # other imports
+from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
 from time import time
 
-def Create(settings):
-    return KratosMappingDataTransferOperator(settings)
+def Create(*args):
+    return KratosMappingDataTransferOperator(*args)
 
 class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     """DataTransferOperator that maps values from one interface (ModelPart) to another.
@@ -22,30 +22,33 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     """
     # currently available mapper-flags aka transfer-options
     __mapper_flags_dict = {
-        "add_values"    : KratosMapping.Mapper.ADD_VALUES,
-        "swap_sign"     : KratosMapping.Mapper.SWAP_SIGN,
-        "use_transpose" : KratosMapping.Mapper.USE_TRANSPOSE
+        "add_values"    : KM.Mapper.ADD_VALUES,
+        "swap_sign"     : KM.Mapper.SWAP_SIGN,
+        "use_transpose" : KM.Mapper.USE_TRANSPOSE
     }
 
-    def __init__(self, settings):
+    # initializing the static members necessary for MPI
+    # initializing on the fly does not work and leads to memory problems
+    # as the members are not proberly saved and randomly destucted!
+    __dummy_model = None
+    __rank_zero_model_part = None
+
+    def __init__(self, settings, parent_coupled_solver_data_communicator):
         if not settings.Has("mapper_settings"):
             raise Exception('No "mapper_settings" provided!')
-        super().__init__(settings)
+        super().__init__(settings, parent_coupled_solver_data_communicator)
         self.__mappers = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        model_part_origin      = from_solver_data.GetModelPart()
         model_part_origin_name = from_solver_data.model_part_name
         variable_origin        = from_solver_data.variable
         identifier_origin      = from_solver_data.solver_name + "." + model_part_origin_name
 
-        model_part_destination      = to_solver_data.GetModelPart()
         model_part_destination_name = to_solver_data.model_part_name
         variable_destination        = to_solver_data.variable
         identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
 
-        mapper_flags = self.__GetMapperFlags(transfer_options)
-        # TODO in the future automatically add the flags if the values are non-historical
+        mapper_flags = self.__GetMapperFlags(transfer_options, from_solver_data, to_solver_data)
 
         identifier_tuple         = (identifier_origin, identifier_destination)
         inverse_identifier_tuple = (identifier_destination, identifier_origin)
@@ -55,6 +58,9 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         elif inverse_identifier_tuple in self.__mappers:
             self.__mappers[inverse_identifier_tuple].InverseMap(variable_destination, variable_origin, mapper_flags)
         else:
+            model_part_origin      = self.__GetModelPartFromInterfaceData(from_solver_data)
+            model_part_destination = self.__GetModelPartFromInterfaceData(to_solver_data)
+
             if model_part_origin.IsDistributed() or model_part_destination.IsDistributed():
                 mapper_create_fct = python_mapper_factory.CreateMPIMapper
             else:
@@ -76,13 +82,11 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
-            if data_to_check.location != "node_historical":
-                raise Exception('Currently only historical nodal values are supported by the "{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
+            if "node" not in data_to_check.location:
+                raise Exception('Mapping only supports nodal values!"{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
 
         CheckData(from_solver_data)
         CheckData(to_solver_data)
-
-        # TODO in the future also non-historical nodal values will be supported, but this still requires some improvements in the MappingApp
 
     @classmethod
     def _GetDefaultParameters(cls):
@@ -98,9 +102,41 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     def _GetListAvailableTransferOptions(cls):
         return cls.__mapper_flags_dict.keys()
 
-    def __GetMapperFlags(self, transfer_options):
+    def __GetMapperFlags(self, transfer_options, from_solver_data, to_solver_data):
         mapper_flags = KM.Flags()
         for flag_name in transfer_options.GetStringArray():
             mapper_flags |= self.__mapper_flags_dict[flag_name]
+        if from_solver_data.location == "node_non_historical":
+            mapper_flags |= KM.Mapper.FROM_NON_HISTORICAL
+        if to_solver_data.location == "node_non_historical":
+            mapper_flags |= KM.Mapper.TO_NON_HISTORICAL
 
         return mapper_flags
+
+    @staticmethod
+    def __GetModelPartFromInterfaceData(interface_data):
+        """If the solver does not exist on this rank, then pass a
+        dummy ModelPart to the Mapper that has a DataCommunicator
+        that is not defined on this rank
+        """
+        if interface_data.IsDefinedOnThisRank():
+            return interface_data.GetModelPart()
+        else:
+            return KratosMappingDataTransferOperator.__GetRankZeroModelPart()
+
+    @staticmethod
+    def __GetRankZeroModelPart():
+        if not KM.IsDistributedRun():
+            raise Exception("This function can only be called when Kratos is running in MPI!")
+
+        if KratosMappingDataTransferOperator.__rank_zero_model_part is None:
+            model = KM.Model()
+            rank_zero_model_part = model.CreateModelPart("rank_zero")
+
+            from KratosMultiphysics.mpi import ModelPartCommunicatorUtilities
+            ModelPartCommunicatorUtilities.SetMPICommunicator(rank_zero_model_part, data_communicator_utilities.GetRankZeroDataCommunicator())
+
+            KratosMappingDataTransferOperator.__dummy_model = model
+            KratosMappingDataTransferOperator.__rank_zero_model_part = rank_zero_model_part
+
+        return KratosMappingDataTransferOperator.__rank_zero_model_part

@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    clabra
 //
 
-#if !defined(KRATOS_DEM_SEARCH_H_INCLUDED )
-#define  KRATOS_DEM_SEARCH_H_INCLUDED
+#pragma once
 
 // include kratos definitions
 #include "includes/define.h"
@@ -22,16 +21,6 @@
 
 // External includes
 #include "spatial_containers/spatial_search.h"
-
-/* Timer defines */
-#include "utilities/timer.h"
-#ifdef CUSTOMTIMER
-#define KRATOS_TIMER_START(t) Timer::Start(t);
-#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
-#else
-#define KRATOS_TIMER_START(t)
-#define KRATOS_TIMER_STOP(t)
-#endif
 
 namespace Kratos
 {
@@ -181,6 +170,7 @@ class DEMSearch : public SpatialSearch
         mDomainMax[1] = domain_max_y;
         mDomainMax[2] = domain_max_z;
         TDerived::ElementConfigureType::SetDomain(domain_min_x, domain_min_y, domain_min_z, domain_max_x, domain_max_y, domain_max_z);
+        TDerived::NodeConfigureType::SetDomain(domain_min_x, domain_min_y, domain_min_z, domain_max_x, domain_max_y, domain_max_z);
         mDomainPeriodicity = TDerived::ElementConfigureType::GetDomainPeriodicity();
         searchPoints = new std::vector<PtrPointType>(0);
       }
@@ -190,11 +180,9 @@ class DEMSearch : public SpatialSearch
         delete searchPoints;
       }
 
-
       ///@}
       ///@name Operators
       ///@{
-
 
       ///@}
       ///@name Operations
@@ -262,7 +250,7 @@ class DEMSearch : public SpatialSearch
           NodesContainerType const& StructureNodes,
           NodesContainerType const& InputNodes,
           const RadiusArrayType & Radius,
-          VectorResultNodesContainerType& rResults )
+          VectorResultNodesContainerType& rResults ) override
       {
           static_cast<TDerived*>(this)->SearchNodesInRadiusExclusiveImplementation(StructureNodes,InputNodes,Radius,rResults);
       }
@@ -271,7 +259,7 @@ class DEMSearch : public SpatialSearch
           NodesContainerType const& StructureNodes,
           NodesContainerType const& InputNodes,
           const RadiusArrayType & Radius,
-          VectorResultNodesContainerType& rResults )
+          VectorResultNodesContainerType& rResults ) override
       {
           static_cast<TDerived*>(this)->SearchNodesInRadiusInclusiveImplementation(StructureNodes,InputNodes,Radius,rResults);
       }
@@ -472,5 +460,3 @@ class DEMSearch : public SpatialSearch
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_DEM_SEARCH_H_INCLUDED  defined

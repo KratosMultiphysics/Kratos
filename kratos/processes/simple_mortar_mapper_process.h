@@ -179,11 +179,7 @@ public:
      */
     void UpdatePoint()
     {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        this->Coordinates() = mpOriginGeometricalObject->GetGeometry().Center().Coordinates();
-#else
         noalias(this->Coordinates()) = mpOriginGeometricalObject->GetGeometry().Center().Coordinates();
-#endif // ifdef KRATOS_USE_AMATRIX
     }
 
 private:
@@ -200,7 +196,7 @@ private:
  * @brief This is basic mapper of values between domains using mortar formulation
  * @details Using the dual mortar formulation the resolution of the system of equations is not needed.
  * Several types of constructors are avaible depending of the needs.
- * If the pairs sets are not provided a serach will be performed using a KDTree
+ * If the pairs sets are not provided a search will be performed using a KDTree
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
@@ -227,7 +223,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcess);
 
     typedef Point                                        PointType;
-    typedef Node<3>                                       NodeType;
+    typedef Node                                       NodeType;
     typedef Geometry<NodeType>                        GeometryType;
     typedef Geometry<PointType>                  GeometryPointType;
 
@@ -274,6 +270,13 @@ public:
     typedef MortarOperator<TNumNodes, TNumNodesMaster>                                            MortarOperatorType;
     typedef DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>          DualLagrangeMultiplierOperatorsType;
     typedef ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster> ExactMortarIntegrationUtilityType;
+
+    /// Auxiliar struct for mapping
+    struct TLS {
+        MortarKinematicVariablesType this_kinematic_variables;    // Create and initialize condition variables:
+        MortarOperatorType this_mortar_operators;                 // Create the mortar operators
+        ExactMortarIntegrationUtilityType integration_utility;    // We call the exact integration utility
+    };
 
     ///@}
     ///@name Life Cycle
@@ -660,7 +663,7 @@ private:
      * @param rb The RHS of the system
      * @param rInverseConectivityDatabase The inverse database that will be used to assemble the system
      * @param pIndexesPairs The pointer to indexed objects
-     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rGeometricalObject Reference of a geometrical object
      * @param rIntegrationUtility An integration utility for mortar
      * @param rThisKineticVariables Kinematic variables (shape functions)
      * @param rThisMortarOperators The mortar operators
@@ -674,7 +677,7 @@ private:
         std::vector<VectorType>& rb,
         IntMap& rInverseConectivityDatabase,
         typename TClassType::Pointer pIndexesPairs,
-        GeometricalObject::Pointer pGeometricalObject,
+        GeometricalObject& rGeometricalObject,
         ExactMortarIntegrationUtilityType& rIntegrationUtility,
         MortarKinematicVariablesType& rThisKineticVariables,
         MortarOperatorType& rThisMortarOperators,
@@ -697,14 +700,18 @@ private:
         GeometryType::CoordinatesArrayType aux_coords;
 
         // Geometrical values
-        auto& r_slave_geometry = pGeometricalObject->GetGeometry();
+        auto& r_slave_geometry = rGeometricalObject.GetGeometry();
         r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
         const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
+
+        // The model part as const to avoid race conditions
+        const auto& r_const_origin_model_part = mOriginModelPart;
+        const auto& r_const_destination_model_part = mDestinationModelPart;
 
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair); // MASTER
 
-            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetGeometry() : mOriginModelPart.pGetElement(master_id)->GetGeometry();
+            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? r_const_origin_model_part.GetCondition(master_id).GetGeometry() : r_const_origin_model_part.GetElement(master_id).GetGeometry();
             r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
             const array_1d<double, 3> master_normal = r_master_geometry.UnitNormal(aux_coords);
 
@@ -749,7 +756,7 @@ private:
                 }
 
                 if (Iteration == 0) { // Just assembled the first iteration
-                    if (TImplicit) {
+                    if constexpr (TImplicit) {
                         /* We compute the residual and assemble */
                         const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
                         AssembleRHSAndLHS(rA, rb, variable_size, residual_matrix, r_slave_geometry, rInverseConectivityDatabase, rThisMortarOperators);
@@ -767,23 +774,23 @@ private:
                                 const double nodal_area_contribution = rThisMortarOperators.DOperator(i_node, i_node);
 
                                 // The original node coordinates
-                                const auto& r_slave_node_coordinates = r_slave_geometry[i_node].Coordinates();
+                                const auto& r_slave_node = r_slave_geometry[i_node];
 
                                 // Iterating over other paired geometrical objects
-                                const auto& r_index_masp_master = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetValue(INDEX_SET) : mOriginModelPart.pGetElement(master_id)->GetValue(INDEX_SET);
+                                const auto& r_index_masp_master = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? r_const_origin_model_part.GetCondition(master_id).GetValue(INDEX_SET) : r_const_origin_model_part.GetElement(master_id).GetValue(INDEX_SET);
                                 for (auto it_master_pair = r_index_masp_master->begin(); it_master_pair != r_index_masp_master->end(); ++it_master_pair ) {
 
                                     const IndexType auxiliar_slave_id = r_index_masp_master->GetId(it_master_pair);
-                                    if (pGeometricalObject->Id() != auxiliar_slave_id) {
-                                        GeometryType& r_auxiliar_slave_geometry =  mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? mDestinationModelPart.pGetCondition(auxiliar_slave_id)->GetGeometry() : mDestinationModelPart.pGetElement(auxiliar_slave_id)->GetGeometry();
+                                    if (rGeometricalObject.Id() != auxiliar_slave_id) {
+                                        GeometryType& r_auxiliar_slave_geometry =  const_cast<GeometryType&>(mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED) ? r_const_destination_model_part.GetCondition(auxiliar_slave_id).GetGeometry() : r_const_destination_model_part.GetElement(auxiliar_slave_id).GetGeometry());
 
                                         for (IndexType j_node = 0; j_node < TNumNodes; ++j_node) {
-                                            // The auxiliar node coordinates
-                                            const auto& r_auxiliar_slave_node_coordinates = r_auxiliar_slave_geometry[j_node].Coordinates();
-                                            const double distance = norm_2(r_auxiliar_slave_node_coordinates - r_slave_node_coordinates);
+                                            // The auxiliary node distance
+                                            auto& r_auxiliary_slave_node = r_auxiliar_slave_geometry[j_node];
+                                            const double distance = r_auxiliary_slave_node.Distance(r_slave_node);
                                             const double contribution_coeff = 1.0/std::pow((1.0 + distance/(discontinous_interface_factor * element_length)), 2);
 
-                                            double& r_nodal_area = r_auxiliar_slave_geometry[j_node].GetValue(NODAL_AREA);
+                                            double& r_nodal_area = r_auxiliary_slave_node.GetValue(NODAL_AREA);
                                             AtomicAdd(r_nodal_area, contribution_coeff * nodal_area_contribution);
                                         }
                                     }
@@ -791,7 +798,7 @@ private:
                             }
                         }
                     }
-                } else if (TImplicit) {
+                } else if constexpr (TImplicit) {
                     const SizeType variable_size = MortarUtilities::SizeToCompute<TDim, TVarType>();
                     AssembleRHS(rb, variable_size, residual_matrix, r_slave_geometry, rInverseConectivityDatabase);
                 }
@@ -808,13 +815,13 @@ private:
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
             if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_cond = r_root_model_part.pGetCondition(id);
-                    p_cond->Set(TO_ERASE, true);
+                    auto& r_cond = r_root_model_part.GetCondition(id);
+                    r_cond.Set(TO_ERASE, true);
                 }
             } else {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_elem = r_root_model_part.pGetElement(id);
-                    p_elem->Set(TO_ERASE, true);
+                    auto& r_elem = r_root_model_part.GetElement(id);
+                    r_elem.Set(TO_ERASE, true);
                 }
             }
             pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);
@@ -824,14 +831,14 @@ private:
     /**
      * @brief This method can be used to clear the unused indexes
      * @param pIndexesPairs The pointer to indexed objects
-     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rGeometricalObject Reference of a geometrical object
      * @param rIntegrationUtility An integration utility for mortar
      * @tparam TClassType The class of index pairs considered
      */
     template<class TClassType>
     void ClearIndexes(
         typename TClassType::Pointer pIndexesPairs,
-        GeometricalObject::Pointer pGeometricalObject,
+        GeometricalObject& rGeometricalObject,
         ExactMortarIntegrationUtilityType& rIntegrationUtility
         )
     {
@@ -845,14 +852,17 @@ private:
         GeometryType::CoordinatesArrayType aux_coords;
 
         // Geometrical values
-        auto& r_slave_geometry = pGeometricalObject->GetGeometry();
+        auto& r_slave_geometry = rGeometricalObject.GetGeometry();
         r_slave_geometry.PointLocalCoordinates(aux_coords, r_slave_geometry.Center());
         const array_1d<double, 3> slave_normal = r_slave_geometry.UnitNormal(aux_coords);
+
+        // The model part as const to avoid race conditions
+        const auto& r_const_origin_model_part = mOriginModelPart;
 
         for (auto it_pair = pIndexesPairs->begin(); it_pair != pIndexesPairs->end(); ++it_pair ) {
             const IndexType master_id = pIndexesPairs->GetId(it_pair); // MASTER
 
-            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? mOriginModelPart.pGetCondition(master_id)->GetGeometry() : mOriginModelPart.pGetElement(master_id)->GetGeometry();
+            const auto& r_master_geometry = mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED) ? r_const_origin_model_part.GetCondition(master_id).GetGeometry() : r_const_origin_model_part.GetElement(master_id).GetGeometry();
             r_master_geometry.PointLocalCoordinates(aux_coords, r_master_geometry.Center());
             const array_1d<double, 3> master_normal = r_master_geometry.UnitNormal(aux_coords);
 
@@ -873,13 +883,13 @@ private:
         for (IndexType i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove) {
             if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_cond = r_root_model_part.pGetCondition(id);
-                    p_cond->Set(TO_ERASE, true);
+                    auto& r_cond = r_root_model_part.GetCondition(id);
+                    r_cond.Set(TO_ERASE, true);
                 }
             } else {
                 for (auto& id : geometrical_objects_to_erase ) {
-                    auto p_elem = r_root_model_part.pGetElement(id);
-                    p_elem->Set(TO_ERASE, true);
+                    auto& r_elem = r_root_model_part.GetElement(id);
+                    r_elem.Set(TO_ERASE, true);
                 }
             }
             pIndexesPairs->RemoveId(indexes_to_remove[i_to_remove]);
@@ -888,14 +898,14 @@ private:
 
     /**
      * @brief This method fills the database
-     * @param pGeometricalObject Pointer of a geometrical object
+     * @param rGeometricalObject Reference of a geometrical object
      * @param rTreePoints The search tree
      * @param AllocationSize The allocation size of the tree
      * @param SearchFactor The search factor of the tree
      */
     template<class TEntity>
     void FillDatabase(
-        typename TEntity::Pointer pGeometricalObject,
+        TEntity& rGeometricalObject,
         KDTreeType& rTreePoints,
         const SizeType AllocationSize,
         const double SearchFactor
@@ -904,7 +914,7 @@ private:
         // Initialize values
         PointVector points_found(AllocationSize);
 
-        GeometryType& r_geometry = pGeometricalObject->GetGeometry();
+        GeometryType& r_geometry = rGeometricalObject.GetGeometry();
         const Point center = r_geometry.Center();
 
         double radius = 0.0;
@@ -920,11 +930,11 @@ private:
 
         if (number_points_found > 0) {
             // In case of missing is created
-            if (!pGeometricalObject->Has(INDEX_SET))
-                pGeometricalObject->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
+            if (!rGeometricalObject.Has(INDEX_SET))
+                rGeometricalObject.SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
 
             // Accessing to the index set
-            IndexSet::Pointer indexes_set = pGeometricalObject->GetValue(INDEX_SET);
+            IndexSet::Pointer indexes_set = rGeometricalObject.GetValue(INDEX_SET);
 
             for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                 auto p_geometrical_object_master = points_found[i_point]->GetGeometricalObject();

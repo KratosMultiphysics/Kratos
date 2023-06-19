@@ -32,7 +32,7 @@ ThermalNonlocalDamage3DLaw::~ThermalNonlocalDamage3DLaw() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ThermalNonlocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+int ThermalNonlocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = NonlocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     if(ierr != 0) return ierr;

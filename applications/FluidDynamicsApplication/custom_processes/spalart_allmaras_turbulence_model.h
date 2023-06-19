@@ -30,7 +30,7 @@
 #include "containers/model.h"
 #include "processes/process.h"
 #include "includes/cfd_variables.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 //#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 // #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -162,7 +162,7 @@ public:
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-        typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+        typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
         // Solution scheme: Aitken iterations
         const double DefaultAitkenOmega = 1.0;
@@ -285,8 +285,8 @@ public:
             double h_max = 0.0;
 
             //compute nodal h (by max edge size)
-            GlobalPointersVector<Node<3> >& neigbours = i->GetValue(NEIGHBOUR_NODES);
-            for(GlobalPointersVector<Node<3> >::iterator ineighb=neigbours.begin(); ineighb!=neigbours.end(); ineighb++)
+            GlobalPointersVector<Node >& neigbours = i->GetValue(NEIGHBOUR_NODES);
+            for(GlobalPointersVector<Node >::iterator ineighb=neigbours.begin(); ineighb!=neigbours.end(); ineighb++)
             {
                 array_1d<double,3> aux = ineighb->Coordinates();
                 aux -=  xc;
@@ -368,7 +368,7 @@ protected:
     unsigned int mmax_it;
     unsigned int mtime_order;
     bool madapt_for_fractional_step;
-    typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
+    typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
 
     ///@}
     ///@name Protected Operators

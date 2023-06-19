@@ -37,7 +37,7 @@ ThermalSimoJuLocalDamage3DLaw::~ThermalSimoJuLocalDamage3DLaw() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-int ThermalSimoJuLocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
+int ThermalSimoJuLocalDamage3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = ThermalLocalDamage3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     if(ierr != 0) return ierr;

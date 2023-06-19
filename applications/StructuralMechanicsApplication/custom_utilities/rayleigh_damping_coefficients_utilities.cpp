@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -54,7 +54,7 @@ Vector ComputeDampingCoefficients(Parameters ThisParameters)
         damping_ratios[0] = ThisParameters["damping_ratio_0"].GetDouble();
         damping_ratios[1] = ThisParameters["damping_ratio_0"].GetDouble();
 
-        // We define the auxiliar alpha and beta
+        // We define the auxiliary alpha and beta
         double alpha = 0.0;
         double beta = 0.0;
 

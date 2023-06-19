@@ -57,8 +57,8 @@ LaplacianElement::~LaplacianElement()
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
-                                            VectorType& rRightHandSideVector, 
+void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                            VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -156,7 +156,7 @@ void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const 
+void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
@@ -194,7 +194,7 @@ void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,const Process
 
 //************************************************************************************
 //************************************************************************************
-int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const 
+int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)) << "No CONVECTION_DIFFUSION_SETTINGS defined in ProcessInfo." << std::endl;
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
@@ -227,9 +227,7 @@ int LaplacianElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 //************************************************************************************
 Element::IntegrationMethod LaplacianElement::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_1;
+    return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 } // Namespace Kratos
-
-

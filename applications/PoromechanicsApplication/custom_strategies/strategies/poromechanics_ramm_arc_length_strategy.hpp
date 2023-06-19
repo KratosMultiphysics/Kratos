@@ -33,7 +33,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PoromechanicsRammArcLengthStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
     typedef PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
@@ -52,7 +52,6 @@ public:
     using GrandMotherType::mpDx; //Delta x of iteration i
     using GrandMotherType::mReformDofSetAtEachStep;
     using GrandMotherType::mCalculateReactionsFlag;
-    using GrandMotherType::mSolutionStepIsInitialized;
     using GrandMotherType::mMaxIterationNumber;
     using GrandMotherType::mInitializeWasPerformed;
     using MotherType::mSubModelPartList;
@@ -151,16 +150,13 @@ public:
     {
         KRATOS_TRY
 
-		if (mSolutionStepIsInitialized == false)
-		{
-            GrandMotherType::InitializeSolutionStep();
+        GrandMotherType::InitializeSolutionStep();
 
-            this->SaveInitializeSystemVector(mpf);
-            this->InitializeSystemVector(mpDxf);
-            this->InitializeSystemVector(mpDxb);
-            this->InitializeSystemVector(mpDxPred);
-            this->InitializeSystemVector(mpDxStep);
-        }
+        this->SaveInitializeSystemVector(mpf);
+        this->InitializeSystemVector(mpDxf);
+        this->InitializeSystemVector(mpDxb);
+        this->InitializeSystemVector(mpDxPred);
+        this->InitializeSystemVector(mpDxStep);
 
         KRATOS_CATCH( "" )
     }
@@ -170,6 +166,8 @@ public:
 	bool SolveSolutionStep() override
 	{
         // ********** Prediction phase **********
+
+        KRATOS_INFO("Ramm's Arc Length Strategy") << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
 
         KRATOS_INFO("Ramm's Arc Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
 
@@ -361,9 +359,6 @@ public:
 
         //Cleaning memory after the solution
         mpScheme->Clean();
-
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
 
         if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
         {

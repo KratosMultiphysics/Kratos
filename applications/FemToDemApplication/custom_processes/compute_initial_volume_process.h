@@ -21,14 +21,14 @@ namespace Kratos {
 
 typedef std::size_t SizeType;
 
-/** 
+/**
  * @class ComputeInitialVolumeProcess
- * @ingroup FemToDemApplication 
+ * @ingroup FemToDemApplication
  * @brief Computes the initial volume of the blast circle and
  * assigns it to the nodes
  * @author Alejandro Cornejo
  */
-class ComputeInitialVolumeProcess : public Process 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) ComputeInitialVolumeProcess : public Process
 {
  public:
 

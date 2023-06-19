@@ -128,7 +128,7 @@ public:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* STARTING - ENDING  METHODS
@@ -137,7 +137,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     //************* COMPUTING  METHODS
 
@@ -148,7 +148,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(MatrixType& rMassMatrix,
-			     ProcessInfo& rCurrentProcessInfo) override;
+			     const ProcessInfo& rCurrentProcessInfo) override;
     //************************************************************************************
     //************************************************************************************
     /**
@@ -158,7 +158,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access

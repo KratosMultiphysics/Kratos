@@ -12,26 +12,15 @@
 //
 //
 
-
-#if !defined(KRATOS_GLOBAL_VARIABLES_H_INCLUDED )
-#define  KRATOS_GLOBAL_VARIABLES_H_INCLUDED
-
-
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
 
-
-namespace Kratos
-{
-namespace Globals
+namespace Kratos::Globals
 {
 	constexpr double Pi   = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651L;
 
@@ -51,22 +40,25 @@ namespace Globals
         Current = 1
     };
 
-    ///@}
-    ///@}
 
-/*		class VariableData;
-		class Element;
-		class Condition;
-	*/
+    /**
+     * @brief Enum for location of data
+     */
+    enum class DataLocation
+    {
+        NodeHistorical,
+        NodeNonHistorical,
+        Element,
+        Condition,
+        ModelPart,
+        ProcessInfo
+    };
+
+    ///@}
+    ///@}
 ///@name Kratos Globals
 ///@{
-//
-// This variable is NOT synchronized between different applications threads
-/*
-		extern KratosComponents<VariableData> VariableDataComponents;
-		extern KratosComponents<Condition> ConditionComponents;
-		extern KratosComponents<Element> ElementComponents;
-  */
+
 ///@}
 ///@name Type Definitions
 ///@{
@@ -81,8 +73,4 @@ namespace Globals
 
 ///@}
 
-}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_GLOBAL_VARIABLES_H_INCLUDED  defined
+}  // namespace Kratos::Globals

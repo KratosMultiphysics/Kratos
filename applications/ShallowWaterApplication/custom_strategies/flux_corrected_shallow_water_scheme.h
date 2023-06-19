@@ -148,8 +148,7 @@ public:
         });
 
         // Initialization and execution of nodal neighbours search
-        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
-        FindGlobalNodalNeighboursProcess(r_data_communicator, rModelPart).Execute();
+        FindGlobalNodalNeighboursProcess(rModelPart).Execute();
 
         // Finalization of initialize
         SWBaseType::Initialize(rModelPart);
@@ -202,9 +201,8 @@ public:
             r_node.GetValue(NEGATIVE_RATIO) = 1.0;
         });
 
-        const ProcessInfo& r_const_process_info = rModelPart.GetProcessInfo();
         block_for_each(rModelPart.Elements(), [&](Element& r_elem){
-            ComputeAntiFluxes(r_elem, r_const_process_info);
+            ComputeAntiFluxes(r_elem, rModelPart.GetProcessInfo());
         });
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
@@ -246,9 +244,9 @@ public:
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
-        AddDynamicsToLHS(rLHS_Contribution, mrD[t], mMl[t]);
+        AddMonotonicDynamicsToLHS(rLHS_Contribution, mrD[t], mMl[t]);
 
-        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mMl[t], mrUn0[t], mrDotUn0[t]);
+        AddMonotonicDynamicsToRHS(rRHS_Contribution, mrD[t], mMl[t], mrUn0[t], mrDotUn0[t]);
     
         AddFluxCorrection(
             rCurrentElement,
@@ -298,7 +296,7 @@ public:
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
-        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
+        AddMonotonicDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
         AddFluxCorrection(
             rCurrentElement,
@@ -349,9 +347,9 @@ public:
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
-        AddDynamicsToLHS(rLHS_Contribution, mrD[t], mrMc[t]);
+        AddMonotonicDynamicsToLHS(rLHS_Contribution, mrD[t], mrMc[t]);
 
-        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
+        AddMonotonicDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
         AddFluxCorrection(
             rCurrentCondition,
@@ -401,7 +399,7 @@ public:
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
-        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
+        AddMonotonicDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
         AddFluxCorrection(
             rCurrentCondition,
@@ -472,7 +470,7 @@ protected:
      * @param rD The diffusion matrix
      * @param rM The mass matrix
      */
-    void AddDynamicsToLHS(
+    void AddMonotonicDynamicsToLHS(
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM
@@ -497,7 +495,7 @@ protected:
      * @param rU The current unknowns vector
      * @param rDotU The fisrst derivatives vector
      */
-    void AddDynamicsToRHS(
+    void AddMonotonicDynamicsToRHS(
         LocalSystemVectorType& rRHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,
@@ -519,16 +517,15 @@ protected:
     template<class EntityType>
     void ComputeAntiFluxes(EntityType& rEntity, const ProcessInfo& rProcessInfo)
     {
-        const auto& r_const_entity = rEntity; // TODO: remove that statement as soon as deprecation warnings are removed
         const IndexType t = OpenMPUtils::ThisThread();
 
         rEntity.CalculateMassMatrix(mrMc[t], rProcessInfo);
 
         rEntity.CalculateDampingMatrix(mrD[t], rProcessInfo);
 
-        r_const_entity.GetValuesVector(mrUn0[t]);
+        rEntity.GetValuesVector(mrUn0[t]);
 
-        r_const_entity.GetFirstDerivativesVector(mrDotUn0[t]);
+        rEntity.GetFirstDerivativesVector(mrDotUn0[t]);
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
@@ -580,7 +577,7 @@ protected:
         const LocalSystemVectorType& rU,
         const LocalSystemVectorType& rDotU)
     {
-        if (rMc.size1() != 0) {
+        if (rD.size1() != 0) {
             // Construction of the incremental element contribution of anti-fluxes
             auto& cum = rEntity.GetValue(CUMULATIVE_CORRECTIONS);
             auto aec = prod(rD, rU) + prod(rMl - rMc, rDotU);

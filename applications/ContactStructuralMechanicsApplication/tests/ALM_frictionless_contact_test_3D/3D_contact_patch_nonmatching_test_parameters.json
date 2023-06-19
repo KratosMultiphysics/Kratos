@@ -26,7 +26,6 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_residual_criterion",
@@ -46,7 +45,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_BC_rolling_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,false],
@@ -58,7 +56,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_BC_fix_rot_y",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,false],
@@ -70,7 +67,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_BC_fixed_support",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
@@ -82,7 +78,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_BC_roll_punch",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
@@ -94,7 +89,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_BC_no_rot_y_punch_1",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,false,true],
@@ -106,7 +100,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_BC_no_rot_y_punch_2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,false],
@@ -119,7 +112,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorByDirectionToConditionProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.SurfaceLoad3D_SurfaceLoad",
                 "variable_name"   : "SURFACE_LOAD",
                 "modulus"         : 1.0,

@@ -4,8 +4,6 @@
 //   Date:                $Date:           February 2016 $
 //   Revision:            $Revision:                 0.0 $
 //
-//   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
-//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes
@@ -15,7 +13,7 @@
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
 #include "includes/cfd_variables.h"
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -34,18 +32,6 @@ namespace Kratos
     NewElement.SetFlags(this->GetFlags());
 
     return Element::Pointer(new TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement(NewElement));
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
-  {
   }
 
   template <unsigned int TDim>
@@ -116,7 +102,7 @@ namespace Kratos
     KRATOS_TRY;
 
     unsigned int voigtsize = 3;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
       voigtsize = 6;
     }

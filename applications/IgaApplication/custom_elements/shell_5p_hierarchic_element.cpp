@@ -1084,12 +1084,21 @@ namespace Kratos
         } // r-loop
     }
 
-    void Shell5pHierarchicElement::Calculate(
+    void Shell5pHierarchicElement::CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
-        double& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    )
     {
         KRATOS_TRY
+
+        const auto& r_geometry = GetGeometry();
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        if (rOutput.size() != r_integration_points.size())
+        {
+            rOutput.resize(r_integration_points.size());
+        }
 
         // Create constitutive law parameters
         ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -1148,62 +1157,67 @@ namespace Kratos
         }   // loop GP_thickness
     
         // Cauchy stress at midspan
-        /*
         array_1d<double, 5> stress_cau_cart_mid;
         stress_cau_cart_mid = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1] + stress_cau_cart[0]) / 2.0;
-        
-        if (rVariable == STRESS_CAUCHY_TOP_11){
-            rValues = stress_cau_cart_mid[0] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1][0] 
-                - stress_cau_cart_mid[0]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness-1);
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
+        {
+
+            if (rVariable == CAUCHY_STRESS_TOP_XX) {
+                rOutput[point_number] = stress_cau_cart_mid[0] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][0]
+                    - stress_cau_cart_mid[0]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1);
+            }
+            else if (rVariable == CAUCHY_STRESS_TOP_YY) {
+                rOutput[point_number] = stress_cau_cart_mid[1] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][1]
+                    - stress_cau_cart_mid[1]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1);
+            }
+            else if (rVariable == CAUCHY_STRESS_TOP_XY) {
+                rOutput[point_number] = stress_cau_cart_mid[2] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][2]
+                    - stress_cau_cart_mid[2]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1);
+            }
+            else if (rVariable == CAUCHY_STRESS_BOTTOM_XX) {
+                rOutput[point_number] = stress_cau_cart_mid[0] + (stress_cau_cart[0][0] - stress_cau_cart_mid[0]) /
+                    mGaussIntegrationThickness.zeta(0);
+            }
+            else if (rVariable == CAUCHY_STRESS_BOTTOM_YY) {
+                rOutput[point_number] = stress_cau_cart_mid[1] + (stress_cau_cart[0][1] - stress_cau_cart_mid[1]) /
+                    mGaussIntegrationThickness.zeta(0);
+            }
+            else if (rVariable == CAUCHY_STRESS_BOTTOM_XY) {
+                rOutput[point_number] = stress_cau_cart_mid[2] + (stress_cau_cart[0][2] - stress_cau_cart_mid[2]) /
+                    mGaussIntegrationThickness.zeta(0);
+            }
+            else if (rVariable == MEMBRANE_FORCE_XX) {
+                rOutput[point_number] = stress_cau_cart_mid[0] * GetProperties()[THICKNESS];
+            }
+            else if (rVariable == MEMBRANE_FORCE_YY) {
+                rOutput[point_number] = stress_cau_cart_mid[1] * GetProperties()[THICKNESS];
+            }
+            else if (rVariable == MEMBRANE_FORCE_XY) {
+                rOutput[point_number] = stress_cau_cart_mid[2] * GetProperties()[THICKNESS];
+            }
+            else if (rVariable == INTERNAL_MOMENT_XX) {
+                rOutput[point_number] = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][0] - stress_cau_cart_mid[0])
+                    * pow(GetProperties()[THICKNESS], 2) / (mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1) * 6);
+            }
+            else if (rVariable == INTERNAL_MOMENT_YY) {
+                rOutput[point_number] = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][1] - stress_cau_cart_mid[1]) * pow(GetProperties()[THICKNESS], 2) /
+                    (mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1) * 6);
+            }
+            else if (rVariable == INTERNAL_MOMENT_XY) {
+                rOutput[point_number] = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness - 1][2] - stress_cau_cart_mid[2]) * pow(GetProperties()[THICKNESS], 2) /
+                    (mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness - 1) * 6);
+            }
+            else if (rVariable == SHEAR_FORCE_1) {
+                rOutput[point_number] = GetProperties()[THICKNESS] * stress_cau_cart_mid[4];
+            }
+            else if (rVariable == SHEAR_FORCE_2) {
+                rOutput[point_number] = GetProperties()[THICKNESS] * stress_cau_cart_mid[3];
+            }
+            else {
+                KRATOS_WATCH("No results for desired variable available in Calculate of Shell5pHierarchicElement.")
+            }
         }
-        else if (rVariable == STRESS_CAUCHY_TOP_22){
-            rValues = stress_cau_cart_mid[1] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1][1] 
-            - stress_cau_cart_mid[1]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness-1);
-        }
-        else if (rVariable == STRESS_CAUCHY_TOP_12){
-            rValues = stress_cau_cart_mid[2] + (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1][2] 
-            - stress_cau_cart_mid[2]) / mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness-1);
-        }
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_11){
-            rValues = stress_cau_cart_mid[0] + (stress_cau_cart[0][0] - stress_cau_cart_mid[0]) / 
-            mGaussIntegrationThickness.zeta(0);
-        }
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_22){
-            rValues = stress_cau_cart_mid[1] + (stress_cau_cart[0][1] - stress_cau_cart_mid[1]) / 
-            mGaussIntegrationThickness.zeta(0);
-        }
-        else if (rVariable == STRESS_CAUCHY_BOTTOM_12){
-            rValues = stress_cau_cart_mid[2] + (stress_cau_cart[0][2] - stress_cau_cart_mid[2]) / 
-            mGaussIntegrationThickness.zeta(0);
-        }
-        else if (rVariable == INTERNAL_FORCE_11)
-            rValues = stress_cau_cart_mid[0] * thickness;
-        else if (rVariable == INTERNAL_FORCE_22)
-            rValues = stress_cau_cart_mid[1] * thickness;
-        else if (rVariable == INTERNAL_FORCE_12)
-            rValues = stress_cau_cart_mid[2] * thickness;
-        else if (rVariable == INTERNAL_MOMENT_11){
-            rValues = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1][0] - stress_cau_cart_mid[0]) 
-                * thickness * thickness / (mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness-1) * 6);
-        }
-        else if (rVariable == INTERNAL_MOMENT_22){
-            rValues = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1][1] - stress_cau_cart_mid[1]) * thickness * thickness / 
-            (mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness-1) * 6);
-        }
-        else if (rVariable == INTERNAL_MOMENT_12){
-            rValues = (stress_cau_cart[mGaussIntegrationThickness.num_GP_thickness-1][2] - stress_cau_cart_mid[2]) * thickness * thickness / 
-            (mGaussIntegrationThickness.zeta(mGaussIntegrationThickness.num_GP_thickness-1) * 6);
-        }
-        else if (rVariable == SHEAR_FORCE_1){
-            rValues = thickness * stress_cau_cart_mid[4];
-        }
-        else if (rVariable == SHEAR_FORCE_2){
-            rValues = thickness * stress_cau_cart_mid[3];
-        }
-        else{
-            KRATOS_WATCH("No results for desired variable available in Calculate of Shell5pHierarchicElement.")
-            rValues = 0.0;
-        }*/
 
         KRATOS_CATCH("");
     }

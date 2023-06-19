@@ -60,7 +60,9 @@ namespace Kratos
   /** This process sets the EXTERNAL_APPLIED_FORCE and EXTERNAL_APPLIED_MOMENT variables
       over particles.
    */
-  class ApplyKinematicConstraintsProcess: public Process
+
+
+  class KRATOS_API(DEM_APPLICATION) ApplyKinematicConstraintsProcess: public Process
   {
   public:
       ///@name Type Definitions
@@ -183,8 +185,8 @@ namespace Kratos
       array_1d<bool, 3> mAngularVelocityValueIsNumeric;
       array_1d<double, 3> mVelocityValues;
       array_1d<double, 3> mAngularVelocityValues;
-      std::vector<PythonGenericFunctionUtility> mVelocityFunctions;
-      std::vector<PythonGenericFunctionUtility> mAngularVelocityFunctions;
+      std::vector<GenericFunctionUtility> mVelocityFunctions;
+      std::vector<GenericFunctionUtility> mAngularVelocityFunctions;
       array_1d<int, 3> mVelocityTableId;
       array_1d<int, 3> mAngularVelocityTableId;
       std::vector<TableType::Pointer> mpVelocityTable;

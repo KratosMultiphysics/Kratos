@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_STRING_UTILITIES)
-#define KRATOS_STRING_UTILITIES
+#pragma once
 
 // System includes
 #include <string>
@@ -51,11 +50,21 @@ namespace Kratos
 namespace StringUtilities
 {
     /**
-     * @brief This method converts CammelCase to snake_case
+     * @brief This method converts CamelCase to snake_case
      * @param rString The string to be transformed into snake_case
      * @return The string in snake_case
      */
-    std::string KRATOS_API(KRATOS_CORE) ConvertCammelCaseToSnakeCase(const std::string& rString);
+    std::string KRATOS_API(KRATOS_CORE) ConvertCamelCaseToSnakeCase(const std::string& rString);
+
+    /**
+     *  @brief Convert snake_case to CamelCase.
+     *  @param rString String to convert.
+     *  @throws If the input string
+     *          - contains capital letters                              [A-Z]
+     *          - contains special characters other than underscores    (?![a-z0-9_])
+     *          - contains repeated underscores                         __+
+     */
+    std::string KRATOS_API(KRATOS_CORE) ConvertSnakeCaseToCamelCase(const std::string& rString);
 
     /**
      * @brief Erase first occurrence of given  substring from main string.
@@ -94,7 +103,8 @@ namespace StringUtilities
      */
     std::vector<std::string> KRATOS_API(KRATOS_CORE) SplitStringByDelimiter(
         const std::string& rString,
-        const char Delimiter);
+        const char Delimiter
+        );
 
     /**
      * @brief This function replaces from a string all times a certain substring is repeated
@@ -104,11 +114,39 @@ namespace StringUtilities
      * @return The string updated with the new substring
      */
     std::string KRATOS_API(KRATOS_CORE) ReplaceAllSubstrings(
-        const std::string& rInputString, 
-        const std::string& rStringToBeReplaced, 
+        const std::string& rInputString,
+        const std::string& rStringToBeReplaced,
         const std::string& rStringToReplace
         );
 
+    /**
+     * @brief Prints the data of an object of type TClass to the given output stream with indentation.
+     * @param rOStream The output stream where the data will be printed.
+     * @param rThisClass The object of type TClass whose data will be printed.
+     * @param Identation (optional) The string used for the indentation. Default is four spaces.
+     */
+    template<class TClass>
+    static void PrintDataWithIdentation(
+        std::ostream& rOStream,
+        const TClass& rThisClass,
+        const std::string Identation = "\t"
+        )
+    {
+        // Auxiliary stream and line
+        std::stringstream ss;
+        std::string line;
+        rThisClass.PrintData(ss);
+
+        // Get the output string from the stringstream.
+        const std::string& r_output = ss.str();
+
+        // Split the output string into lines.
+        std::istringstream iss(r_output);
+        while (std::getline(iss, line)) {
+            // Here, 'line' is a single line from the output.
+            rOStream << Identation << line << "\n";
+        }
+    }
+
 }; // namespace StringUtilities
 }  // namespace Kratos
-#endif /* KRATOS_STRING_UTILITIES defined */

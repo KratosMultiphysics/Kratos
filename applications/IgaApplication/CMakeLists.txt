@@ -18,6 +18,7 @@ file(GLOB_RECURSE KRATOS_IGA_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
 )
 
 # Define python interface sources
@@ -75,3 +76,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosIgaCore DESTINATION libs )
 install(TARGETS KratosIgaApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosIgaCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosIgaApplication" PARENT_SCOPE)

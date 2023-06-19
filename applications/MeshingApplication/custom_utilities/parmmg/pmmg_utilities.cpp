@@ -24,6 +24,8 @@
 
 // Project includes
 #include "custom_utilities/parmmg/pmmg_utilities.h"
+#include "mpi/includes/mpi_data_communicator.h"
+
 
 // NOTE: The following contains the license of the PMMG library
 /* =============================================================================
@@ -69,7 +71,7 @@ void ParMmgUtilities<TPMMGLibrary>::PrintAndGetParMmgMeshInfo(PMMGMeshInfo<TPMMG
 
     /* Warning: mesh groups must be merged on each local partition */
     rPMMGMeshInfo.NumberOfNodes = np;
-    if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
+    if constexpr (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
         rPMMGMeshInfo.NumberOfTriangles = nt;
         rPMMGMeshInfo.NumberOfQuadrilaterals = nquad;
         rPMMGMeshInfo.NumberOfTetrahedra = ne;
@@ -77,7 +79,7 @@ void ParMmgUtilities<TPMMGLibrary>::PrintAndGetParMmgMeshInfo(PMMGMeshInfo<TPMMG
     }
 
     KRATOS_INFO_IF("ParMmgUtilities", GetEchoLevel() > 0) << "\tNodes created: " << rPMMGMeshInfo.NumberOfNodes << std::endl;
-    if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
+    if constexpr (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
         KRATOS_INFO_IF("ParMmgUtilities", GetEchoLevel() > 0) <<
         "Conditions created: " << rPMMGMeshInfo.NumberOfTriangles + rPMMGMeshInfo.NumberOfQuadrilaterals << "\n\tTriangles: " << rPMMGMeshInfo.NumberOfTriangles << "\tQuadrilaterals: " << rPMMGMeshInfo.NumberOfQuadrilaterals << "\n" <<
         "Elements created: " << rPMMGMeshInfo.NumberOfTetrahedra + rPMMGMeshInfo.NumberOfPrism << "\n\tTetrahedron: " << rPMMGMeshInfo.NumberOfTetrahedra << "\tPrisms: " << rPMMGMeshInfo.NumberOfPrism << std::endl;
@@ -199,7 +201,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::BlockElement(const IndexType iElement
 /***********************************************************************************/
 
 template<>
-Node<3>::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateNode(
+Node::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateNode(
     ModelPart& rModelPart,
     const IndexType iNode,
     int& Ref,
@@ -370,13 +372,16 @@ Element::Pointer ParMmgUtilities<PMMGLibrary::PMMG3D>::CreateFirstTypeElement(
 /***********************************************************************************/
 
 template<>
-void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitMesh()
+void ParMmgUtilities<PMMGLibrary::PMMG3D>::InitMesh(const DataCommunicator& rDataCommunicator)
 {
     mParMmgMesh = nullptr;
 
     // We init the PMMG mesh and sol
     if (GetDiscretization() == DiscretizationOption::STANDARD) {
-        PMMG_Init_parMesh( PMMG_ARG_start, PMMG_ARG_ppParMesh, &mParMmgMesh, PMMG_ARG_pMesh, PMMG_ARG_pMet, PMMG_ARG_dim, 3, PMMG_ARG_MPIComm, MPI_COMM_WORLD, PMMG_ARG_end);
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "ParMMG requires a distributed DataCommunicator!" << std::endl;
+        KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDefinedOnThisRank()) << "This rank is not part of this MPI_Comm!" << std::endl;
+        MPI_Comm the_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
+        PMMG_Init_parMesh( PMMG_ARG_start, PMMG_ARG_ppParMesh, &mParMmgMesh, PMMG_ARG_pMesh, PMMG_ARG_pMet, PMMG_ARG_dim, 3, PMMG_ARG_MPIComm, the_mpi_comm, PMMG_ARG_end);
     } else {
         KRATOS_ERROR << "Discretization type: " << static_cast<int>(GetDiscretization()) << " not fully implemented" << std::endl;
     }
@@ -584,8 +589,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
         KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
 
     // Avoid/allow surface modifications
-    if (static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_surf_mesh"].GetBool()) == 1) KRATOS_ERROR << "Trying to do surface" << std::endl;
-    if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nosurf, 1) != 1 )
+    if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nosurf, static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_surf_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
 
     // Don't insert nodes on mesh
@@ -625,6 +629,12 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
     if ( deactivate_detect_angle) {
         if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 )
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    }
+
+    // Set the value for angle detection (default 45°)
+    if (ConfigurationParameters["advanced_parameters"]["force_angle_detection_value"].GetBool()) {
+        if ( PMMG_Set_dparameter(mParMmgMesh,PMMG_DPARAM_angleDetection, ConfigurationParameters["advanced_parameters"]["angle_detection_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the angle detection value" << std::endl;
     }
 
     // Set the gradation
@@ -710,7 +720,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::SetConditions(
         //KRATOS_ERROR_IF( PMMG_Set_quadrilateral(mParMmgMesh, id_1, id_2, id_3, id_4, Color, Index) != 1 ) << "Unable to set quadrilateral" << std::endl;
     } else {
         const SizeType size_geometry = rGeometry.size();
-        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << rGeometry.GetGeometryType() << std::endl;
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << static_cast<int>(rGeometry.GetGeometryType()) << std::endl;
     }
 }
 
@@ -872,7 +882,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
 
     /* Gathering LOCAL mesh info */
     PMMGMeshInfo<TPMMGLibrary> pmmg_mesh_info;
-    if (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
+    if constexpr (TPMMGLibrary == PMMGLibrary::PMMG3D) { // 3D
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
         for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
@@ -883,7 +893,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
                 }
                 num_tri += 1;
             } else {
-                KRATOS_ERROR << "ParMmg currently only supports triangles on conditions. Your geometry type was: " << (it_cond->GetGeometry()).GetGeometryType() <<  std::endl;
+                KRATOS_ERROR << "ParMmg currently only supports triangles on conditions. Your geometry type was: " << static_cast<int>((it_cond->GetGeometry()).GetGeometryType()) <<  std::endl;
             }
         }
 
@@ -904,7 +914,7 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateMeshDataFromModelPart(
                 }
                 num_tetra += 1;
             } else {
-                KRATOS_ERROR << "ParMmg currently only supports tetrahedras on elements. Your geometry type was: " << (it_elem->GetGeometry()).GetGeometryType() <<  std::endl;
+                KRATOS_ERROR << "ParMmg currently only supports tetrahedras on elements. Your geometry type was: " << static_cast<int>((it_elem->GetGeometry()).GetGeometryType()) <<  std::endl;
             }
         }
 

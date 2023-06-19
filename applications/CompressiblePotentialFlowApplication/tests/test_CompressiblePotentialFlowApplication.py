@@ -5,6 +5,7 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication import *
 
 ##### SMALL TESTS #####
 from potential_flow_test_factory import PotentialFlowTests
+from potential_flow_test_factory import NightlyPotentialFlowTests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -36,6 +37,7 @@ def AssembleTestSuites():
     # nightSuite will contain the following tests:
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NightlyPotentialFlowTests]))
 
     # Create a test suite that contains all the tests from every testCase
     # in the list:

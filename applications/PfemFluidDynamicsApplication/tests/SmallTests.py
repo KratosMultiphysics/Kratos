@@ -23,12 +23,16 @@ class Test_2D_Bingham(TF.TestFactory):
     file_name = "fluid_element_tests/Test_2D_Bingham/Test_2D_Bingham"
     file_parameters = "fluid_element_tests/Test_2D_Bingham/ProjectParameters.json"
 
+class Test_2D_MultiFluid(TF.TestFactory):
+    file_name = "fluid_element_tests/Test_2D_MultiFluid/Test_2D_MultiFluid"
+    file_parameters = "fluid_element_tests/Test_2D_MultiFluid/ProjectParameters.json"
+
 def SetTestSuite(suites):
     small_suite = suites['small']
 
     small_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
-           MuIrheology_Dam_Break_2D_Test,Water_Sloshing_2D_Test,Test_2D_Bingham#,FSI_2D_Test
+           MuIrheology_Dam_Break_2D_Test,Water_Sloshing_2D_Test,Test_2D_Bingham,Test_2D_MultiFluid#,FSI_2D_Test
         ])
     )
 

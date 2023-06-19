@@ -1,11 +1,10 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Import system python
 import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro

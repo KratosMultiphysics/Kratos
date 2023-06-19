@@ -1,5 +1,5 @@
 ---
-name: Discussion
+name: 🗣️ Discussion
 about: Start a discussion
 label: discussion
 

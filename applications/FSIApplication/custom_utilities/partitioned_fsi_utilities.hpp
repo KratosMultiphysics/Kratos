@@ -634,7 +634,7 @@ public:
         }
 
         // Calculate the tractions from the pressure values
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             const array_1d<double,3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
             const double p_pos = rNode.FastGetSolutionStepValue(rPressureVariable);
             noalias(rNode.FastGetSolutionStepValue(rTractionVariable)) = traction_modulus_func(p_pos, r_normal) * r_normal;
@@ -663,7 +663,7 @@ public:
         }
 
         // Calculate the tractions from the pressure values
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             const array_1d<double,3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
             const double p_pos = rNode.FastGetSolutionStepValue(rPositivePressureVariable);
             const double p_neg = rNode.FastGetSolutionStepValue(rNegativePressureVariable);
@@ -700,7 +700,7 @@ protected:
     std::string GetSkinElementName()
     {
         std::string element_name;
-        if (TDim == 2) {
+        if constexpr (TDim == 2) {
             element_name = "Element2D2N";
         } else {
             element_name = "Element3D3N";
@@ -716,7 +716,7 @@ protected:
      */
     std::string GetSkinConditionName()
     {
-        if (TDim == 2) {
+        if constexpr (TDim == 2) {
             return "LineCondition2D2N";
         } else {
             return "SurfaceCondition3D3N";
@@ -756,10 +756,10 @@ protected:
             }
 
             // Compute the consistent residual
-            const auto &r_int_pts = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-            const auto N_container = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            const auto &r_int_pts = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            const auto N_container = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
             Vector jac_gauss;
-            rGeom.DeterminantOfJacobian(jac_gauss, GeometryData::GI_GAUSS_2);
+            rGeom.DeterminantOfJacobian(jac_gauss, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             for (unsigned int i_gauss = 0; i_gauss < r_int_pts.size(); ++i_gauss) {
                 // Compute condition Gauss pt. data

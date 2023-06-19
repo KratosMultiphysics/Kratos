@@ -1967,3 +1967,15 @@ Begin SubModelPart Slip2D_Top // Group Top // Subtree Slip2D
             40
     End SubModelPartConditions
 End SubModelPart
+
+Begin SubModelPart TestNodes
+    Begin SubModelPartNodes
+          23
+          43
+          18
+          13
+          20
+          65
+          42
+    End SubModelPartNodes
+End SubModelPart

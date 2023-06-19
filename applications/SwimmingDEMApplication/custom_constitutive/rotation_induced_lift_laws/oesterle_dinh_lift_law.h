@@ -13,13 +13,13 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) OesterleAndDinhLiftLaw : public RotationInducedLiftLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(OesterleAndDinhLiftLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option
         OesterleAndDinhLiftLaw(){}
 
-        OesterleAndDinhLiftLaw(Parameters& r_parameters);
+        OesterleAndDinhLiftLaw(Parameters r_parameters);
 
         ~OesterleAndDinhLiftLaw(){}
 
@@ -29,7 +29,7 @@ namespace Kratos {
 
         std::string GetTypeOfLaw() override;
 
-        void ComputeForce(Geometry<Node<3> >& r_geometry,
+        void ComputeForce(Geometry<Node >& r_geometry,
                           const double reynolds_number,
                           double particle_radius,
                           double fluid_density,

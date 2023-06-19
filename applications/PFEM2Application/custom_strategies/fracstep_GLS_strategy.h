@@ -32,7 +32,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
@@ -105,7 +105,7 @@ namespace Kratos
     class TLinearSolver
     >
     class FracStepStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     {
     public:
       /**@name Type Definitions */
@@ -114,7 +114,7 @@ namespace Kratos
       /** Counted pointer of ClassName */
       KRATOS_CLASS_POINTER_DEFINITION(  FracStepStrategy );
 
-      typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+      typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
       typedef typename BaseType::TDataType TDataType;
 
@@ -167,7 +167,7 @@ namespace Kratos
 		      unsigned int domain_size = 2,
 		      bool predictor_corrector = false
 		      )
-      : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, false)//, msolver_config(solver_config)
+      : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, false)//, msolver_config(solver_config)
 	{
 	  KRATOS_TRY
 
@@ -192,7 +192,7 @@ namespace Kratos
 	  //3 dimensional case
 	  //typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
 	  typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-	  typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+	  typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
 	  //initializing fractional velocity solution step
 	  typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;

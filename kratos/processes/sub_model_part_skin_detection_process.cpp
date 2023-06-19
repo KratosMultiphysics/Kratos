@@ -24,13 +24,33 @@ void SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::Pre
 }
 
 template<SizeType TDim>
-bool SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::IsSelected(const Geometry<Node<3>>::PointsArrayType& rNodes) const
+bool SubModelPartSkinDetectionProcess<TDim>::SelectIfAllNodesOnSubModelPart::IsSelected(const Geometry<Node>::PointsArrayType& rNodes) const
 {
     bool select = true;
     for (auto i_node = rNodes.begin(); i_node != rNodes.end(); ++i_node) {
         select &= i_node->Is(SubModelPartSkinDetectionProcess::NODE_SELECTED);
     }
     return select;
+}
+
+template<SizeType TDim>
+void SubModelPartSkinDetectionProcess<TDim>::SelectIfOneNodeNotOnSubModelPart::Prepare(ModelPart& rMainModelPart) const
+{
+    VariableUtils().SetFlag(SubModelPartSkinDetectionProcess::NODE_SELECTED, true, rMainModelPart.Nodes());
+    for (const auto& r_name : mNames) {
+        VariableUtils().SetFlag(SubModelPartSkinDetectionProcess::NODE_SELECTED, false, rMainModelPart.GetSubModelPart(r_name).Nodes());
+    }
+}
+
+template<SizeType TDim>
+bool SubModelPartSkinDetectionProcess<TDim>::SelectIfOneNodeNotOnSubModelPart::IsSelected(const Geometry<Node>::PointsArrayType& rNodes) const
+{
+    for (const auto& r_node : rNodes) {
+        if (r_node.Is(SubModelPartSkinDetectionProcess::NODE_SELECTED)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 template<SizeType TDim>
@@ -50,9 +70,15 @@ SubModelPartSkinDetectionProcess<TDim>::SubModelPartSkinDetectionProcess(
         mpFaceSelector = Kratos::make_shared<SelectIfAllNodesOnSubModelPart>(
             settings["selection_settings"]["sub_model_part_name"].GetString()
         );
-    }
-    else
-    {
+   } else if (settings["selection_criteria"].GetString() == "node_not_on_sub_model_part") {
+        KRATOS_ERROR_IF_NOT(settings["selection_settings"].Has("sub_model_part_names"))
+        << "When using \"selection_criteria\" == \"node_not_on_sub_model_part\","
+        << " SubModelPartSkinDetectionProcess requires the name of the target SubModelParts,"
+        << " given as the \"sub_model_part_names\" string array argument." << std::endl;
+        mpFaceSelector = Kratos::make_shared<SelectIfOneNodeNotOnSubModelPart>(
+            settings["selection_settings"]["sub_model_part_names"].GetStringArray()
+        );
+    } else {
         KRATOS_ERROR << "Unsupported \"selection_criteria\" \"" << settings["selection_criteria"].GetString() << "\"." << std::endl;
     }
 
@@ -94,7 +120,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
 
         const std::string complete_name = rConditionName + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
 
-        Geometry<Node<3>>::PointsArrayType condition_nodes;
+        Geometry<Node>::PointsArrayType condition_nodes;
         for (unsigned int i = 0; i < nodes_face.size(); i++)
         {
             condition_nodes.push_back(rMainModelPart.pGetNode(nodes_face[i]));
@@ -133,5 +159,3 @@ template class SubModelPartSkinDetectionProcess<2>;
 template class SubModelPartSkinDetectionProcess<3>;
 
 }  // namespace Kratos.
-
-

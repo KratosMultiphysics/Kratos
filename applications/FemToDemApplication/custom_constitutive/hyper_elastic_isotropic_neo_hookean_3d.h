@@ -47,7 +47,7 @@ namespace Kratos
  * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
  * @author Vicente Mataix Ferrandiz
  */
-class HyperElasticIsotropicNeoHookean3DFEMDEM
+class KRATOS_API(FEM_TO_DEM_APPLICATION) HyperElasticIsotropicNeoHookean3DFEMDEM
     : public ConstitutiveLaw
 {
 public:
@@ -124,7 +124,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     };
@@ -279,7 +279,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
 protected:
 

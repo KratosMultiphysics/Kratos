@@ -36,12 +36,16 @@ class AssignVectorVariableToConstraintProcess(assign_vector_variable_to_entities
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
-            "value"                : [10.0, 2.0, 0.0],
+            "value"                : [0.0, 0.0, 0.0],
             "local_axes"           : {},
             "entities"             : ["constraints"]
         }
         """
         )
+
+        if not settings.Has("value"):
+            raise RuntimeError("Please specify the value to set the vector to. Example:\n" \
+                               + '{\n\t"value" : [10.0, "3*t", "x+y"]\n}\n')
 
         settings.ValidateAndAssignDefaults(default_settings)
 

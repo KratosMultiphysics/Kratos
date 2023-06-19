@@ -1,15 +1,13 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
-
 
 // System includes
 
@@ -428,7 +426,7 @@ void StressCalculation::CalculateStressOnGPBeam(Element& rElement,
                                             stress_vector, rCurrentProcessInfo,
                                             direction_1);
 
-    const SizeType GP_num = rElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+    const SizeType GP_num = rElement.GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
 
     rOutput.resize(GP_num, false);
     for(IndexType i = 0; i < GP_num ; i++)
@@ -484,4 +482,3 @@ void StressCalculation::CalculateStressOnGPSmallDisplacement(Element& rElement,
 }
 
 }  // namespace Kratos.
-

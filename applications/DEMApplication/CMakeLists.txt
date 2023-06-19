@@ -6,6 +6,7 @@ message("**** configuring KratosDEMApplication ****")
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
 
 ## generate variables with the sources
 set(KRATOS_DEM_APPLICATION_CORE
@@ -18,8 +19,6 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ice_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_particle.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/bonding_spheric_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/Particle_Contact_Element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_particle.cpp
@@ -38,6 +37,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mapping_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
@@ -59,9 +59,10 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_soft_torque_with_noise_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_CL.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_bilinear_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_Hertz_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_Hertz_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Rankine_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_CamClay_CL.cpp
@@ -69,10 +70,11 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_ExponentialHC_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_HighStiffness_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_HighStiffness_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_confined_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_classic_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_confined_CL.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_sintering_continuum_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Bentonite_Colloid_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_JKR_cohesive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_DMT_cohesive_law.cpp
@@ -81,9 +83,12 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_d_linear_custom_constants_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Conical_damage_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Quadratic_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_2d_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_fabric_2d_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_parallel_bond_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_parallel_bond_for_membrane_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/force_based_inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/create_and_destroy.cpp
@@ -98,6 +103,15 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/stationarity_checker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/automatic_dt_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/multiaxial_control_module_generalized_2d_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_kinematic_constraints_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/random_variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/piecewise_linear_random_variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/discrete_random_variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_constant_torque.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_viscous_torque.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_bounded.cpp
+
 )
 
 set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
@@ -109,12 +123,6 @@ set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AuxiliaryUtilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_face_watcher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
-
-    # processes
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_kinematic_constraints_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_kinematic_constraints_to_walls_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_to_walls_process.cpp
 )
 
 add_library(KratosDEMCore SHARED ${KRATOS_DEM_APPLICATION_CORE})
@@ -131,6 +139,10 @@ set_target_properties(KratosDEMApplication PROPERTIES PREFIX "")
 IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosDEMCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
     set_target_properties(KratosDEMApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 if(${ACTIVATE_DEBUG_MACRO} MATCHES ON)        #MSI: Flag defined for debug Macro
@@ -178,3 +190,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosDEMCore DESTINATION libs )
 install(TARGETS KratosDEMApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosDEMCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosDEMApplication" PARENT_SCOPE)

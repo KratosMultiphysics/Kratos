@@ -76,7 +76,7 @@ RigidBodyPointLinkCondition::~RigidBodyPointLinkCondition()
 //***********************************************************************************
 
 void RigidBodyPointLinkCondition::GetDofList(DofsVectorType& rConditionDofList,
-					     ProcessInfo& rCurrentProcessInfo)
+					     const ProcessInfo& rCurrentProcessInfo) const
 {
   KRATOS_TRY
 
@@ -84,18 +84,17 @@ void RigidBodyPointLinkCondition::GetDofList(DofsVectorType& rConditionDofList,
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for(auto& ie : SlaveElements)
+  for (SizeType ie = 0; ie < SlaveElements.size(); ie++)
   {
     DofsVectorType SlaveDofList;
-    ie.GetDofList(SlaveDofList, rCurrentProcessInfo);
-
-    for(SizeType i=0; i<SlaveDofList.size(); i++)
+    SlaveElements[ie].GetDofList(SlaveDofList, rCurrentProcessInfo);
+    for (SizeType i = 0; i < SlaveDofList.size(); i++)
       rConditionDofList.push_back(SlaveDofList[i]);
   }
 
-  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
+  const Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   DofsVectorType MasterDofList;
   MasterElement.GetDofList(MasterDofList, rCurrentProcessInfo);
@@ -110,7 +109,7 @@ void RigidBodyPointLinkCondition::GetDofList(DofsVectorType& rConditionDofList,
 //***********************************************************************************
 
 void RigidBodyPointLinkCondition::EquationIdVector(EquationIdVectorType& rResult,
-						   ProcessInfo& rCurrentProcessInfo)
+						   const ProcessInfo& rCurrentProcessInfo) const
 {
   KRATOS_TRY
 
@@ -118,18 +117,18 @@ void RigidBodyPointLinkCondition::EquationIdVector(EquationIdVectorType& rResult
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
+  const ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for(auto& ie : SlaveElements)
+  for (SizeType ie = 0; ie < SlaveElements.size(); ie++)
   {
     EquationIdVectorType SlaveResult;
-    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    SlaveElements[ie].EquationIdVector(SlaveResult, rCurrentProcessInfo);
 
     for(SizeType i=0; i<SlaveResult.size(); i++)
       rResult.push_back(SlaveResult[i]);
   }
 
-  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
+  const Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   EquationIdVectorType MasterResult;
   MasterElement.EquationIdVector(MasterResult, rCurrentProcessInfo);
@@ -276,7 +275,7 @@ void RigidBodyPointLinkCondition::GetSecondDerivativesVector( Vector& rValues, i
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkCondition::Initialize()
+void RigidBodyPointLinkCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -298,7 +297,7 @@ void RigidBodyPointLinkCondition::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyPointLinkCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void RigidBodyPointLinkCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -308,7 +307,7 @@ void RigidBodyPointLinkCondition::InitializeSolutionStep( ProcessInfo& rCurrentP
 
 //************************************************************************************
 //************************************************************************************
-void RigidBodyPointLinkCondition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void RigidBodyPointLinkCondition::InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -318,7 +317,7 @@ void RigidBodyPointLinkCondition::InitializeNonLinearIteration(ProcessInfo& Curr
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyPointLinkCondition::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void RigidBodyPointLinkCondition::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -328,7 +327,7 @@ void RigidBodyPointLinkCondition::FinalizeNonLinearIteration(ProcessInfo& Curren
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyPointLinkCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void RigidBodyPointLinkCondition::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -369,7 +368,7 @@ void RigidBodyPointLinkCondition::InitializeSystemMatrices(MatrixType& rLeftHand
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -467,7 +466,7 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
 void RigidBodyPointLinkCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
 							   LocalSystemComponents& rLinkedSystem,
 							   Element* pSlaveElement,
-							   ProcessInfo& rCurrentProcessInfo)
+							   const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -558,7 +557,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddRHS(LocalSystemComponents& rLoc
 
 void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 							VectorType& rRightHandSideVector,
-							ProcessInfo& rCurrentProcessInfo )
+							const ProcessInfo& rCurrentProcessInfo )
 {
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
   const SizeType inode = GetGeometry().PointsNumber()-1;
@@ -721,7 +720,7 @@ void RigidBodyPointLinkCondition::AssembleLocalRHS(VectorType& rRightHandSideVec
 
 void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 									  VectorType& rRightHandSideVector,
-									  ProcessInfo& rCurrentProcessInfo)
+									  const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -805,7 +804,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
 //************************************************************************************
 
 void RigidBodyPointLinkCondition::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                         ProcessInfo& rCurrentProcessInfo)
+                                                        const  ProcessInfo& rCurrentProcessInfo)
 {
   //set sizes to zero
   MatrixType LocalLeftHandSideMatrix = Matrix();
@@ -874,7 +873,7 @@ void RigidBodyPointLinkCondition::CalculateRightHandSide(VectorType& rRightHandS
 //************************************************************************************
 
 void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-								ProcessInfo& rCurrentProcessInfo)
+								const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -947,7 +946,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLef
 //************************************************************************************
 
 void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-								ProcessInfo& rCurrentProcessInfo)
+								const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -1016,7 +1015,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRig
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkCondition::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyPointLinkCondition::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -1030,7 +1029,7 @@ void RigidBodyPointLinkCondition::CalculateMassMatrix( MatrixType& rMassMatrix, 
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyPointLinkCondition::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -1729,7 +1728,7 @@ void RigidBodyPointLinkCondition::WriteMatrixInRows( std::string MatrixName, con
 //***********************************************************************************
 //***********************************************************************************
 
-int RigidBodyPointLinkCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int RigidBodyPointLinkCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   return 0;
 }

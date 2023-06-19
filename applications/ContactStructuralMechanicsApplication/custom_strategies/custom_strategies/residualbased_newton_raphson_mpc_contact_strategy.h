@@ -1,41 +1,41 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RESIDUALBASED_NEWTON_RAPHSON_MPC_CONTACT_STRATEGY)
-#define KRATOS_RESIDUALBASED_NEWTON_RAPHSON_MPC_CONTACT_STRATEGY
+#pragma once
 
-/* System Includes */
+// System includes
 
-/* External Includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
 
-// Strategies
+/* Strategies */
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
-// Contact criteria
+/* Contact criteria */
 #include "custom_strategies/custom_convergencecriterias/mpc_contact_criteria.h"
 
-// Utilities
+/* Utilities */
 #include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/atomic_utilities.h"
 
-// // Processes
+// /* Processes */
 // #include "processes/fast_transfer_between_model_parts_process.h"
 
 namespace Kratos {
@@ -81,9 +81,13 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonMPCContactStrategy );
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>            StrategyBaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace>                        SolvingStrategyType;
+
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>    StrategyBaseType;
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    typedef ResidualBasedNewtonRaphsonMPCContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
 
@@ -125,6 +129,26 @@ public:
 
     /**
      * @brief Default constructor
+     */
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
+
+    /**
+     * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewConvergenceCriteria The convergence criteria employed
@@ -133,7 +157,7 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedNewtonRaphsonMPCContactStrategy(
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -144,7 +168,7 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters)
     {
         KRATOS_TRY;
@@ -169,7 +193,7 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedNewtonRaphsonMPCContactStrategy(
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -179,8 +203,8 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
-    )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        )
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
         mThisParameters(ThisParameters)
     {
         KRATOS_TRY;
@@ -205,7 +229,7 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedNewtonRaphsonMPCContactStrategy(
+    explicit ResidualBasedNewtonRaphsonMPCContactStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -217,7 +241,7 @@ public:
         bool MoveMeshFlag = false,
         Parameters ThisParameters =  Parameters(R"({})")
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters)
     {
         KRATOS_TRY;
@@ -237,8 +261,26 @@ public:
     ~ResidualBasedNewtonRaphsonMPCContactStrategy() override
     = default;
 
-    //******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************//
-    //***********************************************************************************//
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename SolvingStrategyType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -373,7 +415,7 @@ public:
 
                 // We solve one loop
                 r_process_info[NL_ITERATION_NUMBER] = 1;
-                is_converged = AuxiliarSolveSolutionStep();
+                is_converged = AuxiliarySolveSolutionStep();
 
                 // We check the convergence
                 if (r_process_info[NL_ITERATION_NUMBER] == 1) r_process_info[NL_ITERATION_NUMBER] = 2; // Trigger check
@@ -385,7 +427,7 @@ public:
                 }
             }
         } else {
-            is_converged = AuxiliarSolveSolutionStep();
+            is_converged = AuxiliarySolveSolutionStep();
         }
 
         return is_converged;
@@ -395,9 +437,9 @@ public:
 
 
     /**
-     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise. (auxiliar method)
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise. (auxiliary method)
      */
-    bool AuxiliarSolveSolutionStep()
+    bool AuxiliarySolveSolutionStep()
     {
         // Getting flag INTERACTION
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
@@ -569,6 +611,35 @@ public:
         return is_converged;
     }
 
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "newton_raphson_mpc_contact_strategy",
+            "inner_loop_iterations"               : 5,
+            "update_each_nl_iteration"            : false,
+            "enforce_ntn"                         : false
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newton_raphson_mpc_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -594,33 +665,31 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Parameters mThisParameters;                                   /// The configuration parameters
+    Parameters mThisParameters;                                      /// The configuration parameters
     typename TConvergenceCriteriaType::Pointer mpMPCContactCriteria; /// The contact criteria
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-    /**
-     * @brief This method returns the defaulr parameters in order to avoid code duplication
-     * @return Returns the default parameters
-     */
-
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "inner_loop_iterations"    : 5,
-            "update_each_nl_iteration" : false,
-            "enforce_ntn"              : false
-        })" );
-
-        return default_parameters;
-    }
-
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // We create the contact criteria
+        mpMPCContactCriteria = Kratos::make_shared<TMPCContactCriteriaType>();
+
+        // Copy the parameters
+        mThisParameters = ThisParameters;
+    }
 
     ///@}
     ///@name Protected  Access
@@ -688,7 +757,7 @@ private:
 //             ++counter;
 //         }
 //
-//         // Auxiliar classes
+//         // Auxiliary classes
 //         Matrix original_relation_matrix, relation_matrix;
 //         Vector original_constant_vector, constant_vector;
 //         ModelPart::DofsVectorType original_master_dofs, master_dofs, original_slave_dofs, slave_dofs;
@@ -739,7 +808,6 @@ private:
 
         // We set the constraints active and inactive in function of the active set
         auto& r_conditions_array = r_contact_model_part.Conditions();
-        auto it_cond_begin = r_conditions_array.begin();
 
         // If enforcing NTN
         const bool enforce_ntn = false;
@@ -747,14 +815,11 @@ private:
 //         if (enforce_ntn) {
 //             VariableUtils().SetNonHistoricalVariable(NODAL_PAUX, 1.0, r_nodes_array);
 //         }
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-
+        
+        block_for_each(r_conditions_array, [&](Condition& rCond) {
             // Only slave conditions
-            if (it_cond->Is(SLAVE)) {
-                auto& r_geometry = it_cond->GetGeometry();
+            if (rCond.Is(SLAVE)) {
+                auto& r_geometry = rCond.GetGeometry();
                 Vector lumping_factor;
                 lumping_factor = r_geometry.LumpingFactors(lumping_factor);
                 const double domain_size = r_geometry.DomainSize();
@@ -766,7 +831,7 @@ private:
                     AtomicAdd(r_node.GetValue(NODAL_MAUX), lumping_factor[i_node] * domain_size);
                 }
             }
-        }
+        });
     }
 
     ///@}
@@ -794,5 +859,3 @@ private:
 ///@{
 ///@}
 }  // namespace Kratos
-
-#endif /* KRATOS_RESIDUALBASED_NEWTON_RAPHSON_MPC_CONTACT_STRATEGY */

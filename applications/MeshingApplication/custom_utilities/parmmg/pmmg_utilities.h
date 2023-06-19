@@ -108,7 +108,7 @@ public:
     typedef MmgUtilities<MMGLibrary::MMG3D> BaseType;
 
     /// Node definition
-    typedef Node <3>                                                   NodeType;
+    typedef Node                                                   NodeType;
     // Geometry definition
     typedef Geometry<NodeType>                                     GeometryType;
 
@@ -275,8 +275,10 @@ public:
      * -# &mmgMesh pointer toward your MMG5_pMesh (that store your mesh)
      * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
      * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
+     * @param[in] rDataCommunicator Data communicator to be used to initialize ParMmg
+     *
      */
-    void InitMesh() override;
+    void InitMesh(const DataCommunicator& rDataCommunicator);
 
     /**
      * @brief Here the verbosity is set

@@ -8,6 +8,7 @@
 //                Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborators:   Vicente Mataix
 //
 //
 
@@ -31,6 +32,7 @@
 #include "includes/model_part.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -62,7 +64,7 @@ namespace Kratos
  * Degrees of freedom are reordered putting the restrained degrees of freedom at
  * the end of the system ordered in reverse order with respect to the DofSet.
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains this information.
- * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * Calculation of the reactions involves a cost very similar to the calculation of the total residual
  * @author Riccardo Rossi
  */
 template<class TSparseSpace,
@@ -103,7 +105,7 @@ public:
     typedef Element::DofsVectorType DofsVectorType;
 
     /// Node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Containers definition
     typedef typename BaseType::NodesArrayType NodesArrayType;
@@ -222,12 +224,8 @@ public:
             for (int k = 0; k < nelements; ++k) {
                 auto it_elem = it_elem_begin + k;
 
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                // If the element is active
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
 
@@ -244,12 +242,8 @@ public:
             for (int k = 0; k < nconditions; ++k) {
                 auto it_cond = it_cond_begin + k;
 
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                // If the condition is active
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
 
@@ -272,7 +266,7 @@ public:
 
     /**
      * @brief Function to perform the building of the LHS
-     * @details Depending on the implementation choosen the size of the matrix could be equal to the total number of Dofs or to the number of unrestrained dofs
+     * @details Depending on the implementation chosen the size of the matrix could be equal to the total number of Dofs or to the number of unrestrained dofs
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
@@ -318,12 +312,8 @@ public:
             for (int k = 0; k < nelements; ++k) {
                 auto it_elem = it_elem_begin + k;
 
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                // If the element is active
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_elem, LHS_Contribution, equation_id, r_current_process_info);
 
@@ -336,12 +326,8 @@ public:
             for (int k = 0; k < nconditions; ++k) {
                 auto it_cond = it_cond_begin + k;
 
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                // If the condition is active
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_cond, LHS_Contribution, equation_id, r_current_process_info);
 
@@ -404,12 +390,8 @@ public:
             for (int k = 0; k < nelements; ++k) {
                 auto it_elem = it_elem_begin + k;
 
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                // If the element is active
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_elem, LHS_Contribution, equation_id, r_current_process_info);
 
@@ -422,12 +404,8 @@ public:
             for (int k = 0; k < nconditions; ++k) {
                 auto it_cond = it_cond_begin + k;
 
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                // If the condition is active
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_cond, LHS_Contribution, equation_id, r_current_process_info);
 
@@ -467,7 +445,7 @@ public:
         } else
             TSparseSpace::SetToZero(rDx);
 
-        // Prints informations about the current time
+        // Prints information about the current time
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -509,7 +487,7 @@ public:
             KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolver", rModelPart.GetCommunicator().MyPID() == 0) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
-        // Prints informations about the current time
+        // Prints information about the current time
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -627,12 +605,8 @@ public:
             for (int i = 0; i < nelements; ++i) {
                 auto it_elem = it_elem_begin + i;
 
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                // If the element is active
+                if (it_elem->IsActive()) {
                     // Calculate elemental Right Hand Side Contribution
                     pScheme->CalculateRHSContribution(*it_elem, RHS_Contribution, equation_id, r_current_process_info);
 
@@ -647,12 +621,8 @@ public:
             #pragma omp  for schedule(guided, 512)
             for (int i = 0; i < nconditions; ++i) {
                 auto it_cond = it_cond_begin + i;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                // If the condition is active
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateRHSContribution(*it_cond, RHS_Contribution, equation_id, r_current_process_info);
 
@@ -668,7 +638,7 @@ public:
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
      * and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the
      * way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -700,40 +670,38 @@ public:
             dofs_aux_list[i].reserve(nelements);
         }
 
-        #pragma omp parallel for firstprivate(nelements, elemental_dof_list)
-        for (int i = 0; i < static_cast<int>(nelements); ++i) {
-            auto it_elem = r_elements_array.begin() + i;
+        IndexPartition<std::size_t>(nelements).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
+            auto it_elem = r_elements_array.begin() + Index;
             const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
             // Gets list of Dof involved on every element
-            pScheme->GetDofList(*it_elem, elemental_dof_list, r_current_process_info);
+            pScheme->GetDofList(*it_elem, tls_elemental_dof_list, r_current_process_info);
 
-            dofs_aux_list[this_thread_id].insert(elemental_dof_list.begin(), elemental_dof_list.end());
-        }
+            dofs_aux_list[this_thread_id].insert(tls_elemental_dof_list.begin(), tls_elemental_dof_list.end());
+        });
 
         ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
         const int nconditions = static_cast<int>(r_conditions_array.size());
-        #pragma omp parallel for firstprivate(nconditions, elemental_dof_list)
-        for (int i = 0; i < nconditions; ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+
+        IndexPartition<std::size_t>(nconditions).for_each(elemental_dof_list, [&](std::size_t Index, DofsVectorType& tls_elemental_dof_list){
+            auto it_cond = r_conditions_array.begin() + Index;
             const IndexType this_thread_id = OpenMPUtils::ThisThread();
 
             // Gets list of Dof involved on every element
-            pScheme->GetDofList(*it_cond, elemental_dof_list, r_current_process_info);
-            dofs_aux_list[this_thread_id].insert(elemental_dof_list.begin(), elemental_dof_list.end());
-        }
+            pScheme->GetDofList(*it_cond, tls_elemental_dof_list, r_current_process_info);
+            dofs_aux_list[this_thread_id].insert(tls_elemental_dof_list.begin(), tls_elemental_dof_list.end());
+        });
 
         // Here we do a reduction in a tree so to have everything on thread 0
         SizeType old_max = nthreads;
         SizeType new_max = ceil(0.5*static_cast<double>(old_max));
         while (new_max >= 1 && new_max != old_max) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(new_max); ++i) {
-                if (i + new_max < old_max) {
-                    dofs_aux_list[i].insert(dofs_aux_list[i + new_max].begin(), dofs_aux_list[i + new_max].end());
-                    dofs_aux_list[i + new_max].clear();
+            IndexPartition<std::size_t>(new_max).for_each([&](std::size_t Index){
+                if (Index + new_max < old_max) {
+                    dofs_aux_list[Index].insert(dofs_aux_list[Index + new_max].begin(), dofs_aux_list[Index + new_max].end());
+                    dofs_aux_list[Index + new_max].clear();
                 }
-            }
+            });
 
             old_max = new_max;
             new_max = ceil(0.5*static_cast<double>(old_max));
@@ -750,7 +718,7 @@ public:
 
         BaseType::mDofSet = dof_temp;
 
-        // Throws an execption if there are no Degrees of freedom involved in the analysis
+        // Throws an exception if there are no Degrees of freedom involved in the analysis
         KRATOS_ERROR_IF(BaseType::mDofSet.size() == 0) << "No degrees of freedom!" << std::endl;
 
         BaseType::mDofSetIsInitialized = true;
@@ -858,7 +826,7 @@ public:
             ConstructMatrixStructure(pScheme, rA, rModelPart);
         } else {
             if (rA.size1() != BaseType::mEquationSystemSize || rA.size2() != BaseType::mEquationSystemSize) {
-                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
+                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
                 rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
                 ConstructMatrixStructure(pScheme, rA, rModelPart);
             }
@@ -917,9 +885,9 @@ public:
 
     /**
      * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
-     * unexpensive depending on the implementation choosen and on how the System Matrix is built.
+     * unexpensive depending on the implementation chosen and on how the System Matrix is built.
      * @details For explanation of how it works for a particular implementation the user
-     * should refer to the particular Builder And Solver choosen
+     * should refer to the particular Builder And Solver chosen
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
@@ -934,6 +902,8 @@ public:
         TSystemVectorType& rb
         ) override
     {
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal); 
     }
 
     /**
@@ -973,7 +943,9 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "elimination_builder_and_solver"
+            "name"                                 : "elimination_builder_and_solver",
+            "block_builder"                        : false,
+            "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal"
         })");
 
         // Getting base class default parameters
@@ -1036,8 +1008,13 @@ protected:
     ///@{
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
-   std::vector<omp_lock_t> mLockArray;
+   std::vector<omp_lock_t> mLockArray; /// TODO: Replace with std::vector<LockObject>
 #endif
+
+    double mScaleFactor = 1.0;         /// The manually set scale factor
+
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;; /// We identify the scaling considered for the dirichlet dofs
+
 
     ///@}
     ///@name Protected Operators
@@ -1093,7 +1070,7 @@ protected:
     }
 
     /**
-     * @brief This method construcs the relationship between the DoF
+     * @brief This method constructs the relationship between the DoF
      * @param pScheme The integration scheme
      * @param rA The LHS of the system
      * @param rModelPart The model part which defines the problem
@@ -1111,10 +1088,9 @@ protected:
 
         std::vector<std::unordered_set<IndexType> > indices(equation_size);
 
-        #pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
-            indices[iii].reserve(40);
-        }
+        block_for_each(indices, [](std::unordered_set<IndexType>& rIndices){
+            rIndices.reserve(40);
+        });
 
         Element::EquationIdVectorType ids(3, 0);
 
@@ -1199,19 +1175,18 @@ protected:
         for (IndexType i = 0; i < rA.size1(); ++i)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rA.size1()); ++i) {
-            const IndexType row_begin = Arow_indices[i];
-            const IndexType row_end = Arow_indices[i + 1];
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
+            const IndexType row_begin = Arow_indices[Index];
+            const IndexType row_end = Arow_indices[Index + 1];
             IndexType k = row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
+            for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
                 ++k;
             }
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
-        }
+        });
 
         rA.set_filled(indices.size() + 1, nnz);
 
@@ -1330,6 +1305,38 @@ protected:
         IndexType pos = start;
         while(id_to_find != index_vector[pos]) pos--;
         return pos;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Setting flags<
+        const std::string& r_diagonal_values_for_dirichlet_dofs = ThisParameters["diagonal_values_for_dirichlet_dofs"].GetString();
+
+        std::set<std::string> available_options_for_diagonal = {"no_scaling","use_max_diagonal","use_diagonal_norm","defined_in_process_info"};
+
+        if (available_options_for_diagonal.find(r_diagonal_values_for_dirichlet_dofs) == available_options_for_diagonal.end()) {
+            std::stringstream msg;
+            msg << "Currently prescribed diagonal values for dirichlet dofs : " << r_diagonal_values_for_dirichlet_dofs << "\n";
+            msg << "Admissible values for the diagonal scaling are : no_scaling, use_max_diagonal, use_diagonal_norm, or defined_in_process_info" << "\n";
+            KRATOS_ERROR << msg.str() << std::endl;
+        }
+
+        // The first option will not consider any scaling (the diagonal values will be replaced with 1)
+        if (r_diagonal_values_for_dirichlet_dofs == "no_scaling") {
+            mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_max_diagonal") {
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL;
+        } else if (r_diagonal_values_for_dirichlet_dofs == "use_diagonal_norm") { // On this case the norm of the diagonal will be considered
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL;
+        } else { // Otherwise we will assume we impose a numerical value
+            mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
+        }
     }
 
     ///@}
@@ -1473,7 +1480,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 

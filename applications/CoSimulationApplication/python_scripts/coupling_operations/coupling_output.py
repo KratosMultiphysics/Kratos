@@ -14,12 +14,13 @@ class CouplingOutput(CoSimulationCouplingOperation):
     - add tests
     - more cleanup
     """
-    def __init__(self, settings, solver_wrappers, process_info):
-        super().__init__(settings, process_info)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         self.model = solver_wrappers[self.settings["solver"].GetString()].model
         self.execution_point = self.settings["execution_point"].GetString()
         model_part_name = self.settings["output_parameters"]["model_part_name"].GetString()
-        self.base_output_file_name = "{}_{}_{}_".format(self.settings["solver"].GetString(), model_part_name, self.execution_point)
+        model_part = self.model[model_part_name]
+        self.base_output_file_name = "{}_{}_{}_{}_".format(self.settings["solver"].GetString(), model_part_name, self.execution_point, model_part.GetCommunicator().MyPID())
 
         available_execution_points = [
             "initialize_solution_step",
@@ -35,7 +36,7 @@ class CouplingOutput(CoSimulationCouplingOperation):
 
         self.step = 0 # this should come from self.process_info
         # TODO check if restarted. If not delete the folder => check self.process_info
-        self.output = KM.VtkOutput(self.model[model_part_name], self.settings["output_parameters"]) # currently hardcoded to vtk
+        self.output = KM.VtkOutput(model_part, self.settings["output_parameters"]) # currently hardcoded to vtk
 
     def InitializeSolutionStep(self):
         self.step += 1

@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_CLASSES )
-#define  KRATOS_MORTAR_CLASSES
+#pragma once
 
 // System includes
 
@@ -35,7 +34,7 @@ namespace Kratos
 
     // Point and nodes defines
     typedef Point                                                PointType;
-    typedef Node<3>                                               NodeType;
+    typedef Node                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
 
     // Type definition for integration methods
@@ -693,17 +692,16 @@ private:
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativeData
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    // Auxiliar types
+    // Auxiliary types
     typedef BoundedMatrix<int, 1, 1> DummyBoundedMatrixType;
 
     typedef array_1d<double, TNumNodes> GeometryArraySlaveType;
@@ -718,7 +716,7 @@ public:
 
     typedef typename std::conditional<TNumNodes == 2, DummyBoundedMatrixType, BoundedMatrix<double, 3, 3>>::type VertexDerivativesMatrixType;
 
-    // Auxiliar sizes
+    // Auxiliary sizes
     static const SizeType DummySize = 1;
 
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
@@ -780,7 +778,6 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -820,7 +817,7 @@ public:
             noalias(DeltaN1[i]) = zero_vector_slave;
             noalias(DeltaN2[i]) = zero_vector_master;
         }
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             for (IndexType i = 0; i < DoFSizeMasterGeometry; ++i) {
                 DeltaDetjSlave[i + DoFSizeSlaveGeometry] = 0.0;
                 noalias(DeltaPhi[i + DoFSizeSlaveGeometry]) = zero_vector_slave;
@@ -836,8 +833,8 @@ public:
     virtual void ResetDerivatives()
     {
         // Derivatives
-        if (TDim == 3) { // Derivative of the cell vertex
-            // Auxiliar zero matrix
+        if constexpr (TDim == 3) { // Derivative of the cell vertex
+            // Auxiliary zero matrix
             const BoundedMatrix<double, 3, 3> aux_zero = ZeroMatrix(3, 3);
             for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
                 noalias(DeltaCellVertex[i]) = aux_zero;
@@ -853,7 +850,7 @@ public:
      */
     void InitializeDeltaAeComponents()
     {
-        // Auxiliar zero matrix
+        // Auxiliary zero matrix
         const GeometryMatrixType aux_zero = ZeroMatrix(TNumNodes, TNumNodes);
 
         // Ae
@@ -1020,19 +1017,18 @@ private:
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativeDataFrictional
-    : public DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>
+    : public DerivativeData<TDim, TNumNodes, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The base class type
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> BaseClassType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster> BaseClassType;
 
     /// The bounded matrix employed class
     typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixSlaveType;
@@ -1422,10 +1418,9 @@ private:
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TFrictional If the problem is frictional or not
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
 class MortarOperatorWithDerivatives
     : public MortarOperator<TNumNodes, TNumNodesMaster>
 {
@@ -1437,9 +1432,9 @@ public:
 
     typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster>                                   KinematicVariables;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>        DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
@@ -1447,7 +1442,7 @@ public:
     typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixSlaveType;
     typedef BoundedMatrix<double, TNumNodes, TNumNodesMaster> GeometryMatrixMasterType;
 
-    // Auxiliar sizes
+    // Auxiliary sizes
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
     static const SizeType DoFSizeMasterGeometry = (TNumNodesMaster * TDim);
 
@@ -1486,7 +1481,7 @@ public:
     {
         BaseClassType::Initialize();
 
-        // Auxiliar zero matrix
+        // Auxiliary zero matrix
         const GeometryMatrixSlaveType aux_zero_slave = ZeroMatrix(TNumNodes, TNumNodes);
         const GeometryMatrixMasterType aux_zero_master = ZeroMatrix(TNumNodes, TNumNodesMaster);
 
@@ -1538,7 +1533,7 @@ public:
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n1
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n1[i][j_node];
                 }
-                if (TDim == 3) {
+                if constexpr (TDim == 3) {
                     for (IndexType i = DoFSizeSlaveGeometry; i < DoFSizePairedGeometry; ++i) {
                         DeltaDOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n1[i][j_node];
                         DeltaDOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n1;
@@ -1552,12 +1547,11 @@ public:
                 BaseClassType::MOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n2;
 
                 for (IndexType i = 0; i < DoFSizeSlaveGeometry; ++i) {
-
                     DeltaMOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi* n2
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n2
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_node];
                 }
-                if (TDim == 3) {
+                if constexpr (TDim == 3) {
                     for (IndexType i = DoFSizeSlaveGeometry; i < DoFSizePairedGeometry; ++i) {
                         DeltaMOperator[i](i_node, j_node) += det_j_slave * rIntegrationWeight * phi * delta_n2[i][j_node];
                         DeltaMOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi * n2;
@@ -1715,7 +1709,7 @@ public:
 
     virtual ~DualLagrangeMultiplierOperators(){}
 
-    /// The auxiliar operators needed to build the dual LM Ae operator
+    /// The auxiliary operators needed to build the dual LM Ae operator
     GeometryMatrixType Me, De;
 
     ///@}
@@ -1924,10 +1918,9 @@ private:
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TFrictional If the problem is frictional or not
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
 class DualLagrangeMultiplierOperatorsWithDerivatives
     : public DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>
 {
@@ -1939,16 +1932,16 @@ public:
 
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>          KinematicVariablesType;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>        DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
-    // Auxiliar types
+    // Auxiliary types
     typedef BoundedMatrix<double, TNumNodes, TNumNodes> GeometryMatrixType;
 
-    // Auxiliar sizes
+    // Auxiliary sizes
     static const SizeType DoFSizeSlaveGeometry = (TNumNodes * TDim);
 
     static const SizeType DoFSizeMasterGeometry = (TNumNodesMaster * TDim);
@@ -2323,5 +2316,3 @@ private:
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_MORTAR_CLASSES  defined

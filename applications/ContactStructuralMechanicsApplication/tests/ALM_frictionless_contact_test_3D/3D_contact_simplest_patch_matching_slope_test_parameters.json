@@ -26,7 +26,6 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
         "convergence_criterion"              : "contact_mixed_criterion",
@@ -43,7 +42,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
@@ -55,7 +53,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.Parts_Parts_Nodes1",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,null],
@@ -67,7 +64,6 @@
             "help"          : "This process fixes the selected components of a given vector variable",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.Parts_Parts_Nodes2",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,null],
@@ -93,7 +89,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorByDirectionToConditionProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.SurfaceLoad3D_SurfaceLoad",
                 "variable_name"   : "SURFACE_LOAD",
                 "modulus"         : 1.0e9,

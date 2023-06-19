@@ -1,0 +1,42 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes // GUI group identifier: Cylinder celemid Cluster3D
+100   0.31 0.0285 0.0
+101   0.31 0.0495 0.0
+End Nodes
+
+Begin Elements Cluster3D // GUI group identifier: Cylinder
+110 1 100
+111 1 101
+End Elements
+
+Begin NodalData CHARACTERISTIC_LENGTH // GUI group identifier: Cylinder Elementid Cluster3D
+100 0 0.028
+101 0 0.028
+End NodalData
+
+
+Begin NodalData ORIENTATION // GUI group identifier: Cylinder Elementid Cluster3D
+100 0 [4] ( 1.0 , 0.0 , 0.0 , 0.0 )
+101 0 [4] ( 1.0 , 0.0 , 0.0 , 0.0 )
+End NodalData
+
+Begin SubModelPart Parts_cluster // Group particle // Subtree Parts
+    Begin SubModelPartData
+    End SubModelPartData
+    Begin SubModelPartNodes
+        100
+        101
+    End SubModelPartNodes
+    Begin SubModelPartElements
+        110
+        111
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

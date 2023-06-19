@@ -9,22 +9,23 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
+//                   Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_REDUCTION_UTILITIES_H_INCLUDED )
-#define  KRATOS_REDUCTION_UTILITIES_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <tuple>
 #include <limits>
 #include <algorithm>
+#include <mutex>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -145,8 +146,39 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
-        mValue = std::max(mValue,rOther.mValue);
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
+    }
+};
+
+//***********************************************************************************
+//***********************************************************************************
+//***********************************************************************************
+template<class TDataType, class TReturnType = TDataType>
+class AbsMaxReduction
+{
+public:
+    typedef TDataType   value_type;
+    typedef TReturnType return_type;
+
+    TReturnType mValue = std::numeric_limits<TReturnType>::lowest(); // deliberately making the member value public, to allow one to change it as needed
+
+    /// access to reduced value
+    TReturnType GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const TDataType value){
+        mValue = (std::abs(mValue) < std::abs(value)) ? value : mValue;
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(const AbsMaxReduction<TDataType, TReturnType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
     }
 };
 
@@ -176,8 +208,41 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
-        mValue = std::min(mValue,rOther.mValue);
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
+    }
+};
+
+
+//***********************************************************************************
+//***********************************************************************************
+//***********************************************************************************
+
+template<class TDataType, class TReturnType = TDataType>
+class AbsMinReduction
+{
+public:
+    typedef TDataType   value_type;
+    typedef TReturnType return_type;
+
+    TReturnType mValue = std::numeric_limits<TReturnType>::max(); // deliberately making the member value public, to allow one to change it as needed
+
+    /// access to reduced value
+    TReturnType GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const TDataType value){
+        mValue = (std::abs(mValue) < std::abs(value)) ? mValue : value;
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(const AbsMinReduction<TDataType, TReturnType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        LocalReduce(rOther.mValue);
     }
 };
 
@@ -202,14 +267,42 @@ public:
 
     /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
     void LocalReduce(const TDataType value){
-        mValue.push_back(value);
+        mValue.insert(mValue.end(), value);
     }
 
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
-        mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
+        KRATOS_CRITICAL_SECTION
+        std::copy(rOther.mValue.begin(), rOther.mValue.end(), std::inserter(mValue, mValue.end()));
+    }
+};
+
+template<class MapType>
+class MapReduction
+{
+public:
+    using value_type = typename MapType::value_type;
+    using return_type = MapType;
+
+    return_type mValue;
+
+    /// access to reduced value
+    return_type GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const value_type rValue){
+        mValue.emplace(rValue);
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(MapReduction<MapType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        mValue.merge(rOther.mValue);
     }
 };
 
@@ -282,5 +375,3 @@ struct CombinedReduction {
 };
 
 }  // namespace Kratos.
-
-#endif // KRATOS_REDUCTION_UTILITIES_H_INCLUDED  defined

@@ -4,8 +4,6 @@
 //   Date:                $Date:            January 2016 $
 //   Revision:            $Revision:                 0.0 $
 //
-//   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
-//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes
@@ -80,7 +78,7 @@ namespace Kratos
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
     if (rRightHandSideVector.size() != LocalSize)
-      rRightHandSideVector.resize(LocalSize);
+      rRightHandSideVector.resize(LocalSize, false);
 
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
@@ -120,9 +118,9 @@ namespace Kratos
 
       rElementalVariables.MeanPressure = OldPressure * (1 - theta) + Pressure * theta;
 
-      computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX, g);
+      computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX);
 
-      this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
+      this->CalcElasticPlasticCauchySplitted(rElementalVariables, g, N, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
 
       if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
@@ -142,6 +140,7 @@ namespace Kratos
     }
 
     double lumpedDynamicWeight = totalVolume * Density;
+    //FIXME: This has to be computed with the corresponding shape functions...
     this->ComputeLumpedMassMatrix(MassMatrix, lumpedDynamicWeight, MeanValueMass);
     if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
     {
@@ -152,7 +151,7 @@ namespace Kratos
       {
         // VolumetricCoeff*=BulkReductionCoefficient;
         VolumetricCoeff *= MeanValueMass * 2.0 / (TimeStep * MeanValueStiffness);
-        StiffnessMatrix = ZeroMatrix(LocalSize, LocalSize);
+        noalias(StiffnessMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
         for (unsigned int g = 0; g < NumGauss; ++g)
         {
@@ -175,12 +174,12 @@ namespace Kratos
     // noalias( rRightHandSideVector ) += -prod(MassMatrix,AccelerationValues);
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
 
-    //2nd order
+    // 2nd order
     this->GetAccelerationValues(AccelerationValues, 0);
     this->GetVelocityValues(VelocityValues, 0);
     noalias(AccelerationValues) += -2.0 * VelocityValues / TimeStep;
     this->GetVelocityValues(VelocityValues, 1);
-    noalias(AccelerationValues) += 2.0 * VelocityValues / TimeStep; //these are negative accelerations
+    noalias(AccelerationValues) += 2.0 * VelocityValues / TimeStep; // these are negative accelerations
     noalias(rRightHandSideVector) += prod(MassMatrix, AccelerationValues);
     noalias(rLeftHandSideMatrix) += StiffnessMatrix + MassMatrix * 2 / TimeStep;
 
@@ -214,8 +213,8 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<bool> &rVariable,
-                                                                                    std::vector<bool> &rOutput,
-                                                                                    const ProcessInfo &rCurrentProcessInfo)
+                                                                                     std::vector<bool> &rOutput,
+                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == YIELDED)
     {
@@ -225,19 +224,23 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<double> &rVariable,
-                                                                                    std::vector<double> &rOutput,
-                                                                                    const ProcessInfo &rCurrentProcessInfo)
+                                                                                     std::vector<double> &rOutput,
+                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == EQ_STRAIN_RATE)
     {
       rOutput[0] = this->GetValue(EQ_STRAIN_RATE);
     }
+    if (rVariable == MECHANICAL_DISSIPATION)
+    {
+      rOutput[0] = this->GetValue(MECHANICAL_DISSIPATION);
+    }
   }
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
-                                                                                    std::vector<Vector> &rOutput,
-                                                                                    const ProcessInfo &rCurrentProcessInfo)
+                                                                                     std::vector<Vector> &rOutput,
+                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == CAUCHY_STRESS_VECTOR)
     {

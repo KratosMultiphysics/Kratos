@@ -25,6 +25,7 @@
 #include "utilities/constraint_utilities.h"
 #include "input_output/logger.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -57,7 +58,7 @@ namespace Kratos
  * the end of the system ordered in reverse order with respect to the DofSet.
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
- * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * Calculation of the reactions involves a cost very similar to the calculation of the total residual
  * The system is build in the following manner. A T matrix is assembled and constant vector g is assembled too. The T matrix contains the relations of all the dofs of the system, even the nodes with no master/slave relation. Then the size is n_total x n_red
  *      The relation u = T u_red
  * Then:
@@ -293,7 +294,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
      * and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the
      * way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -307,70 +308,6 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
             SetUpDofSetWithConstraints(pScheme, rModelPart);
         else
             BaseType::SetUpDofSet(pScheme, rModelPart);
-    }
-
-    /**
-     * @brief It applies certain operations at the system of equations at the begining of the solution step
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY
-
-        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-        // Getting process info
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-
-        // Computing constraints
-        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
-        for (int k = 0; k < n_constraints; ++k) {
-            auto it = constraints_begin + k;
-            it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation slave_ids.
-        }
-
-        KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to initialize solution step.")
-    }
-
-    /**
-     * @brief It applies certain operations at the system of equations at the end of the solution step
-     * @param rModelPart The model part to compute
-     * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
-     * @param rb The RHS vector of the system of equations
-     */
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY
-        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-
-        // Getting process info
-        const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-
-        // Computing constraints
-        const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-        const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
-        #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
-        for (int k = 0; k < n_constraints; ++k) {
-            auto it = constraints_begin + k;
-            it->FinalizeSolutionStep(r_process_info);
-        }
-        KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to finalize solution step.")
     }
 
     /**
@@ -457,7 +394,7 @@ protected:
     bool mResetRelationMatrixEachIteration = false;        /// If we reset the relation matrix at each iteration
 
     bool mComputeConstantContribution = false;             /// If we compute the constant contribution of the MPC
-    bool mCleared = true;                                  /// If the system has been reseted
+    bool mCleared = true;                                  /// If the system has been reset
 
     ///@}
     ///@name Protected Operators
@@ -493,7 +430,7 @@ protected:
     }
 
     /**
-     * @brief This method construcs the relationship between the DoF
+     * @brief This method constructs the relationship between the DoF
      * @param pScheme The integration scheme
      * @param rA The LHS of the system
      * @param rModelPart The model part which defines the problem
@@ -515,7 +452,7 @@ protected:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     void BuildAndSolveWithConstraints(
@@ -633,7 +570,7 @@ protected:
 
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
-     * @details Equivalent to the ResidualBasedEliminationBuilderAndSolver but with constraints. The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
+     * @details Equivalent to the ResidualBasedEliminationBuilderAndSolver but with constraints. The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      */
@@ -769,7 +706,7 @@ protected:
         if(BaseType::GetCalculateReactionsFlag()) {
             for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
                 KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " << std::endl
-                    << "Node : " << dof_iterator->Id()<< std::endl
+                    << "Node : " << dof_iterator->Id() << std::endl
                     << "Dof : " << (*dof_iterator) << std::endl << "Not possible to calculate reactions." << std::endl;
             }
         }
@@ -825,7 +762,7 @@ protected:
             KRATOS_WARNING_IF("ResidualBasedEliminationBuilderAndSolver", rModelPart.GetCommunicator().MyPID() == 0) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
-        // Prints informations about the current time
+        // Prints information about the current time
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -853,9 +790,9 @@ protected:
         std::vector<IndexSetType> indices(equation_size);
 
         // We reserve some indexes on each row
-        #pragma omp parallel for firstprivate(equation_size)
-        for (int index = 0; index < static_cast<int>(equation_size); ++index)
-            indices[index].reserve(40);
+        block_for_each(indices, [](IndexSetType& rIndices){
+            rIndices.reserve(40);
+        });
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
@@ -931,14 +868,8 @@ protected:
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = const_begin + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if( it_const->IsDefined(ACTIVE) ) {
-                    constraint_is_active = it_const->Is(ACTIVE);
-                }
-
-                if(constraint_is_active) {
+                // If the constraint is active
+                if(it_const->IsActive()) {
                     it_const->EquationIdVector(ids, second_ids, r_current_process_info);
                     // Slave DoFs
                     for (auto& id_i : ids) {
@@ -990,21 +921,20 @@ protected:
         for (int i = 0; i < static_cast<int>(rA.size1()); i++)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rA.size1()); ++i) {
-            const IndexType row_begin = Arow_indices[i];
-            const IndexType row_end = Arow_indices[i + 1];
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
+            const IndexType row_begin = Arow_indices[Index];
+            const IndexType row_end = Arow_indices[Index + 1];
             IndexType k = row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
+            for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
                 k++;
             }
 
-            indices[i].clear(); //deallocating the memory
+            indices[Index].clear(); //deallocating the memory
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
-        }
+        });
 
         rA.set_filled(indices.size() + 1, nnz);
 
@@ -1060,14 +990,8 @@ protected:
         for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
             auto it_const = it_const_begin + i_const;
 
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint
-            // It is active by default
-            bool constraint_is_active = true;
-            if( it_const->IsDefined(ACTIVE) ) {
-                constraint_is_active = it_const->Is(ACTIVE);
-            }
-
-            if(constraint_is_active) {
+            // If the constraint is active
+            if(it_const->IsActive()) {
                 it_const->EquationIdVector(ids, second_ids, r_current_process_info);
                 for (auto& slave_id : ids) {
                     if (slave_id < BaseType::mEquationSystemSize) {
@@ -1106,22 +1030,20 @@ protected:
 
         KRATOS_DEBUG_ERROR_IF_NOT(Trow_indices[BaseType::mEquationSystemSize] == nnz) << "Nonzero values does not coincide with the row index definition: " << Trow_indices[BaseType::mEquationSystemSize] << " vs " << nnz << std::endl;
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rT.size1()); ++i) {
-            const IndexType row_begin = Trow_indices[i];
-            const IndexType row_end = Trow_indices[i + 1];
+        IndexPartition<std::size_t>(rT.size1()).for_each([&](std::size_t Index){
+            const IndexType row_begin = Trow_indices[Index];
+            const IndexType row_end = Trow_indices[Index + 1];
             IndexType k = row_begin;
-            for (auto it = master_indices[i].begin(); it != master_indices[i].end(); ++it) {
+            for (auto it = master_indices[Index].begin(); it != master_indices[Index].end(); ++it) {
                 Tcol_indices[k] = *it;
                 Tvalues[k] = 0.0;
                 k++;
             }
 
-            master_indices[i].clear(); //deallocating the memory
+            master_indices[Index].clear(); //deallocating the memory
 
             std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-        }
-
+        });
         rT.set_filled(BaseType::mEquationSystemSize + 1, nnz);
 
         // Setting ones
@@ -1338,7 +1260,7 @@ protected:
                 ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
             } else {
                 if (rTMatrix.size1() != BaseType::mEquationSystemSize || rTMatrix.size2() != mDoFToSolveSystemSize) {
-                    KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
+                    KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
                     rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, false);
                     ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
                 }
@@ -1351,7 +1273,7 @@ protected:
                 mComputeConstantContribution = ComputeConstraintContribution(pScheme, rModelPart);
             } else {
                 if (rConstantVector.size() != BaseType::mEquationSystemSize) {
-                    KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
+                    KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
                     rConstantVector.resize(BaseType::mEquationSystemSize, false);
                     mComputeConstantContribution = ComputeConstraintContribution(pScheme, rModelPart);
                 }
@@ -1362,7 +1284,7 @@ protected:
                     rDeltaConstantVector.resize(BaseType::mEquationSystemSize, false);
                 } else {
                     if (rDeltaConstantVector.size() != BaseType::mEquationSystemSize) {
-                        KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
+                        KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
                         rDeltaConstantVector.resize(BaseType::mEquationSystemSize, false);
                     }
                 }
@@ -1375,7 +1297,7 @@ protected:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     void CalculateReactions(
@@ -1405,8 +1327,8 @@ protected:
     }
 
     /**
-     * @brief Applies the dirichlet conditions. This operation may be very heavy or completely unexpensive depending on the implementation choosen and on how the System Matrix is built.
-     * @details In the base ResidualBasedEliminationBuilderAndSolver does nothing, due to the fact that the BC are automatically managed with the elimination. But in the constrints approach the slave DoF depending on fixed DoFs must be reconstructed
+     * @brief Applies the dirichlet conditions. This operation may be very heavy or completely unexpensive depending on the implementation chosen and on how the System Matrix is built.
+     * @details In the base ResidualBasedEliminationBuilderAndSolver does nothing, due to the fact that the BC are automatically managed with the elimination. But in the constraints approach the slave DoF depending on fixed DoFs must be reconstructed
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
@@ -1451,6 +1373,9 @@ protected:
             IndexType* Arow_indices = rA.index1_data().begin();
             IndexType* Acol_indices = rA.index2_data().begin();
 
+            // Define  zero value tolerance
+            const double zero_tolerance = std::numeric_limits<double>::epsilon();
+
             // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
             #pragma omp parallel for
             for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
@@ -1458,7 +1383,7 @@ protected:
                 const IndexType col_end = Arow_indices[k+1];
                 bool empty = true;
                 for (IndexType j = col_begin; j < col_end; ++j) {
-                    if(Avalues[j] != 0.0) {
+                    if(std::abs(Avalues[j]) > zero_tolerance) {
                         empty = false;
                         break;
                     }
@@ -1470,19 +1395,18 @@ protected:
                 }
             }
 
-            #pragma omp parallel for
-            for (int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                const IndexType col_begin = Arow_indices[k];
-                const IndexType col_end = Arow_indices[k+1];
-                const double k_factor = scaling_factors[k];
+            IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&](std::size_t Index){
+                const IndexType col_begin = Arow_indices[Index];
+                const IndexType col_end = Arow_indices[Index+1];
+                const double k_factor = scaling_factors[Index];
                 if (k_factor == 0) {
                     // Zero out the whole row, except the diagonal
                     for (IndexType j = col_begin; j < col_end; ++j)
-                        if (static_cast<int>(Acol_indices[j]) != k )
+                        if (Acol_indices[j] != Index )
                             Avalues[j] = 0.0;
 
                     // Zero out the RHS
-                    rb[k] = 0.0;
+                    rb[Index] = 0.0;
                 } else {
                     // Zero out the column which is associated with the zero'ed row
                     for (IndexType j = col_begin; j < col_end; ++j) {
@@ -1491,7 +1415,7 @@ protected:
                         }
                     }
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("");
@@ -1504,7 +1428,7 @@ protected:
     {
         BaseType::Clear();
 
-        // Reseting auxiliar set of dofs
+        // Resetting auxiliar set of dofs
         mDoFMasterFixedSet = DofsArrayType();
         mDoFSlaveSet = DofsArrayType();
 
@@ -1607,13 +1531,8 @@ private:
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = it_const_begin + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
+                // If the constraint is active
+                if (it_const->IsActive()) {
                     it_const->GetDofList(slave_dof_list, master_dof_list, r_current_process_info);
 
                     // Filling the set of dofs master and fixed at the same time
@@ -1691,7 +1610,7 @@ private:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      */
     void ApplyMasterSlaveRelation(
@@ -1717,8 +1636,8 @@ private:
      * @brief This method checks that the master/slave relation is properly set
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
-     * @param rDx The vector of unkowns
-     * @param rDxSolved The vector of unkowns actually solved
+     * @param rDx The vector of unknowns
+     * @param rDxSolved The vector of unknowns actually solved
      */
     bool CheckMasterSlaveRelation(
         typename TSchemeType::Pointer pScheme,
@@ -1749,14 +1668,12 @@ private:
             }
         }
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-            auto it_dof = it_dof_begin + i;
-            const IndexType equation_id = it_dof->EquationId();
-            if (equation_id < BaseType::mEquationSystemSize ) {
-                residual_solution[equation_id] = it_dof->GetSolutionStepValue() + rDx[equation_id];
+        block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
+            const IndexType equation_id = rDof.EquationId();
+            if (equation_id < this->mEquationSystemSize ) {
+                residual_solution[equation_id] = rDof.GetSolutionStepValue() + rDx[equation_id];
             }
-        }
+        });
 
         // Apply master slave constraints
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1868,12 +1785,8 @@ private:
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i<nelements; ++i) {
                 auto it_elem = it_elem_begin + i;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                // If the element is active
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_elem, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
@@ -1888,12 +1801,8 @@ private:
             #pragma omp  for schedule(guided, 512)
             for (int i = 0; i<nconditions; ++i) {
                 auto it_cond = it_cond_begin + i;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                // If the condition is active
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_cond, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
 
@@ -1941,12 +1850,8 @@ private:
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i<nelements; ++i) {
                 auto it_elem = it_elem_begin + i;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                // If the element is active
+                if (it_elem->IsActive()) {
                     // Calculate elemental Right Hand Side Contribution
                     pScheme->CalculateRHSContribution(*it_elem, rhs_contribution, equation_id, r_current_process_info);
 
@@ -1961,12 +1866,8 @@ private:
             #pragma omp  for schedule(guided, 512)
             for (int i = 0; i<nconditions; ++i) {
                 auto it_cond = it_cond_begin + i;
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active) {
+                // If the condition is active
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateRHSContribution(*it_cond, rhs_contribution, equation_id, r_current_process_info);
 
@@ -2060,10 +1961,10 @@ private:
     {
         TSystemMatrixType& rTMatrix = *mpTMatrix;
         double *Tvalues = rTMatrix.value_data().begin();
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rTMatrix.nnz()); ++i) {
-            Tvalues[i] = 0.0;
-        }
+
+        IndexPartition<std::size_t>(rTMatrix.nnz()).for_each([&Tvalues](std::size_t Index){
+            Tvalues[Index] = 0.0;
+        });
 
         IndexMapType solvable_dof_reorder;
 
@@ -2109,18 +2010,18 @@ private:
         if (mDoFMasterFixedSet.size() > 0) {
             // NOTE: dofs are assumed to be numbered consecutively
             const auto it_dof_begin = BaseType::mDofSet.begin();
-            #pragma omp parallel for
-            for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                auto it_dof = it_dof_begin + k;
-                if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
+
+            IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&, this](std::size_t Index){
+                auto it_dof = it_dof_begin + Index;
+                if (Index < this->mEquationSystemSize) {
                     auto it = mDoFSlaveSet.find(*it_dof);
                     if (it == mDoFSlaveSet.end()) {
                         if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
-                            rb[k] = 0.0;
+                            rb[Index] = 0.0;
                         }
                     }
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("");
@@ -2149,10 +2050,9 @@ private:
 
         // Filling constant vector
         if (ComputeConstantVector) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                rConstantVector[i] = 0.0;
-            }
+            IndexPartition<std::size_t>(this->mEquationSystemSize).for_each([&rConstantVector](std::size_t Index){
+                rConstantVector[Index] = 0.0;
+            });
         }
 
         // Auxiliar set to reorder master DoFs
@@ -2198,13 +2098,8 @@ private:
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
+                // If the constraint is active
+                if (it_const->IsActive()) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
                     it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
 
@@ -2258,7 +2153,7 @@ private:
      * @brief This method computes the efective constant
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
-     * @param rDxSolved The vector of unkowns actually solved
+     * @param rDxSolved The vector of unknowns actually solved
      */
     void ComputeEffectiveConstant(
         typename TSchemeType::Pointer pScheme,
@@ -2283,14 +2178,13 @@ private:
 
             TSystemVectorType u(BaseType::mEquationSystemSize);
 
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-                auto it_dof = it_dof_begin + i;
-                const IndexType equation_id = it_dof->EquationId();
-                if (equation_id < BaseType::mEquationSystemSize ) {
-                    u[equation_id] = it_dof->GetSolutionStepValue() + Dx[equation_id];
+            block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
+                const IndexType equation_id = rDof.EquationId();
+                if (equation_id < this->mEquationSystemSize ) {
+                    u[equation_id] = rDof.GetSolutionStepValue() + Dx[equation_id];
                 }
-            }
+            });
+
             TSystemVectorType u_bar(mDoFToSolveSystemSize);
             IndexType counter = 0;
             for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {

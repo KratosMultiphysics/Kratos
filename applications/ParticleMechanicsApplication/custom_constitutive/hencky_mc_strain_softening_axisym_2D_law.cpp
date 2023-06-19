@@ -76,7 +76,7 @@ HenckyMCStrainSofteningPlasticAxisym2DLaw::~HenckyMCStrainSofteningPlasticAxisym
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyMCStrainSofteningPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyMCStrainSofteningPlasticAxisym2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlasticAxisym2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

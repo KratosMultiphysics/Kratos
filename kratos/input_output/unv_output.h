@@ -171,12 +171,12 @@ public:
      * @param node       Input node
      * @param rVariable  Variable to print
      */
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Vector>& rVariable);
-    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Matrix>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<bool>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<int>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<double>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<array_1d<double,3>>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<Vector>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<Matrix>& rVariable);
 
     /**
      * @brief Get the id of the UNV variable name corresponding to rVariable. 1000+ if none found.
@@ -227,7 +227,7 @@ public:
         outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
 
         std::string dataSetName = "NodalResults";
-        std::string dataSetLabel = rVariable.Name();
+        const std::string& dataSetLabel = rVariable.Name();
 
         outputFile << std::setw(6)  << "-1" << "\n";                                                // Begin block
         outputFile << std::setw(6)  << as_integer(DatasetID::RESULTS_DATASET) << "\n";              // DatasetID

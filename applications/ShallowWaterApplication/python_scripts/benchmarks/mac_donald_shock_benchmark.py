@@ -40,8 +40,8 @@ class MacDonaldShockBenchmark(BaseBenchmarkProcess):
 
         super().__init__(model, settings)
 
-        self.n = self.benchmark_settings["manning"].GetDouble()
-        self.q = self.benchmark_settings["discharge"].GetDouble()
+        self.n = self.settings["benchmark_settings"]["manning"].GetDouble()
+        self.q = self.settings["benchmark_settings"]["discharge"].GetDouble()
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
         self.x0 = 0
         self.x100 = 100
@@ -180,6 +180,8 @@ class MacDonaldShockBenchmark(BaseBenchmarkProcess):
         return self.list_of_bc_processes
 
     def _CreateListOfBoundaryConditionsProcesses(self):
+        benchmark_settings = self.settings["benchmark_settings"]
+
         self.upstream_settings = KM.Parameters("""{
             "process_name" : "ApplyConstantVectorValueProcess",
             "Parameters"   : {
@@ -188,7 +190,7 @@ class MacDonaldShockBenchmark(BaseBenchmarkProcess):
                 "is_fixed_y"      : true,
                 "direction"       : [1.0, 0.0, 0.0]}
         }""")
-        self.upstream_settings["Parameters"].AddValue("model_part_name", self.benchmark_settings["upstream_model_part"])
+        self.upstream_settings["Parameters"].AddValue("model_part_name", benchmark_settings["upstream_model_part"])
         self.upstream_settings["Parameters"].AddDouble("modulus", self.q)
 
         self.downstream_settings = KM.Parameters("""{
@@ -198,7 +200,7 @@ class MacDonaldShockBenchmark(BaseBenchmarkProcess):
                 "is_fixed"        : true
             }
         }""")
-        self.downstream_settings["Parameters"].AddValue("model_part_name", self.benchmark_settings["downstream_model_part"])
+        self.downstream_settings["Parameters"].AddValue("model_part_name", benchmark_settings["downstream_model_part"])
         self.downstream_settings["Parameters"].AddDouble("value", self.h100)
 
         list_of_bc_processes = []

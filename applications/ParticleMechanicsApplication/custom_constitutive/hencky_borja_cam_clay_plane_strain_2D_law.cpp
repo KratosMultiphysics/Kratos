@@ -75,7 +75,7 @@ HenckyBorjaCamClayPlasticPlaneStrain2DLaw::~HenckyBorjaCamClayPlasticPlaneStrain
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyBorjaCamClayPlasticPlaneStrain2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyBorjaCamClayPlasticPlaneStrain2DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlasticPlaneStrain2DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 

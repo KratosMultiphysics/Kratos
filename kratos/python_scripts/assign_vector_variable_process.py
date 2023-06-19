@@ -2,14 +2,13 @@
 import KratosMultiphysics
 from KratosMultiphysics import assign_scalar_variable_process
 
-from math import *
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignVectorVariableProcess(Model, settings["Parameters"])
 
-## All the processes python should be derived from "Process"
+
 class AssignVectorVariableProcess(KratosMultiphysics.Process):
     """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
 
@@ -38,7 +37,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
-            "value"                : [10.0, "3*t", "x+y"],
+            "value"                : [0.0, 0.0, 0.0],
             "constrained"          : [true,true,true],
             "local_axes"           : {}
         }
@@ -54,6 +53,10 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 settings["constrained"] = default_settings["constrained"]
                 for i in range(3):
                     settings["constrained"][i].SetBool(is_fixed)
+
+        if not settings.Has("value"):
+            raise RuntimeError("Please specify the value to set the vector to. Example:\n" \
+                               + '{\n\t"value" : [10.0, "3*t", "x+y"]\n}\n')
 
         settings.ValidateAndAssignDefaults(default_settings)
 

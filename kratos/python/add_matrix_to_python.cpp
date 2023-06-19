@@ -89,17 +89,29 @@ namespace Python
 
           return matrix;
         }));
-      #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        // This constructor is not supported by AMatrix
-        //matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
-        matrix_binder.def("fill", [](DenseMatrix<double>& self, const typename DenseMatrix<double>::value_type value) { self.fill(value); });
-        matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { self.fill_identity(); });
-      #else
+
+        matrix_binder.def(py::init([](const py::list& input){
+          std::size_t num_rows = input.size();
+          if( num_rows == 0 || ( (num_rows == 1) && (py::len(input[0]) == 0) ) )
+            return DenseMatrix<double>(0,0);
+          else{
+            std::size_t num_cols = py::len(input[0]);
+            DenseMatrix<double>matrix = DenseMatrix<double>(num_rows, num_cols);
+            for(std::size_t i = 0; i < num_rows; i++){
+              const auto row = py::cast<py::list>(input[i]);
+              KRATOS_ERROR_IF( py::len(row) != num_cols ) << "Wrong size of a row " << i << "! Expected " << num_cols << ", got " << py::len(row) << std::endl;;
+              for(std::size_t j = 0; j < num_cols; j++){
+                  matrix(i,j) = py::cast<double>(row[j]);
+              }
+            }
+            return matrix;
+          }
+        }));
+
         matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
         matrix_binder.def("fill", [](DenseMatrix<double>& self, const typename DenseMatrix<double>::value_type value) { noalias(self) = DenseMatrix<double>(self.size1(),self.size2(),value); });
         matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { noalias(self) = IdentityMatrix(self.size1()); });
         matrix_binder.def("transpose", [](DenseMatrix<double>& self) { return Matrix(trans(self)); });
-      #endif // KRATOS_USE_AMATRIX
         matrix_binder.def(py::init<const DenseMatrix<double>& >());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, py::is_operator());
         matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, py::is_operator());
@@ -171,16 +183,13 @@ namespace Python
 
           return matrix;
         }));
-      #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        // This constructor is not supported by AMatrix
-        //cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type, const ComplexMatrix::value_type >());
-        cplx_matrix_binder.def("fill", [](ComplexMatrix& self, const typename ComplexMatrix::value_type value) { self.fill(value); });
-        cplx_matrix_binder.def("fill_identity", [](ComplexMatrix& self) { self.fill_identity(); });
-      #else
+
+
+        py::implicitly_convertible<py::buffer, DenseMatrix<double>>();
+
         cplx_matrix_binder.def(py::init<const ComplexMatrix::size_type, const ComplexMatrix::size_type, const ComplexMatrix::value_type >());
         cplx_matrix_binder.def("fill", [](ComplexMatrix& self, const typename ComplexMatrix::value_type value) { noalias(self) = ComplexMatrix(self.size1(),self.size2(),value); });
         cplx_matrix_binder.def("fill_identity", [](ComplexMatrix& self) { noalias(self) = IdentityMatrix(self.size1()); });
-      #endif // KRATOS_USE_AMATRIX
         cplx_matrix_binder.def(py::init<const ComplexMatrix& >());
         cplx_matrix_binder.def("__mul__", [](const ComplexMatrix& m1, const ComplexVector& v){ return ComplexVector(prod(m1,v));}, py::is_operator());
         cplx_matrix_binder.def_buffer( [](ComplexMatrix& self)-> py::buffer_info{

@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from math import sqrt   # Import the square root from python library
 
 # Import utilities
@@ -211,15 +210,11 @@ class PartitionedFSIBaseSolver(PythonSolver):
         pass
 
     def SolveSolutionStep(self):
-        ## Safe ward to avoid coupling if fluid problem is not initialized
-        if not self.fluid_solver._TimeBufferIsInitialized():
-            return True
-
         ## Initialize residual
         dis_residual_norm = self._ComputeInitialResidual()
 
         ## FSI nonlinear iteration loop
-        nl_it = 0
+        nl_it = 1
         is_converged = False
         while (nl_it < self.max_nl_it):
             # Check convergence
@@ -227,6 +222,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear iteration convergence achieved in {0} iterations.'.format(nl_it))
                 is_converged = True
                 break
+            else:
+                nl_it += 1
 
             # Perform the displacement convergence accelerator update
             self._GetConvergenceAccelerator().InitializeNonLinearIteration()
@@ -264,8 +261,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
                     self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                     self._GetFSICouplingInterfaceStructure().GetFatherModelPart(),
                     0)
-                #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
-                self._GetFSICouplingInterfaceStructure().GetFatherModelPart().GetCommunicator().SynchronizeVariable(self._GetTractionVariable())
 
             self._GetConvergenceAccelerator().FinalizeNonLinearIteration()
 
@@ -275,11 +270,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
             # Compute the residual vector
             dis_residual_norm = self._GetFSICouplingInterfaceStructure().ComputeResidualVector()
 
-            # Check and update iterator counter
+            # Check if maximum iterations are reached
             if nl_it == self.max_nl_it:
-                KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'FSI non-linear converged not achieved in {0} iterations'.format(self.max_nl_it))
-            else:
-                nl_it += 1
+                KratosMultiphysics.Logger.PrintWarning('PartitionedFSIBaseSolver', 'FSI non-linear maximum iterations {0} reached'.format(self.max_nl_it))
 
         return is_converged
 
@@ -410,9 +403,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     def _AdvanceInTimeCouplingInterfaces(self, new_time):
         self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceStructure().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
         self._GetFSICouplingInterfaceFluidPositive().GetInterfaceModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceFluidPositive().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceFluidPositive().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
         if self.double_faced_structure:
             self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart().CloneTimeStep(new_time)
+            self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceFluidNegative().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
 
     # This method finds the maximum buffer size between mesh,
     # fluid and structure solvers and sets it to all the solvers.
@@ -472,7 +468,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         if not hasattr(self, '_structure_interface_submodelpart_name'):
             str_int_list = self.settings["coupling_settings"]["structure_interfaces_list"]
             if (str_int_list.size() != 1):
-                raise Exception("FSI embedded solver structure skin must be contained in a unique model part")
+                raise Exception("FSI structure skin must be contained in a unique model part")
             self._structure_interface_submodelpart_name = str_int_list[0].GetString()
         return self._structure_interface_submodelpart_name
 
@@ -590,7 +586,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             aux_settings,
             convergence_accelerator)
 
-        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Structure FSI coupling interface created')
+        KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'Structure FSI coupling interface created')
 
         return fsi_coupling_interface_structure
 
@@ -631,7 +627,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             self.model,
             aux_settings)
 
-        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Fluid {} FSI coupling interface created'.format(fluid_interface_side))
+        KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'Fluid {} FSI coupling interface created'.format(fluid_interface_side))
 
         return fsi_coupling_interface_fluid
 
@@ -645,7 +641,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
     # This method constructs the convergence accelerator coupling utility
     def _CreateConvergenceAccelerator(self):
         convergence_accelerator = convergence_accelerator_factory.CreateConvergenceAccelerator(self.settings["coupling_settings"]["coupling_strategy_settings"])
-        KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', 'Coupling strategy construction finished')
+        KratosMultiphysics.Logger.PrintInfo('PartitionedFSIBaseSolver', 'Coupling strategy construction finished')
         return convergence_accelerator
 
     def _MapStructureInterfaceDisplacement(self):
@@ -653,6 +649,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self._GetStructureToFluidPositiveInterfaceMapper().Map(
             KratosMultiphysics.RELAXED_DISPLACEMENT,
             KratosMultiphysics.MESH_DISPLACEMENT)
+
         # In case the structure is double faced, we take advantage of the equal positive and negative sides meshes
         if self.double_faced_structure:
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(
@@ -660,8 +657,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 KratosMultiphysics.MESH_DISPLACEMENT,
                 self._GetFSICouplingInterfaceFluidPositive.GetInterfaceModelPart(),
                 self._GetFSICouplingInterfaceFluidNegative.GetInterfaceModelPart())
-            #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
-            self._GetFSICouplingInterfaceFluidNegative().GetInterfaceModelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.MESH_DISPLACEMENT)
 
         # Update the fluid interface position
         self._GetFSICouplingInterfaceFluidPositive().UpdatePosition(KratosMultiphysics.MESH_DISPLACEMENT)
@@ -729,12 +724,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self._GetStructureToFluidPositiveInterfaceMapper().InverseMap(
             self._GetTractionVariable(),
             KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE,
-            KratosMapping.Mapper.SWAP_SIGN)
+            KratosMultiphysics.Mapper.SWAP_SIGN)
         if self.double_faced_structure:
             self._GetStructureToFluidNegativeInterfaceMapper().InverseMap(
                 self._GetTractionVariable(),
                 KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE,
-                KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+                KratosMultiphysics.Mapper.ADD_VALUES | KratosMultiphysics.Mapper.SWAP_SIGN)
 
         # Send the mapped load from the structure FSI coupling interface to the parent one
         self._GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(self._GetTractionVariable())
@@ -760,8 +755,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
             self._GetStructureInterfaceSubmodelPart(),
             self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
             0)
-        #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
-        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.RELAXED_DISPLACEMENT)
 
         # Update the structure interface position with the DISPLACEMENT values from the predict
         self._GetFSICouplingInterfaceStructure().UpdatePosition(KratosMultiphysics.RELAXED_DISPLACEMENT)
@@ -788,8 +781,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
                 0)
-            #TODO: Remove as soon as the CopyModelPartNodalVar synchronizes internally
-            self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.RELAXED_TRACTION)
 
         # Directly send the map load from the structure FSI coupling interface to the parent one
         self._GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(self._GetTractionVariable())

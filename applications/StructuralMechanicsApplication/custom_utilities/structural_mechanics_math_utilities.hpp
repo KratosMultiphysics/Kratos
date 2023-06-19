@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES)
-#define KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES
+#pragma once
 
 // System includes
 
@@ -40,7 +39,7 @@ public:
 
     typedef long double                                RealType;
 
-    typedef Node<3>                                    NodeType;
+    typedef Node                                    NodeType;
 
     typedef Geometry<NodeType>                     GeometryType;
 
@@ -320,7 +319,7 @@ public:
      */
 
     static inline double CalculateRadius(
-        const Vector N,
+        const Vector& N,
         const GeometryType& Geom,
         const Configuration ThisConfiguration = Current
         )
@@ -434,5 +433,4 @@ public:
 private:
 };// class StructuralMechanicsMathUtilities
 }
-#endif /* KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES defined */
 

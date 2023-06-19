@@ -20,7 +20,7 @@
 // KratosCore dependencies
 #include "includes/model_part.h"
 #include "linear_solvers/linear_solver.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "spaces/ublas_space.h"
 
 // TrilinosApplication dependencies
@@ -49,7 +49,7 @@ void AddTrilinosStrategiesToPython(pybind11::module& m)
     using UblasLocalSpace = UblasSpace<double, Matrix, Vector>;
     using TrilinosLinearSolver = LinearSolver<TrilinosSparseSpace, UblasLocalSpace>;
 
-    using TrilinosBaseSolvingStrategy = SolvingStrategy< TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver >;
+    using TrilinosBaseSolvingStrategy = ImplicitSolvingStrategy< TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver >;
     using BaseSolverSettings = SolverSettings<TrilinosSparseSpace, UblasLocalSpace, TrilinosLinearSolver>;
     using BaseSchemeType = Scheme<TrilinosSparseSpace, UblasLocalSpace>;
 

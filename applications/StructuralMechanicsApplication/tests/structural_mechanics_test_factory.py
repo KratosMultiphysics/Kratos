@@ -76,6 +76,9 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
+class AutomatedInitialVariableProcessTest(StructuralMechanicsTestFactory):
+    file_name = "automated_initial_variable_process_test/automated_initial_variable_process_test"
+
 class SimpleMeshMovingTest(StructuralMechanicsTestFactory):
     file_name = "mesh_moving_test/simple_mesh_moving_test"
 
@@ -189,6 +192,7 @@ class MembranePreStressHorizontalTests(StructuralMechanicsTestFactory):
 class MembranePreStressDiagonalTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_prestress_diagonal_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class MembraneMultiLinearIsotropicPlaneStressTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/multi_linear_plane_stress_isotropic_membrane_test"
 
@@ -238,6 +242,9 @@ class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
 class InitialStateElasticityTest(StructuralMechanicsTestFactory):
     file_name = "InitialStateElasticity/initial_state_test"
 
+class InitialStrainShellQ4ThickTest(StructuralMechanicsTestFactory):
+    file_name = "InitialStateElasticity/initial_strain_shell_Q4_thick_test"
+
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
 
@@ -285,24 +292,31 @@ class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
 class ShellQ4ThickDrillingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class ShellQ4ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick_orthotropic_laminate_linear_static_test"
 class ShellT3ThinBendingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
 class ShellT3ThinDrillingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class ShellT3ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thin_orthotropic_laminate_linear_static_test"
 class ShellT3IsotropicScordelisTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
 class ShellT3ThickLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_linear_static_test"
+
 class ShellT3ThickNonLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_nonlinear_static_test"
 class ShellT3ThickLinearDynamicTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_linear_dynamic_test"
 class ShellT3ThickNonLinearDynamicTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_nonlinear_dynamic_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class ShellT3ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_orthotropic_laminate_linear_static_test"
 class ShellQ4ThinLinearStaticTests(StructuralMechanicsTestFactory):
@@ -313,6 +327,8 @@ class ShellQ4ThinLinearDynamicTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thin_linear_dynamic_test"
 class ShellQ4ThinNonLinearDynamicTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thin_nonlinear_dynamic_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class ShellQ4ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thin_orthotropic_laminate_linear_static_test"
 ### ---| OLD Tests End
@@ -320,9 +336,11 @@ class ShellQ4ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFac
 class SprismPanTests(StructuralMechanicsTestFactory):
     file_name = "sprism_test/pan_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class PendulusTLTest(StructuralMechanicsTestFactory):
     file_name = "pendulus_test/pendulus_TL_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class PendulusULTest(StructuralMechanicsTestFactory):
     file_name = "pendulus_test/pendulus_UL_test"
 

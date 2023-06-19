@@ -109,8 +109,8 @@
         "incremental_load":                false,
         "incremental_displacement":        false
     },
-    "list_of_nodes_displacement":  [0],
-    "list_of_nodes_reaction":      [0],
+    "list_of_nodes_displacement":  [],
+    "list_of_nodes_reaction":      [],
     "interval_of_watching"  :      0.0,
     "watch_nodes_list"      :      [],
     "watch_elements_list"   :      [],

@@ -3,16 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:     BSD License
-//  license:      structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Klaus B. Sautter
 //
 
-#if !defined(KRATOS_CR_BEAM_ELEMENT_LINEAR_2D2N_H_INCLUDED )
-#define  KRATOS_CR_BEAM_ELEMENT_LINEAR_2D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -35,7 +32,7 @@ namespace Kratos
  * @author Klaus B Sautter
  */
 
-class CrBeamElementLinear2D2N : public CrBeamElement2D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CrBeamElementLinear2D2N : public CrBeamElement2D2N
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElementLinear2D2N);
@@ -108,12 +105,14 @@ public:
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-private:
+protected:
+
     CrBeamElementLinear2D2N() {};
 
     // stores the globalized master stiffness matrix for reaction forces
     Matrix mK_Master = ZeroMatrix(msElementSize,msElementSize);
 
+private:
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
@@ -121,5 +120,3 @@ private:
 };
 
 }
-
-#endif

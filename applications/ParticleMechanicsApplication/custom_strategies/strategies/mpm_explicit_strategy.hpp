@@ -24,7 +24,7 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "includes/kratos_flags.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 // Application includes
 #include "particle_mechanics_application_variables.h"
@@ -43,12 +43,12 @@ namespace Kratos
         class TLinearSolver
     >
         class MPMExplicitStrategy
-        : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+        : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(MPMExplicitStrategy);
 
-        typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+        typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
         typedef typename BaseType::TDataType TDataType;
 
@@ -82,7 +82,7 @@ namespace Kratos
             bool ReformDofSetAtEachStep = false,
             bool MoveMeshFlag = false
             )
-            : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag),
+            : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag),
             mpScheme(pScheme),
             mReformDofSetAtEachStep(ReformDofSetAtEachStep),
             mCalculateReactionsFlag(CalculateReactions)

@@ -233,7 +233,7 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int ElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int ElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 

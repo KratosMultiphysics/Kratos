@@ -55,11 +55,11 @@ class ElementalNeighboursSearchProcess
   typedef  ModelPart::NodesContainerType NodesContainerType;
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
 
-  typedef Node<3>::WeakPointer NodeWeakPtrType;
+  typedef Node::WeakPointer NodeWeakPtrType;
   typedef Element::WeakPointer ElementWeakPtrType;
   typedef Condition::WeakPointer ConditionWeakPtrType;
 
-  typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
   ///@}
@@ -108,7 +108,7 @@ class ElementalNeighboursSearchProcess
 
     int method = 0;  //Kratos or Lohner method
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     if(method==0)
     {
@@ -125,15 +125,15 @@ class ElementalNeighboursSearchProcess
     {
       std::cout<<" ERROR:  Element Neighbours Search FAILED !!! "<<std::endl;
     }
-    else
-    {
-      //print out the mesh generation time
-      if( mEchoLevel > 1 ){
-        double end_time = OpenMPUtils::GetCurrentTime();
-        std::cout<<"  Neighbour Elements Search time = "<<end_time-begin_time<<std::endl;
-      }
-      //PrintElementNeighbours();
-    }
+    // else
+    // {
+    //   //print out the mesh generation time
+    //   if( mEchoLevel > 1 ){
+    //     double end_time = OpenMPUtils::GetCurrentTime();
+    //     std::cout<<"  Neighbour Elements Search time = "<<end_time-begin_time<<std::endl;
+    //   }
+    //   //PrintElementNeighbours();
+    // }
 
 
   };
@@ -248,7 +248,7 @@ class ElementalNeighboursSearchProcess
     for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
     {
       //look for the nodes of the neighbour faces
-      Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
+      Geometry<Node >& nGeometry = i_nelem->GetGeometry();
       if(nGeometry.LocalSpaceDimension() == 1){
         for(unsigned int node_i = 0; node_i < nGeometry.size(); ++node_i)
         {
@@ -272,7 +272,7 @@ class ElementalNeighboursSearchProcess
     for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
     {
       //look for the nodes of the neighbour faces
-      Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
+      Geometry<Node >& nGeometry = i_nelem->GetGeometry();
       if(nGeometry.LocalSpaceDimension() == 2){
         for(unsigned int node_i = 0; node_i < nGeometry.size(); ++node_i)
         {
@@ -295,7 +295,7 @@ class ElementalNeighboursSearchProcess
     for(auto i_nelem(nElements.begin()); i_nelem != nElements.end(); ++i_nelem)
     {
       //look for the nodes of the neighbour faces
-      Geometry<Node<3> >& nGeometry = i_nelem->GetGeometry();
+      Geometry<Node >& nGeometry = i_nelem->GetGeometry();
       if(nGeometry.LocalSpaceDimension() == 3){
         for(unsigned int node_i = 0; node_i < nGeometry.size(); ++node_i)
         {
@@ -317,7 +317,7 @@ class ElementalNeighboursSearchProcess
   }
 
 
-  void ResetFlagOptions (Node<3>& rNode)
+  void ResetFlagOptions (Node& rNode)
   {
     rNode.Reset(BOUNDARY);
   }
@@ -437,7 +437,7 @@ class ElementalNeighboursSearchProcess
       for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
       {
         //face nodes
-        Geometry<Node<3> >& rGeometry = i_elem->GetGeometry();
+        Geometry<Node >& rGeometry = i_elem->GetGeometry();
 
         if( rGeometry.FacesNumber() == 3 ){
 
@@ -517,7 +517,7 @@ class ElementalNeighboursSearchProcess
       for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
       {
         //face nodes
-        Geometry<Node<3> >& rGeometry = i_elem->GetGeometry();
+        Geometry<Node >& rGeometry = i_elem->GetGeometry();
 
         if(rGeometry.FacesNumber() == 4){
 
@@ -583,7 +583,7 @@ class ElementalNeighboursSearchProcess
             {
               i_elem->Set(BOUNDARY);
 
-              Geometry<Node<3> >& rGeometry = (i_elem)->GetGeometry();
+              Geometry<Node >& rGeometry = (i_elem)->GetGeometry();
 
               DenseMatrix<unsigned int> lpofa; //points that define the faces
               rGeometry.NodesInFaces(lpofa);

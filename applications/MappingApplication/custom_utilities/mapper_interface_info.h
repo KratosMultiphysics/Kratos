@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_MAPPER_INTERFACE_INFO_H_INCLUDED)
-#define  KRATOS_MAPPER_INTERFACE_INFO_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -23,7 +22,6 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_searching/interface_object.h"
-
 
 namespace Kratos
 {
@@ -94,11 +92,9 @@ public:
     * later accesse by the MapperLocalSystem for assembling it's local system.
     * This happens in the remote partition.
     * @param rpInterfaceObject The InterfaceObject found by the search
-    * @param rpInterfaceObject The distance to the InterfaceObject found by the search
     * @author Philipp Bucher
     */
-    virtual void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                                     const double NeighborDistance) = 0;
+    virtual void ProcessSearchResult(const InterfaceObject& rInterfaceObject) = 0;
 
     /**
     * @brief Processing the result of the search for computing an approximation
@@ -110,14 +106,11 @@ public:
     * This happens in the remote partition.
     * It's implementation is optional
     * @param rpInterfaceObject The InterfaceObject found by the search
-    * @param rpInterfaceObject The distance to the InterfaceObject found by the search
     * @see ProcessSearchResult
     * @see SetIsApproximation
     * @author Philipp Bucher
     */
-    virtual void ProcessSearchResultForApproximation(
-        const InterfaceObject& rInterfaceObject,
-        const double NeighborDistance) {}
+    virtual void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject) {}
 
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                                 const IndexType SourceLocalSystemIndex,
@@ -197,7 +190,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void SetLocalSearchWasSuccessful() { mLocalSearchWasSuccessful = true; }
+    void SetLocalSearchWasSuccessful()
+    {
+        mLocalSearchWasSuccessful = true;
+        mIsApproximation = false;
+    }
 
     void SetIsApproximation()
     {
@@ -251,5 +248,3 @@ private:
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MAPPER_INTERFACE_INFO_H_INCLUDED  defined

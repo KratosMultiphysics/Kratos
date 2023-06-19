@@ -4,14 +4,13 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined (KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED)
-#define  KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -128,7 +127,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     };
@@ -281,6 +280,32 @@ public:
         Vector& rValue
         ) override;
 
+    // /**
+    //  * @brief It calculates the value of a specified variable (StrainVectorType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // ConstitutiveLaw::StrainVectorType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<StrainVectorType>& rThisVariable,
+    //     ConstitutiveLaw::StrainVectorType& rValue
+    //     ) override;
+
+    // /**
+    //  * @brief It calculates the value of a specified variable (StressVectorType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // ConstitutiveLaw::StressVectorType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<StressVectorType>& rThisVariable,
+    //     ConstitutiveLaw::StressVectorType& rValue
+    //     ) override;
+
     /**
      * @brief It calculates the value of a specified variable (Matrix case)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -294,6 +319,32 @@ public:
         Matrix& rValue
         ) override;
 
+    // /**
+    //  * @brief It calculates the value of a specified variable (VoigtSizeMatrixType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // ConstitutiveLaw::VoigtSizeMatrixType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<VoigtSizeMatrixType>& rThisVariable,
+    //     ConstitutiveLaw::VoigtSizeMatrixType& rValue
+    //     ) override;
+
+    // /**
+    //  * @brief It calculates the value of a specified variable (DeformationGradientMatrixType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // ConstitutiveLaw::DeformationGradientMatrixType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<DeformationGradientMatrixType>& rThisVariable,
+    //     ConstitutiveLaw::DeformationGradientMatrixType& rValue
+    //     ) override;
+
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
@@ -306,7 +357,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
 protected:
 
@@ -329,7 +380,7 @@ protected:
     * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
     * @param rConstitutiveMatrix The constitutive matrix
     */
-    void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix);
+    void CheckClearElasticMatrix(VoigtSizeMatrixType& rConstitutiveMatrix);
 
     /**
     * @brief It calculates the constitutive matrix rConstitutiveMatrix
@@ -337,7 +388,7 @@ protected:
     * @param rValues Parameters of the constitutive law
     */
     virtual void CalculateElasticMatrix(
-        Matrix& rConstitutiveMatrix,
+        ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -348,8 +399,8 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     virtual void CalculatePK2Stress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -360,7 +411,7 @@ protected:
      */
     virtual void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
+        ConstitutiveLaw::StrainVectorType& rStrainVector
         );
 
     ///@}
@@ -405,4 +456,3 @@ private:
 
 }; // Class ElasticIsotropic3D
 }  // namespace Kratos.
-#endif // KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED  defined

@@ -29,6 +29,24 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
     def test_binary_vtk_output_quad_3D(self):
         ExecuteBasicVTKoutputProcessCheck("binary", "Quad3D")
 
+    def test_ascii_vtk_output_quad_prism_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticPrism3D")
+
+    def test_binary_vtk_output_quad_prism_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("binary", "QuadraticPrism3D")
+
+    def test_ascii_vtk_output_quad_hexahedra_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticHexahedra3D")
+
+    def test_binary_vtk_output_quad_hexahedra_3D(self):
+        ExecuteBasicVTKoutputProcessCheck("binary", "QuadraticHexahedra3D")
+
+    def test_ascii_vtk_output_quad_hexahedra_3D_27N(self):
+        ExecuteBasicVTKoutputProcessCheck("ascii", "QuadraticHexahedra3D27N")
+
+    def test_binary_vtk_output_quad_hexahedra_3D_27N(self):
+        ExecuteBasicVTKoutputProcessCheck("binary", "QuadraticHexahedra3D27N")
+
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_vtk_output")
 
@@ -215,6 +233,109 @@ def SetupModelPartQuadratic3D(model_part):
     bcmn.AddNodes([11,14,15,21,27,28,31,32,34])
     bcmn.AddConditions([3,4])
 
+def SetupModelPartQuadraticPrism3D(model_part):
+    # Add variables
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+
+    # Create nodes
+    model_part.CreateNewNode(1,0.0, 0.0, 0.0)
+    model_part.CreateNewNode(2,1.0, 0.0, 0.0)
+    model_part.CreateNewNode(3,0.0, 1.0, 0.0)
+    model_part.CreateNewNode(4,0.0, 0.0, 0.2)
+    model_part.CreateNewNode(5,1.0, 0.0, 0.2)
+    model_part.CreateNewNode(6,0.0, 1.0, 0.2)
+    model_part.CreateNewNode(7,0.5, 0.0, 0.0)
+    model_part.CreateNewNode(8,0.5, 0.5, 0.0)
+    model_part.CreateNewNode(9,0.0, 0.5, 0.0)
+    model_part.CreateNewNode(10,0.0, 0.0, 0.1)
+    model_part.CreateNewNode(11,1.0, 0.0, 0.1)
+    model_part.CreateNewNode(12,0.0, 1.0, 0.1)
+    model_part.CreateNewNode(13,0.5, 0.0, 0.2)
+    model_part.CreateNewNode(14,0.5, 0.5, 0.2)
+    model_part.CreateNewNode(15,0.0, 0.5, 0.2)
+    model_part.CreateNewNode(16,1.0, 1.0, 0.0)
+    model_part.CreateNewNode(17,1.0, 0.5, 0.0)
+    model_part.CreateNewNode(18,0.5, 1.0, 0.0)
+    model_part.CreateNewNode(19,1.0, 1.0, 0.2)
+    model_part.CreateNewNode(20,1.0, 0.5, 0.2)
+    model_part.CreateNewNode(21,0.5, 1.0, 0.2)
+    model_part.CreateNewNode(22,1.0, 1.0, 0.1)
+
+    # Create elements
+    model_part.CreateNewElement("Element3D15N", 1,  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], model_part.GetProperties()[1])
+    model_part.CreateNewElement("Element3D15N", 2,  [16,3,2,19,6,5,18,8,17,22,12,11,21,14,20], model_part.GetProperties()[1])
+
+def SetupModelPartQuadraticHexahedra3D(model_part):
+    # Add variables
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+
+    # Create nodes
+    model_part.CreateNewNode(1,0.0,1.0,1.0)
+    model_part.CreateNewNode(2,0.0,1.0,0.5)
+    model_part.CreateNewNode(3,0.5,1.0,1.0)
+    model_part.CreateNewNode(4,0.0,0.5,1.0)
+    model_part.CreateNewNode(5,0.0,0.0,1.0)
+    model_part.CreateNewNode(6,1.0,1.0,1.0)
+    model_part.CreateNewNode(7,0.0,1.0,0.0)
+    model_part.CreateNewNode(8,1.0,0.5,1.0)
+    model_part.CreateNewNode(9,1.0,1.0,0.5)
+    model_part.CreateNewNode(10,0.0,0.0,0.5)
+    model_part.CreateNewNode(11,0.5,1.0,0.0)
+    model_part.CreateNewNode(12,0.0,0.5,0.0)
+    model_part.CreateNewNode(13,0.5,0.0,1.0)
+    model_part.CreateNewNode(14,1.0,1.0,0.0)
+    model_part.CreateNewNode(15,1.0,0.0,1.0)
+    model_part.CreateNewNode(16,0.0,0.0,0.0)
+    model_part.CreateNewNode(17,0.5,0.0,0.0)
+    model_part.CreateNewNode(18,1.0,0.5,0.0)
+    model_part.CreateNewNode(19,1.0,0.0,0.5)
+    model_part.CreateNewNode(20,1.0,0.0,0.0)
+
+    # Create elements
+    model_part.CreateNewElement("Element3D20N", 1,  [6,1,7,14,15,5,16,20,3,2,11,9,8,4,12,18,13,10,17,19], model_part.GetProperties()[1])
+
+def SetupModelPartHexahedra3D27N(model_part):
+    # Add variables
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+
+    # Create nodes
+    model_part.CreateNewNode(1,0.0, 0.0, 0.0)
+    model_part.CreateNewNode(2,1.0, 0.0, 0.0)
+    model_part.CreateNewNode(3,1.0, 1.0, 0.0)
+    model_part.CreateNewNode(4,0.0, 1.0, 0.0)
+    model_part.CreateNewNode(5,0.0, 0.0, 1.0)
+    model_part.CreateNewNode(6,1.0, 0.0, 1.0)
+    model_part.CreateNewNode(7,1.0, 1.0, 1.0)
+    model_part.CreateNewNode(8,0.0, 1.0, 1.0)
+    model_part.CreateNewNode(9,0.5, 0.0, 0.0)
+    model_part.CreateNewNode(10,1.0, 0.5, 0.0)
+    model_part.CreateNewNode(11,0.5, 1.0, 0.0)
+    model_part.CreateNewNode(12,0.0, 0.5, 0.0)
+    model_part.CreateNewNode(13,0.0, 0.0, 0.5)
+    model_part.CreateNewNode(14,1.0, 0.0, 0.5)
+    model_part.CreateNewNode(15,1.0, 1.0, 0.5)
+    model_part.CreateNewNode(16,0.0, 1.0, 0.5)
+    model_part.CreateNewNode(17,0.5, 0.0, 1.0)
+    model_part.CreateNewNode(18,1.0, 0.5, 1.0)
+    model_part.CreateNewNode(19,0.5, 1.0, 1.0)
+    model_part.CreateNewNode(20,0.0, 0.5, 1.0)
+    model_part.CreateNewNode(21,0.5, 0.5, 0.0)
+    model_part.CreateNewNode(22,0.5, 0.0, 0.5)
+    model_part.CreateNewNode(23,1.0, 0.5, 0.5)
+    model_part.CreateNewNode(24,0.5, 1.0, 0.5)
+    model_part.CreateNewNode(25,0.0, 0.5, 0.5)
+    model_part.CreateNewNode(26,0.5, 0.5, 1.0)
+    model_part.CreateNewNode(27,0.5, 0.5, 0.5)
+
+    # Create elements
+    model_part.CreateNewElement("Element3D27N", 1,  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27], model_part.GetProperties()[1])
+
 def SetSolution(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME] + 0.158
     step = model_part.ProcessInfo[KratosMultiphysics.STEP]
@@ -252,12 +373,24 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
     current_model = KratosMultiphysics.Model()
     model_part_name = "Main"
     model_part = current_model.CreateModelPart(model_part_name)
+    bc_defined = True
     if setup == "2D":
         SetupModelPart2D(model_part)
     elif setup == "3D":
         SetupModelPart3D(model_part)
-    else:
+    elif setup == "Quad3D":
         SetupModelPartQuadratic3D(model_part)
+    elif setup == "QuadraticPrism3D":
+        SetupModelPartQuadraticPrism3D(model_part)
+        bc_defined = False
+    elif setup == "QuadraticHexahedra3D":
+        SetupModelPartQuadraticHexahedra3D(model_part)
+        bc_defined = False
+    elif setup == "QuadraticHexahedra3D27N":
+        SetupModelPartHexahedra3D27N(model_part)
+        bc_defined = False
+    else:
+        raise Exception("Unknown setup: " + setup)
 
     vtk_output_parameters = KratosMultiphysics.Parameters("""{
         "Parameters" : {
@@ -299,12 +432,13 @@ def ExecuteBasicVTKoutputProcessCheck(file_format = "ascii", setup = "2D"):
             Check(os.path.join("test_vtk_output","Main_0_" + str(step)+".vtk"),\
                 os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_0_"+str(step)+".vtk"), file_format)
 
-            Check(os.path.join("test_vtk_output","Main_FixedEdgeNodes_0_" + str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"), file_format)
+            if bc_defined:
+                Check(os.path.join("test_vtk_output","Main_FixedEdgeNodes_0_" + str(step)+".vtk"),\
+                    os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_FixedEdgeNodes_0_"+str(step)+".vtk"), file_format)
 
-            Check(os.path.join("test_vtk_output","Main_MovingNodes_0_"+str(step)+".vtk"),\
-                os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".vtk"), file_format)
-
+                Check(os.path.join("test_vtk_output","Main_MovingNodes_0_"+str(step)+".vtk"),\
+                    os.path.join("auxiliar_files_for_python_unittest", "vtk_output_process_ref_files", file_format + setup, "Main_MovingNodes_0_"+str(step)+".vtk"), file_format)
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

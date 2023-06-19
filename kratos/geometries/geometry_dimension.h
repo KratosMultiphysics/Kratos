@@ -21,6 +21,8 @@
 // External includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -66,11 +68,10 @@ public:
     for example a triangle is a 2 dimensional shape but
     can have 3 dimensional area coordinates l1, l2, l3.
     */
-    GeometryDimension( SizeType ThisDimension,
-                  SizeType ThisWorkingSpaceDimension,
-                  SizeType ThisLocalSpaceDimension )
-        : mDimension( ThisDimension )
-        , mWorkingSpaceDimension( ThisWorkingSpaceDimension )
+    GeometryDimension(
+        SizeType ThisWorkingSpaceDimension,
+        SizeType ThisLocalSpaceDimension )
+        : mWorkingSpaceDimension( ThisWorkingSpaceDimension )
         , mLocalSpaceDimension( ThisLocalSpaceDimension )
     {
     }
@@ -79,8 +80,7 @@ public:
     Construct this geometry data as a copy of given geometry data.
     */
     GeometryDimension( const GeometryDimension& rOther )
-        : mDimension( rOther.mDimension )
-        , mWorkingSpaceDimension( rOther.mWorkingSpaceDimension )
+        : mWorkingSpaceDimension( rOther.mWorkingSpaceDimension )
         , mLocalSpaceDimension( rOther.mLocalSpaceDimension )
     {
     }
@@ -94,7 +94,6 @@ public:
 
     GeometryDimension& operator=( const GeometryDimension& rOther )
     {
-        mDimension = rOther.mDimension;
         mWorkingSpaceDimension = rOther.mWorkingSpaceDimension;
         mLocalSpaceDimension = rOther.mLocalSpaceDimension;
 
@@ -104,19 +103,6 @@ public:
     ///@}
     ///@name Informations
     ///@{
-
-    /** Dimension of the geometry for example a triangle2d is a 2
-    dimensional shape. A line is 1 dimensional shape and
-    a point 0 dimensional.
-
-    @return SizeType, dimension of this geometry.
-    @see WorkingSpaceDimension()
-    @see LocalSpaceDimension()
-    */
-    inline SizeType Dimension() const
-    {
-        return mDimension;
-    }
 
     /** Working space dimension. for example a triangle as part
     of a surface is a 2 dimensional shape but can be used in
@@ -163,7 +149,6 @@ public:
     /// Print object's data.
     virtual void PrintData( std::ostream& rOStream ) const
     {
-        rOStream << "    Dimension               : " << mDimension << std::endl;
         rOStream << "    Working space dimension : " << mWorkingSpaceDimension << std::endl;
         rOStream << "    Local space dimension   : " << mLocalSpaceDimension;
     }
@@ -173,8 +158,6 @@ public:
 private:
     ///@name Member Variables
     ///@{
-
-    SizeType mDimension;
 
     SizeType mWorkingSpaceDimension;
 
@@ -188,14 +171,12 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        rSerializer.save( "Dimension", mDimension );
         rSerializer.save( "WorkingSpaceDimension", mWorkingSpaceDimension );
         rSerializer.save( "LocalSpaceDimension", mLocalSpaceDimension );
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        rSerializer.load( "Dimension", mDimension );
         rSerializer.load( "WorkingSpaceDimension", mWorkingSpaceDimension );
         rSerializer.load( "LocalSpaceDimension", mLocalSpaceDimension );
     }
@@ -233,5 +214,3 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_GEOMETRY_DIMENSION_H_INCLUDED  defined
-
-

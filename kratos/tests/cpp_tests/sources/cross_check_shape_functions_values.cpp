@@ -8,18 +8,18 @@ namespace Kratos {
 namespace Testing {
 
 namespace {
-void Check_ShapeFunctionsValues1(Geometry<Node<3>> const& rGeom);
-void Check_ShapeFunctionsValues2(Geometry<Node<3>> const& rGeom);
-void Check_ShapeFunctionsValues3(Geometry<Node<3>> const& rGeom);
-void Check_ShapeFunctionsValues4(Geometry<Node<3>> const& rGeom);
-void Check_ShapeFunctionsValues5(Geometry<Node<3>> const& rGeom);
+void Check_ShapeFunctionsValues1(Geometry<Node> const& rGeom);
+void Check_ShapeFunctionsValues2(Geometry<Node> const& rGeom);
+void Check_ShapeFunctionsValues3(Geometry<Node> const& rGeom);
+void Check_ShapeFunctionsValues4(Geometry<Node> const& rGeom);
+void Check_ShapeFunctionsValues5(Geometry<Node> const& rGeom);
 void Check(double N,
-           Geometry<Node<3>> const& rGeom,
-           Geometry<Node<3>>::IndexType ShapeFunctionIndex,
+           Geometry<Node> const& rGeom,
+           Geometry<Node>::IndexType ShapeFunctionIndex,
            array_1d<double, 3> const& rCoord);
 }
 
-void CrossCheckShapeFunctionsValues(Geometry<Node<3>> const& rGeom)
+void CrossCheckShapeFunctionsValues(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
     Check_ShapeFunctionsValues1(rGeom);
@@ -31,7 +31,7 @@ void CrossCheckShapeFunctionsValues(Geometry<Node<3>> const& rGeom)
 }
 
 namespace {
-void Check_ShapeFunctionsValues1(Geometry<Node<3>> const& rGeom)
+void Check_ShapeFunctionsValues1(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
     const Matrix& r_shape_functions_values = rGeom.ShapeFunctionsValues();
@@ -42,7 +42,7 @@ void Check_ShapeFunctionsValues1(Geometry<Node<3>> const& rGeom)
     KRATOS_CATCH("");
 }
 
-void Check_ShapeFunctionsValues2(Geometry<Node<3>> const& rGeom)
+void Check_ShapeFunctionsValues2(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
     const auto& r_integration_points = rGeom.IntegrationPoints();
@@ -56,19 +56,19 @@ void Check_ShapeFunctionsValues2(Geometry<Node<3>> const& rGeom)
     KRATOS_CATCH("");
 }
 
-void Check_ShapeFunctionsValues3(Geometry<Node<3>> const& rGeom)
+void Check_ShapeFunctionsValues3(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
     const Matrix& r_shape_functions_values =
-        rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-    const auto& r_integration_points = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1);
-    for (std::size_t g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
+        rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const auto& r_integration_points = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    for (std::size_t g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1); ++g)
         for (std::size_t i = 0; i < rGeom.PointsNumber(); ++i)
             Check(r_shape_functions_values(g, i), rGeom, i, r_integration_points[g]);
     KRATOS_CATCH("");
 }
 
-void Check_ShapeFunctionsValues4(Geometry<Node<3>> const& rGeom)
+void Check_ShapeFunctionsValues4(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
     const auto& r_integration_points = rGeom.IntegrationPoints();
@@ -78,19 +78,19 @@ void Check_ShapeFunctionsValues4(Geometry<Node<3>> const& rGeom)
     KRATOS_CATCH("");
 }
 
-void Check_ShapeFunctionsValues5(Geometry<Node<3>> const& rGeom)
+void Check_ShapeFunctionsValues5(Geometry<Node> const& rGeom)
 {
     KRATOS_TRY;
-    const auto& r_integration_points = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1);
-    for (std::size_t g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
+    const auto& r_integration_points = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    for (std::size_t g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1); ++g)
         for (std::size_t i = 0; i < rGeom.PointsNumber(); ++i)
-            Check(rGeom.ShapeFunctionValue(g, i, GeometryData::GI_GAUSS_1), rGeom, i, r_integration_points[g]);
+            Check(rGeom.ShapeFunctionValue(g, i, GeometryData::IntegrationMethod::GI_GAUSS_1), rGeom, i, r_integration_points[g]);
     KRATOS_CATCH("");
 }
 
 void Check(double N,
-           Geometry<Node<3>> const& rGeom,
-           Geometry<Node<3>>::IndexType ShapeFunctionIndex,
+           Geometry<Node> const& rGeom,
+           Geometry<Node>::IndexType ShapeFunctionIndex,
            array_1d<double, 3> const& rCoord)
 {
     KRATOS_TRY;

@@ -1,9 +1,7 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 
 from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_fluid_solver as BaseSolver
 
@@ -94,11 +92,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_NODAL_EQUIVALENT_STRAIN_RATE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_NODAL_MEAN_MESH_SIZE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_NODAL_TAU)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_NODAL_FREESURFACE_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_VOLUMETRIC_COEFFICIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_DEVIATORIC_COEFFICIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.SOLID_INTERFACE_NODE)
 
     def InitializeSolutionStep(self):
         #self.fluid_solver.InitializeSolutionStep()

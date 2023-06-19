@@ -3,19 +3,16 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
-
-#if !defined(KRATOS_SMALL_DISPLACEMENT_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_H_INCLUDED
+#pragma once
 
 // System includes
-
 
 // External includes
 
@@ -238,24 +235,6 @@ protected:
         ) override;
 
     /**
-     * @brief This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     * @param ThisStressMeasure The stress measure considered
-     */
-    void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables,
-        ConstitutiveVariables& rThisConstitutiveVariables,
-        ConstitutiveLaw::Parameters& rValues,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure
-        ) override;
-
-    /**
      * Calculation of the Deformation Matrix B
      * @param rB The deformation matrix
      * @param rDN_DX The derivatives of the shape functions
@@ -349,4 +328,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined

@@ -60,8 +60,8 @@ public:
     /// Pointer definition of EmbeddedFluidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedFluidElement);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Definition of nodes container type, redefined from GeometryType
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
@@ -271,6 +271,8 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override;

@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-#if !defined(KRATOS_INDEXED_OBJECT_H_INCLUDED )
-#define  KRATOS_INDEXED_OBJECT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <iostream>
@@ -21,6 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -263,6 +263,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_INDEXED_OBJECT_H_INCLUDED  defined
 

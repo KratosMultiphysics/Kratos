@@ -56,7 +56,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     ///NodeType
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     ///Geometry Type
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
@@ -186,7 +186,7 @@ protected:
      * Calculate Condition Kinematics
      */
     void CalculateKinematics(ConditionVariables& rVariables,
-			     ProcessInfo& rCurrentProcessInfo,
+			     const ProcessInfo& rCurrentProcessInfo,
 			     const unsigned int& rPointNumber) override;
 
     /**

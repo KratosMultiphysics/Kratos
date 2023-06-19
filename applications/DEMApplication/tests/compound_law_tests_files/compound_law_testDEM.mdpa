@@ -1,0 +1,35 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes
+3 -1.0 1.0 -0.42
+End Nodes
+
+Begin Elements SphericParticle3D
+10 1 3
+End Elements
+
+Begin NodalData RADIUS
+3 0 0.4
+End NodalData
+
+Begin SubModelPart 1 // GUI conditionid DEM-VelocityIC group identifier: Rock
+  Begin SubModelPartData
+  INITIAL_VELOCITY_X_VALUE 0.0
+  INITIAL_VELOCITY_Y_VALUE 0.0
+  INITIAL_VELOCITY_Z_VALUE 2.0
+  INITIAL_ANGULAR_VELOCITY_X_VALUE 0.0
+  INITIAL_ANGULAR_VELOCITY_Y_VALUE 0.0
+  INITIAL_ANGULAR_VELOCITY_Z_VALUE 0.0
+  End SubModelPartData
+  Begin SubModelPartElements
+  10
+  End SubModelPartElements
+  Begin SubModelPartNodes
+  3
+  End SubModelPartNodes
+End SubModelPart

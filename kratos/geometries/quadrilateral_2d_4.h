@@ -14,9 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-
-#if !defined(KRATOS_QUADRILATERAL_2D_4_H_INCLUDED )
-#define  KRATOS_QUADRILATERAL_2D_4_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -25,6 +23,7 @@
 // Project includes
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"
+#include "utilities/integration_utilities.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 
@@ -294,12 +293,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Quadrilateral;
+        return GeometryData::KratosGeometryFamily::Kratos_Quadrilateral;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Quadrilateral2D4;
+        return GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4;
     }
 
     ///@}
@@ -437,13 +436,11 @@ public:
 
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.N
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
@@ -451,42 +448,28 @@ public:
      */
     double Area() const override
     {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            Area += temp[i] * integration_points[i].Weight();
-        }
-
-        return Area;
+        return IntegrationUtilities::ComputeArea2DGeometry(*this);
     }
 
     /**
-     * This method calculates and returns the volume of this geometry.
-     * This method calculates and returns the volume of this geometry.
-     *
-     * This method uses the V = (A x B) * C / 6 formula.
-     *
-     * @return double value contains length, area or volume.
-     *
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Error, the volume of a 2D geometry is not defined (In June 2023)
      * @see Length()
      * @see Area()
      * @see Volume()
-     *
-     * @todo might be necessary to reimplement
      */
     double Volume() const override
     {
+        KRATOS_WARNING("Quadrilateral2D4") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning error instead)" << std::endl;
         return Area();
+        // TODO: Replace in June 2023
+        // KRATOS_ERROR << "Quadrilateral2D4:: Method not well defined. Replace with DomainSize() instead." << std::endl;
+        // return 0.0;
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
@@ -571,7 +554,7 @@ public:
     @param rHighPoint second corner of the box
     @see Triangle2D3::HasIntersection
     */
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) const override
     {
         Triangle2D3<PointType> triangle_0 (this->pGetPoint( 0 ),
                                            this->pGetPoint( 1 ),
@@ -950,8 +933,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -994,8 +976,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1062,25 +1043,25 @@ private:
         {
             {
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1095,16 +1076,16 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_1 ),
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_2 ),
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_3 ),
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_4 ),
-                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_5 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                Quadrilateral2D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
             }
         };
         return shape_functions_local_gradients;
@@ -1166,17 +1147,13 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Quadrilateral2D4<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_2,
+    GeometryData::IntegrationMethod::GI_GAUSS_2,
     Quadrilateral2D4<TPointType>::AllIntegrationPoints(),
     Quadrilateral2D4<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
 template<class TPointType> const
-GeometryDimension Quadrilateral2D4<TPointType>::msGeometryDimension(
-    2, 2, 2);
+GeometryDimension Quadrilateral2D4<TPointType>::msGeometryDimension(2, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined
-

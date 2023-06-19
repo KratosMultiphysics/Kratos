@@ -10,18 +10,6 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
-
-
 // System includes
 
 // External includes
@@ -33,7 +21,7 @@ namespace Kratos
 {
 namespace Globals
 {
-// 	Node<3> DefaultNode3;
+    
 }
 }
 

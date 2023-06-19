@@ -13,7 +13,6 @@
 #if !defined(KRATOS_SVD_UTILS )
 #define  KRATOS_SVD_UTILS
 
-
 /* System includes */
 
 
@@ -23,10 +22,8 @@
 #include "utilities/math_utils.h"
 #include "spaces/ublas_space.h"
 
-
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -83,15 +80,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /* Constructor */
-
-
-    /** Destructor */
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -186,6 +177,7 @@ public:
     {
         const SizeType m = InputMatrix.size1();
         const SizeType n = InputMatrix.size2();
+        KRATOS_ERROR_IF(m != n) << "Current Jacobi implementation only works with square matrices. Use \'LinearSolversApplication\' decompositions instead." << std::endl;
 
         if(SMatrix.size1() != m || SMatrix.size2() != n) {
             SMatrix.resize(m, n, false);

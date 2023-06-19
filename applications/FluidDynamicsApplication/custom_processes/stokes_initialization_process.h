@@ -14,7 +14,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -108,7 +108,7 @@ public:
         // pointer types for the solution strategy construcion
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-        typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+        typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
         // Solution scheme: Linear static scheme
         SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > () );
@@ -245,7 +245,7 @@ protected:
 
     unsigned int mDomainSize;
 
-    typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
+    typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
 
     bool mIsCleared;
 

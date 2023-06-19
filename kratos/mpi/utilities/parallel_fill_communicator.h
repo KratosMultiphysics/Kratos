@@ -64,7 +64,12 @@ public:
     ///@{
 
     /// Constructor.
+    KRATOS_DEPRECATED_MESSAGE("This constructor is deprecated, please use the one that accepts a DataCommunicator")
     ParallelFillCommunicator(ModelPart& rModelPart);
+
+    ParallelFillCommunicator(
+        ModelPart& rModelPart,
+        const DataCommunicator& rDataComm);
 
     /// Destructor.
     virtual ~ParallelFillCommunicator() = default;

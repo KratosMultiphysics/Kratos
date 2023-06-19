@@ -4,8 +4,6 @@
 //   Date:                $Date:           February 2016 $
 //   Revision:            $Revision:                 0.0 $
 //
-//   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
-//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes
@@ -69,8 +67,14 @@ Element::Pointer UpdatedLagrangianVImplicitSolidElement<TDim>::Clone(IndexType N
 
 template <>
 void UpdatedLagrangianVImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
-    double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
+    ElementalVariables &rElementalVariables,
+    const unsigned int g,
+    const Vector& rN,
+    const ProcessInfo &rCurrentProcessInfo,
+    double &Density,
+    double &DeviatoricCoeff,
+    double &VolumetricCoeff)
+{
 
     mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
     auto constitutive_law_values =
@@ -83,8 +87,7 @@ void UpdatedLagrangianVImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
-    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetShapeFunctionsValues(rN);
     constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
     constitutive_law_values.SetStressVector(rElementalVariables.CurrentDeviatoricCauchyStress);
 
@@ -123,12 +126,20 @@ void UpdatedLagrangianVImplicitSolidElement<2>::CalcElasticPlasticCauchySplitted
 
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
+
+    this->ComputeMechanicalDissipation(rElementalVariables);
 }
 
 template <>
 void UpdatedLagrangianVImplicitSolidElement<3>::CalcElasticPlasticCauchySplitted(
-    ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
-    double &Density, double &DeviatoricCoeff, double &VolumetricCoeff) {
+    ElementalVariables &rElementalVariables,
+    const unsigned int g,
+    const Vector& rN,
+    const ProcessInfo &rCurrentProcessInfo,
+    double &Density,
+    double &DeviatoricCoeff,
+    double &VolumetricCoeff)
+{
 
     mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
     auto constitutive_law_values =
@@ -141,8 +152,7 @@ void UpdatedLagrangianVImplicitSolidElement<3>::CalcElasticPlasticCauchySplitted
     rElementalVariables.CurrentTotalCauchyStress = this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress = this->mCurrentDeviatoricCauchyStress[g];
 
-    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
-    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetShapeFunctionsValues(rN);
     constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
     constitutive_law_values.SetStressVector(rElementalVariables.CurrentDeviatoricCauchyStress);
 
@@ -191,6 +201,8 @@ void UpdatedLagrangianVImplicitSolidElement<3>::CalcElasticPlasticCauchySplitted
 
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
+
+    this->ComputeMechanicalDissipation(rElementalVariables);
 }
 
 template class UpdatedLagrangianVImplicitSolidElement<2>;
