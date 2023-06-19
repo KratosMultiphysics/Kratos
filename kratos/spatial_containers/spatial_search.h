@@ -905,8 +905,8 @@ public:
     * @brief Search neighbours for every Condition in "rStructureConditions" excluding itself
     * @param rStructureConditions  List of conditions modelpart against which the neighbours are searched
     * @param rRadius               List of search radius for every Condition
-    * @param rDataCommunicator   The data communicator
-    * @return                    The results maps
+    * @param rDataCommunicator     The data communicator
+    * @return                      The results maps
     */
     virtual ConditionSpatialSearchResultContainerMapType SearchConditionsInRadiusExclusive (
         const ConditionsContainerType& rStructureConditions,
@@ -935,8 +935,8 @@ public:
     * @param rStructureConditions  List of conditions against which the neighbours are searched
     * @param rInputConditions      List of conditions to be searched
     * @param rRadius               List of search radius for every Condition
-    * @param rDataCommunicator   The data communicator
-    * @return                    The results maps
+    * @param rDataCommunicator     The data communicator
+    * @return                      The results maps
     */
     virtual ConditionSpatialSearchResultContainerMapType SearchConditionsInRadiusExclusive (
         const ConditionsContainerType& rStructureConditions,
