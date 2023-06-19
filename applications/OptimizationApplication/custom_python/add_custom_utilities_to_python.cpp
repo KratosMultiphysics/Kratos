@@ -18,7 +18,7 @@
 #include <pybind11/numpy.h>
 
 // Project includes
-#include "python/add_container_expression_to_python_utils.h"
+#include "python/numpy_utils.h"
 
 // Application includes
 #include "custom_utilities/collective_expression.h"
