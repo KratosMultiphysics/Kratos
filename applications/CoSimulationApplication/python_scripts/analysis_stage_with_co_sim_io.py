@@ -114,7 +114,7 @@ def CreateAnalysisStageWithCoSimIO(BaseAnalysisStage):
                 info = CoSimIO.Info()
                 info.SetString("connection_name", self.connection_name)
                 info.SetString("identifier", identifier)
-                CoSimIO.ImportData(info, model_part, variable, CoSimIO.DataLocation.NodeHistorical)
+                CoSimIO.ImportData(info, model_part, variable, KM.Globals.DataLocation.NodeHistorical)
 
             if self.echo_level > 0: FlushAll()
 
@@ -131,6 +131,6 @@ def CreateAnalysisStageWithCoSimIO(BaseAnalysisStage):
                 info = CoSimIO.Info()
                 info.SetString("connection_name", self.connection_name)
                 info.SetString("identifier", identifier)
-                CoSimIO.ExportData(info, model_part, variable, CoSimIO.DataLocation.NodeHistorical)
+                CoSimIO.ExportData(info, model_part, variable, KM.Globals.DataLocation.NodeHistorical)
 
     return AnalysisStageWithCoSimIO

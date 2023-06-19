@@ -17,8 +17,8 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
-#include "containers/container_expression/expressions/binary/binary_expression.h"
+#include "expression/literal_flat_expression.h"
+#include "expression/binary_expression.h"
 
 namespace Kratos {
 namespace Testing {
