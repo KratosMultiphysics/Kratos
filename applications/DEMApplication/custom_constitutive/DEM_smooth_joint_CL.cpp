@@ -22,6 +22,30 @@ DEMContinuumConstitutiveLaw::Pointer DEM_smooth_joint::Clone() const{
     return p_clone;
 }
 
+void DEM_smooth_joint::Initialize(SphericContinuumParticle* element1,
+                                                 SphericContinuumParticle* element2,
+                                                 Properties::Pointer pProps) {
+        mpProperties = pProps;
+        double GlobalJointNormal[3] = {0.0};
+        GlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X];
+        GlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y];
+        GlobalJointNormal[2] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Z];
+        array_1d<double, 3> GlobalOtherToMeVector;
+        array_1d<double, 3> LocalOtherToMeVector;
+        noalias(GlobalOtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
+        double LocalCoordSystem[3][3];
+        double Distance = DEM_MODULUS_3(GlobalOtherToMeVector);
+        GeometryFunctions::ComputeContactLocalCoordSystem(GlobalOtherToMeVector, Distance, LocalCoordSystem);
+        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalJointNormal, mLocalJointNormal);
+        GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalOtherToMeVector, LocalOtherToMeVector);
+        double temp_OtherToMeVector[3] = {0.0};
+        temp_OtherToMeVector[0] = LocalOtherToMeVector[0];
+        temp_OtherToMeVector[1] = LocalOtherToMeVector[1];
+        temp_OtherToMeVector[2] = LocalOtherToMeVector[2];
+        double temp_InitialDistanceJoint = GeometryFunctions::DotProduct(temp_OtherToMeVector, mLocalJointNormal);
+        mInitialDistanceJoint = std::abs(temp_InitialDistanceJoint);
+    }
+
 std::string DEM_smooth_joint::GetTypeOfLaw() {
         std::string type_of_law = "smooth_joint_CL";
         return type_of_law;
@@ -192,6 +216,9 @@ void DEM_smooth_joint::CalculateElasticConstants(double& kn_el, double& kt_el, d
 
     //for bonded part
     const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
+    kn_el = bond_equiv_young * calculation_area / mInitialDistanceJoint;
+    kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
+
     double GlobalJointNormal[3] = {0.0};
     GlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X];
     GlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y];
@@ -202,14 +229,6 @@ void DEM_smooth_joint::CalculateElasticConstants(double& kn_el, double& kt_el, d
     double Distance = DEM_MODULUS_3(OtherToMeVector);
     GeometryFunctions::ComputeContactLocalCoordSystem(OtherToMeVector, Distance, LocalCoordSystem);
     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalJointNormal, mLocalJointNormal);
-    double temp_OtherToMeVector[3] = {0.0};
-    temp_OtherToMeVector[0] = OtherToMeVector[0];
-    temp_OtherToMeVector[1] = OtherToMeVector[1];
-    temp_OtherToMeVector[2] = OtherToMeVector[2];
-    double temp_InitialDistanceJoint = GeometryFunctions::DotProduct(temp_OtherToMeVector, mLocalJointNormal);
-    mInitialDistanceJoint = std::abs(temp_InitialDistanceJoint);
-    kn_el = bond_equiv_young * calculation_area / mInitialDistanceJoint;
-    kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
 
     KRATOS_CATCH("")
 
@@ -341,12 +360,17 @@ void DEM_smooth_joint::CalculateNormalForces(double LocalElasticContactForce[3],
     KRATOS_TRY
     
     int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
-    array_1d<double, 3> CurrentOtherToMeVector;
-    noalias(CurrentOtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
+    array_1d<double, 3> GlobalOtherToMeVector;
+    array_1d<double, 3> LocalOtherToMeVector;
+    noalias(GlobalOtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
+    double LocalCoordSystem[3][3];
+    double Distance = DEM_MODULUS_3(GlobalOtherToMeVector);
+    GeometryFunctions::ComputeContactLocalCoordSystem(GlobalOtherToMeVector, Distance, LocalCoordSystem);
+    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalOtherToMeVector, LocalOtherToMeVector);
     double temp_CurrentOtherToMeVector[3] = {0.0};
-    temp_CurrentOtherToMeVector[0] = CurrentOtherToMeVector[0];
-    temp_CurrentOtherToMeVector[1] = CurrentOtherToMeVector[1];
-    temp_CurrentOtherToMeVector[2] = CurrentOtherToMeVector[2];
+    temp_CurrentOtherToMeVector[0] = LocalOtherToMeVector[0];
+    temp_CurrentOtherToMeVector[1] = LocalOtherToMeVector[1];
+    temp_CurrentOtherToMeVector[2] = LocalOtherToMeVector[2];
     double temp_distance = GeometryFunctions::DotProduct(temp_CurrentOtherToMeVector, mLocalJointNormal);
     const double joint_indentation = mInitialDistanceJoint - std::abs(temp_distance);                                                                                               
 
@@ -411,8 +435,8 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
         JointSlidingLocalVel[0] =  temp_local_vel * mLocalJointNormal[0];
         JointSlidingLocalVel[1] =  temp_local_vel * mLocalJointNormal[1];
         JointSlidingLocalVel[2] =  temp_local_vel * mLocalJointNormal[2];
-        LocalDeltSlidingDisp[0] = JointSlidingLocalVel[0] * time_steps;
-        LocalDeltSlidingDisp[1] = JointSlidingLocalVel[1] * time_steps;
+        LocalDeltSlidingDisp[0] = JointSlidingLocalVel[0] * r_process_info[DELTA_TIME];
+        LocalDeltSlidingDisp[1] = JointSlidingLocalVel[1] * r_process_info[DELTA_TIME];
         mAccumulatedJointTangentialLocalDisplacement[0] += LocalDeltSlidingDisp[0];
         mAccumulatedJointTangentialLocalDisplacement[1] += LocalDeltSlidingDisp[1];
         JointLocalElasticContactForce[0] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[0]; // 0: first tangential
