@@ -44,8 +44,7 @@ class MaterialPropertiesControl(Control):
         if len(controlled_model_parts) == 0:
             raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
 
-        root_model_part = controlled_model_parts[0].GetRootModelPart()
-        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", root_model_part, controlled_model_parts, False)
+        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
 
     def Initialize(self) -> None:
         ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
