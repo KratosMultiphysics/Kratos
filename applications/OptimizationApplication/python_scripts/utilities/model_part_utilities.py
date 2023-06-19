@@ -15,7 +15,9 @@ class ModelPartUtilities:
         if main_model_part.HasSubModelPart(unique_name):
             return False, main_model_part.GetSubModelPart(unique_name)
         else:
-            return True, Kratos.ModelPartOperationUtilities.Union(unique_name, main_model_part, union_model_parts, add_neighbours)
+            unique_model_part = main_model_part.CreateSubModelPart(unique_name)
+            Kratos.ModelPartOperationUtilities.Union(unique_model_part, main_model_part, union_model_parts, add_neighbours)
+            return True, unique_model_part
 
     @staticmethod
     def IntersectModelParts(main_model_part: Kratos.ModelPart, intersecting_model_parts: 'list[Kratos.ModelPart]', add_neighbours: bool) -> 'tuple[bool, Kratos.ModelPart]':
@@ -23,7 +25,9 @@ class ModelPartUtilities:
         if main_model_part.HasSubModelPart(unique_name):
             return False, main_model_part.GetSubModelPart(unique_name)
         else:
-            return True, Kratos.ModelPartOperationUtilities.Intersect(unique_name, main_model_part, intersecting_model_parts, add_neighbours)
+            unique_model_part = main_model_part.CreateSubModelPart(unique_name)
+            Kratos.ModelPartOperationUtilities.Intersect(unique_model_part, main_model_part, intersecting_model_parts, add_neighbours)
+            return True, unique_model_part
 
     @staticmethod
     def SubstractModelParts(main_model_part: Kratos.ModelPart, substracting_model_parts: 'list[Kratos.ModelPart]', add_neighbours: bool) -> 'tuple[bool, Kratos.ModelPart]':
@@ -31,7 +35,9 @@ class ModelPartUtilities:
         if main_model_part.HasSubModelPart(unique_name):
             return False, main_model_part.GetSubModelPart(unique_name)
         else:
-            return True, Kratos.ModelPartOperationUtilities.Substract(unique_name, main_model_part, substracting_model_parts, add_neighbours)
+            unique_model_part = main_model_part.CreateSubModelPart(unique_name)
+            Kratos.ModelPartOperationUtilities.Substract(unique_model_part, main_model_part, substracting_model_parts, add_neighbours)
+            return True, unique_model_part
 
     @staticmethod
     def GetMergedMap(main_model_part: Kratos.ModelPart, input_dict: 'dict[Any, KratosOA.CollectiveExpression]', add_neghbours: bool) -> 'dict[Any, Kratos.ModelPart]':
