@@ -224,5 +224,21 @@ class TestModelPartOperationUtilities(KratosUnittest.TestCase):
         intersected_sum = Kratos.VariableUtils().SumNonHistoricalNodeScalarVariable(Kratos.PRESSURE, intersect_model_part)
         self.assertEqual(intersected_sum, 2894.0)
 
+    @KratosUnittest.skipIf(Kratos.IsDistributedRun(), "only the test does not support MPI")
+    def test_CheckParentModelPart(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        sub_model_part1 = model_part.CreateSubModelPart("sub_test")
+        sub_sub_model_part1 = sub_model_part1.CreateSubModelPart("sub_sub_test1")
+        sub_sub_model_part2 = sub_model_part1.CreateSubModelPart("sub_sub_test2")
+
+        output_model_part = model_part.CreateSubModelPart("output")
+        Kratos.ModelPartOperationUtilities.Intersect(output_model_part, model_part, [sub_sub_model_part1, sub_sub_model_part2], False)
+
+        output_model_part_2 = model.CreateModelPart("test2")
+        with self.assertRaises(RuntimeError):
+            Kratos.ModelPartOperationUtilities.Intersect(output_model_part_2, model_part, [sub_sub_model_part1, sub_sub_model_part2], False)
+
+
 if __name__ == '__main__':
     KratosUnittest.main()
