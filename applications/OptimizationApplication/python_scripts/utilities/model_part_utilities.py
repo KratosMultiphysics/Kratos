@@ -75,8 +75,6 @@ class ModelPartUtilities:
                             Kratos.ModelPartOperationUtilities.Union(model_part, main_model_part, operation_model_parts, add_neighbours)
                         elif operation_type == "INTERSECT":
                             Kratos.ModelPartOperationUtilities.Intersect(model_part, main_model_part, operation_model_parts, add_neighbours)
-                        elif operation_type == "SUBSTRACT":
-                            Kratos.ModelPartOperationUtilities.Substract(model_part, main_model_part, operation_model_parts, add_neighbours)
                         else:
                             raise RuntimeError(f"Unsupported operation type found [ operation_type = {operation_type}, model_part = {model_part.FullName()}]. Followings are list of statuses:\n\t" + "\n\t".join(statuses))
 
