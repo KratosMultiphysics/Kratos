@@ -1,3 +1,5 @@
+import random
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
@@ -242,27 +244,36 @@ class TestModelPartUtilities(kratos_unittest.TestCase):
         cls.sub_model_part_list.append(cls.model_part.CreateSubModelPart("sub_3"))
 
     def test_UnionNoOperation(self):
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t1", self.model_part, [self.model_part], False)
+        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t1", [self.model_part], False)
         self.assertFalse(self.model_part.HasSubModelPart("t1"))
 
     def test_IntersectNoOperation(self):
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t2", self.model_part, [self.model_part], False)
+        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t2", [self.model_part], False)
         self.assertFalse(self.model_part.HasSubModelPart("t2"))
 
     def test_UnionOperation(self):
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t3", self.model_part, self.sub_model_part_list, False)
+        random.shuffle(self.sub_model_part_list)
+        model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t3", self.sub_model_part_list, False)
         self.assertTrue(self.model_part.HasSubModelPart("t3"))
 
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t4", self.model_part, self.sub_model_part_list, False)
+        random.shuffle(self.sub_model_part_list)
+        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t4", self.sub_model_part_list, False)
         self.assertFalse(self.model_part.HasSubModelPart("t4"))
 
+        random.shuffle(self.sub_model_part_list)
+        self.assertEqual(model_part, ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, "t4", self.sub_model_part_list, False))
+
     def test_IntersectNoOperation(self):
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t5", self.model_part, self.sub_model_part_list, False)
+        random.shuffle(self.sub_model_part_list)
+        model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t5", self.sub_model_part_list, False)
         self.assertTrue(self.model_part.HasSubModelPart("t5"))
 
-        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t6", self.model_part, self.sub_model_part_list, False)
+        random.shuffle(self.sub_model_part_list)
+        ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t6", self.sub_model_part_list, False)
         self.assertFalse(self.model_part.HasSubModelPart("t6"))
 
+        random.shuffle(self.sub_model_part_list)
+        self.assertEqual(model_part, ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, "t6", self.sub_model_part_list, False))
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
