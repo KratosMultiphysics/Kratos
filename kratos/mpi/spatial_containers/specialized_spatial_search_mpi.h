@@ -136,20 +136,6 @@ public:
         ) override;
 
     //************************************************************************
-    // Elemental Inclusive search with distance calculation
-    //************************************************************************
-
-    /**
-     * @brief Search neighbours for every element in "InputElements" including itself
-     */
-    NodeSpatialSearchResultContainerMapType SearchElementsInRadiusInclusive (
-        const ElementsContainerType& rStructureElements,
-        const ElementsContainerType& rInputElements,
-        const RadiusArrayType& rRadius,
-        const DataCommunicator& rDataCommunicator
-        ) override;
-
-    //************************************************************************
     // Nodal Exclusive search with distance calculation
     //************************************************************************
 
@@ -164,20 +150,6 @@ public:
         ) override;
 
     //************************************************************************
-    // Nodal Inclusive search with distance calculation
-    //************************************************************************
-
-    /**
-     * @brief Search neighbours for every node in "InputNodes" including itself
-     */
-    NodeSpatialSearchResultContainerMapType SearchNodesInRadiusInclusive (
-        const NodesContainerType& rStructureNodes,
-        const NodesContainerType& rInputNodes,
-        const RadiusArrayType& rRadius,
-        const DataCommunicator& rDataCommunicator
-        ) override;
-
-    //************************************************************************
     // Conditional Exclusive search with distance calculation
     //************************************************************************
 
@@ -185,20 +157,6 @@ public:
     * @brief Search neighbours for every Condition in "InputConditions" excluding itself
     */
     ConditionSpatialSearchResultContainerMapType SearchConditionsInRadiusExclusive (
-        const ConditionsContainerType& rStructureConditions,
-        const ConditionsContainerType& rInputConditions,
-        const RadiusArrayType& rRadius,
-        const DataCommunicator& rDataCommunicator
-        ) override;
-
-    //************************************************************************
-    // Conditional Inclusive search with distance calculation
-    //************************************************************************
-
-    /**
-    * @brief Search neighbours for every Condition in "InputConditions" including itself
-    */
-    NodeSpatialSearchResultContainerMapType SearchConditionsInRadiusInclusive (
         const ConditionsContainerType& rStructureConditions,
         const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,

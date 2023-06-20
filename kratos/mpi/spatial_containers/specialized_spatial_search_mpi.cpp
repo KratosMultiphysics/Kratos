@@ -41,22 +41,6 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ElementSpatialSearchResult
 /***********************************************************************************/
 
 template<SpatialContainer TSearchBackend>
-typename SpecializedSpatialSearchMPI<TSearchBackend>::NodeSpatialSearchResultContainerMapType SpecializedSpatialSearchMPI<TSearchBackend>::SearchElementsInRadiusInclusive (
-    const ElementsContainerType& rStructureElements,
-    const ElementsContainerType& rInputElements,
-    const RadiusArrayType& rRadius,
-    const DataCommunicator& rDataCommunicator
-    )
-{
-    NodeSpatialSearchResultContainerMapType results;
-
-    return results;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SpatialContainer TSearchBackend>
 typename SpecializedSpatialSearchMPI<TSearchBackend>::NodeSpatialSearchResultContainerMapType SpecializedSpatialSearchMPI<TSearchBackend>::SearchNodesInRadiusExclusive (
     const NodesContainerType& rStructureNodes,
     const NodesContainerType& rInputNodes,
@@ -65,22 +49,6 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::NodeSpatialSearchResultCon
     )
 {
     return SearchNodesOverPointsInRadius(rStructureNodes, rInputNodes.begin(), rInputNodes.end(), rRadius, rDataCommunicator);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SpatialContainer TSearchBackend>
-typename SpecializedSpatialSearchMPI<TSearchBackend>::NodeSpatialSearchResultContainerMapType SpecializedSpatialSearchMPI<TSearchBackend>::SearchNodesInRadiusInclusive (
-    const NodesContainerType& rStructureNodes,
-    const NodesContainerType& rInputNodes,
-    const RadiusArrayType& rRadius,
-    const DataCommunicator& rDataCommunicator
-    )
-{
-    NodeSpatialSearchResultContainerMapType results;
-
-    return results;
 }
 
 /***********************************************************************************/
@@ -101,22 +69,6 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ConditionSpatialSearchResu
     }
 
     return SearchConditionsOverPointsInRadius(rStructureConditions, points.begin(), points.end(), rRadius, rDataCommunicator);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SpatialContainer TSearchBackend>
-typename SpecializedSpatialSearchMPI<TSearchBackend>::NodeSpatialSearchResultContainerMapType SpecializedSpatialSearchMPI<TSearchBackend>::SearchConditionsInRadiusInclusive (
-    const ConditionsContainerType& rStructureConditions,
-    const ConditionsContainerType& rInputConditions,
-    const RadiusArrayType& rRadius,
-    const DataCommunicator& rDataCommunicator
-    )
-{
-    NodeSpatialSearchResultContainerMapType results;
-
-    return results;
 }
 
 /***********************************************************************************/
