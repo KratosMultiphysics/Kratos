@@ -41,7 +41,7 @@ bool SearchUtilities::PointIsInsideBoundingBox(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SearchUtilities::PointIsInsideBoundingBoxWithTolerance(
+bool SearchUtilities::PointIsInsideBoundingBox(
     const BoundingBox<Point>& rBoundingBox,
     const array_1d<double, 3>& rCoords,
     const double Tolerance
