@@ -286,7 +286,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesOverPointInRadius (
     const array_1d<double,3>& rPoint,
     const double Radius,
     NodeSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     // Defining the point type for the search
@@ -336,6 +337,11 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesOverPointInRadius (
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -346,7 +352,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesOverPointNearestPoint 
     const NodesContainerType& rStructureNodes,
     const array_1d<double,3>& rPoint,
     NodeSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     // Defining the point type for the search
@@ -396,6 +403,11 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesOverPointNearestPoint 
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -407,7 +419,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsOverPointInRadius (
     const array_1d<double,3>& rPoint,
     const double Radius,
     ElementSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     // Defining the point type for the search
@@ -457,6 +470,11 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsOverPointInRadius (
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -467,7 +485,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsOverPointNearestPoi
     const ElementsContainerType& rStructureElements,
     const array_1d<double,3>& rPoint,
     ElementSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     // Defining the point type for the search
@@ -517,6 +536,11 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsOverPointNearestPoi
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -528,7 +552,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsOverPointInRadius
     const array_1d<double,3>& rPoint,
     const double Radius,
     ConditionSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     // Defining the point type for the search
@@ -578,6 +603,11 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsOverPointInRadius
     } else {
         static_assert(TSearchBackend == SpatialContainer::KDTree || TSearchBackend == SpatialContainer::Octree || TSearchBackend == SpatialContainer::BinsStatic || TSearchBackend == SpatialContainer::BinsDynamic, "Unknown search backend");
     }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -588,7 +618,8 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsOverPointNearestP
     const ConditionsContainerType& rStructureConditions,
     const array_1d<double,3>& rPoint,
     ConditionSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     // Defining the point type for the search

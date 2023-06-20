@@ -316,7 +316,8 @@ public:
         const array_1d<double,3>& rPoint,
         const double Radius,
         NodeSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -326,7 +327,8 @@ public:
         const NodesContainerType& rStructureNodes,
         const array_1d<double,3>& rPoint,
         NodeSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -337,7 +339,8 @@ public:
         const array_1d<double,3>& rPoint,
         const double Radius,
         ElementSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -347,7 +350,8 @@ public:
         const ElementsContainerType& rStructureElements,
         const array_1d<double,3>& rPoint,
         ElementSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -358,7 +362,8 @@ public:
         const array_1d<double,3>& rPoint,
         const double Radius,
         ConditionSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -368,7 +373,8 @@ public:
         const ConditionsContainerType& rStructureConditions,
         const array_1d<double,3>& rPoint,
         ConditionSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     ///@}

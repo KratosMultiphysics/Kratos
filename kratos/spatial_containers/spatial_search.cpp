@@ -1363,7 +1363,8 @@ void SpatialSearch::SearchNodesOverPointInRadius (
     const array_1d<double,3>& rPoint,
     const double Radius,
     NodeSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
@@ -1376,7 +1377,8 @@ void SpatialSearch::SearchNodesOverPointNearestPoint (
     const NodesContainerType& rStructureNodes,
     const array_1d<double,3>& rPoint,
     NodeSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
@@ -1390,7 +1392,8 @@ void SpatialSearch::SearchElementsOverPointInRadius (
     const array_1d<double,3>& rPoint,
     const double Radius,
     ElementSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
@@ -1403,7 +1406,8 @@ void SpatialSearch::SearchElementsOverPointNearestPoint (
     const ElementsContainerType& rStructureElements,
     const array_1d<double,3>& rPoint,
     ElementSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
@@ -1417,7 +1421,8 @@ void SpatialSearch::SearchConditionsOverPointInRadius (
     const array_1d<double,3>& rPoint,
     const double Radius,
     ConditionSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
@@ -1430,7 +1435,8 @@ void SpatialSearch::SearchConditionsOverPointNearestPoint (
     const ConditionsContainerType& rStructureConditions,
     const array_1d<double,3>& rPoint,
     ConditionSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;

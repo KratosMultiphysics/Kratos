@@ -183,10 +183,11 @@ public:
         const array_1d<double,3>& rPoint,
         const double Radius,
         NodeSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override
     {
-        mpSpatialSearch->SearchNodesOverPointInRadius(rStructureNodes, rPoint, Radius, rResults, rDataCommunicator);
+        mpSpatialSearch->SearchNodesOverPointInRadius(rStructureNodes, rPoint, Radius, rResults, rDataCommunicator, SyncronizeResults);
     }
 
     /**
@@ -196,10 +197,11 @@ public:
         const NodesContainerType& rStructureNodes,
         const array_1d<double,3>& rPoint,
         NodeSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override
     {
-        mpSpatialSearch->SearchNodesOverPointNearestPoint(rStructureNodes, rPoint, rResults, rDataCommunicator);
+        mpSpatialSearch->SearchNodesOverPointNearestPoint(rStructureNodes, rPoint, rResults, rDataCommunicator, SyncronizeResults);
     }
 
     /**
@@ -210,10 +212,11 @@ public:
         const array_1d<double,3>& rPoint,
         const double Radius,
         ElementSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override
     {
-        mpSpatialSearch->SearchElementsOverPointInRadius(rStructureElements, rPoint, Radius, rResults, rDataCommunicator);
+        mpSpatialSearch->SearchElementsOverPointInRadius(rStructureElements, rPoint, Radius, rResults, rDataCommunicator, SyncronizeResults);
     }
 
     /**
@@ -223,10 +226,11 @@ public:
         const ElementsContainerType& rStructureElements,
         const array_1d<double,3>& rPoint,
         ElementSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override
     {
-        mpSpatialSearch->SearchElementsOverPointNearestPoint(rStructureElements, rPoint, rResults, rDataCommunicator);
+        mpSpatialSearch->SearchElementsOverPointNearestPoint(rStructureElements, rPoint, rResults, rDataCommunicator, SyncronizeResults);
     }
 
     /**
@@ -237,10 +241,11 @@ public:
         const array_1d<double,3>& rPoint,
         const double Radius,
         ConditionSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override
     {
-        mpSpatialSearch->SearchConditionsOverPointInRadius(rStructureConditions, rPoint, Radius, rResults, rDataCommunicator);
+        mpSpatialSearch->SearchConditionsOverPointInRadius(rStructureConditions, rPoint, Radius, rResults, rDataCommunicator, SyncronizeResults);
     }
 
     /**
@@ -250,10 +255,11 @@ public:
         const ConditionsContainerType& rStructureConditions,
         const array_1d<double,3>& rPoint,
         ConditionSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override
     {
-        mpSpatialSearch->SearchConditionsOverPointNearestPoint(rStructureConditions, rPoint, rResults, rDataCommunicator);
+        mpSpatialSearch->SearchConditionsOverPointNearestPoint(rStructureConditions, rPoint, rResults, rDataCommunicator, SyncronizeResults);
     }
 
     ///@}
