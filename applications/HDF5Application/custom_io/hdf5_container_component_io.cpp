@@ -156,12 +156,14 @@ public:
             // The sizes must be maxed across ranks to avoid
             // those without data writing 0 sizes.
             /// @todo This needs a revamp with DataCommunicator @matekelemen
-            int is_distributed;
-            MPI_Initialized(&is_distributed);
-            if (is_distributed) {
-                std::array<int,2> send = sizes;
-                MPI_Allreduce(send.data(), sizes.data(), 2, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
-            }
+            #ifdef KRATOS_USING_MPI
+                int is_distributed;
+                MPI_Initialized(&is_distributed);
+                if (is_distributed) {
+                    std::array<int,2> send = sizes;
+                    MPI_Allreduce(send.data(), sizes.data(), 2, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+                }
+            #endif
 
             rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size1", sizes[0]);
             rFile.WriteAttribute(rPath + "/" + rComponent.Name(), "Size2", sizes[1]);
