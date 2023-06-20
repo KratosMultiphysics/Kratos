@@ -24,35 +24,34 @@
 namespace Kratos::Python
 {
 
+template <SpatialContainer TSearchBackend>
+void DefineSpecializedSpatialSearchMPI(pybind11::module& m, const std::string& rClassName)
+{
+    using SpatialSearchType = SpecializedSpatialSearchMPI<TSearchBackend>;
+    using SpatialSearchPointerType = typename SpecializedSpatialSearchMPI<TSearchBackend>::Pointer;
+    using BaseSpatialSearchType = SpecializedSpatialSearch<TSearchBackend>;
+
+    pybind11::class_<SpatialSearchType, SpatialSearchPointerType, BaseSpatialSearchType>(m, rClassName.c_str())
+    .def(pybind11::init<>())
+    .def(pybind11::init<Parameters>())
+    ;
+}
+
 void AddMPISearchStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<SpecializedSpatialSearchMPIFactory, SpecializedSpatialSearchMPIFactory::Pointer, SpatialSearch>(m, "SpecializedSpatialSearch")
+    // The factory of the MPI search strategies
+    py::class_<SpecializedSpatialSearchMPIFactory, SpecializedSpatialSearchMPIFactory::Pointer, SpatialSearch>(m, "SpecializedSpatialSearchMPI")
     .def(py::init< >())
     .def(py::init<Parameters>())
     ;
 
-    py::class_<SpecializedSpatialSearchMPI<SpatialContainer::KDTree>, SpecializedSpatialSearchMPI<SpatialContainer::KDTree>::Pointer, SpecializedSpatialSearch<SpatialContainer::KDTree>>(m, "SpatialSearchKDTree")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
-
-    py::class_<SpecializedSpatialSearchMPI<SpatialContainer::Octree>, SpecializedSpatialSearchMPI<SpatialContainer::Octree>::Pointer, SpecializedSpatialSearch<SpatialContainer::Octree>>(m, "SpatialSearchOctree")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
-
-    py::class_<SpecializedSpatialSearchMPI<SpatialContainer::BinsStatic>, SpecializedSpatialSearchMPI<SpatialContainer::BinsStatic>::Pointer, SpecializedSpatialSearch<SpatialContainer::BinsStatic>>(m, "SpatialSearchBinsStatic")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
-
-    py::class_<SpecializedSpatialSearchMPI<SpatialContainer::BinsDynamic>, SpecializedSpatialSearchMPI<SpatialContainer::BinsDynamic>::Pointer, SpecializedSpatialSearch<SpatialContainer::BinsDynamic>>(m, "SpatialSearchBinsDynamic")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
-
+    // Register the specializations
+    DefineSpecializedSpatialSearchMPI<SpatialContainer::KDTree>(m, "SpatialSearchKDTreeMPI");
+    DefineSpecializedSpatialSearchMPI<SpatialContainer::Octree>(m, "SpatialSearchOctreeMPI");
+    DefineSpecializedSpatialSearchMPI<SpatialContainer::BinsStatic>(m, "SpatialSearchBinsStaticMPI");
+    DefineSpecializedSpatialSearchMPI<SpatialContainer::BinsDynamic>(m, "SpatialSearchBinsDynamicMPI");
 }
 
 }  // namespace Kratos::Python
