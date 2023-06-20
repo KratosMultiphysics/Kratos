@@ -41,11 +41,12 @@ class FileLogger:
 
 class TimeLogger:
     """@brief A context responsible for outputting execution times."""
-    def __init__(self, topic: str, entry_msg: str , exit_msg: str):
+    def __init__(self, topic: str, entry_msg: str , exit_msg: str, end_new_line: bool=True):
         self.topic = topic
         self.entry_msg = entry_msg
         self.exit_msg = exit_msg
         self.start_time = None
+        self.end_new_line = end_new_line
 
     def __enter__(self):
         if self.entry_msg is not None:
@@ -55,7 +56,10 @@ class TimeLogger:
     def __exit__(self, exit_type, exit_value, exit_traceback):
         if self.exit_msg is not None:
             elapsed_time = timer.time() - self.start_time
-            Kratos.Logger.PrintInfo(self.topic, "{:s} - [ Elapsed time: {:s} ]".format(self.exit_msg, str(datetime.timedelta(seconds=round(elapsed_time))))+"\n")
+            if self.end_new_line:
+                Kratos.Logger.PrintInfo(self.topic, "{:s} - [ Elapsed time: {:s} ]".format(self.exit_msg, str(datetime.timedelta(seconds=round(elapsed_time))))+"\n")
+            else:
+                Kratos.Logger.PrintInfo(self.topic, "{:s} - [ Elapsed time: {:s} ]".format(self.exit_msg, str(datetime.timedelta(seconds=round(elapsed_time)))))
 
 class OptimizationAlgorithmTimeLogger:
     """@brief A context responsible for outputting execution times."""
@@ -81,7 +85,7 @@ class OptimizationAlgorithmTimeLogger:
 
         to_print = f"{divided_line}\n{iteration_output}\n{divided_line}\n"
 
-        Kratos.Logger.Print(to_print)
+        Kratos.Logger.PrintInfo(to_print)
 
 class OptimizationAnalysisTimeLogger:
 
@@ -96,7 +100,7 @@ class OptimizationAnalysisTimeLogger:
         center_string = f"**{start_text.center(len(str(time_string))-4)}**"
         final_string = f"{separator_string}\n{center_string}\n{time_string}\n{separator_string}"
 
-        Kratos.Logger.Print(final_string)
+        Kratos.Logger.PrintInfo(final_string)
 
     def __exit__(self, exit_type, exit_value, exit_traceback):
 
@@ -113,19 +117,18 @@ class OptimizationAnalysisTimeLogger:
         center_string = f"**{end_text.center(len(str(time_string))-4)}**"
         final_string = f"{separator_string}\n{center_string}\n{time_string}\n{separator_string}"
 
-        Kratos.Logger.Print(final_string)
+        Kratos.Logger.PrintInfo(final_string)
 
-def TablulizeData(title, data):
+def TablulizeDictData(title: str, data: dict):
     # Determine the maximum length of labels
-    max_label_len = max(len(str(label)) for label, _ in data)
+    max_label_len = max(len(str(label)) for label in data.keys())
 
     # Determine the maximum length of values
-    for i in range(len(data)):
-        key, value = data[i]
+    for key, value in data.items():
         if isinstance(value, float):
-            data[i] = (key, round(value, 6))
+            data[key] = round(value, 6)
 
-    max_value_len = max(len(f"{value:.6f}" if isinstance(value, float) else str(value)) for _, value in data)
+    max_value_len = max(len(f"{value:.6f}" if isinstance(value, float) else str(value)) for value in data.values())
 
     title_len = len(str(title)) + 8
 
@@ -136,12 +139,9 @@ def TablulizeData(title, data):
     else:
         row_width = max_label_len + max_value_len + 7
 
-
     # Create format strings for the labels and values
     label_format = f"| {{:<{max_label_len}}} |"
     value_format = f"{{:>{max_value_len}.6f}} |\n"
-
-
 
     # Build the table
     table = '-' * row_width + "\n"
@@ -149,7 +149,7 @@ def TablulizeData(title, data):
     table += '-' * row_width + "\n"
 
     # Add the data to the table
-    for label, value in data:
+    for label, value in data.items():
         # Handle both numeric and string types for value
         if isinstance(value, (float, int)):
             table += f"{label_format.format(label)} {value_format.format(round(value, 6))}"
@@ -159,4 +159,3 @@ def TablulizeData(title, data):
     table += '-' * row_width
 
     return table
-

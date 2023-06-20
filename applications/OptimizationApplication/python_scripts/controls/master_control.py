@@ -128,7 +128,7 @@ class MasterControl:
             KratosOA.CollectiveExpression: Control space sensitivities.
         """
 
-        with TimeLogger("MasterControl::MapGradient", None, "Finished"):
+        with TimeLogger("MasterControl::MapGradient", None, "Finished", False):
             mapped_gradients = KratosOA.CollectiveExpression()
 
             for control in self.__list_of_controls:
@@ -175,7 +175,7 @@ class MasterControl:
         if len(self.__list_of_controls) != len(update_collective_expressions.GetContainerExpressions()):
             raise RuntimeError(f"Controls size and update size mismatch [ number of controls: {len(self.__list_of_controls)}, number of container expressions: {len(update_collective_expressions.GetContainerExpressions())} ].")
 
-        with TimeLogger("MasterControl::Update", None, "Finished"):
+        with TimeLogger("MasterControl::Update", None, "Finished",False):
             update_map: 'dict[Control, bool]' = {}
             for control, container_expression in zip(self.__list_of_controls, update_collective_expressions.GetContainerExpressions()):
                 update_map[control] = control.Update(container_expression)

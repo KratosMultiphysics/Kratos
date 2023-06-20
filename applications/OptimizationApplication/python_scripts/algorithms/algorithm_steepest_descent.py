@@ -74,13 +74,24 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__objective.Check()
         self.master_control.Initialize()
         self.__control_field = self.master_control.GetControlField()
+        self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
     def Finalize(self):
         self.__objective.Finalize()
         self.master_control.Finalize()
 
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
-        return obj_grad * -1.0
+        with TimeLogger("AlgorithmSteepestDescent::ComputeSearchDirection", None, "Finished"):
+            search_direction = obj_grad * -1.0
+            self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
+        return search_direction
+
+    def UpdateControlField(self, alpha) -> KratosOA.CollectiveExpression:
+        with TimeLogger("AlgorithmSteepestDescent::UpdateControlField", None, "Finished"):
+            update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
+            self.__control_field += update
+            self.algorithm_data.GetBufferedData()["parameter_update"] = update
+            self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field
 
     def GetCurrentObjValue(self) -> float:
         return self.__obj_val
@@ -89,41 +100,30 @@ class AlgorithmSteepestDescent(Algorithm):
         return self.__control_field
 
     def Solve(self):
-        algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
+                self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
+                obj_info = self.__objective.GetInfo()
+                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
+                self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
+                if "abs_change [%]" in obj_info:
+                    self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
 
-                with TimeLogger("AlgorithmSteepestDescent::Calculate objective value", None, "Finished"):
-                    self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
-                    algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
-                    algorithm_data.GetBufferedData()["rel_obj[%]"] = self.__objective.GetRelativeChange() * 100
-                    initial_value = self.__objective.GetInitialValue()
-                    if initial_value:
-                        algorithm_data.GetBufferedData()["abs_obj[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
-                    print(self.__objective.GetInfo())
+                obj_grad = self.__objective.CalculateStandardizedGradient()
 
-                with TimeLogger("AlgorithmSteepestDescent::Calculate gradient", None, "Finished"):
-                    obj_grad = self.__objective.CalculateStandardizedGradient()
+                self.ComputeSearchDirection(obj_grad)
 
-                with TimeLogger("AlgorithmSteepestDescent::Calculate design update", None, "Finished"):
-                    search_direction = self.ComputeSearchDirection(obj_grad)
-                    algorithm_data.GetBufferedData()["search_direction"] = search_direction
-                    alpha = self.__line_search_method.ComputeStep()
-                    update = search_direction * alpha
-                    self.__control_field += update
-                    print(self.__line_search_method.GetInfo())
+                alpha = self.__line_search_method.ComputeStep()
 
-                algorithm_data.GetBufferedData()["parameter_update"] = update
-                algorithm_data.GetBufferedData()["control_field"] = self.__control_field
+                self.UpdateControlField(alpha)
 
-                with TimeLogger("AlgorithmSteepestDescent::Check convergence", None, "Finished"):
-                    self.converged = self.__convergence_criteria.IsConverged()
-                    print(self.__convergence_criteria.GetInfo())
+                self.converged = self.__convergence_criteria.IsConverged()
 
                 self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
 
                 self._optimization_problem.AdvanceStep()
 
+        return self.converged
 
     def GetOptimizedObjectiveValue(self) -> float:
         if self.converged:

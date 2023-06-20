@@ -4,7 +4,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TablulizeData
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TablulizeDictData
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
 class StandardizedObjective(ResponseRoutine):
     """Standardized objective response function
@@ -56,15 +57,18 @@ class StandardizedObjective(ResponseRoutine):
             raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
     def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
-        response_value = self.CalculateValue(control_field)
-        standardized_response_value = response_value * self.__scaling
+        with TimeLogger(f"StandardizedObjective::Calculate {self.GetReponse().GetName()} value", None, "Finished"):
+            response_value = self.CalculateValue(control_field)
+            standardized_response_value = response_value * self.__scaling
 
-        if not self.__unbuffered_data.HasValue("initial_value"):
-            self.__unbuffered_data["initial_value"] = response_value
+            if not self.__unbuffered_data.HasValue("initial_value"):
+                self.__unbuffered_data["initial_value"] = response_value
 
-        if save_value:
-            if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
-            self.__buffered_data["value"] = response_value
+            if save_value:
+                if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+                self.__buffered_data["value"] = response_value
+
+            Kratos.Logger.PrintInfo(TablulizeDictData("Objective info",self.GetInfo()))
 
         return standardized_response_value
 
@@ -75,25 +79,26 @@ class StandardizedObjective(ResponseRoutine):
         return self.GetValue(step_index) * self.__scaling
 
     def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
-        gradient_collective_expression = self.CalculateGradient()
 
-        if save_field:
-            # save the physical gradients for post processing in unbuffered data container.
-            for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
-                for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+        with TimeLogger(f"StandardizedObjective::Calculate {self.GetReponse().GetName()} gradients", None, "Finished"):
+            gradient_collective_expression = self.CalculateGradient()
+            if save_field:
+                # save the physical gradients for post processing in unbuffered data container.
+                for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
+                    variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
+                    for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+                        if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+                        # cloning is a cheap operation, it only moves underlying pointers
+                        # does not create additional memory.
+                        self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
+
+                # save the filtered gradients for post processing in unbuffered data container.
+                for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
+                    variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
                     if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                     # cloning is a cheap operation, it only moves underlying pointers
                     # does not create additional memory.
-                    self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
-
-            # save the filtered gradients for post processing in unbuffered data container.
-            for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
-                if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                # cloning is a cheap operation, it only moves underlying pointers
-                # does not create additional memory.
-                self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
+                    self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
 
         return gradient_collective_expression * self.__scaling
 
@@ -106,16 +111,16 @@ class StandardizedObjective(ResponseRoutine):
     def GetAbsoluteChange(self) -> float:
         return self.GetValue() - self.GetInitialValue()
 
-    def GetInfo(self) -> str:
-        data = [
-            ("name", self.GetReponse().GetName()),
-            ("type", self.__objective_type),
-            ("value", self.GetValue()),
-            ("abs_change", self.GetAbsoluteChange()),
-            ("rel_change [%]", self.GetRelativeChange() * 100.0)
-        ]
+    def GetInfo(self) -> dict:
+        info = {
+            "name": self.GetReponse().GetName(),
+            "type": self.__objective_type,
+            "value": self.GetValue(),
+            "abs_change": self.GetAbsoluteChange(),
+            "rel_change [%]": self.GetRelativeChange() * 100.0
+        }
         init_value = self.GetInitialValue()
         if init_value:
-            data.append(("abs_change [%]", self.GetAbsoluteChange()/init_value * 100))
+            info["abs_change [%]"] = self.GetAbsoluteChange()/init_value * 100
 
-        return TablulizeData("Objective info",data)
+        return info

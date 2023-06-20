@@ -2,18 +2,19 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TablulizeData
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TablulizeDictData
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
 def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     type = parameters["type"].GetString()
     if type == "max_iter":
-        return MaxIterConvCriterium(parameters, optimization_problem)
+        return MaxIterConvCriterion(parameters, optimization_problem)
     elif type == "l2_norm":
-        return L2ConvCriterium(parameters, optimization_problem)
+        return L2ConvCriterion(parameters, optimization_problem)
     else:
         raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
 
-class MaxIterConvCriterium:
+class MaxIterConvCriterion:
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -27,20 +28,21 @@ class MaxIterConvCriterium:
         self.__optimization_problem = optimization_problem
 
     def IsConverged(self, search_direction=None) -> bool:
-        iter = self.__optimization_problem.GetStep()
-        self.conv = True if iter >= self.__max_iter else False
+        with TimeLogger(f"MaxIterConvCriterion::IsConverged", None, "Finished"):
+            iter = self.__optimization_problem.GetStep()
+            self.conv = True if iter >= self.__max_iter else False
+            Kratos.Logger.PrintInfo(TablulizeDictData("Convergence info",self.GetInfo()))
         return self.conv
 
-    def GetInfo(self) -> bool:
-        data = [
-            ("type", "max_iter"),
-            ("iter", f"{self.__optimization_problem.GetStep()} of {self.__max_iter}"),
-            ("status", str("converged" if self.conv else "not converged"))
-        ]
+    def GetInfo(self) -> dict:
+        info = {
+            "type": "max_iter",
+            "iter": f"{self.__optimization_problem.GetStep()} of {self.__max_iter}",
+            "status": str("converged" if self.conv else "not converged")
+        }
+        return info
 
-        return TablulizeData("Convergence info",data)
-
-class L2ConvCriterium:
+class L2ConvCriterion:
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -56,25 +58,25 @@ class L2ConvCriterium:
         self.__tolerance = parameters["tolerance"].GetDouble()
 
     def IsConverged(self) -> bool:
-        iter = self.__optimization_problem.GetStep()
-        self.conv = True if iter >= self.__max_iter else False
+        with TimeLogger(f"L2ConvCriterion::IsConverged", None, "Finished"):
+            iter = self.__optimization_problem.GetStep()
+            self.conv = True if iter >= self.__max_iter else False
 
-        algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
-        if not algorithm_buffered_data.HasValue("search_direction"):
-            raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
+            algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
+            if not algorithm_buffered_data.HasValue("search_direction"):
+                raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
 
-        self.norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
-        if not self.conv:
-            self.conv = True if self.norm <= self.__tolerance else False
+            self.norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
+            if not self.conv:
+                self.conv = True if self.norm <= self.__tolerance else False
+
+            Kratos.Logger.PrintInfo(TablulizeDictData("Convergence info",self.GetInfo()))
 
         return self.conv
 
-    def GetInfo(self) -> bool:
-        data = [
-            ("type", "l2_norm"),
-            ("l2_norm", self.norm),
-            ("tolerance", self.__tolerance),
-            ("status", str("converged" if self.conv else "not converged"))
-        ]
-
-        return TablulizeData("Convergence info",data)
+    def GetInfo(self) -> dict:
+        info = {'type': 'l2_norm',
+                'l2_norm': self.norm,
+                'tolerance': self.__tolerance,
+                'status': str("converged" if self.conv else "not converged")}
+        return info
