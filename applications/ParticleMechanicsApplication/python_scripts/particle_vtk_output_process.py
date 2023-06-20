@@ -44,8 +44,7 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
             grid_settings.AddString("output_path",settings["output_path"].GetString())
             grid_settings.AddBool("save_output_files_in_folder",settings["save_output_files_in_folder"].GetBool())
             background_grid = model["Background_Grid"]
-            output_filename = f"Background_Grid_{background_grid.GetCommunicator().MyPID()}"
-            KratosMultiphysics.VtkOutput(background_grid, grid_settings).PrintOutput(output_filename)
+            KratosMultiphysics.VtkOutput(background_grid, grid_settings).PrintOutput()
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
