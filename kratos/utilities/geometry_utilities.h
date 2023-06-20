@@ -110,55 +110,6 @@ public:
     }
 
     /**
-     * @brief This function is designed to compute the shape function derivatives, shape functions and volume in 3D
-     * @param rGeometry it is the array of nodes. It is expected to be a tetrahedra
-     * @param rDN_DX a stack matrix of size 4*3 to store the shape function's derivatives
-     * @param rN a stack matrix to store the shape functions at the points corresponding to a 2nd order Gauss quadrature
-     * @param rVolume the volume of the element
-     */
-    static inline void CalculateGeometryData(
-        const GeometryType &rGeometry,
-        BoundedMatrix<double, 4, 3> &rDNDX,
-        BoundedMatrix<double, 4, 4> &rN,
-        double &rVolume)
-    {
-        const double x10 = rGeometry[1].X() - rGeometry[0].X();
-        const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-        const double z10 = rGeometry[1].Z() - rGeometry[0].Z();
-
-        const double x20 = rGeometry[2].X() - rGeometry[0].X();
-        const double y20 = rGeometry[2].Y() - rGeometry[0].Y();
-        const double z20 = rGeometry[2].Z() - rGeometry[0].Z();
-
-        const double x30 = rGeometry[3].X() - rGeometry[0].X();
-        const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
-        const double z30 = rGeometry[3].Z() - rGeometry[0].Z();
-
-        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-
-        rDNDX(0,0) = -y20 * z30 + y30 * z20 + y10 * z30 - z10 * y30 - y10 * z20 + z10 * y20;
-        rDNDX(0,1) = -z20 * x30 + x20 * z30 - x10 * z30 + z10 * x30 + x10 * z20 - z10 * x20;
-        rDNDX(0,2) = -x20 * y30 + y20 * x30 + x10 * y30 - y10 * x30 - x10 * y20 + y10 * x20;
-        rDNDX(1,0) = y20 * z30 - y30 * z20;
-        rDNDX(1,1) = z20 * x30 - x20 * z30;
-        rDNDX(1,2) = x20 * y30 - y20 * x30;
-        rDNDX(2,0) = -y10 * z30 + z10 * y30;
-        rDNDX(2,1) = x10 * z30 - z10 * x30;
-        rDNDX(2,2) = -x10 * y30 + y10 * x30;
-        rDNDX(3,0) = y10 * z20 - z10 * y20;
-        rDNDX(3,1) = -x10 * z20 + z10 * x20;
-        rDNDX(3,2) = x10 * y20 - y10 * x20;
-        rDNDX /= detJ;
-
-        rN(0,0) = 0.58541020; rN(0,1) = 0.13819660; rN(0,2) = 0.13819660; rN(0,3) = 0.13819660; //1st Gauss pt.
-        rN(1,0) = 0.13819660; rN(1,1) = 0.58541020; rN(1,2) = 0.13819660; rN(1,3) = 0.13819660; //2nd Gauss pt.
-        rN(2,0) = 0.13819660; rN(2,1) = 0.13819660; rN(2,2) = 0.58541020; rN(2,3) = 0.13819660; //3rd Gauss pt.
-        rN(3,0) = 0.13819660; rN(3,1) = 0.13819660; rN(3,2) = 0.13819660; rN(3,3) = 0.58541020; //4th Gauss pt.
-
-        rVolume = detJ*0.1666666666666666666667;
-    }
-
-    /**
      * @brief This function computes the element's volume (with sign)
      * @param rGeometry it is the array of nodes. It expects a tetrahedra
      * @deprecated This method can be replaced by geometry function without loosing performance
@@ -220,49 +171,6 @@ public:
         N[0] = 0.333333333333333;
         N[1] = 0.333333333333333;
         N[2] = 0.333333333333333;
-
-        rArea = 0.5*detJ;
-    }
-
-    /**
-     * @brief This function is designed to compute the shape function derivatives, shape functions and area of a triangle
-     * @param rGeometry it is the array of nodes. It is expected to be a triangle
-     * @param rDN_DX a stack matrix of size 3*2 to store the shape function's derivatives
-     * @param rN a stack matrix to store the shape functions at the points corresponding to a 2nd order Gauss quadrature
-     * @param rArea the volume of the element
-     */
-    static inline void CalculateGeometryData(
-        const GeometryType &rGeometry,
-        BoundedMatrix<double, 3, 2> &rDNDX,
-        BoundedMatrix<double, 3, 3> &rN,
-        double &rArea)
-    {
-        const double x10 = rGeometry[1].X() - rGeometry[0].X();
-        const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
-
-        const double x20 = rGeometry[2].X() - rGeometry[0].X();
-        const double y20 = rGeometry[2].Y() - rGeometry[0].Y();
-
-        //Jacobian is calculated:
-        //  |dx/dxi  dx/deta|    |x1-x0   x2-x0|
-        //J=|               |=   |             |
-        //  |dy/dxi  dy/deta|    |y1-y0   y2-y0|
-
-        double detJ = x10 * y20-y10 * x20;
-
-        rDNDX(0,0) = -y20 + y10;
-        rDNDX(0,1) = x20 - x10;
-        rDNDX(1,0) =  y20;
-        rDNDX(1,1) = -x20;
-        rDNDX(2,0) = -y10;
-        rDNDX(2,1) = x10;
-        rDNDX /= detJ;
-
-        const double one_sixt = 1.0/6.0;
-        const double two_third = 2.0/3.0;
-        rN(0,0) = one_sixt; rN(0,1) = one_sixt; rN(0,2) = two_third; //1st Gauss pt.
-        rN(1,0) = one_sixt; rN(1,1) = two_third; rN(1,2) = one_sixt; //2nd Gauss pt.
-        rN(2,0) = two_third; rN(2,1) = one_sixt; rN(2,2) = one_sixt; //3rd Gauss pt.
 
         rArea = 0.5*detJ;
     }
