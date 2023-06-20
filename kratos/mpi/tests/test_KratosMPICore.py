@@ -32,6 +32,7 @@ with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
     import test_variable_redistribution
     import test_container_expression
     from test_model_part_operation_utilities import TestModelPartOperationUtilities
+    import test_spatial_search
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -79,6 +80,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartIOMPI]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_redistribution.TestVariableRedistributionUtility]))
     smallSuite.addTest(TestModelPartOperationUtilities("test_Sum"))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_spatial_search.TestSpatialSearchSphere]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['mpi_nightly']
