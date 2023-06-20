@@ -54,11 +54,11 @@ class IOOperation(KratosMultiphysics.Operation): # IOOperation(KratosMultiphysic
 
     #@abc.abstractmethod # <== missing the ABCMeta metaclass
     def Execute(self) -> None:
-        raise RuntimeError("Call to a pure abstract method")
+        raise NotImplementedError("Call to a pure abstract method")
 
     #@abc.abstractclassmethod # <== missing the ABCMeta metaclass
     @classmethod
-    def GetDefaultParameters(cls: "typing.Type[IOOperation]") -> KratosMultiphysics.Parameters:
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
             "operation_type" : "",
             "prefix" : "/",
