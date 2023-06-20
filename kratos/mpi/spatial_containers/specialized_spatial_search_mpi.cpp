@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "mpi/spatial_containers/specialized_spatial_search_mpi.h"
 
 namespace Kratos
@@ -29,10 +30,11 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ElementSpatialSearchResult
     )
 {
     // The points vector
+    const auto it_elem_begin = rInputElements.begin();
     std::vector<Point> points(rInputElements.size());
-    for (std::size_t i = 0; i < rInputElements.size(); ++i) {
-        points[i] = Point((rInputElements.begin() + i)->GetGeometry().Center());
-    }
+    IndexPartition<std::size_t>(rInputElements.size()).for_each([&](std::size_t i) {
+        points[i] = Point((it_elem_begin + i)->GetGeometry().Center());
+    });
 
     return SearchElementsOverPointsInRadius(rStructureElements, points.begin(), points.end(), rRadius, rDataCommunicator);
 }
@@ -63,10 +65,11 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ConditionSpatialSearchResu
     )
 {
     // The points vector
+    const auto it_cond_begin = rInputConditions.begin();
     std::vector<Point> points(rInputConditions.size());
-    for (std::size_t i = 0; i < rInputConditions.size(); ++i) {
-        points[i] = Point((rInputConditions.begin() + i)->GetGeometry().Center());
-    }
+    IndexPartition<std::size_t>(rInputConditions.size()).for_each([&](std::size_t i) {
+        points[i] = Point((it_cond_begin + i)->GetGeometry().Center());
+    });
 
     return SearchConditionsOverPointsInRadius(rStructureConditions, points.begin(), points.end(), rRadius, rDataCommunicator);
 }
