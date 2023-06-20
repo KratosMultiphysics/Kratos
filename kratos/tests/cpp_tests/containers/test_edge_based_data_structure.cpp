@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     auto p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
     Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
     Parameters mesher_parameters(R"({
-        "number_of_divisions" : 2,
+        "number_of_divisions" : 1,
         "element_name" : "Element2D3N",
         "condition_name" : "LineCondition",
         "create_skin_sub_model_part" : true
@@ -71,11 +71,23 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConvective())
     KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConvectiveTranspose())
 
-    auto &r_edge_data_15 = edge_based_data_structure.GetEdgeData(1, 5);
-    KRATOS_WATCH(r_edge_data_15.GetOffDiagonalConsistentMass())
-    KRATOS_WATCH(r_edge_data_15.GetOffDiagonalLaplacian())
-    KRATOS_WATCH(r_edge_data_15.GetOffDiagonalConvective())
-    KRATOS_WATCH(r_edge_data_15.GetOffDiagonalConvectiveTranspose())
+    auto &r_edge_data_13 = edge_based_data_structure.GetEdgeData(1, 3);
+    KRATOS_WATCH(r_edge_data_13.GetOffDiagonalConsistentMass())
+    KRATOS_WATCH(r_edge_data_13.GetOffDiagonalLaplacian())
+    KRATOS_WATCH(r_edge_data_13.GetOffDiagonalConvective())
+    KRATOS_WATCH(r_edge_data_13.GetOffDiagonalConvectiveTranspose())
+
+    auto &r_edge_data_14 = edge_based_data_structure.GetEdgeData(1, 4);
+    KRATOS_WATCH(r_edge_data_14.GetOffDiagonalConsistentMass())
+    KRATOS_WATCH(r_edge_data_14.GetOffDiagonalLaplacian())
+    KRATOS_WATCH(r_edge_data_14.GetOffDiagonalConvective())
+    KRATOS_WATCH(r_edge_data_14.GetOffDiagonalConvectiveTranspose())
+
+    auto &r_edge_data_24 = edge_based_data_structure.GetEdgeData(2, 4);
+    KRATOS_WATCH(r_edge_data_24.GetOffDiagonalConsistentMass())
+    KRATOS_WATCH(r_edge_data_24.GetOffDiagonalLaplacian())
+    KRATOS_WATCH(r_edge_data_24.GetOffDiagonalConvective())
+    KRATOS_WATCH(r_edge_data_24.GetOffDiagonalConvectiveTranspose())
 
     const auto& r_mass_mat_diag = edge_based_data_structure.GetMassMatrixDiagonal();
     const auto& r_lumped_mass_mat_diag = edge_based_data_structure.GetLumpedMassMatrixDiagonal();

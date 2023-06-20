@@ -117,7 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
     gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
 
-    const double dt = 2e-4;
+    const double dt = 5e-5;
     const double end_time = 0.2;
     r_model_part.GetProcessInfo()[TIME] = 0.0;
     r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
