@@ -1388,13 +1388,15 @@ public:
      * @param Radius               Radius of the search
      * @param rResults             Results of the search
      * @param rDataCommunicator    The data communicator
+     * @param SyncronizeResults    If true, the results are synchronized
      */
     virtual void SearchNodesOverPointInRadius (
         const NodesContainerType& rStructureNodes,
         const array_1d<double,3>& rPoint,
         const double Radius,
         NodeSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         );
 
     /**
@@ -1431,12 +1433,14 @@ public:
      * @param rPoint               Point to be searched
      * @param rResults             Results of the search
      * @param rDataCommunicator    The data communicator
+     * @param SyncronizeResults    If true, the results are synchronized
      */
     virtual void SearchNodesOverPointNearestPoint (
         const NodesContainerType& rStructureNodes,
         const array_1d<double,3>& rPoint,
         NodeSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         );
 
     /**
@@ -1470,13 +1474,15 @@ public:
      * @param Radius               Radius of the search
      * @param rResults             Results of the search
      * @param rDataCommunicator    The data communicator
+     * @param SyncronizeResults    If true, the results are synchronized
      */
     virtual void SearchElementsOverPointInRadius (
         const ElementsContainerType& rStructureElements,
         const array_1d<double,3>& rPoint,
         const double Radius,
         ElementSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         );
 
     /**
@@ -1513,12 +1519,14 @@ public:
      * @param rPoint               Point to be searched
      * @param rResults             Results of the search
      * @param rDataCommunicator    The data communicator
+     * @param SyncronizeResults    If true, the results are synchronized
      */
     virtual void SearchElementsOverPointNearestPoint (
         const ElementsContainerType& rStructureElements,
         const array_1d<double,3>& rPoint,
         ElementSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         );
 
     /**
@@ -1552,13 +1560,15 @@ public:
      * @param Radius               Radius of the search
      * @param rResults             Results of the search
      * @param rDataCommunicator    The data communicator
+     * @param SyncronizeResults    If true, the results are synchronized
      */
     virtual void SearchConditionsOverPointInRadius (
         const ConditionsContainerType& rStructureConditions,
         const array_1d<double,3>& rPoint,
         const double Radius,
         ConditionSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         );
 
     /**
@@ -1595,12 +1605,14 @@ public:
      * @param rPoint               Point to be searched
      * @param rResults             Results of the search
      * @param rDataCommunicator    The data communicator
+     * @param SyncronizeResults    If true, the results are synchronized
      */
     virtual void SearchConditionsOverPointNearestPoint (
         const ConditionsContainerType& rStructureConditions,
         const array_1d<double,3>& rPoint,
         ConditionSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         );
 
     /**
