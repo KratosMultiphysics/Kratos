@@ -25,6 +25,14 @@
 
 namespace Kratos::Testing {
 
+void PrintVector(const std::vector<double>& rVect)
+{
+    std::cout << std::endl;
+    for (const double& val : rVect) {
+        std::cout << val << std::endl;
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
 {
     // Set-up a simplicial mesh to calculate its edge data structure
@@ -58,9 +66,21 @@ KRATOS_TEST_CASE_IN_SUITE(EdgeBasedDataStructure2D, KratosCoreFastSuite)
     edge_based_data_structure.CalculateEdgeDataStructure(r_model_part);
 
     auto &r_edge_data_12 = edge_based_data_structure.GetEdgeData(1, 2);
-    // KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConsistentMass())
-    // KRATOS_WATCH(r_edge_data_12.GetOffDiagonalLaplacian())
-    // KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConvective())
+    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConsistentMass())
+    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalLaplacian())
+    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConvective())
+    KRATOS_WATCH(r_edge_data_12.GetOffDiagonalConvectiveTranspose())
+
+    auto &r_edge_data_15 = edge_based_data_structure.GetEdgeData(1, 5);
+    KRATOS_WATCH(r_edge_data_15.GetOffDiagonalConsistentMass())
+    KRATOS_WATCH(r_edge_data_15.GetOffDiagonalLaplacian())
+    KRATOS_WATCH(r_edge_data_15.GetOffDiagonalConvective())
+    KRATOS_WATCH(r_edge_data_15.GetOffDiagonalConvectiveTranspose())
+
+    const auto& r_mass_mat_diag = edge_based_data_structure.GetMassMatrixDiagonal();
+    const auto& r_lumped_mass_mat_diag = edge_based_data_structure.GetLumpedMassMatrixDiagonal();
+    PrintVector(r_mass_mat_diag);
+    PrintVector(r_lumped_mass_mat_diag);
 
     KRATOS_CHECK_EQUAL(edge_based_data_structure.NumberOfEdges(), 16);
 

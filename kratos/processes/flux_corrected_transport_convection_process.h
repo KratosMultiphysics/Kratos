@@ -93,8 +93,13 @@ public:
         mEchoLevel = ThisParameters["echo_level"].GetInt();
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mMaxAllowedDt = ThisParameters["max_delta_time"].GetDouble();
+        mDiffusionConstant = ThisParameters["diffusion_constant"].GetDouble();
         mpConvectedVar = &KratosComponents<Variable<double>>::Get(ThisParameters["convected_variable_name"].GetString());
         mpConvectionVar = &KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["convection_variable_name"].GetString());
+
+        // Check provided values
+        KRATOS_ERROR_IF(mDiffusionConstant < 1.0e-12 || mDiffusionConstant - 1.0 > 1.0e-12)
+            << "Provided 'diffusion_constant' " << mDiffusionConstant << " is not valid. Value must be between 0 and 1." << std::endl;
     }
 
     /// Copy constructor.
@@ -174,7 +179,7 @@ public:
             const double dt = this->CalculateSubStepDeltaTime(prev_time, time);
 
             // Solve current substep
-            KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << "Substep " << step << " - \u0394t " << dt << std::endl;
+            KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << "Substep " << step << " - Time " <<  prev_time << " - \u0394t " << dt << std::endl;
             this->SolveSubStep(dt);
 
             // TODO:Remove after debugging
@@ -183,7 +188,7 @@ public:
                 it_node->FastGetSolutionStepValue(*mpConvectedVar) = mSolution[it_node->Id()];
             });
             gid_io_convection.WriteNodalResults(DISTANCE, mpModelPart->Nodes(), step, 0);
-            gid_io_convection.WriteNodalResults(VELOCITY, mpModelPart->Nodes(), step, 0);
+            // gid_io_convection.WriteNodalResults(VELOCITY, mpModelPart->Nodes(), step, 0);
 
             // Advance in time
             step++;
@@ -220,7 +225,8 @@ public:
             "convected_variable_name" : "DISTANCE",
             "convection_variable_name" : "VELOCITY",
             "max_CFL" : 1.0,
-            "max_delta_time" : 1.0
+            "max_delta_time" : 1.0,
+            "diffusion_constant" : 1.0
         })");
 
         return default_parameters;
@@ -277,6 +283,8 @@ private:
     double mMaxAllowedDt; /// Maximum allowed time step for the substepping
 
     double mMaxAllowedCFL; /// Maximum allowed CFL number for the substepping
+
+    double mDiffusionConstant; /// Diffusion constant for the artificial diffusion in the low order scheme
 
     bool mPerformInitialize = true; /// Flag to indicate if the ExecuteInitialize is required to be done
 
@@ -385,20 +393,19 @@ private:
         // Calculate the low order solution
         CalculateLowOrderUpdate(DeltaTime);
 
-        // Calculate the high order solution update
-        CalculateHighOrderSolutionUpdate(DeltaTime);
+        // // Calculate the high order solution update
+        // CalculateHighOrderSolutionUpdate(DeltaTime);
 
         // Add the low order update
-        // TODO: Check that this needs to be done for the limiter or not
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
             mSolution[i] = mSolutionOld[i] + mLowOrderUpdate[i];
         });
 
-        // Calculate the antidiffusive edge contributions
-        CalculateAntidiffusiveEdgeContributions(DeltaTime);
+        // // Calculate the antidiffusive edge contributions
+        // CalculateAntidiffusiveEdgeContributions(DeltaTime);
 
-        // Evaluate limiter
-        EvaluateLimiter(DeltaTime);
+        // // Evaluate limiter
+        // EvaluateLimiter(DeltaTime);
 
         // Do the current step solution update
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
@@ -465,37 +472,45 @@ private:
 
                     // Get ij-edge operators data from CSR data structure
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
-                    const auto& r_Ni_DNj = r_ij_edge_data.GetOffDiagonalConvective();
-                    const auto& r_DNi_Nj = r_ij_edge_data.GetOffDiagonalConvectiveTranspose();
-                    d_ij = 0.5 * (r_Ni_DNj - r_DNi_Nj);
-                    double D_ij = 0.0;
-                    for (IndexType d = 0; d < TDim; ++d) {
-                        D_ij += std::pow(d_ij[d],2);
-                    }
+                    // const auto& r_Ni_DNj = r_ij_edge_data.GetOffDiagonalConvective();
+                    // const auto& r_DNi_Nj = r_ij_edge_data.GetOffDiagonalConvectiveTranspose();
+                    // d_ij = 0.5 * (r_Ni_DNj - r_DNi_Nj);
+                    // double D_ij = 0.0;
+                    // for (IndexType d = 0; d < TDim; ++d) {
+                    //     D_ij += std::pow(d_ij[d],2);
+                    // }
 
-                    // Calculate numerical flux "upwind" contribution at de edge midpoint
-                    // Note that this numerical flux corresponds to the Lax-Wendroff scheme
-                    const double u_ij_half = 0.5 * (u_i + u_j) - 0.5 * DeltaTime * inner_prod(-d_ij, F_i - F_j) / D_ij;
-                    noalias(vel_ij_half) = 0.5 * (r_i_vel + r_j_vel);
-                    for (IndexType d = 0; d < TDim; ++d) {
-                        F_ij_num[d] = 2.0 * (vel_ij_half[d] * u_ij_half);
-                    }
+                    // // Calculate numerical flux "upwind" contribution at the edge midpoint
+                    // // Note that this numerical flux corresponds to the Lax-Wendroff scheme
+                    // const double u_ij_half = 0.5 * (u_i + u_j) - 0.5 * DeltaTime * inner_prod(-d_ij, F_i - F_j) / D_ij;
+                    // noalias(vel_ij_half) = 0.5 * (r_i_vel + r_j_vel);
+                    // for (IndexType d = 0; d < TDim; ++d) {
+                    //     F_ij_num[d] = 2.0 * (vel_ij_half[d] * u_ij_half);
+                    // }
 
-                    // Calculate convection volume residual contributions
-                    double res_edge_i = inner_prod(-d_ij, F_ij_num);
-                    double res_edge_j = inner_prod(d_ij, F_ij_num);
+                    // // Standard flux
+                    // // F_ij_num = F_i + F_j;
 
-                    // If current edge belogs to a boundary, add the corresponding convection boundary integrals
-                    if (r_ij_edge_data.IsBoundary()) {
-                        // Get ij-edge boundary operators from CSR data structure
-                        const auto &r_N_N_normal = r_ij_edge_data.GetConvectiveBoundary();
-                        b_ij = 0.5 * r_N_N_normal;
+                    // // Calculate convection volume residual contributions
+                    // double res_edge_i = inner_prod(-d_ij, F_ij_num);
+                    // double res_edge_j = inner_prod(d_ij, F_ij_num);
 
-                        // Add boundary contribution to the residual
-                        const double res_edge_bd = inner_prod(b_ij, F_ij_num);
-                        res_edge_i -= res_edge_bd;
-                        res_edge_j += res_edge_bd;
-                    }
+                    // // If current edge belogs to a boundary, add the corresponding convection boundary integrals
+                    // if (r_ij_edge_data.IsBoundary()) {
+                    //     // Get ij-edge boundary operators from CSR data structure
+                    //     const auto &r_N_N_normal = r_ij_edge_data.GetConvectiveBoundary();
+                    //     b_ij = 0.5 * r_N_N_normal;
+
+                    //     // Add boundary contribution to the residual
+                    //     const double res_edge_bd = inner_prod(b_ij, F_ij_num);
+                    //     res_edge_i -= res_edge_bd;
+                    //     res_edge_j += res_edge_bd;
+                    // }
+
+                    // Laplacian contribution for the testing
+                    const double c_edge = r_ij_edge_data.GetOffDiagonalLaplacian();
+                    const double res_edge_i = 1.0 * c_edge * (u_i - u_j);
+                    const double res_edge_j = 1.0 * c_edge * (u_j - u_i);
 
                     // Atomic additions
                     AtomicAdd(mResidual[iRow], res_edge_i);
@@ -504,22 +519,22 @@ private:
             }
         });
 
-        // Add the diagonal boundary term coming from the convective flux split
-        IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each(array_1d<double,TDim>(), [&](IndexType iNode, array_1d<double,TDim>& rTLS){
-            // Get nodal data
-            const auto it_node = mpModelPart->NodesBegin() + iNode;
-            const IndexType i_node_id = it_node->Id();
+        // // Add the diagonal boundary term coming from the convective flux split
+        // IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each(array_1d<double,TDim>(), [&](IndexType iNode, array_1d<double,TDim>& rTLS){
+        //     // Get nodal data
+        //     const auto it_node = mpModelPart->NodesBegin() + iNode;
+        //     const IndexType i_node_id = it_node->Id();
 
-            // Add the diagonal contribution to the residual
-            rTLS = mpEdgeDataStructure->GetBoundaryMassMatrixDiagonal(i_node_id);
-            double aux_res = 0.0;
-            const double u_i = mSolutionOld[i_node_id];
-            const auto &r_i_vel = mConvectionValues[i_node_id];
-            for (IndexType d = 0; d < TDim; ++d) {
-                aux_res += u_i * r_i_vel[d] * rTLS[d];
-            }
-            mResidual[i_node_id] -= aux_res;
-        });
+        //     // Add the diagonal contribution to the residual
+        //     rTLS = mpEdgeDataStructure->GetBoundaryMassMatrixDiagonal(i_node_id);
+        //     double aux_res = 0.0;
+        //     const double u_i = mSolutionOld[i_node_id];
+        //     const auto &r_i_vel = mConvectionValues[i_node_id];
+        //     for (IndexType d = 0; d < TDim; ++d) {
+        //         aux_res += u_i * r_i_vel[d] * rTLS[d];
+        //     }
+        //     mResidual[i_node_id] -= aux_res;
+        // });
     }
 
     void CalculateLowOrderUpdate(const double DeltaTime)
@@ -534,42 +549,42 @@ private:
             mLowOrderUpdate[i] = mResidual[i];
         });
 
-        // Add the diffusion to the Taylor-Galerkin already computed residual
-        IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
-            // Get current row (node) storage data
-            const auto it_row = r_row_indices.begin() + iRow;
-            const IndexType i_col_index = *it_row;
-            const SizeType n_cols = *(it_row+1) - i_col_index;
+        // // Add the diffusion to the Taylor-Galerkin already computed residual
+        // IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
+        //     // Get current row (node) storage data
+        //     const auto it_row = r_row_indices.begin() + iRow;
+        //     const IndexType i_col_index = *it_row;
+        //     const SizeType n_cols = *(it_row+1) - i_col_index;
 
-            // Check that there are CSR columns (i.e. that current node involves an edge)
-            if (n_cols != 0) {
-                // i-node nodal data
-                const double u_i = mSolutionOld[iRow];
-                const auto& r_i_vel = mConvectionValues[iRow];
+        //     // Check that there are CSR columns (i.e. that current node involves an edge)
+        //     if (n_cols != 0) {
+        //         // i-node nodal data
+        //         const double u_i = mSolutionOld[iRow];
+        //         const auto& r_i_vel = mConvectionValues[iRow];
 
-                // j-node nodal loop (i.e. loop ij-edges)
-                const auto i_col_begin = r_col_indices.begin() + i_col_index;
-                for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
-                    // j-node nodal data
-                    IndexType j_node_id = *(i_col_begin + j_node);
-                    const double u_j = mSolutionOld[j_node_id];
-                    const auto& r_j_vel = mConvectionValues[j_node_id];
+        //         // j-node nodal loop (i.e. loop ij-edges)
+        //         const auto i_col_begin = r_col_indices.begin() + i_col_index;
+        //         for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
+        //             // j-node nodal data
+        //             IndexType j_node_id = *(i_col_begin + j_node);
+        //             const double u_j = mSolutionOld[j_node_id];
+        //             const auto& r_j_vel = mConvectionValues[j_node_id];
 
-                    // Add low order scheme diffusion
-                    const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
-                    const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
-                    const double c_tau = 1.0 / local_dt;
-                    const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                    const double ij_low_order_diff =  c_tau * Mc_ij;
-                    const double res_edge_i = ij_low_order_diff * (u_j - u_i);
-                    const double res_edge_j = ij_low_order_diff * (u_i - u_j);
+        //             // Add low order scheme diffusion
+        //             const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
+        //             const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
+        //             const double c_tau = mDiffusionConstant / local_dt;
+        //             const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
+        //             const double ij_low_order_diff =  c_tau * Mc_ij;
+        //             const double res_edge_i = ij_low_order_diff * (u_j - u_i);
+        //             const double res_edge_j = ij_low_order_diff * (u_i - u_j);
 
-                    // Atomic additions
-                    AtomicAdd(mLowOrderUpdate[iRow], res_edge_i);
-                    AtomicAdd(mLowOrderUpdate[j_node_id], res_edge_j);
-                }
-            }
-        });
+        //             // Atomic additions
+        //             AtomicAdd(mLowOrderUpdate[iRow], res_edge_i);
+        //             AtomicAdd(mLowOrderUpdate[j_node_id], res_edge_j);
+        //         }
+        //     }
+        // });
 
         // Do the explicit lumped mass matrix solve to obtain the low order update
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
@@ -590,6 +605,11 @@ private:
         const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
         const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
         SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
+
+        // Initialize high order update container
+        IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
+            mHighOrderUpdate[i] = 0.0;
+        });
 
         // Allocate auxiliar high order residual vector
         std::vector<double> residual_high_order(mAuxSize);
@@ -684,7 +704,7 @@ private:
                     // Calculate and store the antidiffusive flux edge contribution
                     auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
                     const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
-                    const double c_tau = DeltaTime / local_dt;
+                    const double c_tau = mDiffusionConstant * DeltaTime / local_dt;
                     const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
                     const double AEC_ij = Mc_ij * (c_tau * (u_i - u_j) + (u_h_i - u_h_j)) / DeltaTime;
                     r_ij_edge_data.SetAntidiffusiveEdgeContribution(AEC_ij);

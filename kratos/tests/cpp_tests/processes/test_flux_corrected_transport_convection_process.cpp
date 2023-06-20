@@ -18,6 +18,8 @@
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "includes/gid_io.h"
+#include "linear_solvers/amgcl_solver.h"
+#include "processes/levelset_convection_process.h"
 #include "processes/flux_corrected_transport_convection_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/structured_mesh_generator_process.h"
@@ -55,15 +57,17 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart",
         "echo_level" : 1,
-        "max_CFL" : 0.25
+        "max_CFL" : 0.1,
+        "diffusion_constant" : 1.0
     })");
 
-    // Fake time advance to set the previous process info container
-    const double dt = 1.0;
-    r_model_part.GetProcessInfo()[TIME] = 0.0;
-    r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
-    r_model_part.CloneTimeStep(dt);
-    r_model_part.CloneTimeStep(2.0*dt);
+    // // Fake time advance to set the previous process info container
+    // const double dt = 1.0;
+    // r_model_part.GetProcessInfo()[TIME] = 0.0;
+    // r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
+    // r_model_part.CloneTimeStep(dt);
+    // // r_model_part.CloneTimeStep(2.0*dt);
+    // r_model_part.CloneTimeStep((1.2)*dt);
 
     // Set nodal values
 
@@ -84,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
 
     // "1D" hill
     const double a = 1.0; // height
-    const double c = 0.1; // width
+    const double c = 0.075; // width
     const double b = 0.0; // x-coordinate of the center
     auto dist_func = [&](Node& rNode){return std::abs(rNode.X() - b) < c ? a : 0.0;};
     auto vel_func = [&](Node& rNode, array_1d<double,3>& rVel){rVel[0] = 1.0;rVel[1] = 0.0;rVel[2] = 0.0;};
@@ -100,11 +104,48 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     }
 
 
-    // Set and execute the FCT convection process
-    FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
-    fct_convection_process.Execute();
+    // // Set and execute the FCT convection process
+    // FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
+    // fct_convection_process.Execute();
 
-    // GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportConvectionProcess2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    // Set and execute the FCT convection process (time loop)
+    GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportProcess2DNoSubstepping", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    gid_io_convection.InitializeMesh(0);
+    gid_io_convection.WriteMesh(r_model_part.GetMesh());
+    gid_io_convection.FinalizeMesh();
+    gid_io_convection.InitializeResults(0, r_model_part.GetMesh());
+    gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
+    gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
+
+    const double dt = 2e-4;
+    const double end_time = 0.2;
+    r_model_part.GetProcessInfo()[TIME] = 0.0;
+    r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
+    FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
+    while (r_model_part.GetProcessInfo()[TIME] < end_time) {
+        const double new_time = r_model_part.GetProcessInfo()[TIME] + dt;
+        r_model_part.CloneTimeStep(new_time);
+        fct_convection_process.Execute();
+        gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), new_time, 0);
+        gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), new_time, 0);
+    }
+
+    gid_io_convection.FinalizeResults();
+
+    // Parameters ls_conv_parameters(R"({
+    //     "model_part_name" : "ModelPart",
+    //     "echo_level" : 1,
+    //     "max_CFL" : 1.0
+    // })");
+
+    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    // typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    // auto p_ls_linear_solver = Kratos::make_shared<AMGCLSolver<SparseSpaceType, LocalSpaceType>>();
+    // LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType> ls_conv_process(current_model, p_ls_linear_solver, ls_conv_parameters);
+    // ls_conv_process.Execute();
+
+    // GidIO<> gid_io_convection("/home/rzorrilla/Desktop/LevelSetConvectionProcess2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
     // gid_io_convection.InitializeMesh(0);
     // gid_io_convection.WriteMesh(r_model_part.GetMesh());
     // gid_io_convection.FinalizeMesh();

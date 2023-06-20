@@ -57,6 +57,15 @@ public:
     // Number of element nodes (note that simplicial elements are assumed)
     static constexpr std::size_t NumNodes = TDim + 1;
 
+    // Number of faces per element (note that simplicial elements are assumed)
+    static constexpr std::size_t NumFaces = TDim == 2 ? 3 : 4;
+
+    // Number of edges per element (note that simplicial elements are assumed)
+    static constexpr std::size_t NumEdges = TDim == 2 ? 3 : 6;
+
+    // Number of edges per face (note that simplicial elements are assumed)
+    static constexpr std::size_t NumFaceEdges = TDim == 2 ? 1 : 3;
+
     //TODO: Fake edge data structure to be defined later on
     class EdgeData final
     {
@@ -116,17 +125,31 @@ public:
             mAEC = AntidiffusiveEedgeContribution;
         }
 
+        // void AddOffDiagonalValues(
+        //     const double Weight,
+        //     const array_1d<double, TDim> &rDNiDX,
+        //     const array_1d<double, TDim> &rDNjDX)
+        // {
+        //     mMij += Weight * 0.25;
+        //     for (std::size_t d = 0; d < TDim; ++d) {
+        //         mLij += Weight * rDNiDX[d] * rDNjDX[d];
+        //         mNiDNj[d] += Weight * 0.5 * rDNjDX[d];
+        //         mDNiNj[d] += Weight * rDNiDX[d] * 0.5;
+        //     }
+        // }
+
         void AddOffDiagonalValues(
-            const double DomainSize,
+            const double Weight,
+            const double Ni,
+            const double Nj,
             const array_1d<double, TDim> &rDNiDX,
             const array_1d<double, TDim> &rDNjDX)
         {
-            const double w_i = DomainSize / NumNodes;
-            mMij += w_i * 0.25;
+            mMij += Weight * Ni * Nj;
             for (std::size_t d = 0; d < TDim; ++d) {
-                mLij += w_i * rDNiDX[d] * rDNjDX[d];
-                mNiDNj[d] += w_i * 0.5 * rDNjDX[d];
-                mDNiNj[d] += w_i * rDNiDX[d] * 0.5;
+                mLij += Weight * rDNiDX[d] * rDNjDX[d];
+                mNiDNj[d] += Weight * Ni * rDNjDX[d];
+                mDNiNj[d] += Weight * rDNiDX[d] * Nj;
             }
         }
 
@@ -453,54 +476,79 @@ private:
 
         // Allocate auxiliary arrays for the elementwise calculations
         double domain_size;
-        array_1d<double, NumNodes> N;
+        BoundedMatrix<double, NumNodes, NumNodes> N;
         BoundedMatrix<double, NumNodes, TDim> DNDX;
 
         // Loop elements to calculate their corresponding edge contributions
         for (auto& r_element : rModelPart.Elements()) {
             // Getting geometry data of the element
             const auto& r_geom = r_element.GetGeometry();
+            const double w_gauss = domain_size / NumNodes;
             GeometryUtils::CalculateGeometryData(r_geom, DNDX, N, domain_size);
 
-            // Loop element edges
-            for (IndexType i = 0; i < NumNodes-1; ++i) {
-                const IndexType i_id = r_geom[i].Id();
-                for (IndexType j = i+1; j < NumNodes; ++j) {
-                    const IndexType j_id = r_geom[j].Id();
+            // Loop volume Gauss points
+            for (IndexType g = 0; g < NumNodes; ++g) {
+                // Get current Gauss pt. data
+                const auto& r_N_g = row(N, g);
 
-                    // Get ij-edge auxiliary local ids
-                    // Note that these are set according to the "i lowest id" storage criterion
-                    IndexType aux_i;
-                    IndexType aux_j;
-                    if (i_id < j_id) {
-                        aux_i = i;
-                        aux_j = j;
-                    } else {
-                        aux_i = j;
-                        aux_j = i;
+                // Loop element edges to add the off-diagonal (IJ) contributions
+                for (IndexType i = 0; i < NumNodes-1; ++i) {
+                    const IndexType i_id = r_geom[i].Id();
+                    for (IndexType j = i+1; j < NumNodes; ++j) {
+                        const IndexType j_id = r_geom[j].Id();
+
+                        // Get ij-edge auxiliary local ids
+                        // Note that these are set according to the "i lowest id" storage criterion
+                        IndexType aux_i;
+                        IndexType aux_j;
+                        if (i_id < j_id) {
+                            aux_i = i;
+                            aux_j = j;
+                        } else {
+                            aux_i = j;
+                            aux_j = i;
+                        }
+                        const IndexType aux_i_id = r_geom[aux_i].Id();
+                        const IndexType aux_j_id = r_geom[aux_j].Id();
+
+                        // // Add the mass matrices diagonal (II) contributions
+                        // // Note that in here we take advantage of the fact that there is an integration point at the mid of each edge
+                        // const IndexType i_row_id = i_id - 1;
+                        // const IndexType j_row_id = j_id - 1;
+                        // const double aux_mass = 0.25 * w_int_pt;
+                        // mMassMatrixDiagonal[i_row_id] += aux_mass;
+                        // mMassMatrixDiagonal[j_row_id] += aux_mass;
+                        // mLumpedMassMatrixDiagonal[i_row_id] += 2.0 * aux_mass;
+                        // mLumpedMassMatrixDiagonal[j_row_id] += 2.0 * aux_mass;
+
+                        // If not created yet, create current edge data container
+                        // Note that we also set the length which is the same for all neighbour elements
+                        // auto& rp_edge_data = pGetEdgeData(i_id, j_id);
+                        auto& rp_edge_data = pGetEdgeData(aux_i_id, aux_j_id);
+                        if (rp_edge_data == nullptr) {
+                            rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
+                            rp_edge_data->SetLength(norm_2(r_geom[aux_i].Coordinates()-r_geom[aux_j].Coordinates()));
+                        }
+
+                        // Add current element off-diagonal (IJ) contributions
+                        // rp_edge_data->AddOffDiagonalValues(w_gauss, row(DNDX,aux_i), row(DNDX,aux_j));
+                        rp_edge_data->AddOffDiagonalValues(w_gauss, r_N_g[aux_i], r_N_g[aux_j], row(DNDX,aux_i), row(DNDX,aux_j));
                     }
-
-                    // Add the mass matrices diagonal (II) contributions
-                    // Note that in here we take advantage of the fact that there is an integration point at the mid of each edge
-                    const IndexType i_row_id = i_id - 1;
-                    const IndexType j_row_id = j_id - 1;
-                    const double aux_mass = 0.25 * domain_size / NumNodes;
-                    mMassMatrixDiagonal[i_row_id] += aux_mass;
-                    mMassMatrixDiagonal[j_row_id] += aux_mass;
-                    mLumpedMassMatrixDiagonal[i_row_id] += 2.0 * aux_mass;
-                    mLumpedMassMatrixDiagonal[j_row_id] += 2.0 * aux_mass;
-
-                    // If not created yet, create current edge data container
-                    // Note that we also set the length which is the same for all neighbour elements
-                    auto& rp_edge_data = pGetEdgeData(i_id, j_id);
-                    if (rp_edge_data == nullptr) {
-                        rp_edge_data = std::move(Kratos::make_unique<EdgeData>());
-                        rp_edge_data->SetLength(norm_2(r_geom[aux_i].Coordinates()-r_geom[aux_j].Coordinates()));
-                    }
-
-                    // Add current element off-diagonal (IJ) contributions
-                    rp_edge_data->AddOffDiagonalValues(domain_size, row(DNDX,aux_i), row(DNDX,aux_j));
                 }
+
+                // Add the mass matrices diagonal (II) contributions
+                // Note that in here we take advantage of the fact that there is an integration point at the mid of each face
+                for (IndexType i = 0; i < NumNodes; ++i) {
+                    const IndexType i_row = r_geom[i].Id() - 1;
+                    mMassMatrixDiagonal[i_row] += w_gauss * r_N_g[i] * r_N_g[i];
+                    // mLumpedMassMatrixDiagonal[i_row] += w_gauss * r_N_g[i];
+                }
+            }
+
+            // Add the lumped mass matrix diagonal (II) contributions
+            for (IndexType i = 0; i < NumNodes; ++i) {
+                const IndexType i_row = r_geom[i].Id() - 1;
+                mLumpedMassMatrixDiagonal[i_row] += w_gauss;
             }
         }
 
@@ -525,12 +573,7 @@ private:
                     // Also note that in here we take advantage of the fact that there is an integration point at the mid of each edge
                     const IndexType i_row_id = i_id - 1;
                     const IndexType j_row_id = j_id - 1;
-                    double aux_mass;
-                    if constexpr (TDim == 2) {
-                        aux_mass = 0.25 * domain_size;
-                    } else {
-                        aux_mass = 0.25 * domain_size / 3.0;
-                    }
+                    const double aux_mass = 0.25 * domain_size / NumFaceEdges;
                     noalias(mBoundaryMassMatrixDiagonal[i_row_id]) += aux_mass * unit_normal;
                     noalias(mBoundaryMassMatrixDiagonal[j_row_id]) += aux_mass * unit_normal;
 
