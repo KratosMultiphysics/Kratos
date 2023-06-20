@@ -289,8 +289,8 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(self.HDF5NodalSolutionStepBossakIO.call_count, 3)
         self.assertEqual(
             self.HDF5NodalSolutionStepBossakIO.call_args[0][0]['prefix'].GetString(), '/ResultsData')
-        #self.assertEqual(
-        #    self.HDF5NodalSolutionStepBossakIO.call_args[0][0]['list_of_variables'].size(), 0)
+        self.assertEqual(
+            self.HDF5NodalSolutionStepBossakIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
             self.HDF5NodalSolutionStepBossakIO.call_args[0][1], self.HDF5FileSerial.return_value)
         self.assertEqual(

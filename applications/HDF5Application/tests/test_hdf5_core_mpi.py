@@ -23,7 +23,7 @@ def _SurrogateModelPart():
     test_file_path        = pathlib.Path(str(test_file_stem) + ".mdpa")
 
     if not test_file_path.is_file():
-        raise FileNotFoundError("Test file not found: {}".format(test_file_path))
+        raise FileNotFoundError(f"Test file not found: {test_file_path}")
 
     # Construct model and model part
     model = KratosMultiphysics.Model()
