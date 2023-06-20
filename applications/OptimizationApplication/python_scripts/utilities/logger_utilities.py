@@ -11,18 +11,9 @@
 #
 
 import time as timer
-import os
-import sys
 import datetime
 import KratosMultiphysics as Kratos
 
-def GetTerminalWidth():
-    try:
-        if sys.stdout.isatty():
-            return os.get_terminal_size().columns
-    except OSError:
-        pass
-    return 80
 
 def AddFileLoggerOutput(logger_file_name):
     logger_file = Kratos.FileLoggerOutput(logger_file_name)
@@ -78,63 +69,38 @@ class OptimizationAlgorithmTimeLogger:
 
     def __exit__(self, exit_type, exit_value, exit_traceback):
 
-        terminal_width = GetTerminalWidth()
-        border_symbol = '@'
-        empty_space_percentage = 0.1
-
-        # Calculate the width of the content (excluding borders and empty spaces)
-        content_width = terminal_width - 2 - int(terminal_width * empty_space_percentage) * 2
-
         current_time = timer.time()
         elapsed_time = current_time - self.start_time
         elapsed_time_string = str(datetime.timedelta(seconds=round(elapsed_time)))
 
-        iteration_text = f"{self.optimizer_name} EOF Iteration {self.optimization_itr}"
-        iteration_output = f"{border_symbol}{' ' * int(content_width * empty_space_percentage)}{iteration_text} [Elapsed Time: {elapsed_time_string}]{' ' * int(content_width * empty_space_percentage)}{border_symbol}"
+        iteration_text = f"{self.optimizer_name} EoF Iteration {self.optimization_itr}"
+        iteration_output = f"{'#'}  {iteration_text} [Elapsed Time: {elapsed_time_string}]  {'#'}"
 
-        total_width = terminal_width
 
-        left_width = int(total_width * 0.1)
-        center_width = int(total_width * 0.8)
-        right_width = total_width - left_width - center_width
+        divided_line = len(iteration_output) * '#'
 
-        left_part = ' ' * left_width
-        center_part = '#' * center_width
-        right_part = ' ' * right_width
-
-        divided_line = f"{left_part}{center_part}{right_part}"
-
-        to_print = f"{divided_line}\n{iteration_output.center(terminal_width)}\n{divided_line}"
+        to_print = f"{divided_line}\n{iteration_output}\n{divided_line}\n"
 
         Kratos.Logger.Print(to_print)
 
 class OptimizationAnalysisTimeLogger:
 
     def __enter__(self):
-        terminal_width = GetTerminalWidth()
-        border_symbol = '#'
         start_text = "Optimization Start"
-
-        border = border_symbol * terminal_width
-        start_centered_text = start_text.center(terminal_width - 2, ' ')
-        separator = border_symbol * terminal_width
 
         self.start_time = datetime.datetime.now()
         start_time_string = self.start_time.strftime("%Y-%m-%d %H:%M:%S")
 
-        start_output = f"{border}\n{border_symbol}{start_centered_text}{border_symbol}\n{start_time_string.center(terminal_width - 2)}\n{separator}"
+        time_string = f"**   {start_time_string}   **"
+        separator_string = len(time_string) * '*'
+        center_string = f"**{start_text.center(len(str(time_string))-4)}**"
+        final_string = f"{separator_string}\n{center_string}\n{time_string}\n{separator_string}"
 
-        Kratos.Logger.Print(start_output)
+        Kratos.Logger.Print(final_string)
 
     def __exit__(self, exit_type, exit_value, exit_traceback):
 
-        terminal_width = GetTerminalWidth()
-        border_symbol = '#'
         end_text = "Optimization End"
-
-        border = border_symbol * terminal_width
-        end_centered_text = end_text.center(terminal_width - 2, ' ')
-        separator = border_symbol * terminal_width
 
         end_time = datetime.datetime.now()
         end_time_string = end_time.strftime("%Y-%m-%d %H:%M:%S")
@@ -142,8 +108,55 @@ class OptimizationAnalysisTimeLogger:
         elapsed_time = end_time - self.start_time
         elapsed_time_string = str(datetime.timedelta(seconds=round(elapsed_time.total_seconds())))
 
-        test_string = end_time_string + "  [Elapsed Time: " + elapsed_time_string + "]"
+        time_string = f"**   {end_time_string}  [Elapsed Time: {elapsed_time_string}]   **"
+        separator_string = len(time_string) * '*'
+        center_string = f"**{end_text.center(len(str(time_string))-4)}**"
+        final_string = f"{separator_string}\n{center_string}\n{time_string}\n{separator_string}"
 
-        end_output = f"{border}\n{border_symbol}{end_centered_text}{border_symbol}\n{test_string.center(terminal_width)}\n{separator}"
+        Kratos.Logger.Print(final_string)
 
-        Kratos.Logger.Print(end_output)
+def TablulizeData(title, data):
+    # Determine the maximum length of labels
+    max_label_len = max(len(str(label)) for label, _ in data)
+
+    # Determine the maximum length of values
+    for i in range(len(data)):
+        key, value = data[i]
+        if isinstance(value, float):
+            data[i] = (key, round(value, 6))
+
+    max_value_len = max(len(f"{value:.6f}" if isinstance(value, float) else str(value)) for _, value in data)
+
+    title_len = len(str(title)) + 8
+
+    # Calculate the row width
+    if title_len > max_label_len + max_value_len + 7:
+        row_width = title_len
+        max_value_len = row_width - max_label_len - 7
+    else:
+        row_width = max_label_len + max_value_len + 7
+
+
+    # Create format strings for the labels and values
+    label_format = f"| {{:<{max_label_len}}} |"
+    value_format = f"{{:>{max_value_len}.6f}} |\n"
+
+
+
+    # Build the table
+    table = '-' * row_width + "\n"
+    table += f"|{str(title).center(row_width - 2)}|\n"
+    table += '-' * row_width + "\n"
+
+    # Add the data to the table
+    for label, value in data:
+        # Handle both numeric and string types for value
+        if isinstance(value, (float, int)):
+            table += f"{label_format.format(label)} {value_format.format(round(value, 6))}"
+        else:
+            table += f"{label_format.format(label)} {value:>{max_value_len}} |\n"
+
+    table += '-' * row_width
+
+    return table
+

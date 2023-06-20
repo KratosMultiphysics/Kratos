@@ -2,6 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TablulizeData
 import math
 
 def CreateLineSearch(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -41,12 +42,18 @@ class ConstStep(object):
         else:
             raise RuntimeError("\"gradient_scaling\" has unknown type.")
         if not math.isclose(norm, 0.0, abs_tol=1e-16):
-            step = self.init_step / norm
+            self.step = self.init_step / norm
         else:
-            step =  self.init_step
-        msg = f"""\t Line Search info:
-            type          : constant
-            unscaled_step : {self.init_step:0.6e}
-            scaled_step   : {step:0.6e}"""
-        print(msg)
-        return step
+            self.step =  self.init_step
+
+        return self.step
+
+    def GetInfo(self) -> str:
+
+        data = [
+            ("type", "constant"),
+            ("unscaled_step", self.init_step),
+            ("scaled_step", self.step)
+        ]
+
+        return TablulizeData("Line Search info",data)

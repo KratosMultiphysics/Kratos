@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TablulizeData
 
 class StandardizedObjective(ResponseRoutine):
     """Standardized objective response function
@@ -106,13 +107,15 @@ class StandardizedObjective(ResponseRoutine):
         return self.GetValue() - self.GetInitialValue()
 
     def GetInfo(self) -> str:
-        msg = f"""\t Objective info:
-            name          : {self.GetReponse().GetName()}
-            type          : {self.__objective_type}
-            value         : {self.GetValue():0.6e}
-            abs_change    : {self.GetAbsoluteChange():0.6e}
-            rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"""
+        data = [
+            ("name", self.GetReponse().GetName()),
+            ("type", self.__objective_type),
+            ("value", self.GetValue()),
+            ("abs_change", self.GetAbsoluteChange()),
+            ("rel_change [%]", self.GetRelativeChange() * 100.0)
+        ]
         init_value = self.GetInitialValue()
         if init_value:
-            msg = f"{msg} \n\t    abs_change [%]: {self.GetAbsoluteChange()/init_value * 100:0.6e} "
-        return msg
+            data.append(("abs_change [%]", self.GetAbsoluteChange()/init_value * 100))
+
+        return TablulizeData("Objective info",data)

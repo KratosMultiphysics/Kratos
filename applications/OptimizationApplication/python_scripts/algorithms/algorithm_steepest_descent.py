@@ -76,7 +76,8 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__control_field = self.master_control.GetControlField()
 
     def Finalize(self):
-        pass
+        self.__objective.Finalize()
+        self.master_control.Finalize()
 
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
         return obj_grad * -1.0
@@ -92,7 +93,7 @@ class AlgorithmSteepestDescent(Algorithm):
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
 
-                with TimeLogger("Calculate objective value", None, "Finished"):
+                with TimeLogger("AlgorithmSteepestDescent::Calculate objective value", None, "Finished"):
                     self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                     algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
                     algorithm_data.GetBufferedData()["rel_obj[%]"] = self.__objective.GetRelativeChange() * 100
@@ -101,22 +102,23 @@ class AlgorithmSteepestDescent(Algorithm):
                         algorithm_data.GetBufferedData()["abs_obj[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
                     print(self.__objective.GetInfo())
 
-                with TimeLogger("Calculate gradient", None, "Finished"):
+                with TimeLogger("AlgorithmSteepestDescent::Calculate gradient", None, "Finished"):
                     obj_grad = self.__objective.CalculateStandardizedGradient()
 
-                with TimeLogger("Calculate design update", None, "Finished"):
+                with TimeLogger("AlgorithmSteepestDescent::Calculate design update", None, "Finished"):
                     search_direction = self.ComputeSearchDirection(obj_grad)
                     algorithm_data.GetBufferedData()["search_direction"] = search_direction
-
                     alpha = self.__line_search_method.ComputeStep()
-
                     update = search_direction * alpha
                     self.__control_field += update
+                    print(self.__line_search_method.GetInfo())
 
                 algorithm_data.GetBufferedData()["parameter_update"] = update
                 algorithm_data.GetBufferedData()["control_field"] = self.__control_field
 
-                self.converged = self.__convergence_criteria.IsConverged()
+                with TimeLogger("AlgorithmSteepestDescent::Check convergence", None, "Finished"):
+                    self.converged = self.__convergence_criteria.IsConverged()
+                    print(self.__convergence_criteria.GetInfo())
 
                 self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
 
