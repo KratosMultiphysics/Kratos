@@ -60,7 +60,7 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
     def GenerateSearch(self, container_type = "KDTree"):
         self.settings["container_type"].SetString(container_type)
         if KM.IsDistributedRun():
-            raise Exception("MPI version comming in a future PR")
+            self.search = KratosMPI.SpecializedSpatialSearchMPI(self.settings)
         else:
             self.search = KM.SpecializedSpatialSearch(self.settings)
 
