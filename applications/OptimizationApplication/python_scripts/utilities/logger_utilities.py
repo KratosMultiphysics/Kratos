@@ -119,16 +119,19 @@ class OptimizationAnalysisTimeLogger:
 
         Kratos.Logger.PrintInfo(final_string)
 
-def TablulizeDictData(title: str, data: dict):
+def DictLogger(title: str, data: dict):
+
+    # First do the formatting and converting to strings
+    for key, value in data.items():
+        if isinstance(value, (float, int)):
+            if abs(value) >= 1e6 or abs(value) < 1e-6:
+                data[key] = "{:.6e}".format(value)
+            else:
+                data[key] = "{:.6f}".format(value)
+
     # Determine the maximum length of labels
     max_label_len = max(len(str(label)) for label in data.keys())
-
-    # Determine the maximum length of values
-    for key, value in data.items():
-        if isinstance(value, float):
-            data[key] = round(value, 6)
-
-    max_value_len = max(len(f"{value:.6f}" if isinstance(value, float) else str(value)) for value in data.values())
+    max_value_len = max(len(str(value)) for value in data.values())
 
     title_len = len(str(title)) + 8
 
@@ -141,7 +144,6 @@ def TablulizeDictData(title: str, data: dict):
 
     # Create format strings for the labels and values
     label_format = f"| {{:<{max_label_len}}} |"
-    value_format = f"{{:>{max_value_len}.6f}} |\n"
 
     # Build the table
     table = '-' * row_width + "\n"
@@ -150,12 +152,9 @@ def TablulizeDictData(title: str, data: dict):
 
     # Add the data to the table
     for label, value in data.items():
-        # Handle both numeric and string types for value
-        if isinstance(value, (float, int)):
-            table += f"{label_format.format(label)} {value_format.format(round(value, 6))}"
-        else:
-            table += f"{label_format.format(label)} {value:>{max_value_len}} |\n"
+        table += f"{label_format.format(label)} {value:>{max_value_len}} |\n"
 
     table += '-' * row_width
 
-    return table
+    # now print
+    Kratos.Logger.PrintInfo(table)

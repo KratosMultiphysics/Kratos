@@ -4,7 +4,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TablulizeDictData
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
 class StandardizedObjective(ResponseRoutine):
@@ -68,7 +68,7 @@ class StandardizedObjective(ResponseRoutine):
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
                 self.__buffered_data["value"] = response_value
 
-            Kratos.Logger.PrintInfo(TablulizeDictData("Objective info",self.GetInfo()))
+            DictLogger("Objective info",self.GetInfo())
 
         return standardized_response_value
 

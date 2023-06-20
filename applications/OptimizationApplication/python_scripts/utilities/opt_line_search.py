@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TablulizeDictData
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 import math
 
@@ -48,7 +48,7 @@ class ConstStep(object):
             else:
                 self.step =  self.init_step
 
-            Kratos.Logger.PrintInfo(TablulizeDictData("Line Search info",self.GetInfo()))
+            DictLogger("Line Search info",self.GetInfo())
 
         return self.step
 

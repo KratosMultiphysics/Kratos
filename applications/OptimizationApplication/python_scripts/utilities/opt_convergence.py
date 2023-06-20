@@ -2,7 +2,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TablulizeDictData
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
 def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -31,7 +31,7 @@ class MaxIterConvCriterion:
         with TimeLogger(f"MaxIterConvCriterion::IsConverged", None, "Finished"):
             iter = self.__optimization_problem.GetStep()
             self.conv = True if iter >= self.__max_iter else False
-            Kratos.Logger.PrintInfo(TablulizeDictData("Convergence info",self.GetInfo()))
+            DictLogger("Convergence info",self.GetInfo())
         return self.conv
 
     def GetInfo(self) -> dict:
@@ -70,7 +70,7 @@ class L2ConvCriterion:
             if not self.conv:
                 self.conv = True if self.norm <= self.__tolerance else False
 
-            Kratos.Logger.PrintInfo(TablulizeDictData("Convergence info",self.GetInfo()))
+            DictLogger("Convergence info",self.GetInfo())
 
         return self.conv
 
