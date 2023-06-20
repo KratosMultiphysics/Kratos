@@ -110,6 +110,23 @@ public:
     }
 
     /**
+     * @brief Search neighbours nodes for several points in a given radius
+     */
+    template<typename TPointIteratorType>    
+    NodeSpatialSearchResultContainerMapType SearchNodesOverPointsInRadius (
+        const NodesContainerType& rStructureNodes,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        NodeSpatialSearchResultContainerMapType results;
+        mpSpatialSearch->SearchNodesOverPointsInRadius(rStructureNodes, itPointBegin, itPointEnd, rRadius, results, rDataCommunicator);
+        return results;
+    }
+
+    /**
      * @brief Search nearest neighbour node for one point
      */
     void SearchNodesOverPointNearestPoint (
@@ -121,6 +138,22 @@ public:
         ) override
     {
         mpSpatialSearch->SearchNodesOverPointNearestPoint(rStructureNodes, rPoint, rResults, rDataCommunicator, SyncronizeResults);
+    }
+
+    /**
+     * @brief Search nearest neighbour node for several points
+     */
+    template<typename TPointIteratorType>    
+    NodeSpatialSearchResultContainerMapType SearchNodesOverPointsNearestPoint (
+        const NodesContainerType& rStructureNodes,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        NodeSpatialSearchResultContainerMapType results;
+        mpSpatialSearch->SearchNodesOverPointsNearestPoint(rStructureNodes, itPointBegin, itPointEnd, results, rDataCommunicator);
+        return results;
     }
 
     /**
@@ -139,6 +172,23 @@ public:
     }
 
     /**
+     * @brief Search neighbours elements for several points in a given radius
+     */
+    template<typename TPointIteratorType>    
+    ElementSpatialSearchResultContainerMapType SearchElementsOverPointsInRadius (
+        const ElementsContainerType& rStructureElements,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        ElementSpatialSearchResultContainerMapType results;
+        mpSpatialSearch->SearchElementsOverPointsInRadius(rStructureElements, itPointBegin, itPointEnd, rRadius, results, rDataCommunicator);
+        return results;
+    }
+
+    /**
      * @brief Search nearest neighbour element for one point
      */
     void SearchElementsOverPointNearestPoint (
@@ -150,6 +200,22 @@ public:
         ) override
     {
         mpSpatialSearch->SearchElementsOverPointNearestPoint(rStructureElements, rPoint, rResults, rDataCommunicator, SyncronizeResults);
+    }
+
+    /**
+     * @brief Search nearest neighbour element for several points
+     */
+    template<typename TPointIteratorType>    
+    ElementSpatialSearchResultContainerMapType SearchElementsOverPointsNearestPoint (
+        const ElementsContainerType& rStructureElements,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        ElementSpatialSearchResultContainerMapType results;
+        mpSpatialSearch->SearchElementsOverPointsNearestPoint(rStructureElements, itPointBegin, itPointEnd, results, rDataCommunicator);
+        return results;
     }
 
     /**
@@ -168,6 +234,23 @@ public:
     }
 
     /**
+     * @brief Search neighbours conditions for several points in a given radius
+     */
+    template<typename TPointIteratorType>    
+    ConditionSpatialSearchResultContainerMapType SearchConditionsOverPointsInRadius (
+        const ConditionsContainerType& rStructureConditions,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        ConditionSpatialSearchResultContainerMapType results;
+        mpSpatialSearch->SearchConditionsOverPointsInRadius(rStructureConditions, itPointBegin, itPointEnd, rRadius, results, rDataCommunicator);
+        return results;
+    }
+
+    /**
      * @brief Search nearest neighbour condition for one point
      */
     void SearchConditionsOverPointNearestPoint (
@@ -179,6 +262,22 @@ public:
         ) override
     {
         mpSpatialSearch->SearchConditionsOverPointNearestPoint(rStructureConditions, rPoint, rResults, rDataCommunicator, SyncronizeResults);
+    }
+
+    /**
+     * @brief Search nearest neighbour condition for several points
+     */
+    template<typename TPointIteratorType>    
+    ConditionSpatialSearchResultContainerMapType SearchConditionsOverPointsNearestPoint (
+        const ConditionsContainerType& rStructureConditions,
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        ConditionSpatialSearchResultContainerMapType results;
+        mpSpatialSearch->SearchConditionsOverPointsNearestPoint(rStructureConditions, itPointBegin, itPointEnd, results, rDataCommunicator);
+        return results;
     }
 
     ///@}

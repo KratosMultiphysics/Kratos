@@ -415,7 +415,6 @@ public:
         return results;
     }
 
-
     ///@}
     ///@name Input and output
     ///@{
