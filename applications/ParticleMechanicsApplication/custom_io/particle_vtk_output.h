@@ -60,16 +60,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief This method provides the defaults parameters
-     */
-    static Parameters GetDefaultParameters();
-
-    /**
-     * @brief Prints mrModelPart in VTK format together with the results
-     */
-    void PrintOutput(const std::string& rOutputFilename = "");
-
     ///@}
 
     /// Turn back information as a string.
@@ -92,107 +82,65 @@ public:
     {
     }
 
-    enum class OutputEntities {
-        ELEMENTS,
-        CONDITIONS
-    };
-
 protected:
-    ///@name Member Variables
-    ///@{
-
-
-    ParticleVtkOutput::OutputEntities mOutputEntities;  /// The entity (element or condition) to print
-
-    ///@}
-    ///@name Operations
-    ///@{
 
     /**
-     * @brief Print the given rModelPart as VTK file together with the requested results
-     * @param rModelPart modelpart which is beging output
-     * @param IsSubModelPart whether the modelpart is to be treated as a submodelpart
-     * this is only relevant for the file-name
-     */
-    void WriteModelPartToFile(
-        const ModelPart& rModelPart,
-        const bool IsSubModelPart,
-        const std::string& rOutputFilename
-        );
-
-    /**
-     * @brief Write the mesh from rModelPart: material point Elements or Conditions
+     * @brief Write the nodes in the rModelPart.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteMeshToFile(
+    void WriteNodesToFile(
         const ModelPart& rModelPart,
+        std::ofstream& rFileStream
+        ) const override;
+
+    /**
+     * @brief Write the element/condition WriteConnectivity provided the container they are in
+     * @tparam TEntity Element/Condition
+     * @param rContainer The container containing elements/conditions
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template <typename TContainerType>
+    void WriteConnectivity(
+        const TContainerType& rContainer,
+        std::ofstream& rFileStream
+        ) const;
+
+    /**
+     * @brief Write the element/condition cell types provided the container they are in
+     * @tparam TEntity Element/Condition
+     * @param rContainer The container containing elements/conditions
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template <typename TContainerType>
+    void WriteCellType(
+        const TContainerType& rContainer,
         std::ofstream& rFileStream
         ) const;
 
     /**
      * @brief Write the elements and conditions in rModelPart.
+     *        IMPORTANT : Need to write them together because of the CELLS block in VTK format
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
     void WriteConditionsAndElementsToFile(
         const ModelPart& rModelPart,
         std::ofstream& rFileStream
-        ) const;
+        ) const override;
 
     /**
-     * @brief Write the results/flags on the elements of rModelPart.
+     * @brief Write the results on the nodes.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteElementResultsToFile(
+    void WriteNodalResultsToFile(
         const ModelPart& rModelPart,
         std::ofstream& rFileStream
-        );
-
-    /**
-     * @brief Write the results/flags on the conditions of rModelPart.
-     * @param rModelPart modelpart which is beging output
-     * @param rFileStream the file stream to which data is to be written.
-     */
-    void WriteConditionResultsToFile(
-        const ModelPart& rModelPart,
-        std::ofstream& rFileStream
-        );
-
-    ///@}
+        ) override;
 
 private:
-    ///@name Operations
-    ///@{
 
-    /**
-     * @brief Prints the Properties Id as an integer variable in each element/condition
-     * @tparam TContainerType The type of container of the entity on which the results are to be written
-     * @param rContainer the container which is being output
-     * @param rFileStream the file stream to which data is to be written.
-     */
-    template<typename TContainerType>
-    void WritePropertiesIdsToFile(
-        const TContainerType& rContainer,
-        std::ofstream& rFileStream
-        ) const;
-
-    /**
-     * @brief Prints the Ids of the container entities as an integer variable in entity (e.g. node, element, condition)
-     * @tparam TContainerType The type of container of the entity on which the results are to be written
-     * @param rContainer the container which is being output
-     * @param DataName name of the data in the vtk file
-     * @param rFileStream the file stream to which data is to be written.
-     */
-    template<typename TContainerType>
-    void WriteIdsToFile(
-        const TContainerType& rContainer,
-        const std::string& DataName,
-        std::ofstream& rFileStream
-        ) const;
-
-    ///@}
 };
 
 } // namespace Kratos
