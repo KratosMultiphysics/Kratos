@@ -62,3 +62,5 @@ with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
     for expression in sensitivity_expressions.GetContainerExpressions():
         data = expression.Evaluate()
         print(data)
+
+    response_function.CalculateGradientWithFiniteDifferencing({Kratos.YOUNG_MODULUS: sensitivity_expressions})

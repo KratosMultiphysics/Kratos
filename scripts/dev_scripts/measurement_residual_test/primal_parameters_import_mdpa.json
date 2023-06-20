@@ -13,8 +13,8 @@
     "echo_level": 0,
     "analysis_type": "linear",
     "model_import_settings": {
-      "input_type": "use_input_model_part",
-      "input_filename": "Structure"
+      "input_type": "mdpa",
+      "input_filename": "model_file"
     },
     "material_import_settings": {
       "materials_filename": "StructuralMaterials.json"

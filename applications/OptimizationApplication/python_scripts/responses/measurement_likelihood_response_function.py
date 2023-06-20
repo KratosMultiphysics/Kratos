@@ -149,5 +149,99 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
                 else:
                     expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
 
+    def CalculateGradientWithFiniteDifferencing(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
+        merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.GetAnalysisModelPart(), merged_model_part_map, True)
+
+        perturbation = 1e-6
+
+        with open("./primal_parameters_import_mdpa.json", 'r') as parameter_file:
+            primal_parameters = Kratos.Parameters(parameter_file.read())
+
+        for variable, collective_expression in physical_variable_collective_expressions.items():
+
+            reference_value = self.CalculateValue()
+
+            gradient = []
+            num_elements = len(self.model_part.GetElements())
+
+            for i in range(num_elements):
+
+                model_primal = Kratos.Model()
+                primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, primal_parameters)
+                model_part = model_primal.GetModelPart("Structure")
+                # print(model_part)
+                primal_analysis.Initialize()
+
+                element: Kratos.Element = model_part.GetElements()[i]
+
+                # model_part.AddProperties(Kratos.Properties.GetTable)
+
+                # for p in model_part.GetProperties():
+                #     print(p.GetValue(Kratos.YOUNG_MODULUS))
+                #     print(str(p))
+
+                print(element.Properties)
+                element.SetValue(Kratos.YOUNG_MODULUS, 0.0)
+
+                stiffness = element.Properties[Kratos.YOUNG_MODULUS]
+                element.Properties[Kratos.YOUNG_MODULUS] += perturbation
+                # element.SetValue(Kratos.YOUNG_MODULUS, stiffness + perturbation)
+                # print("E: ", stiffness, stiffness + perturbation)
+
+                primal_analysis.Run()
+                primal_analysis.Finalize()
+
+                objective_value = 0
+                for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
+                    measured_displacement = sensor["measured_value"]
+                    measured_direction = Kratos.Array3(sensor["measurement_direction_normal"])
+
+                    mesh_node = model_part.GetNode(sensor["mesh_node_id"])
+                    node_displacement = mesh_node.GetSolutionStepValue(Kratos.DISPLACEMENT)
+                    in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
+
+                    objective_value += (measured_displacement-in_measurement_direction_projected_vector)**2
+
+                objective_value *= 0.5 * 1/self.measurement_std
+
+                gradient.append((reference_value-objective_value)/perturbation)
+
+                # element.SetValue(Kratos.YOUNG_MODULUS, stiffness)
+                element.Properties[Kratos.YOUNG_MODULUS] = stiffness
+
+                # e1: Kratos.Element = element
+                # stiffness = e1.GetValue(Kratos.YOUNG_MODULUS)
+                # print("E: ", stiffness)
+                # e1.SetValue(Kratos.YOUNG_MODULUS, stiffness + perturbation)
+
+                # self.primal_analysis_execution_policy_decorator.Execute()
+
+                # gradient.append(self.CalculateValue()/perturbation)
+
+                # e1.SetValue(Kratos.YOUNG_MODULUS, stiffness)
+
+            print(gradient)
+
+            # self.adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
+
+            # self.adjoint_model = Kratos.Model()
+
+            # adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
+            # adjoint_analysis.Run()
+
+            # root_model_part_name = self.adjoint_model.GetModelPartNames()[0]
+            # Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, self.adjoint_model[root_model_part_name], self.model[root_model_part_name])
+
+            # # now fill the collective expressions
+
+            # for expression in collective_expression.GetContainerExpressions():
+            #     if isinstance(expression, KratosOA.ContainerExpression.ElementPropertiesExpression):
+            #         element_data_expression = Kratos.ContainerExpression.ElementNonHistoricalExpression(expression.GetModelPart())
+            #         element_data_expression.Read(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
+            #         expression.CopyFrom(element_data_expression)
+            #     else:
+            #         expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
+
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
