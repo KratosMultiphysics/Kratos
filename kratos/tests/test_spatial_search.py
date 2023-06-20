@@ -66,6 +66,9 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
 
         # Creating submodel part
         self.second_model_part = self.current_model.CreateModelPart(container_type)
+        # Adding PARTITION_INDEX
+        if KM.IsDistributedRun():
+            self.second_model_part.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
 
         # Create node for search
         self.new_node_id = 100000
