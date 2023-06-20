@@ -15,8 +15,10 @@
 // External includes
 
 // Project includes
+#include "utilities/search_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "mpi/spatial_containers/specialized_spatial_search_mpi.h"
+#include "mpi/includes/mpi_data_communicator.h"
 
 namespace Kratos
 {
@@ -83,10 +85,25 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchNodesOverPointInRadius (
     const array_1d<double,3>& rPoint,
     const double Radius,
     NodeSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
-{
-    
+{    
+    // Initialize the BB is required
+    if (!mBoundingBoxesInitialized) {
+        InitializeLocalBoundingBox(rStructureNodes);
+    }
+
+    // Check if the point is inside the set
+    if (SearchUtilities::PointIsInsideBoundingBox(mLocalBoundingBox, rPoint, Radius)) {
+        // Call local search
+        BaseType::SearchNodesOverPointInRadius(rStructureNodes, rPoint, Radius, rResults, rDataCommunicator, false);
+    }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -97,10 +114,54 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchNodesOverPointNearestPoi
     const NodesContainerType& rStructureNodes,
     const array_1d<double,3>& rPoint,
     NodeSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
-{
+{    
+    // Initialize the BB is required
+    if (!mBoundingBoxesInitialized) {
+        InitializeLocalBoundingBox(rStructureNodes);
+    }
 
+    // Compute max radius
+    const array_1d<double, 3> box_size = mLocalBoundingBox.GetMaxPoint() - mLocalBoundingBox.GetMinPoint();
+    const double max_radius= *std::max_element(box_size.begin(), box_size.end());
+
+    // Get the rank
+    const int current_rank = rDataCommunicator.Rank();
+
+    // Check if the point is inside the set
+    NodeSpatialSearchResultContainerType local_result;
+    if (SearchUtilities::PointIsInsideBoundingBox(mLocalBoundingBox, rPoint, max_radius)) {
+        // Call local search
+        BaseType::SearchNodesOverPointNearestPoint(rStructureNodes, rPoint, local_result, rDataCommunicator, false);
+    }
+
+    /* Now sync results between partitions */
+
+    // Get the distance
+    const double local_distance = local_result.NumberOfLocalResults() > 0 ? local_result.GetLocalDistances().begin()->second : std::numeric_limits<double>::max();
+
+    // Find the minimum value and the rank that holds it
+    struct {
+        double value;
+        int rank;
+    } local_min, global_min;
+
+    local_min.value = local_distance;
+    local_min.rank = current_rank;
+    MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPIDataCommunicator::GetMPICommunicator(rDataCommunicator));
+
+    // Get the solution from the computed_rank
+    if (global_min.rank == current_rank) {
+        // Add the local search
+        rResults.AddResult(*(local_result.GetLocalPointers().begin().base()));
+    }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -112,10 +173,25 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchElementsOverPointInRadiu
     const array_1d<double,3>& rPoint,
     const double Radius,
     ElementSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
-{
+{    
+    // Initialize the BB is required
+    if (!mBoundingBoxesInitialized) {
+        InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+    }
 
+    // Check if the point is inside the set
+    if (SearchUtilities::PointIsInsideBoundingBox(mLocalBoundingBox, rPoint, Radius)) {
+        // Call local search
+        BaseType::SearchElementsOverPointInRadius(rStructureElements, rPoint, Radius, rResults, rDataCommunicator, false);
+    }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -126,10 +202,54 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchElementsOverPointNearest
     const ElementsContainerType& rStructureElements,
     const array_1d<double,3>& rPoint,
     ElementSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
+    // Initialize the BB is required
+    if (!mBoundingBoxesInitialized) {
+        InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+    }
 
+    // Compute max radius
+    const array_1d<double, 3> box_size = mLocalBoundingBox.GetMaxPoint() - mLocalBoundingBox.GetMinPoint();
+    const double max_radius= *std::max_element(box_size.begin(), box_size.end());
+
+    // Get the rank
+    const int current_rank = rDataCommunicator.Rank();
+
+    // Check if the point is inside the set
+    ElementSpatialSearchResultContainerType local_result;
+    if (SearchUtilities::PointIsInsideBoundingBox(mLocalBoundingBox, rPoint, max_radius)) {
+        // Call local search
+        BaseType::SearchElementsOverPointNearestPoint(rStructureElements, rPoint, local_result, rDataCommunicator, false);
+    }
+
+    /* Now sync results between partitions */
+
+    // Get the distance
+    const double local_distance = local_result.NumberOfLocalResults() > 0 ? local_result.GetLocalDistances().begin()->second : std::numeric_limits<double>::max();
+
+    // Find the minimum value and the rank that holds it
+    struct {
+        double value;
+        int rank;
+    } local_min, global_min;
+
+    local_min.value = local_distance;
+    local_min.rank = current_rank;
+    MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPIDataCommunicator::GetMPICommunicator(rDataCommunicator));
+
+    // Get the solution from the computed_rank
+    if (global_min.rank == current_rank) {
+        // Add the local search
+        rResults.AddResult(*(local_result.GetLocalPointers().begin().base()));
+    }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -141,10 +261,25 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchConditionsOverPointInRad
     const array_1d<double,3>& rPoint,
     const double Radius,
     ConditionSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
+    // Initialize the BB is required
+    if (!mBoundingBoxesInitialized) {
+        InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+    }
 
+    // Check if the point is inside the set
+    if (SearchUtilities::PointIsInsideBoundingBox(mLocalBoundingBox, rPoint, Radius)) {
+        // Call local search
+        BaseType::SearchConditionsOverPointInRadius(rStructureConditions, rPoint, Radius, rResults, rDataCommunicator, false);
+    }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -155,10 +290,68 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchConditionsOverPointNeare
     const ConditionsContainerType& rStructureConditions,
     const array_1d<double,3>& rPoint,
     ConditionSpatialSearchResultContainerType& rResults,
-    const DataCommunicator& rDataCommunicator
+    const DataCommunicator& rDataCommunicator,
+    const bool SyncronizeResults
     )
 {
+    // Initialize the BB is required
+    if (!mBoundingBoxesInitialized) {
+        InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+    }
 
+    // Compute max radius
+    const array_1d<double, 3> box_size = mLocalBoundingBox.GetMaxPoint() - mLocalBoundingBox.GetMinPoint();
+    const double max_radius= *std::max_element(box_size.begin(), box_size.end());
+
+    // Get the rank
+    const int current_rank = rDataCommunicator.Rank();
+
+    // Check if the point is inside the set
+    ConditionSpatialSearchResultContainerType local_result;
+    if (SearchUtilities::PointIsInsideBoundingBox(mLocalBoundingBox, rPoint, max_radius)) {
+        // Call local search
+        BaseType::SearchConditionsOverPointNearestPoint(rStructureConditions, rPoint, local_result, rDataCommunicator, false);
+    }
+
+    /* Now sync results between partitions */
+
+    // Get the distance
+    const double local_distance = local_result.NumberOfLocalResults() > 0 ? local_result.GetLocalDistances().begin()->second : std::numeric_limits<double>::max();
+
+    // Find the minimum value and the rank that holds it
+    struct {
+        double value;
+        int rank;
+    } local_min, global_min;
+
+    local_min.value = local_distance;
+    local_min.rank = current_rank;
+    MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPIDataCommunicator::GetMPICommunicator(rDataCommunicator));
+
+    // Get the solution from the computed_rank
+    if (global_min.rank == current_rank) {
+        // Add the local search
+        rResults.AddResult(*(local_result.GetLocalPointers().begin().base()));
+    }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(rDataCommunicator);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearchMPI<TSearchBackend>::InitializeLocalBoundingBox(const NodesContainerType& rStructureNodes)
+{
+    const std::size_t number_of_nodes = rStructureNodes.size();
+    if (number_of_nodes > 0) {
+        mLocalBoundingBox.Set(rStructureNodes.begin(), rStructureNodes.end());
+        mLocalBoundingBox.Extend(Tolerance);
+    }
+    mBoundingBoxesInitialized = true;
 }
 
 /***********************************************************************************/

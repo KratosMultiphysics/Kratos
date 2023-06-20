@@ -17,6 +17,8 @@
 // External includes
 
 // Project includes
+#include "geometries/bounding_box.h"
+#include "geometries/point.h"
 #include "mpi/utilities/mpi_search_utilities.h"
 #include "spatial_containers/specialized_spatial_search.h"
 
@@ -175,7 +177,8 @@ public:
         const array_1d<double,3>& rPoint,
         const double Radius,
         NodeSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -190,6 +193,9 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        // Initialize local bounding box
+        InitializeLocalBoundingBox(rStructureNodes);
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         const auto all_points_distances = MPISearchUtilities::MPISynchronousPointSynchronizationWithDistances(itPointBegin, itPointEnd, all_points_coordinates, rRadius, rDataCommunicator);
@@ -212,7 +218,8 @@ public:
         const NodesContainerType& rStructureNodes,
         const array_1d<double,3>& rPoint,
         NodeSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -226,6 +233,9 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        // Initialize local bounding box
+        InitializeLocalBoundingBox(rStructureNodes);
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, rDataCommunicator);
@@ -249,7 +259,8 @@ public:
         const array_1d<double,3>& rPoint,
         const double Radius,
         ElementSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -264,6 +275,9 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        // Initialize local bounding box
+        InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         const auto all_points_distances = MPISearchUtilities::MPISynchronousPointSynchronizationWithDistances(itPointBegin, itPointEnd, all_points_coordinates, rRadius, rDataCommunicator);
@@ -286,7 +300,8 @@ public:
         const ElementsContainerType& rStructureElements,
         const array_1d<double,3>& rPoint,
         ElementSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -300,6 +315,9 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
+        // Initialize local bounding box
+        InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, rDataCommunicator);
@@ -323,7 +341,8 @@ public:
         const array_1d<double,3>& rPoint,
         const double Radius,
         ConditionSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -337,7 +356,10 @@ public:
         const RadiusArrayType& rRadius,
         const DataCommunicator& rDataCommunicator
         )
-    {
+    {        
+        // Initialize local bounding box
+        InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         const auto all_points_distances = MPISearchUtilities::MPISynchronousPointSynchronizationWithDistances(itPointBegin, itPointEnd, all_points_coordinates, rRadius, rDataCommunicator);
@@ -360,7 +382,8 @@ public:
         const ConditionsContainerType& rStructureConditions,
         const array_1d<double,3>& rPoint,
         ConditionSpatialSearchResultContainerType& rResults,
-        const DataCommunicator& rDataCommunicator
+        const DataCommunicator& rDataCommunicator,
+        const bool SyncronizeResults = true
         ) override;
 
     /**
@@ -373,7 +396,10 @@ public:
         TPointIteratorType itPointEnd,
         const DataCommunicator& rDataCommunicator
         )
-    {        
+    {   
+        // Initialize local bounding box
+        InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, rDataCommunicator);
@@ -443,16 +469,50 @@ protected:
 
     ///@}
 private:
-    ///@name Static Member Variables
+    ///@name Private Static Member Variables
     ///@{
 
+    static constexpr double Tolerance = 1e-12; /// The tolerance considered
+
     ///@}
-    ///@name Member Variables
+    ///@name Private Member Variables
     ///@{
+
+    bool mBoundingBoxesInitialized = false; /// Flag to check if the bounding boxes have been initialized
+    BoundingBox<Point> mLocalBoundingBox;   /// The local bounding box of the domain
 
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method allows to initialize the local bounding box (for nodes)
+     * @param rStructureNodes The container of nodes
+     */
+    void InitializeLocalBoundingBox(const NodesContainerType& rStructureNodes);
+
+    /**
+     * @brief This method allows to initialize the local bounding box (for geometrical objects)
+     * @param GeometricalObjectsBegin The begin iterator of the geometries to be stored
+     * @param GeometricalObjectsEnd The end iterator of the geometries to be stored
+     * @tparam TIteratorType The type of the iterator
+     */
+    template<typename TIteratorType>
+    void InitializeLocalBoundingBox(
+        TIteratorType GeometricalObjectsBegin,
+        TIteratorType GeometricalObjectsEnd
+        )
+    {
+        const std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
+        if (number_of_objects > 0) {
+            mLocalBoundingBox.Set(GeometricalObjectsBegin->GetGeometry().begin(), GeometricalObjectsBegin->GetGeometry().end());
+            for (TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
+                mLocalBoundingBox.Extend(i_object->GetGeometry().begin() , i_object->GetGeometry().end());
+            }
+            mLocalBoundingBox.Extend(Tolerance);
+        }
+        mBoundingBoxesInitialized = true;
+    }
 
     ///@}
     ///@name Un accessible methods
