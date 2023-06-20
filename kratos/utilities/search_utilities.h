@@ -94,7 +94,15 @@ public:
     static bool PointIsInsideBoundingBox(
         const BoundingBoxType& rBoundingBox,
         const array_1d<double, 3>& rCoords
-        );
+        )
+    {
+        // The Bounding Box should have some tolerance already!
+        if (rCoords[0] < rBoundingBox[0] && rCoords[0] > rBoundingBox[1])           // check x-direction
+            if (rCoords[1] < rBoundingBox[2] && rCoords[1] > rBoundingBox[3])       // check y-direction
+                if (rCoords[2] < rBoundingBox[4] && rCoords[2] > rBoundingBox[5])   // check z-direction
+                    return true;
+        return false;
+    }
 
     /**
      * @brief This method checks if a point is inside any bounding box of the global bounding boxes considering a certain tolerance
