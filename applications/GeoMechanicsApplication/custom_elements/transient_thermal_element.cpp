@@ -319,6 +319,13 @@ namespace Kratos
             Variables.IntegrationCoefficient =
                 this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
+            //
+            if (Geom[0].SolutionStepsDataHas(WATER_PRESSURE))
+            {
+                this->UpdateWaterProperties(Variables, GPoint);
+                this->CalculateDischargeVector(Variables);
+            }
+
             //Contributions to the left hand side
             if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
@@ -380,6 +387,7 @@ namespace Kratos
 
         this->CalculateAndAddConductivityMatrix(rLeftHandSideMatrix, rVariables);
         this->CalculateAndAddCapacityMatrix(rLeftHandSideMatrix, rVariables);
+        this->CalculateAndAddConvectionMatrix(rLeftHandSideMatrix, rVariables);
 
         KRATOS_CATCH("")
     }
@@ -415,6 +423,24 @@ namespace Kratos
 
         //Distribute permeability block matrix into the elemental matrix
         GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.TMatrix);
+
+        KRATOS_CATCH("")
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template<unsigned int TDim, unsigned int TNumNodes>
+    void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddConvectionMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY
+
+        this->CalculateConvectionMatrix(rVariables.TMatrix, rVariables);
+
+        //Distribute compressibility block matrix into the elemental matrix
+        GeoElementUtilities::
+            AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.TMatrix);
 
         KRATOS_CATCH("")
     }
@@ -531,6 +557,22 @@ namespace Kratos
     // ============================================================================================
     // ============================================================================================
     template<unsigned int TDim, unsigned int TNumNodes>
+    void TransientThermalElement<TDim, TNumNodes>::CalculateConvectionMatrix(
+        BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY
+
+        array_1d<double, TNumNodes> Temp = prod(rVariables.GradNpT, rVariables.DischargeVector);
+        TMatrix = outer_prod(rVariables.Np, Temp) * rVariables.IntegrationCoefficient
+            * rVariables.WaterDensity * rVariables.WaterHeatCapacity;
+
+        KRATOS_CATCH("");
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template<unsigned int TDim, unsigned int TNumNodes>
     void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddCapacityVector(
         VectorType& rRightHandSideVector,
         ElementVariables& rVariables)
@@ -627,6 +669,38 @@ namespace Kratos
         rVariables.SolidThermalConductivityYY = rProp[THERMAL_CONDUCTIVITY_SOLID_YY];
         rVariables.Saturation = rProp[SATURATION];
         rVariables.DtTemperatureCoefficient = rProp[DT_TEMPERATURE_COEFFICIENT];
+        rVariables.LongitudinalDispersivity = rProp[LONGITUDINAL_DISPERSIVITY];
+        rVariables.TransverseDispersivity = rProp[TRANSVERSE_DISPERSIVITY];
+        rVariables.SolidCompressibility = rProp[SOLID_COMPRESSIBILITY];
+
+        rVariables.WaterViscosity = rProp[DYNAMIC_VISCOSITY];
+
+        KRATOS_CATCH("")
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template<unsigned int TDim, unsigned int TNumNodes>
+    void TransientThermalElement<TDim, TNumNodes>::CalculateDischargeVector(
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY
+
+        const GeometryType& rGeom = this->GetGeometry();
+        array_1d<double, TNumNodes> PressureVector;
+        //Nodal Variables
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            PressureVector[i] = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        }
+        array_1d<double, TDim> PressureGrad = prod(trans(rVariables.GradNpT), PressureVector);
+
+        //Add gravity*water_density to PressureGrad
+        array_1d<double, TDim> gravityVector = rGeom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)
+            * rVariables.WaterDensity;
+        PressureGrad = PressureGrad - gravityVector;
+
+        this->CalculatePermiabilityMatrix(rVariables.PermiabilityMatrix, rVariables);
+        rVariables.DischargeVector = -prod(rVariables.PermiabilityMatrix, PressureGrad);
 
         KRATOS_CATCH("")
     }
@@ -647,6 +721,42 @@ namespace Kratos
         C(0, 1) = c1 * rVariables.SolidThermalConductivityXY;
         C(1, 0) = c1 * rVariables.SolidThermalConductivityYX;
         C(1, 1) = c1 * rVariables.SolidThermalConductivityYY + c0;
+
+        double qtot = 0.0;
+        for (int i = 0; i < rVariables.DischargeVector.size(); ++i)
+        {
+            qtot = qtot + rVariables.DischargeVector[i] * rVariables.DischargeVector[i];
+        }
+        qtot = std::sqrt(qtot);
+        if (qtot > 0.0)
+        {
+            const double c2 = rVariables.WaterHeatCapacity * rVariables.WaterDensity;
+            const double c3 = (rVariables.LongitudinalDispersivity - rVariables.TransverseDispersivity) / qtot;
+            const double c4 = rVariables.SolidCompressibility * qtot;
+            C(0, 0) = C(0, 0) + c2 * (c3 * rVariables.DischargeVector[0] * rVariables.DischargeVector[0] + c4);
+            C(0, 1) = C(0, 1) + c2 * c3 * rVariables.DischargeVector[0] * rVariables.DischargeVector[1];
+            C(1, 0) = C(1, 0) + c2 * c3 * rVariables.DischargeVector[0] * rVariables.DischargeVector[1];
+            C(1, 1) = C(1, 1) + c2 * (c3 * rVariables.DischargeVector[1] * rVariables.DischargeVector[1] + c4);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template<unsigned int TDim, unsigned int TNumNodes>
+    void TransientThermalElement<TDim, TNumNodes>::CalculatePermiabilityMatrix(
+        BoundedMatrix<double, TDim, TDim>& C,
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY
+
+        const PropertiesType& rProp = this->GetProperties();
+
+        C(0, 0) = rProp[PERMEABILITY_XX] / rVariables.WaterViscosity;
+        C(0, 1) = rProp[PERMEABILITY_XY] / rVariables.WaterViscosity;
+        C(1, 0) = rProp[PERMEABILITY_XY] / rVariables.WaterViscosity;
+        C(1, 1) = rProp[PERMEABILITY_YY] / rVariables.WaterViscosity;
 
         KRATOS_CATCH("")
     }
@@ -744,6 +854,43 @@ namespace Kratos
     GeometryData::IntegrationMethod TransientThermalElement<TDim, TNumNodes>::GetIntegrationMethod() const
     {
         return GeometryData::IntegrationMethod::GI_GAUSS_2;
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template<unsigned int TDim, unsigned int TNumNodes>
+    void TransientThermalElement<TDim, TNumNodes>::UpdateWaterProperties(
+        ElementVariables& rVariables, unsigned int gPoint)
+    {
+        this->CalculateWaterDensityOnIntegrationPoints(rVariables);
+        this->CalculateWaterViscosityOnIntegrationPoints(rVariables);
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template<unsigned int TDim, unsigned int TNumNodes>
+    void TransientThermalElement<TDim, TNumNodes>::CalculateWaterDensityOnIntegrationPoints(
+        ElementVariables& rVariables)
+    {
+        double temp = inner_prod(rVariables.Np, rVariables.TemperatureVector);
+        rVariables.WaterDensity =
+            +9.998396e+2 + 6.764771e-2 * temp - 8.993699e-3 * std::pow(temp, 2)
+            + 9.143518e-5 * std::pow(temp, 3) - 8.907391e-7 * std::pow(temp, 4)
+            + 5.291959e-9 * std::pow(temp, 5) - 1.359813e-11 * std::pow(temp, 6);
+
+        //rVariables.WaterDensity = rVariables.WaterDensity / 1000.0; //The input is normalized? 
+                                                                    // density=1 is in input!!!
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template<unsigned int TDim, unsigned int TNumNodes>
+    void TransientThermalElement<TDim, TNumNodes>::CalculateWaterViscosityOnIntegrationPoints(
+        ElementVariables& rVariables)
+    {
+        double temp = inner_prod(rVariables.Np, rVariables.TemperatureVector);
+        double c1 = 247.8 / (temp + 133.0);
+        rVariables.WaterViscosity = 2.4318e-5 * std::pow(10.0, c1);
     }
 
     // ============================================================================================

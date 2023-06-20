@@ -64,6 +64,10 @@ namespace Kratos
             double SolidThermalConductivityYY;
             double Porosity;
             double Saturation;
+            double LongitudinalDispersivity;
+            double TransverseDispersivity;
+            double SolidCompressibility;
+            double WaterViscosity;
 
             ///ProcessInfo variables
             double DtTemperatureCoefficient;
@@ -71,12 +75,14 @@ namespace Kratos
             ///Nodal variables
             array_1d<double, TNumNodes> TemperatureVector;
             array_1d<double, TNumNodes> DtTemperatureVector;
+            array_1d<double, TDim> DischargeVector;
 
             ///Constitutive Law parameters
             BoundedMatrix<double, TDim, TDim> ConstitutiveMatrix;
             Vector Np;
             Matrix GradNpT;
             Matrix GradNpTInitialConfiguration;
+            BoundedMatrix<double, TDim, TDim> PermiabilityMatrix;
 
             Vector detJContainer;
             Matrix NContainer;
@@ -135,6 +141,7 @@ namespace Kratos
         void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
         void GetSecondDerivativesVector(Vector& rValues, int Step) const override;
 
+        void CalculateDischargeVector(ElementVariables& rVariables);
 
     protected:
 
@@ -158,6 +165,7 @@ namespace Kratos
 
         void CalculateAndAddConductivityMatrix(MatrixType & rLeftHandSideMatrix, ElementVariables & rVariables);
         void CalculateAndAddCapacityMatrix(MatrixType & rLeftHandSideMatrix, ElementVariables & rVariables);
+        void CalculateAndAddConvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
         void CalculateAndAddConductivityVector(VectorType& rRightHandSideVector, ElementVariables& rVariables);
         void CalculateAndAddCapacityVector(VectorType& rRightHandSideVector, ElementVariables & rVariables);
 
@@ -175,6 +183,9 @@ namespace Kratos
 
         virtual void CalculateCapacityMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
             ElementVariables& rVariables) const;
+
+        void CalculateConvectionMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+            ElementVariables& rVariables);
         
         virtual void CalculateCapacityVector(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
             array_1d<double, TNumNodes>& TVector, ElementVariables& rVariables) const;
@@ -187,11 +198,16 @@ namespace Kratos
             const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateThermalDispersionMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
+        void CalculatePermiabilityMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
 
         void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
         void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
+
+        void UpdateWaterProperties(ElementVariables& rVariables, unsigned int gPoint);
+        void CalculateWaterDensityOnIntegrationPoints(ElementVariables& rVariables);
+        void CalculateWaterViscosityOnIntegrationPoints(ElementVariables& rVariables);
 
     private:
 
