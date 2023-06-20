@@ -105,7 +105,7 @@ public:
     }
 
     /**
-     * @brief This method checks if a point is inside any bounding box of the global bounding boxes considering a certain tolerance
+     * @brief This method checks if a point is inside a bounding box considering a certain tolerance
      * @param rBoundingBox The bounding box
      * @param rCoords The coordinates of the point
      * @param Tolerance The tolerance
