@@ -111,7 +111,7 @@ public:
      * @param Tolerance The tolerance
      * @return True if the point is inside the bounding box
      */
-    static bool PointIsInsideBoundingBoxWithTolerance(
+    static bool PointIsInsideBoundingBox(
         const BoundingBox<Point>& rBoundingBox,
         const array_1d<double, 3>& rCoords,
         const double Tolerance
