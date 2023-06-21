@@ -164,8 +164,7 @@ namespace Kratos
                 if(i1 <= 2) {if(nodal_distances(i1) < 0.0) neg++; else if(nodal_distances(i1) > 0.0) pos++;};
                 if(i2 <= 2) {if(nodal_distances(i2) < 0.0) neg++; else if(nodal_distances(i2) > 0.0) pos++;};
 
-                if(neg > 0 && pos > 0)
-                    KRATOS_ERROR << "The subgeometry " << i0 << " " << i1 << " " << i2 << " in triangle has nodes in both positive and negative sides." << std::endl;
+                KRATOS_ERROR_IF(neg > 0 && pos > 0) << "The subgeometry " << i0 << " " << i1 << " " << i2 << " in triangle has nodes in both positive and negative sides." << std::endl;
 
                 bool is_positive = false;
                 if(pos > 0) {is_positive = true;}
