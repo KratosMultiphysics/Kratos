@@ -83,8 +83,17 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         else:
             self.node = self.second_model_part.CreateNewNode(self.new_node_id, self.point.X, self.point.Y, self.point.Z)
 
+        # Radius list
+        if KM.IsDistributedRun():
+            # Only added to first rank to actualy check it works in all ranks
+            if self.data_comm.Rank() == 0:
+                radius_list = [0.3]
+            else:
+                radius_list = []
+        else:
+            radius_list = [0.3]
+
         # Reference solution
-        radius_list = [0.3]
         distance_ref = [0.077385615, 0.0008331217999999999, 0.0899807529, 0.0627019979, 0.07703137859999999, 0.0789991779, 0.0708403121]
         node_id_ref = [7, 17, 18, 23, 33, 39, 44, 56]
 
