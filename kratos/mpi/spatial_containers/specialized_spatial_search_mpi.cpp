@@ -83,7 +83,7 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ElementSpatialSearchResult
     ElementSpatialSearchResultContainerMapType results;
     for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
         const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-        auto& r_partial_result = results.InitializeResult(local_points_ids[i_node]);
+        auto& r_partial_result = results.InitializeResult(all_points_ids[i_node]);
         SearchElementsOverPointInRadius(rStructureElements, point, all_points_radius[i_node], r_partial_result, rDataCommunicator);
     }
     return results;
@@ -146,7 +146,7 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::NodeSpatialSearchResultCon
     NodeSpatialSearchResultContainerMapType results;
     for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
         const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-        auto& r_partial_result = results.InitializeResult(local_points_ids[i_node]);
+        auto& r_partial_result = results.InitializeResult(all_points_ids[i_node]);
         SearchNodesOverPointInRadius(rStructureNodes, point, all_points_radius[i_node], r_partial_result, rDataCommunicator);
     }
     return results;
@@ -215,7 +215,7 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ConditionSpatialSearchResu
     ConditionSpatialSearchResultContainerMapType results;
     for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
         const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-        auto& r_partial_result = results.InitializeResult(local_points_ids[i_node]);
+        auto& r_partial_result = results.InitializeResult(all_points_ids[i_node]);
         SearchConditionsOverPointInRadius(rStructureConditions, point, all_points_radius[i_node], r_partial_result, rDataCommunicator);
     }
     return results;
