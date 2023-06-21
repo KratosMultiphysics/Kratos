@@ -305,7 +305,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
         double currentRoughnessTemperature = (roughnessLayerResistance * roughnessLayerHeight * rVariables.previousRoughnessTemperature + timeStepSize *
             initialSoilTemperature + timeStepSize * currentWindSpeed * roughnessLayerResistance * surfaceRoughnessFactor *
             frictionDragCoefficient * frictionDragCoefficient * currentAirTemperature) / c;
-        rVariables.roughnessTemperature += currentRoughnessTemperature / TNumNode;
+        rVariables.roughnessTemperature += currentRoughnessTemperature / TNumNodes;
     }
 }
 
@@ -420,8 +420,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         // Eq 5.31
         double subsurfaceHeatFlux = netRadiation - sensibleHeatFluxRight - latentHeatFlux + buildEnvironmentRadiation - surfaceHeatStorage;
 
-        rVariables.netRadiation += netRadiation / TNumNode;
-        rVariables.waterStorage += actualStorage / TNumNode;
+        rVariables.netRadiation += netRadiation / TNumNodes;
+        rVariables.waterStorage += actualStorage / TNumNodes;
         rVariables.leftHandSideFlux[i] = sensibleHeatFluxLeft;
         rVariables.rightHandSideFlux[i] = subsurfaceHeatFlux;
     }
