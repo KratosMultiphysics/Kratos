@@ -82,19 +82,20 @@ void DEM_smooth_joint::Check(Properties::Pointer pProp) const {
     //********** continuum part ***************
     //this version of smooth joint model is based on [DEM_parallel_bond_CL]
 
-    if(!pProp->Has(BOND_YOUNG_MODULUS)) {
-
-        KRATOS_ERROR << "Variable BONDED_MATERIAL_YOUNG_MODULUS should be present in the properties when using DEM_smooth_joint_CL."<<std::endl;
-
+    if(!pProp->Has(JOINT_NORMAL_STIFFNESS)) {
+        KRATOS_WARNING("DEM")<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_NORMAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<std::endl;
+        pProp->GetValue(JOINT_NORMAL_STIFFNESS) = 1e9;
     }
 
-    if(!pProp->Has(BOND_KNKS_RATIO)) {
+    if(!pProp->Has(JOINT_TANGENTIAL_STIFFNESS)) {
         KRATOS_WARNING("DEM")<<std::endl;
-        KRATOS_WARNING("DEM")<<"WARNING: Variable BOND_KNKS_RATIO should be present in the properties when using DEM_smooth_joint_CL. 2.5 value assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_TANGENTIAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
         KRATOS_WARNING("DEM")<<std::endl;
-        pProp->GetValue(BOND_KNKS_RATIO) = 2.5;
+        pProp->GetValue(JOINT_TANGENTIAL_STIFFNESS) = 1e9;
     }
-
+    
     if(!pProp->Has(BOND_SIGMA_MAX)) {
 
         KRATOS_ERROR << "Variable BOND_SIGMA_MAX should be present in the properties when using DEM_smooth_joint_CL."<<std::endl;
@@ -132,20 +133,6 @@ void DEM_smooth_joint::Check(Properties::Pointer pProp) const {
         KRATOS_WARNING("DEM")<<"WARNING: Variable BOND_RADIUS_FACTOR should be present in the properties when using DEM_smooth_joint_CL. 1.0 value assigned by default."<<std::endl;
         KRATOS_WARNING("DEM")<<std::endl;
         pProp->GetValue(BOND_RADIUS_FACTOR) = 1.0;
-    }
-
-    if(!pProp->Has(JOINT_NORMAL_STIFFNESS)) {
-        KRATOS_WARNING("DEM")<<std::endl;
-        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_NORMAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
-        KRATOS_WARNING("DEM")<<std::endl;
-        pProp->GetValue(JOINT_NORMAL_STIFFNESS) = 1e9;
-    }
-
-    if(!pProp->Has(JOINT_TANGENTIAL_STIFFNESS)) {
-        KRATOS_WARNING("DEM")<<std::endl;
-        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_TANGENTIAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
-        KRATOS_WARNING("DEM")<<std::endl;
-        pProp->GetValue(JOINT_TANGENTIAL_STIFFNESS) = 1e9;
     }
 
     if(!pProp->Has(JOINT_NORMAL_DIRECTION_X)) {
