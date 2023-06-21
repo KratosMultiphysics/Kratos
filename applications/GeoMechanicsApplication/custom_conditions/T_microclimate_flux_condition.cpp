@@ -256,7 +256,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     double currentWindSpeed = Geom[0].FastGetSolutionStepValue(WIND_SPEED);
 
     const Properties mProperties = this->GetProperties();
-    const double relativeLength = mProperties[RELATIVE_LENGTH];
 
     constexpr double roughnessLayerHeight = 10.0;
     constexpr double roughnessLayerResistance = 30.0;
@@ -306,7 +305,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
         double currentRoughnessTemperature = (roughnessLayerResistance * roughnessLayerHeight * rVariables.previousRoughnessTemperature + timeStepSize *
             initialSoilTemperature + timeStepSize * currentWindSpeed * roughnessLayerResistance * surfaceRoughnessFactor *
             frictionDragCoefficient * frictionDragCoefficient * currentAirTemperature) / c;
-        rVariables.roughnessTemperature += currentRoughnessTemperature * relativeLength;
+        rVariables.roughnessTemperature += currentRoughnessTemperature / TNumNode;
     }
 }
 
@@ -326,7 +325,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
     const double maximalStorage = rVariables.maximalStorage;
 
     const Properties mProperties = this->GetProperties();
-    const double relativeLength = mProperties[RELATIVE_LENGTH];
 
     const GeometryType& Geom = this->GetGeometry();
     const double timeStepSize = CurrentProcessInfo.GetValue(DELTA_TIME);
@@ -343,6 +341,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
 
     rVariables.previousStorage = rVariables.waterStorage;
     rVariables.previousRadiation = rVariables.netRadiation;
+    rVariables.waterStorage = 0.0;
+    rVariables.netRadiation = 0.0;
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
@@ -420,8 +420,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         // Eq 5.31
         double subsurfaceHeatFlux = netRadiation - sensibleHeatFluxRight - latentHeatFlux + buildEnvironmentRadiation - surfaceHeatStorage;
 
-        rVariables.netRadiation += netRadiation * relativeLength;
-        rVariables.waterStorage += actualStorage * relativeLength;
+        rVariables.netRadiation += netRadiation / TNumNode;
+        rVariables.waterStorage += actualStorage / TNumNode;
         rVariables.leftHandSideFlux[i] = sensibleHeatFluxLeft;
         rVariables.rightHandSideFlux[i] = subsurfaceHeatFlux;
     }
