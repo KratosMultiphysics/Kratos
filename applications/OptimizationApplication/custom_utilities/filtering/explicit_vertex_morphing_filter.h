@@ -58,7 +58,8 @@ public:
 
     ExplicitVertexMorphingFilter(
         const ModelPart& rModelPart,
-        const std::string& rFilterFunctionType);
+        const std::string& rKernelFunctionType,
+        const IndexType MaxNumberOfNeighbours);
 
     ///@}
     ///@name Public operations
@@ -80,13 +81,15 @@ private:
 
     const ModelPart& mrModelPart;
 
-    FilterFunction::UniquePointer mpFilterFunction;
+    FilterFunction::UniquePointer mpKernelFunction;
 
-    typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainerType;
+    typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
+
+    EntityPointVector mEntityPointVector;
 
     IndexType mBucketSize = 100;
 
-    IndexType mMaxNumberOfNeighbors = 1000;
+    IndexType mMaxNumberOfNeighbors;
 
     typename KDTree::Pointer mpSearchTree;
 

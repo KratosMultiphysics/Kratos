@@ -15,6 +15,7 @@
 // System includes
 #include <sstream>
 #include <type_traits>
+#include <tuple>
 
 // Project includes
 #include "expression/literal_flat_expression.h"
@@ -75,10 +76,12 @@ void ComputeWeightForAllNeighbors(
 template<class TContainerType>
 ExplicitVertexMorphingFilter<TContainerType>::ExplicitVertexMorphingFilter(
     const ModelPart& rModelPart,
-    const std::string& rFilterFunctionType)
-    : mrModelPart(rModelPart)
+    const std::string& rKernelFunctionType,
+    const IndexType MaxNumberOfNeighbours)
+    : mrModelPart(rModelPart),
+      mMaxNumberOfNeighbors(MaxNumberOfNeighbours)
 {
-    mpFilterFunction = Kratos::make_unique<FilterFunction>(rFilterFunctionType);
+    mpKernelFunction = Kratos::make_unique<FilterFunction>(rKernelFunctionType);
     Update();
 }
 
@@ -89,84 +92,141 @@ void ExplicitVertexMorphingFilter<TContainerType>::SetFilterRadius(const Contain
         << "Only scalar values are allowed for the filter radius container expression. "
         << "Provided contaienr expression = " << rContainerExpression << ".\n";
 
-    mpFilterRadiusContainerType = rContainerExpression.Clone();
+    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
+        << "Filter radius container expression model part and filter model part mismatch."
+        << "\n\tFilter = " << *this
+        << "\n\tContainerExpression = " << rContainerExpression;
+
+    mpFilterRadiusContainer = rContainerExpression.Clone();
 }
 
 template<class TContainerType>
 void ExplicitVertexMorphingFilter<TContainerType>::ExplicitVertexMorphingFilter::Update()
 {
+    KRATOS_TRY
+
     BuiltinTimer timer;
 
     KRATOS_INFO("OptimizationApplication") << "Creating search tree to perform mapping..." << std::endl;
 
     const auto& r_container = ExplicitVertexMorphingFilterHelperUtilities::GetContainer<TContainerType>(mrModelPart);
 
-    ExplicitVertexMorphingFilter::EntityPointVector points_vector(r_container.size());
+    if (mEntityPointVector.size() != r_container.size()) {
+        mEntityPointVector.resize(r_container.size());
+    }
 
     // now fill the points vector
-    IndexPartition<IndexType>(r_container.size()).for_each([&points_vector, &r_container](const IndexType Index) {
-        points_vector[Index] = Kratos::make_shared<EntityPoint<EntityType>>(*(r_container.begin() + Index), Index);
+    IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index) {
+        mEntityPointVector[Index] = Kratos::make_shared<EntityPoint<EntityType>>(*(r_container.begin() + Index), Index);
     });
 
-    mpSearchTree =  Kratos::make_shared<ExplicitVertexMorphingFilter::KDTree>(points_vector.begin(), points_vector.end(), mBucketSize);
+    mpSearchTree =  Kratos::make_shared<ExplicitVertexMorphingFilter::KDTree>(mEntityPointVector.begin(), mEntityPointVector.end(), mBucketSize);
 
     KRATOS_INFO("OptimizationApplication") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+
+    KRATOS_CATCH("");
 }
 
 template<class TContainerType>
 ContainerExpression<TContainerType> ExplicitVertexMorphingFilter<TContainerType>::FilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(mpFilterRadiusContainer.get() == nullptr)
+        << "The filter radius container expression not set. "
+        << "Please set it using SetFilterRadius method.\n\t Filter = "
+        << *this;
+
+    KRATOS_ERROR_IF_NOT(rContainerExpression.HasExpression())
+        << "Uninitialized container expression given. "
+        << rContainerExpression;
+
+    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
+        << "Filter radius container expression model part and filter model part mismatch."
+        << "\n\tFilter = " << *this
+        << "\n\tContainerExpression = " << rContainerExpression;
+
     const IndexType stride = rContainerExpression.GetItemComponentCount();
     const auto& r_origin_expression = rContainerExpression.GetExpression();
     const auto& r_container = rContainerExpression.GetContainer();
-    const auto& r_filter_radius_expression = mpFilterRadiusContainerType->GetExpression();
-
-    EntityPointVector neighbour_nodes(mMaxNumberOfNeighbors);
-    std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
+    const auto& r_filter_radius_expression = mpFilterRadiusContainer->GetExpression();
 
     ContainerExpression<TContainerType> result(*rContainerExpression.pGetModelPart());
     auto p_expression = LiteralFlatExpression<double>::Create(result.GetContainer().size(), rContainerExpression.GetItemShape());
     result.SetExpression(p_expression);
 
-    IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index){
+    struct TLS
+    {
+        TLS(const IndexType MaxNumberOfNeighbors)
+        {
+            mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
+            mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
+        }
+
+        EntityPointVector mNeighbourEntityPoints;
+        std::vector<double> mResultingSquaredDistances;
+    };
+
+    IndexPartition<IndexType>(r_container.size()).for_each(TLS(mMaxNumberOfNeighbors), [&](const IndexType Index, TLS& rTLS){
         const double vertex_morphing_radius = r_filter_radius_expression.Evaluate(Index, Index, 0);
 
         EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
         const auto number_of_neighbors = mpSearchTree->SearchInRadius(
                                             entity_point,
                                             vertex_morphing_radius,
-                                            neighbour_nodes.begin(),
-                                            resulting_squared_distances.begin(),
+                                            rTLS.mNeighbourEntityPoints.begin(),
+                                            rTLS.mResultingSquaredDistances.begin(),
                                             mMaxNumberOfNeighbors);
 
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
         double sum_of_weights = 0.0;
         ExplicitVertexMorphingFilterHelperUtilities::ComputeWeightForAllNeighbors(
-            sum_of_weights, list_of_weights, *mpFilterFunction, vertex_morphing_radius,
-            entity_point, neighbour_nodes, number_of_neighbors);
+            sum_of_weights, list_of_weights, *mpKernelFunction, vertex_morphing_radius,
+            entity_point, rTLS.mNeighbourEntityPoints, number_of_neighbors);
 
-        double& current_index_value = *(p_expression->begin() + Index);
+        const IndexType current_data_begin = Index * stride;
 
-        for(IndexType neighbour_index = 0 ; neighbour_index < number_of_neighbors; ++neighbour_index) {
-            const IndexType neighbour_id = neighbour_nodes[neighbour_index]->Id();
-            double weight = list_of_weights[neighbour_index] / sum_of_weights;
+        for (IndexType j = 0; j < stride; ++j) {
+            double& current_index_value = *(p_expression->begin() + current_data_begin + j);
+            current_index_value = 0.0;
 
-            for (IndexType j = 0; j < stride; ++j) {
-                current_index_value +=  weight * r_origin_expression.Evaluate(neighbour_id, neighbour_id * stride, j);
+            for(IndexType neighbour_index = 0 ; neighbour_index < number_of_neighbors; ++neighbour_index) {
+                const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
+                const double weight = list_of_weights[neighbour_index] / sum_of_weights;
+                const double origin_value = r_origin_expression.Evaluate(neighbour_id, neighbour_id * stride, j);
+                current_index_value +=  weight * origin_value;
             }
         }
     });
 
     return result;
+
+    KRATOS_CATCH("");
 }
 
 template<class TContainerType>
 ContainerExpression<TContainerType> ExplicitVertexMorphingFilter<TContainerType>::UnFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(mpFilterRadiusContainer.get() == nullptr)
+        << "The filter radius container expression not set. "
+        << "Please set it using SetFilterRadius method.\n\t Filter = "
+        << *this;
+
+    KRATOS_ERROR_IF_NOT(rContainerExpression.HasExpression())
+        << "Uninitialized container expression given. "
+        << rContainerExpression;
+
+    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
+        << "Filter radius container expression model part and filter model part mismatch."
+        << "\n\tFilter = " << *this
+        << "\n\tContainerExpression = " << rContainerExpression;
+
     const auto& r_origin_expression = rContainerExpression.GetExpression();
     const auto& r_container = rContainerExpression.GetContainer();
     const IndexType stride = rContainerExpression.GetItemComponentCount();
-    const auto& r_filter_radius_expression = mpFilterRadiusContainerType->GetExpression();
+    const auto& r_filter_radius_expression = mpFilterRadiusContainer->GetExpression();
 
     EntityPointVector neighbour_nodes(mMaxNumberOfNeighbors);
     std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
@@ -175,39 +235,53 @@ ContainerExpression<TContainerType> ExplicitVertexMorphingFilter<TContainerType>
     auto p_expression = LiteralFlatExpression<double>::Create(result.GetContainer().size(), rContainerExpression.GetItemShape());
     result.SetExpression(p_expression);
 
-    IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index) {
+    IndexPartition<IndexType>(r_container.size() * stride).for_each([&](const IndexType Index) {
         *(p_expression->begin() + Index) = 0.0;
     });
 
-    IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index){
+    struct TLS
+    {
+        TLS(const IndexType MaxNumberOfNeighbors)
+        {
+            mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
+            mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
+        }
+
+        EntityPointVector mNeighbourEntityPoints;
+        std::vector<double> mResultingSquaredDistances;
+    };
+
+    IndexPartition<IndexType>(r_container.size()).for_each(TLS(mMaxNumberOfNeighbors), [&](const IndexType Index, TLS& rTLS){
         const double vertex_morphing_radius = r_filter_radius_expression.Evaluate(Index, Index, 0);
 
         EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
         const auto number_of_neighbors = mpSearchTree->SearchInRadius(
                                             entity_point,
                                             vertex_morphing_radius,
-                                            neighbour_nodes.begin(),
-                                            resulting_squared_distances.begin(),
+                                            rTLS.mNeighbourEntityPoints.begin(),
+                                            rTLS.mResultingSquaredDistances.begin(),
                                             mMaxNumberOfNeighbors);
 
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
         double sum_of_weights = 0.0;
         ExplicitVertexMorphingFilterHelperUtilities::ComputeWeightForAllNeighbors(
-            sum_of_weights, list_of_weights, *mpFilterFunction, vertex_morphing_radius,
-            entity_point, neighbour_nodes, number_of_neighbors);
+            sum_of_weights, list_of_weights, *mpKernelFunction, vertex_morphing_radius,
+            entity_point, rTLS.mNeighbourEntityPoints, number_of_neighbors);
 
         for (IndexType j = 0; j < stride; ++j) {
             const double origin_value = r_origin_expression.Evaluate(Index, Index * stride, j);
 
             for(IndexType neighbour_index = 0 ; neighbour_index < number_of_neighbors; ++neighbour_index) {
-                const IndexType neighbour_id = neighbour_nodes[neighbour_index]->Id();
+                const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
                 double weight = list_of_weights[neighbour_index] / sum_of_weights;
-                AtomicAdd<double>(*(p_expression->begin() + neighbour_id), weight * origin_value);
+                AtomicAdd<double>(*(p_expression->begin() + neighbour_id * stride + j), weight * origin_value);
             }
         }
     });
 
     return result;
+
+    KRATOS_CATCH("");
 }
 
 template<class TContainerType>
