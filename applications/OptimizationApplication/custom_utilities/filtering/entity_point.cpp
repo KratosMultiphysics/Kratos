@@ -50,8 +50,8 @@ constexpr Point EntityPoint<TEntityType>::GetPoint(const TEntityType& rEntity)
 }
 
 //template instantiations
-template KRATOS_API(OPTIMIZATION_APPLICATION) class EntityPoint<ModelPart::NodeType>;
-template KRATOS_API(OPTIMIZATION_APPLICATION) class EntityPoint<ModelPart::ConditionType>;
-template KRATOS_API(OPTIMIZATION_APPLICATION) class EntityPoint<ModelPart::ElementType>;
+template class EntityPoint<ModelPart::NodeType>;
+template class EntityPoint<ModelPart::ConditionType>;
+template class EntityPoint<ModelPart::ElementType>;
 
 } // namespace Kratos
