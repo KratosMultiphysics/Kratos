@@ -4,6 +4,8 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
+import math
+
 # Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
@@ -280,6 +282,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
         # Update the default buffer size according to the selected time scheme
         self._SetTimeSchemeBufferSize()
 
+        ## Get time-step size
+        self.timestep=self.settings["time_stepping"]["time_step"].GetDouble()
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction of NavierStokesSolverMonolithic finished.")
 
     def AddVariables(self):
@@ -332,6 +337,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
     def CalculateTheError(self):
          
         time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  
+        print("dt=", self.timestep)
         #if (time==self.timestep or time>4.998):  
         #if (True):
         if (time>1.27888999):       
