@@ -21,29 +21,29 @@
 namespace Kratos
 {
 
-FilterFunction::FilterFunction(const std::string& rFilterFunctionType)
+FilterFunction::FilterFunction(const std::string& rKernelFunctionType)
 {
     // Set type of weighting function
 
-    if (rFilterFunctionType == "gaussian") {
+    if (rKernelFunctionType == "gaussian") {
         // Type 1: Gaussian function
         mFilterFunctional =  [](double radius, double distance) {return std::max(0.0, exp(-(distance*distance) / (2 * radius * radius / 9.0)));};
-    } else if (rFilterFunctionType == "linear") {
+    } else if (rKernelFunctionType == "linear") {
         // Type 2: Linear function
         mFilterFunctional =  [](double radius, double distance) {return std::max(0.0, (radius - distance) / radius);};
-    } else if (rFilterFunctionType == "constant") {
+    } else if (rKernelFunctionType == "constant") {
         // Type 3: Constant function
         mFilterFunctional = [](double radius, double distance) {return 1.0;};
-    } else if (rFilterFunctionType == "cosine") {
+    } else if (rKernelFunctionType == "cosine") {
         // Type 4: Cosine function
         mFilterFunctional = [](double radius, double distance) {return std::max(0.0, 1-0.5*(1-std::cos(Globals::Pi/radius*distance)));};
-    } else if (rFilterFunctionType == "quartic") {
+    } else if (rKernelFunctionType == "quartic") {
         // Type 5: Quartic function
         mFilterFunctional = [](double radius, double distance) {return std::max(0.0, (pow(distance-radius,4.0)/pow(radius,4.0)));};
     } else {
         // Throw error message in case of wrong specification
         KRATOS_ERROR << "Specified kernel function of type : "
-                     << rFilterFunctionType << " is not recognized. \n \t Options are:"
+                     << rKernelFunctionType << " is not recognized. \n \t Options are:"
                      << "\n\tconstant"
                      << "\n\tlinear"
                      << "\n\tgaussian"

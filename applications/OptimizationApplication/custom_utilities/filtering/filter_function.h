@@ -49,7 +49,7 @@ class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) FilterFunction
     ///@{
 
     /// Constructor.
-    FilterFunction(const std::string& FilterFunctionType);
+    FilterFunction(const std::string& rKernelFunctionType);
 
     ///@}
     ///@name Operations
