@@ -94,6 +94,61 @@ public:
     ///@name Operations
     ///@{
 
+    //************************************************************************
+    // Elemental Exclusive search with distance calculation
+    //************************************************************************
+
+    /**
+    * @brief Search neighbours for every element in "rModelpart" excluding itself
+    */
+    ElementSpatialSearchResultContainerMapType SearchElementsInRadiusExclusive (
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        ) override 
+    {
+        return mpSpatialSearch->SearchElementsInRadiusExclusive(rStructureElements, rInputElements, rRadius, rDataCommunicator);
+    }
+
+    //************************************************************************
+    // Nodal Exclusive search with distance calculation
+    //************************************************************************
+
+    /**
+    * @brief Search neighbours for every node in "rModelpart" excluding itself
+    */
+    NodeSpatialSearchResultContainerMapType SearchNodesInRadiusExclusive (
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        ) override 
+    {
+        return mpSpatialSearch->SearchNodesInRadiusExclusive(rStructureNodes, rInputNodes, rRadius, rDataCommunicator);
+    }
+
+    //************************************************************************
+    // Conditional Exclusive search with distance calculation
+    //************************************************************************
+
+    /**
+    * @brief Search neighbours for every Condition in "InputConditions" excluding itself
+    */
+    ConditionSpatialSearchResultContainerMapType SearchConditionsInRadiusExclusive (
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        ) override
+    {
+        return mpSpatialSearch->SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, rRadius, rDataCommunicator);
+    }
+
+    //************************************************************************
+    // Point vs Entities (these are new interfaces and already use the new containers)
+    //************************************************************************
+
     /**
      * @brief Search neighbours nodes for one point in a given radius
      */
