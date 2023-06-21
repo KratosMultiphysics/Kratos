@@ -41,7 +41,7 @@ namespace Kratos {
         /// Pointer definition of SetMultipleMovingLoadsProcess
         KRATOS_CLASS_POINTER_DEFINITION(SetMultipleMovingLoadsProcess);
 
-        typedef std::size_t SizeType;
+        using SizeType = std::size_t;
 
         ///@}
         ///@name Life Cycle
