@@ -28,7 +28,7 @@ class MaxIterConvCriterion:
         self.__optimization_problem = optimization_problem
 
     def IsConverged(self, search_direction=None) -> bool:
-        with TimeLogger(f"MaxIterConvCriterion::IsConverged", None, "Finished"):
+        with TimeLogger("MaxIterConvCriterion::IsConverged", None, "Finished"):
             iter = self.__optimization_problem.GetStep()
             self.conv = True if iter >= self.__max_iter else False
             DictLogger("Convergence info",self.GetInfo())
@@ -58,7 +58,7 @@ class L2ConvCriterion:
         self.__tolerance = parameters["tolerance"].GetDouble()
 
     def IsConverged(self) -> bool:
-        with TimeLogger(f"L2ConvCriterion::IsConverged", None, "Finished"):
+        with TimeLogger("L2ConvCriterion::IsConverged", None, "Finished"):
             iter = self.__optimization_problem.GetStep()
             self.conv = True if iter >= self.__max_iter else False
 

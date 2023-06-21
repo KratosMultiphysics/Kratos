@@ -29,7 +29,7 @@ class ConstStep(object):
         self.__gradient_scaling = parameters["gradient_scaling"].GetString()
 
     def ComputeStep(self) -> float:
-        with TimeLogger(f"ConstStep::ComputeStep", None, "Finished"):
+        with TimeLogger("ConstStep::ComputeStep", None, "Finished"):
             algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
 
             if not algorithm_buffered_data.HasValue("search_direction"):
