@@ -48,7 +48,7 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
     def Initialize(self):
         self.analysis.Initialize()
         exe_pol = self.optimization_problem.GetExecutionPolicy(self.GetName())
-        self.un_buffered_data = ComponentDataView(exe_pol, self.optimization_problem).GetBufferedData()
+        self.un_buffered_data = ComponentDataView(exe_pol, self.optimization_problem).GetUnBufferedData()
 
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
