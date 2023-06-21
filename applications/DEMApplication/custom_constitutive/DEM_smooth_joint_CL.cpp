@@ -432,7 +432,6 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
         double temp_local_vel = GeometryFunctions::DotProduct(LocalRelVel, mLocalJointNormal);
         JointSlidingLocalVel[0] =  temp_local_vel * mLocalJointNormal[0];
         JointSlidingLocalVel[1] =  temp_local_vel * mLocalJointNormal[1];
-        JointSlidingLocalVel[2] =  temp_local_vel * mLocalJointNormal[2];
         LocalDeltSlidingDisp[0] = JointSlidingLocalVel[0] * r_process_info[DELTA_TIME];
         LocalDeltSlidingDisp[1] = JointSlidingLocalVel[1] * r_process_info[DELTA_TIME];
         mAccumulatedJointTangentialLocalDisplacement[0] += LocalDeltSlidingDisp[0];
