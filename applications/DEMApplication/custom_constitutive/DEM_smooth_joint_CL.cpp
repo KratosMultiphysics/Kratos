@@ -156,6 +156,13 @@ void DEM_smooth_joint::Check(Properties::Pointer pProp) const {
         pProp->GetValue(JOINT_NORMAL_DIRECTION_Z) = 0.0;
     }
 
+    if(!pProp->Has(JOINT_FRICTION_COEFF)) {
+        KRATOS_WARNING("DEM")<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_FRICTION_COEFF should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<std::endl;
+        pProp->GetValue(JOINT_FRICTION_COEFF) = 0.0;
+    }
+
     if (!pProp->Has(IS_UNBREAKABLE)) {
         KRATOS_WARNING("DEM")<<std::endl;
         KRATOS_WARNING("DEM")<<"WARNING: Variable IS_UNBREAKABLE was not present in the properties when using DEM_smooth_joint_CL. False value assigned by default."<<std::endl;
@@ -428,20 +435,31 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
 
     // bond force for joint contact
     if (!failure_type) {
-        double JointSlidingLocalVel[3] = {0.0};
-        double temp_local_vel = GeometryFunctions::DotProduct(LocalRelVel, mLocalJointNormal);
-        JointSlidingLocalVel[0] =  temp_local_vel * mLocalJointNormal[0];
-        JointSlidingLocalVel[1] =  temp_local_vel * mLocalJointNormal[1];
-        LocalDeltSlidingDisp[0] = JointSlidingLocalVel[0] * r_process_info[DELTA_TIME];
-        LocalDeltSlidingDisp[1] = JointSlidingLocalVel[1] * r_process_info[DELTA_TIME];
-        mAccumulatedJointTangentialLocalDisplacement[0] += LocalDeltSlidingDisp[0];
-        mAccumulatedJointTangentialLocalDisplacement[1] += LocalDeltSlidingDisp[1];
+        //double JointSlidingLocalVel[3] = {0.0};
+        //double temp_local_vel = GeometryFunctions::DotProduct(LocalRelVel, mLocalJointNormal);
+        //JointSlidingLocalVel[0] =  temp_local_vel * mLocalJointNormal[0];
+        //JointSlidingLocalVel[1] =  temp_local_vel * mLocalJointNormal[1];
+        //LocalDeltSlidingDisp[0] = JointSlidingLocalVel[0] * r_process_info[DELTA_TIME];
+        //LocalDeltSlidingDisp[1] = JointSlidingLocalVel[1] * r_process_info[DELTA_TIME];
+        mAccumulatedJointTangentialLocalDisplacement[0] += LocalRelVel[0];
+        mAccumulatedJointTangentialLocalDisplacement[1] += LocalRelVel[1];
         JointLocalElasticContactForce[0] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[0]; // 0: first tangential
         JointLocalElasticContactForce[1] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[1]; // 1: second tangential
     } else {
-        //TODO: maybe a friction force due to the broekn bond should be added here
-        JointLocalElasticContactForce[0] = 0.0; // 0: first tangential
-        JointLocalElasticContactForce[1] = 0.0; // 1: second tangential
+        mAccumulatedJointTangentialLocalDisplacement[0] += LocalRelVel[0];
+        mAccumulatedJointTangentialLocalDisplacement[1] += LocalRelVel[1];
+        JointLocalElasticContactForce[0] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[0]; // 0: first tangential
+        JointLocalElasticContactForce[1] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[1]; // 1: second tangential
+        current_tangential_force_module = sqrt(JointLocalElasticContactForce[0] * JointLocalElasticContactForce[0]
+                                                 + JointLocalElasticContactForce[1] * JointLocalElasticContactForce[1]);
+        double friction_force = 0.5 * LocalElasticContactForce[2];
+        if (current_tangential_force_module > friction_force){
+            if (current_tangential_force_module > 0.0){
+                const double fraction = friction_force / current_tangential_force_module;
+                JointLocalElasticContactForce[0] *= fraction;
+                JointLocalElasticContactForce[1] *= fraction;
+            }
+        }
     }
 
     current_tangential_force_module = sqrt(JointLocalElasticContactForce[0] * JointLocalElasticContactForce[0]
@@ -530,9 +548,17 @@ void DEM_smooth_joint::CheckFailure(const int i_neighbour_count,
             failure_type = 2; // failure in shear
             contact_sigma = 0.0;
             contact_tau = 0.0;
-            LocalElasticContactForce[0] = 0.0;
-            LocalElasticContactForce[1] = 0.0;
             LocalElasticContactForce[2] = 0.0;
+            double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
+                                                    + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+            double friction_force = (*mpProperties)[JOINT_FRICTION_COEFF] * LocalElasticContactForce[2];
+            if (current_tangential_force_module > friction_force){
+                if (current_tangential_force_module > 0.0){
+                    const double fraction = friction_force / current_tangential_force_module;
+                    LocalElasticContactForce[0] *= fraction;
+                    LocalElasticContactForce[1] *= fraction;
+                }
+            }
         } 
         else if (contact_sigma < 0.0  /*break only in tension*/
                 && (-1 * contact_sigma > bond_sigma_max) 
