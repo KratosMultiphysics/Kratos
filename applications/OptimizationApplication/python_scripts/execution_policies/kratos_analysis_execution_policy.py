@@ -42,6 +42,17 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
         self.analysis: AnalysisStage = getattr(import_module(analysis_full_module), analysis_type)(self.model, analysis_settings.Clone())
 
+        if analysis_settings["output_processes"].Has("vtk_output"):
+           self._GetOutputData(analysis_settings["output_processes"]["vtk_output"][0]["Parameters"])
+        elif analysis_settings["output_processes"].Has("gid_output"):
+           self._GetOutputData(analysis_settings["output_processes"]["gid_output"][0]["Parameters"])
+
+    def _GetOutputData(self,output_process_params):
+        self.nodal_solution_step_data_variables = output_process_params["nodal_solution_step_data_variables"]
+        self.nodal_data_value_variables = output_process_params["nodal_data_value_variables"]
+        self.element_data_value_variables = output_process_params["element_data_value_variables"]
+        self.condition_data_value_variables = output_process_params["condition_data_value_variables"]
+
     def GetAnalysisModelPart(self):
         return self.analysis._GetSolver().GetComputingModelPart()
 
@@ -67,10 +78,28 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
         self.analysis.RunSolutionLoop()
 
+        self._OutputAnalysisData()
+
+    def _OutputAnalysisData(self):
         for model_part in self.model_parts:
-            self.displ_field = Kratos.Expression.NodalExpression(model_part)
-            Kratos.Expression.VariableExpressionIO.Read(self.displ_field, Kratos.DISPLACEMENT, True)
-            self.un_buffered_data.SetValue("DISPLACEMENT", self.displ_field.Clone(), overwrite=True)
+            for nodal_data in self.nodal_solution_step_data_variables:
+                nodal_field = Kratos.Expression.NodalExpression(model_part)
+                Kratos.Expression.VariableExpressionIO.Read(nodal_field, Kratos.KratosGlobals.GetVariable(nodal_data.GetString()), True)
+                self.un_buffered_data.SetValue(nodal_data.GetString(), nodal_field.Clone(), overwrite=True)
+            for nodal_data in self.nodal_data_value_variables:
+                nodal_field = Kratos.Expression.NodalExpression(model_part)
+                Kratos.Expression.VariableExpressionIO.Read(nodal_field, Kratos.KratosGlobals.GetVariable(nodal_data.GetString()), True)
+                self.un_buffered_data.SetValue(nodal_data.GetString(), nodal_field.Clone(), overwrite=True)
+            for elem_data in self.element_data_value_variables:
+                elem_field = Kratos.Expression.ElementExpression(model_part)
+                Kratos.Expression.VariableExpressionIO.Read(elem_field, Kratos.KratosGlobals.GetVariable(elem_data.GetString()), True)
+                self.un_buffered_data.SetValue(elem_data.GetString(), elem_field.Clone(), overwrite=True)
+            for cond_data in self.condition_data_value_variables:
+                cond_field = Kratos.Expression.ConditionExpression(model_part)
+                Kratos.Expression.VariableExpressionIO.Read(cond_field, Kratos.KratosGlobals.GetVariable(cond_data.GetString()), True)
+                self.un_buffered_data.SetValue(cond_data.GetString(), cond_field.Clone(), overwrite=True)
+
+
 
 
 
