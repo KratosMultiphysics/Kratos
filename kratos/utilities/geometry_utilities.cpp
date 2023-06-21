@@ -351,6 +351,28 @@ double GeometryUtils::PointDistanceToTriangle3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
+double GeometryUtils::PointDistanceToTriangle3D(
+    const Point& rTrianglePoint1,
+    const Point& rTrianglePoint2,
+    const Point& rTrianglePoint3,
+    const Point& rTrianglePoint4,
+    const Point& rTrianglePoint5,
+    const Point& rTrianglePoint6,
+    const Point& rPoint
+    )
+{
+    std::array<double, 4> distances;
+    distances[0] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint1, rTrianglePoint4, rTrianglePoint6, rPoint);
+    distances[1] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint4, rTrianglePoint2, rTrianglePoint5, rPoint);
+    distances[2] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint6, rTrianglePoint5, rTrianglePoint3, rPoint);
+    distances[3] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint4, rTrianglePoint5, rTrianglePoint6, rPoint);
+    const auto min = std::min_element(distances.begin(), distances.end());
+    return *min;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 double GeometryUtils::PointDistanceToQuadrilateral3D(
     const Point& rQuadrilateralPoint1,
     const Point& rQuadrilateralPoint2,

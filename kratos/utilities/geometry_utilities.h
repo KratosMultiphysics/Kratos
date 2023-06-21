@@ -449,6 +449,28 @@ public:
         );
 
     /**
+     * @brief This function calculates the distance of a 3D point to a 3D quadratic triangle
+     * @details The implementation is done by decomposing the quadratic triangle into 3 triangles and calling PointDistanceToTriangle3D
+     * @param rTrianglePoint1 First point of triangle
+     * @param rTrianglePoint2 Second point of triangle
+     * @param rTrianglePoint3 Third point of triangle
+     * @param rTrianglePoint4 Fourth point of triangle
+     * @param rTrianglePoint5 Fifth point of triangle
+     * @param rTrianglePoint6 Sixth point of triangle
+     * @param rPoint The point which distance is required
+     * @return The distance between the point and the triangle
+     */
+    static double PointDistanceToTriangle3D(
+        const Point& rTrianglePoint1,
+        const Point& rTrianglePoint2,
+        const Point& rTrianglePoint3,
+        const Point& rTrianglePoint4,
+        const Point& rTrianglePoint5,
+        const Point& rTrianglePoint6,
+        const Point& rPoint
+        );
+
+    /**
      * @brief This function calculates the distance of a 3D point to a 3D quadrilateral
      * @details The implementation is done by decomposing the quadrilateral into 2 triangles and calling PointDistanceToTriangle3D
      * @param rQuadrilateralPoint1 First point of quadrilateral
