@@ -198,7 +198,7 @@ public:
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        const auto all_points_distances = MPISearchUtilities::MPISynchronousPointSynchronizationWithDistances(itPointBegin, itPointEnd, all_points_coordinates, rRadius, rDataCommunicator);
+        const auto all_points_radius = MPISearchUtilities::MPISynchronousPointSynchronizationWithRadius(itPointBegin, itPointEnd, all_points_coordinates, rRadius, rDataCommunicator);
 
         // Perform the corresponding searchs
         NodeSpatialSearchResultContainerMapType results;
@@ -206,7 +206,7 @@ public:
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             auto& r_partial_result = results.InitializeResult(point);
-            SearchNodesOverPointInRadius(rStructureNodes, point, all_points_distances[i_node], r_partial_result, rDataCommunicator);
+            SearchNodesOverPointInRadius(rStructureNodes, point, all_points_radius[i_node], r_partial_result, rDataCommunicator);
         }
         return results;
     }
@@ -280,7 +280,7 @@ public:
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        const auto all_points_distances = MPISearchUtilities::MPISynchronousPointSynchronizationWithDistances(itPointBegin, itPointEnd, all_points_coordinates, rRadius, rDataCommunicator);
+        const auto all_points_radius = MPISearchUtilities::MPISynchronousPointSynchronizationWithRadius(itPointBegin, itPointEnd, all_points_coordinates, rRadius, rDataCommunicator);
 
         // Perform the corresponding searchs
         ElementSpatialSearchResultContainerMapType results;
@@ -288,7 +288,7 @@ public:
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             auto& r_partial_result = results.InitializeResult(point);
-            SearchElementsOverPointInRadius(rStructureElements, point, all_points_distances[i_node], r_partial_result, rDataCommunicator);
+            SearchElementsOverPointInRadius(rStructureElements, point, all_points_radius[i_node], r_partial_result, rDataCommunicator);
         }
         return results;
     }
@@ -362,7 +362,7 @@ public:
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        const auto all_points_distances = MPISearchUtilities::MPISynchronousPointSynchronizationWithDistances(itPointBegin, itPointEnd, all_points_coordinates, rRadius, rDataCommunicator);
+        const auto all_points_radius = MPISearchUtilities::MPISynchronousPointSynchronizationWithRadius(itPointBegin, itPointEnd, all_points_coordinates, rRadius, rDataCommunicator);
 
         // Perform the corresponding searchs
         ConditionSpatialSearchResultContainerMapType results;
@@ -370,7 +370,7 @@ public:
         for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
             const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
             auto& r_partial_result = results.InitializeResult(point);
-            SearchConditionsOverPointInRadius(rStructureConditions, point, all_points_distances[i_node], r_partial_result, rDataCommunicator);
+            SearchConditionsOverPointInRadius(rStructureConditions, point, all_points_radius[i_node], r_partial_result, rDataCommunicator);
         }
         return results;
     }
