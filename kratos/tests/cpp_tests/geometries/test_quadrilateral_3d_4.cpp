@@ -292,6 +292,10 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(local_coords[1], -0.3, 1.0e-4);
         KRATOS_CHECK_NEAR(local_coords[2], 0.0, 1.0e-4);
     }
+
+    /**
+     * Checks the distance from a point to a quadrilateral
+     */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4CalculateDistance, KratosCoreGeometriesFastSuite)
     {
         auto geom = GenerateFlatQuadrilateral3D4<Node>();
