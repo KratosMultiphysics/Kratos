@@ -78,8 +78,8 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
             if self.data_comm.Rank() == 0:
                 self.node = self.second_model_part.CreateNewNode(self.new_node_id, self.point.X, self.point.Y, self.point.Z)
                 self.node.SetSolutionStepValue(KM.PARTITION_INDEX, 0)
-                ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.model_part, self.data_comm)
-                ParallelFillCommunicator.Execute()
+            #KratosMPI.ParallelFillCommunicator(self.model_part, self.data_comm).Execute()
+            KratosMPI.ParallelFillCommunicator(self.second_model_part, self.data_comm).Execute()
         else:
             self.node = self.second_model_part.CreateNewNode(self.new_node_id, self.point.X, self.point.Y, self.point.Z)
 
