@@ -15,7 +15,7 @@
     "analyses": [
         {
             "name": "shell_static",
-            "type": "stepping_analysis_execution_policy",
+            "type": "kratos_analysis_execution_policy",
             "settings": {
                 "model_part_names": [
                     "shell"
@@ -85,7 +85,7 @@
             },
             "conv_settings": {
                 "type": "max_iter",
-                "max_iter": 2
+                "max_iter": 1
             }
         },
         "controls": [
@@ -117,7 +117,7 @@
                         "file_format": "binary",
                         "write_deformed_configuration": false,
                         "list_of_output_components": [
-                            "control.thickness_control"
+                            "execution_policy.shell_static","control.thickness_control"
                         ],
                         "output_precision": 7,
                         "output_interval": 1,
