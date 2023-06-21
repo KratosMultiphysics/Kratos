@@ -395,12 +395,7 @@ void DEM_smooth_joint::CalculateNormalForces(double LocalElasticContactForce[3],
     if (!failure_type){ //if the bond is not broken
         JointLocalElasticContactForce2 = kn_el * joint_indentation;
     } else { //else the bond is broken
-        //if the bond is broken, we still calculate the normal compressive force but not the normal tensile force
-        if (joint_indentation > 0.0){
-            JointLocalElasticContactForce2 = kn_el * joint_indentation;
-        } else {
-            JointLocalElasticContactForce2 = 0.0;
-        }
+        JointLocalElasticContactForce2 = 0.0;
     }
         
     if(calculation_area){
@@ -547,11 +542,11 @@ void DEM_smooth_joint::CheckFailure(const int i_neighbour_count,
         if(( std::abs(contact_tau) > bond_current_tau_max) && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for tangential 
             failure_type = 2; // failure in shear
-            //contact_sigma = 0.0;
+            contact_sigma = 0.0;
             contact_tau = 0.0;
-            //If bond break in shear, the normal compressive force should still be there like before
             LocalElasticContactForce[0] = 0.0;
             LocalElasticContactForce[1] = 0.0;
+            LocalElasticContactForce[2] = 0.0;
         } 
         else if (contact_sigma < 0.0  /*break only in tension*/
                 && (-1 * contact_sigma > bond_sigma_max) 

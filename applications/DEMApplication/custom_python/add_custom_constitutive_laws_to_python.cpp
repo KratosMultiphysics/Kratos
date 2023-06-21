@@ -24,6 +24,7 @@
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
 #include "custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 #include "custom_constitutive/DEM_D_Quadratic_CL.h"
+#include "custom_constitutive/DEM_D_void_CL.h"
 
 #include "custom_constitutive/DEM_rolling_friction_model.h"
 
@@ -159,6 +160,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_D_Linear_classic, DEM_D_Linear_classic::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_classic")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_D_void, DEM_D_void::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_void")
         .def(py::init<>())
         ;
 
