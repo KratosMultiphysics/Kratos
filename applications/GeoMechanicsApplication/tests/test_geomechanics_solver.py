@@ -7,16 +7,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class KratosGeoMechanicsSolverTests(KratosUnittest.TestCase):
     """
-    This class contains benchmark tests which are checked with the analytical solution
+    This class contains the tests for the geomechanics solver.
     """
-
-    def setUp(self):
-        # Code here will be placed BEFORE every test in this TestCase.
-        pass
-
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
 
     @staticmethod
     def create_solver(model, parameters):
