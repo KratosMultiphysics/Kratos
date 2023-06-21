@@ -54,7 +54,7 @@ class StandardizedObjective(ResponseRoutine):
         else:
             raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
-    def CalculateStandardizedValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
+    def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
         response_value = self.CalculateValue(control_field)
         standardized_response_value = response_value * self.__scaling
 
@@ -73,7 +73,7 @@ class StandardizedObjective(ResponseRoutine):
     def GetStandardizedValue(self, step_index: int = 0) -> float:
         return self.GetValue(step_index) * self.__scaling
 
-    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
         gradient_collective_expression = self.CalculateGradient()
 
         if save_field:
@@ -106,11 +106,11 @@ class StandardizedObjective(ResponseRoutine):
         return self.GetValue() - self.GetInitialValue()
 
     def GetInfo(self) -> str:
-        msg = f"""\t Objective info: 
+        msg = f"""\t Objective info:
             name          : {self.GetReponse().GetName()}
-            type          : {self.__objective_type} 
-            value         : {self.GetValue():0.6e} 
-            abs_change    : {self.GetAbsoluteChange():0.6e} 
+            type          : {self.__objective_type}
+            value         : {self.GetValue():0.6e}
+            abs_change    : {self.GetAbsoluteChange():0.6e}
             rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"""
         init_value = self.GetInitialValue()
         if init_value:
