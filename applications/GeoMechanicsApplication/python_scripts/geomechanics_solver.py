@@ -151,7 +151,7 @@ class GeoMechanicalSolver(PythonSolver):
             if self.settings["linear_solver_settings"].Has("scaling") and self.settings.Has("prebuild_dynamics"):
                 if self.settings["linear_solver_settings"]["scaling"].GetBool() and \
                             self.settings["prebuild_dynamics"].GetBool():
-                        raise ValueError("Scaling can not be used if prebuild dynamics is true")
+                    raise ValueError("Scaling can not be used if prebuild dynamics is true")
 
 
 
