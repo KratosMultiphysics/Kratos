@@ -889,27 +889,7 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             bond_current_tau_max += tan(bond_interanl_friction * Globals::Pi / 180.0) * contact_sigma;
         }
 
-        if(( std::abs(contact_tau) + bond_rotational_moment_coefficient_tangential * bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 
-            && !(*mpProperties)[IS_UNBREAKABLE]) 
-        { //for tangential 
-            failure_type = 2; // failure in shear
-            //contact_sigma = 0.0;
-            contact_tau = 0.0;
-            //If bond break in shear, the normal compressive force should still be there like before
-            LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
-            LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
-            //LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2; 
-            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
-            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
-            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
-            ElasticLocalRotationalMoment[0] = 0.0;
-            ElasticLocalRotationalMoment[1] = 0.0;
-            ElasticLocalRotationalMoment[2] = 0.0;
-            ViscoLocalRotationalMoment[0] = 0.0;
-            ViscoLocalRotationalMoment[1] = 0.0;
-            ViscoLocalRotationalMoment[2] = 0.0;
-        } 
-        else if (contact_sigma < 0.0  /*break only in tension*/
+        if (contact_sigma < 0.0  /*break only in tension*/
                 && (-1 * contact_sigma + bond_rotational_moment_coefficient_normal * bond_rotational_moment_tangential_modulus * bond_radius / I > bond_sigma_max) 
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
@@ -929,6 +909,26 @@ void DEM_parallel_bond::CheckFailure(const int i_neighbour_count,
             ViscoLocalRotationalMoment[1] = 0.0;
             ViscoLocalRotationalMoment[2] = 0.0;
         }
+        else if(( std::abs(contact_tau) + bond_rotational_moment_coefficient_tangential * bond_rotational_moment_normal_modulus * bond_radius / J > bond_current_tau_max) 
+            && !(*mpProperties)[IS_UNBREAKABLE]) 
+        { //for tangential 
+            failure_type = 2; // failure in shear
+            contact_sigma = 0.0;
+            contact_tau = 0.0;
+            //If bond break in shear, the normal compressive force should still be there like before
+            LocalElasticContactForce[0] *= (1 - mBondedScalingFactor[0]);      
+            LocalElasticContactForce[1] *= (1 - mBondedScalingFactor[1]);      
+            //LocalElasticContactForce[2]  = mUnbondedLocalElasticContactForce2; 
+            ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0];
+            ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1];
+            //ViscoDampingLocalContactForce[2] = mUnbondedViscoDampingLocalContactForce[2];
+            ElasticLocalRotationalMoment[0] = 0.0;
+            ElasticLocalRotationalMoment[1] = 0.0;
+            ElasticLocalRotationalMoment[2] = 0.0;
+            ViscoLocalRotationalMoment[0] = 0.0;
+            ViscoLocalRotationalMoment[1] = 0.0;
+            ViscoLocalRotationalMoment[2] = 0.0;
+        } 
     }
 
     KRATOS_CATCH("")    
