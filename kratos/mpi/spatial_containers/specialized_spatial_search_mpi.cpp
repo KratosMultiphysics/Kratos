@@ -31,6 +31,9 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ElementSpatialSearchResult
     const DataCommunicator& rDataCommunicator
     )
 {
+    // Initialize local bounding box
+    InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+
     // The points vector
     const auto it_elem_begin = rInputElements.begin();
     std::vector<Point> points(rInputElements.size());
@@ -38,7 +41,52 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ElementSpatialSearchResult
         points[i] = Point((it_elem_begin + i)->GetGeometry().Center());
     });
 
-    return SearchElementsOverPointsInRadius(rStructureElements, points.begin(), points.end(), rRadius, rDataCommunicator);
+    // Prepare MPI search
+    std::vector<double> all_points_coordinates;
+    const auto recv_sizes = MPISearchUtilities::MPISynchronousPointSynchronizationWithRecvSizes(points.begin(), points.end(), all_points_coordinates, rDataCommunicator);
+
+    // The total number of points
+    const int total_number_of_points = std::accumulate(recv_sizes.begin(), recv_sizes.end(), 0);
+
+    // Generate local points ids
+    std::vector<std::size_t> local_points_ids(rInputElements.size());
+    IndexPartition<std::size_t>(rInputElements.size()).for_each([&](std::size_t i) {
+        local_points_ids[i] = (it_elem_begin + i)->Id();
+    });
+
+    // Synchonize radius and ids
+    std::vector<double> all_points_radius; 
+    std::vector<std::size_t> all_points_ids; 
+    if (total_number_of_points == 0) { // If all points are the same
+        all_points_radius = rRadius;
+        all_points_ids = local_points_ids;
+    } else {                           // If not
+        // The resulting radius and ids
+        all_points_radius.resize(total_number_of_points);
+        all_points_ids.resize(total_number_of_points);
+
+        // MPI information
+        const int world_size = rDataCommunicator.Size();
+
+        // Generate vectors with sizes for AllGatherv
+        std::vector<int> recv_offsets(world_size, 0);
+        for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+            recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
+        }
+
+        // Invoque AllGatherv
+        rDataCommunicator.AllGatherv(rRadius, all_points_radius, recv_sizes, recv_offsets);
+        rDataCommunicator.AllGatherv(local_points_ids, all_points_ids, recv_sizes, recv_offsets);
+    }
+
+    // Perform the corresponding searchs
+    ElementSpatialSearchResultContainerMapType results;
+    for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+        const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+        auto& r_partial_result = results.InitializeResult(local_points_ids[i_node]);
+        SearchElementsOverPointInRadius(rStructureElements, point, all_points_radius[i_node], r_partial_result, rDataCommunicator);
+    }
+    return results;
 }
 
 /***********************************************************************************/
@@ -52,7 +100,56 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::NodeSpatialSearchResultCon
     const DataCommunicator& rDataCommunicator
     )
 {
-    return SearchNodesOverPointsInRadius(rStructureNodes, rInputNodes.begin(), rInputNodes.end(), rRadius, rDataCommunicator);
+    // Initialize local bounding box
+    InitializeLocalBoundingBox(rStructureNodes);
+
+    // Prepare MPI search
+    std::vector<double> all_points_coordinates;
+    const auto recv_sizes = MPISearchUtilities::MPISynchronousPointSynchronizationWithRecvSizes(rInputNodes.begin(), rInputNodes.end(), all_points_coordinates, rDataCommunicator);
+
+    // The total number of points
+    const int total_number_of_points = std::accumulate(recv_sizes.begin(), recv_sizes.end(), 0);
+
+    // Generate local points ids
+    std::vector<std::size_t> local_points_ids(rInputNodes.size());
+    const auto it_node_begin = rInputNodes.begin();
+    IndexPartition<std::size_t>(rInputNodes.size()).for_each([&](std::size_t i) {
+        local_points_ids[i] = (it_node_begin + i)->Id();
+    });
+
+    // Synchonize radius and ids
+    std::vector<double> all_points_radius; 
+    std::vector<std::size_t> all_points_ids; 
+    if (total_number_of_points == 0) { // If all points are the same
+        all_points_radius = rRadius;
+        all_points_ids = local_points_ids;
+    } else {                           // If not
+        // The resulting radius and ids
+        all_points_radius.resize(total_number_of_points);
+        all_points_ids.resize(total_number_of_points);
+
+        // MPI information
+        const int world_size = rDataCommunicator.Size();
+
+        // Generate vectors with sizes for AllGatherv
+        std::vector<int> recv_offsets(world_size, 0);
+        for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+            recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
+        }
+
+        // Invoque AllGatherv
+        rDataCommunicator.AllGatherv(rRadius, all_points_radius, recv_sizes, recv_offsets);
+        rDataCommunicator.AllGatherv(local_points_ids, all_points_ids, recv_sizes, recv_offsets);
+    }
+
+    // Perform the corresponding searchs
+    NodeSpatialSearchResultContainerMapType results;
+    for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+        const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+        auto& r_partial_result = results.InitializeResult(local_points_ids[i_node]);
+        SearchNodesOverPointInRadius(rStructureNodes, point, all_points_radius[i_node], r_partial_result, rDataCommunicator);
+    }
+    return results;
 }
 
 /***********************************************************************************/
@@ -66,6 +163,9 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ConditionSpatialSearchResu
     const DataCommunicator& rDataCommunicator
     )
 {
+    // Initialize local bounding box
+    InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+
     // The points vector
     const auto it_cond_begin = rInputConditions.begin();
     std::vector<Point> points(rInputConditions.size());
@@ -73,7 +173,52 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ConditionSpatialSearchResu
         points[i] = Point((it_cond_begin + i)->GetGeometry().Center());
     });
 
-    return SearchConditionsOverPointsInRadius(rStructureConditions, points.begin(), points.end(), rRadius, rDataCommunicator);
+    // Prepare MPI search
+    std::vector<double> all_points_coordinates;
+    const auto recv_sizes = MPISearchUtilities::MPISynchronousPointSynchronizationWithRecvSizes(points.begin(), points.end(), all_points_coordinates, rDataCommunicator);
+
+    // The total number of points
+    const int total_number_of_points = std::accumulate(recv_sizes.begin(), recv_sizes.end(), 0);
+
+    // Generate local points ids
+    std::vector<std::size_t> local_points_ids(rInputConditions.size());
+    IndexPartition<std::size_t>(rInputConditions.size()).for_each([&](std::size_t i) {
+        local_points_ids[i] = (it_cond_begin + i)->Id();
+    });
+
+    // Synchonize radius and ids
+    std::vector<double> all_points_radius; 
+    std::vector<std::size_t> all_points_ids; 
+    if (total_number_of_points == 0) { // If all points are the same
+        all_points_radius = rRadius;
+        all_points_ids = local_points_ids;
+    } else {                           // If not
+        // The resulting radius and ids
+        all_points_radius.resize(total_number_of_points);
+        all_points_ids.resize(total_number_of_points);
+
+        // MPI information
+        const int world_size = rDataCommunicator.Size();
+
+        // Generate vectors with sizes for AllGatherv
+        std::vector<int> recv_offsets(world_size, 0);
+        for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+            recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
+        }
+
+        // Invoque AllGatherv
+        rDataCommunicator.AllGatherv(rRadius, all_points_radius, recv_sizes, recv_offsets);
+        rDataCommunicator.AllGatherv(local_points_ids, all_points_ids, recv_sizes, recv_offsets);
+    }
+
+    // Perform the corresponding searchs
+    ConditionSpatialSearchResultContainerMapType results;
+    for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+        const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+        auto& r_partial_result = results.InitializeResult(local_points_ids[i_node]);
+        SearchConditionsOverPointInRadius(rStructureConditions, point, all_points_radius[i_node], r_partial_result, rDataCommunicator);
+    }
+    return results;
 }
 
 /***********************************************************************************/
