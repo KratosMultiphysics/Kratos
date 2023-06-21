@@ -10,6 +10,18 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.rmp = self.current_model.CreateModelPart("root_part")
         self.mp = self.rmp.CreateSubModelPart("solid_part")
         self.cmp = self.rmp.CreateSubModelPart("compute_part")
+        self.base_parameters = KratosMultiphysics.Parameters("""
+                {
+                    "help"                      : "This process applies multiple moving load conditions belonging to a modelpart. The load moves over line elements.",
+                    "model_part_name"           : "solid_part",
+                    "compute_model_part_name"   : "compute_part",
+                    "variable_name"             : "POINT_LOAD",
+                    "load"                      : [0.0, -2.0, 0.0],
+                    "direction"                 : [1,1,1],
+                    "velocity"                  : 1,
+                    "origin"                    : [0,0,0]
+                }
+                """)
 
     def tearDown(self):
         self.rmp.Clear();
@@ -29,7 +41,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
     def _TestSetMultipleMovingLoads(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
-        moving load
+        moving load - a single load
         Returns
         -------
 
@@ -41,21 +53,9 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
 
         # create condition
-        cond = self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
 
-        parameters = KratosMultiphysics.Parameters("""
-                {
-                    "help"                      : "This process applies multiple moving load conditions belonging to a modelpart. The load moves over line elements.",
-                    "model_part_name"           : "solid_part",
-                    "compute_model_part_name"   : "compute_part",
-                    "variable_name"             : "POINT_LOAD",
-                    "load"                      : [0.0, -2.0, 0.0],
-                    "direction"                 : [1,1,1],
-                    "velocity"                  : 1,
-                    "origin"                    : [0,0,0]
-                }
-                """
-                                                         )
+        parameters = self.base_parameters
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
@@ -101,20 +101,9 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         # create condition
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
 
-        parameters = KratosMultiphysics.Parameters("""
-                {
-                    "help"                      : "This process applies multiple moving load conditions belonging to a modelpart. The load moves over line elements.",
-                    "model_part_name"           : "solid_part",
-                    "compute_model_part_name"   : "compute_part",
-                    "variable_name"             : "POINT_LOAD",
-                    "load"                      : [0.0, -2.0, 0.0],
-                    "direction"                 : [1,1,1],
-                    "velocity"                  : 1,
-                    "origin"                    : [0,0,0],
-                    "configuration"             : [0.25]
-                }
-                """
-                                                         )
+        parameters = self.base_parameters
+        parameters.AddVector("configuration", [0.25])
+        
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
@@ -160,20 +149,9 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         # create condition
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
 
-        parameters = KratosMultiphysics.Parameters("""
-                {
-                    "help"                      : "This process applies multiple moving load conditions belonging to a modelpart. The load moves over line elements.",
-                    "model_part_name"           : "solid_part",
-                    "compute_model_part_name"   : "compute_part",
-                    "variable_name"             : "POINT_LOAD",
-                    "load"                      : [0.0, -2.0, 0.0],
-                    "direction"                 : [1,1,1],
-                    "velocity"                  : 1,
-                    "origin"                    : [0,0,0],
-                    "configuration"             : [-0.25]
-                }
-                """
-                                                         )
+        parameters = self.base_parameters
+        parameters.AddVector("configuration", [-0.25])
+                                                         
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 

@@ -94,7 +94,7 @@ namespace Kratos {
         /**
         * \brief Clones condition into a new sub body part of the compute model part
     	*/
-			ModelPart& CloneMovingConditionInComputeModelPart(std::string NewBodyPartName);
+			ModelPart& CloneMovingConditionInComputeModelPart(const std::string& NewBodyPartName);
 
         /**
         * \brief Get maximum index of current conditions in root

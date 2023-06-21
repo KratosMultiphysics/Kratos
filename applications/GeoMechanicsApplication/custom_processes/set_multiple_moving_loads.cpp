@@ -35,11 +35,9 @@ namespace Kratos
         );
 
         // Set default velocity as a string, if the input velocity is a string
-        if (mParameters.Has("velocity")) {
-            if (mParameters["velocity"].IsString()) {
+        if (mParameters.Has("velocity") && mParameters["velocity"].IsString()) {
                 default_parameters["velocity"].SetString("1");
             }
-        }
 
         mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
@@ -70,7 +68,7 @@ namespace Kratos
             auto parameters_moving_load = mParameters.Clone();
 
     		count++;
-            const std::string newModelPartName = mrModelPart.Name() + "_cloned_" + std::to_string(count);
+            const std::string& newModelPartName = mrModelPart.Name() + "_cloned_" + std::to_string(count);
             auto& new_cloned_model_part = CloneMovingConditionInComputeModelPart(newModelPartName);
 
             parameters_moving_load.RemoveValue("configuration");
@@ -85,7 +83,7 @@ namespace Kratos
 
     }
 
-    ModelPart& SetMultipleMovingLoadsProcess::CloneMovingConditionInComputeModelPart(std::string NewBodyPartName)
+    ModelPart& SetMultipleMovingLoadsProcess::CloneMovingConditionInComputeModelPart(const std::string& NewBodyPartName)
     {
         auto& compute_model_part = mrModelPart.GetRootModelPart().GetSubModelPart(mParameters["compute_model_part_name"].GetString());
         auto& new_model_part = compute_model_part.CreateSubModelPart(NewBodyPartName);
@@ -105,7 +103,7 @@ namespace Kratos
     {
         auto& root_model_part = mrModelPart.GetRootModelPart();
         int max_index = 0;
-    	for(auto& condition: root_model_part.Conditions())
+    	for(const auto& condition: root_model_part.Conditions())
         {
             max_index = std::max(max_index, static_cast<int>(condition.Id()));
         }
@@ -116,7 +114,7 @@ namespace Kratos
     {
         auto& compute_model_part = mrModelPart.GetRootModelPart().GetSubModelPart(mParameters["compute_model_part_name"].GetString());
 
-    	for (auto& moving_load_condition : mrModelPart.Conditions())
+    	for (const auto& moving_load_condition : mrModelPart.Conditions())
         {
             if (compute_model_part.HasCondition(moving_load_condition)) compute_model_part.pGetCondition(moving_load_condition)->Set(TO_ERASE, true);
         }
