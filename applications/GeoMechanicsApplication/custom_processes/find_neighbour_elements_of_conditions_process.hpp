@@ -154,6 +154,8 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CheckEdgesOf3DGeometry(hashmap& rFacesMap, bool ReverseEdge);
+
     bool CheckIfAllConditionsAreVisited() const;
 
     void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);

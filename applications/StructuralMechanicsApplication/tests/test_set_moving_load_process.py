@@ -1,3 +1,6 @@
+import sys
+sys.path.append(r"D:\software_development\Kratos\bin\Debug")
+
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
