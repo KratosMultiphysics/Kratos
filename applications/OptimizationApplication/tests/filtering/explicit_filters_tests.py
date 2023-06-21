@@ -2,7 +2,6 @@ import numpy
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-import KratosMultiphysics.ShapeOptimizationApplication as KratosSOA
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # Import KratosUnittest
@@ -15,7 +14,8 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
         cls.model_part = cls.model.CreateModelPart("test")
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
-        ReadModelPart("solid", cls.model_part)
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            ReadModelPart("solid", cls.model_part)
 
         for node in cls.model_part.Nodes:
             node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([node.Id, node.Id + 1, node.Id + 2]))
@@ -25,22 +25,6 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
 
         for element in cls.model_part.Elements:
             element.SetValue(Kratos.VELOCITY, Kratos.Array3([element.Id, element.Id + 1, element.Id + 2]))
-
-        cls.condition_model_part = cls.model.CreateModelPart("conditions")
-        cls.condition_model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        cls.condition_model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
-        for condition in cls.model_part.Conditions:
-            center = condition.GetGeometry().Center()
-            point = cls.condition_model_part.CreateNewNode(condition.Id, center[0], center[1], center[2])
-            point.SetSolutionStepValue(Kratos.VELOCITY, condition.GetValue(Kratos.VELOCITY))
-
-        cls.element_model_part = cls.model.CreateModelPart("elements")
-        cls.element_model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        cls.element_model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
-        for element in cls.model_part.Elements:
-            center = element.GetGeometry().Center()
-            point = cls.element_model_part.CreateNewNode(element.Id, center[0], center[1], center[2])
-            point.SetSolutionStepValue(Kratos.VELOCITY, element.GetValue(Kratos.VELOCITY))
 
     def test_NodalExplicitVertexMorphingFilter(self):
         radius = 2.0
