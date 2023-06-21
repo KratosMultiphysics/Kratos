@@ -25,33 +25,33 @@
 namespace Kratos {
 namespace Python {
 
-void AddCustomFiltersToPython(pybind11::module& m)
+namespace Detail
+{
+
+template <class TContainerType>
+void AddExplicitVertexMorphingFilter(
+    pybind11::module& m,
+    const std::string& rName)
 {
     namespace py = pybind11;
 
-    py::class_<ExplicitVertexMorphingFilter<ModelPart::NodesContainerType>, ExplicitVertexMorphingFilter<ModelPart::NodesContainerType>::Pointer>(m, "NodalExplicitVertexMorphingFilter")
-        .def(py::init<const ModelPart&, const std::string&>())
-        .def("SetFilterRadius", &ExplicitVertexMorphingFilter<ModelPart::NodesContainerType>::SetFilterRadius)
-        .def("FilterField", &ExplicitVertexMorphingFilter<ModelPart::NodesContainerType>::FilterField)
-        .def("UnFilterField", &ExplicitVertexMorphingFilter<ModelPart::NodesContainerType>::UnFilterField)
-        .def("__str__", &ExplicitVertexMorphingFilter<ModelPart::NodesContainerType>::Info)
+    py::class_<ExplicitVertexMorphingFilter<TContainerType>, typename ExplicitVertexMorphingFilter<TContainerType>::Pointer>(m, rName.c_str())
+        .def(py::init<const ModelPart&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"))
+        .def("SetFilterRadius", &ExplicitVertexMorphingFilter<TContainerType>::SetFilterRadius, py::arg("filter_radius"))
+        .def("FilterField", &ExplicitVertexMorphingFilter<TContainerType>::FilterField, py::arg("unfiltered_field"))
+        .def("UnFilterField", &ExplicitVertexMorphingFilter<TContainerType>::UnFilterField, py::arg("filtered_field"))
+        .def("__str__", &ExplicitVertexMorphingFilter<TContainerType>::Info)
         ;
+}
 
-    py::class_<ExplicitVertexMorphingFilter<ModelPart::ConditionsContainerType>, ExplicitVertexMorphingFilter<ModelPart::ConditionsContainerType>::Pointer>(m, "ConditionExplicitVertexMorphingFilter")
-        .def(py::init<const ModelPart&, const std::string&>())
-        .def("SetFilterRadius", &ExplicitVertexMorphingFilter<ModelPart::ConditionsContainerType>::SetFilterRadius)
-        .def("FilterField", &ExplicitVertexMorphingFilter<ModelPart::ConditionsContainerType>::FilterField)
-        .def("UnFilterField", &ExplicitVertexMorphingFilter<ModelPart::ConditionsContainerType>::UnFilterField)
-        .def("__str__", &ExplicitVertexMorphingFilter<ModelPart::ConditionsContainerType>::Info)
-        ;
+} // namespace Detail
 
-    py::class_<ExplicitVertexMorphingFilter<ModelPart::ElementsContainerType>, ExplicitVertexMorphingFilter<ModelPart::ElementsContainerType>::Pointer>(m, "ElementExplicitVertexMorphingFilter")
-        .def(py::init<const ModelPart&, const std::string&>())
-        .def("SetFilterRadius", &ExplicitVertexMorphingFilter<ModelPart::ElementsContainerType>::SetFilterRadius)
-        .def("FilterField", &ExplicitVertexMorphingFilter<ModelPart::ElementsContainerType>::FilterField)
-        .def("UnFilterField", &ExplicitVertexMorphingFilter<ModelPart::ElementsContainerType>::UnFilterField)
-        .def("__str__", &ExplicitVertexMorphingFilter<ModelPart::ElementsContainerType>::Info)
-        ;
+void AddCustomFiltersToPython(pybind11::module& m)
+{
+    Detail::AddExplicitVertexMorphingFilter<ModelPart::NodesContainerType>(m, "NodalExplicitVertexMorphingFilter");
+    Detail::AddExplicitVertexMorphingFilter<ModelPart::ConditionsContainerType>(m, "ConditionExplicitVertexMorphingFilter");
+    Detail::AddExplicitVertexMorphingFilter<ModelPart::ElementsContainerType>(m, "ElementExplicitVertexMorphingFilter");
+
 }
 
 } // namespace Python.
