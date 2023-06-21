@@ -167,6 +167,8 @@ public:
             for (int i_rank = 0; i_rank < world_size; ++i_rank) {
                 recv_sizes[i_rank] = points_per_partition[i_rank];
             }
+        } else if (world_size == 1) { // In case only one process is used
+            recv_sizes[0] = number_of_points;
         }
 
         return recv_sizes;
