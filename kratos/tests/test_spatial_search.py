@@ -111,7 +111,7 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
         
         # Parallel interface (also works in serial mode)
         results = self.search.SearchNodesInRadiusExclusive(self.model_part, self.second_model_part.Nodes, radius_list, self.data_comm)
-        self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
+        self.assertEqual(results.NumberOfSearchResults(), 1)
         self.assertTrue(results.HasResult(self.new_node_id))
         node_results = results[self.new_node_id]
         if not KM.IsDistributedRun():
@@ -126,7 +126,7 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
 
         # New interface (works in serial and parallel mode). Interface is very similar to previous one, but it is because a node is type of point and this interface is purely for points (nodes in python)
         results = self.search.SearchNodesOverPointsInRadius(self.model_part.Nodes, self.second_model_part.Nodes, radius_list, self.data_comm)
-        self.assertEqual(results.NumberOfSearchResults(), len(radius_list))
+        self.assertEqual(results.NumberOfSearchResults(), 1)
         self.assertFalse(results.HasResult(self.new_node_id)) # This is false because the hash is with coordinates
         self.assertTrue(results.HasResult(self.point))
         node_results = results[self.point]
