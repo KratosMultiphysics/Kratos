@@ -54,14 +54,15 @@ namespace Kratos
 
         //--------------------------------------------------------------------------------------------------------------
 
-        void ExecuteInitialize() override
+        void ExecuteInitializeSolutionStep() override
         {
             KRATOS_TRY
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Start of Execute Initialize" << std::endl;
             // Apply C/Phi Reduction procedure for the model part:
             block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
                 set_C_phi(rElement);
             });
-
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "End of Execute Initialize" << std::endl;
             KRATOS_CATCH("")
         }
 
@@ -71,15 +72,18 @@ namespace Kratos
 
         void set_C_phi(Element& rElement)
         {
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Element ID: " << rElement.Id() << std::endl;
             // Get C/Phi material properties of this element
             Element::PropertiesType& rProp = rElement.GetProperties();
             ConstitutiveLaw::Pointer pConstitutiveLaw = rProp.GetValue(CONSTITUTIVE_LAW);
 
             // Check for UMAT PHI Parameter
             double phi = GetAndCheckPhi(rProp);
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial Phi = " << phi << std::endl;
 
             // Check for UMAT C Parameter
             double c = GetAndCheckC (rProp);
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial C = " << c << std::endl;
 
             // C/Phi reduction factor
             double reductionFactor = 0.9;
@@ -89,17 +93,14 @@ namespace Kratos
             double tan_phi = std::tan(phi_rad);
             double reduced_tan_phi = reductionFactor * tan_phi;
             double reduced_phi_rad = std::atan(reduced_tan_phi);
-            double reduced_phi = MathUtils<>::RadiansToDegrees(reduced_phi_rad); // TODO: RADIANSTODEGREES function!
+            double reduced_phi = reduced_phi_rad * 180 / Globals::Pi; // TODO: RADIANSTODEGREES function!
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced Phi = " << reduced_phi << std::endl;
 
             // C is reduced by the reduction factor
             double reduced_c = reductionFactor * c;
-
-            // Does this set the reduced values as the new values?
-            rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = reduced_phi;
-            rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_C_PARAMETER] - 1] = reduced_c;
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced C = " << reduced_c << std::endl;
 
             SetValueAtElement(rElement, UMAT_PARAMETERS, rProp[UMAT_PARAMETERS]);
-
 
         }
 
