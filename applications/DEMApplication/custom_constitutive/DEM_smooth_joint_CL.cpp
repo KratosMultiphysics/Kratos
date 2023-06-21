@@ -134,6 +134,20 @@ void DEM_smooth_joint::Check(Properties::Pointer pProp) const {
         pProp->GetValue(BOND_RADIUS_FACTOR) = 1.0;
     }
 
+    if(!pProp->Has(JOINT_NORMAL_STIFFNESS)) {
+        KRATOS_WARNING("DEM")<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_NORMAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<std::endl;
+        pProp->GetValue(JOINT_NORMAL_STIFFNESS) = 1e9;
+    }
+
+    if(!pProp->Has(JOINT_TANGENTIAL_STIFFNESS)) {
+        KRATOS_WARNING("DEM")<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_TANGENTIAL_STIFFNESS should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
+        KRATOS_WARNING("DEM")<<std::endl;
+        pProp->GetValue(JOINT_TANGENTIAL_STIFFNESS) = 1e9;
+    }
+
     if(!pProp->Has(JOINT_NORMAL_DIRECTION_X)) {
         KRATOS_WARNING("DEM")<<std::endl;
         KRATOS_WARNING("DEM")<<"WARNING: Variable JOINT_NORMAL_DIRECTION_X should be present in the properties when using DEM_smooth_joint_CL. 0.0 value assigned by default."<<std::endl;
@@ -215,9 +229,11 @@ void DEM_smooth_joint::CalculateElasticConstants(double& kn_el, double& kt_el, d
     KRATOS_TRY
 
     //for bonded part
-    const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
-    kn_el = bond_equiv_young * calculation_area / mInitialDistanceJoint;
-    kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
+    //const double bond_equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
+    //kn_el = bond_equiv_young * calculation_area / mInitialDistanceJoint;
+    //kt_el = kn_el / (*mpProperties)[BOND_KNKS_RATIO];
+    kn_el = (*mpProperties)[JOINT_NORMAL_STIFFNESS];
+    kt_el = (*mpProperties)[JOINT_TANGENTIAL_STIFFNESS];
 
     double GlobalJointNormal[3] = {0.0};
     GlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X];
