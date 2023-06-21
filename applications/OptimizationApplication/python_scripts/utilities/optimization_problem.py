@@ -74,6 +74,9 @@ class OptimizationProblem:
             if self.__echo_level > 0:
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"Added \"{component.GetName()}\" to \"{added_component_type}\".")
 
+    def GetExecutionPolicy(self, name: str) -> ExecutionPolicy:
+        return self.GetComponent(name, ExecutionPolicy)
+
     def GetResponse(self, name: str) -> ResponseFunction:
         return self.GetComponent(name, ResponseFunction)
 
