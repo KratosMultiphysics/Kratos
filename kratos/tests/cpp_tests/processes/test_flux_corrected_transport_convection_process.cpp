@@ -53,21 +53,13 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     FindGlobalNodalNeighboursProcess nodal_neighs_process(r_model_part);
     nodal_neighs_process.Execute();
 
-    // Create the edge-based data structure
+    // FCT convection settings
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart",
         "echo_level" : 1,
         "max_CFL" : 0.1,
         "diffusion_constant" : 1.0
     })");
-
-    // // Fake time advance to set the previous process info container
-    // const double dt = 1.0;
-    // r_model_part.GetProcessInfo()[TIME] = 0.0;
-    // r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
-    // r_model_part.CloneTimeStep(dt);
-    // // r_model_part.CloneTimeStep(2.0*dt);
-    // r_model_part.CloneTimeStep((1.2)*dt);
 
     // Set nodal values
 
@@ -103,13 +95,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
         r_node.FastGetSolutionStepValue(VELOCITY, 2) = aux_v;
     }
 
-
-    // // Set and execute the FCT convection process
-    // FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
-    // fct_convection_process.Execute();
-
     // Set and execute the FCT convection process (time loop)
-    GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportProcess2DNoSubstepping", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportProcess2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
     gid_io_convection.InitializeMesh(0);
     gid_io_convection.WriteMesh(r_model_part.GetMesh());
     gid_io_convection.FinalizeMesh();
@@ -117,8 +104,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
     gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
 
-    const double dt = 5e-5;
-    const double end_time = 0.2;
+    const double dt = 5e-3;
+    const double end_time = 0.5;
     r_model_part.GetProcessInfo()[TIME] = 0.0;
     r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
     FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
@@ -173,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
         "condition_name" : "LineCondition",
         "create_skin_sub_model_part" : true
     })");
-    r_model_part.SetBufferSize(3);
+    r_model_part.SetBufferSize(2);
     r_model_part.AddNodalSolutionStepVariable(DISTANCE);
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
@@ -183,20 +170,12 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
     FindGlobalNodalNeighboursProcess nodal_neighs_process(r_model_part);
     nodal_neighs_process.Execute();
 
-    // Create the edge-based data structure
+    // FCT convection settings
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart",
         "echo_level" : 1,
-        "max_CFL" : 0.25
+        "max_CFL" : 0.75
     })");
-
-    // Fake time advance to set the previous process info container
-    const double dt = 1.0e-3;
-    const double t_end = 6.28;
-    r_model_part.GetProcessInfo()[TIME] = 0.0;
-    r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
-    r_model_part.CloneTimeStep(dt);
-    r_model_part.CloneTimeStep(t_end);
 
     // Set nodal values
     auto dist_func = [&](Node& rNode){
@@ -222,24 +201,31 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
         r_node.FastGetSolutionStepValue(DISTANCE, 1) = dist_func(r_node);
         r_node.FastGetSolutionStepValue(VELOCITY, 0) = aux_v;
         r_node.FastGetSolutionStepValue(VELOCITY, 1) = aux_v;
-        r_node.FastGetSolutionStepValue(VELOCITY, 2) = aux_v;
     }
 
+    // Set and execute the FCT convection process (time loop)
+    GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportProcessZalesak", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    gid_io_convection.InitializeMesh(0);
+    gid_io_convection.WriteMesh(r_model_part.GetMesh());
+    gid_io_convection.FinalizeMesh();
+    gid_io_convection.InitializeResults(0, r_model_part.GetMesh());
+    gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
+    gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
 
-    // Set and execute the FCT convection process
+    const double dt = 1.0e-2;
+    const double t_end = 6.28;
+    r_model_part.GetProcessInfo()[TIME] = 0.0;
+    r_model_part.GetProcessInfo()[DELTA_TIME] = dt;
     FluxCorrectedTransportConvectionProcess<2> fct_convection_process(current_model, fct_parameters);
-    fct_convection_process.Execute();
+    while (r_model_part.GetProcessInfo()[TIME] < t_end) {
+        const double new_time = r_model_part.GetProcessInfo()[TIME] + dt;
+        r_model_part.CloneTimeStep(new_time);
+        fct_convection_process.Execute();
+        gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), new_time, 0);
+        gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), new_time, 0);
+    }
 
-    // GidIO<> gid_io_convection("/home/rzorrilla/Desktop/FluxCorrectedTransportConvectionProcess2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-    // gid_io_convection.InitializeMesh(0);
-    // gid_io_convection.WriteMesh(r_model_part.GetMesh());
-    // gid_io_convection.FinalizeMesh();
-    // gid_io_convection.InitializeResults(0, r_model_part.GetMesh());
-    // gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
-    // gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
-    // gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 1, 0);
-    // gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 1, 0);
-    // gid_io_convection.FinalizeResults();
+    gid_io_convection.FinalizeResults();
 }
 
 } // namespace Kratos::Testing.

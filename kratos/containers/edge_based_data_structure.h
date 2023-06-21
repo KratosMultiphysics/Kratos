@@ -57,14 +57,14 @@ public:
     // Number of element nodes (note that simplicial elements are assumed)
     static constexpr std::size_t NumNodes = TDim + 1;
 
-    // Number of faces per element (note that simplicial elements are assumed)
-    static constexpr std::size_t NumFaces = TDim == 2 ? 3 : 4;
-
     // Number of edges per element (note that simplicial elements are assumed)
     static constexpr std::size_t NumEdges = TDim == 2 ? 3 : 6;
 
     // Number of edges per face (note that simplicial elements are assumed)
     static constexpr std::size_t NumEdgesFace = TDim == 2 ? 1 : 3;
+
+    // Number of edges per face (note that simplicial elements are assumed)
+    static constexpr std::size_t NumNodesFace = TDim == 2 ? 2 : 3;
 
     //TODO: Fake edge data structure to be defined later on
     class EdgeData final
@@ -125,19 +125,6 @@ public:
             mAEC = AntidiffusiveEedgeContribution;
         }
 
-        // void AddOffDiagonalValues(
-        //     const double Weight,
-        //     const array_1d<double, TDim> &rDNiDX,
-        //     const array_1d<double, TDim> &rDNjDX)
-        // {
-        //     mMij += Weight * 0.25;
-        //     for (std::size_t d = 0; d < TDim; ++d) {
-        //         mLij += Weight * rDNiDX[d] * rDNjDX[d];
-        //         mNiDNj[d] += Weight * 0.5 * rDNjDX[d];
-        //         mDNiNj[d] += Weight * rDNiDX[d] * 0.5;
-        //     }
-        // }
-
         void AddOffDiagonalValues(
             const double Weight,
             const double Ni,
@@ -152,27 +139,6 @@ public:
                 mDNiNj[d] += Weight * rDNiDX[d] * Nj;
             }
         }
-
-        // void AddConvectiveBoundaryValue(
-        //     const double FaceDomainSize,
-        //     const array_1d<double,TDim>& rUnitNormal)
-        // {
-        //     // Face weight (length in 2D and 1/3 of the area in 3D)
-        //     double w_i;
-        //     if constexpr (TDim == 2) {
-        //         w_i = FaceDomainSize;
-        //     } else {
-        //         w_i = FaceDomainSize / 3.0;
-        //     }
-
-        //     // Convective boundary term (we take advantage of the fact that N_i = N_j = 0.5)
-        //     for (std::size_t d = 0; d < TDim; ++d) {
-        //         mNiNjNormal[d] += w_i * 0.25 * rUnitNormal[d];
-        //     }
-
-        //     // Set the boundary flag to true
-        //     mIsBoundary = true;
-        // }
 
         void AddConvectiveBoundaryValue(
             const double Weight,
@@ -252,6 +218,9 @@ public:
 
     void CalculateEdgeDataStructure(const ModelPart& rModelPart)
     {
+        // Check that the mesh is of simplicial elements
+        CheckGeometryTypes(rModelPart);
+
         // Create the edges container sparse graph
         // Note that this is used to create the CSR storage indices arrays
         SparseGraphType edges_graph;
@@ -259,7 +228,6 @@ public:
         edges_graph.ExportCSRArrays(mRowIndices, mColIndices);
 
         // Create the edge data sparse container
-        // TODO: Check the element type with the first one
         CalculateEdgeDataValues(rModelPart, edges_graph);
     }
 
@@ -441,6 +409,11 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CheckGeometryTypes(const ModelPart&)
+    {
+        //TODO: Implement this!
+    }
+
     void FillEdgesSparseGraph(
         const ModelPart& rModelPart,
         SparseGraphType& rEdgesSparseGraph)
@@ -494,6 +467,7 @@ private:
         array_1d<double, NumNodes> fake_N;
         BoundedMatrix<double, NumNodes, TDim> DNDX;
         BoundedMatrix<double, NumEdges, NumNodes> N;
+        BoundedMatrix<double, NumEdgesFace, NumNodesFace> N_face;
 
         // Loop elements to calculate their corresponding edge contributions
         for (auto& r_element : rModelPart.Elements()) {
@@ -503,7 +477,7 @@ private:
             GeometryUtils::CalculateGeometryData(r_geom, DNDX, fake_N, domain_size);
 
             // Loop integration points
-            // Note that these are placed at the edges midpoints
+            // Note that these are placed at each edge midpoint
             const double w_gauss = domain_size / NumEdges;
             for (IndexType g = 0; g < NumEdges; ++g) {
                 // Get shape functions values at current Gauss pt
@@ -529,16 +503,6 @@ private:
                         const IndexType aux_i_id = r_geom[aux_i].Id();
                         const IndexType aux_j_id = r_geom[aux_j].Id();
 
-                        // // Add the mass matrices diagonal (II) contributions
-                        // // Note that in here we take advantage of the fact that there is an integration point at the mid of each edge
-                        // const IndexType i_row_id = i_id - 1;
-                        // const IndexType j_row_id = j_id - 1;
-                        // const double aux_mass = 0.25 * w_int_pt;
-                        // mMassMatrixDiagonal[i_row_id] += aux_mass;
-                        // mMassMatrixDiagonal[j_row_id] += aux_mass;
-                        // mLumpedMassMatrixDiagonal[i_row_id] += 2.0 * aux_mass;
-                        // mLumpedMassMatrixDiagonal[j_row_id] += 2.0 * aux_mass;
-
                         // If not created yet, create current edge data container
                         // Note that we also set the length which is the same for all neighbour elements
                         // auto& rp_edge_data = pGetEdgeData(i_id, j_id);
@@ -549,7 +513,6 @@ private:
                         }
 
                         // Add current element off-diagonal (IJ) contributions
-                        // rp_edge_data->AddOffDiagonalValues(w_gauss, row(DNDX,aux_i), row(DNDX,aux_j));
                         rp_edge_data->AddOffDiagonalValues(w_gauss, r_N[aux_i], r_N[aux_j], row(DNDX, aux_i), row(DNDX, aux_j));
                     }
                 }
@@ -572,56 +535,53 @@ private:
         for (auto& r_condition : rModelPart.Conditions()) {
             // Get condition data
             const auto& r_geom = r_condition.GetGeometry();
+            GetEdgeFaceShapeFunctionsValues(N_face);
             CalculateUnitNormal(r_geom, unit_normal);
             const double domain_size = r_geom.DomainSize();
 
-            // Loop condition edges
-            // Note that this is equivalent to loop the integration points as these are placed at the edges midpoints
+            // Loop integration points
+            // Note that these are placed at each edge midpoint
             const double w_gauss = domain_size / NumEdgesFace;
-            for (IndexType i = 0; i < TDim - 1; ++i) {
-                const IndexType i_id = r_geom[i].Id();
-                for (IndexType j = i + 1; j < TDim; ++j) {
-                    const IndexType j_id = r_geom[j].Id();
+            for (IndexType g = 0; g < NumEdgesFace; ++g) {
+                // Get shape functions values at current Gauss pt
+                const auto& r_N_face = row(N_face, g);
 
-                    // Get ij-edge auxiliary local ids
-                    // Note that these are set according to the "i lowest id" storage criterion
-                    IndexType aux_i;
-                    IndexType aux_j;
-                    if (i_id < j_id) {
-                        aux_i = i;
-                        aux_j = j;
-                    } else {
-                        aux_i = j;
-                        aux_j = i;
+                // Loop element edges to add the off-diagonal (IJ) contributions
+                for (IndexType i = 0; i < TDim - 1; ++i) {
+                    const IndexType i_id = r_geom[i].Id();
+                    for (IndexType j = i + 1; j < TDim; ++j) {
+                        const IndexType j_id = r_geom[j].Id();
+
+                        // Get ij-edge auxiliary local ids
+                        // Note that these are set according to the "i lowest id" storage criterion
+                        IndexType aux_i;
+                        IndexType aux_j;
+                        if (i_id < j_id) {
+                            aux_i = i;
+                            aux_j = j;
+                        } else {
+                            aux_i = j;
+                            aux_j = i;
+                        }
+                        const IndexType aux_i_id = r_geom[aux_i].Id();
+                        const IndexType aux_j_id = r_geom[aux_j].Id();
+
+                        // Get current edge data container
+                        auto& rp_edge_data = pGetEdgeData(aux_i_id, aux_j_id);
+                        KRATOS_ERROR_IF(rp_edge_data == nullptr) << "Boundary edge " << aux_i_id << "-" << aux_j_id << " data structure is not present." << std::endl;
+                        rp_edge_data->AddConvectiveBoundaryValue(w_gauss, r_N_face[aux_i], r_N_face[aux_j], unit_normal);
                     }
-                    const IndexType aux_i_id = r_geom[aux_i].Id();
-                    const IndexType aux_j_id = r_geom[aux_j].Id();
+                }
 
-                    // // Add the boundary mass matrix diagonal (II) contribution
-                    // // Note that this already includes the unit normal contribution
-                    // // Also note that in here we take advantage of the fact that there is an integration point at the mid of each edge
-                    // const IndexType i_row_id = i_id - 1;
-                    // const IndexType j_row_id = j_id - 1;
-                    // const double aux_mass = 0.25 * domain_size / NumEdFaceEdges;
-                    // noalias(mBoundaryMassMatrixDiagonal[i_row_id]) += aux_mass * unit_normal;
-                    // noalias(mBoundaryMassMatrixDiagonal[j_row_id]) += aux_mass * unit_normal;
-
-                    // Get current edge data container
-                    auto& rp_edge_data = pGetEdgeData(aux_i_id, aux_j_id);
-                    // rp_edge_data->AddConvectiveBoundaryValue(domain_size, unit_normal);
-                    rp_edge_data->AddConvectiveBoundaryValue(w_gauss, 0.5, 0.5, unit_normal);
+                // Add the boundary mass matrix diagonal (II) contribution
+                // Note that this already includes the unit normal contribution
+                // Note that in here we take advantage of the fact that there is an integration point at the mid of each face
+                for (IndexType i = 0; i < NumNodesFace; ++i) {
+                    const IndexType i_row = r_geom[i].Id() - 1;
+                    const double aux_mass = w_gauss * r_N_face[i] * r_N_face[i];
+                    noalias(mBoundaryMassMatrixDiagonal[i_row]) += aux_mass * unit_normal;
                 }
             }
-
-            // Add the boundary mass matrix diagonal (II) contribution
-            // Note that this already includes the unit normal contribution
-            // Note that in here we take advantage of the fact that there is an integration point at the mid of each face
-            const double aux_m_c = 0.25 * w_gauss * TDim;
-            for (IndexType i = 0; i < NumNodes; ++i) {
-                const IndexType i_row = r_geom[i].Id() - 1;
-                noalias(mBoundaryMassMatrixDiagonal[i_row]) += aux_m_c * unit_normal;
-            }
-
         }
     }
 
@@ -664,6 +624,17 @@ private:
             rN(3,0) = 0.5; rN(3,1) = 0.0; rN(3,2) = 0.5; rN(3,3) = 0.0;
             rN(4,0) = 0.5; rN(4,1) = 0.0; rN(4,2) = 0.0; rN(4,3) = 0.5;
             rN(5,0) = 0.0; rN(5,1) = 0.5; rN(5,2) = 0.0; rN(5,3) = 0.5;
+        }
+    }
+
+    void GetEdgeFaceShapeFunctionsValues(BoundedMatrix<double, NumEdgesFace, NumNodesFace>& rN) const
+    {
+        if constexpr (TDim == 2) {
+            rN(0,0) = 0.5; rN(0,1) = 0.5;
+        } else {
+            rN(0,0) = 0.5; rN(0,1) = 0.5; rN(0,2) = 0.0;
+            rN(1,0) = 0.0; rN(1,1) = 0.5; rN(1,2) = 0.5;
+            rN(2,0) = 0.5; rN(2,1) = 0.0; rN(2,2) = 0.5;
         }
     }
 
