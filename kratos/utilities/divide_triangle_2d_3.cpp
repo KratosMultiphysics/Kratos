@@ -160,9 +160,9 @@ namespace Kratos
 
                 // Determine if the subdivision is wether in the negative or the positive side
                 unsigned int neg = 0, pos = 0;
-                if(i0 <= 2) {nodal_distances(i0) < 0.0 ? neg++ : pos++;}
-                if(i1 <= 2) {nodal_distances(i1) < 0.0 ? neg++ : pos++;}
-                if(i2 <= 2) {nodal_distances(i2) < 0.0 ? neg++ : pos++;}
+                if(i0 <= 2) {if(nodal_distances(i0) < 0.0) neg++; else if(nodal_distances(i0) > 0.0) pos++;};
+                if(i1 <= 2) {if(nodal_distances(i1) < 0.0) neg++; else if(nodal_distances(i1) > 0.0) pos++;};
+                if(i2 <= 2) {if(nodal_distances(i2) < 0.0) neg++; else if(nodal_distances(i2) > 0.0) pos++;};
 
                 if(neg > 0 && pos > 0)
                     KRATOS_ERROR << "The subgeometry " << i0 << " " << i1 << " " << i2 << " in triange has nodes in both positive and negative sides." << std::endl;
