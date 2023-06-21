@@ -1,13 +1,9 @@
 
-import sys
-sys.path.append(r"D:\software_development\Kratos\bin\Debug")
-sys.path.append(r"D:\software_development\Kratos\bin\Debug\libs")
-
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solver
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import test_helper
+
 
 class KratosGeoMechanicsSolverTests(KratosUnittest.TestCase):
     """
