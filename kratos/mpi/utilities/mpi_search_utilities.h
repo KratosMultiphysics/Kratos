@@ -132,11 +132,13 @@ public:
      * @param itPointBegin Iterator to the beginning of the points range
      * @param itPointEnd Iterator to the end of the points range
      * @param rAllPointsCoordinates vector where the computed coordinates will be stored
-     * @return  The resulting whole radius vector
+     * @param rRadius The radius of the points
+     * @param rDataCommunicator The data communicator
+     * @return The resulting whole radius vector
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    static std::vector<double> MPISynchronousPointSynchronizationWithDistances(
+    static std::vector<double> MPISynchronousPointSynchronizationWithRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         std::vector<double>& rAllPointsCoordinates,
@@ -156,7 +158,7 @@ public:
             return rRadius;
         } else {                       // If not
             // The resulting distances
-            std::vector<double> all_points_distances(total_number_of_points);
+            std::vector<double> all_points_radius(total_number_of_points);
 
             // MPI information
             const int world_size = rDataCommunicator.Size();
@@ -177,9 +179,9 @@ public:
             }
 
             // Invoque AllGatherv
-            rDataCommunicator.AllGatherv(rRadius, all_points_distances, recv_sizes, recv_offsets);
+            rDataCommunicator.AllGatherv(rRadius, all_points_radius, recv_sizes, recv_offsets);
 
-            return all_points_distances;
+            return all_points_radius;
         }
     }
 
