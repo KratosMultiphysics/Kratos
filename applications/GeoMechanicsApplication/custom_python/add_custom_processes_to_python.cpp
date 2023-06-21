@@ -46,6 +46,7 @@
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
+#include "custom_processes/apply_c_phi_reduction_process.h"
 
 namespace Kratos::Python
 {
@@ -145,7 +146,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<SetParameterFieldProcess, SetParameterFieldProcess::Pointer, Process>
         (m, "SetParameterFieldProcess")
         .def(py::init < ModelPart&, Parameters>());
-		
+
 	py::class_<SetMultipleMovingLoadsProcess, SetMultipleMovingLoadsProcess::Pointer, Process>
         (m, "SetMultipleMovingLoadsProcess")
         .def(py::init < ModelPart&, Parameters>());
@@ -161,6 +162,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ApplyNormalLoadTableProcess, ApplyNormalLoadTableProcess::Pointer, Process>
         (m, "ApplyNormalLoadTableProcess")
         .def(py::init<ModelPart&, const Parameters&>());
+
+
+    py::class_<ApplyCPhiReductionProcess, ApplyCPhiReductionProcess::Pointer, Process>
+            (m, "ApplyCPhiReductionProcess")
+            .def(py::init < ModelPart&, const Parameters>());
+
 }
 
 } // Namespace Kratos::Python.
