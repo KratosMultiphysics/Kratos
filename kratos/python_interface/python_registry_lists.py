@@ -30,3 +30,7 @@ python_processes_to_be_registered = [
     "assign_vector_variable_to_entities_process.AssignVectorVariableToEntitiesProcess",
     "assign_vector_variable_to_nodes_process.AssignVectorVariableToNodesProcess"
 ]
+
+python_stages_to_be_registered = [
+    "analysis_stage.AnalysisStage"
+]
