@@ -23,6 +23,7 @@
 // Project includes
 #include "geometries/line_3d_3.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -566,6 +567,31 @@ public:
         }
 
         return 0;
+    }
+
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), this->GetPoint(3), this->GetPoint(4), this->GetPoint(5), point);
     }
 
     ///@}
