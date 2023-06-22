@@ -407,7 +407,7 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
                         double LocalElasticExtraContactForce[3],
                         double ViscoDampingLocalContactForce[3],
                         double LocalCoordSystem[3][3],
-                        double LocalDeltSlidingDisp[3],
+                        double LocalDeltDisp[3],
                         double LocalRelVel[3],
                         const double kt_el,
                         const double equiv_shear,
@@ -441,8 +441,8 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
         //JointSlidingLocalVel[1] =  temp_local_vel * mLocalJointNormal[1];
         //LocalDeltSlidingDisp[0] = JointSlidingLocalVel[0] * r_process_info[DELTA_TIME];
         //LocalDeltSlidingDisp[1] = JointSlidingLocalVel[1] * r_process_info[DELTA_TIME];
-        mAccumulatedJointTangentialLocalDisplacement[0] += LocalRelVel[0];
-        mAccumulatedJointTangentialLocalDisplacement[1] += LocalRelVel[1];
+        mAccumulatedJointTangentialLocalDisplacement[0] += LocalDeltDisp[0];
+        mAccumulatedJointTangentialLocalDisplacement[1] += LocalDeltDisp[1];
         JointLocalElasticContactForce[0] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[0]; // 0: first tangential
         JointLocalElasticContactForce[1] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[1]; // 1: second tangential
     } else {
