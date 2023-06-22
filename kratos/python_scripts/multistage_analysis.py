@@ -9,24 +9,11 @@ from KratosMultiphysics.model_parameters_factory import KratosModelParametersFac
 
 class MultistageAnalysis:
 
-    # def __init__(self, model, project_parameters) -> None:
-    #     self.model = model
-    #     self.__current_stage_name = None
-    #     self.settings = project_parameters
-    #     self.__stages_map = self.__CreateStagesMap()
-
-    def __init__(self, project_parameters_filename="ProjectParameters.json") -> None:
-        with open(project_parameters_filename, 'r') as parameter_file:
-            self.settings = KratosMultiphysics.Parameters(parameter_file.read())
-        self.model = KratosMultiphysics.Model()
+    def __init__(self, project_parameters) -> None:
         self.output_data = {}
+        self.settings = project_parameters
+        self.model = KratosMultiphysics.Model()
         self.initial_modules = [k for k in sys.modules.keys()]
-
-    # def Check(self):
-    #     '''Performs the check of the complete multistage simulation.'''
-
-    #     for stage_name in self.__GetExecutionList():
-    #         self.CheckStage(stage_name)
 
     def CheckStage(self, stage_name):
         '''Performs the check of a single stage from a multistage simulation.'''
@@ -46,20 +33,32 @@ class MultistageAnalysis:
 
         # Run the stages list
         for stage_name in self.__GetExecutionList():
+            # Set up and check current stage instance
             self.SetCurrentStageName(stage_name)
             current_stage = self.GetCurrentStage()
             self.CheckStage(self.GetCurrentStageName())
+
+            # Execute current stage preprocess
             self.RunCurrentStagePreprocess()
-            # self.RunCurrentStage()
+
+            # Run (solve) current stage
             current_stage.Run()
+
+            # Execute current stage postprocess
+            # Note that this is deliberately done before getting the final data in case this needs to be modified
             self.RunCurrentStagePostprocess()
 
-            self.output_data[self.GetCurrentStageName()] = current_stage.GetFinalData()
+            # Get the final data dictionary
+            self.output_data[self.GetCurrentStageName()] = current_stage.GetFinalData() #NOTE: only python types in here - TODO: can we check that?
 
+            # Check the current stage is to be checkpointed and save it if so
             if self.GetCurrentStageName() in self.__GetStagesToCheckpointList():
                 self.__SaveCurrentStageCheckpoint()
-            # self.print_project_paramters_report(self.GetCurrentStageName())
-            # del current_stage
+                
+            # self.print_project_paramters_report(self.GetCurrentStageName()) //FIXME: hay un prettyprintjsonstring
+
+            # Delete current stage instance
+            del current_stage
 
     def __SaveCurrentStageCheckpoint(self):
         # Set the list of Kratos modules that have been added up to current stage
@@ -86,18 +85,14 @@ class MultistageAnalysis:
 
             # Load required modules
             # Note that this requires to be done first in order to have the variables in the model
-            print(list(loaded_data["required_modules"]))
             for module_name in loaded_data["required_modules"]:
-                print(module_name)
                 importlib.import_module(module_name)
 
             # Load model
             loaded_data["model_serializer"].Load("Model",self.model)
-            print(self.model)
 
             # Load output data dictionary
             self.output_data = loaded_data["output_data"]
-            print(self.output_data)
 
     def RunCurrentStagePreprocess(self):
         '''This function executes the preprocess of current stage.
@@ -116,13 +111,6 @@ class MultistageAnalysis:
             if self.settings["stages"][self.GetCurrentStageName()]["stage_preprocess"].Has("operations"):
                 for operation in self.__GetOperations("stage_preprocess"):
                     operation.Execute()
-
-    def RunCurrentStage(self):
-        '''This function executes (solves) the current stage.
-        Note that this call is equivalent to the traditional single-stage simulation run call.
-        '''
-
-        self.GetCurrentStage().Run()
 
     def RunCurrentStagePostprocess(self):
         '''This function executes the postprocessing of current stage.
@@ -229,14 +217,57 @@ class MultistageAnalysis:
         The values of the map are the stages instances, which are created by importing its corresponding analysis stage Python module.
         '''
 
-        # Get the Python module name and class name implementing each analysis stage
-        # Note that we assume that the class name is the provided module (file) name in CamelCase
-        analysis_stage_module_name = self.settings["stages"][stage_name]["analysis_stage"].GetString()
-        analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
-        analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
+        # Get the current analysis stage class and module names
+        input_analysis_stage = self.settings["stages"][stage_name]["analysis_stage"].GetString()
 
-        # Import the stage module and create the corresponding instance
-        analysis_stage_module = importlib.import_module(analysis_stage_module_name)
+        # Check if the current stage is to be obtained from the Kratos registry
+        if input_analysis_stage.split(".")[0] == "Stages":
+            # Import current stage main module to populate the registry
+            # This is required as the applications Python stuff is registered when the application is imported first
+            # Note that in here we are following the convention that the middle strings are the module name
+            main_module_name = '.'.join(input_analysis_stage.split(".")[1:-1])
+            if main_module_name == "All":
+                err_msg = "Please provide the registry entry with module name (not the 'All' one)."
+                raise ValueError(err_msg)
+            try:
+                importlib.import_module(main_module_name)
+            except ImportError:
+                err_msg = f"Unbable to import '{main_module_name}'."
+
+            # Once we have populated the registry we retrieve the analysis stage from it
+            # Note that in here we are following the registry convention in @python_registry_utilities.py
+            if KratosMultiphysics.Registry.HasItem(input_analysis_stage):
+                # Get current analysis data from registry
+                analysis_stage_reg_entry = KratosMultiphysics.Registry[input_analysis_stage]
+                analysis_stage_class_name = analysis_stage_reg_entry["ClassName"]
+                if "ModuleName" in analysis_stage_reg_entry:
+                    # Standard case in which the analysis stage is registered in a module
+                    analysis_stage_module_name = analysis_stage_reg_entry["ModuleName"]
+                else:
+                    # Alternative in which only the "ClassName" is provided with no module (e.g. custom user-defined stages in MainKratos.py)
+                    analysis_stage_module_name = None
+            else:
+                err_msg = f"Trying to retrieve a non-registered analysis stage '{input_analysis_stage}'"
+                raise ValueError(err_msg)
+        else:
+            # Throw a warning to let the user know that the current analysis stage is not registered
+            warn_msg = f"Current analysis stage '{input_analysis_stage}' is not registered. Assuming that provided string contains module and class names."
+            KratosMultiphysics.Logger.PrintWarning(warn_msg)
+
+            # Get the Python module name and class name implementing each analysis stage
+            # Note that we assume that the class name is the provided module (file) name in CamelCase
+            analysis_stage_module_name = input_analysis_stage
+            analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
+            analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
+
+        # Import the stage module
+        # Note that for the case of custom analysis stage (i.e. no Kratos module) we check if the class exists in the __main__ module
+        if analysis_stage_module_name is not None:
+            analysis_stage_module = importlib.import_module(analysis_stage_module_name)
+        else:
+            analysis_stage_module = sys.modules["__main__"]
+        
+        # Create the analysis stage instance
         if hasattr(analysis_stage_module, analysis_stage_class_name):
             # First we check for the expected class name
             analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
