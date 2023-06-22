@@ -380,6 +380,7 @@ namespace Kratos {
         std::ofstream mRVE_FileTangentTensorInner;
         std::ofstream mRVE_FileConductivityTensor;
         std::ofstream mRVE_FileConductivityTensorInner;
+        std::ofstream mRVE_FileFKS;
 
         // Methods
         void RVEInitialize             (void);

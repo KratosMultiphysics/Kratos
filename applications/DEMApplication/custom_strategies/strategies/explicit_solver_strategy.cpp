@@ -2634,16 +2634,16 @@ namespace Kratos {
                           << mRVE_VoidRatio
                           << std::endl;
 
-      if (mRVE_FileContactNumber.is_open()) {
-        mRVE_FileContactNumber << time_step << " " << time << " ";
-        for (int i = 0; i < mListOfSphericParticles.size(); i++) {
-          if (mListOfSphericParticles[i]->mWall == 0) {
-            const int contacts = mListOfSphericParticles[i]->mCoordNum;
-            mRVE_FileContactNumber << contacts << " ";
-          }
-        }
-        mRVE_FileContactNumber << std::endl;
-      }
+      //if (mRVE_FileContactNumber.is_open()) {
+      //  mRVE_FileContactNumber << time_step << " " << time << " ";
+      //  for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+      //    if (mListOfSphericParticles[i]->mWall == 0) {
+      //      const int contacts = mListOfSphericParticles[i]->mCoordNum;
+      //      mRVE_FileContactNumber << contacts << " ";
+      //    }
+      //  }
+      //  mRVE_FileContactNumber << std::endl;
+      //}
 
       if (mRVE_FileCoordNumber.is_open())
         mRVE_FileCoordNumber << time_step             << " "
@@ -2868,6 +2868,26 @@ namespace Kratos {
                                            << "[[" << mRVE_ConductivityTensorInner(2,0) << "],[" << mRVE_ConductivityTensorInner(2,1) << "],[" << mRVE_ConductivityTensorInner(2,2) << "]]"
                                            << std::endl;
       }
+
+      if (mRVE_FileFKS.is_open()) {
+        mRVE_FileConductivityTensorInner << time_step << " " << time << " "
+                                         << "[[" << mRVE_ConductivityTensorInner(0, 0) << "],[" << mRVE_ConductivityTensorInner(0, 1) << "]]" << " "
+                                         << "[[" << mRVE_ConductivityTensorInner(1, 0) << "],[" << mRVE_ConductivityTensorInner(1, 1) << "]]"
+                                         << std::endl;
+
+
+        mRVE_FileFKS << time_step << " " << time << " "
+                     << mRVE_FabricTensorInner(0,0)       << " "
+                     << mRVE_FabricTensorInner(1,1)       << " "
+                     << mRVE_FabricTensorInner(1,0)       << " "
+                     << mRVE_ConductivityTensorInner(0,0) << " "
+                     << mRVE_ConductivityTensorInner(1,1) << " "
+                     << mRVE_ConductivityTensorInner(1,0) << " "
+                     << mRVE_CauchyTensorInner(0,0)       << " "
+                     << mRVE_CauchyTensorInner(1,1)       << " "
+                     << mRVE_CauchyTensorInner(1,0)
+                     << std::endl;
+      }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2893,12 +2913,12 @@ namespace Kratos {
       mRVE_FilePorosity << "8 - VOID RATIO";
       mRVE_FilePorosity << std::endl;
 
-      mRVE_FileContactNumber.open("rve_contact_number.txt", std::ios::out);
-      KRATOS_ERROR_IF_NOT(mRVE_FileContactNumber) << "Could not open file rve_conact_number.txt!" << std::endl;
-      mRVE_FileContactNumber << "1 - STEP | ";
-      mRVE_FileContactNumber << "2 - TIME | ";
-      mRVE_FileContactNumber << "3 - NUMBER OF CONTACTS OF ALL PARTICLES";
-      mRVE_FileContactNumber << std::endl;
+      //mRVE_FileContactNumber.open("rve_contact_number.txt", std::ios::out);
+      //KRATOS_ERROR_IF_NOT(mRVE_FileContactNumber) << "Could not open file rve_conact_number.txt!" << std::endl;
+      //mRVE_FileContactNumber << "1 - STEP | ";
+      //mRVE_FileContactNumber << "2 - TIME | ";
+      //mRVE_FileContactNumber << "3 - NUMBER OF CONTACTS OF ALL PARTICLES";
+      //mRVE_FileContactNumber << std::endl;
 
       mRVE_FileCoordNumber.open("rve_coordination_number.txt", std::ios::out);
       KRATOS_ERROR_IF_NOT(mRVE_FileCoordNumber) << "Could not open file rve_coordination_number.txt!" << std::endl;
@@ -3056,13 +3076,22 @@ namespace Kratos {
       mRVE_FileConductivityTensorInner << "4 - [[2,1][2,2][2,3]] | ";
       mRVE_FileConductivityTensorInner << "5 - [[3,1][3,2][3,3]]";
       mRVE_FileConductivityTensorInner << std::endl;
+
+      mRVE_FileFKS.open("rve_KFS.txt", std::ios::out);
+      KRATOS_ERROR_IF_NOT(mRVE_FileFKS) << "Could not open file rve_KFS.txt!" << std::endl;
+      mRVE_FileFKS << "1 - STEP | ";
+      mRVE_FileFKS << "2 - TIME | ";
+      mRVE_FileFKS << "3 - Fxx Fyy Fxy | ";
+      mRVE_FileFKS << "4 - Kxx Kyy Kxy | ";
+      mRVE_FileFKS << "5 - Sxx Syy Sxy";
+      mRVE_FileFKS << std::endl;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVECloseFiles(void) {
       //if (mRVE_FileCoordinates.is_open())             mRVE_FileCoordinates.close();
       if (mRVE_FilePorosity.is_open())                mRVE_FilePorosity.close();
-      if (mRVE_FileContactNumber.is_open())           mRVE_FileContactNumber.close();
+      //if (mRVE_FileContactNumber.is_open())           mRVE_FileContactNumber.close();
       if (mRVE_FileCoordNumber.is_open())             mRVE_FileCoordNumber.close();
       //if (mRVE_FileInnerVolumeParticles.is_open())    mRVE_FileInnerVolumeParticles.close();
       //if (mRVE_FileForceChain.is_open())              mRVE_FileForceChain.close();
@@ -3080,6 +3109,7 @@ namespace Kratos {
       if (mRVE_FileTangentTensorInner.is_open())      mRVE_FileTangentTensorInner.close();
       if (mRVE_FileConductivityTensor.is_open())      mRVE_FileConductivityTensor.close();
       if (mRVE_FileConductivityTensorInner.is_open()) mRVE_FileConductivityTensorInner.close();
+      if (mRVE_FileFKS.is_open())                     mRVE_FileFKS.close();
     }
 
     //-----------------------------------------------------------------------------------------------------------------------
