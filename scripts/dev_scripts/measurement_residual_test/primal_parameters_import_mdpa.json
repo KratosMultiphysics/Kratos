@@ -13,8 +13,8 @@
     "echo_level": 0,
     "analysis_type": "linear",
     "model_import_settings": {
-      "input_type": "use_input_model_part",
-      "input_filename": "Structure"
+      "input_type": "mdpa",
+      "input_filename": "model_file"
     },
     "material_import_settings": {
       "materials_filename": "StructuralMaterials.json"
@@ -22,7 +22,9 @@
     "time_stepping": {
       "time_step": 1.0
     },
-    "line_search": false,
+    "solving_strategy_settings": {
+      "line_search": false
+    },
     "convergence_criterion": "residual_criterion",
     "displacement_relative_tolerance": 0.0001,
     "displacement_absolute_tolerance": 1e-9,
