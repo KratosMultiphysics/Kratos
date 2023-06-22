@@ -125,7 +125,7 @@ class TestSpatialSearchSphere(KratosUnittest.TestCase):
             self.assertTrue(distance in distance_ref)
 
         # New interface (works in serial and parallel mode). Interface is very similar to previous one, but it is because a node is type of point and this interface is purely for points (nodes in python)
-        results = self.search.SearchNodesOverPointsInRadius(self.model_part.Nodes, self.second_model_part.Nodes, radius_list, self.data_comm)
+        results = self.search.SearchNodesOverPointsInRadius(self.model_part.GetCommunicator().LocalMesh().Nodes, self.second_model_part.Nodes, radius_list, self.data_comm)
         self.assertEqual(results.NumberOfSearchResults(), 1)
         self.assertFalse(results.HasResult(self.new_node_id)) # This is false because the hash is with coordinates
         self.assertTrue(results.HasResult(self.point))
