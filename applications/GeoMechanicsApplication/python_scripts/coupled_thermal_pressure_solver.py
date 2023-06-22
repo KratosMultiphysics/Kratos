@@ -44,7 +44,7 @@ class CoupledThermalPressureSolver(GeoSolver):
             },
             "pressure_solver_settings": {
                 "solver_type"                     : "Pw",
-                "model_part_name"                 : "PorousDomain",
+                "model_part_name"                 : "PressureModelPart",
                 "domain_size"                     : 2,
                 "echo_level"                      : 1,
                 "max_iterations"                  : 15,
@@ -58,7 +58,7 @@ class CoupledThermalPressureSolver(GeoSolver):
             },
             "thermal_solver_settings": {
                 "solver_type"                     : "T",
-                "model_part_name"                 : "PorousDomain",
+                "model_part_name"                 : "ThermalModelPart",
                 "domain_size"                     : 2,
                 "echo_level"                      : 1,
                 "max_iterations"                  : 15,
