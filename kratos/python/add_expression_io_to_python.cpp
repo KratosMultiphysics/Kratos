@@ -171,6 +171,12 @@ void AddCArrayExpressionIOMethods(pybind11::module& rModule)
         },
         pybind11::arg(expression_name.c_str()),
         pybind11::arg("target_array").noconvert());
+
+    if constexpr(std::is_same_v<TRawDataType, double>) {
+        rModule.def("Read", &CArrayExpressionIO::Read<TContainerType, MeshType::Local>, pybind11::arg(expression_name.c_str()), pybind11::arg("kratos_vector").noconvert(), pybind11::arg("component_shape"));
+        rModule.def("Move", &CArrayExpressionIO::Move<TContainerType, MeshType::Local>, pybind11::arg(expression_name.c_str()), pybind11::arg("kratos_vector").noconvert(), pybind11::arg("component_shape"));
+        rModule.def("Write", &CArrayExpressionIO::Write<TContainerType, MeshType::Local>, pybind11::arg(expression_name.c_str()), pybind11::arg("kratos_vector").noconvert());
+    }
 }
 
 
