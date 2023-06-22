@@ -89,7 +89,6 @@
           "type": "optimization_problem_vtu_output_process",
           "module": "KratosMultiphysics.OptimizationApplication.processes",
           "settings": {
-            "custom_name_prefix": "optimization_results_",
             "file_format": "binary",
             "write_deformed_configuration": false,
             "list_of_output_components": ["all"],
