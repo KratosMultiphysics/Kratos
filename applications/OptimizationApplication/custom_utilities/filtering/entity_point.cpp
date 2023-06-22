@@ -40,7 +40,7 @@ IndexType EntityPoint<TEntityType>::Id() const
 }
 
 template<class TEntityType>
-constexpr Point EntityPoint<TEntityType>::GetPoint(const TEntityType& rEntity)
+Point EntityPoint<TEntityType>::GetPoint(const TEntityType& rEntity)
 {
     if constexpr(std::is_same_v<TEntityType, ModelPart::NodeType>) {
         return rEntity;

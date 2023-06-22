@@ -60,7 +60,7 @@ private:
     ///@name Private static methods
     ///@{
 
-    static constexpr Point GetPoint(const TEntityType& rEntity);
+    static Point GetPoint(const TEntityType& rEntity);
 
     ///@}
 };
