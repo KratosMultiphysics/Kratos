@@ -145,15 +145,15 @@ class GeoMechanicalSolver(PythonSolver):
 
         # Checks if scaling is used in combination with rebuild level lower than 2 and prebuild dynamics, if so it
         # throws an error
-        if self.settings.Has("linear_solver_settings"):
-            if self.settings["linear_solver_settings"].Has("scaling"):
-                if self.settings["linear_solver_settings"]["scaling"].GetBool():
-                    if self.settings.Has("rebuild_level"):
-                        if self.settings["rebuild_level"].GetInt() < 2:
-                            raise ValueError("Scaling can only be used if rebuild level is 2")
-                    if self.settings.Has("prebuild_dynamics"):
-                        if self.settings["prebuild_dynamics"].GetBool():
-                            raise ValueError("Scaling can not be used if prebuild dynamics is true")
+        if (self.settings.Has("linear_solver_settings") and
+            self.settings["linear_solver_settings"].Has("scaling") and
+            self.settings["linear_solver_settings"]["scaling"].GetBool()):
+            if (self.settings.Has("rebuild_level") and
+                self.settings["rebuild_level"].GetInt() < 2):
+                raise ValueError("Scaling can only be used if rebuild level is 2")
+            if (self.settings.Has("prebuild_dynamics" and
+                self.settings["prebuild_dynamics"].GetBool()):
+                raise ValueError("Scaling can not be used if prebuild dynamics is true")
 
 
 
