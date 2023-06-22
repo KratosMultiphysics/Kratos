@@ -128,7 +128,7 @@ public:
     //************************************************************************
 
     /**
-     * @brief Search neighbours for every element in "Inputelements" excluding itself
+     * @brief Search neighbours for every element in "rInputElements" excluding itself
      */
     ElementSpatialSearchResultContainerMapType SearchElementsInRadiusExclusive (
         const ElementsContainerType& rStructureElements,
