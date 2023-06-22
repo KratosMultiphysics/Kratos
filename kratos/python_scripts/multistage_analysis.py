@@ -183,7 +183,7 @@ class MultistageAnalysis:
             elif self.settings["checkpoint_settings"]["save"].IsStringArray():
                 # Check that the stages asked to be checkpointed are in the execution list
                 stages_asked_to_checkpoint = self.settings["checkpoint_settings"]["save"].GetStringArray()
-                aux_diff = stages_asked_to_checkpoint - self.__GetExecutionList()
+                aux_diff = set(stages_asked_to_checkpoint) - set(self.__GetExecutionList())
                 if len(aux_diff) == 0:
                     self.__stages_to_checkpoint_list = stages_asked_to_checkpoint
                 else:
