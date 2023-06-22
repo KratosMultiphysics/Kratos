@@ -153,7 +153,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
     * @param rInputElements      List of elements to be searched
     * @param rRadius             List of search radius for every element
@@ -169,7 +169,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
     * @param rInputElements      List of elements to be searched
     * @param rRadius             List of search radius for every element
@@ -211,7 +211,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rStructureElements  List of elements against which the neighbours are searched
     * @param rInputElements      List of elements to be searched
     * @param rRadius             List of search radius for every element
@@ -227,7 +227,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rStructureElements  List of elements against which the neighbours are searched
     * @param rInputElements      List of elements to be searched
     * @param rRadius             List of search radius for every element
@@ -378,7 +378,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
     * @param rInputElements      List of elements to be searched
     * @param rRadius             List of search radius for every element
@@ -404,7 +404,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rStructureElements  List of elements against which the neighbours are searched
     * @param rInputElements      List of elements to be searched
     * @param rRadius             List of search radius for every element
@@ -1196,7 +1196,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
     * @param rInputConditions    List of conditions to be searched
     * @param rRadius             List of search radius for every element
@@ -1212,7 +1212,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rStructureElements  List of elements against which the neighbours are searched
     * @param rInputConditions    List of conditions to be searched
     * @param rRadius             List of search radius for every element
@@ -1246,7 +1246,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
     * @param rInputConditions    List of conditions to be searched
     * @param rRadius             List of search radius for every element
@@ -1262,7 +1262,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rStructureElements  List of elements against which the neighbours are searched
     * @param rInputConditions    List of conditions to be searched
     * @param rRadius             List of search radius for every element
@@ -1296,7 +1296,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
     * @param rInputElements      List of elements to be searched
     * @param rRadius             List of search radius for every element
@@ -1312,7 +1312,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rStructureConditions List of conditions against which the neighbours are searched
     * @param InputElements        List of elements to be searched
     * @param rRadius              List of search radius for every element
@@ -1346,7 +1346,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rModelPart          Input modelpart against which the neighbours are searched
     * @param rInputElements      List of elements to be searched
     * @param rRadius             List of search radius for every element
@@ -1362,7 +1362,7 @@ public:
         );
 
     /**
-    * @brief Search neighbours for every element in "Inputelements" excluding itself
+    * @brief Search neighbours for every element in "rInputElements" excluding itself
     * @param rStructureConditions List of conditions against which the neighbours are searched
     * @param InputElements        List of elements to be searched
     * @param rRadius              List of search radius for every element

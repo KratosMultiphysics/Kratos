@@ -129,6 +129,20 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
 /***********************************************************************************/
 
 template<SpatialContainer TSearchBackend>
+typename SpecializedSpatialSearch<TSearchBackend>::ElementSpatialSearchResultContainerMapType SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive (
+    const ElementsContainerType& rStructureElements,
+    const ElementsContainerType& rInputElements,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return BaseType::SearchElementsInRadiusExclusive(rStructureElements, rInputElements, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearchBackend>
 void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
     const NodesContainerType& rStructureNodes,
     const NodesContainerType& rInputNodes,
@@ -205,6 +219,20 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive(
 /***********************************************************************************/
 
 template<SpatialContainer TSearchBackend>
+typename SpecializedSpatialSearch<TSearchBackend>::NodeSpatialSearchResultContainerMapType SpecializedSpatialSearch<TSearchBackend>::SearchNodesInRadiusExclusive (
+    const NodesContainerType& rStructureNodes,
+    const NodesContainerType& rInputNodes,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return BaseType::SearchNodesInRadiusExclusive(rStructureNodes, rInputNodes, rRadius, rDataCommunicator);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearchBackend>
 void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive(
     const ConditionsContainerType& rStructureConditions,
     const ConditionsContainerType& rInputConditions,
@@ -275,6 +303,20 @@ void SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive
 {
     VectorDistanceType distances;
     SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, rRadius, rResults, distances);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearchBackend>
+typename SpecializedSpatialSearch<TSearchBackend>::ConditionSpatialSearchResultContainerMapType SpecializedSpatialSearch<TSearchBackend>::SearchConditionsInRadiusExclusive (
+    const ConditionsContainerType& rStructureConditions,
+    const ConditionsContainerType& rInputConditions,
+    const RadiusArrayType& rRadius,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    return BaseType::SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, rRadius, rDataCommunicator);
 }
 
 /***********************************************************************************/
