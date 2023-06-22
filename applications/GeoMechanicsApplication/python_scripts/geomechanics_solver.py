@@ -141,6 +141,8 @@ class GeoMechanicalSolver(PythonSolver):
         """This function validates the settings of the solver
         """
 
+        super().ValidateSettings()
+
         # Checks if scaling is used in combination with rebuild level lower than 2 and prebuild dynamics, if so it
         # throws an error
         if self.settings.Has("linear_solver_settings"):
