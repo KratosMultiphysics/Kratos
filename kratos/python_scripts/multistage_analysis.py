@@ -55,7 +55,10 @@ class MultistageAnalysis:
             if self.GetCurrentStageName() in self.__GetStagesToCheckpointList():
                 self.__SaveCurrentStageCheckpoint()
                 
-            # self.print_project_paramters_report(self.GetCurrentStageName()) //FIXME: hay un prettyprintjsonstring
+            # Output complete simulation settings (with defaults) as simulation report
+            if (s:=self.settings["stages"][self.GetCurrentStageName()]) and s.Has("print_validated_settings") and s["print_validated_settings"].GetBool():
+                with open(f"{self.GetCurrentStageName()}ValidatedSettings.json", 'w') as parameter_output_file:
+                    parameter_output_file.write(current_stage.project_parameters.PrettyPrintJsonString())
 
             # Delete current stage instance
             del current_stage
