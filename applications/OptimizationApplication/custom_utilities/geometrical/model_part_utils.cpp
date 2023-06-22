@@ -24,6 +24,7 @@
 #include "utilities/reduction_utilities.h"
 
 // Application includes
+#include "optimization_application_variables.h"
 
 // Include base h
 #include "model_part_utils.h"
@@ -584,6 +585,43 @@ void ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReference
         if (it->Name().rfind("<OPTIMIZATION_APP_AUTO>", 0) == 0) {
             it->GetParentModelPart().RemoveSubModelPart(*it);
         }
+    }
+}
+
+void ModelPartUtils::LogModelPartStatus(
+    ModelPart& rModelPart,
+    const std::string& rStatus)
+{
+    if (!rModelPart.Has(MODEL_PART_STATUS)) {
+        rModelPart.SetValue(MODEL_PART_STATUS, {});
+    }
+
+    auto& r_statuses = rModelPart.GetValue(MODEL_PART_STATUS);
+    const auto p_itr = std::find(r_statuses.begin(), r_statuses.end(), rStatus);
+    if (p_itr == r_statuses.end()) {
+        r_statuses.push_back(rStatus);
+    }
+}
+
+std::vector<std::string> ModelPartUtils::GetModelPartStatusLog(ModelPart& rModelPart)
+{
+    if (!rModelPart.Has(MODEL_PART_STATUS)) {
+        return {};
+    } else {
+        return rModelPart.GetValue(MODEL_PART_STATUS);
+    }
+}
+
+bool ModelPartUtils::CheckModelPartStatus(
+    const ModelPart& rModelPart,
+    const std::string& rStatus)
+{
+    if (!rModelPart.Has(MODEL_PART_STATUS)) {
+        return false;
+    } else {
+        const auto& r_statuses = rModelPart.GetValue(MODEL_PART_STATUS);
+        const auto p_itr = std::find(r_statuses.begin(), r_statuses.end(), rStatus);
+        return p_itr != r_statuses.end();
     }
 }
 

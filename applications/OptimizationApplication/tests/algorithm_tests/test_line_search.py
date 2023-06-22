@@ -5,6 +5,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
+
 class TestLineSearch(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -15,8 +16,8 @@ class TestLineSearch(kratos_unittest.TestCase):
         cls.optimization_problem = OptimizationProblem()
         ComponentDataView("algorithm", cls.optimization_problem).SetDataBuffer(1)
 
-        sensitivity = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(cls.model_part)])
-        sensitivity.Read(Kratos.DENSITY)
+        sensitivity = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(cls.model_part)])
+        KratosOA.CollectiveExpressionIO.Read(sensitivity, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
         ComponentDataView("algorithm", cls.optimization_problem).GetBufferedData()["search_direction"] = sensitivity
 
     @classmethod
@@ -41,7 +42,7 @@ class TestLineSearch(kratos_unittest.TestCase):
             "type"              : "const_step",
             "gradient_scaling": "inf_norm",
             "init_step"          : 3.0
-        }""")  
+        }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         alpha = line_search.ComputeStep()
         self.assertEqual(alpha, 0.75)
@@ -51,7 +52,7 @@ class TestLineSearch(kratos_unittest.TestCase):
             "type"              : "const_step",
             "gradient_scaling": "l2_norm",
             "init_step"          : 3.0
-        }""")  
+        }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         alpha = line_search.ComputeStep()
         self.assertEqual(alpha, 0.6708203932499369)
@@ -61,10 +62,11 @@ class TestLineSearch(kratos_unittest.TestCase):
             "type"              : "const_step",
             "gradient_scaling": "none",
             "init_step"          : 3.0
-        }""")  
+        }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         alpha = line_search.ComputeStep()
         self.assertEqual(alpha, 3.0)
+
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

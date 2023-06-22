@@ -4,6 +4,7 @@ import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import *
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 
+
 class TestConvergence(kratos_unittest.TestCase):
     @classmethod
     def setUp(cls) -> None:
@@ -53,8 +54,8 @@ class TestConvergence(kratos_unittest.TestCase):
         }""")
         algorithm_data = ComponentDataView("algorithm", self.optimization_problem)
         convergence_criterium = CreateConvergenceCriteria(param, self.optimization_problem)
-        search_direction = KratosOA.ContainerExpression.CollectiveExpressions([KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)])
-        search_direction.Read(Kratos.DENSITY)
+        search_direction = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(self.model_part)])
+        KratosOA.CollectiveExpressionIO.Read(search_direction, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
         algorithm_data.GetBufferedData()["search_direction"] = search_direction
         self.assertFalse(convergence_criterium.IsConverged())
         self.optimization_problem.AdvanceStep()
@@ -63,6 +64,7 @@ class TestConvergence(kratos_unittest.TestCase):
         self.optimization_problem.AdvanceStep()
         algorithm_data.GetBufferedData()["search_direction"] = search_direction
         self.assertTrue(convergence_criterium.IsConverged())
+
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
