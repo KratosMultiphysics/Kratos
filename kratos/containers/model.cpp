@@ -94,7 +94,7 @@ void Model::DeleteModelPart( const std::string& rModelPartName  )
             r_root_model_part.RemoveSubModelPart(rModelPartName.substr(delim_pos+1));
         }
     } else {
-        KRATOS_WARNING("Model") << "Attempting to delete inexisting modelpart : " << rModelPartName << std::endl;
+        KRATOS_WARNING("Model") << "Attempting to delete non-existent modelpart : " << rModelPartName << std::endl;
     }
 
     KRATOS_CATCH("")
