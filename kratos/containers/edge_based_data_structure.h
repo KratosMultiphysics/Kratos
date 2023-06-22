@@ -110,7 +110,7 @@ public:
             return mDNiNj;
         }
 
-        const array_1d<double,TDim>& GetConvectiveBoundary() const
+        const array_1d<double,TDim>& GetOffDiagonalConvectiveBoundary() const
         {
             return mNiNjNormal;
         }

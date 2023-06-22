@@ -479,7 +479,7 @@ private:
                     // If current edge belogs to a boundary, add the corresponding convection boundary integrals
                     if (r_ij_edge_data.IsBoundary()) {
                         // Get ij-edge boundary operators from CSR data structure
-                        const auto &r_N_N_normal = r_ij_edge_data.GetConvectiveBoundary();
+                        const auto &r_N_N_normal = r_ij_edge_data.GetOffDiagonalConvectiveBoundary();
                         b_ij = 0.5 * r_N_N_normal;
 
                         // Add boundary contribution to the residual
