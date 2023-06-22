@@ -276,7 +276,7 @@ public:
         )
     {
         // Initialize local bounding box
-        InitializeBoundingBox(rStructureElements.begin(), rStructureElements.end());
+        InitializeBoundingBox(rStructureElements);
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -316,7 +316,7 @@ public:
         )
     {
         // Initialize local bounding box
-        InitializeBoundingBox(rStructureElements.begin(), rStructureElements.end());
+        InitializeBoundingBox(rStructureElements);
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -358,7 +358,7 @@ public:
         )
     {        
         // Initialize local bounding box
-        InitializeBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+        InitializeBoundingBox(rStructureConditions);
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -398,7 +398,7 @@ public:
         )
     {   
         // Initialize local bounding box
-        InitializeBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+        InitializeBoundingBox(rStructureConditions);
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
