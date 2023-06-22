@@ -230,7 +230,7 @@ class MultistageAnalysis:
             # Note that in here we are following the convention that the middle strings are the module name
             main_module_name = '.'.join(input_analysis_stage.split(".")[1:-1])
             if main_module_name == "All":
-                err_msg = "Please provide the registry entry with module name (not the 'All' one)."
+                err_msg = f"Please provide the 'analysis_stage' registry entry with module name (not the 'All' one) in '{stage_name}'."
                 raise ValueError(err_msg)
             try:
                 importlib.import_module(main_module_name)
