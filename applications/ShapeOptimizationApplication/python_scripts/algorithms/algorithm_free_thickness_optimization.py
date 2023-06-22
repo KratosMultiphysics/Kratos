@@ -20,7 +20,6 @@ from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base i
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
 import math
 
@@ -74,6 +73,9 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_SEARCH_DIRECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CORRECTION)
+
+        self.lower_bound = LowerBound(optimization_settings["design_variables"]["t_min"].GetDouble(), self.optimization_model_part)
+        self.upper_bound = UpperBound(optimization_settings["design_variables"]["t_max"].GetDouble(), self.optimization_model_part)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -170,6 +172,9 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
             self.communicator.requestValueOf(con_id)
             self.communicator.requestThicknessGradientOf(con_id)
 
+        self.lower_bound.CalculateValueAndGradient()
+        self.upper_bound.CalculateValueAndGradient()
+
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
 
         # project and damp objective gradients
@@ -191,6 +196,9 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
 
             self.model_part_controller.DampNodalSensitivityVariableIfSpecified(gradient_variable)
 
+        self.model_part_controller.DampNodalSensitivityVariableIfSpecified(self.lower_bound.gradient_variable)
+        self.model_part_controller.DampNodalSensitivityVariableIfSpecified(self.upper_bound.gradient_variable)
+
     # --------------------------------------------------------------------------
     def __computeThicknessUpdate(self):
         self.mapper.Update()
@@ -201,6 +209,9 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
             mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
             self.mapper.InverseMap(gradient_variable, mapped_gradient_variable)
+
+        self.mapper.InverseMap(self.lower_bound.gradient_variable, self.lower_bound.mapped_gradient_variable)
+        self.mapper.InverseMap(self.upper_bound.gradient_variable, self.upper_bound.mapped_gradient_variable)
 
         self.__computeControlThicknessUpdate()
 
@@ -271,6 +282,16 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
                 active_constraint_values.append(constraint_value)
                 active_constraint_variables.append(
                     self.constraint_gradient_variables[identifier]["mapped_gradient"])
+
+        if self.lower_bound.value > 0:
+            active_constraint_values.append(self.lower_bound.value)
+            active_constraint_variables.append(
+                self.lower_bound.mapped_gradient_variable)
+
+        if self.upper_bound.value > 0:
+            active_constraint_values.append(self.upper_bound.value)
+            active_constraint_variables.append(
+                self.upper_bound.mapped_gradient_variable)
 
         return active_constraint_values, active_constraint_variables
 
@@ -383,3 +404,65 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
         self.__mapElementGradientToNode(element_thicknesses, KSO.THICKNESS)
 
 # ==============================================================================
+
+class LowerBound(object):
+
+    def __init__(self, t_min, model_part):
+        self.t_min = t_min
+        self.value = 0.0
+        self.model_part = model_part
+
+        self.gradient_variable = KM.KratosGlobals.GetVariable(f"DLBDT")
+        self.mapped_gradient_variable = KM.KratosGlobals.GetVariable(f"DLBDT_MAPPED")
+
+        self.model_part.AddNodalSolutionStepVariable(self.gradient_variable)
+        self.model_part.AddNodalSolutionStepVariable(self.mapped_gradient_variable)
+
+    def CalculateValueAndGradient(self):
+
+        g = 0
+
+        for node in self.model_part.Nodes:
+
+            t_i = node.GetSolutionStepValue(KSO.THICKNESS)
+            g_i = self.t_min - t_i
+            dg_i_dt = 0
+
+            if g_i > 0:
+                g += g_i * g_i
+                dg_i_dt = -1 * 2 * g_i
+
+            node.SetSolutionStepValue(self.gradient_variable, 0, dg_i_dt)
+
+        self.value = g
+
+class UpperBound(object):
+
+    def __init__(self, t_max, model_part):
+        self.t_max = t_max
+        self.value = 0.0
+        self.model_part = model_part
+
+        self.gradient_variable = KM.KratosGlobals.GetVariable(f"DUBDT")
+        self.mapped_gradient_variable = KM.KratosGlobals.GetVariable(f"DUBDT_MAPPED")
+
+        self.model_part.AddNodalSolutionStepVariable(self.gradient_variable)
+        self.model_part.AddNodalSolutionStepVariable(self.mapped_gradient_variable)
+
+    def CalculateValueAndGradient(self):
+
+        g = 0
+
+        for node in self.model_part.Nodes:
+
+            t_i = node.GetSolutionStepValue(KSO.THICKNESS)
+            g_i = t_i - self.t_max
+            dg_i_dt = 0
+
+            if g_i > 0:
+                g += g_i * g_i
+                dg_i_dt = 2 * g_i
+
+            node.SetSolutionStepValue(self.gradient_variable, 0, dg_i_dt)
+
+        self.value = g
