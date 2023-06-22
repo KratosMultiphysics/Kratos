@@ -194,7 +194,7 @@ public:
         )
     {
         // Initialize local bounding box
-        InitializeLocalBoundingBox(rStructureNodes);
+        InitializeBoundingBox(rStructureNodes);
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -234,7 +234,7 @@ public:
         )
     {
         // Initialize local bounding box
-        InitializeLocalBoundingBox(rStructureNodes);
+        InitializeBoundingBox(rStructureNodes);
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -276,7 +276,7 @@ public:
         )
     {
         // Initialize local bounding box
-        InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+        InitializeBoundingBox(rStructureElements.begin(), rStructureElements.end());
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -316,7 +316,7 @@ public:
         )
     {
         // Initialize local bounding box
-        InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+        InitializeBoundingBox(rStructureElements.begin(), rStructureElements.end());
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -358,7 +358,7 @@ public:
         )
     {        
         // Initialize local bounding box
-        InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+        InitializeBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -398,7 +398,7 @@ public:
         )
     {   
         // Initialize local bounding box
-        InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+        InitializeBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -414,6 +414,24 @@ public:
         }
         return results;
     }
+
+    /**
+     * @brief This method allows to initialize the local bounding box (for nodes)
+     * @param rStructureNodes The container of nodes
+     */
+    void InitializeBoundingBox(const NodesContainerType& rStructureNodes) override;
+
+    /**
+     * @brief This method allows to initialize the local bounding box (for elements)
+     * @param rStructureElements The container of elements
+     */
+    void InitializeBoundingBox(const ElementsContainerType& rStructureElements) override;
+
+    /**
+     * @brief This method allows to initialize the local bounding box (for conditions)
+     * @param rStructureConditions The container of conditions
+     */
+    void InitializeBoundingBox(const ConditionsContainerType& rStructureConditions) override;
 
     ///@}
     ///@name Input and output
@@ -485,19 +503,13 @@ private:
     ///@{
 
     /**
-     * @brief This method allows to initialize the local bounding box (for nodes)
-     * @param rStructureNodes The container of nodes
-     */
-    void InitializeLocalBoundingBox(const NodesContainerType& rStructureNodes);
-
-    /**
      * @brief This method allows to initialize the local bounding box (for geometrical objects)
      * @param GeometricalObjectsBegin The begin iterator of the geometries to be stored
      * @param GeometricalObjectsEnd The end iterator of the geometries to be stored
      * @tparam TIteratorType The type of the iterator
      */
     template<typename TIteratorType>
-    void InitializeLocalBoundingBox(
+    void InitializeBoundingBox(
         TIteratorType GeometricalObjectsBegin,
         TIteratorType GeometricalObjectsEnd
         )

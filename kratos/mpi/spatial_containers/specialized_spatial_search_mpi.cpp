@@ -32,7 +32,7 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ElementSpatialSearchResult
     )
 {
     // Initialize local bounding box
-    InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+    InitializeBoundingBox(rStructureElements);
 
     // The points vector
     const auto it_elem_begin = rInputElements.begin();
@@ -101,7 +101,7 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::NodeSpatialSearchResultCon
     )
 {
     // Initialize local bounding box
-    InitializeLocalBoundingBox(rStructureNodes);
+    InitializeBoundingBox(rStructureNodes);
 
     // Prepare MPI search
     std::vector<double> all_points_coordinates;
@@ -164,7 +164,7 @@ typename SpecializedSpatialSearchMPI<TSearchBackend>::ConditionSpatialSearchResu
     )
 {
     // Initialize local bounding box
-    InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+    InitializeBoundingBox(rStructureConditions);
 
     // The points vector
     const auto it_cond_begin = rInputConditions.begin();
@@ -236,7 +236,7 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchNodesOverPointInRadius (
 {    
     // Initialize the BB is required
     if (!mBoundingBoxesInitialized) {
-        InitializeLocalBoundingBox(rStructureNodes);
+        InitializeBoundingBox(rStructureNodes);
     }
 
     // Check if the point is inside the set
@@ -265,7 +265,7 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchNodesOverPointNearestPoi
 {    
     // Initialize the BB is required
     if (!mBoundingBoxesInitialized) {
-        InitializeLocalBoundingBox(rStructureNodes);
+        InitializeBoundingBox(rStructureNodes);
     }
 
     // Compute max radius
@@ -324,7 +324,7 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchElementsOverPointInRadiu
 {    
     // Initialize the BB is required
     if (!mBoundingBoxesInitialized) {
-        InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+        InitializeBoundingBox(rStructureElements);
     }
 
     // Check if the point is inside the set
@@ -353,7 +353,7 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchElementsOverPointNearest
 {
     // Initialize the BB is required
     if (!mBoundingBoxesInitialized) {
-        InitializeLocalBoundingBox(rStructureElements.begin(), rStructureElements.end());
+        InitializeBoundingBox(rStructureElements);
     }
 
     // Compute max radius
@@ -412,7 +412,7 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchConditionsOverPointInRad
 {
     // Initialize the BB is required
     if (!mBoundingBoxesInitialized) {
-        InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+        InitializeBoundingBox(rStructureConditions);
     }
 
     // Check if the point is inside the set
@@ -441,7 +441,7 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchConditionsOverPointNeare
 {
     // Initialize the BB is required
     if (!mBoundingBoxesInitialized) {
-        InitializeLocalBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
+        InitializeBoundingBox(rStructureConditions);
     }
 
     // Compute max radius
@@ -489,7 +489,7 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::SearchConditionsOverPointNeare
 /***********************************************************************************/
 
 template<SpatialContainer TSearchBackend>
-void SpecializedSpatialSearchMPI<TSearchBackend>::InitializeLocalBoundingBox(const NodesContainerType& rStructureNodes)
+void SpecializedSpatialSearchMPI<TSearchBackend>::InitializeBoundingBox(const NodesContainerType& rStructureNodes)
 {
     const std::size_t number_of_nodes = rStructureNodes.size();
     if (number_of_nodes > 0) {
@@ -497,6 +497,24 @@ void SpecializedSpatialSearchMPI<TSearchBackend>::InitializeLocalBoundingBox(con
         mLocalBoundingBox.Extend(Tolerance);
     }
     mBoundingBoxesInitialized = true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearchMPI<TSearchBackend>::InitializeBoundingBox(const ElementsContainerType& rStructureElements)
+{
+    InitializeBoundingBox(rStructureElements.begin(), rStructureElements.end());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SpatialContainer TSearchBackend>
+void SpecializedSpatialSearchMPI<TSearchBackend>::InitializeBoundingBox(const ConditionsContainerType& rStructureConditions)
+{
+    InitializeBoundingBox(rStructureConditions.begin(), rStructureConditions.end());
 }
 
 /***********************************************************************************/
