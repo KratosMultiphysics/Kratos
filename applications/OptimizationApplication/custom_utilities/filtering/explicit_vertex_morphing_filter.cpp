@@ -157,7 +157,7 @@ ContainerExpression<TContainerType> ExplicitVertexMorphingFilter<TContainerType>
 
     struct TLS
     {
-        TLS(const IndexType MaxNumberOfNeighbors)
+        explicit TLS(const IndexType MaxNumberOfNeighbors)
         {
             mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
             mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
@@ -241,7 +241,7 @@ ContainerExpression<TContainerType> ExplicitVertexMorphingFilter<TContainerType>
 
     struct TLS
     {
-        TLS(const IndexType MaxNumberOfNeighbors)
+        explicit TLS(const IndexType MaxNumberOfNeighbors)
         {
             mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
             mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
@@ -304,8 +304,8 @@ std::string ExplicitVertexMorphingFilter<TContainerType>::Info() const
 }
 
 // template instantiations
-template class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitVertexMorphingFilter<ModelPart::NodesContainerType>;
-template class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitVertexMorphingFilter<ModelPart::ConditionsContainerType>;
-template class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitVertexMorphingFilter<ModelPart::ElementsContainerType>;
+template class ExplicitVertexMorphingFilter<ModelPart::NodesContainerType>;
+template class ExplicitVertexMorphingFilter<ModelPart::ConditionsContainerType>;
+template class ExplicitVertexMorphingFilter<ModelPart::ElementsContainerType>;
 
 } // namespace Kratos

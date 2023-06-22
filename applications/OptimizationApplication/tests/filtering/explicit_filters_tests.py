@@ -28,15 +28,15 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
 
     def test_NodalExplicitVertexMorphingFilter(self):
         radius = 2.0
-        filter = KratosOA.NodalExplicitVertexMorphingFilter(self.model_part, "linear", 1000)
+        vm_filter = KratosOA.NodalExplicitVertexMorphingFilter(self.model_part, "linear", 1000)
 
         filter_radius = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, radius)
-        filter.SetFilterRadius(filter_radius)
+        vm_filter.SetFilterRadius(filter_radius)
 
         unfiltered_field = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.VariableExpressionIO.Read(unfiltered_field, Kratos.VELOCITY, True)
-        filtered_data = filter.FilterField(unfiltered_field)
+        filtered_data = vm_filter.FilterField(unfiltered_field)
 
         ref_values = numpy.array([
                 [ 7.195467517797389,   8.19546751779739,    9.195467517797388 ],
@@ -57,7 +57,7 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
 
         self.assertAlmostEqual(numpy.linalg.norm(filtered_data.Evaluate() - ref_values), 0.0, 12)
 
-        unfiltered_field = filter.UnFilterField(unfiltered_field)
+        unfiltered_field = vm_filter.UnFilterField(unfiltered_field)
 
         ref_values = numpy.array([
                 [ 6.1450533208134175,  7.053380421583984,   7.961707522354552 ],
@@ -80,15 +80,15 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
 
     def test_ConditionExplicitVertexMorphingFilter(self):
         radius = 1.0
-        filter = KratosOA.ConditionExplicitVertexMorphingFilter(self.model_part, "linear", 1000)
+        vm_filter = KratosOA.ConditionExplicitVertexMorphingFilter(self.model_part, "linear", 1000)
 
         filter_radius = Kratos.Expression.ConditionExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, radius)
-        filter.SetFilterRadius(filter_radius)
+        vm_filter.SetFilterRadius(filter_radius)
 
         unfiltered_field = Kratos.Expression.ConditionExpression(self.model_part)
         Kratos.Expression.VariableExpressionIO.Read(unfiltered_field, Kratos.VELOCITY)
-        filtered_data = filter.FilterField(unfiltered_field)
+        filtered_data = vm_filter.FilterField(unfiltered_field)
 
         ref_values = numpy.array([
             [ 6.758330624355697,  7.758330624355698,  8.758330624355697],
@@ -114,7 +114,7 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
         ])
         self.assertAlmostEqual(numpy.linalg.norm(filtered_data.Evaluate() - ref_values), 0.0, 12)
 
-        unfiltered_field = filter.UnFilterField(unfiltered_field)
+        unfiltered_field = vm_filter.UnFilterField(unfiltered_field)
 
         ref_values = numpy.array([
             [ 7.316414814468337,  8.371362020425924,  9.426309226383509],
@@ -143,15 +143,15 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
 
     def test_ElementExplicitVertexMorphingFilter(self):
         radius = 1.0
-        filter = KratosOA.ElementExplicitVertexMorphingFilter(self.model_part, "linear", 1000)
+        vm_filter = KratosOA.ElementExplicitVertexMorphingFilter(self.model_part, "linear", 1000)
 
         filter_radius = Kratos.Expression.ElementExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, radius)
-        filter.SetFilterRadius(filter_radius)
+        vm_filter.SetFilterRadius(filter_radius)
 
         unfiltered_field = Kratos.Expression.ElementExpression(self.model_part)
         Kratos.Expression.VariableExpressionIO.Read(unfiltered_field, Kratos.VELOCITY)
-        filtered_data = filter.FilterField(unfiltered_field)
+        filtered_data = vm_filter.FilterField(unfiltered_field)
 
         ref_values = numpy.array([
             [11.55444743868707,  12.554447438687067, 13.554447438687067],
@@ -182,7 +182,7 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
 
         self.assertAlmostEqual(numpy.linalg.norm(filtered_data.Evaluate() - ref_values), 0.0, 12)
 
-        unfiltered_field = filter.UnFilterField(unfiltered_field)
+        unfiltered_field = vm_filter.UnFilterField(unfiltered_field)
 
         ref_values = numpy.array([
             [15.908318123609645, 17.24048749846822,  18.572656873326803],
