@@ -1788,5 +1788,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}addtogroup block
 
 }  // namespace Kratos.
-
-
