@@ -267,6 +267,16 @@ public:
         ) override;
 
     /**
+     * @brief Search neighbours for every element in "rInputElements" excluding itself
+     */
+    ElementSpatialSearchResultContainerMapType SearchElementsInRadiusExclusive (
+        const ElementsContainerType& rStructureElements,
+        const ElementsContainerType& rInputElements,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        ) override;
+
+    /**
     * @brief Search neighbours for every node in "rInputNodes" excluding itself
     */
     void SearchNodesInRadiusExclusive(
@@ -288,6 +298,16 @@ public:
         ) override;
 
     /**
+     * @brief Search neighbours for every condition in "rInputConditions" excluding itself
+     */
+    ConditionSpatialSearchResultContainerMapType SearchConditionsInRadiusExclusive (
+        const ConditionsContainerType& rStructureConditions,
+        const ConditionsContainerType& rInputConditions,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
+        ) override;
+
+    /**
     * @brief Search neighbours for every Condition in "rInputConditions" excluding itself
     */
     void SearchConditionsInRadiusExclusive(
@@ -306,6 +326,16 @@ public:
         const ConditionsContainerType& rInputConditions,
         const RadiusArrayType& rRadius,
         VectorResultConditionsContainerType& rResults
+        ) override;
+
+    /**
+     * @brief Search neighbours for every condition in "rInputConditions" excluding itself
+     */
+    NodeSpatialSearchResultContainerMapType SearchNodesInRadiusExclusive (
+        const NodesContainerType& rStructureNodes,
+        const NodesContainerType& rInputNodes,
+        const RadiusArrayType& rRadius,
+        const DataCommunicator& rDataCommunicator
         ) override;
 
     /**
