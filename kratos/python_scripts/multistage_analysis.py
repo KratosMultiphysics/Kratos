@@ -49,7 +49,7 @@ class MultistageAnalysis:
             self.RunCurrentStagePostprocess()
 
             # Get the final data dictionary
-            self.output_data[self.GetCurrentStageName()] = current_stage.GetFinalData() #NOTE: only python types in here - TODO: can we check that?
+            self.output_data[self.GetCurrentStageName()] = current_stage.GetFinalData()
 
             # Check the current stage is to be checkpointed and save it if so
             if self.GetCurrentStageName() in self.__GetStagesToCheckpointList():
