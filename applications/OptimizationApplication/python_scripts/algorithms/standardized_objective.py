@@ -5,6 +5,7 @@ from KratosMultiphysics.OptimizationApplication.responses.response_routine impor
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
+
 class StandardizedObjective(ResponseRoutine):
     """Standardized objective response function
 
@@ -14,6 +15,7 @@ class StandardizedObjective(ResponseRoutine):
         "maximization"
 
     """
+
     def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 2):
         default_parameters = Kratos.Parameters("""{
             "response_name": "",
@@ -54,7 +56,7 @@ class StandardizedObjective(ResponseRoutine):
         else:
             raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
-    def CalculateStandardizedValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
+    def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
         response_value = self.CalculateValue(control_field)
         standardized_response_value = response_value * self.__scaling
 
@@ -62,7 +64,8 @@ class StandardizedObjective(ResponseRoutine):
             self.__unbuffered_data["initial_value"] = response_value
 
         if save_value:
-            if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+            if self.__buffered_data.HasValue("value"):
+                del self.__buffered_data["value"]
             self.__buffered_data["value"] = response_value
 
         return standardized_response_value
@@ -73,7 +76,7 @@ class StandardizedObjective(ResponseRoutine):
     def GetStandardizedValue(self, step_index: int = 0) -> float:
         return self.GetValue(step_index) * self.__scaling
 
-    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
         gradient_collective_expression = self.CalculateGradient()
 
         if save_field:
@@ -81,7 +84,8 @@ class StandardizedObjective(ResponseRoutine):
             for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
                 variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
                 for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                    if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+                    if self.__unbuffered_data.HasValue(variable_name):
+                        del self.__unbuffered_data[variable_name]
                     # cloning is a cheap operation, it only moves underlying pointers
                     # does not create additional memory.
                     self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
@@ -89,7 +93,8 @@ class StandardizedObjective(ResponseRoutine):
             # save the filtered gradients for post processing in unbuffered data container.
             for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
                 variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
-                if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+                if self.__unbuffered_data.HasValue(variable_name):
+                    del self.__unbuffered_data[variable_name]
                 # cloning is a cheap operation, it only moves underlying pointers
                 # does not create additional memory.
                 self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
@@ -106,11 +111,11 @@ class StandardizedObjective(ResponseRoutine):
         return self.GetValue() - self.GetInitialValue()
 
     def GetInfo(self) -> str:
-        msg = f"""\t Objective info: 
+        msg = f"""\t Objective info:
             name          : {self.GetReponse().GetName()}
-            type          : {self.__objective_type} 
-            value         : {self.GetValue():0.6e} 
-            abs_change    : {self.GetAbsoluteChange():0.6e} 
+            type          : {self.__objective_type}
+            value         : {self.GetValue():0.6e}
+            abs_change    : {self.GetAbsoluteChange():0.6e}
             rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"""
         init_value = self.GetInitialValue()
         if init_value:

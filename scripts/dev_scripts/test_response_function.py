@@ -56,11 +56,11 @@ with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
     ref_value = response_function.CalculateValue()
     print(f"Objective value {ref_value}")
 
-    sensitivity_expressions = KratosOA.ContainerExpression.CollectiveExpressions(
-        [KratosOA.ContainerExpression.ElementPropertiesExpression(model_part), KratosOA.ContainerExpression.ElementPropertiesExpression(model_part)])
+    sensitivity_expressions = KratosOA.CollectiveExpression([Kratos.Expression.ElementExpression(model_part), Kratos.Expression.ElementExpression(model_part)])
     response_function.CalculateGradient({Kratos.YOUNG_MODULUS: sensitivity_expressions})
     for expression in sensitivity_expressions.GetContainerExpressions():
         data = expression.Evaluate()
         print(data)
 
-    response_function.CalculateGradientWithFiniteDifferencing({Kratos.YOUNG_MODULUS: sensitivity_expressions})
+    results = response_function.CalculateGradientWithFiniteDifferencing({Kratos.YOUNG_MODULUS: sensitivity_expressions})
+    print(results)

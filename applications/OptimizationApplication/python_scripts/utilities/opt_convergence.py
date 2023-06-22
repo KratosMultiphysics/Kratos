@@ -1,4 +1,3 @@
-
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -62,7 +61,7 @@ class L2ConvCriterium:
         if not algorithm_buffered_data.HasValue("search_direction"):
             raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}")
 
-        norm = KratosOA.ContainerExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
+        norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
         if not conv:
             conv = True if norm <= self.__tolerance else False
 

@@ -43,7 +43,11 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         self.model = model
         self.model_part: Kratos.ModelPart = None
 
-        self.model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
+        evaluated_model_parts = [model[model_part_name] for model_part_name in parameters["evaluated_model_part_names"].GetStringArray()]
+        if len(evaluated_model_parts) == 0:
+            raise RuntimeError(f"No model parts were provided for LinearStrainEnergyResponseFunction. [ response name = \"{self.GetName()}\"]")
+        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_parts, False)
+
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
         self.measurement_data_file = parameters["measurement_data_file"].GetString()
@@ -53,22 +57,21 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
         self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_problem.GetExecutionPolicy(parameters["primal_analysis_name"].GetString())
 
-        if len(self.model_part_names) == 0:
-            raise RuntimeError("No model parts were provided for MeasurementLikelihoodResponseFunction.")
-
     def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
         return [Kratos.YOUNG_MODULUS]
 
     def Initialize(self) -> None:
+        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
+            KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
+
         with open(self.adjoint_analysis_file_name, 'r') as parameter_file:
             self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
 
         file = open(self.measurement_data_file)
         self.measurement_data = json.load(file)
 
-        model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
-        root_model_part = model_parts_list[0].GetRootModelPart()
-        _, self.model_part = ModelPartUtilities.UnionModelParts(root_model_part, model_parts_list, False)
+        ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
 
         self.sensor_positions_model_part = self.model.CreateModelPart("sensor_positions")
 
@@ -93,7 +96,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
             json.dump(self.measurement_data, outfile)
 
     def Check(self) -> None:
-        pass
+        KratosOA.PropertiesVariableExpressionIO.Check(Kratos.Expression.ElementExpression(self.model_part), StructuralMechanicsApplication.YOUNG_MODULUS)
 
     def Finalize(self) -> None:
         pass
@@ -123,9 +126,14 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
         return objective_value
 
-    def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
-        merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
-        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.GetAnalysisModelPart(), merged_model_part_map, True)
+    def CalculateGradient(self, physical_variable_collective_expressions: "dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]") -> None:
+        # first merge all the model parts
+        merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
+
+        # now get the intersected model parts
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, True)
+
+        # for physical_variable, merged_model_part in merged_model_part_map.items():
 
         for variable, collective_expression in physical_variable_collective_expressions.items():
 
@@ -142,12 +150,80 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
             # now fill the collective expressions
 
             for expression in collective_expression.GetContainerExpressions():
-                if isinstance(expression, KratosOA.ContainerExpression.ElementPropertiesExpression):
-                    element_data_expression = Kratos.ContainerExpression.ElementNonHistoricalExpression(expression.GetModelPart())
-                    element_data_expression.Read(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
-                    expression.CopyFrom(element_data_expression)
+                if isinstance(expression, Kratos.Expression.ElementExpression):
+                    KratosOA.PropertiesVariableExpressionIO.Read(expression, StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
+                    KratosOA.PropertiesVariableExpressionIO.Write(expression, StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
                 else:
-                    expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
+                    KratosOA.PropertiesVariableExpressionIO.Read(expression, Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
+
+            # for element in self.model_part.Elements:
+            #     E = element.Properties[Kratos.YOUNG_MODULUS]
+            #     element.Properties[Kratos.YOUNG_MODULUS] = E
+
+            # # checking
+            # check_expression = Kratos.Expression.ElementExpression(expression.GetModelPart())
+            # KratosOA.PropertiesVariableExpressionIO.Read(check_expression, StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
+            # numpy_array = check_expression.Evaluate()
+            # Kratos.Expression.CArrayExpressionIO.Read(check_expression, numpy_array)
+            # Kratos.Expression.CArrayExpressionIO.Move(check_expression, numpy_array)
+            # Kratos.Expression.CArrayExpressionIO.Write(check_expression, numpy_array)
+
+    def CalculateGradientWithFiniteDifferencing(self, physical_variable_collective_expressions: "dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]") -> "list(float)":
+        # first merge all the model parts
+        merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
+
+        # now get the intersected model parts
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, True)
+
+        # with open("./primal_parameters.json", 'r') as parameter_file:
+        #     primal_parameters = Kratos.Parameters(parameter_file.read())
+
+        # primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.model, primal_parameters)
+
+        model_part = self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
+
+        if not KratosOA.ModelPartUtils.CheckModelPartStatus(model_part, "element_specific_properties_created"):
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements)
+            KratosOA.ModelPartUtils.LogModelPartStatus(model_part, "element_specific_properties_created")
+
+        perturbation = model_part.GetElement(1).Properties[Kratos.YOUNG_MODULUS] * 1e-6
+
+        for variable, collective_expression in physical_variable_collective_expressions.items():
+
+            reference_value = self.CalculateValue()
+
+            gradient = []
+
+            # for i in range(num_elements):
+            for i, element in enumerate(model_part.Elements):
+
+                # properties = np.ones((len(model_part.Elements)))
+                # properties *= 1.0
+                # properties[i] += perturbation
+
+                # expression: Kratos.Expression.ElementExpression = Kratos.Expression.ElementExpression(model_part=model_part)
+                # Kratos.Expression.CArrayExpressionIO.Read(expression, properties)
+                # Kratos.Expression.CArrayExpressionIO.Write(expression, properties)
+                # expression.Evaluate()
+
+                old_stiffness = element.Properties[Kratos.YOUNG_MODULUS]
+                element.Properties[Kratos.YOUNG_MODULUS] += perturbation
+
+                # for element2 in model_part.Elements:
+                #     print(element2.Properties[Kratos.YOUNG_MODULUS])
+
+                self.primal_analysis_execution_policy_decorator.Execute()
+
+                objective_value = self.CalculateValue()
+
+                gradient.append((reference_value-objective_value)/perturbation)
+                element.Properties[Kratos.YOUNG_MODULUS] = old_stiffness
+
+                # properties[i] -= perturbation
+                # Kratos.Expression.CArrayExpressionIO.Write(expression, properties)
+                # expression.Evaluate()
+
+            return gradient
 
     def CalculateGradientWithFiniteDifferencing(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
         merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)

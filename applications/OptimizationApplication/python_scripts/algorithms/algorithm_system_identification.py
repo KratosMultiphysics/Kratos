@@ -90,7 +90,7 @@ class AlgorithmSystemIdentification(Algorithm):
     def Finalize(self):
         pass
 
-    def ComputeSearchDirection(self, obj_grad) -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
 
         search_direction = None
 

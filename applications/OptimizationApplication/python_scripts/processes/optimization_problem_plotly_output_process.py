@@ -20,42 +20,6 @@ def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem
     return OptimizationProblemPlotlyOutputProcess(parameters["settings"], optimization_problem)
 
 
-# class Header:
-#     def __init__(self, header_name: str, value: Any, format_info: dict):
-#         header_name = header_name.strip()
-#         header_length = len(header_name)
-
-#         if isinstance(value, bool):
-#             value_length = max(len(format_info[type(value)][0]), len(format_info[type(value)][1]))
-#             value_format_post_fix = "s"
-#             self.__value_converter = lambda x: format_info[type(value)][1] if x else format_info[type(value)][0]
-#         elif isinstance(value, int):
-#             value_length = len(("{:" + str(format_info[type(value)]) + "d}").format(value))
-#             value_format_post_fix = "d"
-#             self.__value_converter = lambda x: int(x)
-#         elif isinstance(value, float):
-#             value_length = len(("{:0." + str(format_info[type(value)]) + "e}").format(value))
-#             value_format_post_fix = f".{format_info[type(value)]}e"
-#             self.__value_converter = lambda x: float(x)
-#         else:
-#             value_length = format_info[str]
-#             value_format_post_fix = "s"
-#             self.__value_converter = lambda x: str(x)
-
-#         if header_length > value_length:
-#             self.__header_name = header_name
-#             self.__value_format = "{:>" + str(header_length) + value_format_post_fix + "}"
-#         else:
-#             self.__header_name = ("{:>" + str(value_length) + "s}").format(header_name)
-#             self.__value_format = "{:>" + str(value_length) + value_format_post_fix + "}"
-
-#     def GetHeaderName(self) -> str:
-#         return self.__header_name
-
-#     def GetValueStr(self, value: Any) -> str:
-#         return self.__value_format.format(self.__value_converter(value))
-
-
 class OptimizationProblemPlotlyOutputProcess(Kratos.OutputProcess):
     def GetDefaultParameters(self):
         return Kratos.Parameters(
