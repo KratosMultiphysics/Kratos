@@ -77,7 +77,6 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.TIME, 0)
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
         self.analysis.RunSolutionLoop()
-
         self._OutputAnalysisData()
 
     def _OutputAnalysisData(self):

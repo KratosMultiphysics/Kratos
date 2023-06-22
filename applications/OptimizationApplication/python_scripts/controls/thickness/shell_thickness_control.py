@@ -195,15 +195,19 @@ class ShellThicknessControl(Control):
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}."):
                 self._SetFixedModelPartValues()
                 self.control_field = new_control_field
-                new_physical_field = self.filter.FilterField(self.control_field)
+                filtered_control_field = self.filter.FilterField(self.control_field)
+
+                # now project the filtered field
+                projected_field = Kratos.Expression.NodalExpression(filtered_control_field.GetModelPart())
+                KratosOA.ControlUtils.SigmoidalProjectionUtils.OneLevelForwardProjection(filtered_control_field,projected_field)
 
                 # now update physical field
-                KratosOA.PropertiesVariableExpressionIO.Write(new_physical_field, Kratos.THICKNESS)
+                KratosOA.PropertiesVariableExpressionIO.Write(projected_field, Kratos.THICKNESS)
 
                 # now write the physical field to the optimization_problem so it can be visualized
                 # later if required.
                 un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-                un_buffered_data.SetValue("physical_THICKNESS", new_physical_field.Clone(), overwrite=True)
+                un_buffered_data.SetValue("physical_THICKNESS", projected_field.Clone(), overwrite=True)
                 un_buffered_data.SetValue("control_THICKNESS", self.control_field.Clone(), overwrite=True)
 
                 return True
