@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
@@ -101,6 +102,22 @@ public:
      * @note For the parallel implementation see ParallelFillCommunicator.
      */
     virtual void Execute();
+
+    /**
+     * @brief Function to bring entities from other partitions
+     * @details This function is intended to bring entities from other partitions. The map indicates the partitions to bring and the vector the entities to bring from each partition. In the current serial case it does nothing.
+     * @note For the parallel implementation see ParallelFillCommunicator.
+     * @param rNodesToBring Nodes to bring from other partitions
+     * @param rElementsToBring Elements to bring from other partitions
+     * @param rConditionsToBring Conditions to bring from other partitions
+     * @param CallExecuteAfterBringingEntities Call Execute after bringing entities
+     */
+    virtual void BringEntitiesFromOtherPartitions(
+        const std::unordered_map<int, std::vector<std::size_t>>& rNodesToBring,
+        const std::unordered_map<int, std::vector<std::size_t>>& rElementsToBring,
+        const std::unordered_map<int, std::vector<std::size_t>>& rConditionsToBring,
+        const bool CallExecuteAfterBringingEntities = true
+        );
 
     /**
      * @brief Function to print DETAILED mesh information

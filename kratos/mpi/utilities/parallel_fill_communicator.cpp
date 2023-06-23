@@ -45,6 +45,25 @@ void ParallelFillCommunicator::Execute()
     KRATOS_CATCH("");
 }
 
+void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
+    const std::unordered_map<int, std::vector<std::size_t>>& rNodesToBring,
+    const std::unordered_map<int, std::vector<std::size_t>>& rElementsToBring,
+    const std::unordered_map<int, std::vector<std::size_t>>& rConditionsToBring,
+    const bool CallExecuteAfterBringingEntities
+    )
+{
+    KRATOS_TRY
+
+    // TODO
+
+    // Execute after bringing entities
+    if (CallExecuteAfterBringingEntities) {
+        Execute();
+    }
+
+    KRATOS_CATCH("");
+}
+
 void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPart)
 {
     KRATOS_TRY
