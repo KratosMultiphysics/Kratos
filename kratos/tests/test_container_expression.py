@@ -580,6 +580,71 @@ class TestContainerExpression(ABC):
         a = self._GetContainerExpression()
         self.assertEqual(self._GetContainer(), a.GetContainer())
 
+    def test_EmptyContainer(self):
+        model_part = self.model.CreateModelPart("empty_model_part")
+        a = type(self._GetContainerExpression())(model_part)
+        self._Read(a, Kratos.VELOCITY)
+
+        a *= 3
+        self._Evaluate(a, Kratos.ACCELERATION)
+        self.assertEqual(a.Evaluate().shape, (0, ))
+
+    def test_VectorRead(self):
+        a = self._GetContainerExpression()
+
+        total_size = len(a.GetContainer()) * 3
+        vector = Kratos.Vector(total_size)
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = self._GetValue(entity, Kratos.VELOCITY)
+            vector[i * 3] = velocity[0]
+            vector[i * 3 + 1] = velocity[1]
+            vector[i * 3 + 2] = velocity[2]
+
+        Kratos.Expression.CArrayExpressionIO.Read(a, vector, [3])
+        a *= 4.3
+        self._Evaluate(a, Kratos.ACCELERATION)
+
+        for entity in a.GetContainer():
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.VELOCITY) * 4.3, self._GetValue(entity, Kratos.ACCELERATION))
+
+    def test_VectorMove(self):
+        a = self._GetContainerExpression()
+
+        total_size = len(a.GetContainer()) * 3
+        vector = Kratos.Vector(total_size)
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = self._GetValue(entity, Kratos.VELOCITY)
+            vector[i * 3] = velocity[0]
+            vector[i * 3 + 1] = velocity[1]
+            vector[i * 3 + 2] = velocity[2]
+
+        Kratos.Expression.CArrayExpressionIO.Move(a, vector, [3])
+        a *= 4.3
+        self._Evaluate(a, Kratos.ACCELERATION)
+
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]])
+            self.assertVectorAlmostEqual(velocity * 4.3, self._GetValue(entity, Kratos.ACCELERATION))
+
+        for i in range(total_size):
+            vector[i] *= 2
+
+        self._Evaluate(a, Kratos.ACCELERATION)
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]])
+            self.assertVectorAlmostEqual(velocity * 4.3, self._GetValue(entity, Kratos.ACCELERATION))
+
+    def test_VectorWrite(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+
+        vector = Kratos.Vector()
+        Kratos.Expression.CArrayExpressionIO.Write(a, vector)
+
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]])
+            self.assertVectorAlmostEqual(velocity, self._GetValue(entity, Kratos.VELOCITY))
+
     @abstractmethod
     def _GetContainerExpression(self) -> Union[Kratos.Expression.NodalExpression, Kratos.Expression.ElementExpression, Kratos.Expression.ConditionExpression]:
         pass
@@ -650,8 +715,6 @@ class TestNodalContainerExpression(kratos_unittest.TestCase, TestContainerExpres
     def _Evaluate(self, container_expression, variable):
         Kratos.Expression.VariableExpressionIO.Write(container_expression, variable, False)
 
-#This test does not work when using more than 7 cores, because then some partitions do not have conditions
-@kratos_unittest.skipIf( Kratos.Testing.GetDefaultDataCommunicator().Size() > 7, "This test does not work for more than 7 cores.")
 class TestConditionContainerExpression(kratos_unittest.TestCase, TestContainerExpression):
     @classmethod
     def setUpClass(cls):
@@ -679,9 +742,6 @@ class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpr
     @classmethod
     def setUpClass(cls):
         cls.CreateEntities()
-
-    def _GetSpecializedContainerExpression(self):
-        return Kratos.Expression.ElementExpression(self.model_part)
 
     def _GetContainerExpression(self):
         return Kratos.Expression.ElementExpression(self.model_part)

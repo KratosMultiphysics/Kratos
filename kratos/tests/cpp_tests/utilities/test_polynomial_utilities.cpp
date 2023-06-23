@@ -19,7 +19,7 @@
 #include "testing/testing.h"
 #include "utilities/polynomial_utilities.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing::PolynomialUtilitiesTests {
 
 namespace {
     using Polynomial = PolynomialUtilities::PolynomialType;
@@ -27,15 +27,14 @@ namespace {
     using RootIntervals = std::vector<PolynomialUtilities::IntervalType>;
     constexpr double TOLERANCE = 1e-9;
 
-    void CheckExactlyOneIntervalContains(const RootIntervals& rIntervals, double Coordinate) {
+    std::size_t CountIntervalsContaining(const RootIntervals& rIntervals, double Coordinate) {
         std::size_t containing = 0;
         for (const auto& range: rIntervals) {
             if (range[0] <= Coordinate && range[1] >= Coordinate) {
                 ++containing;
             }
         }
-        KRATOS_ERROR_IF(containing > 1) << "More than one interval contains coordinate " << Coordinate << std::endl;
-        KRATOS_ERROR_IF(containing == 0) << "No interval contains coordinate " << Coordinate << std::endl;
+        return containing;
     }
 }
 
@@ -91,13 +90,13 @@ KRATOS_TEST_CASE_IN_SUITE(PolynomialUtilitiesIsolateRoots, KratosCoreFastSuite) 
 
     PolynomialUtilities::IsolateRoots(intervals, a, Interval{-1, 1});
     KRATOS_CHECK_EQUAL(intervals.size(), 3);
-    CheckExactlyOneIntervalContains(intervals, -0.7360625845831237);
-    CheckExactlyOneIntervalContains(intervals, -0.45955361708183773);
-    CheckExactlyOneIntervalContains(intervals,  0.4880690318514098);
+    KRATOS_CHECK_EQUAL(CountIntervalsContaining(intervals, -0.7360625845831237), 1);
+    KRATOS_CHECK_EQUAL(CountIntervalsContaining(intervals, -0.45955361708183773), 1);
+    KRATOS_CHECK_EQUAL(CountIntervalsContaining(intervals,  0.4880690318514098), 1);
 
     PolynomialUtilities::IsolateRoots(intervals, a, Interval{0, 1});
     KRATOS_CHECK_EQUAL(intervals.size(), 1);
-    CheckExactlyOneIntervalContains(intervals, 0.4880690318514098);
+    KRATOS_CHECK_EQUAL(CountIntervalsContaining(intervals, 0.4880690318514098), 1);
 
     PolynomialUtilities::IsolateRoots(intervals, a, Interval{-2, -1});
     KRATOS_CHECK_EQUAL(intervals.size(), 0);
