@@ -303,7 +303,6 @@ namespace MPMParticleGeneratorUtility
                         std::vector<IntegrationPoint<3>> integration_points;
                         IndexType number_of_points_per_span;
                         array_1d<double, 3> local_coordinates;
-                        array_1d<double, 3> xg;
 
                         const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
                         IntegrationMethod integration_method = r_geometry.GetDefaultIntegrationMethod();
@@ -443,19 +442,19 @@ namespace MPMParticleGeneratorUtility
                             {
                                 local_coordinates = integration_points[i_integration_point];
                                 
-                                r_geometry.GlobalCoordinates(xg, local_coordinates);
+                                r_geometry.GlobalCoordinates(mpc_xg[0], local_coordinates);
                                 
                                 mpc_area[0] = integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point, integration_method);
                                 
                                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                                 Element::Pointer pelem;
                                 Vector N;
-                                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
+                                bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
                                 if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::MPC search failed." << std::endl;
                                 
                                 pelem->Set(ACTIVE);
                                 auto p_quadrature_point_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
-                                    pelem->pGetGeometry(), xg,
+                                    pelem->pGetGeometry(), mpc_xg[0],
                                     mpc_area[0]);
                                 
 
@@ -468,7 +467,7 @@ namespace MPMParticleGeneratorUtility
                                     {
                                         it->CalculateOnIntegrationPoints(MPC_COORD, xg_tmp, rMPMModelPart.GetProcessInfo());
                                         
-                                        if (xg[0] == xg_tmp[0][0] && xg[1] == xg_tmp[0][1]  && xg[2] == xg_tmp[0][2] )
+                                        if (mpc_xg[0][0] == xg_tmp[0][0] && mpc_xg[0][1] == xg_tmp[0][1]  && mpc_xg[0][2] == xg_tmp[0][2] )
                                         {
                                             create_condition = false;
                                             it->CalculateOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
@@ -493,7 +492,7 @@ namespace MPMParticleGeneratorUtility
 
                                     // Setting particle condition's initial condition
                                     //p_condition->SetValuesOnIntegrationPoints(MPC_CONDITION_ID, mpc_condition_id, process_info);
-                                    p_condition->SetValuesOnIntegrationPoints(MPC_COORD, {xg} , process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
 
