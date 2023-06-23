@@ -1000,7 +1000,7 @@ void MPMUpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, cons
     /* NOTE:
     Update velocity with Newmark integration rule 
     This assumes newmark (since n.gamma=0.5 and beta=0.25) rule of integration*/
-    if (std::abs(std::sqrt(MP_PreviousAcceleration[0]*MP_PreviousAcceleration[0]+MP_PreviousAcceleration[1]*MP_PreviousAcceleration[1]+MP_PreviousAcceleration[2]*MP_PreviousAcceleration[2]))<std::numeric_limits<double>::epsilon())
+    if (std::sqrt(MP_PreviousAcceleration[0]*MP_PreviousAcceleration[0]+MP_PreviousAcceleration[1]*MP_PreviousAcceleration[1]+MP_PreviousAcceleration[2]*MP_PreviousAcceleration[2])<std::numeric_limits<double>::epsilon())
         mMP.velocity = 2.0/delta_time* delta_xg -  MP_PreviousVelocity;
     else
         mMP.velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
