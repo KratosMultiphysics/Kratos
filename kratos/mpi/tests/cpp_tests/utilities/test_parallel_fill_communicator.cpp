@@ -18,6 +18,8 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "geometries/line_2d_2.h"
+#include "utilities/pointer_communicator.h"
+#include "utilities/global_pointer_utilities.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
@@ -176,6 +178,27 @@ static inline void GenerateModelPartEntinties(
     }
 }
 
+/**
+ * @brief Synchronizes local pointers to global pointers of the given ModelPart using the provided
+ * @details DataCommunicator and returns a shared pointer to a GlobalPointerCommunicator<Node>.
+ * @param rModelPart the ModelPart to be synchronized
+ * @param rGlobalPointers the GlobalPointersVector to be filled with the synchronized pointers
+ * @param rDataCommunicator the DataCommunicator to be used for synchronization
+ * @return A shared pointer to a GlobalPointerCommunicator<Node> containing synchronized pointers
+ */
+GlobalPointerCommunicator<Node>::Pointer SynchronizeNodes(
+    ModelPart& rModelPart,
+    GlobalPointersVector<Node>& rGlobalPointers,
+    const DataCommunicator& rDataCommunicator
+    )
+{
+    // Synchronize local pointers to global pointers
+    rGlobalPointers = GlobalPointerUtilities::GlobalRetrieveGlobalPointers(rModelPart.Nodes(), rDataCommunicator);
+
+    // Generate the communicator
+    return Kratos::make_shared<GlobalPointerCommunicator<Node>>(rDataCommunicator, rGlobalPointers.ptr_begin(), rGlobalPointers.ptr_end());
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPICoreFastSuite)
 {
     // The model part
@@ -233,6 +256,66 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPI
             KRATOS_CHECK_EQUAL(r_model_part.GetCommunicator().GhostMesh().NumberOfNodes(), 0);
             KRATOS_CHECK_EQUAL(r_model_part.GetCommunicator().InterfaceMesh().NumberOfNodes(), 0);
         }
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromOtherPartitions, KratosMPICoreFastSuite2)
+{
+    // The model part
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    
+    // The data communicator
+    const DataCommunicator& r_data_communicator = Testing::GetDefaultDataCommunicator();
+    
+    // MPI data
+    const int rank =  r_data_communicator.Rank();
+    const int world_size = r_data_communicator.Size();
+
+    // Fill the model part
+    GenerateModelPartEntinties(r_model_part, r_data_communicator);
+
+    // Compute communicaton plan and fill communicator meshes correctly
+    auto filler = ParallelFillCommunicator(r_model_part, r_data_communicator);
+    filler.Execute();
+
+    // The global pointer commmunicator for nodes
+    GlobalPointersVector<Node> global_pointers;
+    auto p_global_pointer_communicator = SynchronizeNodes(r_model_part, global_pointers, r_data_communicator);
+
+    // Define the indices vector
+    const std::size_t number_of_gp = global_pointers.size();
+    std::vector<std::size_t> indices(number_of_gp);
+    std::vector<std::size_t> partition_index(number_of_gp);
+
+    // Call Apply to get the proxy
+    auto proxy_id = p_global_pointer_communicator->Apply([](GlobalPointer<Node>& rGP) -> std::size_t {
+        return rGP->Id();
+    });
+    auto proxy_partition = p_global_pointer_communicator->Apply([](GlobalPointer<Node>& rGP) -> std::size_t {
+        return rGP->FastGetSolutionStepValue(PARTITION_INDEX);
+    });
+
+    // Get the indices
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = global_pointers(i);
+        indices[i] = proxy_id.Get(r_gp);
+        partition_index[i] = proxy_partition.Get(r_gp);
+    }
+
+    // Indices to bring
+    std::vector<std::size_t> indices_to_bring;
+    std::vector<std::size_t> partition_origin;
+    for (std::size_t  i = 0; i < number_of_gp; ++i) {
+        if (!r_model_part.HasNode(indices[i])) {
+            indices_to_bring.push_back(indices[i]);
+            partition_origin.push_back(partition_index[i]);
+        }
+    }
+
+    for (std::size_t i = 0; i < indices_to_bring.size(); ++i) {
+        KRATOS_WATCH_MPI(indices_to_bring[i], r_data_communicator);
+        KRATOS_WATCH_MPI(partition_origin[i], r_data_communicator);
     }
 }
 
