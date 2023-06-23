@@ -252,7 +252,7 @@ double DEM_smooth_joint::LocalMaxSearchDistance(const int i,
     double tension_limit;
 
     // calculation of equivalent Young modulus
-    const double& equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
+    //const double& equiv_young = (*mpProperties)[BOND_YOUNG_MODULUS];
 
     const double my_radius = element1->GetRadius();
     const double other_radius = element2->GetRadius();
@@ -266,7 +266,8 @@ double DEM_smooth_joint::LocalMaxSearchDistance(const int i,
     //double initial_dist = radius_sum - initial_delta;
 
     // calculation of elastic constants
-    double kn_el = equiv_young * calculation_area / mInitialDistanceJoint;
+    //double kn_el = equiv_young * calculation_area / mInitialDistanceJoint;
+    double kn_el = (*mpProperties)[JOINT_NORMAL_STIFFNESS]; 
 
     //tension_limit = GetContactSigmaMax();
     tension_limit = (*mpProperties)[BOND_SIGMA_MAX]; //TODO: add BOND_SIGMA_MAX_DEVIATION
