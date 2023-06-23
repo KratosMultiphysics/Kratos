@@ -3,7 +3,7 @@ import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KGM
 
 
-def Factory(settings, Model):
+def Factory(settings, model):
     """
     This process sets multiple moving load conditions. The 'load' is to be filled in in x,y and z direction. The 'direction'
     parameter indicates the direction of the movement of the load in x,y and z direction, this parameter is either a
@@ -14,7 +14,7 @@ def Factory(settings, Model):
     term provides the offset distance offset along the moving load line condition for each moving point load
     """
     if not isinstance(settings, KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+        raise RuntimeError("Expected input shall be a Parameters object, encapsulating a json string")
 
     default_settings = KratosMultiphysics.Parameters("""
             {
@@ -34,6 +34,6 @@ def Factory(settings, Model):
     load_settings.ValidateAndAssignDefaults(default_settings)
 
     # Set process
-    model_part = Model.GetModelPart(load_settings["model_part_name"].GetString())
+    model_part = model.GetModelPart(load_settings["model_part_name"].GetString())
     return KGM.SetMultipleMovingLoadsProcess(model_part, load_settings)
 

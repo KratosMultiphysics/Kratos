@@ -48,7 +48,7 @@ namespace Kratos {
         ///@{
 
         SetMultipleMovingLoadsProcess(ModelPart & rModelPart,
-            Parameters Parameters);
+            const Parameters & rParameters);
 
         ///@}
 

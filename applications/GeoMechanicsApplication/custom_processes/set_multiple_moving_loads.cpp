@@ -16,9 +16,9 @@ namespace Kratos
 {
 
     SetMultipleMovingLoadsProcess::SetMultipleMovingLoadsProcess(ModelPart& rModelPart,
-        Parameters Settings)
+        const Parameters& rSettings)
         : mrModelPart(rModelPart),
-        mParameters(Settings)
+        mParameters(rSettings)
     {
     	Parameters default_parameters(R"(
         {
