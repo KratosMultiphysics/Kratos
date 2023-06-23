@@ -2,8 +2,8 @@ import KratosMultiphysics
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyScalarConstraintTableProcess(Model, settings["Parameters"])
 
 ## All the python processes should be derived from "python_process"
@@ -28,7 +28,7 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                     self.process = KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.params)
                 else:
                     self.params.AddValue("table",settings["table"])
-                    self.process = KratosGeo.ApplyDoubleTableProcess(self.model_part, self.params)
+                    self.process = KratosGeo.ApplyComponentTableProcess(self.model_part, self.params)
             elif settings["fluid_pressure_type"].GetString() == "Hydrostatic":
                 self.params.AddValue("gravity_direction",settings["gravity_direction"])
                 self.params.AddValue("reference_coordinate",settings["reference_coordinate"])
@@ -105,7 +105,7 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                 self.process = KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.params)
             else:
                 self.params.AddValue("table",settings["table"])
-                self.process = KratosGeo.ApplyDoubleTableProcess(self.model_part, self.params)
+                self.process = KratosGeo.ApplyComponentTableProcess(self.model_part, self.params)
 
     def ExecuteInitialize(self):
 

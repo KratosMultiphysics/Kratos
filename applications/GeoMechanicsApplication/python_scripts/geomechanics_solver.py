@@ -105,7 +105,6 @@ class GeoMechanicalSolver(PythonSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "realised_factor"            : 1.0,
             "calculate_reactions"        : true,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
@@ -522,6 +521,16 @@ class GeoMechanicalSolver(PythonSolver):
                                                                            compute_reactions,
                                                                            reform_step_dofs,
                                                                            move_mesh_flag)
+
+        elif strategy_type.lower() == "linear":
+            solving_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(self.computing_model_part,
+                                                                              self.scheme,
+                                                                              builder_and_solver,
+                                                                              compute_reactions,
+                                                                              reform_step_dofs,
+                                                                              False,
+                                                                              move_mesh_flag)
+
         else:
             raise Exception("Undefined strategy type", strategy_type)
 

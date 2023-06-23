@@ -309,6 +309,20 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8AverageEdgeLength, KratosCoreGeometriesFas
     KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 2.0, TOLERANCE);
 }
 
+/** Checks the min edge length */
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8MinEdgeLength, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateDeformedCenterLen1Hexahedra3D8();
+    KRATOS_CHECK_NEAR(geom->MinEdgeLength(), 1.0, TOLERANCE);
+}
+
+/** Checks the max edge length */
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8MaxEdgeLength, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateDeformedCenterLen1Hexahedra3D8();
+    KRATOS_CHECK_NEAR(geom->MaxEdgeLength(), sqrt(2.0), TOLERANCE);
+}
+
 /** Checks the solid angles */
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8SolidAngles, KratosCoreGeometriesFastSuite)
 {
@@ -371,4 +385,21 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8ShortestToLongestEdgeQuality, KratosCoreGe
     auto geom_2 = GenerateDeformedCenterLen1Hexahedra3D8();
     KRATOS_CHECK_NEAR(geom_2->ShortestToLongestEdgeQuality(), 0.70710678118, TOLERANCE);
 }
+
+/** Checks if CalculateDistance is correct.
+ * Checks if CalculateDistance is correct.
+ */
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8CalculateDistance, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateOriginCenterLen2Hexahedra3D8();
+
+    Point point1(0.0, 0.0, 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
+
+    Point point2(1.5, 0.0, 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
+    KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
+}
+
 }  // namespace Kratos::Testing.
