@@ -1,7 +1,6 @@
 from importlib import import_module
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
@@ -38,7 +37,7 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         if analysis_module == "KratosMultiphysics":
             analysis_module = GetClassModuleFromKratos(analysis_type)
 
-        self.model_parts = []
+        self.model_parts: 'list[Kratos.ModelPart]' = []
         analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
         self.analysis: AnalysisStage = getattr(import_module(analysis_full_module), analysis_type)(self.model, analysis_settings.Clone())
 
@@ -58,18 +57,9 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
 
     def Initialize(self):
         self.analysis.Initialize()
-        exe_pol = self.optimization_problem.GetExecutionPolicy(self.GetName())
-        self.un_buffered_data = ComponentDataView(exe_pol, self.optimization_problem).GetUnBufferedData()
 
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
-
-        # check if out put is required
-        self.out_put = False
-        optimization_problem_data = self.optimization_problem.GetProblemDataContainer()
-        if optimization_problem_data.HasValue("requested_vtu_outputs"):
-            if "all" in optimization_problem_data["requested_vtu_outputs"] or "execution_policy."+self.GetName() in optimization_problem_data["requested_vtu_outputs"]:
-                self.out_put = True
 
     def Check(self) -> None:
         pass
@@ -84,27 +74,30 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.TIME, 0)
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
         self.analysis.RunSolutionLoop()
-        if self.out_put:
+
+        optimization_problem_data = self.optimization_problem.GetProblemDataContainer()
+        if optimization_problem_data.HasValue("requested_container_expression_outputs") and self in optimization_problem_data["requested_container_expression_outputs"]:
             self._OutputAnalysisData()
 
     def _OutputAnalysisData(self):
+        unbuffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         for model_part in self.model_parts:
             for nodal_data in self.nodal_solution_step_data_variables:
                 nodal_field = Kratos.Expression.NodalExpression(model_part)
                 Kratos.Expression.VariableExpressionIO.Read(nodal_field, Kratos.KratosGlobals.GetVariable(nodal_data.GetString()), True)
-                self.un_buffered_data.SetValue(nodal_data.GetString(), nodal_field.Clone(), overwrite=True)
+                unbuffered_data.SetValue(nodal_data.GetString(), nodal_field.Clone(), overwrite=True)
             for nodal_data in self.nodal_data_value_variables:
                 nodal_field = Kratos.Expression.NodalExpression(model_part)
-                Kratos.Expression.VariableExpressionIO.Read(nodal_field, Kratos.KratosGlobals.GetVariable(nodal_data.GetString()), True)
-                self.un_buffered_data.SetValue(nodal_data.GetString(), nodal_field.Clone(), overwrite=True)
+                Kratos.Expression.VariableExpressionIO.Read(nodal_field, Kratos.KratosGlobals.GetVariable(nodal_data.GetString()), False)
+                unbuffered_data.SetValue(nodal_data.GetString(), nodal_field.Clone(), overwrite=True)
             for elem_data in self.element_data_value_variables:
                 elem_field = Kratos.Expression.ElementExpression(model_part)
-                Kratos.Expression.VariableExpressionIO.Read(elem_field, Kratos.KratosGlobals.GetVariable(elem_data.GetString()), True)
-                self.un_buffered_data.SetValue(elem_data.GetString(), elem_field.Clone(), overwrite=True)
+                Kratos.Expression.VariableExpressionIO.Read(elem_field, Kratos.KratosGlobals.GetVariable(elem_data.GetString()))
+                unbuffered_data.SetValue(elem_data.GetString(), elem_field.Clone(), overwrite=True)
             for cond_data in self.condition_data_value_variables:
                 cond_field = Kratos.Expression.ConditionExpression(model_part)
-                Kratos.Expression.VariableExpressionIO.Read(cond_field, Kratos.KratosGlobals.GetVariable(cond_data.GetString()), True)
-                self.un_buffered_data.SetValue(cond_data.GetString(), cond_field.Clone(), overwrite=True)
+                Kratos.Expression.VariableExpressionIO.Read(cond_field, Kratos.KratosGlobals.GetVariable(cond_data.GetString()))
+                unbuffered_data.SetValue(cond_data.GetString(), cond_field.Clone(), overwrite=True)
 
 
 

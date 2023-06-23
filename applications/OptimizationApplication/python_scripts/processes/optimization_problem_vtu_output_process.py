@@ -125,7 +125,7 @@ class ExpressionVtuOutput:
         output_file_name = output_file_name.replace("<model_part_full_name>", self.model_part.FullName())
         output_file_name = output_file_name.replace("<model_part_name>", self.model_part.Name)
         output_file_name = output_file_name.replace("<step>", str(self.optimization_problem.GetStep()))
-        self.vtu_output.PrintOutput(str(self.output_path /output_file_name))
+        self.vtu_output.PrintOutput(str(self.output_path / output_file_name))
 
 class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
     def GetDefaultParameters(self):
@@ -168,17 +168,25 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
 
         self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
-        optimization_problem_data = self.optimization_problem.GetProblemDataContainer()
-        if optimization_problem_data.HasValue("requested_vtu_outputs") and optimization_problem_data.GetValue("requested_vtu_outputs") != ["all"]:
-            if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
-                optimization_problem_data["requested_vtu_outputs"] = ["all"]
-            else:
-                optimization_problem_data["requested_vtu_outputs"].extend(self.list_of_component_names)
-        else:
-            optimization_problem_data["requested_vtu_outputs"] =  self.list_of_component_names
-
         self.list_of_expresson_vtu_outputs: 'list[ExpressionVtuOutput]' = []
         self.initialized_vtu_outputs = False
+
+    def ExecuteInitialize(self) -> None:
+        # get all the component names at the first writing point
+        if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
+            self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
+
+        for component_name in self.list_of_component_names:
+            self.list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
+
+        optimization_problem_data = self.optimization_problem.GetProblemDataContainer()
+
+        # check if there are vtu output requests from some other processes
+        if not optimization_problem_data.HasValue("requested_container_expression_outputs"):
+            optimization_problem_data["requested_container_expression_outputs"] = set()
+
+        for component in self.list_of_components:
+            optimization_problem_data["requested_container_expression_outputs"].add(component)
 
     def PrintOutput(self) -> None:
         if not self.initialized_vtu_outputs:
@@ -189,14 +197,6 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             expression_vtu_output.WriteOutput()
 
     def InitializeVtuOutputIO(self) -> None:
-
-        # get all the component names at the first writing point
-        if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
-            self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
-
-        for component_name in self.list_of_component_names:
-            self.list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
-
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
         for global_k, global_v in global_values_map.items():
              # first check whether this is part of requested list of components

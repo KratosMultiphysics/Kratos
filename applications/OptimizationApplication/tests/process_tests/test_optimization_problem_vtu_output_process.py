@@ -150,6 +150,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
         )
 
         process = OptimizationProblemVtuOutputProcess(parameters, self.optimization_problem)
+        process.ExecuteInitialize()
 
         # initialize unbuffered data
         for component in self.components_list:
