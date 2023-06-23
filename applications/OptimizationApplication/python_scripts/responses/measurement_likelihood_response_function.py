@@ -140,11 +140,17 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
             self.adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
 
             self.adjoint_model = Kratos.Model()
-
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
+            root_model_part_name = self.adjoint_model.GetModelPartNames()[0]
+
+            def modify_parameters_in_analysis_stage():
+                for i, element in enumerate(self.model.GetModelPart(root_model_part_name).Elements):
+                    element.Properties[Kratos.YOUNG_MODULUS] = self.GetAnalysisModelPart().GetElement(element.Id).Properties[Kratos.YOUNG_MODULUS]
+
+            adjoint_analysis.ModifyInitialProperties = modify_parameters_in_analysis_stage  # override responding function, it's a hack!!!!!
+
             adjoint_analysis.Run()
 
-            root_model_part_name = self.adjoint_model.GetModelPartNames()[0]
             Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, self.adjoint_model[root_model_part_name], self.model[root_model_part_name])
 
             # now fill the collective expressions
@@ -194,23 +200,10 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
             gradient = []
 
-            # for i in range(num_elements):
             for i, element in enumerate(model_part.Elements):
-
-                # properties = np.ones((len(model_part.Elements)))
-                # properties *= 1.0
-                # properties[i] += perturbation
-
-                # expression: Kratos.Expression.ElementExpression = Kratos.Expression.ElementExpression(model_part=model_part)
-                # Kratos.Expression.CArrayExpressionIO.Read(expression, properties)
-                # Kratos.Expression.CArrayExpressionIO.Write(expression, properties)
-                # expression.Evaluate()
 
                 old_stiffness = element.Properties[Kratos.YOUNG_MODULUS]
                 element.Properties[Kratos.YOUNG_MODULUS] += perturbation
-
-                # for element2 in model_part.Elements:
-                #     print(element2.Properties[Kratos.YOUNG_MODULUS])
 
                 self.primal_analysis_execution_policy_decorator.Execute()
 
@@ -218,10 +211,6 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
 
                 gradient.append((reference_value-objective_value)/perturbation)
                 element.Properties[Kratos.YOUNG_MODULUS] = old_stiffness
-
-                # properties[i] -= perturbation
-                # Kratos.Expression.CArrayExpressionIO.Write(expression, properties)
-                # expression.Evaluate()
 
             return gradient
 

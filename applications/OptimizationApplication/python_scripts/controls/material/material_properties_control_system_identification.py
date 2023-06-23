@@ -1,3 +1,5 @@
+import numpy as np
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
@@ -33,8 +35,8 @@ class MaterialPropertiesControlSystemIdentification(Control):
             "model_part_names"     : [""],
             "control_variable_name": "YOUNG_MODULUS",
             "mapping_options":{
-                "use_constant_multiplication_factor": false,
-                "constant_multiplication_factor" : 1.0
+                "use_laplace_smoothing": false,
+                "num_smoothing_iterations" : 5
             }
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -82,6 +84,8 @@ class MaterialPropertiesControlSystemIdentification(Control):
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
+        kratos_variable = Kratos.KratosGlobals.GetVariable(list(keys)[0].Name() + "_SENSITIVITY")
+
         if len(keys) != 1:
             raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if self.controlled_physical_variable not in keys:
@@ -93,15 +97,41 @@ class MaterialPropertiesControlSystemIdentification(Control):
             raise RuntimeError(
                 f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-        # TODO: Implement filtering mechanisms here
-        cloned_container = physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
+        cloned_container_expression = physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
 
-        if self.mapping_options["use_constant_multiplication_factor"].GetBool():
+        if self.mapping_options["use_laplace_smoothing"].GetBool():
+            self._LaplaceSmoothingForExpressionValues(
+                container_expression=cloned_container_expression,
+                kratos_variable=kratos_variable)
 
-            for element in cloned_container.GetContainer():
-                element.Properties[list(keys)[0]] *= self.mapping_options["constant_multiplication_factor"].GetDouble()
+        return cloned_container_expression
 
-        return cloned_container
+    def _LaplaceSmoothingForExpressionValues(self, container_expression: "ContainerExpressionTypes", kratos_variable: "SupportedSensitivityFieldVariableTypes") -> None:
+
+        num_of_nodes = len(self.model_part.Nodes)
+        elements_per_node_list = np.ndarray(num_of_nodes)
+
+        for element in container_expression.GetModelPart().Elements:
+            for node in element.GetNodes():
+                if not hasattr(node, str(kratos_variable)):
+                    node.AddDof(kratos_variable)
+
+        for i in range(self.mapping_options["num_smoothing_iterations"].GetInt()):
+            elements_per_node_list *= 0.0
+
+            for element in container_expression.GetModelPart().Elements:
+                for node in element.GetNodes():
+                    if elements_per_node_list[node.Id-1] == 0:
+                        node[kratos_variable] = 0.0
+                    node[kratos_variable] += element.GetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY)
+                    elements_per_node_list[node.Id-1] += 1
+
+            for element in container_expression.GetModelPart().Elements:
+                new_stiffness = 0.0
+                for node in element.GetNodes():
+                    new_stiffness += node[kratos_variable] / elements_per_node_list[node.Id-1]
+                new_stiffness /= len(element.GetNodes())
+                element.SetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY, new_stiffness)
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):

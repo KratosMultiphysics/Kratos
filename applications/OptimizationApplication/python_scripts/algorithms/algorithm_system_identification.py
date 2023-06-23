@@ -90,11 +90,11 @@ class AlgorithmSystemIdentification(Algorithm):
     def Finalize(self):
         pass
 
-    def ComputeSearchDirection(self, obj_gradiend_expressions) -> KratosOA.CollectiveExpression:
+    def ComputeSearchDirection(self, obj_gradient_expressions) -> KratosOA.CollectiveExpression:
 
         search_direction = None
 
-        for container_expression in obj_gradiend_expressions.GetContainerExpressions():
+        for container_expression in obj_gradient_expressions.GetContainerExpressions():
 
             elements = container_expression.GetModelPart().Elements
             gradient_vector = np.ndarray(shape=(len(elements), 1))
@@ -102,20 +102,11 @@ class AlgorithmSystemIdentification(Algorithm):
             for i, element in enumerate(elements):
                 gradient_vector[i] = element.GetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY)
 
-            print(gradient_vector)
-
             if search_direction == None:
                 search_direction = np.zeros(shape=(len(elements)))
 
-            scaling = 30000000000.0
-
-            gradient_vector *= scaling
-
             gauss_newton_likelihood = gradient_vector * self.GetCurrentObjValue()
             gauss_newton_gradient = gradient_vector@gradient_vector.T
-
-            # fig = px.line(gradient_vector)
-            # fig.show()
 
             search_direction += ssl.lsmr(
                 gauss_newton_gradient,
@@ -123,11 +114,13 @@ class AlgorithmSystemIdentification(Algorithm):
                 damp=0.0,
             )[0]
 
-            search_direction *= scaling
+            search_direction *= -1.0
+
+            # search_direction = gradient_vector.reshape(gradient_vector.shape[0]) / np.max(np.abs(gradient_vector))
 
             Kratos.Expression.CArrayExpressionIO.Read(container_expression, search_direction)
 
-        return obj_gradiend_expressions
+        return obj_gradient_expressions
 
     def GetCurrentObjValue(self) -> float:
         return self.__obj_val
@@ -163,16 +156,16 @@ class AlgorithmSystemIdentification(Algorithm):
 
                 with TimeLogger("Calculate design update", "Start", "End"):
                     search_direction = self.ComputeSearchDirection(obj_grad)
-                    self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
+                    self.algorithm_data.GetBufferedData()["search_direction"] = search_direction  # The name ("search_direction") is important, it is used in the line search method!
 
-                    # alpha = self.__line_search_method.ComputeStep()
-                    alpha = 0.1
+                    alpha = self.__line_search_method.ComputeStep()
+                    # alpha = 0.1
 
                     update = search_direction * alpha
                     self.__control_field += update
 
-                self.algorithm_data.GetBufferedData()["parameter_update"] = update
-                self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field
+                self.algorithm_data.GetBufferedData()["parameter_update_in iteration"] = update
+                self.algorithm_data.GetBufferedData()["Stiffness_in_iteration"] = self.__control_field
 
                 self.converged = self.__convergence_criteria.IsConverged()
 

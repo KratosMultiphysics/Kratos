@@ -17,7 +17,7 @@
     "compute_reactions": false,
     "move_mesh_flag": false,
     "response_function_settings": {
-      "response_type": "adjoint_nodal_displacement_measurement_residual",
+      "response_type": "adjoint_nodal_displacement",
       "analyzer": "kratos",
       "gradient_mode": "semi_analytic",
       "step_size": 1.0e-6,
