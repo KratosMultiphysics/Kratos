@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name":         "test_quad_4n",
         "start_time":           0.0,
-        "end_time":             1.0,
+        "end_time":             10.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -11,7 +11,6 @@
         "solver_type":                        "U_Pw",
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
-        "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
             "input_filename":   "test_quad_4n"
@@ -20,13 +19,13 @@
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":            0.25
+            "time_step":            1.0
         },
         "buffer_size":                        2,
         "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  true,
-        "move_mesh_flag":                     true,
+        "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
@@ -39,7 +38,7 @@
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
         "strategy_type":                      "newton_raphson",
-        "convergence_criterion":              "displacement_criterion",
+        "convergence_criterion":              "residual_criterion",
         "displacement_relative_tolerance":    1.0E-9,
         "displacement_absolute_tolerance":    1.0E-9,
         "residual_relative_tolerance":        1.0E-4,
@@ -47,8 +46,8 @@
         "min_iterations":                      6,
         "max_iterations":                      15,
         "number_cycles":                      100,
-        "reduction_factor":                   0.5,
-        "increase_factor":                    2.0,
+        "reduction_factor":                   1.0,
+        "increase_factor":                    1.0,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
@@ -81,7 +80,7 @@
                         "gidpost_flags":       {
                             "WriteDeformedMeshFlag": "WriteUndeformed",
                             "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostBinary",
+                            "GiDPostMode":           "GiD_PostAscii",
                             "MultiFileFlag":         "SingleFile"
                         },
                         "file_label":          "step",
@@ -92,7 +91,7 @@
                         "skin_output":         false,
                         "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","WATER_PRESSURE"],
-                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR"]
+                        "gauss_point_results": ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS"]
                     },
                     "point_data_configuration":  []
                 }

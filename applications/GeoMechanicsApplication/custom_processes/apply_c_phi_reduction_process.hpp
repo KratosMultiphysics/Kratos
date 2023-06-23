@@ -11,7 +11,6 @@
 //                Wijtze Pieter Kikstra
 //                Anne van de Graaf
 //
-//
 
 #pragma once
 
@@ -39,38 +38,54 @@ namespace Kratos
 
         KRATOS_CLASS_POINTER_DEFINITION(ApplyCPhiReductionProcess);
 
-        //--------------------------------------------------------------------------------------------------------------
-
         /// Constructor
         ApplyCPhiReductionProcess(ModelPart&  model_part,
-                                const Parameters& ) : Process(Flags()), mrModelPart(model_part)
+                                  const Parameters& ) : Process(Flags()), mrModelPart(model_part)
         {
+            mReductionFactor         = 1.;
+            mPreviousReductionFactor = 1.;
+            mReductionIncrement      = 0.1;
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Constructor" << std::endl;
         }
-
-        ///------------------------------------------------------------------------------------
 
         /// Destructor
         ~ApplyCPhiReductionProcess() override = default;
 
-        //--------------------------------------------------------------------------------------------------------------
-
         void ExecuteInitializeSolutionStep() override
         {
             KRATOS_TRY
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "Start of Execute Initialize" << std::endl;
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Start of Execute Initialize Solution Step" << std::endl;
+
+            mReductionFactor -= mReductionIncrement;
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduction factor: " << mReductionFactor << std::endl;
+
             // Apply C/Phi Reduction procedure for the model part:
             block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
-                set_C_phi(rElement);
+                set_C_Phi(rElement);
             });
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "End of Execute Initialize" << std::endl;
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "End of Execute Initialize Solution Step" << std::endl;
             KRATOS_CATCH("")
         }
 
-        //--------------------------------------------------------------------------------------------------------------
+        void ExecuteFinalizeSolutionStep() override
+        {
+            bool cycle = false;
+            if (cycle)
+            {
+                mReductionFactor = mPreviousReductionFactor;
+                mReductionIncrement *= 0.5;
+            } else {
+                mPreviousReductionFactor = mReductionFactor;
+            }
+        }
+
     private:
         ModelPart& mrModelPart;
+        double mReductionFactor;
+        double mPreviousReductionFactor;
+        double mReductionIncrement;
 
-        void set_C_phi(Element& rElement)
+        void set_C_Phi(Element& rElement)
         {
             KRATOS_INFO("ApplyCPhiReductionProcess") << "Element ID: " << rElement.Id() << std::endl;
             // Get C/Phi material properties of this element
@@ -82,25 +97,26 @@ namespace Kratos
             KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial Phi = " << phi << std::endl;
 
             // Check for UMAT C Parameter
-            double c = GetAndCheckC (rProp);
+            double c = GetAndCheckC(rProp);
             KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial C = " << c << std::endl;
-
-            // C/Phi reduction factor
-            double reductionFactor = 0.9;
 
             // Phi converted to radians and then its tangent is reduced by the reduction factor
             double phi_rad = MathUtils<>::DegreesToRadians(phi);
             double tan_phi = std::tan(phi_rad);
-            double reduced_tan_phi = reductionFactor * tan_phi;
+            double reduced_tan_phi = mReductionFactor * tan_phi;
             double reduced_phi_rad = std::atan(reduced_tan_phi);
             double reduced_phi = reduced_phi_rad * 180 / Globals::Pi; // TODO: RADIANSTODEGREES function!
             KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced Phi = " << reduced_phi << std::endl;
 
             // C is reduced by the reduction factor
-            double reduced_c = reductionFactor * c;
+            double reduced_c = mReductionFactor * c;
             KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced C = " << reduced_c << std::endl;
 
-            SetValueAtElement(rElement, UMAT_PARAMETERS, rProp[UMAT_PARAMETERS]);
+            auto newParameters = rProp[UMAT_PARAMETERS];
+            newParameters[rProp[INDEX_OF_UMAT_PHI_PARAMETER]-1] = reduced_phi;
+            newParameters[rProp[INDEX_OF_UMAT_C_PARAMETER]-1]   = reduced_c;
+
+            SetValueAtElement(rElement, UMAT_PARAMETERS, newParameters);
 
         }
 
@@ -108,12 +124,11 @@ namespace Kratos
         {
             // Check for UMAT PHI Parameter
             double phi = 0.;
-            if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(NUMBER_OF_UMAT_PARAMETERS) && \
+            if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(NUMBER_OF_UMAT_PARAMETERS) &&
                 rProp.Has(UMAT_PARAMETERS)) {
                 if (rProp[INDEX_OF_UMAT_PHI_PARAMETER] < 1 ||
                     rProp[INDEX_OF_UMAT_PHI_PARAMETER] > rProp[NUMBER_OF_UMAT_PARAMETERS]) {
-                    KRATOS_ERROR << "undefined INDEX_OF_UMAT_PHI_PARAMETER: "
-                    << rProp[INDEX_OF_UMAT_PHI_PARAMETER] << std::endl;
+                    KRATOS_ERROR << "undefined INDEX_OF_UMAT_PHI_PARAMETER: " << rProp[INDEX_OF_UMAT_PHI_PARAMETER] << std::endl;
                 }
                 // needs more checking?
                 phi = rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
@@ -130,12 +145,11 @@ namespace Kratos
         double GetAndCheckC(const Element::PropertiesType& rProp)
         {
             double c = 0.;
-            if (rProp.Has(INDEX_OF_UMAT_C_PARAMETER) && rProp.Has(NUMBER_OF_UMAT_PARAMETERS) && \
+            if (rProp.Has(INDEX_OF_UMAT_C_PARAMETER) && rProp.Has(NUMBER_OF_UMAT_PARAMETERS) &&
                 rProp.Has(UMAT_PARAMETERS)) {
-                if (rProp[INDEX_OF_UMAT_C_PARAMETER] < 1 || rProp[INDEX_OF_UMAT_C_PARAMETER] > \
-                    rProp[NUMBER_OF_UMAT_PARAMETERS]) {
-                    KRATOS_ERROR << "undefined INDEX_OF_UMAT_C_PARAMETER: " \
-                    << rProp[INDEX_OF_UMAT_C_PARAMETER] << std::endl;
+                if (rProp[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
+                    rProp[INDEX_OF_UMAT_C_PARAMETER] > rProp[NUMBER_OF_UMAT_PARAMETERS]) {
+                    KRATOS_ERROR << "undefined INDEX_OF_UMAT_C_PARAMETER: " << rProp[INDEX_OF_UMAT_C_PARAMETER] << std::endl;
                 }
                 // needs more checking?
                 c = rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_C_PARAMETER] - 1];
@@ -153,14 +167,18 @@ namespace Kratos
         {
 
             Properties& r_prop = rElement.GetProperties();
+            KRATOS_INFO("SetValueAtElement") << "Properties ID of initial instance: " << r_prop.Id() << std::endl;
 
             // Copies properties
             Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(r_prop);
+            KRATOS_INFO("SetValueAtElement") << "Properties ID of new instance: " << p_new_prop->Id() << std::endl;
 
             // Adds new properties to the element
             p_new_prop->SetValue(rVar, Value);
             rElement.SetProperties(p_new_prop);
 
+            KRATOS_INFO("Retrieval of written thing ") << std::endl;
+            rElement.GetProperties().PrintData(std::cout);
         }
 
     }; // class ApplyCPhiReductionProcess

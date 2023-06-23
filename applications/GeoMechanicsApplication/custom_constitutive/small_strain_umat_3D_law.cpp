@@ -143,15 +143,12 @@ void SmallStrainUMAT3DLaw::InitializeMaterial(const Properties &rMaterialPropert
 
 {
    KRATOS_TRY
-   KRATOS_INFO("ApplyCPhiReductionProcess") << "Just before loading UMAT" << std::endl;
    // we need to check if the model is loaded or not
    mIsUMATLoaded = loadUMAT(rMaterialProperties);
-   KRATOS_INFO("ApplyCPhiReductionProcess") << "Just after loading UMAT" << std::endl;
 
    if (!mIsUMATLoaded) KRATOS_ERROR << "cannot load the specified UMAT" << rMaterialProperties[UDSM_NAME] << std::endl;
 
    ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-   KRATOS_INFO("ApplyCPhiReductionProcess") << "After resetting material" << std::endl;
 
 
    KRATOS_CATCH("")
@@ -664,7 +661,7 @@ Vector& SmallStrainUMAT3DLaw::GetValue( const Variable<Vector> &rThisVariable, V
       noalias(rValue) = mStressVectorFinalized;
    }
 
-    return rValue;
+   return rValue;
 }
 
 double& SmallStrainUMAT3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
