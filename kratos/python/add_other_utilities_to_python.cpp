@@ -677,8 +677,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         }) )
         .def(py::init<ModelPart&, const DataCommunicator& >() )
         .def("Execute", &FillCommunicator::Execute)
+        .def("BringEntitiesFromOtherPartitions", &FillCommunicator::BringEntitiesFromOtherPartitions)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
-    ;
+        .def("__str__", PrintObject<FillCommunicator>)
+        ;
 
     typedef DenseQRDecomposition<LocalSpaceType> DenseQRDecompositionType;
     py::class_<DenseQRDecompositionType, DenseQRDecompositionType::Pointer>(m,"DenseQRDecompositionType")
