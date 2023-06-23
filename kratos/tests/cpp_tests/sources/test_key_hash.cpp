@@ -77,8 +77,15 @@ KRATOS_TEST_CASE_IN_SUITE(HashSTLPair, KratosCoreFastSuite)
 {
     std::pair<int, int> test_pair(1, 2);
 
+    // Calculate the reference solution
+    std::size_t reference_solution = 0;
+    const std::size_t h1 = std::hash<int>()(1);
+    const std::size_t h2 = std::hash<int>()(2);
+    HashCombine(reference_solution, h1);
+    HashCombine(reference_solution, h2);
+
     std::hash<std::pair<int, int>> hash_func;
-    KRATOS_CHECK_EQUAL(hash_func(test_pair), 175247769363);
+    KRATOS_CHECK_EQUAL(hash_func(test_pair), reference_solution);
 }
 
 /**
