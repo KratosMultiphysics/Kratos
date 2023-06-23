@@ -369,7 +369,7 @@ private:
         });
 
         // Calculate residual
-        CalculateResidual(DeltaTime);
+        CalculateResidual(mSolutionOld, DeltaTime);
 
         // Calculate the low order solution
         CalculateLowOrderUpdate(DeltaTime);
@@ -394,7 +394,9 @@ private:
         });
     }
 
-    void CalculateResidual(const double DeltaTime)
+    void CalculateResidual(
+        const std::vector<double>& rSolutionVector, 
+        const double DeltaTime)
     {
         // Get edge data structure containers
         const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
@@ -430,7 +432,7 @@ private:
                 auto& vel_ij_half = rTLS.vel_ij_half;
 
                 // i-node nodal data
-                const double u_i = mSolutionOld[iRow];
+                const double u_i = rSolutionVector[iRow];
                 const auto& r_i_vel = mConvectionValues[iRow];
 
                 // i-node convective flux calculation
@@ -443,7 +445,7 @@ private:
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    const double u_j = mSolutionOld[j_node_id];
+                    const double u_j = rSolutionVector[j_node_id];
                     const auto& r_j_vel = mConvectionValues[j_node_id];
 
                     // j-node convective flux calculation
@@ -509,7 +511,7 @@ private:
             // Add the diagonal contribution to the residual
             rTLS = mpEdgeDataStructure->GetBoundaryMassMatrixDiagonal(i_node_id);
             double aux_res = 0.0;
-            const double u_i = mSolutionOld[i_node_id];
+            const double u_i = rSolutionVector[i_node_id];
             const auto &r_i_vel = mConvectionValues[i_node_id];
             for (IndexType d = 0; d < TDim; ++d) {
                 aux_res += u_i * r_i_vel[d] * rTLS[d];
