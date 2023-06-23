@@ -286,7 +286,39 @@ public:
 						{
 							if (i!=j) rLocalVector[i] = 0.0;
 						}
-					}
+
+                        // Add 'friction' force //
+
+                        // Only apply to nodes currently containing material points
+                        if (rGeometry[itNode].FastGetSolutionStepValue(NODAL_MASS) >= std::numeric_limits<double>::epsilon()) {
+                            // obtain nodal velocity and rotate it to the same frame of reference as the local geometry
+                            // [ since mpc contributions are accumulated at nodes, friction force is directed against
+                            //    nodal velocity value                                                                ]
+
+//                            KRATOS_WATCH(rGeometry[itNode].GetInitialPosition());
+
+                            array_1d<double, 3> nodal_velocity = ZeroVector(3);
+
+                            nodal_velocity = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+
+                            this->RotateVector(nodal_velocity, rGeometry[itNode], VELOCITY_THRESHOLD);
+
+                            // TODO: do this in a condition object (makes more sense since later you'll need the nodal force)
+                            // obtain friction contribution of at boundary particle [currently fixed FRICTION_FORCE] and extrapolate to nodes
+                            Vector shape_fn = row(rGeometry.ShapeFunctionsValues(), 0);
+                            double nodal_friction_contribution = shape_fn[itNode] * FRICTION_FORCE;
+
+//                                                    KRATOS_WATCH(j);
+//                                                    KRATOS_WATCH(nodal_velocity);
+
+                            // apply friction force in opposite direction of tangential velocity components
+                            for (unsigned dim = 1; dim < this->GetDomainSize(); dim++) {
+                                rLocalVector[j + dim] -= nodal_friction_contribution * nodal_velocity[dim];
+
+                                //                            KRATOS_WATCH(rLocalVector[j+dim]);
+                            }
+                        }
+                    }
 				}
                 // All entries in penalty matrix zeroed out except for normal component
                 // [ no effect in case of empty dummy rLocalMatrix ]
@@ -486,7 +518,7 @@ private:
 
 	const Variable<double>& mrFlagVariable;
 
-    const double FRICTION_FORCE = 2000;
+    const double FRICTION_FORCE = 0000;
     const double VELOCITY_THRESHOLD = 1e-10;
 
 	///@}
@@ -506,9 +538,9 @@ private:
     /**
      @param rVector Vector to be rotated
      @param rNode A reference to the node associated with the vector
-     @param threshold Value below which the value of the component is considered 0
+     @param threshold Value below which the value of the component is considered 0 [ default value: machine epsilon ]
      */
-    void RotateVector(array_1d<double, 3> &rVector, const Node &rNode, const double threshold) const {
+    void RotateVector(array_1d<double, 3> &rVector, const Node &rNode, const double threshold = std::numeric_limits<double>::epsilon()) const {
         array_1d<double, 3> rotated_nodal_vector = ZeroVector(3);
         BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3);
 

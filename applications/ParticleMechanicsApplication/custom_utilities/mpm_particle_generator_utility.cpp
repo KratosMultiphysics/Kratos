@@ -158,6 +158,7 @@ namespace MPMParticleGeneratorUtility
                         bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin);
                         if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
 
+                        // pelem contains the result of SearchStructure.FindPointOnMesh()
                         pelem->Set(ACTIVE);
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                             pelem->pGetGeometry(), xg[0],

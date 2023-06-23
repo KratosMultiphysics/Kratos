@@ -87,7 +87,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
         {
             r_geometry[i].SetLock();
             r_geometry[i].Set(SLIP);
-            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
+            r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0; // flag for penalty-based slip cond
             r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
             r_geometry[i].UnSetLock();
         }
@@ -120,9 +120,9 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int number_of_nodes = GetGeometry().size(); // # nodes in containing element
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int block_size = this->GetBlockSize();
+    const unsigned int block_size = this->GetBlockSize(); // DoF assoc with each node
     const GeometryType& r_geometry = GetGeometry();
 
     // Resizing as needed the LHS
@@ -176,6 +176,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
     if (apply_constraints)
     {
+        // Matrix H (eq 44)
         // Arrange shape function
         Matrix shape_function = ZeroMatrix(block_size, matrix_size);
         for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -203,6 +204,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {
             noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);
             rLeftHandSideMatrix  *= m_penalty * this->GetIntegrationWeight();
+            // note: integration weight (area assoc. with boundary particle is set on its creation)
         }
 
         if ( CalculateResidualVectorFlag == true )
@@ -271,6 +273,7 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
         // Here MPC normal vector and IS_STRUCTURE are reset
+        // reset flags on nodes because material pt. can move to a different grid element in the next timestep
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             r_geometry[i].SetLock();
