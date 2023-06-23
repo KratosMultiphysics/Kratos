@@ -21,8 +21,8 @@ class GeoMechanicalSolver(PythonSolver):
 
         super().__init__(model, custom_settings)
 
-        # Validate settings.
         self.ValidateSettings()
+
         model_part_name = self.settings["model_part_name"].GetString()
 
         if model_part_name == "":
@@ -150,7 +150,7 @@ class GeoMechanicalSolver(PythonSolver):
             self.settings["linear_solver_settings"]["scaling"].GetBool()):
             if (self.settings.Has("rebuild_level") and
                 self.settings["rebuild_level"].GetInt() < 2):
-                raise ValueError("Scaling can only be used if rebuild level is 2")
+                raise ValueError("Scaling can only be used if rebuild level is at least equal to 2")
             if (self.settings.Has("prebuild_dynamics") and
                 self.settings["prebuild_dynamics"].GetBool()):
                 raise ValueError("Scaling can not be used if prebuild dynamics is true")

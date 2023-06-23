@@ -35,7 +35,7 @@ class KratosGeoMechanicsSolverTests(KratosUnittest.TestCase):
 
         # reinitialize parameters
         parameters = geomechanics_solver.GeoMechanicalSolver.GetDefaultParameters()
-        # set scaling on true and rebuild level on 1, such that an exception is thrown
+        # set scaling on true and prebuild_dynamics on true, such that an exception is thrown
         parameters["linear_solver_settings"]["scaling"].SetBool(True)
         parameters["prebuild_dynamics"].SetBool(True)
 
