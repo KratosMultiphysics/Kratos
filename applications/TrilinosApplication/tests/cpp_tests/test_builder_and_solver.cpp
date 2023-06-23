@@ -92,9 +92,8 @@ namespace Kratos::Testing
         p_prop->SetValue(NODAL_AREA, 0.01);
 
         // MPI data
-        const DataCommunicator& r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-        const int rank =  r_comm.Rank();
-        const int world_size = r_comm.Size();
+        const int rank =  rDataCommunicator.Rank();
+        const int world_size = rDataCommunicator.Size();
 
         // Initially everything in one partition
         if (world_size == 1) {
@@ -238,9 +237,8 @@ namespace Kratos::Testing
         p_prop_2->SetValue(NODAL_AREA, 0.0);
 
         // MPI data
-        const DataCommunicator& r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-        const int rank =  r_comm.Rank();
-        const int world_size = r_comm.Size();
+        const int rank =  rDataCommunicator.Rank();
+        const int world_size = rDataCommunicator.Size();
 
         // Initially everything in one partition
         if (world_size == 1) {
@@ -344,9 +342,8 @@ namespace Kratos::Testing
         p_prop->SetValue(NODAL_AREA, 0.01);
 
         // MPI data
-        const DataCommunicator& r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-        const int rank =  r_comm.Rank();
-        const int world_size = r_comm.Size();
+        const int rank =  rDataCommunicator.Rank();
+        const int world_size = rDataCommunicator.Size();
 
         // Initially everything in one partition
         if (world_size == 1) {
