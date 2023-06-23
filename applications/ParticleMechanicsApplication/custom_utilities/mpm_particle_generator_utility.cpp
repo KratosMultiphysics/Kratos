@@ -227,13 +227,14 @@ namespace MPMParticleGeneratorUtility
         const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
         const unsigned int number_elements = rBackgroundGridModelPart.NumberOfElements() + rInitialModelPart.NumberOfElements() + rMPMModelPart.NumberOfElements();
         const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
-        unsigned int last_condition_id;
+        unsigned int condition_id;
         if (number_elements > number_nodes && number_elements > number_conditions)
-            last_condition_id = number_elements;
+            condition_id = number_elements+1;
         else if (number_nodes > number_elements && number_nodes > number_conditions)
-            last_condition_id = number_nodes;
+            condition_id = number_nodes+1;
         else
-            last_condition_id = number_conditions;
+            condition_id = number_conditions+1;
+
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
@@ -376,16 +377,11 @@ namespace MPMParticleGeneratorUtility
                         // Check Normal direction
                         if (flip_normal_direction) mpc_normal *= -1.0;
 
-                        unsigned int new_condition_id = 0;
-
                         // Create Particle Point Load Condition
                         if (condition_type_name == "MPMParticlePointLoadCondition" ){
                             // create point load condition
                             mpc_area[0] = 1;                            
 
-
-                            // Create new material point condition
-                            new_condition_id = last_condition_id + 1;
 
                             mpc_xg[0].clear();
 
@@ -407,7 +403,7 @@ namespace MPMParticleGeneratorUtility
                                 mpc_area[0]);
 
                             Condition::Pointer p_condition = new_condition.Create(
-                                new_condition_id, p_new_geometry, properties);
+                                condition_id, p_new_geometry, properties);
 
 
                             ProcessInfo process_info = ProcessInfo();
@@ -431,7 +427,7 @@ namespace MPMParticleGeneratorUtility
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
-                            last_condition_id +=1;
+                            condition_id +=1;
 
                         }
                         // Loop over the conditions to create inner particle condition (except point load condition)
@@ -479,12 +475,9 @@ namespace MPMParticleGeneratorUtility
                                 }
 
                                 if (create_condition){
-
-                                    // Create new material point condition
-                                    new_condition_id = last_condition_id + 1 ;
                                     
                                     Condition::Pointer p_condition = new_condition.Create(
-                                        new_condition_id, p_quadrature_point_geometry, properties);
+                                        condition_id, p_quadrature_point_geometry, properties);
                                 
                                     ParticleConditions.push_back(p_condition);
                                     
@@ -523,7 +516,7 @@ namespace MPMParticleGeneratorUtility
 
                                     // Add the MP Condition to the model part
                                     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
-                                    last_condition_id +=1;
+                                    condition_id +=1;
                                 }
 
                             }
