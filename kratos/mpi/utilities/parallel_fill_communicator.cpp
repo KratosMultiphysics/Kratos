@@ -30,10 +30,10 @@ ParallelFillCommunicator::ParallelFillCommunicator(ModelPart& rModelPart)
 
 ParallelFillCommunicator::ParallelFillCommunicator(
     ModelPart& rModelPart,
-    const DataCommunicator& rDataComm)
-    : FillCommunicator(rModelPart, rDataComm)
+    const DataCommunicator& rDataCommunicator)
+    : FillCommunicator(rModelPart, rDataCommunicator)
 {
-    KRATOS_ERROR_IF_NOT(rDataComm.IsDistributed()) << "Trying to create an ParallelFillCommunicator with a non-distributed DataCommunicator!" << std::endl;
+    KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Trying to create an ParallelFillCommunicator with a non-distributed DataCommunicator!" << std::endl;
 }
 
 void ParallelFillCommunicator::Execute()

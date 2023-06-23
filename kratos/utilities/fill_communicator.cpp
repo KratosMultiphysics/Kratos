@@ -29,8 +29,8 @@ FillCommunicator::FillCommunicator(ModelPart& rModelPart)
 
 FillCommunicator::FillCommunicator(
     ModelPart& rModelPart,
-    const DataCommunicator& rDataComm)
-    : mrDataComm(rDataComm), mrBaseModelPart(rModelPart)
+    const DataCommunicator& rDataCommunicator)
+    : mrDataComm(rDataCommunicator), mrBaseModelPart(rModelPart)
 {}
 
 void FillCommunicator::Execute()
