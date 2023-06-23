@@ -96,7 +96,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
             json.dump(self.measurement_data, outfile)
 
     def Check(self) -> None:
-        KratosOA.PropertiesVariableExpressionIO.Check(Kratos.Expression.ElementExpression(self.model_part), StructuralMechanicsApplication.YOUNG_MODULUS)
+        KratosOA.PropertiesVariableExpressionIO.Check(Kratos.Expression.ElementExpression(self.model_part), Kratos.YOUNG_MODULUS)
 
     def Finalize(self) -> None:
         pass

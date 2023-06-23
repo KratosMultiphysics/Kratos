@@ -90,17 +90,19 @@ class AlgorithmSystemIdentification(Algorithm):
     def Finalize(self):
         pass
 
-    def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
+    def ComputeSearchDirection(self, obj_gradiend_expressions) -> KratosOA.CollectiveExpression:
 
         search_direction = None
 
-        for container_expression in obj_grad.GetContainerExpressions():
+        for container_expression in obj_gradiend_expressions.GetContainerExpressions():
 
             elements = container_expression.GetModelPart().Elements
             gradient_vector = np.ndarray(shape=(len(elements), 1))
 
             for i, element in enumerate(elements):
                 gradient_vector[i] = element.GetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY)
+
+            print(gradient_vector)
 
             if search_direction == None:
                 search_direction = np.zeros(shape=(len(elements)))
@@ -123,9 +125,9 @@ class AlgorithmSystemIdentification(Algorithm):
 
             search_direction *= scaling
 
-            container_expression.Read(search_direction)
+            Kratos.Expression.CArrayExpressionIO.Read(container_expression, search_direction)
 
-        return obj_grad
+        return obj_gradiend_expressions
 
     def GetCurrentObjValue(self) -> float:
         return self.__obj_val

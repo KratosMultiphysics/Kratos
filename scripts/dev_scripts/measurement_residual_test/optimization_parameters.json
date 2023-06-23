@@ -31,7 +31,7 @@
       "name": "system_identification_control",
       "type": "material.material_properties_control_system_identification",
       "settings": {
-        "model_part_names": ["Structure.all_nodes_elements_model_part"],
+        "model_part_names": ["Structure"],
         "control_variable_name": "YOUNG_MODULUS",
         "mapping_options": {
           "use_constant_multiplication_factor": true,
