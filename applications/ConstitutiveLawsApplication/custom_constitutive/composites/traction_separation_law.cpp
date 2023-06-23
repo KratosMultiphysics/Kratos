@@ -127,18 +127,19 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
     )
 {
     const auto& r_combination_factors = this->GetCombinationFactors();
+    const auto& r_p_constitutive_law_vector = this->GetConstitutiveLaws();
 
     rValue.clear();
 
     if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_ONE) {
 
-        rValue.resize(r_combination_factors.size()+1, false);
+        rValue.resize(6, false);
 
         noalias(rValue) = mDelaminationDamageModeOne;
         return rValue;
     } else if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
 
-        rValue.resize(r_combination_factors.size()+1, false);
+        rValue.resize(6, false);
 
         noalias(rValue) = mDelaminationDamageModeTwo;
         return rValue;
@@ -184,11 +185,11 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
 
     BaseType::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
 
-    mDelaminationDamageModeOne.resize(r_p_constitutive_law_vector.size()+1, false);
-    noalias(mDelaminationDamageModeOne) = ZeroVector(r_p_constitutive_law_vector.size()+1);
+    mDelaminationDamageModeOne.resize(6, false);
+    noalias(mDelaminationDamageModeOne) = ZeroVector(6);
 
-    mDelaminationDamageModeTwo.resize(r_p_constitutive_law_vector.size()+1, false);
-    noalias(mDelaminationDamageModeTwo) = ZeroVector(r_p_constitutive_law_vector.size()+1);
+    mDelaminationDamageModeTwo.resize(6, false);
+    noalias(mDelaminationDamageModeTwo) = ZeroVector(6);
 
     mThresholdModeOne.resize(r_p_constitutive_law_vector.size()-1, false);
     for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
@@ -280,8 +281,8 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             interfacial_stress[i].resize(3, false);
         }
 
-        std::vector<bool> negative_interfacial_stress_indicator(r_p_constitutive_law_vector.size()+1);
-        for (IndexType i=0; i < r_p_constitutive_law_vector.size()+1; ++i) {
+        std::vector<bool> negative_interfacial_stress_indicator(6);
+        for (IndexType i=0; i < 6; ++i) {
             negative_interfacial_stress_indicator[i] = false;
         }
 
@@ -307,8 +308,8 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         }
 
         const double tolerance = std::numeric_limits<double>::epsilon();
-        Vector DelaminationDamageModeOne(r_p_constitutive_law_vector.size()+1);
-        Vector DelaminationDamageModeTwo(r_p_constitutive_law_vector.size()+1);
+        Vector DelaminationDamageModeOne(6);
+        Vector DelaminationDamageModeTwo(6);
         Vector ThresholdModeOne(r_p_constitutive_law_vector.size()-1);
         Vector ThresholdModeTwo(r_p_constitutive_law_vector.size()-1);
 
@@ -484,8 +485,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             interfacial_stress[i].resize(3, false);
         }
 
-        std::vector<bool> negative_interfacial_stress_indicator(r_p_constitutive_law_vector.size()+1);
-        for (IndexType i=0; i < r_p_constitutive_law_vector.size()+1; ++i) {
+        std::vector<bool> negative_interfacial_stress_indicator(6);
+        for (IndexType i=0; i < 6; ++i) {
             negative_interfacial_stress_indicator[i] = false;
         }
 
@@ -513,8 +514,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         }
 
         const double tolerance = std::numeric_limits<double>::epsilon();
-        Vector DelaminationDamageModeOne(r_p_constitutive_law_vector.size()+1);
-        Vector DelaminationDamageModeTwo(r_p_constitutive_law_vector.size()+1);
+        Vector DelaminationDamageModeOne(6);
+        Vector DelaminationDamageModeTwo(6);
         Vector ThresholdModeOne(r_p_constitutive_law_vector.size()-1);
         Vector ThresholdModeTwo(r_p_constitutive_law_vector.size()-1);
 
