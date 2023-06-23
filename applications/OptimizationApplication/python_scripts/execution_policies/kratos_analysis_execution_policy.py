@@ -64,6 +64,13 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
 
+        # check if out put is required
+        self.out_put = False
+        optimization_problem_data = self.optimization_problem.GetProblemDataContainer()
+        if optimization_problem_data.HasValue("requested_vtu_outputs"):
+            if "all" in optimization_problem_data["requested_vtu_outputs"] or "execution_policy."+self.GetName() in optimization_problem_data["requested_vtu_outputs"]:
+                self.out_put = True
+
     def Check(self) -> None:
         pass
 
@@ -77,7 +84,8 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
             model_part.ProcessInfo.SetValue(Kratos.TIME, 0)
             model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
         self.analysis.RunSolutionLoop()
-        self._OutputAnalysisData()
+        if self.out_put:
+            self._OutputAnalysisData()
 
     def _OutputAnalysisData(self):
         for model_part in self.model_parts:

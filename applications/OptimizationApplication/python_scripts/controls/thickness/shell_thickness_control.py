@@ -107,6 +107,14 @@ class ShellThicknessControl(Control):
         self.parameters["beta_settings"].ValidateAndAssignDefaults(default_settings["beta_settings"])
         self.parameters["filter_settings"].ValidateAndAssignDefaults(default_settings["filter_settings"])
 
+        self.penal_factor = self.parameters["SIMP_power_fac"].GetInt()
+        self.initial_beta = self.parameters["beta_settings"]["initial_value"].GetDouble()
+        self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
+        num_phys_thick = len(self.physical_thicknesses)
+        if num_phys_thick == 0:
+            raise RuntimeError(f"The  physical_thicknesses can not be empty, at least min and max should be provided.")
+        self.filtered_thicknesses = [i for i in range(len(self.physical_thicknesses))]
+
         self.filter_type = self.parameters["filter_settings"]["type"].GetString()
         self.supported_filter_types = ["implicit"]
 
@@ -151,6 +159,7 @@ class ShellThicknessControl(Control):
         # later if required.
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         un_buffered_data.SetValue("physical_THICKNESS", thickness_physical_field.Clone())
+        un_buffered_data.SetValue("filtered_THICKNESS", self.control_field.Clone())
         un_buffered_data.SetValue("control_THICKNESS", self.control_field.Clone())
 
     def Check(self):
@@ -198,8 +207,7 @@ class ShellThicknessControl(Control):
                 filtered_control_field = self.filter.FilterField(self.control_field)
 
                 # now project the filtered field
-                projected_field = Kratos.Expression.NodalExpression(filtered_control_field.GetModelPart())
-                KratosOA.ControlUtils.SigmoidalProjectionUtils.OneLevelForwardProjection(filtered_control_field,projected_field)
+                projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(filtered_control_field,[1,2],[2,3],25.0,1)
 
                 # now update physical field
                 KratosOA.PropertiesVariableExpressionIO.Write(projected_field, Kratos.THICKNESS)
@@ -209,6 +217,7 @@ class ShellThicknessControl(Control):
                 un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
                 un_buffered_data.SetValue("physical_THICKNESS", projected_field.Clone(), overwrite=True)
                 un_buffered_data.SetValue("control_THICKNESS", self.control_field.Clone(), overwrite=True)
+                un_buffered_data.SetValue("filtered_THICKNESS", filtered_control_field.Clone(), overwrite=True)
 
                 return True
 

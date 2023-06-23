@@ -30,10 +30,13 @@ void  AddCustomControlUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    m.def_submodule("ControlUtils")
-        .def("OneLevelForwardProjection", &SigmoidalProjectionUtils::OneLevelForwardProjection<ModelPart::NodesContainerType>, py::arg("input_expression"), py::arg("projected_expression"))
-        .def("OneLevelForwardProjection", &SigmoidalProjectionUtils::OneLevelForwardProjection<ModelPart::ConditionsContainerType>, py::arg("input_expression"), py::arg("projected_expression"))
-        .def("OneLevelForwardProjection", &SigmoidalProjectionUtils::OneLevelForwardProjection<ModelPart::ElementsContainerType>, py::arg("input_expression"), py::arg("projected_expression"))
+    m.def_submodule("SigmoidalProjectionUtils")
+        .def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward<ModelPart::NodesContainerType>)
+        .def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward<ModelPart::ConditionsContainerType>)
+        .def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward<ModelPart::ElementsContainerType>)
+        .def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<ModelPart::NodesContainerType>)
+        .def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<ModelPart::ConditionsContainerType>)
+        .def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<ModelPart::ElementsContainerType>)
         ;
 
 }

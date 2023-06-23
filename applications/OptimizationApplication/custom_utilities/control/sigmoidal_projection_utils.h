@@ -45,10 +45,45 @@ public:
     ///@name Static operations
     ///@{
 
-    template<class TContainerType>    
-    static void OneLevelForwardProjection(
-        const ContainerExpression<TContainerType>& rInputExpression,
-        ContainerExpression<TContainerType>& rProjectedExpression);
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> ProjectForward(
+        ContainerExpression<TContainerType>& rInputExpression,
+        std::vector<double> xValues,
+        std::vector<double> yValues,
+        double beta,
+        int penalFac);
+
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> ProjectBackward(
+        ContainerExpression<TContainerType>& rInputExpression,
+        std::vector<double> xValues,
+        std::vector<double> yValues,
+        double beta,
+        int penalFac);
+
+    static double ProjectValueForward(
+        double xValue,
+        std::vector<double> xValues,
+        std::vector<double> yValues,
+        double beta,
+        int penalFac);
+
+    static double ProjectValueBackward(
+        double yValue,
+        std::vector<double> xValues,
+        std::vector<double> yValues,
+        double beta,
+        int penalFac);
+
+    static bool HasVectorDuplicates(
+        std::vector<double> values){
+            std::sort(values.begin(), values.end());
+            return std::adjacent_find(values.begin(), values.end()) != values.end();
+    };
+
+    static void CheckXYVectors(
+        std::vector<double> xValues,
+        std::vector<double> yValues);
 
     ///@}
 };
