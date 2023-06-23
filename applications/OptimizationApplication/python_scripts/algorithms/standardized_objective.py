@@ -54,7 +54,7 @@ class StandardizedObjective(ResponseRoutine):
         else:
             raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
-    def CalculateStandardizedValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
+    def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
         response_value = self.CalculateValue(control_field)
         standardized_response_value = response_value * self.__scaling
 
@@ -73,7 +73,7 @@ class StandardizedObjective(ResponseRoutine):
     def GetStandardizedValue(self, step_index: int = 0) -> float:
         return self.GetValue(step_index) * self.__scaling
 
-    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.ContainerExpression.CollectiveExpressions:
+    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
         gradient_collective_expression = self.CalculateGradient()
 
         if save_field:
@@ -97,19 +97,22 @@ class StandardizedObjective(ResponseRoutine):
         return gradient_collective_expression * self.__scaling
 
     def GetRelativeChange(self) -> float:
-        if self.__optimization_problem.GetStep() > 1:
+        if self.__optimization_problem.GetStep() > 0:
             return self.GetStandardizedValue() / self.GetStandardizedValue(1) - 1.0 if abs(self.GetStandardizedValue(1)) > 1e-12 else self.GetStandardizedValue()
         else:
             return 0.0
 
     def GetAbsoluteChange(self) -> float:
-        return self.GetStandardizedValue() / self.GetInitialValue() - 1.0 if abs(self.GetInitialValue()) > 1e-12 else self.GetStandardizedValue()
+        return self.GetValue() - self.GetInitialValue()
 
     def GetInfo(self) -> str:
-        msg = "\tObjective info:"
-        msg += f"\n\t\t name          : {self.GetReponse().GetName()}"
-        msg += f"\n\t\t type          : {self.__objective_type}"
-        msg += f"\n\t\t value         : {self.GetValue():0.6e}"
-        msg += f"\n\t\t abs_change    : {self.GetAbsoluteChange():0.6e}"
-        msg += f"\n\t\t rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"
+        msg = f"""\t Objective info:
+            name          : {self.GetReponse().GetName()}
+            type          : {self.__objective_type}
+            value         : {self.GetValue():0.6e}
+            abs_change    : {self.GetAbsoluteChange():0.6e}
+            rel_change [%]: {self.GetRelativeChange() * 100.0:0.6e}"""
+        init_value = self.GetInitialValue()
+        if init_value:
+            msg = f"{msg} \n\t    abs_change [%]: {self.GetAbsoluteChange()/init_value * 100:0.6e} "
         return msg
