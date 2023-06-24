@@ -61,29 +61,13 @@ public:
         double beta,
         int penalFac);
 
-    static double ProjectValueForward(
-        double xValue,
+    template<class TContainerType>
+    static ContainerExpression<TContainerType> ComputeFirstDerivative(
+        ContainerExpression<TContainerType>& rInputExpression,
         std::vector<double> xValues,
         std::vector<double> yValues,
         double beta,
         int penalFac);
-
-    static double ProjectValueBackward(
-        double yValue,
-        std::vector<double> xValues,
-        std::vector<double> yValues,
-        double beta,
-        int penalFac);
-
-    static bool HasVectorDuplicates(
-        std::vector<double> values){
-            std::sort(values.begin(), values.end());
-            return std::adjacent_find(values.begin(), values.end()) != values.end();
-    };
-
-    static void CheckXYVectors(
-        std::vector<double> xValues,
-        std::vector<double> yValues);
 
     ///@}
 };

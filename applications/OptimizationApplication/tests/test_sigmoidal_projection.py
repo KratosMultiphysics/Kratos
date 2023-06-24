@@ -16,7 +16,7 @@ class TestSigmoidalProjection(TestCase):
 
         cls.test_model_part =  cls.model.CreateModelPart("test")
         cls.test_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 3)
- 
+
         cls.test_model_part.CreateNewNode(1, 0.0,0.0,0.0)
 
     def _GetContainerExpression(self):
@@ -105,15 +105,34 @@ class TestSigmoidalProjection(TestCase):
         Kratos.Expression.LiteralExpressionIO.SetData(test_field, 5.999999999)
         forward_projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(test_field,[1,2,3],[4,5,6],25.0,1)
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(forward_projected_field), 2.914465315084121, 4)
-    
+
         Kratos.Expression.LiteralExpressionIO.SetData(test_field, 4.5)
         forward_projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(test_field,[1,2,3],[4,5,6],25.0,1)
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(forward_projected_field), 1.5, 4)
 
         Kratos.Expression.LiteralExpressionIO.SetData(test_field, 4.0)
         forward_projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(test_field,[1,2,3],[4,5,6],25.0,1)
-        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(forward_projected_field), 2.914465315084121, 4)
+        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(forward_projected_field), 1.0, 4)
 
+        Kratos.Expression.LiteralExpressionIO.SetData(test_field, 5.0)
+        forward_projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(test_field,[1,2,3],[4,5,6],25.0,1)
+        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(forward_projected_field), 2.0, 4)
+
+        Kratos.Expression.LiteralExpressionIO.SetData(test_field, 800.0)
+        forward_projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(test_field,[1,2,3],[400,420,1000],25.0,1)
+        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(forward_projected_field), 2.512837077723448, 4)
+
+        Kratos.Expression.LiteralExpressionIO.SetData(test_field, 5.5)
+        forward_projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ComputeFirstDerivative(test_field,[1,2,3],[4,5,6],25.0,1)
+        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(forward_projected_field), 0.0, 4)
+
+        Kratos.Expression.LiteralExpressionIO.SetData(test_field, 2.5)
+        forward_projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ComputeFirstDerivative(test_field,[1,2,3],[4,5,6],25.0,1)
+        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(forward_projected_field), 12.5, 4)
+
+        Kratos.Expression.LiteralExpressionIO.SetData(test_field, 1.5)
+        forward_projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ComputeFirstDerivative(test_field,[1,2,3],[0,500,600],25.0,1)
+        self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(forward_projected_field), 6250.0, 4)
 
 if __name__ == '__main__':
     Kratos.KratosUnittest.main()

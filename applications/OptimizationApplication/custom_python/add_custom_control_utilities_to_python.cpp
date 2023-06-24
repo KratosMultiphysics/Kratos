@@ -37,6 +37,9 @@ void  AddCustomControlUtilitiesToPython(pybind11::module& m)
         .def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<ModelPart::NodesContainerType>)
         .def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<ModelPart::ConditionsContainerType>)
         .def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<ModelPart::ElementsContainerType>)
+        .def("ComputeFirstDerivative", &SigmoidalProjectionUtils::ComputeFirstDerivative<ModelPart::NodesContainerType>)
+        .def("ComputeFirstDerivative", &SigmoidalProjectionUtils::ComputeFirstDerivative<ModelPart::ConditionsContainerType>)
+        .def("ComputeFirstDerivative", &SigmoidalProjectionUtils::ComputeFirstDerivative<ModelPart::ElementsContainerType>)
         ;
 
 }
