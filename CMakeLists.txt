@@ -546,7 +546,7 @@ endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
-include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
+include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )

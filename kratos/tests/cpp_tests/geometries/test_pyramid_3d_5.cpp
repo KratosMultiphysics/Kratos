@@ -337,4 +337,20 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint5, KratosCoreGeometriesFastSuite)
     VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
 }
 
+/** Checks if CalculateDistance is correct.
+ * Checks if CalculateDistance is correct.
+ */
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5CalculateDistance, KratosCoreGeometriesFastSuite)
+{
+    auto geom = GenerateRegularPyramid3D5();
+
+    Point point1(0.0, 0.0, 0.5);
+    KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
+
+    Point point2(0.0, 0.0, -0.5);
+    KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
+    KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
+}
+
 } // namespace Kratos::Testing.
