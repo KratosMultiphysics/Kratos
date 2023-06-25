@@ -159,6 +159,36 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultIndices, KratosCo
     KRATOS_CHECK_EQUAL(indices[0], object.Id());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultNodeIndices, KratosCoreFastSuite)
+{
+    // Create a test object
+    SpatialSearchResultContainer<GeometricalObject> container;
+
+    // Generate a geometry
+    auto p_node1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_node2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    Geometry<Node>::Pointer p_geom = Kratos::make_shared<Line2D2<Node>>(p_node1, p_node2);
+
+    // Create a test result
+    GeometricalObject object = GeometricalObject(1, p_geom);
+    SpatialSearchResult<GeometricalObject> result(&object);
+
+    // Add the result to the container
+    container.AddResult(result);
+
+    // Synchronize the container between partitions
+    DataCommunicator data_communicator;
+    container.SynchronizeAll(data_communicator);
+
+    // Compute indices
+    auto indices = container.GetResultNodeIndices();
+
+    // Check indices
+    KRATOS_CHECK_EQUAL(indices.size(), 1);
+    KRATOS_CHECK_EQUAL(indices[0][0], 1);
+    KRATOS_CHECK_EQUAL(indices[0][1], 2);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerGetResultCoordinates, KratosCoreFastSuite)
 {
     // Create a test object
