@@ -36,6 +36,7 @@
 #include "custom_processes/apply_boundary_phreatic_surface_pressure_table_process.hpp"
 #include "custom_processes/apply_excavation_process.hpp"
 #include "custom_processes/apply_write_result_scalar_process.hpp"
+#include "custom_processes/apply_k0_procedure_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
@@ -114,6 +115,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>
         (m, "ApplyWriteScalarProcess")
+        .def(py::init < ModelPart&, Parameters&>());
+
+    py::class_<ApplyK0ProcedureProcess, ApplyK0ProcedureProcess::Pointer, Process>
+        (m, "ApplyK0ProcedureProcess")
         .def(py::init < ModelPart&, Parameters&>());
 
     py::class_<FindNeighbourElementsOfConditionsProcess, FindNeighbourElementsOfConditionsProcess::Pointer, Process>
