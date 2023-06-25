@@ -229,6 +229,88 @@ std::vector<std::size_t> SpatialSearchResultContainer<TObjectType>::GetResultInd
 /***********************************************************************************/
 
 template <class TObjectType>
+std::vector<std::vector<std::size_t>> SpatialSearchResultContainer<TObjectType>::GetResultNodeIndices()
+{
+    // Check if the communicator has been created
+    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+    // Define the coordinates vector
+    const std::size_t number_of_gp = mGlobalPointers.size();
+    std::vector<std::vector<std::size_t>> indices(number_of_gp);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([](GlobalPointer<TObjectType>& rGP) -> std::vector<std::size_t> {
+        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {   
+            auto& r_geometry = rGP->GetGeometry();
+            std::vector<std::size_t> gp_indices(r_geometry.size());
+            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
+                gp_indices[i] = r_geometry[i].Id();
+            }
+            return gp_indices;
+        } else if constexpr (std::is_same<TObjectType, Node>::value) {   
+            std::vector<std::size_t> gp_indices(1, rGP->Id());
+            return gp_indices;
+        } else {   
+            KRATOS_ERROR << "Not implemented yet" << std::endl;
+            std::vector<std::size_t> gp_indices;
+            return gp_indices;
+        }
+    });
+
+    // Get the coordinates
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalPointers(i);
+        indices[i] = proxy.Get(r_gp);
+    }
+
+    return indices;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
+std::vector<std::vector<std::size_t>> SpatialSearchResultContainer<TObjectType>::GetResultPartitionIndices()
+{
+    // Check if the communicator has been created
+    KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
+
+    // Define the coordinates vector
+    const std::size_t number_of_gp = mGlobalPointers.size();
+    std::vector<std::vector<std::size_t>> indices(number_of_gp);
+
+    // Call Apply to get the proxy
+    auto proxy = this->Apply([](GlobalPointer<TObjectType>& rGP) -> std::vector<std::size_t> {
+        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {   
+            auto& r_geometry = rGP->GetGeometry();
+            std::vector<std::size_t> gp_indices(r_geometry.size());
+            for (unsigned int i = 0; i < r_geometry.size(); ++i) {
+                gp_indices[i] = r_geometry[i].FastGetSolutionStepValue(PARTITION_INDEX);
+            }
+            return gp_indices;
+        } else if constexpr (std::is_same<TObjectType, Node>::value) {   
+            std::vector<std::size_t> gp_indices(1, rGP->FastGetSolutionStepValue(PARTITION_INDEX));
+            return gp_indices;
+        } else {   
+            KRATOS_ERROR << "Not implemented yet" << std::endl;
+            std::vector<std::size_t> gp_indices;
+            return gp_indices;
+        }
+    });
+
+    // Get the coordinates
+    for(std::size_t i=0; i<number_of_gp; ++i) {
+        auto& r_gp = mGlobalPointers(i);
+        indices[i] = proxy.Get(r_gp);
+    }
+
+    return indices;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TObjectType>
 std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObjectType>::GetResultCoordinates()
 {
     // Check if the communicator has been created

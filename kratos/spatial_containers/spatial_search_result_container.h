@@ -455,6 +455,18 @@ public:
     std::vector<std::size_t> GetResultIndices();
 
     /**
+     * @brief Considers the global pointer communicator to get the indices of the nodes of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<std::vector<std::size_t>> GetResultNodeIndices();
+
+    /**
+     * @brief Considers the global pointer communicator to get the partition indices of the nodes of the resulting object
+     * @return A vector containing all the indices
+     */
+    std::vector<std::vector<std::size_t>> GetResultPartitionIndices();
+
+    /**
      * @brief Considers the global pointer communicator to get the coordinates of the resulting object
      * @return A vector containing all the coordinates
      */
