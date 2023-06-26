@@ -57,10 +57,16 @@ void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
     // Retrieving the model part and the communicator
     auto& r_base_model_part = GetBaseModelPart();
 
-    // Call auxiliar methods
-    BringEntityFromOtherPartitions<Node>(r_base_model_part, rNodesToBring);
-    BringEntityFromOtherPartitions<Element>(r_base_model_part, rElementsToBring);
-    BringEntityFromOtherPartitions<Condition>(r_base_model_part, rConditionsToBring);
+    // Call auxiliary methods
+    if (rNodesToBring.size() > 0) {
+        BringEntityFromOtherPartitions<Node>(r_base_model_part, rNodesToBring);
+    }
+    if (rElementsToBring.size() > 0) {
+        BringEntityFromOtherPartitions<Element>(r_base_model_part, rElementsToBring);
+    }
+    if (rConditionsToBring.size() > 0) {
+        BringEntityFromOtherPartitions<Condition>(r_base_model_part, rConditionsToBring);
+    }
 
     // Execute after bringing entities
     if (CallExecuteAfterBringingEntities) {
