@@ -463,7 +463,7 @@ namespace std
     struct hash<std::pair<T1, T2>> 
     {
         /**
-         * @brief Calculates the hash value of a given pair of values in a way that combines the hash values of the individual elements
+         * @brief Calculates the hash value of a given pair of values in a way that combines the hash values of the individual elements, using bitwise XOR (^).
          * @param p the pair of values to be hashed.
          * @return the resulting hash value.
          */
@@ -474,6 +474,8 @@ namespace std
             const size_t h2 = std::hash<T2>()(p.second);
             Kratos::HashCombine(seed, h1);
             Kratos::HashCombine(seed, h2);
+            // Combine the hash values of the pair's elements
+            // in a suitable way, e.g., using bitwise XOR (^)
             return seed;
         }
     };
