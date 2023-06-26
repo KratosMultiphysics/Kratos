@@ -101,7 +101,10 @@
         {
           "type": "optimization_problem_plotly_output_process",
           "module": "KratosMultiphysics.OptimizationApplication.processes",
-          "settings": {}
+          "settings": {
+            "write_html_output": true,
+            "html_file_name": "iteration_summary"
+          }
         }
       ]
     }

@@ -25,7 +25,9 @@ class OptimizationProblemPlotlyOutputProcess(Kratos.OutputProcess):
         return Kratos.Parameters(
             """
             {
-                "list_of_output_components": ["all"]
+                "list_of_output_components": ["all"],
+                "write_html_output": false,
+                "html_file_name": "iteration_summary"
             }
             """
         )
@@ -43,6 +45,13 @@ class OptimizationProblemPlotlyOutputProcess(Kratos.OutputProcess):
 
         for component_name in list_of_component_names:
             self.list_of_components.append(GetComponentHavingDataByFullName(component_name, optimization_problem))
+
+        self.output_parameters = dict()
+        self.output_parameters["write_html_output"] = parameters["write_html_output"].GetBool()
+        self.output_parameters["html_file_name"] = parameters["html_file_name"].GetString()
+
+        if self.output_parameters["html_file_name"].find(".html") == -1:
+            self.output_parameters["html_file_name"] += ".html"
 
         self.output_dict = {}
         self.output_dataframe = pd.DataFrame()
@@ -70,6 +79,9 @@ class OptimizationProblemPlotlyOutputProcess(Kratos.OutputProcess):
         if self._IsWritingProcess():
             fig = px.line(self.output_dataframe)
             fig.show()
+
+            if self.output_parameters["write_html_output"]:
+                fig.write_html(self.output_parameters["html_file_name"])
 
     def _IsWritingProcess(self):
         if Kratos.IsDistributedRun():
