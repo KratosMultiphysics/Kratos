@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+from KratosMultiphysics.MeshingApplication import *
 
 ## Import base class file
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
@@ -100,6 +101,11 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.GAS_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DYNAMIC_PRESSURE)
 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_RHS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_SOLID_RHS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RHS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.TOTAL_ENERGY_RHS)
+
         KratosMultiphysics.Logger.PrintInfo("::[NSBiphaseCompressibleExplicitSolver]:: ","Explicit compressible biphase fluid solver variables added correctly")
 
     def AddDofs(self):
@@ -115,6 +121,10 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
     def Initialize(self):
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.OSS_SWITCH] = int(self.settings["use_oss"].GetBool())
         self._ReadShockCapturingSettings()
+        
+
+        #neighbour_finder = FindNodalNeighboursProcess(self.computing_model_part,6, 6)
+        #neighbour_finder.Execute() ##at wish ... when it is needed
 
         self.solver = self._get_solution_strategy()
         self.solver.SetEchoLevel(self.settings["echo_level"].GetInt())

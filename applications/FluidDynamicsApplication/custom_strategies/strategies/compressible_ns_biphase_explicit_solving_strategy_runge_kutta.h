@@ -27,6 +27,7 @@
 #include "utilities/atomic_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "processes/find_nodal_neighbours_process.h" 
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -543,6 +544,8 @@ private:
     {
         // Get fluid properties from first element in mesh
         // Note that in here we assume that the fluid is single-phase
+        double tol = 1e-16;
+        
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_prop = r_model_part.ElementsBegin()->GetProperties();
         const double c_v = r_prop.GetValue(SPECIFIC_HEAT); // Specific heat at constant volume
@@ -551,19 +554,210 @@ private:
         const double rho_s = r_prop.GetValue(SOLID_MATERIAL_DENSITY); // Density of the solid part
         const double c_s = r_prop.GetValue(SOLID_MATERIAL_SPECIFIC_HEAT); // Specific heat of the solid part
 
+        // Cleaning DS
+
+        double N1 = 0, N3 = 0;
+
+        double M1 = 0, M3 = 1;
+
+        while (M3 > tol){
+
+            M1 = 0;
+            M3 = 0;
+            N1 = 0;
+            N3 = 0;
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+            {   
+                auto it_node    = r_model_part.NodesBegin() + i;
+
+                double denS     = it_node->FastGetSolutionStepValue(DENSITY_SOLID);
+                
+                double A = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                
+                if (denS > 0)    {
+                    M1 += denS*A;
+                    N1 += A;
+                }
+                if (denS < 0)    {
+                    M3 += fabs(denS)*A;
+                    N3 += A;
+                }
+            }
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+            {   
+                auto it_node    = r_model_part.NodesBegin() + i;
+
+                double denS = it_node->FastGetSolutionStepValue(DENSITY_SOLID); 
+                
+                if (denS > 0)   denS -= M3/N1;
+                if (denS < 0)   denS  = 0.0;
+
+                it_node->FastGetSolutionStepValue(DENSITY_SOLID) = denS;
+
+            }
+
+            printf("M3 = %.3e \n", M3);
+
+        }
+
+// Cleaning ETOT
+
+        N1 = 0;
+        N3 = 0;
+
+        M1 = 0;
+        M3 = 0;
+        tol = 1;
+
+        while (M3 > tol){
+
+            M1 = 0;
+            M3 = 0;
+            N1 = 0;
+            N3 = 0;
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+            {   
+                auto it_node    = r_model_part.NodesBegin() + i;
+
+                double denE     = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+                
+                double A = it_node->FastGetSolutionStepValue(NODAL_AREA);
+                
+                if (denE > 0)    {
+                    M1 += denE*A;
+                    N1 += A;
+                }
+                if (denE < 0)    {
+                    M3 += fabs(denE)*A;
+                    N3 += A;
+                }
+            }
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+            {   
+                auto it_node    = r_model_part.NodesBegin() + i;
+
+                double denE = it_node->FastGetSolutionStepValue(TOTAL_ENERGY); 
+                
+                if (denE > 0)   denE -= M3/N1;
+                if (denE < 0)   denE  = -0.1*tol;
+
+                it_node->FastGetSolutionStepValue(TOTAL_ENERGY) = denE;
+
+            }
+
+            printf("M3 = %.3e \n", M3);
+            M3 = 0;
+
+        }        
+
+// Smoothing phase         
+        
+        
+        double  alpha_dt = 1*4e-3;
+        double  alpha_ds = 1*4e-3;
+        double  alpha_dm = 1*8e-4;
+        double  alpha_de = 1*8e-3;
+
+
+        int check = 1;
+        int count = 0;
+
+        while (check == 1 && count < 1)
+        {
+
+            check = 0;
+
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_model_part.NumberOfNodes()); ++i)
+            {
+                auto it_node    = r_model_part.NodesBegin() + i;
+
+                double dt_i = it_node->FastGetSolutionStepValue(DENSITY);
+                double ds_i = it_node->FastGetSolutionStepValue(DENSITY_SOLID);
+                array_1d<double,3> mom_i = it_node->FastGetSolutionStepValue(MOMENTUM);
+                double ene_i = it_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+
+                double iArea     = it_node->FastGetSolutionStepValue(NODAL_AREA);
+
+                double iAreaTOT  = iArea;
+                
+                double dt_corr   = 0.0;
+                double ds_corr   = 0.0;
+                array_1d<double,3> dm_corr;
+                dm_corr[0] = 0.0;
+                dm_corr[1] = 0.0;
+                dm_corr[2] = 0.0;
+                double ene_corr  = 0.0;
+                
+                GlobalPointersVector< Node<3> >& rneigh = it_node->GetValue(NEIGHBOUR_NODES);
+                for( GlobalPointersVector<Node<3> >::iterator jt_node = rneigh.begin(); jt_node!=rneigh.end(); jt_node++){
+                    
+                    double jArea    = jt_node->FastGetSolutionStepValue(NODAL_AREA);
+                    
+                    double dt_j     = jt_node->FastGetSolutionStepValue(DENSITY);
+                    double ds_j     = jt_node->FastGetSolutionStepValue(DENSITY_SOLID);
+                    array_1d<double,3> mom_j = jt_node->FastGetSolutionStepValue(MOMENTUM);
+                    double ene_j    = jt_node->FastGetSolutionStepValue(TOTAL_ENERGY);
+                    
+
+                    double Areaij   = 0.5*(iArea + jArea);
+
+                    iAreaTOT += Areaij;
+
+                    dt_corr  += (dt_i - dt_j)*Areaij;
+                    ds_corr  += (ds_i - ds_j)*Areaij;
+                    dm_corr  += (mom_i - mom_j)*Areaij; 
+                    ene_corr += (ene_i - ene_j)*Areaij;
+                    
+                }
+
+                it_node->FastGetSolutionStepValue(DENSITY_RHS)       =  dt_i - alpha_dt*dt_corr/iAreaTOT;
+                it_node->FastGetSolutionStepValue(DENSITY_SOLID_RHS) =  ds_i - alpha_ds*ds_corr/iAreaTOT;
+                it_node->FastGetSolutionStepValue(MOMENTUM_RHS)      =  mom_i - alpha_dm*dm_corr/iAreaTOT;
+                it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS)  =  ene_i - alpha_de*ene_corr/iAreaTOT;
+                
+
+            }
+
+            if (check == 1) {
+                count++;
+                printf("count = %d\n", count);
+            }
+
+            printf("alpha = %.3e \n", alpha_de);
+            alpha_de *= 2;
+            alpha_ds *= 2;
+
+        }
+        
         // Loop the nodes to calculate the non-conservative magnitudes
         array_1d<double,3> aux_vel;
         block_for_each(r_model_part.Nodes(), aux_vel,[&] (Node<3> &rNode, array_1d<double,3>&rVelocity) {
             
+            rNode.FastGetSolutionStepValue(MOMENTUM)        = rNode.FastGetSolutionStepValue(MOMENTUM_RHS);
+            rNode.FastGetSolutionStepValue(DENSITY)         = rNode.FastGetSolutionStepValue(DENSITY_RHS);
+            rNode.FastGetSolutionStepValue(DENSITY_SOLID)   = rNode.FastGetSolutionStepValue(DENSITY_SOLID_RHS);
+            rNode.FastGetSolutionStepValue(TOTAL_ENERGY)    = rNode.FastGetSolutionStepValue(TOTAL_ENERGY_RHS);
+            
+
             const auto& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
             const double& r_rho = rNode.FastGetSolutionStepValue(DENSITY);
             const double& r_rho_solid = rNode.FastGetSolutionStepValue(DENSITY_SOLID);
             const double& r_tot_ener = rNode.FastGetSolutionStepValue(TOTAL_ENERGY);
-            
+        
             rVelocity = r_mom / r_rho;
             double c_mixed = c_v*(r_rho - r_rho_solid) + c_s*r_rho_solid;
             double Cp_mixed = (c_v + R)*(r_rho - r_rho_solid) + c_s*r_rho_solid;
             double sol_conc = r_rho_solid/rho_s;
+            
             const double temp = (r_tot_ener - 0.5 * inner_prod(rVelocity, rVelocity)) / c_mixed;   // Modify for biphase flow
             const double pressure = (r_rho - r_rho_solid) * R * temp;
             const double sound_velocity = std::sqrt(r_rho - r_rho_solid)*R*Cp_mixed*(2*r_tot_ener - r_rho*inner_prod(rVelocity, rVelocity))/(2*r_rho*c_mixed*c_mixed); 
