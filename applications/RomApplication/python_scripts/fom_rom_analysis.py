@@ -15,6 +15,7 @@ def CreateFomRomAnalysisInstance(cls, model, fom_project_parameters, rom_project
             self.n_nodal_unknowns = len(self.rom_parameters["rom_settings"]["nodal_unknowns"].GetStringArray())
             super().__init__(model,fom_project_parameters)
             self._is_rom = False
+            self._current_basis = None
 
         #### Internal functions ####
         def _CreateSolver(self):
@@ -73,21 +74,31 @@ def CreateFomRomAnalysisInstance(cls, model, fom_project_parameters, rom_project
             self._is_rom = False
             self._solver = self.fom_solver
 
-        def UpdateRomBases(self,snapshots_matrix,svd_truncation_tolerance=1e-6):
-            # Calculate the randomized SVD of the snapshots matrix
-            u,_,_,eSVD = RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, svd_truncation_tolerance)
-            num_rom_dofs = numpy.shape(u)[1]
-
+        def _ImposeCurrentBasisToNodes(self):
+            num_rom_dofs = numpy.shape(self._current_basis)[1]
             node_counter = 0
             for node in self._GetComputingModelPart().Nodes:
                 aux = KratosMultiphysics.Matrix(self.n_nodal_unknowns, num_rom_dofs)
                 for j in range(self.n_nodal_unknowns):
                     for i in range(num_rom_dofs):
-                        aux[j,i] = u.item((node_counter * self.n_nodal_unknowns +j,i))
+                        aux[j,i] = self._current_basis.item((node_counter * self.n_nodal_unknowns +j,i))
                 node.SetValue(KratosROM.ROM_BASIS, aux ) # ROM basis
                 node_counter += 1
-
             self._GetComputingModelPart().ProcessInfo.SetValue(KratosROM.NUM_ROM_BASIS,num_rom_dofs)
+
+        def UpdateRomBases(self,snapshots_matrix,svd_truncation_tolerance=1e-6):
+            # Calculate the SVD of the snapshots matrix
+            if self._current_basis is None:
+                #A,_,_,eSVD = RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, svd_truncation_tolerance) #randomization is useful when the number of columns is (much) larger than the rank of the matrix
+                self._current_basis,_,_,eSVD= RandomizedSingularValueDecomposition()._SingularValueDecompostionTruncated(snapshots_matrix, svd_truncation_tolerance)
+                self._ImposeCurrentBasisToNodes()
+            else: #update only if the current basis is not good enough
+                orthogonal_complement = snapshots_matrix - self._current_basis@(self._current_basis.T@snapshots_matrix)
+                if numpy.linalg.norm(orthogonal_complement) > svd_truncation_tolerance:
+                    #u,_,_,eSVD = RandomizedSingularValueDecomposition().Calculate(orthogonal_complement, svd_truncation_tolerance)  #randomization is useful when the number of columns is (much) larger than the rank of the matrix
+                    u,_,_,eSVD = RandomizedSingularValueDecomposition()._SingularValueDecompostionTruncated(orthogonal_complement, svd_truncation_tolerance)
+                    self._current_basis, _, _ = numpy.linalg.svd(numpy.c_[self._current_basis, u], full_matrices=False)
+                    self._ImposeCurrentBasisToNodes()
 
         def FinalizeSolutionStep(self):
             super().FinalizeSolutionStep()
