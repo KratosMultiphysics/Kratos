@@ -101,6 +101,12 @@ protected:
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
+        double Porosity
+        double HenryCoefficient;
+        bool AddGasDiffusion = false;
+
+        //Element state variables
+        double Sw;
 
         ///ProcessInfo variables
         double VelocityCoefficient;
@@ -131,6 +137,7 @@ protected:
         double detF;
         ///Auxiliary Variables
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPwMatrix;
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPgMatrix;
         BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PwUMatrix;

@@ -1049,6 +1049,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     //Properties variables
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
+    rVariables.Porosity = Prop[POROSITY];
     rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
     rVariables.FluidDensity = Prop[DENSITY_WATER];
     rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
@@ -1522,7 +1523,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(Mat
     noalias(rVariables.UMatrix) = prod(rVariables.UVoigtMatrix,rVariables.B)*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block matrix into the elemental matrix
-    PoroElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1530,17 +1531,41 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(Mat
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
+    // Compute intermediate auxiliary vector and matrix
     noalias(rVariables.UVector) = prod(trans(rVariables.B),rVariables.VoigtVector);
+    noalias(rVariables.UPMatrix) = -outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.UPMatrix) = -rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
+    // Get compressibility coefficients
+    double Cwu, Cgu;
+    this->GetCouplingCompressibilityCoefficients(Cwu, Cgu, rVariables)
+
+    // Compute the element coupling matrices
+    noalias(rVariables.UPwMatrix) = Cwu*rVariables.UPMatrix;
+    noalias(rVariables.UPgMatrix) = Cgu*rVariables.UPMatrix;
 
     //Distribute coupling block matrix into the elemental matrix
-    PoroElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
+    PoroElementUtilities::AssembleUPwBlockMatrix(rLeftHandSideMatrix,rVariables.UPwMatrix);
+    PoroElementUtilities::AssembleUPgBlockMatrix(rLeftHandSideMatrix,rVariables.UPgMatrix);
 
-    noalias(rVariables.PUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.UPMatrix);
+    noalias(rVariables.PwUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.UPwMatrix);
+    noalias(rVariables.PgUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.UPgMatrix);
 
     //Distribute transposed coupling block matrix into the elemental matrix
-    PoroElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix,rVariables.PUMatrix);
+    PoroElementUtilities::AssemblePwUBlockMatrix(rLeftHandSideMatrix,rVariables.PwUMatrix);
+    PoroElementUtilities::AssemblePgUBlockMatrix(rLeftHandSideMatrix,rVariables.PgUMatrix);
+}
+
+//----------------------------------------------------------------------------------------
+void UPwPgSmallStrainElement::GetCouplingCompressibilityCoefficients(double Cwu, double Cgu, ElementVariables& rVariables)
+{
+    Cwu = rVariables.BiotCoefficient*rVariables.Sw;
+    Cgu = rVariables.BiotCoefficient*(1.0 - rVariables.Sg);
+
+    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
+    if (rVariables.AddGasDiffusion){
+        Cgu += rVariables.HenryCoefficient * rVariables.Sw * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
+    }
+
 }
 
 //----------------------------------------------------------------------------------------
