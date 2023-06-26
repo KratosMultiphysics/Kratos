@@ -104,7 +104,6 @@ public:
     /**
      * @brief Function to bring entities from other partitions
      * @details This function is intended to bring entities from other partitions. The map indicates the partitions to bring and the vector the entities to bring from each partition. In the current serial case it does nothing.
-     * @note For the parallel implementation see ParallelFillCommunicator.
      * @param rNodesToBring Nodes to bring from other partitions
      * @param rElementsToBring Elements to bring from other partitions
      * @param rConditionsToBring Conditions to bring from other partitions
@@ -208,7 +207,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mPartitionIndexCheckPerformed = false;
+    bool mPartitionIndexCheckPerformed = false; /// If the partition index check is performed
 
     ///@}
     ///@name Private Operators
@@ -217,6 +216,62 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Function to bring entities from other partitions
+     * @details This function is intended to bring entities from other partitions. The map indicates the partitions to bring and the vector the entities to bring from each partition. In the current serial case it does nothing.
+     * @param rModelPart Model part to bring entities from other partitions
+     * @param rEntitiesToBring Entities to bring from other partitions
+     */
+    template <class TObjectType>
+    void BringEntityFromOtherPartitions(
+        ModelPart& rModelPart,
+        const std::map<int, std::vector<std::size_t>>& rEntitiesToBring
+        )
+    {
+        /* First make all partitions aware of which communications are needed (with the current information we only know the entities of we want to bring in current partition) */
+
+        // Retrieve MPI data
+        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+        const int rank = r_data_communicator.Rank();
+        const int world_size = r_data_communicator.Size();
+
+        // First counting how many entities transfer for partition
+        int tag_send = 1;
+        std::vector<int> other_partition_indices;
+        other_partition_indices.reserve(world_size - 1);
+        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+            if (i_rank != rank) other_partition_indices.push_back(i_rank);
+        }
+        std::map<int, std::size_t> send_entities;
+        // send_entities.insert({rank, 0}); // Own rank is always zero. TODO: Maybe just remove it
+        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+            if (i_rank == rank) {
+                for (auto index : other_partition_indices) {
+                    r_data_communicator.Recv(send_entities[index], index, tag_send);
+                }
+            } else {
+                auto it_find = rEntitiesToBring.find(i_rank);
+                if (it_find != rEntitiesToBring.end()) {
+                    r_data_communicator.Send(it_find->second.size(), i_rank, tag_send);
+                } 
+                // else {
+                //     r_data_communicator.Send(0, i_rank, tag_send);
+                // }
+            }
+        }
+
+        // TODO: Use serializer!
+        if constexpr (std::is_same<TObjectType, Node>::value) {
+            // TODO
+            Node::Pointer p_new_node = nullptr;
+            rModelPart.AddNode(p_new_node);
+        } else if constexpr (std::is_same<TObjectType, Element>::value) {
+        } else if constexpr (std::is_same<TObjectType, Condition>::value) {
+        } else {
+            KRATOS_ERROR << "Unsupported object type" << std::endl;
+        }
+    }
 
     ///@}
     ///@name Private  Access

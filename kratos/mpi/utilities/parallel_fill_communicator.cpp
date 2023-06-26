@@ -56,39 +56,11 @@ void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
 
     // Retrieving the model part and the communicator
     auto& r_base_model_part = GetBaseModelPart();
-    const auto& r_data_communicator = r_base_model_part.GetCommunicator().GetDataCommunicator();
 
-    // Retrieve MPI data
-    const int rank = r_data_communicator.Rank();
-    const int world_size = r_data_communicator.Size();
-
-    // TODO: Note first implementing for only nodes, move the implementation to a templated method
-    
-    // First make all partitions aware of which communications are needed (with the current information we only know the entities of we want to bring in current partition)
-
-    // First counting how many entities transfer for partition
-    int tag_send = 1;
-    std::vector<int> other_partition_indices;
-    other_partition_indices.reserve(world_size - 1);
-    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-        if (i_rank != rank) other_partition_indices.push_back(i_rank);
-    }
-    std::map<int, std::size_t> send_entities;
-    send_entities.insert({rank, 0}); // Own rank is always zero. TODO: Maybe just remove it
-    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-        if (i_rank == rank) {
-            for (auto index : other_partition_indices) {
-                r_data_communicator.Recv(send_entities[index], index, tag_send);
-            }
-        } else {
-            auto it_find = rNodesToBring.find(i_rank);
-            if (it_find != rNodesToBring.end()) {
-                r_data_communicator.Send(it_find->second.size(), i_rank, tag_send);
-            } else {
-                r_data_communicator.Send(0, i_rank, tag_send);
-            }
-        }
-    }
+    // Call auxiliar methods
+    BringEntityFromOtherPartitions<Node>(r_base_model_part, rNodesToBring);
+    BringEntityFromOtherPartitions<Element>(r_base_model_part, rElementsToBring);
+    BringEntityFromOtherPartitions<Condition>(r_base_model_part, rConditionsToBring);
 
     // Execute after bringing entities
     if (CallExecuteAfterBringingEntities) {
