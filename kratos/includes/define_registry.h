@@ -44,11 +44,32 @@
     static inline bool KRATOS_REGISTRY_NAME(_is_registered_, __LINE__) = []() -> bool {   \
         using TFunctionType = std::function<std::shared_ptr<X>()>;                        \
         std::string key_name = NAME + std::string(".") + std::string(#X);                 \
+        std::cout << "Registring: " << key_name << std::endl;                             \
         if (!Registry::HasItem(key_name))                                                 \
         {                                                                                 \
+            std::cout << "\t S: Was successfully registered" << std::endl;                \
             auto &r_item = Registry::AddItem<RegistryItem>(key_name);                     \
             TFunctionType dispatcher = [](){return std::make_shared<X>();};               \
             r_item.AddItem<TFunctionType>("Prototype", std::move(dispatcher));            \
+        } else {                                                                          \
+            std::cout << "\t F: Was already registered" << std::endl;                     \
+        }                                                                                 \
+        return Registry::HasItem(key_name);                                               \
+    }();
+
+#define KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE(NAME, X, ...)                                \
+    static inline bool KRATOS_REGISTRY_NAME(_is_registered_, __LINE__) = []() -> bool {         \
+        using TFunctionType = std::function<std::shared_ptr<X<__VA_ARGS__>>()>;                     \
+        std::string key_name = NAME + std::string(".") + std::string(#X) + "<" + #__VA_ARGS__ + ">";    \
+        std::cout << "Registring: " << key_name << std::endl;                                       \
+        if (!Registry::HasItem(key_name))                                                       \
+        {                                                                                   \
+            std::cout << "\t S: Was successfully registered" << std::endl;                \
+            auto &r_item = Registry::AddItem<RegistryItem>(key_name);                     \
+            TFunctionType dispatcher = [](){return std::make_shared<X<__VA_ARGS__>>();};  \
+            r_item.AddItem<TFunctionType>("Prototype", std::move(dispatcher));            \
+        } else {                                                                          \
+            std::cout << "\t F: Was already registered" << std::endl;                     \
         }                                                                                 \
         return Registry::HasItem(key_name);                                               \
     }();
