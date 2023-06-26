@@ -7,7 +7,9 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ignasi de Pouplana and Danilo Cavalcanti
+//  Main authors:    Danilo Cavalcanti
+//                   Lorena Casallas
+//                   Ignasi de Pouplana
 //
 
 
