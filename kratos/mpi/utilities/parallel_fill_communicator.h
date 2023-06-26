@@ -272,14 +272,17 @@ private:
                         if constexpr (std::is_same<TObjectType, Node>::value) {
                             Node::Pointer p_new_node;
                             serializer.load("bring_node", p_new_node);
+                            KRATOS_DEBUG_ERROR_IF(rModelPart.HasNode(p_new_node->Id())) << "The node " << p_new_node->Id() << " already exists in rank: " << rank << std::endl;
                             rModelPart.AddNode(p_new_node);
                         } else if constexpr (std::is_same<TObjectType, Element>::value) {
                             Element::Pointer p_new_element;
                             serializer.load("bring_element", p_new_element);
+                            KRATOS_DEBUG_ERROR_IF(rModelPart.HasElement(p_new_element->Id())) << "The element " << p_new_element->Id() << " already exists in rank: " << rank << std::endl;
                             rModelPart.AddElement(p_new_element);
                         } else if constexpr (std::is_same<TObjectType, Condition>::value) {
                             Condition::Pointer p_new_condition;
                             serializer.load("bring_condition", p_new_condition);
+                            KRATOS_DEBUG_ERROR_IF(rModelPart.HasCondition(p_new_condition->Id())) << "The condition " << p_new_condition->Id() << " already exists in rank: " << rank << std::endl;
                             rModelPart.AddCondition(p_new_condition);
                         } else {
                             KRATOS_ERROR << "Entity type not supported" << std::endl;
