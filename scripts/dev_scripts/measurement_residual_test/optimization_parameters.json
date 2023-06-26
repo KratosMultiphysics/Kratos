@@ -57,7 +57,7 @@
       "echo_level": 0,
       "line_search": {
         "type": "const_step",
-        "init_step": 300.0,
+        "init_step": 10.0,
         "gradient_scaling": "none"
       },
       "conv_settings": {

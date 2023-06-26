@@ -42,7 +42,8 @@ def post_operations():
         os.rename(str(file), "./other_results"+str(file)[1:])
 
 
-os.chdir(os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), "measurement_residual_test")))
+working_folder = "measurement_residual_test"
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), working_folder)))
 
 pre_operations()
 
