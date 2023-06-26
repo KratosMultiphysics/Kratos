@@ -95,6 +95,7 @@ protected:
         ///Properties variables
         double DynamicViscosityInverse;
         double FluidDensity;
+        double GasDensity;
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
@@ -128,9 +129,13 @@ protected:
         double detF;
         ///Auxiliary Variables
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
-        BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPMatrix;
-        BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PUMatrix;
-        BoundedMatrix<double,TNumNodes,TNumNodes> PMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPwMatrix;
+        BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPgMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PwUMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PgUMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PwMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PgMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PwPgMatrix;
         Matrix UVoigtMatrix;
         BoundedMatrix<double,TNumNodes,TDim> PDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
@@ -147,9 +152,7 @@ protected:
 
     void ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize);
 
-
     void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
-
 
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
