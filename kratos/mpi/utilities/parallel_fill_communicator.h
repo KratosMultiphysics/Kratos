@@ -243,8 +243,7 @@ private:
         for (int i_rank = 0; i_rank < world_size; ++i_rank) {
             if (i_rank != rank) other_partition_indices.push_back(i_rank);
         }
-        std::map<int, std::size_t> send_entities;
-        // send_entities.insert({rank, 0}); // Own rank is always zero. TODO: Maybe just remove it
+        std::map<int, std::vector<std::size_t>> send_entities;
         for (int i_rank = 0; i_rank < world_size; ++i_rank) {
             if (i_rank == rank) {
                 for (auto index : other_partition_indices) {
@@ -253,23 +252,65 @@ private:
             } else {
                 auto it_find = rEntitiesToBring.find(i_rank);
                 if (it_find != rEntitiesToBring.end()) {
-                    r_data_communicator.Send(it_find->second.size(), i_rank, tag_send);
-                } 
-                // else {
-                //     r_data_communicator.Send(0, i_rank, tag_send);
-                // }
+                    r_data_communicator.Send(it_find->second, i_rank, tag_send);
+                }
             }
         }
 
-        // TODO: Use serializer!
-        if constexpr (std::is_same<TObjectType, Node>::value) {
-            // TODO
-            Node::Pointer p_new_node = nullptr;
-            rModelPart.AddNode(p_new_node);
-        } else if constexpr (std::is_same<TObjectType, Element>::value) {
-        } else if constexpr (std::is_same<TObjectType, Condition>::value) {
-        } else {
-            KRATOS_ERROR << "Unsupported object type" << std::endl;
+        // Use serializer
+        StreamSerializer serializer;
+        std::string recv_buffer;
+        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+            // Receiving
+            if (i_rank == rank) {
+                for (auto& r_bring : rEntitiesToBring) {
+                    const int origin_rank = r_bring.first;
+                    for (auto index : r_bring.second) {
+                        r_data_communicator.Recv(recv_buffer, origin_rank, static_cast<int>(index));
+                        const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());     
+                        p_serializer_buffer->write(recv_buffer.data(), recv_buffer.size());
+                        if constexpr (std::is_same<TObjectType, Node>::value) {
+                            Node::Pointer p_new_node;
+                            serializer.load("bring_node", p_new_node);
+                            rModelPart.AddNode(p_new_node);
+                        } else if constexpr (std::is_same<TObjectType, Element>::value) {
+                            Element::Pointer p_new_element;
+                            serializer.load("bring_element", p_new_element);
+                            rModelPart.AddElement(p_new_element);
+                        } else if constexpr (std::is_same<TObjectType, Condition>::value) {
+                            Condition::Pointer p_new_condition;
+                            serializer.load("bring_condition", p_new_condition);
+                            rModelPart.AddCondition(p_new_condition);
+                        } else {
+                            KRATOS_ERROR << "Entity type not supported" << std::endl;
+                        }
+                    }
+                }
+            } else { // Sending
+                auto it_find = send_entities.find(i_rank);
+                if (it_find != send_entities.end()) {
+                    for (auto index : it_find->second) {
+                        if constexpr (std::is_same<TObjectType, Node>::value) {
+                            KRATOS_DEBUG_ERROR_IF_NOT(rModelPart.HasNode(index)) << "Node with index " << index << " not found in model part" << std::endl;
+                            auto p_send_node = rModelPart.pGetNode(index);
+                            serializer.save("bring_node", p_send_node);
+                        } else if constexpr (std::is_same<TObjectType, Element>::value) {
+                            KRATOS_DEBUG_ERROR_IF_NOT(rModelPart.HasElement(index)) << "Element with index " << index << " not found in model part" << std::endl;
+                            auto p_send_element = rModelPart.pGetElement(index);
+                            serializer.save("bring_element", p_send_element);
+                        } else if constexpr (std::is_same<TObjectType, Condition>::value) {
+                            KRATOS_DEBUG_ERROR_IF_NOT(rModelPart.HasCondition(index)) << "Condition with index " << index << " not found in model part" << std::endl;
+                            auto p_send_condition = rModelPart.pGetCondition(index);
+                            serializer.save("bring_condition", p_send_condition);
+                        } else {
+                            KRATOS_ERROR << "Entity type not supported" << std::endl;
+                        }
+                        const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
+                        const std::string& r_send_buffer = p_serializer_buffer->str();
+                        r_data_communicator.Send(r_send_buffer, i_rank, static_cast<int>(index));
+                    }
+                }
+            }
         }
     }
 
