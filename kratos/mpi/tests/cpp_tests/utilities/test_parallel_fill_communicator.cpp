@@ -268,9 +268,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromO
     // The data communicator
     const DataCommunicator& r_data_communicator = Testing::GetDefaultDataCommunicator();
     
-    // MPI data
-    const int rank =  r_data_communicator.Rank();
-    const int world_size = r_data_communicator.Size();
+    // // MPI data
+    // const int rank =  r_data_communicator.Rank();
+    // const int world_size = r_data_communicator.Size();
 
     // Fill the model part
     GenerateModelPartEntinties(r_model_part, r_data_communicator);
@@ -313,9 +313,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromO
         }
     }
 
+    // Generate map
+    std::map<int, std::vector<std::size_t>> nodes_to_bring;
     for (std::size_t i = 0; i < indices_to_bring.size(); ++i) {
-        KRATOS_WATCH_MPI(indices_to_bring[i], r_data_communicator);
-        KRATOS_WATCH_MPI(partition_origin[i], r_data_communicator);
+        auto it_found = nodes_to_bring.find(partition_origin[i]);
+        if (it_found != nodes_to_bring.end()) {
+            it_found->second.push_back(indices_to_bring[i]);
+        } else {
+            std::vector<std::size_t> minor_vector(1, indices_to_bring[i]);
+           nodes_to_bring.insert({partition_origin[i], minor_vector}); 
+        }
     }
 }
 
