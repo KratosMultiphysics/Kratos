@@ -275,10 +275,6 @@ public:
     {
         KRATOS_TRY
 
-        // Set number of rom modes if it is in the process info
-        if(rModelPart.GetProcessInfo().Has(NUMBER_OF_ROM_MODES))
-            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUMBER_OF_ROM_MODES));
-
         RomSystemMatrixType Arom = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
         RomSystemVectorType brom = ZeroVector(GetNumberOfROMModes());
 
@@ -635,11 +631,6 @@ protected:
         RomSystemVectorType &rb)
     {
         KRATOS_TRY
-
-        // Set number of rom modes if it is in the process info
-        if(rModelPart.GetProcessInfo().Has(NUMBER_OF_ROM_MODES))
-            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUMBER_OF_ROM_MODES));
-
         // Define a dense matrix to hold the reduced problem
         rA = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
         rb = ZeroVector(GetNumberOfROMModes());
@@ -701,11 +692,6 @@ protected:
         TSystemVectorType &rDx)
     {
         KRATOS_TRY
-
-        // Set number of rom modes if it is in the process info
-        if(rModelPart.GetProcessInfo().Has(NUMBER_OF_ROM_MODES))
-            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUMBER_OF_ROM_MODES));
-
         RomSystemVectorType dxrom(GetNumberOfROMModes());
 
         const auto solving_timer = BuiltinTimer();
