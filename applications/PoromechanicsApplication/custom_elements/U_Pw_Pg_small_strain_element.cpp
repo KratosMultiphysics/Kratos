@@ -1559,7 +1559,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(Matr
 void UPwPgSmallStrainElement::GetCouplingCompressibilityCoefficients(double Cwu, double Cgu, ElementVariables& rVariables)
 {
     Cwu = rVariables.BiotCoefficient*rVariables.Sw;
-    Cgu = rVariables.BiotCoefficient*(1.0 - rVariables.Sg);
+    Cgu = rVariables.BiotCoefficient*(1.0 - rVariables.Sw);
 
     // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
     if (rVariables.AddGasDiffusion){
