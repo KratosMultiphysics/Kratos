@@ -54,6 +54,14 @@ void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
 {
     KRATOS_TRY
 
+    // Retrieving the model part and the communicator
+    auto& r_base_model_part = GetBaseModelPart();
+    const auto& r_data_communicator = r_base_model_part.GetCommunicator().GetDataCommunicator();
+
+    // Retrieve MPI data
+    const int rank = r_data_communicator.Rank();
+    const int world_size = r_data_communicator.Size();
+
     // TODO
 
     // Execute after bringing entities
