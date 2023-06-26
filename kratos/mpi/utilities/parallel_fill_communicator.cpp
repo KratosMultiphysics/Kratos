@@ -46,9 +46,9 @@ void ParallelFillCommunicator::Execute()
 }
 
 void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
-    const std::unordered_map<int, std::vector<std::size_t>>& rNodesToBring,
-    const std::unordered_map<int, std::vector<std::size_t>>& rElementsToBring,
-    const std::unordered_map<int, std::vector<std::size_t>>& rConditionsToBring,
+    const std::map<int, std::vector<std::size_t>>& rNodesToBring,
+    const std::map<int, std::vector<std::size_t>>& rElementsToBring,
+    const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
     const bool CallExecuteAfterBringingEntities
     )
 {
@@ -62,7 +62,32 @@ void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
     const int rank = r_data_communicator.Rank();
     const int world_size = r_data_communicator.Size();
 
-    // TODO
+    // TODO: Note first implementing for only nodes, move the implementation to a templated method
+    
+    // First make all partitions aware of which communications are needed (with the current information we only know the entities of we want to bring in current partition)
+
+    // First counting how many entities transfer for partition
+    int tag_send = 1;
+    std::vector<int> other_partition_indices;
+    other_partition_indices.reserve(world_size - 1);
+    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+        if (i_rank != rank) other_partition_indices.push_back(i_rank);
+    }
+    std::map<int, std::size_t> send_entities;
+    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+        if (i_rank == rank) {
+            for (auto index : other_partition_indices) {
+                r_data_communicator.Recv(send_entities[index], index, tag_send);
+            }
+        } else {
+            auto it_find = rNodesToBring.find(i_rank);
+            if (it_find != rNodesToBring.end()) {
+                r_data_communicator.Send(it_find->second.size(), i_rank, tag_send);
+            } else {
+                r_data_communicator.Send(0, i_rank, tag_send);
+            }
+        }
+    }
 
     // Execute after bringing entities
     if (CallExecuteAfterBringingEntities) {

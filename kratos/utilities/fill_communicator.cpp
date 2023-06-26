@@ -40,9 +40,9 @@ void FillCommunicator::Execute()
 }
 
 void FillCommunicator::BringEntitiesFromOtherPartitions(
-    const std::unordered_map<int, std::vector<std::size_t>>& rNodesToBring,
-    const std::unordered_map<int, std::vector<std::size_t>>& rElementsToBring,
-    const std::unordered_map<int, std::vector<std::size_t>>& rConditionsToBring,
+    const std::map<int, std::vector<std::size_t>>& rNodesToBring,
+    const std::map<int, std::vector<std::size_t>>& rElementsToBring,
+    const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
     const bool CallExecuteAfterBringingEntities
     )
 {
