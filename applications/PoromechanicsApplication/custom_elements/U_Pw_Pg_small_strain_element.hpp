@@ -101,12 +101,15 @@ protected:
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
+        double SolidCompressibilityCoeff;
+        double FluidCompressibilityCoeff;
         double Porosity
         double HenryCoefficient;
         bool AddGasDiffusion = false;
 
         //Element state variables
         double Sw;
+        double ipCapilarPressure;
 
         ///ProcessInfo variables
         double VelocityCoefficient;
@@ -114,7 +117,9 @@ protected:
 
         ///Nodal variables
         array_1d<double,TNumNodes> PressureVector;
+        array_1d<double,TNumNodes> GasPressureVector;
         array_1d<double,TNumNodes> DtPressureVector;
+        array_1d<double,TNumNodes> DtGasPressureVector;
         array_1d<double,TNumNodes*TDim> DisplacementVector;
         array_1d<double,TNumNodes*TDim> VelocityVector;
         array_1d<double,TNumNodes*TDim> VolumeAcceleration;
@@ -142,13 +147,16 @@ protected:
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes> UPgMatrix;
         BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PwUMatrix;
         BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PgUMatrix;
-        BoundedMatrix<double,TNumNodes,TNumNodes> PwMatrix;
-        BoundedMatrix<double,TNumNodes,TNumNodes> PgMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> NpNpT;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PwPwMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PgPgMatrix;
         BoundedMatrix<double,TNumNodes,TNumNodes> PwPgMatrix;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PgPwMatrix;
         Matrix UVoigtMatrix;
         BoundedMatrix<double,TNumNodes,TDim> PDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
         array_1d<double,TNumNodes> PVector;
+        array_1d<double,TNumNodes> CapilarPressureVector;
     };
 
     /// Member Variables
@@ -189,6 +197,9 @@ protected:
 
     void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
+    void GetCouplingCompressibilityCoefficients(double Cwu, double Cgu, ElementVariables& rVariables);
+
+    void GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, ElementVariables& rVariables);
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 

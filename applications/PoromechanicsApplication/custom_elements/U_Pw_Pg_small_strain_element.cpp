@@ -970,6 +970,9 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
         PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
 
+        //Compute the capilar pressure at the integration point
+        Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
+
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
@@ -1054,7 +1057,9 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     rVariables.FluidDensity = Prop[DENSITY_WATER];
     rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
     rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
-    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
+    rVariables.SolidCompressibilityCoeff = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid;
+    rVariables.FluidCompressibilityCoeff = Porosity/Prop[BULK_MODULUS_FLUID];
+    rVariables.BiotModulusInverse = rVariables.SolidCompressibilityCoeff + rVariables.FluidCompressibilityCoeff;
 
     //ProcessInfo variables
     rVariables.VelocityCoefficient = CurrentProcessInfo[VELOCITY_COEFFICIENT];
@@ -1063,12 +1068,17 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     //Nodal Variables
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
-        rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.PressureVector[i]      = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        rVariables.GasPressureVector[i]   = Geom[i].FastGetSolutionStepValue(GAS_PRESSURE);
+        rVariables.DtPressureVector[i]    = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.DtGasPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_GAS_PRESSURE);
     }
     PoroElementUtilities::GetNodalVariableVector(rVariables.DisplacementVector,Geom,DISPLACEMENT);
     PoroElementUtilities::GetNodalVariableVector(rVariables.VelocityVector,Geom,VELOCITY);
     PoroElementUtilities::GetNodalVariableVector(rVariables.VolumeAcceleration,Geom,VOLUME_ACCELERATION);
+
+    // Capilar pore-pressure: pc = pg - pw
+    rVariables.CapilarPressureVector = rVariables.GasPressureVector - rVariables.PressureVector;
 
     //General Variables
     const unsigned int strain_size = Prop.GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
@@ -1537,7 +1547,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(Matr
 
     // Get compressibility coefficients
     double Cwu, Cgu;
-    this->GetCouplingCompressibilityCoefficients(Cwu, Cgu, rVariables)
+    this->GetCouplingCompressibilityCoefficients(Cwu, Cgu, rVariables);
 
     // Compute the element coupling matrices
     noalias(rVariables.UPwMatrix) = Cwu*rVariables.UPMatrix;
@@ -1558,6 +1568,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(Matr
 //----------------------------------------------------------------------------------------
 void UPwPgSmallStrainElement::GetCouplingCompressibilityCoefficients(double Cwu, double Cgu, ElementVariables& rVariables)
 {
+
     Cwu = rVariables.BiotCoefficient*rVariables.Sw;
     Cgu = rVariables.BiotCoefficient*(1.0 - rVariables.Sw);
 
@@ -1573,10 +1584,52 @@ void UPwPgSmallStrainElement::GetCouplingCompressibilityCoefficients(double Cwu,
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    noalias(rVariables.PMatrix) = rVariables.DtPressureCoefficient*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
+    // Compute auxiliary matrix: Np * Np^T * w * detJ
+    noalias(rVariables.NpNpT) = outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
-    //Distribute compressibility block matrix into the elemental matrix
-    PoroElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    // Get compressibility coefficients
+    double Cww, Cwg, Cgw, Cgg;
+    this->GetCompressibilityCoefficients(Cww, Cwg, Cgw, Cgg, rVariables);
+
+    // Compute the element compressibility sub-matrices
+    // * The DtPressureCoefficient is associated with the time discretization scheme.
+    noalias(rVariables.PwPwMatrix) = rVariables.DtPressureCoefficient * Cww * rVariables.NpNpT;
+    noalias(rVariables.PwPgMatrix) = rVariables.DtPressureCoefficient * Cwg * rVariables.NpNpT;
+    noalias(rVariables.PgPwMatrix) = rVariables.DtPressureCoefficient * Cgw * rVariables.NpNpT;
+    noalias(rVariables.PgPgMatrix) = rVariables.DtPressureCoefficient * Cgg * rVariables.NpNpT;
+
+    //Distribute compressibility block sub-matrices into the elemental matrix
+    PoroElementUtilities::AssemblePwPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPwMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePwPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPgMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePgPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPwMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePgPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPgMatrix,TDim,TNumNodes);
+}
+
+//----------------------------------------------------------------------------------------
+void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, ElementVariables& rVariables)
+{
+
+    // Get variables
+    double Sw = rVariables.Sw;
+    double pc = rVariables.ipCapilarPressure;
+    double Ms = rVariables.SolidCompressibilityCoeff;
+    double Mf = rVariables.FluidCompressibilityCoeff;
+    double Sg = 1.0 - Sw;
+
+    // Evaluate the specific moisture relationship
+    double Cs;
+
+    // Compute the compressibility coefficients (CHECK THE SIGNS)
+    Cww = Ms * Sw * (Sw + Cs * pc) + Sw * Mf - Cs;
+    Cwg = Ms * Sw * (Sg - Cs * pc) + Cs;
+    Cgw = Ms * Sg * (Sg - Cs * pc) + Cs;
+    Cgg = Ms * Sg * (Sw + Cs * pc) + Sw * Mg - Cs;
+
+    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
+    if (rVariables.AddGasDiffusion){
+        Cgu += rVariables.HenryCoefficient * rVariables.Sw * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
+    }
+
 }
 
 //----------------------------------------------------------------------------------------
