@@ -74,6 +74,7 @@ void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
         if (i_rank != rank) other_partition_indices.push_back(i_rank);
     }
     std::map<int, std::size_t> send_entities;
+    send_entities.insert({rank, 0}); // Own rak is always zero. TODO: Maybe just remove it
     for (int i_rank = 0; i_rank < world_size; ++i_rank) {
         if (i_rank == rank) {
             for (auto index : other_partition_indices) {
