@@ -23,7 +23,13 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
             "model_part_names" : [],
             "analysis_module"  : "KratosMultiphysics",
             "analysis_type"    : "",
-            "analysis_settings": {}
+            "analysis_settings": {},
+            "analysis_output_settings": {
+                     "nodal_solution_step_data_variables": [],
+                     "nodal_data_value_variables"        : [],
+                     "element_data_value_variables"      : [],
+                     "condition_data_value_variables"    : []
+            }
         }""")
         self.model = model
         self.parameters = parameters
@@ -41,16 +47,19 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
         self.analysis: AnalysisStage = getattr(import_module(analysis_full_module), analysis_type)(self.model, analysis_settings.Clone())
 
-        if analysis_settings["output_processes"].Has("vtk_output"):
-           self._GetOutputData(analysis_settings["output_processes"]["vtk_output"][0]["Parameters"])
-        elif analysis_settings["output_processes"].Has("gid_output"):
-           self._GetOutputData(analysis_settings["output_processes"]["gid_output"][0]["Parameters"])
+        self.nodal_solution_step_data_variables = []
+        if self.parameters["analysis_output_settings"].Has("nodal_solution_step_data_variables"):
+            self.nodal_solution_step_data_variables = self.parameters["analysis_output_settings"]["nodal_solution_step_data_variables"]
+        self.nodal_data_value_variables = []
+        if self.parameters["analysis_output_settings"].Has("nodal_data_value_variables"):
+            self.nodal_data_value_variables = self.parameters["analysis_output_settings"]["nodal_data_value_variables"]
+        self.element_data_value_variables = []
+        if self.parameters["analysis_output_settings"].Has("element_data_value_variables"):
+            self.element_data_value_variables = self.parameters["analysis_output_settings"]["element_data_value_variables"]
+        self.condition_data_value_variables = []
+        if self.parameters["analysis_output_settings"].Has("condition_data_value_variables"):
+            self.condition_data_value_variables = self.parameters["analysis_output_settings"]["condition_data_value_variables"]
 
-    def _GetOutputData(self,output_process_params):
-        self.nodal_solution_step_data_variables = output_process_params["nodal_solution_step_data_variables"]
-        self.nodal_data_value_variables = output_process_params["nodal_data_value_variables"]
-        self.element_data_value_variables = output_process_params["element_data_value_variables"]
-        self.condition_data_value_variables = output_process_params["condition_data_value_variables"]
 
     def GetAnalysisModelPart(self):
         return self.analysis._GetSolver().GetComputingModelPart()
