@@ -13,6 +13,7 @@
 import time as timer
 import datetime
 import KratosMultiphysics as Kratos
+from functools import wraps
 
 
 def AddFileLoggerOutput(logger_file_name):
@@ -158,3 +159,21 @@ def DictLogger(title: str, data: dict):
 
     # now print
     Kratos.Logger.PrintInfo(table)
+
+def time_decorator(arg1=None, arg2=None):
+    def inner_func(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            start_time = timer.perf_counter()
+            if arg1:
+                Kratos.Logger.Print(f"{func.__qualname__.split('.')[0]}::{func.__name__} : {arg1}")
+            result = func(*args, **kwargs)
+            end_time = timer.perf_counter()
+            elapsed_time = end_time - start_time
+            if arg2:
+                Kratos.Logger.Print(f"{func.__qualname__.split('.')[0]}::{func.__name__} : {arg2} - [ Elapsed time: {datetime.timedelta(seconds=round(elapsed_time))}] \n")
+            else:
+                Kratos.Logger.Print(f"{func.__qualname__.split('.')[0]}::{func.__name__} : Finished - [ Elapsed time: {datetime.timedelta(seconds=round(elapsed_time))}] \n")
+            return result
+        return wrapper
+    return inner_func
