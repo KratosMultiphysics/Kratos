@@ -91,6 +91,8 @@ namespace Kratos
             // Get C/Phi material properties of this element
             Element::PropertiesType& rProp = rElement.GetProperties();
             ConstitutiveLaw::Pointer pConstitutiveLaw = rProp.GetValue(CONSTITUTIVE_LAW);
+//            const Properties& r_material_properties = rValues.GetMaterialProperties();
+// we hbben een constitutive law pointer, wat ik moet proberen in ConstitutiveLaw::Parameters zie linear_elastic_plane_strain_K0_law.cpp
 
             // Check for UMAT PHI Parameter
             double phi = GetAndCheckPhi(rProp);
