@@ -84,7 +84,7 @@ def CreateFomRomAnalysisInstance(cls, model, fom_project_parameters, rom_project
                         aux[j,i] = self._current_basis.item((node_counter * self.n_nodal_unknowns +j,i))
                 node.SetValue(KratosROM.ROM_BASIS, aux ) # ROM basis
                 node_counter += 1
-            self._GetComputingModelPart().ProcessInfo.SetValue(KratosROM.NUM_ROM_BASIS,num_rom_dofs)
+            self._GetComputingModelPart().ProcessInfo.SetValue(KratosROM.NUMBER_OF_ROM_MODES,num_rom_dofs)
 
         def UpdateRomBases(self,snapshots_matrix,svd_truncation_tolerance=1e-6):
             # Calculate the SVD of the snapshots matrix

@@ -229,12 +229,12 @@ public:
     SizeType GetNumberOfROMModes() const noexcept
     {
         return mNumberOfRomModes;
-    } 
+    }
 
-    void SetNumberOfROMModes(SizeType NumberOfRomModes) 
+    void SetNumberOfROMModes(SizeType NumberOfRomModes)
     {
         mNumberOfRomModes = NumberOfRomModes;
-    } 
+    }
 
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
@@ -265,7 +265,7 @@ public:
         r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
     }
 
-    
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -276,8 +276,8 @@ public:
         KRATOS_TRY
 
         // Set number of rom modes if it is in the process info
-        if(rModelPart.GetProcessInfo().Has(NUM_ROM_BASIS))
-            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
+        if(rModelPart.GetProcessInfo().Has(NUMBER_OF_ROM_MODES))
+            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUMBER_OF_ROM_MODES));
 
         RomSystemMatrixType Arom = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
         RomSystemVectorType brom = ZeroVector(GetNumberOfROMModes());
@@ -481,7 +481,7 @@ protected:
 
         KRATOS_CATCH("")
     }
-    
+
     static DofQueue ExtractDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart)
@@ -571,7 +571,7 @@ protected:
         RomSystemMatrixType aux = {};    // Auxiliary: romA = phi.t * (LHS * phi) := phi.t * aux
     };
 
-    
+
     /**
      * Class to sum-reduce matrices and vectors.
      */
@@ -626,7 +626,7 @@ protected:
     }
 
     /**
-     * Builds the reduced system of equations on rank 0 
+     * Builds the reduced system of equations on rank 0
      */
     virtual void BuildROM(
         typename TSchemeType::Pointer pScheme,
@@ -637,8 +637,8 @@ protected:
         KRATOS_TRY
 
         // Set number of rom modes if it is in the process info
-        if(rModelPart.GetProcessInfo().Has(NUM_ROM_BASIS))
-            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
+        if(rModelPart.GetProcessInfo().Has(NUMBER_OF_ROM_MODES))
+            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUMBER_OF_ROM_MODES));
 
         // Define a dense matrix to hold the reduced problem
         rA = ZeroMatrix(GetNumberOfROMModes(), GetNumberOfROMModes());
@@ -661,7 +661,7 @@ protected:
         if(!elements.empty())
         {
             std::tie(rA, rb) =
-            block_for_each<SystemSumReducer>(elements, assembly_tls_container, 
+            block_for_each<SystemSumReducer>(elements, assembly_tls_container,
                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContribution(r_element, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -675,7 +675,7 @@ protected:
             RomSystemVectorType bconditions;
 
             std::tie(Aconditions, bconditions) =
-            block_for_each<SystemSumReducer>(conditions, assembly_tls_container, 
+            block_for_each<SystemSumReducer>(conditions, assembly_tls_container,
                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
                 return CalculateLocalContribution(r_condition, r_thread_prealloc, *pScheme, r_current_process_info);
@@ -703,11 +703,11 @@ protected:
         KRATOS_TRY
 
         // Set number of rom modes if it is in the process info
-        if(rModelPart.GetProcessInfo().Has(NUM_ROM_BASIS))
-            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUM_ROM_BASIS));
+        if(rModelPart.GetProcessInfo().Has(NUMBER_OF_ROM_MODES))
+            SetNumberOfROMModes(rModelPart.GetProcessInfo().GetValue(NUMBER_OF_ROM_MODES));
 
         RomSystemVectorType dxrom(GetNumberOfROMModes());
-        
+
         const auto solving_timer = BuiltinTimer();
         MathUtils<double>::Solve(rA, dxrom, rb);
         // KRATOS_WATCH(dxrom)
@@ -744,7 +744,7 @@ private:
     SizeType mNumberOfRomModes;
 
     ///@}
-    ///@name Private operations 
+    ///@name Private operations
     ///@{
 
     /**
