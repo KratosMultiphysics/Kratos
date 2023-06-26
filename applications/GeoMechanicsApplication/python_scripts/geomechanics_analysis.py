@@ -199,6 +199,11 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
             self.OutputSolutionStep()
 
 
+class GeomechanicsAnalysis(GeoMechanicsAnalysis):
+
+    def __init__(self, model, project_parameters):
+        super().__init__(model, project_parameters)
+
 
 if __name__ == '__main__':
     from sys import argv
