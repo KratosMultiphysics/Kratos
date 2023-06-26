@@ -92,7 +92,7 @@ def CreateFomRomAnalysisInstance(cls, model, fom_project_parameters, rom_project
                 #A,_,_,eSVD = RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, svd_truncation_tolerance) #randomization is useful when the number of columns is (much) larger than the rank of the matrix
                 self._current_basis,_,_,eSVD= RandomizedSingularValueDecomposition()._SingularValueDecompostionTruncated(snapshots_matrix, svd_truncation_tolerance)
                 self._ImposeCurrentBasisToNodes()
-            else: #update only if the current basis is not good enough
+            else: #update only if the current basis is not good enough anymore
                 orthogonal_complement = snapshots_matrix - self._current_basis@(self._current_basis.T@snapshots_matrix)
                 if numpy.linalg.norm(orthogonal_complement) > svd_truncation_tolerance:
                     #u,_,_,eSVD = RandomizedSingularValueDecomposition().Calculate(orthogonal_complement, svd_truncation_tolerance)  #randomization is useful when the number of columns is (much) larger than the rank of the matrix
