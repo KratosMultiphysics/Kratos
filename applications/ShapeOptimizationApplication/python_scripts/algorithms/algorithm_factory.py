@@ -62,6 +62,12 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                                   analyzer,
                                                   communicator,
                                                   model_part_controller)
+    elif algorithm_name == "free_thickness_optimization_v2":
+        from .algorithm_free_thickness_optimization_v2 import AlgorithmFreeThicknessOptimizationv2
+        return AlgorithmFreeThicknessOptimizationv2(optimization_settings,
+                                                  analyzer,
+                                                  communicator,
+                                                  model_part_controller)
     elif algorithm_name == "free_thickness_rgp":
         from .algorithm_free_thickness_rgp import AlgorithmFreeThicknessRelaxedGradientProjection
         return AlgorithmFreeThicknessRelaxedGradientProjection(optimization_settings,

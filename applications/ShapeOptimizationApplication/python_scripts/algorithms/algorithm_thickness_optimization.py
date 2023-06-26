@@ -52,7 +52,6 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
             self.projection = False
 
         if self.projection:
-            # self.projection_settings = optimization_settings["design_variables"]["projection_settings"]
             self.thickness_targets = optimization_settings["design_variables"]["projection_settings"]["available_thicknesses"].GetVector()
             self.beta = optimization_settings["design_variables"]["projection_settings"]["initial_beta"].GetDouble()
             self.q = optimization_settings["design_variables"]["projection_settings"]["increase_beta_factor"].GetDouble()
@@ -117,8 +116,6 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
         self.data_logger.InitializeDataLogging()
 
         self.optimization_utilities = KSO.OptimizationUtilities
-
-        # self.__InitializeThicknessField()
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -227,22 +224,22 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
 
         ### 1. Project gradients to control thickness
         self.objective_gradient_dict["projected_gradient"] = self.__ProjectGradients(self.objective_gradient_dict["gradient"])
-        print(f"""__computeThicknessUpdate:: gradient objective: {self.objective_gradient_dict["gradient"]}""")
-        print(f"""__computeThicknessUpdate:: projected gradient objective: {self.objective_gradient_dict["projected_gradient"]}""")
+        # print(f"""__computeThicknessUpdate:: gradient objective: {self.objective_gradient_dict["gradient"][100]}""")
+        # print(f"""__computeThicknessUpdate:: projected gradient objective: {self.objective_gradient_dict["projected_gradient"][100]}""")
         # for visualization on mesh
-        objGradientDict = self.objective_gradient_dict["projected_gradient"]
-        self.__mapPropertyToNode(objGradientDict, KSO.DF1DT_MAPPED)
+        # objGradientDict = self.objective_gradient_dict["projected_gradient"]
+        # self.__mapPropertyToNode(objGradientDict, KSO.DF1DT_PROJECTED)
 
         for itr, constraint in enumerate(self.constraints):
             con_id = constraint["identifier"].GetString()
             self.constraint_gradients_dict[con_id]["projected_gradient"] = self.__ProjectGradients(
-            self.constraint_gradients_dict[con_id]["gradient"])
-            # for visualization on mesh
-            gradient_variable = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_MAPPED")
-            conGradientDict = self.constraint_gradients_dict[con_id]["projected_gradient"]
-            self.__mapPropertyToNode(conGradientDict, gradient_variable)
-            print(f"""__computeThicknessUpdate:: gradient constraint: {self.constraint_gradients_dict[con_id]["gradient"]}""")
-            print(f"""__computeThicknessUpdate:: projected gradient constraint: {self.constraint_gradients_dict[con_id]["projected_gradient"]}""")
+                self.constraint_gradients_dict[con_id]["gradient"])
+            # # for visualization on mesh
+            # gradient_variable = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_PROJECTED")
+            # conGradientDict = self.constraint_gradients_dict[con_id]["projected_gradient"]
+            # self.__mapPropertyToNode(conGradientDict, gradient_variable)
+            # print(f"""__computeThicknessUpdate:: gradient constraint: {self.constraint_gradients_dict[con_id]["gradient"][100]}""")
+            # print(f"""__computeThicknessUpdate:: projected gradient constraint: {self.constraint_gradients_dict[con_id]["projected_gradient"][100]}""")
 
         ### 2. Compute control thickness update via gradient projection
         control_thickness_update = self.__computeControlThicknessUpdate()
@@ -252,14 +249,14 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
 
         ### 3. Project control thickness to obtain physical thickness
         thickness = self.__ProjectThickness(self.control_thickness_dict)
-        print(f"__computeThicknessUpdate:: thickness: {thickness}")
-        print(f"__computeThicknessUpdate:: thickness_dict: {self.thickness_dict}")
+        # print(f"__computeThicknessUpdate:: thickness: {thickness}")
+        # print(f"__computeThicknessUpdate:: thickness_dict: {self.thickness_dict}")
         for key in self.thickness_dict:
             self.thickness_update_dict[key] = thickness[key] - self.thickness_dict[key]
             self.thickness_dict[key] = thickness[key]
 
-        print(f"__computeThicknessUpdate:: thickness_update_dict: {self.thickness_update_dict}")
-        print(f"__computeThicknessUpdate:: thickness_dict: {self.thickness_dict}")
+        # print(f"__computeThicknessUpdate:: thickness_update_dict: {self.thickness_update_dict}")
+        # print(f"__computeThicknessUpdate:: thickness_dict: {self.thickness_dict}")
 
         self.__mapPropertyToNode(self.thickness_update_dict, KSO.THICKNESS_UPDATE)
         # self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.THICKNESS_UPDATE)
@@ -267,72 +264,111 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computeControlThicknessUpdate(self):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
-        g_a, g_a_gradients = self.__getActiveConstraints()
 
-        KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
-        nabla_f = KM.Vector(list(self.objective_gradient_dict["projected_gradient"].values()))
-        s = KM.Vector(self.number_of_design_variables)
-        print(f"GradientProjection:: nabla_f: {nabla_f}")
-        for itr, gradient in enumerate(g_a_gradients):
-            print(f"GradientProjection:: dg{itr}_dt: {gradient}")
+        prev_s = KM.Vector(self.number_of_design_variables)
 
-        if len(g_a) == 0:
-            KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
-            s = nabla_f * (-1.0)
-            if s.norm_inf() > 0:
-                s *= self.step_size / s.norm_inf()
+        max_inner_iter = 10
+        for inner_iter in range(max_inner_iter):
+            KM.Logger.PrintInfo("ThicknessOpt", f"Inner Iteration: {inner_iter+1}")
 
-            # for visualization
-            self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_SEARCH_DIRECTION)
-            self.__mapDesignVariableVectorToNodalVariable([0.0]*len(s), KSO.THICKNESS_CORRECTION)
-            self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_CONTROL_UPDATE)
-            print(f"SteepestDescent:: search direction: {s}")
-            return s
+            g_a, g_a_gradients = self.__getActiveConstraints()
 
+            KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
+            nabla_f = KM.Vector(list(self.objective_gradient_dict["projected_gradient"].values()))
 
-        KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
-        N = KM.Matrix()
-        self.optimization_utilities.AssembleMatrixFromGradientVectors(self.design_surface, N, g_a_gradients)
+            s = KM.Vector(self.number_of_design_variables)
 
-        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
-        solver = dense_linear_solver_factory.ConstructSolver(settings)
+            if len(g_a) == 0:
+                KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
+                s = nabla_f * (-1.0)
 
-        KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
-        c = KM.Vector()
-        self.optimization_utilities.CalculateProjectedSearchDirectionAndCorrection(
-            nabla_f,
-            N,
-            g_a,
-            solver,
-            s,
-            c)
-        print(f"GradientProjection:: Vor Skalierung")
-        print(f"GradientProjection:: search direction: {s}")
-        print(f"GradientProjection:: correction: {c}")
+                if self.projection:
+                    s = self.__ProjectSearchDirectionAndGradients(s)
 
-        if c.norm_inf() != 0.0:
-            if c.norm_inf() <= self.max_correction_share * self.step_size:
-                delta = self.step_size - c.norm_inf()
-                if s.norm_inf() > 0:
-                    s *= delta/s.norm_inf()
+                if not self.projection or (s - prev_s).norm_inf() == 0.0 or inner_iter == max_inner_iter - 1:
+                    if s.norm_inf() > 0:
+                        s *= self.step_size / s.norm_inf()
+
+                    # for visualization
+                    self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_SEARCH_DIRECTION)
+                    self.__mapDesignVariableVectorToNodalVariable([0.0]*len(s), KSO.THICKNESS_CORRECTION)
+                    self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_CONTROL_UPDATE)
+
+                    # for visualization on mesh
+                    objGradientDict = self.objective_gradient_dict["projected_gradient"]
+                    self.__mapPropertyToNode(objGradientDict, KSO.DF1DT_PROJECTED)
+                    for itr, constraint in enumerate(self.constraints):
+                        con_id = constraint["identifier"].GetString()
+                        gradient_variable = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_PROJECTED")
+                        conGradientDict = self.constraint_gradients_dict[con_id]["projected_gradient"]
+                        self.__mapPropertyToNode(conGradientDict, gradient_variable)
+
+                    return s
+                else:
+                    prev_s = s
+                    continue
+
+            KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
+            N = KM.Matrix()
+            self.optimization_utilities.AssembleMatrixFromGradientVectors(self.design_surface, N, g_a_gradients)
+
+            settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
+            solver = dense_linear_solver_factory.ConstructSolver(settings)
+
+            KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
+            c = KM.Vector()
+            self.optimization_utilities.CalculateProjectedSearchDirectionAndCorrection(
+                nabla_f,
+                N,
+                g_a,
+                solver,
+                s,
+                c)
+            # print(f"GradientProjection:: Vor Skalierung")
+            # print(f"GradientProjection:: search direction: {s}")
+            # print(f"GradientProjection:: correction: {c}")
+            if self.projection:
+                s = self.__ProjectSearchDirectionAndGradients(s)
+
+            if not self.projection or (s - prev_s).norm_inf() == 0.0 or inner_iter == max_inner_iter - 1:
+
+                if c.norm_inf() != 0.0:
+                    if c.norm_inf() <= self.max_correction_share * self.step_size:
+                        delta = self.step_size - c.norm_inf()
+                        if s.norm_inf() > 0:
+                            s *= delta/s.norm_inf()
+                    else:
+                        KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
+                        c *= self.max_correction_share * self.step_size / c.norm_inf()
+                        if s.norm_inf() > 0:
+                            s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+                else:
+                    if s.norm_inf() > 0:
+                        s *= self.step_size / s.norm_inf()
+
+                # print(f"GradientProjection:: search direction: {s}")
+                # print(f"GradientProjection:: correction: {c}")
+                # print(f"GradientProjection:: control update: {s+c}")
+
+                # for visualization
+                self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_SEARCH_DIRECTION)
+                self.__mapDesignVariableVectorToNodalVariable(c, KSO.THICKNESS_CORRECTION)
+                self.__mapDesignVariableVectorToNodalVariable(s+c, KSO.THICKNESS_CONTROL_UPDATE)
+
+                # for visualization on mesh
+                objGradientDict = self.objective_gradient_dict["projected_gradient"]
+                self.__mapPropertyToNode(objGradientDict, KSO.DF1DT_PROJECTED)
+                for itr, constraint in enumerate(self.constraints):
+                    con_id = constraint["identifier"].GetString()
+                    gradient_variable = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_PROJECTED")
+                    conGradientDict = self.constraint_gradients_dict[con_id]["projected_gradient"]
+                    self.__mapPropertyToNode(conGradientDict, gradient_variable)
+
+                return s+c
+
             else:
-                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
-                c *= self.max_correction_share * self.step_size / c.norm_inf()
-                if s.norm_inf() > 0:
-                    s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
-        else:
-            if s.norm_inf() > 0:
-                s *= self.step_size / s.norm_inf()
-
-        print(f"GradientProjection:: search direction: {s}")
-        print(f"GradientProjection:: correction: {c}")
-        print(f"GradientProjection:: control update: {s+c}")
-        # for visualization
-        self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_SEARCH_DIRECTION)
-        self.__mapDesignVariableVectorToNodalVariable(c, KSO.THICKNESS_CORRECTION)
-        self.__mapDesignVariableVectorToNodalVariable(s+c, KSO.THICKNESS_CONTROL_UPDATE)
-
-        return s+c
+                prev_s = s
+                continue
 
     # --------------------------------------------------------------------------
     def __getActiveConstraints(self):
@@ -479,15 +515,6 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
             node.SetSolutionStepValue(nodal_variable, 0, node_data)
 
     # --------------------------------------------------------------------------
-    def __InitializeThicknessField(self):
-
-        element_thicknesses = dict()
-        for condition in self.optimization_model_part.Conditions:
-            element_thicknesses[condition.Id] = condition.Properties.GetValue(KM.THICKNESS)
-
-        self.__mapElementDataToNode(element_thicknesses, KSO.THICKNESS)
-
-    # --------------------------------------------------------------------------
     def __ProjectGradients(self, gradient_dict):
 
         if not self.projection:
@@ -496,31 +523,38 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
         projected_gradient_dict = OrderedDict()
 
         for id, t in self.control_thickness_dict.items():
-            print(f"t: {t}")
             t_m = self.___GetInterval(t)
-            print(f"t_m: {t_m}")
-            if t_m.size == 1:
-                # smaller than smallest available thickness
-                if t < t_m:
-                    if gradient_dict[id] < 0:
-                        projected_gradient_dict[id] = gradient_dict[id]
-                    else:
-                        projected_gradient_dict[id] = 0.0
-                # larger than largest available thickness
-                elif t > t_m:
-                    if gradient_dict[id] > 0:
-                        projected_gradient_dict[id] = gradient_dict[id]
-                    else:
-                        projected_gradient_dict[id] = 0.0
-            else:
-                w = (t - t_m[0]) / (t_m[1] - t_m[0])
-                tanh_numerator = 2 * np.tanh(self.beta * 0.5)
-                dw_dt_p = 1 / (t_m[1] - t_m[0])
-                dt_p_dw = ((t_m[1] - t_m[0]) / tanh_numerator) \
-                    * (1 - np.tanh(self.beta * (w - 0.5))) * self.beta
-                projected_gradient_dict[id] = gradient_dict[id] * dw_dt_p * dt_p_dw
+
+            w = (t - t_m[0]) / (t_m[1] - t_m[0])
+            tanh_numerator = 2 * np.tanh(self.beta * 0.5)
+            dw_dt_p = 1 / (t_m[1] - t_m[0])
+            dt_p_dw = ((t_m[1] - t_m[0]) / tanh_numerator) \
+                * (1 - np.tanh(self.beta * (w - 0.5))) * self.beta
+            projected_gradient_dict[id] = gradient_dict[id] * dw_dt_p * dt_p_dw
 
         return projected_gradient_dict
+
+    def __ProjectSearchDirectionAndGradients(self, search_direction):
+
+        if not self.projection:
+            return search_direction
+
+        for itr, key in enumerate(self.control_thickness_dict.keys()):
+            t = self.control_thickness_dict[key]
+
+            if t <= self.thickness_targets[0] and search_direction[itr] < 0.0:
+                search_direction[itr] = 0.0
+                self.objective_gradient_dict["projected_gradient"][key] = 0.0
+                for constraint_gradient in self.constraint_gradients_dict.values():
+                    constraint_gradient["projected_gradient"][key] = 0.0
+
+            elif t >= self.thickness_targets[len(self.thickness_targets)-1] and search_direction[itr] > 0.0:
+                search_direction[itr] = 0.0
+                self.objective_gradient_dict["projected_gradient"][key] = 0.0
+                for constraint_gradient in self.constraint_gradients_dict.values():
+                    constraint_gradient["projected_gradient"][key] = 0.0
+
+        return search_direction
 
     def __ProjectThickness(self, control_thickness_dict):
 
@@ -530,11 +564,15 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
         thickness_dict = OrderedDict()
 
         for id, t in control_thickness_dict.items():
-            t_m = self.___GetInterval(t)
 
-            if t_m.size == 1:
-                thickness_dict[id] = t
+            if t <= self.thickness_targets[0]:
+                thickness_dict[id] = self.thickness_targets[0]
+
+            elif t >= self.thickness_targets[len(self.thickness_targets)-1]:
+                thickness_dict[id] = self.thickness_targets[len(self.thickness_targets)-1]
+
             else:
+                t_m = self.___GetInterval(t)
                 w = (t - t_m[0]) / (t_m[1] - t_m[0])
                 tanh_denominator = np.tanh(self.beta * 0.5) + np.tanh(self.beta * (w - 0.5))
                 tanh_numerator = 2 * np.tanh(self.beta * 0.5)
@@ -546,12 +584,11 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
     def ___GetInterval(self, t):
 
         if t <= self.thickness_targets[0]:
-            return np.array([self.thickness_targets[0]])
+            return np.array([self.thickness_targets[0], self.thickness_targets[1]])
         if t >= self.thickness_targets[len(self.thickness_targets)-1]:
-            return np.array([self.thickness_targets[len(self.thickness_targets)]])
+            return np.array([self.thickness_targets[len(self.thickness_targets)-2], self.thickness_targets[len(self.thickness_targets)-1]])
 
         for i in range(len(self.thickness_targets)-1):
             if t >= self.thickness_targets[i] and t <= self.thickness_targets[i+1]:
                 return np.array([self.thickness_targets[i], self.thickness_targets[i+1]])
-
 # ==============================================================================

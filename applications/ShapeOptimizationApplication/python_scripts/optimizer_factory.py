@@ -84,20 +84,29 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CONTROL_UPDATE)
         model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CONTROL_CHANGE)
 
+        model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_INITIAL)
         model_part.AddNodalSolutionStepVariable(KSO.THICKNESS)
         model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_UPDATE)
         model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CHANGE)
+
+        model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CHANGE_CONTROL)
+        model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CHANGE_CONTROL_PROJECTED)
+        model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CONTROL_PROJECTED_UPDATE)
 
         model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
         nodal_variable = KM.KratosGlobals.GetVariable("DF1DT")
         model_part.AddNodalSolutionStepVariable(nodal_variable)
         nodal_variable = KM.KratosGlobals.GetVariable("DF1DT_MAPPED")
         model_part.AddNodalSolutionStepVariable(nodal_variable)
+        nodal_variable = KM.KratosGlobals.GetVariable("DF1DT_PROJECTED")
+        model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         for itr in range(1,number_of_constraints+1):
             nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DT")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
             nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DT_MAPPED")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KM.KratosGlobals.GetVariable(f"DC{(itr)}DT_PROJECTED")
             model_part.AddNodalSolutionStepVariable(nodal_variable)
 
         # sensitivity heatmap

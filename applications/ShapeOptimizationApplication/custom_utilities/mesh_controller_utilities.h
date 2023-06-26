@@ -120,6 +120,21 @@ public:
     }
 
     // --------------------------------------------------------------------------
+    void UpdateThicknessAccordingInitialAndInputVariable( const Variable<double> &rInputVariable )
+    {
+        for(auto & condition_i: mrModelPart.Conditions()) {
+            int number_of_nodes = condition_i.GetGeometry().PointsNumber();
+            condition_i.GetProperties()[THICKNESS] = condition_i.GetProperties()[THICKNESS_INITIAL];
+            for(auto & node_i: condition_i.GetGeometry()) {
+                condition_i.GetProperties()[THICKNESS] += node_i.FastGetSolutionStepValue(rInputVariable) / number_of_nodes;
+            }
+        }
+        // for(auto & condition_i: mrModelPart.Conditions()) {
+        //     std::cout << "Condition: " << condition_i.Id() << "Thickness: "<< condition_i.GetProperties()[THICKNESS] << std::endl;
+        // }
+    }
+
+    // --------------------------------------------------------------------------
     void RevertMeshUpdateAccordingInputVariable( const Variable<array_1d<double,3>> &rInputVariable )
     {
         for(auto & node_i: mrModelPart.Nodes())

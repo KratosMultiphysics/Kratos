@@ -128,6 +128,9 @@ class ModelPartController:
     def UpdateThicknessAccordingInputVariable(self, InputVariable):
         self.mesh_controller.UpdateThicknessAccordingInputVariable(InputVariable)
 
+    def UpdateThicknessAccordingInitialAndInputVariable(self, InputVariable):
+        self.mesh_controller.UpdateThicknessAccordingInitialAndInputVariable(InputVariable)
+
     # --------------------------------------------------------------------------
     def SetMeshToReferenceMesh(self):
         KSO.MeshControllerUtilities(self.optimization_model_part).SetMeshToReferenceMesh()
