@@ -455,6 +455,31 @@ public:
 
     //----------------------------------------------------------------------------------------
 
+    static inline void AssembleUBlockTwoPhaseFlowMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,6,6>& UBlockMatrix)
+    {
+        //Triangle_2d_3
+        unsigned int Global_i, Global_j, Local_i, Local_j;
+
+        for(unsigned int i = 0; i < 3; i++)
+        {
+            Global_i = i * (2 + 2);
+            Local_i = i * 2;
+
+            for(unsigned int j = 0; j < 3; j++)
+            {
+                Global_j = j * (2 + 2);
+                Local_j = j * 2;
+
+                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
+                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
+                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
     static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,8,8>& UBlockMatrix)
     {
         //Quadrilateral_2d_4
@@ -480,6 +505,31 @@ public:
 
     //----------------------------------------------------------------------------------------
 
+    static inline void AssembleUBlockTwoPhaseFlowMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,8,8>& UBlockMatrix)
+    {
+        //Quadrilateral_2d_4
+        unsigned int Global_i, Global_j, Local_i, Local_j;
+
+        for(unsigned int i = 0; i < 4; i++)
+        {
+            Global_i = i * (2 + 2);
+            Local_i = i * 2;
+
+            for(unsigned int j = 0; j < 4; j++)
+            {
+                Global_j = j * (2 + 2);
+                Local_j = j * 2;
+
+                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
+                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
+                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
     static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,12,12>& UBlockMatrix)
     {
         //Tetrahedra_3d_4
@@ -493,6 +543,37 @@ public:
             for(unsigned int j = 0; j < 4; j++)
             {
                 Global_j = j * (3 + 1);
+                Local_j = j * 3;
+
+                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
+                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
+                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
+
+                rLeftHandSideMatrix(Global_i,Global_j+2)   += UBlockMatrix(Local_i,Local_j+2);
+                rLeftHandSideMatrix(Global_i+1,Global_j+2) += UBlockMatrix(Local_i+1,Local_j+2);
+                rLeftHandSideMatrix(Global_i+2,Global_j+1) += UBlockMatrix(Local_i+2,Local_j+1);
+                rLeftHandSideMatrix(Global_i+2,Global_j)   += UBlockMatrix(Local_i+2,Local_j);
+                rLeftHandSideMatrix(Global_i+2,Global_j+2) += UBlockMatrix(Local_i+2,Local_j+2);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    static inline void AssembleUBlockTwoPhaseFlowMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,12,12>& UBlockMatrix)
+    {
+        //Tetrahedra_3d_4
+        unsigned int Global_i, Global_j, Local_i, Local_j;
+
+        for(unsigned int i = 0; i < 4; i++)
+        {
+            Global_i = i * (3 + 2);
+            Local_i = i * 3;
+
+            for(unsigned int j = 0; j < 4; j++)
+            {
+                Global_j = j * (3 + 2);
                 Local_j = j * 3;
 
                 rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
@@ -542,6 +623,37 @@ public:
 
     //----------------------------------------------------------------------------------------
 
+    static inline void AssembleUBlockTwoPhaseFlowMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,18,18>& UBlockMatrix)
+    {
+        //Prism_3d_6
+        unsigned int Global_i, Global_j, Local_i, Local_j;
+
+        for(unsigned int i = 0; i < 6; i++)
+        {
+            Global_i = i * (3 + 2);
+            Local_i = i * 3;
+
+            for(unsigned int j = 0; j < 6; j++)
+            {
+                Global_j = j * (3 + 2);
+                Local_j = j * 3;
+
+                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
+                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
+                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
+
+                rLeftHandSideMatrix(Global_i,Global_j+2)   += UBlockMatrix(Local_i,Local_j+2);
+                rLeftHandSideMatrix(Global_i+1,Global_j+2) += UBlockMatrix(Local_i+1,Local_j+2);
+                rLeftHandSideMatrix(Global_i+2,Global_j+1) += UBlockMatrix(Local_i+2,Local_j+1);
+                rLeftHandSideMatrix(Global_i+2,Global_j)   += UBlockMatrix(Local_i+2,Local_j);
+                rLeftHandSideMatrix(Global_i+2,Global_j+2) += UBlockMatrix(Local_i+2,Local_j+2);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
     static inline void AssembleUBlockMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,24,24>& UBlockMatrix)
     {
         //Hexahedra_3d_8
@@ -555,6 +667,37 @@ public:
             for(unsigned int j = 0; j < 8; j++)
             {
                 Global_j = j * (3 + 1);
+                Local_j = j * 3;
+
+                rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
+                rLeftHandSideMatrix(Global_i,Global_j+1)   += UBlockMatrix(Local_i,Local_j+1);
+                rLeftHandSideMatrix(Global_i+1,Global_j)   += UBlockMatrix(Local_i+1,Local_j);
+                rLeftHandSideMatrix(Global_i+1,Global_j+1) += UBlockMatrix(Local_i+1,Local_j+1);
+
+                rLeftHandSideMatrix(Global_i,Global_j+2)   += UBlockMatrix(Local_i,Local_j+2);
+                rLeftHandSideMatrix(Global_i+1,Global_j+2) += UBlockMatrix(Local_i+1,Local_j+2);
+                rLeftHandSideMatrix(Global_i+2,Global_j+1) += UBlockMatrix(Local_i+2,Local_j+1);
+                rLeftHandSideMatrix(Global_i+2,Global_j)   += UBlockMatrix(Local_i+2,Local_j);
+                rLeftHandSideMatrix(Global_i+2,Global_j+2) += UBlockMatrix(Local_i+2,Local_j+2);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    static inline void AssembleUBlockTwoPhaseFlowMatrix(Matrix& rLeftHandSideMatrix, const BoundedMatrix<double,24,24>& UBlockMatrix)
+    {
+        //Hexahedra_3d_8
+        unsigned int Global_i, Global_j, Local_i, Local_j;
+
+        for(unsigned int i = 0; i < 8; i++)
+        {
+            Global_i = i * (3 + 2);
+            Local_i = i * 3;
+
+            for(unsigned int j = 0; j < 8; j++)
+            {
+                Global_j = j * (3 + 2);
                 Local_j = j * 3;
 
                 rLeftHandSideMatrix(Global_i,Global_j)     += UBlockMatrix(Local_i,Local_j);
