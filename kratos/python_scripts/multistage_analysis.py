@@ -13,7 +13,6 @@ class MultistageAnalysis:
         self.output_data = {}
         self.settings = project_parameters
         self.model = KratosMultiphysics.Model()
-        self.initial_modules = [k for k in sys.modules.keys()]
 
     def CheckStage(self, stage_name):
         '''Performs the check of a single stage from a multistage simulation.'''
@@ -27,15 +26,19 @@ class MultistageAnalysis:
     def Run(self):
         '''Main function that runs the complete multistage simulation.'''
 
+        # Set the stages to be saved first
+        # We do it first to warn the user about the non-present stages before running the first one
+        self.__GetStagesToCheckpointList()
+
         # Check if loading from checkpoint is required and load
-        if self.settings["checkpoint_settings"]["load"].GetBool():
+        if self.settings["project_settings"]["checkpoint_settings"]["load"].GetBool():
             self.__LoadCurrentStageCheckpoint()
 
         # Run the stages list
         for stage_name in self.__GetExecutionList():
             # Set up and check current stage instance
             self.SetCurrentStageName(stage_name)
-            current_stage = self.GetCurrentStage()
+            current_stage = self.CreateCurrentStage()
             self.CheckStage(self.GetCurrentStageName())
 
             # Execute current stage preprocess
@@ -64,11 +67,11 @@ class MultistageAnalysis:
             del current_stage
 
     def __SaveCurrentStageCheckpoint(self):
-        # Set the list of Kratos modules that have been added up to current stage
-        required_modules = [m for m in (sys.modules.keys() - self.initial_modules) if m.split(".")[0] == "KratosMultiphysics"]
+        # Set the list of modules (Kratos and non-Kratos) that have been added up to current stage
+        required_modules = list(sys.modules.keys())
 
         # Create checkpoints folder
-        checkpoint_path = pathlib.Path(self.settings["checkpoint_settings"]["save_folder_name"].GetString())
+        checkpoint_path = pathlib.Path(self.settings["project_settings"]["checkpoint_settings"]["save_folder_name"].GetString())
         KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(checkpoint_path)
 
         # Save current checkpoint
@@ -82,7 +85,7 @@ class MultistageAnalysis:
             }, checkpoint_file, 2)
 
     def __LoadCurrentStageCheckpoint(self):
-        checkpoint_path = pathlib.Path(self.settings["checkpoint_settings"]["load_checkpoint"].GetString())
+        checkpoint_path = pathlib.Path(self.settings["project_settings"]["checkpoint_settings"]["load_checkpoint"].GetString())
         with open(checkpoint_path, 'rb') as checkpoint_file:
             loaded_data = pickle.load(checkpoint_file)
 
@@ -130,7 +133,7 @@ class MultistageAnalysis:
 
         return len(self.__stages_map)
 
-    def GetCurrentStage(self):
+    def CreateCurrentStage(self):
         '''Returns the current stage instance.'''
 
         return self.__CreateStage(self.GetCurrentStageName())
@@ -154,8 +157,8 @@ class MultistageAnalysis:
         # Check if the execution list has been already created
         if not hasattr(self, "__execution_list"):
             # Default case in which the execution list is provided by the user
-            if self.settings.Has("execution_list"):
-                self.__execution_list = self.settings["execution_list"].GetStringArray()
+            if self.settings["project_settings"].Has("execution_list"):
+                self.__execution_list = self.settings["project_settings"]["execution_list"].GetStringArray()
             # If not provided, create an auxiliary execution list from the stages declaration order
             else:
                 KratosMultiphysics.Logger.PrintInfo("'execution_list' is not provided. Stages will be executed according to their declaration order.")
@@ -172,22 +175,22 @@ class MultistageAnalysis:
         # Check if the checkpoint stages list has been already created
         if not hasattr(self, "__stages_to_checkpoint_list"):
 
-            if self.settings["checkpoint_settings"]["save"].IsBool():
-                if self.settings["checkpoint_settings"]["save"].GetBool():
+            if self.settings["project_settings"]["checkpoint_settings"]["save"].IsBool():
+                if self.settings["project_settings"]["checkpoint_settings"]["save"].GetBool():
                     # All stages are to be checkpointed
                     self.__stages_to_checkpoint_list = self.__GetExecutionList()
                 else:
                     # Create an empty list to avoid errors
                     self.__stages_to_checkpoint_list = []
 
-            elif self.settings["checkpoint_settings"]["save"].IsStringArray():
+            elif self.settings["project_settings"]["checkpoint_settings"]["save"].IsStringArray():
                 # Check that the stages asked to be checkpointed are in the execution list
-                stages_asked_to_checkpoint = self.settings["checkpoint_settings"]["save"].GetStringArray()
+                stages_asked_to_checkpoint = self.settings["project_settings"]["checkpoint_settings"]["save"].GetStringArray()
                 aux_diff = set(stages_asked_to_checkpoint) - set(self.__GetExecutionList())
                 if len(aux_diff) == 0:
                     self.__stages_to_checkpoint_list = stages_asked_to_checkpoint
                 else:
-                    err_msg = f"User asked to checkpoint stages that are not present in 'execution_list'. Please remove these {list(aux_diff):?}."
+                    err_msg = f"User asked to checkpoint stages that are not present in 'execution_list'. Please remove these {list(aux_diff)}."
                     raise ValueError(err_msg)
             else:
                 err_msg = "'save' value must be bool or a list with the stages to be checkpointed."
