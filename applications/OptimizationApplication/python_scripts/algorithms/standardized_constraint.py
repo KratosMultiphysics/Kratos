@@ -154,7 +154,7 @@ class StandardizedConstraint(ResponseRoutine):
             "ref_value": self.GetStandardizedReferenceValue(),
             "abs_change": self.GetAbsoluteChange(),
             "rel_change [%]": self.GetRelativeChange() * 100.0,
-            "abs_violation [%]": self.GetAbsoluteViolation(),
+            "abs_violation [%]": self.GetAbsoluteViolation() * 100,
             "rel_violation [%]": self.GetRelativeViolation() * 100.0
         }
         return info
