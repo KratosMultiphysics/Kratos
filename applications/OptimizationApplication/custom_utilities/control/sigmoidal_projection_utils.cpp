@@ -131,7 +131,7 @@ double ProjectValueBackward(
     else if (std::abs(yValue-y2)<std::numeric_limits<double>::epsilon())
         return x2;
     else
-        return ((x2+x1)/2.0) + (1.0/(-2.0*beta)) * std::log(((y2-y1)/(yValue-y1))-1);
+        return ((x2+x1)/2.0) + (1.0/(-2.0*beta)) * std::log(std::pow((y2-y1)/(yValue-y1),1.0/penalFac)-1);
 }
 
 double ComputeFirstDerivativeAtValue(

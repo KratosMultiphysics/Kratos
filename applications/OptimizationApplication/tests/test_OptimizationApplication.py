@@ -28,6 +28,7 @@ import test_model_part_controllers
 import test_container_expression_utils
 import test_container_expression
 import test_collective_expressions
+import test_sigmoidal_projection
 import test_buffered_dict
 import control.test_master_control
 import control.material.test_material_properties_control
@@ -85,6 +86,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_collective_expressions.TestCollectiveExpressions]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sigmoidal_projection.TestSigmoidalProjection]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_controllers.TestMdpaModelPartController]))
 

@@ -88,15 +88,10 @@ class ShellThicknessControl(Control):
                 "radius": 0.000000000001,
                 "linear_solver_settings" : {}
             },
-            "beta_settings": {
-                "initial_value" : 25,
-                "max_value" : 25,
-                "adaptive" : false,
-                "increase_fac" : 1.5,
-                "update_period" : 20
-            },
-            "SIMP_power_fac": 3,
-            "initial_thickness":0.000001,
+            "beta_value": 25.0,
+            "penalty_power": 1,
+            "output_all_fields": false,
+            "initial_physical_thickness":0.000001,
             "physical_thicknesses": [],
             "fixed_model_parts": [],
             "fixed_model_parts_thicknesses": [],
@@ -104,11 +99,11 @@ class ShellThicknessControl(Control):
         }""")
 
         self.parameters.ValidateAndAssignDefaults(default_settings)
-        self.parameters["beta_settings"].ValidateAndAssignDefaults(default_settings["beta_settings"])
         self.parameters["filter_settings"].ValidateAndAssignDefaults(default_settings["filter_settings"])
 
-        self.penal_factor = self.parameters["SIMP_power_fac"].GetInt()
-        self.initial_beta = self.parameters["beta_settings"]["initial_value"].GetDouble()
+        self.penalty_power = self.parameters["penalty_power"].GetInt()
+        self.beta = self.parameters["beta_value"].GetDouble()
+        self.output_all_fields = self.parameters["output_all_fields"].GetBool()
         self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
         num_phys_thick = len(self.physical_thicknesses)
         if num_phys_thick == 0:
@@ -132,9 +127,15 @@ class ShellThicknessControl(Control):
         if len(self.fixed_model_parts) != len(self.fixed_model_parts_thicknesses):
             raise RuntimeError(f"fixed_model_parts and fixed_model_parts_thicknesses should have the same size !")
 
+        if not all(entry in self.physical_thicknesses for entry in self.fixed_model_parts_thicknesses):
+            raise RuntimeError(f"fixed_model_parts_thicknesses should exist in physical_thicknesses !")
+
         helmholtz_settings = GetImplicitFilterParameters(self.model_part, self.parameters)
 
+        # create implicit filter using Helmholtz analysis
         self.filter = HelmholtzAnalysis(self.model, helmholtz_settings)
+
+        self.is_initialized = False
 
     def Initialize(self) -> None:
         ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
@@ -143,24 +144,21 @@ class ShellThicknessControl(Control):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
             KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
+        # initiliaze the filter
         self.filter.Initialize()
-
-        # create the control field
-        self.control_field = Kratos.Expression.ElementExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(self.control_field, self.parameters["initial_thickness"].GetDouble())
-
-        self._SetFixedModelPartValues()
-        thickness_physical_field = self.filter.FilterField(self.control_field)
-
-        # now update physical field
-        KratosOA.PropertiesVariableExpressionIO.Write(thickness_physical_field, Kratos.THICKNESS)
-
-        # now write the physical field to the optimization_problem so it can be visualized
-        # later if required.
-        un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-        un_buffered_data.SetValue("physical_THICKNESS", thickness_physical_field.Clone())
-        un_buffered_data.SetValue("filtered_THICKNESS", self.control_field.Clone())
-        un_buffered_data.SetValue("control_THICKNESS", self.control_field.Clone())
+        # compute control thickness field from the initial physical control field
+        physical_thickness_field = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(physical_thickness_field, self.parameters["initial_physical_thickness"].GetDouble())
+        # project backward the uniform physical control field and assign it to the control field
+        self.control_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(
+                                                physical_thickness_field,
+                                                self.filtered_thicknesses,
+                                                self.physical_thicknesses,
+                                                self.beta,
+                                                self.penalty_power)
+        # now update the physical thickness field
+        self._UpdateAndOutputFields()
+        self.is_initialized = True
 
     def Check(self):
         return self.filter.Check()
@@ -191,8 +189,10 @@ class ShellThicknessControl(Control):
             if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
                 raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-            self._SetFixedModelPartValues(True)
-            filtered_gradient = self.filter.FilterIntegratedField(physical_gradient_variable_container_expression_map[Kratos.THICKNESS].Clone())
+            # multiply the physical sensitivity field with projection derivatives
+            projected_gradient = physical_gradient * self.projection_derivative_field
+            # now filter the field
+            filtered_gradient = self.filter.FilterIntegratedField(projected_gradient)
 
             return filtered_gradient
 
@@ -202,26 +202,43 @@ class ShellThicknessControl(Control):
 
         if KratosOA.ExpressionUtils.NormL2(self.control_field - new_control_field) > 1e-9:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}."):
-                self._SetFixedModelPartValues()
+                # update the control thickness field
                 self.control_field = new_control_field
-                filtered_control_field = self.filter.FilterField(self.control_field)
-
-                # now project the filtered field
-                projected_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(filtered_control_field,[1,2],[2,3],25.0,1)
-
-                # now update physical field
-                KratosOA.PropertiesVariableExpressionIO.Write(projected_field, Kratos.THICKNESS)
-
-                # now write the physical field to the optimization_problem so it can be visualized
-                # later if required.
-                un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-                un_buffered_data.SetValue("physical_THICKNESS", projected_field.Clone(), overwrite=True)
-                un_buffered_data.SetValue("control_THICKNESS", self.control_field.Clone(), overwrite=True)
-                un_buffered_data.SetValue("filtered_THICKNESS", filtered_control_field.Clone(), overwrite=True)
-
+                # now update the physical field
+                self._UpdateAndOutputFields()
                 return True
-
         return False
+
+    def _UpdateAndOutputFields(self):
+        # apply boundary conditions for the forward filtering
+        self._SetFixedModelPartValues()
+        # filter the control field
+        filtered_thickness_field = self.filter.FilterField(self.control_field)
+        # project forward the filtered thickness field
+        projected_filtered_thickness_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(
+                                                filtered_thickness_field,
+                                                self.filtered_thicknesses,
+                                                self.physical_thicknesses,
+                                                self.beta,
+                                                self.penalty_power)
+        # now update physical field
+        KratosOA.PropertiesVariableExpressionIO.Write(projected_filtered_thickness_field, Kratos.THICKNESS)
+        # compute and strore projection derivatives for consistent filtering of the sensitivities
+        self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ComputeFirstDerivative(
+                                                filtered_thickness_field,
+                                                self.filtered_thicknesses,
+                                                self.physical_thicknesses,
+                                                self.beta,
+                                                self.penalty_power)
+        # apply boundary conditions for the filtering of the sensitivites
+        self._SetFixedModelPartValues(True)
+        # now output the fields
+        un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
+        un_buffered_data.SetValue("physical_thickness", projected_filtered_thickness_field.Clone(),overwrite=self.is_initialized)
+        if self.output_all_fields:
+            un_buffered_data.SetValue("filtered_thickness", filtered_thickness_field.Clone(),overwrite=self.is_initialized)
+            un_buffered_data.SetValue("control_thickness", self.control_field.Clone(),overwrite=self.is_initialized)
+            un_buffered_data.SetValue("projection_derivative", self.projection_derivative_field.Clone(),overwrite=self.is_initialized)
 
     def _SetFixedModelPartValues(self, is_backward = False) -> None:
         for model_part_name, model_part_value in zip(self.fixed_model_parts, self.fixed_model_parts_thicknesses):
