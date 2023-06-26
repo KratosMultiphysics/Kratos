@@ -104,6 +104,7 @@ namespace Kratos
         double measurement_value;
         Vector measurement_normal;
         Vector simulated_displacement;
+        double simulated_displacement_projected_on_measurement;
 
         const ModelPart &response_part = mrModelPart.GetSubModelPart(mResponsePartName);
         const ArrayVariableType &r_traced_dof = KratosComponents<ArrayVariableType>::Get(mTracedDofLabel);
@@ -128,9 +129,13 @@ namespace Kratos
                             measurement_normal = sensor_data["measurement_direction_normal"].GetVector();
                             simulated_displacement = response_part.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof);
 
-                            rResponseGradient[i] = (measurement_normal[0] * measurement_value) - simulated_displacement[0];
-                            rResponseGradient[i + 1] = (measurement_normal[1] * measurement_value) - simulated_displacement[1];
-                            rResponseGradient[i + 2] = (measurement_normal[2] * measurement_value) - simulated_displacement[2];
+                            simulated_displacement_projected_on_measurement = simulated_displacement[0] * measurement_normal[0] +
+                                                                              simulated_displacement[1] * measurement_normal[1] +
+                                                                              simulated_displacement[2] * measurement_normal[2];
+
+                            rResponseGradient[i + 0] = measurement_normal[0] * (measurement_value - simulated_displacement_projected_on_measurement);
+                            rResponseGradient[i + 1] = measurement_normal[1] * (measurement_value - simulated_displacement_projected_on_measurement);
+                            rResponseGradient[i + 2] = measurement_normal[2] * (measurement_value - simulated_displacement_projected_on_measurement);
 
                             break;
                         }

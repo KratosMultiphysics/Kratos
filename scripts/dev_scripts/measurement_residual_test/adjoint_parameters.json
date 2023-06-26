@@ -17,7 +17,7 @@
     "compute_reactions": false,
     "move_mesh_flag": false,
     "response_function_settings": {
-      "response_type": "adjoint_nodal_displacement",
+      "response_type": "adjoint_nodal_displacement_measurement_residual",
       "analyzer": "kratos",
       "gradient_mode": "semi_analytic",
       "step_size": 1.0e-6,
@@ -106,18 +106,5 @@
       }
     ]
   },
-  "_json_output_process": [
-    {
-      "python_module": "json_output_process",
-      "kratos_module": "KratosMultiphysics",
-      "help": "",
-      "process_name": "JsonOutputProcess",
-      "Parameters": {
-        "output_variables": ["YOUNG_MODULUS"],
-        "output_file_name": "linear_shell_test_nodal_disp_results.json",
-        "model_part_name": "Structure",
-        "time_frequency": -2.0
-      }
-    }
-  ]
+  "_json_output_process": []
 }
