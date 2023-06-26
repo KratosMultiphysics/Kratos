@@ -314,7 +314,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromO
     }
 
     // Generate map
-    std::map<int, std::vector<std::size_t>> nodes_to_bring;
+    std::map<int, std::vector<std::size_t>> nodes_to_bring, elements_to_bring, conditions_to_bring;
     for (std::size_t i = 0; i < indices_to_bring.size(); ++i) {
         auto it_found = nodes_to_bring.find(partition_origin[i]);
         if (it_found != nodes_to_bring.end()) {
@@ -324,6 +324,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromO
            nodes_to_bring.insert({partition_origin[i], minor_vector}); 
         }
     }
+    filler.BringEntitiesFromOtherPartitions(nodes_to_bring,elements_to_bring, conditions_to_bring);
+    
+    // TODO: Add checks
 }
 
 } // namespace Kratos::Testing
