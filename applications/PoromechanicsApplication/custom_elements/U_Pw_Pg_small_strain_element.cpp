@@ -1610,34 +1610,6 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatr
 }
 
 //----------------------------------------------------------------------------------------
-void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, ElementVariables& rVariables)
-{
-
-    // Get variables
-    double Sw     = rVariables.Sw;
-    double dSwdpc = rVariables.dSwdpc;
-    double pc     = rVariables.ipCapilarPressure;
-    double Ms     = rVariables.SolidCompressibilityCoeff;
-    double Mf     = rVariables.FluidCompressibilityCoeff;
-    double Mg     = rVariables.GasCompressibilityCoeff;
-    double Phi    = rVariables.Porosity;
-    double Sg     = 1.0 - Sw;
-
-    // Compute the compressibility coefficients
-    Cww = Ms * Sw * (Sw + pc * dSwdpc) - dSwdpc * Phi + Sw * Mf;
-    Cwg = Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi;
-    Cgw = Ms * Sg * (Sw + pc * dSwdpc) + dSwdpc * Phi;
-    Cgg = Ms * Sg * (Sg - pc * dSwdpc) - dSwdpc * Phi + Sg * Mg;
-
-    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
-    if (rVariables.AddGasDiffusion){
-        Cgw += -rVariables.HenryCoefficient * (Ms * Sw * (Sw + pc * dSwdpc) + dSwdpc * Phi);
-        Cgg += -rVariables.HenryCoefficient * (Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi - Sw * Mg);
-    }
-
-}
-
-//----------------------------------------------------------------------------------------
 void UPwPgSmallStrainElement::CalculateWaterSaturationDegree(ElementVariables& rVariables)
 {
     //Get material parameters
@@ -1668,6 +1640,34 @@ void UPwPgSmallStrainElement::CalculateWaterSaturationDegree(ElementVariables& r
             
             break;
     }
+}
+
+//----------------------------------------------------------------------------------------
+void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, ElementVariables& rVariables)
+{
+
+    // Get variables
+    double Sw     = rVariables.Sw;
+    double dSwdpc = rVariables.dSwdpc;
+    double pc     = rVariables.ipCapilarPressure;
+    double Ms     = rVariables.SolidCompressibilityCoeff;
+    double Mf     = rVariables.FluidCompressibilityCoeff;
+    double Mg     = rVariables.GasCompressibilityCoeff;
+    double Phi    = rVariables.Porosity;
+    double Sg     = 1.0 - Sw;
+
+    // Compute the compressibility coefficients
+    Cww = Ms * Sw * (Sw + pc * dSwdpc) - dSwdpc * Phi + Sw * Mf;
+    Cwg = Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi;
+    Cgw = Ms * Sg * (Sw + pc * dSwdpc) + dSwdpc * Phi;
+    Cgg = Ms * Sg * (Sg - pc * dSwdpc) - dSwdpc * Phi + Sg * Mg;
+
+    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
+    if (rVariables.AddGasDiffusion){
+        Cgw += -rVariables.HenryCoefficient * (Ms * Sw * (Sw + pc * dSwdpc) + dSwdpc * Phi);
+        Cgg += -rVariables.HenryCoefficient * (Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi - Sw * Mg);
+    }
+
 }
 
 //----------------------------------------------------------------------------------------
