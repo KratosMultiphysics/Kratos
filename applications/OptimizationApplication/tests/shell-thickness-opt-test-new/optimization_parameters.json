@@ -24,6 +24,9 @@
                 "analysis_type": "StructuralMechanicsAnalysis",
                 "analysis_settings": {
                     "@include_json": "primal_parameters.json"
+                },
+                "analysis_output_settings": {
+                    "nodal_solution_step_data_variables": ["DISPLACEMENT"]
                 }
             }
         }
@@ -64,13 +67,9 @@
                         "solver_type": "LinearSolversApplication.pardiso_lu"
                     }
                 },
-                "initial_thickness": 0.1,
-                "fixed_model_parts": [
-                    "shell.top_edge"
-                ],
-                "fixed_model_parts_thicknesses": [
-                    0.2
-                ]
+                "output_all_fields": false,
+                "initial_physical_thickness": 0.15,
+                "physical_thicknesses": [0.1,0.2]
             }
         }
     ],
@@ -80,12 +79,12 @@
             "echo_level": 0,
             "line_search": {
                 "type": "const_step",
-                "init_step": 0.001,
-                "gradient_scaling": "inf_norm"
+                "init_step": 0.025,
+                "gradient_scaling": "l2_norm"
             },
             "conv_settings": {
                 "type": "max_iter",
-                "max_iter": 1
+                "max_iter": 20
             }
         },
         "controls": [
@@ -117,7 +116,7 @@
                         "file_format": "binary",
                         "write_deformed_configuration": false,
                         "list_of_output_components": [
-                            "execution_policy.shell_static","control.thickness_control"
+                            "all"
                         ],
                         "output_precision": 7,
                         "output_interval": 1,

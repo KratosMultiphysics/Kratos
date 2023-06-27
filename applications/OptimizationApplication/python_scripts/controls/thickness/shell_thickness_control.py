@@ -178,7 +178,7 @@ class ShellThicknessControl(Control):
         return self.control_field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
-        with TimeLogger(self.__class__.__name__, f"Mapping Gardient {self.GetName()}...", f"Finished updating of {self.GetName()}."):
+        with TimeLogger("ShellThicknessControl::MapGradient", None, "Finished",False):
             keys = physical_gradient_variable_container_expression_map.keys()
             if len(keys) != 1:
                 raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
@@ -201,7 +201,7 @@ class ShellThicknessControl(Control):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
 
         if KratosOA.ExpressionUtils.NormL2(self.control_field - new_control_field) > 1e-9:
-            with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}."):
+            with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # update the control thickness field
                 self.control_field = new_control_field
                 # now update the physical field
