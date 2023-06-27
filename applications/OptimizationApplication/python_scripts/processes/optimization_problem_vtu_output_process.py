@@ -69,7 +69,7 @@ class CollectiveExpressionData(ExpressionData):
         return data
 
 class ExpressionVtuOutput:
-    def __init__(self, parameters: list, model_part: Kratos.ModelPart, optimization_problem: OptimizationProblem):
+    def __init__(self, parameters: 'dict[str, Any]', model_part: Kratos.ModelPart, optimization_problem: OptimizationProblem):
         self.model_part = model_part
         self.optimization_problem = optimization_problem
         self.output_file_name_prefix = parameters["output_file_name_prefix"]
@@ -80,7 +80,7 @@ class ExpressionVtuOutput:
                 kratos_utils.DeleteDirectoryIfExisting(str(self.output_path))
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
             # now create the output path
-            self.output_path.mkdir(parents=True, exist_ok=True)
+            Kratos.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path))
         else:
             self.output_path = Path(".")
 
@@ -166,17 +166,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         else:
             raise RuntimeError(f"Only supports \"ascii\" and \"binary\" file_format. [ provided file_format = \"{file_format}\" ].")
 
-        self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
-        optimization_problem_data = self.optimization_problem.GetProblemDataContainer()
-        if optimization_problem_data.HasValue("requested_vtu_outputs") and optimization_problem_data.GetValue("requested_vtu_outputs") != ["all"]:
-            if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
-                optimization_problem_data["requested_vtu_outputs"] = ["all"]
-            else:
-                optimization_problem_data["requested_vtu_outputs"].extend(self.list_of_component_names)
-        else:
-            optimization_problem_data["requested_vtu_outputs"] =  self.list_of_component_names
-
         self.list_of_expresson_vtu_outputs: 'list[ExpressionVtuOutput]' = []
         self.initialized_vtu_outputs = False
 
@@ -189,19 +179,19 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             expression_vtu_output.WriteOutput()
 
     def InitializeVtuOutputIO(self) -> None:
-
         # get all the component names at the first writing point
         if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
             self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
 
+        list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         for component_name in self.list_of_component_names:
-            self.list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
+            list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
 
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
         for global_k, global_v in global_values_map.items():
              # first check whether this is part of requested list of components
             found_valid_component = False
-            for component in self.list_of_components:
+            for component in list_of_components:
                 component_data = ComponentDataView(component, self.optimization_problem)
                 if global_k.startswith(component_data.GetDataPath()):
                      found_valid_component = True
@@ -225,12 +215,15 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
                 break
 
         if not found_vtu_output:
-            vtu_parameters = {"output_file_name_prefix": self.file_name,
-                              "is_initial_configuration": not self.write_deformed_configuration,
-                              "writer_format": self.writer_format,
-                              "precision": self.output_precision,
-                              "save_output_files_in_folder": self.save_output_files_in_folder,
-                              "output_path": self.output_path}
+            vtu_parameters = {
+                "output_file_name_prefix": self.file_name,
+                "is_initial_configuration": not self.write_deformed_configuration,
+                "writer_format": self.writer_format,
+                "precision": self.output_precision,
+                "save_output_files_in_folder": self.save_output_files_in_folder,
+                "output_path": self.output_path
+            }
+
             expression_vtu_output = ExpressionVtuOutput(vtu_parameters, expression_data.GetModelPart(), self.optimization_problem)
             expression_vtu_output.AddExpressionData(expression_data)
             self.list_of_expresson_vtu_outputs.append(expression_vtu_output)
