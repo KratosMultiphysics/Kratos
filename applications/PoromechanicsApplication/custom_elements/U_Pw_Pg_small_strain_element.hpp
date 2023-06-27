@@ -95,7 +95,8 @@ protected:
     struct ElementVariables
     {
         ///Properties variables
-        double DynamicViscosityInverse;
+        double WaterDynamicViscosity;
+        double GasDynamicViscosity;
         double FluidDensity;
         double GasDensity;
         double Density;
@@ -156,6 +157,7 @@ protected:
         BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PwUMatrix;
         BoundedMatrix<double,TNumNodes,TNumNodes*TDim> PgUMatrix;
         BoundedMatrix<double,TNumNodes,TNumNodes> NpNpT;
+        BoundedMatrix<double,TNumNodes,TNumNodes> PermMatrix;
         BoundedMatrix<double,TNumNodes,TNumNodes> PwPwMatrix;
         BoundedMatrix<double,TNumNodes,TNumNodes> PgPgMatrix;
         BoundedMatrix<double,TNumNodes,TNumNodes> PwPgMatrix;
@@ -209,7 +211,13 @@ protected:
 
     void CalculateWaterSaturationDegree(ElementVariables& rVariables);
 
-    void GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, ElementVariables& rVariables);
+    void GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, const ElementVariables& Variables);
+
+    double EffectiveSaturation(double Sw, double Swr);
+
+    double WaterRelativePermeability(double Se, const ElementVariables& Variables);
+
+    double GasRelativePermeability(double Se, const ElementVariables& Variables);
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 

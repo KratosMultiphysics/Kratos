@@ -1643,17 +1643,17 @@ void UPwPgSmallStrainElement::CalculateWaterSaturationDegree(ElementVariables& r
 }
 
 //----------------------------------------------------------------------------------------
-void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, ElementVariables& rVariables)
+void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, const ElementVariables& Variables)
 {
 
     // Get variables
-    double Sw     = rVariables.Sw;
-    double dSwdpc = rVariables.dSwdpc;
-    double pc     = rVariables.ipCapilarPressure;
-    double Ms     = rVariables.SolidCompressibilityCoeff;
-    double Mf     = rVariables.FluidCompressibilityCoeff;
-    double Mg     = rVariables.GasCompressibilityCoeff;
-    double Phi    = rVariables.Porosity;
+    double Sw     = Variables.Sw;
+    double dSwdpc = Variables.dSwdpc;
+    double pc     = Variables.ipCapilarPressure;
+    double Ms     = Variables.SolidCompressibilityCoeff;
+    double Mf     = Variables.FluidCompressibilityCoeff;
+    double Mg     = Variables.GasCompressibilityCoeff;
+    double Phi    = Variables.Porosity;
     double Sg     = 1.0 - Sw;
 
     // Compute the compressibility coefficients
@@ -1663,9 +1663,9 @@ void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double 
     Cgg = Ms * Sg * (Sg - pc * dSwdpc) - dSwdpc * Phi + Sg * Mg;
 
     // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
-    if (rVariables.AddGasDiffusion){
-        Cgw += -rVariables.HenryCoefficient * (Ms * Sw * (Sw + pc * dSwdpc) + dSwdpc * Phi);
-        Cgg += -rVariables.HenryCoefficient * (Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi - Sw * Mg);
+    if (Variables.AddGasDiffusion){
+        Cgw += -Variables.HenryCoefficient * (Ms * Sw * (Sw + pc * dSwdpc) + dSwdpc * Phi);
+        Cgg += -Variables.HenryCoefficient * (Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi - Sw * Mg);
     }
 
 }
@@ -1675,12 +1675,94 @@ void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double 
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
+
+    // Compute the auxiliary matrix of the product between: gradNp^T * K * gradNp
+    // where gradNp is the gradient of the shape function vector associated with the pressure fields,
+    // and K is the permeability matrix.
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
+    noalias(rVariables.PermMatrix) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
+    // Compute the effective saturation
+    Se->EffectiveSaturation(rVariables.Sw, rVariables.ResidualWaterSaturation);
 
-    //Distribute permeability block matrix into the elemental matrix
-    PoroElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    // Evaluate the water relative permeability
+    krw = this->WaterRelativePermeability(Se, rVariables);
+
+    // Evaluate the gas relative permeability
+    krg = this->GasRelativePermeability(Se, rVariables);
+
+    // Compute the fluid-flow sub-matrices
+    noalias(PwPwMatrix) = krw * rVariables.PermMatrix / rVariables.WaterDynamicViscosity;
+    noalias(PwPwMatrix) = krg * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
+
+    //Distribute fluid-flow block sub-matrices into the elemental matrix
+    PoroElementUtilities::AssemblePwPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPwMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePgPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPgMatrix,TDim,TNumNodes);
+
+    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
+    if (rVariables.AddGasDiffusion){
+        PoroElementUtilities::AssemblePwPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPgMatrix,TDim,TNumNodes);
+        PoroElementUtilities::AssemblePgPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPwMatrix,TDim,TNumNodes);
+    }
+}
+
+//----------------------------------------------------------------------------------------
+double UPwPgSmallStrainElement::EffectiveSaturation(double Sw, double Swr)
+{
+    double Se = (Sw - Swr)/(1.0 - Swr);
+    return Se;    
+}
+
+//----------------------------------------------------------------------------------------
+double UPwPgSmallStrainElement::WaterRelativePermeability(double Se, const ElementVariables& Variables)
+{
+    double krw;
+
+    // Compute the water relative permeability according with the consitutive model
+    switch (rVariables.WaterSaturationLaw){
+        case 1: // -- Brooks and Corey
+        //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) ----
+           
+            double lambda = rVariables.PoreSizeFactor;
+            double nw = (2.0 + 3.0*lambda)/lambda
+            krw = pow(Se,nw);
+
+            break;
+
+        case 2: // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
+
+            double nw = 1.5
+            krw = pow(Se,nw);
+            
+            break;
+    }
+    return krw;    
+}
+
+//----------------------------------------------------------------------------------------
+double UPwPgSmallStrainElement::GasRelativePermeability(double Se, const ElementVariables& Variables)
+{
+    double krg;
+
+    // Compute the gas relative permeability according with the consitutive model
+    switch (rVariables.WaterSaturationLaw){
+        case 1: // -- Brooks and Corey
+        //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
+            
+            double lambda = rVariables.PoreSizeFactor;
+            double ng = (2.0 + lambda)/lambda
+            krg = pow(1.0-Se,2.0)*(1.0 - pow(Se,ng));
+
+            break;
+
+        case 2: // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
+
+            double ng = 3.0
+            krg = pow(1.0-Se,ng);
+            
+            break;
+    }
+    return krg;    
 }
 
 //----------------------------------------------------------------------------------------
