@@ -1791,45 +1791,59 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRi
 }
 
 //----------------------------------------------------------------------------------------
-
+// Integral of (B^T * sigma)
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
     noalias(rVariables.UVector) = -1.0*prod(trans(rVariables.B),rVariables.StressVector)*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block vector into elemental vector
-    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
 }
 
 //----------------------------------------------------------------------------------------
-
+// Integral of (N^T * rho * b)
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
     noalias(rVariables.UVector) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient;
 
     //Distribute body force block vector into elemental vector
-    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
+
+    // Compute intermediate auxiliary vector and matrix
     noalias(rVariables.UVector) = prod(trans(rVariables.B),rVariables.VoigtVector);
+    noalias(rVariables.UPMatrix) = outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.UPMatrix) = rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
+    // Get compressibility coefficients
+    double Cwu, Cgu;
+    this->GetCouplingCompressibilityCoefficients(Cwu, Cgu, rVariables);
 
-    noalias(rVariables.UVector) = prod(rVariables.UPMatrix,rVariables.PressureVector);
+    // Compute the element coupling hydromechanical matrices
+    noalias(rVariables.UPwMatrix) = Cwu*rVariables.UPMatrix;
+    noalias(rVariables.UPgMatrix) = Cgu*rVariables.UPMatrix;
 
-    //Distribute coupling block vector 1 into elemental vector
-    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    //Add the contribution of the coupling between the displacement and the water pressure in the residual of the momentum equation: Qw * pw
+    noalias(rVariables.UVector) = prod(rVariables.UPwMatrix,rVariables.PressureVector);
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
+    
+    //Add the contribution of the coupling between the displacement and the gas pressure in the residual of the momentum equation: Qg * pg
+    noalias(rVariables.UVector) = prod(rVariables.UPgMatrix,rVariables.GasPressureVector);
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,rVariables.UVector);
 
-    noalias(rVariables.PVector) = -1.0*prod(trans(rVariables.UPMatrix),rVariables.VelocityVector);
+    //Add the contribution of the coupling between the displacement and the water pressure in the residual of the mass balance of water equation: -Qw^T * v
+    noalias(rVariables.PVector) = -1.0*prod(trans(rVariables.UPwMatrix),rVariables.VelocityVector);
+    PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 
-    //Distribute coupling block vector 2 into elemental vector
-    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    //Add the contribution of the coupling between the displacement and the gas pressure in the residual of the mass balance of gas equation: -Qg^T * v
+    noalias(rVariables.PVector) = -1.0*prod(trans(rVariables.UPgMatrix),rVariables.VelocityVector);
+    PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
