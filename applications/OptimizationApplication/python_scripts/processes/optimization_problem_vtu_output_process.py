@@ -215,12 +215,15 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
                 break
 
         if not found_vtu_output:
-            vtu_parameters = {"output_file_name_prefix": self.file_name,
-                              "is_initial_configuration": not self.write_deformed_configuration,
-                              "writer_format": self.writer_format,
-                              "precision": self.output_precision,
-                              "save_output_files_in_folder": self.save_output_files_in_folder,
-                              "output_path": self.output_path}
+            vtu_parameters = {
+                "output_file_name_prefix": self.file_name,
+                "is_initial_configuration": not self.write_deformed_configuration,
+                "writer_format": self.writer_format,
+                "precision": self.output_precision,
+                "save_output_files_in_folder": self.save_output_files_in_folder,
+                "output_path": self.output_path
+            }
+
             expression_vtu_output = ExpressionVtuOutput(vtu_parameters, expression_data.GetModelPart(), self.optimization_problem)
             expression_vtu_output.AddExpressionData(expression_data)
             self.list_of_expresson_vtu_outputs.append(expression_vtu_output)
