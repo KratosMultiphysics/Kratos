@@ -167,15 +167,6 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             raise RuntimeError(f"Only supports \"ascii\" and \"binary\" file_format. [ provided file_format = \"{file_format}\" ].")
 
         self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
-        optimization_problem_data = self.optimization_problem.GetProblemDataContainer()
-        if optimization_problem_data.HasValue("requested_vtu_outputs") and optimization_problem_data.GetValue("requested_vtu_outputs") != ["all"]:
-            if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
-                optimization_problem_data["requested_vtu_outputs"] = ["all"]
-            else:
-                optimization_problem_data["requested_vtu_outputs"].extend(self.list_of_component_names)
-        else:
-            optimization_problem_data["requested_vtu_outputs"] =  self.list_of_component_names
-
         self.list_of_expresson_vtu_outputs: 'list[ExpressionVtuOutput]' = []
         self.initialized_vtu_outputs = False
 
