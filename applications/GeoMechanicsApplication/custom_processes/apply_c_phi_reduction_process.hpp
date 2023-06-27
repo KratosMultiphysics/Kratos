@@ -124,16 +124,22 @@ namespace Kratos
 
         double GetAndCheckPhi(const Element::PropertiesType& rProp)
         {
+            // Get the initial properties from the model part. Recall that we create a separate properties
+            // object with reduced c and phi for each and every element. Those reduced properties objects
+            // are not linked to the original ones.
+            const auto& part_properties = mrModelPart.GetProperties(rProp.Id());
+
             // Check for UMAT PHI Parameter
             double phi = 0.;
-            if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(NUMBER_OF_UMAT_PARAMETERS) &&
-                rProp.Has(UMAT_PARAMETERS)) {
-                if (rProp[INDEX_OF_UMAT_PHI_PARAMETER] < 1 ||
-                    rProp[INDEX_OF_UMAT_PHI_PARAMETER] > rProp[NUMBER_OF_UMAT_PARAMETERS]) {
-                    KRATOS_ERROR << "undefined INDEX_OF_UMAT_PHI_PARAMETER: " << rProp[INDEX_OF_UMAT_PHI_PARAMETER] << std::endl;
+            if (part_properties.Has(INDEX_OF_UMAT_PHI_PARAMETER) &&
+                part_properties.Has(NUMBER_OF_UMAT_PARAMETERS) &&
+                part_properties.Has(UMAT_PARAMETERS)) {
+                if (part_properties[INDEX_OF_UMAT_PHI_PARAMETER] < 1 ||
+                    part_properties[INDEX_OF_UMAT_PHI_PARAMETER] > part_properties[NUMBER_OF_UMAT_PARAMETERS]) {
+                    KRATOS_ERROR << "undefined INDEX_OF_UMAT_PHI_PARAMETER: " << part_properties[INDEX_OF_UMAT_PHI_PARAMETER] << std::endl;
                 }
                 // needs more checking?
-                phi = rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
+                phi = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1];
                 if (phi < 0. || phi > 90.) {
                     KRATOS_ERROR << "Friction angle Phi out of range: " << phi << std::endl;
                 }
@@ -146,15 +152,21 @@ namespace Kratos
 
         double GetAndCheckC(const Element::PropertiesType& rProp)
         {
+            // Get the initial properties from the model part. Recall that we create a separate properties
+            // object with reduced c and phi for each and every element. Those reduced properties objects
+            // are not linked to the original ones.
+            const auto& part_properties = mrModelPart.GetProperties(rProp.Id());
+
             double c = 0.;
-            if (rProp.Has(INDEX_OF_UMAT_C_PARAMETER) && rProp.Has(NUMBER_OF_UMAT_PARAMETERS) &&
-                rProp.Has(UMAT_PARAMETERS)) {
-                if (rProp[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
-                    rProp[INDEX_OF_UMAT_C_PARAMETER] > rProp[NUMBER_OF_UMAT_PARAMETERS]) {
-                    KRATOS_ERROR << "undefined INDEX_OF_UMAT_C_PARAMETER: " << rProp[INDEX_OF_UMAT_C_PARAMETER] << std::endl;
+            if (part_properties.Has(INDEX_OF_UMAT_C_PARAMETER) &&
+                part_properties.Has(NUMBER_OF_UMAT_PARAMETERS) &&
+                part_properties.Has(UMAT_PARAMETERS)) {
+                if (part_properties[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
+                    part_properties[INDEX_OF_UMAT_C_PARAMETER] > part_properties[NUMBER_OF_UMAT_PARAMETERS]) {
+                    KRATOS_ERROR << "undefined INDEX_OF_UMAT_C_PARAMETER: " << part_properties[INDEX_OF_UMAT_C_PARAMETER] << std::endl;
                 }
                 // needs more checking?
-                c = rProp[UMAT_PARAMETERS][rProp[INDEX_OF_UMAT_C_PARAMETER] - 1];
+                c = part_properties[UMAT_PARAMETERS][part_properties[INDEX_OF_UMAT_C_PARAMETER] - 1];
                 if (c < 0.) {
                     KRATOS_ERROR << "Cohesion C out of range: " << c << std::endl;
                 }
