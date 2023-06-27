@@ -1631,7 +1631,8 @@ void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double 
 
     // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
     if (rVariables.AddGasDiffusion){
-        Cgu += rVariables.HenryCoefficient * rVariables.Sw * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
+        Cgw += -rVariables.HenryCoefficient * (Ms * Sw * (Sw + pc * dSwdpc) + dSwdpc * Phi);
+        Cgg += -rVariables.HenryCoefficient * (Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi - Sw * Mg);
     }
 
 }
