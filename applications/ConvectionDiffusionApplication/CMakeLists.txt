@@ -32,6 +32,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_thermal_face.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/gauss_point_error_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/embedded_mls_constraint_process.cpp
 )
 
 ## define python interface sources

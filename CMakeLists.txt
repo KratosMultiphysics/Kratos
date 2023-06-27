@@ -55,7 +55,12 @@ else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 # Setting the libs folder for the shared objects built in kratos
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+if (APPLE)
+  cmake_policy(SET CMP0042 NEW)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
+else()
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+endif()
 
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
@@ -541,7 +546,7 @@ endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
-include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
+include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )

@@ -19,6 +19,9 @@
 // External includes
 
 // Project includes
+#include "includes/node.h"
+#include "includes/geometrical_object.h"
+#include "includes/variables.h"
 #include "includes/data_communicator.h"
 #include "includes/global_pointer.h"
 #include "containers/global_pointers_vector.h"
@@ -283,7 +286,7 @@ public:
         const int world_size = rDataCommunicator.Size();
 
         // Getting number of entities
-        const int number_of_entities = rContainer.size();
+        const std::size_t number_of_entities = rContainer.size();
 
         // Getting global number of points
         std::vector<int> number_of_entities_per_partition(world_size);
@@ -292,7 +295,7 @@ public:
 
         // Retrieve the ids
         std::vector<int> global_id_list, local_id_list;
-        local_id_list.reserve(rContainer.size());
+        local_id_list.reserve(number_of_entities);
         for (const auto& r_entity : rContainer) {
             local_id_list.push_back(r_entity.Id());
         }
@@ -428,23 +431,12 @@ private:
     ///@{
 
     /**
-     * @brief Determines whether an element is local or not.
-     * @param rElem The element to check.
-     * @param CurrentRank The current rank.
-     * @return True if the iterator was found, then it is local!
-     */
-    static bool ObjectIsLocal(const Element& rElem, const int CurrentRank)
-    {
-        return true; //if the iterator was found, then it is local!
-    }
-
-    /**
-     * @brief Determines if an object meets a certain condition and is located locally.
-     * @param rCond the condition that the object must meet
+     * @brief Determines if an object meets a certain geometrical object and is located locally.
+     * @param rGeometricalObject the geometrical object that the object must meet
      * @param CurrentRank the current rank of the object
      * @return true if the object is local, false otherwise
      */
-    static bool ObjectIsLocal(const Condition& rCond, const int CurrentRank)
+    static bool ObjectIsLocal(const GeometricalObject& rGeometricalObject, const int CurrentRank)
     {
         return true; //if the iterator was found, then it is local!
     }

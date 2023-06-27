@@ -32,27 +32,26 @@ class MaterialPropertiesControl(Control):
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.model_part_names = parameters["model_part_names"].GetStringArray()
         self.model = model
 
         control_variable_name = parameters["control_variable_name"].GetString()
         control_variable_type = Kratos.KratosGlobals.GetVariableType(control_variable_name)
-
         if control_variable_type != "Double":
             raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
-        if len(self.model_part_names) == 0:
-            raise RuntimeError(f"\"{self.GetName()}\" control has not specified any model part names.")
-
         self.controlled_physical_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
-    def Initialize(self) -> None:
-        model_parts_list = [self.model[model_part_name] for model_part_name in self.model_part_names]
-        root_model_part = model_parts_list[0].GetRootModelPart()
-        is_new_model_part, self.model_part = ModelPartUtilities.UnionModelParts(root_model_part, model_parts_list, False)
+        controlled_model_parts = [model[model_part_name] for model_part_name in parameters["model_part_names"].GetStringArray()]
+        if len(controlled_model_parts) == 0:
+            raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
 
-        if is_new_model_part:
-            # now create entity specific properties for the merged model part which is used for the control.
+        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
+
+    def Initialize(self) -> None:
+        ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
+
+        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
+            KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
     def Check(self) -> None:
         pass
@@ -64,13 +63,13 @@ class MaterialPropertiesControl(Control):
         return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = KratosOA.ContainerExpression.ElementPropertiesExpression(self.model_part)
-        field.SetData(0.0)
+        field = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
         return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
         field = self.GetEmptyField()
-        field.Read(self.controlled_physical_variable)
+        KratosOA.PropertiesVariableExpressionIO.Read(field, self.controlled_physical_variable)
         return field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
@@ -96,11 +95,10 @@ class MaterialPropertiesControl(Control):
         # filtering mechanisms are implemented.
 
         # get the current unfiltered control field
-        unfiltered_control_field = self.GetEmptyField()
-        unfiltered_control_field.Read(self.controlled_physical_variable)
+        unfiltered_control_field = self.GetControlField()
 
-        if KratosOA.ContainerExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
-            control_field.Evaluate(self.controlled_physical_variable)
+        if KratosOA.ExpressionUtils.NormL2(unfiltered_control_field - control_field) > 1e-9:
+            KratosOA.PropertiesVariableExpressionIO.Write(control_field, self.controlled_physical_variable)
             return True
 
         return False

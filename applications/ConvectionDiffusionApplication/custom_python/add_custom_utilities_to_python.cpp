@@ -27,6 +27,7 @@
 // #include "custom_utilities/bfecc_elemental_convection.h"
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
 #include "custom_utilities/gauss_point_error_utility.h"
+#include "custom_utilities/embedded_mls_constraint_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -168,6 +169,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ExecuteOnConditions", &GaussPointErrorUtility::ExecuteOnConditions)
         .def("ExecuteOnConditionsGradient", &GaussPointErrorUtility::ExecuteOnConditionsGradient)
         .def("ExecuteOnConditionsSolution", &GaussPointErrorUtility::ExecuteOnConditionsSolution)
+
+    py::class_<EmbeddedMLSConstraintProcess, EmbeddedMLSConstraintProcess::Pointer, Process>(m,"EmbeddedMLSConstraintProcess")
+    .def(py::init<Model&, Parameters>())
     ;
 
 }

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -196,7 +196,7 @@ void SkinDetectionProcess<TDim>::FillAuxiliaryModelPart(
     const std::string base_name = pre_name + r_name_condition;
 
     // The number of conditions
-    ConditionsArrayType& r_condition_array = mrModelPart.GetRootModelPart().Conditions();
+    auto& r_condition_array = mrModelPart.GetRootModelPart().Conditions();
     const auto it_cond_begin = r_condition_array.begin();
     for(IndexType i = 0; i < r_condition_array.size(); ++i)
         (it_cond_begin + i)->SetId(i + 1);
@@ -277,24 +277,24 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
         // We build a database of indexes
         std::unordered_map<IndexType, std::unordered_set<IndexType>> conditions_nodes_ids_map;
 
-        for (auto& cond : rAuxiliaryModelPart.Conditions()) {
-            auto& geom = cond.GetGeometry();
+        for (auto& r_cond : rAuxiliaryModelPart.Conditions()) {
+            auto& r_geom = r_cond.GetGeometry();
 
-            for (auto& r_node : geom) {
-                auto set = conditions_nodes_ids_map.find(r_node.Id());
-                if(set != conditions_nodes_ids_map.end()) {
-                    conditions_nodes_ids_map[r_node.Id()].insert(cond.Id());
+            for (auto& r_node : r_geom) {
+                auto it_set_found = conditions_nodes_ids_map.find(r_node.Id());
+                if(it_set_found != conditions_nodes_ids_map.end()) {
+                    conditions_nodes_ids_map[r_node.Id()].insert(r_cond.Id());
                 } else {
-                    std::unordered_set<IndexType> cond_index_ids ( {cond.Id()} );;
+                    std::unordered_set<IndexType> cond_index_ids ( {r_cond.Id()} );;
                     conditions_nodes_ids_map.insert({r_node.Id(), cond_index_ids});
                 }
             }
         }
 
-        ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+        ModelPart& r_root_model_part = mrModelPart.GetRootModelPart();
         for (IndexType i_mp = 0; i_mp < n_model_parts; ++i_mp){
-            const std::string& model_part_name = mThisParameters["list_model_parts_to_assign_conditions"].GetArrayItem(i_mp).GetString();
-            ModelPart& sub_model_part = root_model_part.GetSubModelPart(model_part_name);
+            const std::string& r_model_part_name = mThisParameters["list_model_parts_to_assign_conditions"].GetArrayItem(i_mp).GetString();
+            ModelPart& r_sub_model_part = r_root_model_part.GetSubModelPart(r_model_part_name);
 
             std::vector<IndexType> conditions_ids;
 
@@ -304,19 +304,20 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
                 std::vector<IndexType> conditions_ids_buffer;
 
                 // We iterate over the nodes of this model part
-                auto& sub_nodes_array = sub_model_part.Nodes();
+                auto& r_sub_nodes_array = r_sub_model_part.Nodes();
+                const auto it_node_begin = r_sub_nodes_array.begin();
                 #pragma omp for
-                for(int i = 0; i < static_cast<int>(sub_nodes_array.size()); ++i) {
-                    auto it_node = sub_nodes_array.begin() + i;
+                for(int i = 0; i < static_cast<int>(r_sub_nodes_array.size()); ++i) {
+                    auto it_node = it_node_begin + i;
 
-                    auto set = conditions_nodes_ids_map.find(it_node->Id());
-                    if(set != conditions_nodes_ids_map.end()) {
+                    auto it_set_found = conditions_nodes_ids_map.find(it_node->Id());
+                    if(it_set_found != conditions_nodes_ids_map.end()) {
                         for (auto& r_cond_id : conditions_nodes_ids_map[it_node->Id()]) {
                             auto& r_condition = mrModelPart.GetCondition(r_cond_id);
-                            auto& geom = r_condition.GetGeometry();
+                            auto& r_geom = r_condition.GetGeometry();
                             bool has_nodes = true;
-                            for (auto& r_node : geom) {
-                                if (!sub_model_part.GetMesh().HasNode(r_node.Id())) {
+                            for (auto& r_node : r_geom) {
+                                if (!r_sub_model_part.GetMesh().HasNode(r_node.Id())) {
                                     has_nodes = false;
                                     break;
                                 }
@@ -334,7 +335,7 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
                 }
             }
 
-            sub_model_part.AddConditions(conditions_ids);
+            r_sub_model_part.AddConditions(conditions_ids);
         }
     }
 }
