@@ -229,6 +229,18 @@ private:
     {
         /* First make all partitions aware of which communications are needed (with the current information we only know the entities of we want to bring in current partition) */
 
+        // Entity name
+        std::string entity_name;
+        if constexpr (std::is_same<TObjectType, Node>::value) {
+            entity_name = "Node";
+        } else if constexpr (std::is_same<TObjectType, Element>::value) {
+            entity_name = "Element";
+        } else if constexpr (std::is_same<TObjectType, Condition>::value) {
+            entity_name = "Condition";
+        } else {
+            KRATOS_ERROR << "Entity type not supported" << std::endl;
+        }
+
         // Retrieve MPI data
         const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
         const int rank = r_data_communicator.Rank();
@@ -253,6 +265,21 @@ private:
                     r_data_communicator.Send(it_find->second, i_rank, tag_send);
                 }
             }
+        }
+
+        // Depending of the echo level, print info
+        if (this->GetEchoLevel() == FillCommunicatorEchoLevel::INFO) {
+            std::stringstream buffer;
+            buffer << "\nRank " << rank << " has to bring " << entity_name << "s from other partitions:" << std::endl;
+            for (auto bring : rEntitiesToBring) {
+                buffer << "\tFrom rank " << bring.first << " " << bring.second.size() << " " << entity_name << "s\n\t" << bring.second << std::endl;
+            }
+            buffer << "\nRank " << rank << " has to send " << entity_name << "s from other partitions:" << std::endl;
+            for (auto send : send_entities) {
+                buffer << "\tTo rank " << send.first << " " << send.second.size() << " " << entity_name << "s\n\t" << send.second << std::endl;
+            }
+            buffer << std::endl;
+            std::cout << buffer.str();
         }
 
         // Use serializer
