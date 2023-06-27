@@ -86,7 +86,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
 
         //Contributions to the left hand side
         this->CalculateAndAddLHSStabilization(rLeftHandSideMatrix, Variables, FICVariables);
@@ -150,7 +150,7 @@ void UPwNormalFluxFICCondition<TDim,TNumNodes>::
         noalias(Variables.Np) = row(NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight() );
 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //                   Vicente Mataix Ferrandiz
@@ -24,11 +24,10 @@
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
-namespace Kratos {
-	namespace Testing {
+namespace Kratos::Testing {
 
-    typedef Node<3>                   PointType;
-    typedef Node<3>::Pointer          PointPtrType;
+    typedef Node                   PointType;
+    typedef Node::Pointer          PointPtrType;
     typedef Tetrahedra3D4<PointType>  TetGeometryType;
     typedef TetGeometryType::Pointer  TetGeometryPtrType;
 
@@ -686,5 +685,18 @@ namespace Kratos {
       auto geom = GenerateTriRectangularTetrahedra3D4();
       TestAllShapeFunctionsLocalGradients(*geom);
   }
-	}
-}  // namespace Kratos.
+
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4CalculateDistance, KratosCoreGeometriesFastSuite)
+  {
+      auto geom = GenerateTriRectangularTetrahedra3D4();
+
+      Point point1(0.25, 0.25, 0.25);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
+
+      Point point2(1.5, 0.0, 0.0);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
+  }
+
+}  // namespace Kratos::Python.

@@ -77,7 +77,7 @@ public:
 
     typedef typename BaseType::ConditionDataStruct ConditionDataStruct;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 

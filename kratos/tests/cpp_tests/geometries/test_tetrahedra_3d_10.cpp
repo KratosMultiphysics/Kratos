@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:
+//  Main authors:    Carlos A. Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -22,13 +23,12 @@
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
   // /// Factory functions
 
 namespace{
-  typedef Node<3> NodeType;
+  typedef Node NodeType;
 
   Geometry<NodeType>::PointsArrayType GenerateReferenceNodes3D10()
   {
@@ -185,5 +185,17 @@ namespace{
       "\"HasIntersection\" is not implemented for non-planar 10 noded tetrahedra.");
   }
 
-} // namespace Testing.
-} // namespace Kratos.
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10CalculateDistance, KratosCoreGeometriesFastSuite)
+  {
+      auto geom = GenerateReferenceTetrahedra3D10();
+
+      Point point1(0.25, 0.25, 0.25);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
+
+      Point point2(1.5, 0.0, 0.0);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
+      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
+  }
+
+} // namespace Kratos::Testing.

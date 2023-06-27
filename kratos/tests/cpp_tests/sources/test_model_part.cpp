@@ -22,7 +22,7 @@
 namespace Kratos {
   namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     void GenerateGenericModelPart(ModelPart& rModelPart)
     {
@@ -399,10 +399,10 @@ namespace Kratos {
         KRATOS_CHECK_EQUAL("sub_inlet", r_const_model_part.GetSubModelPart("Inlet1.sub_inlet").Name());
 
         KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.random_sub_inlet"),
-            "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe following sub model parts are available:\n\tsub_inlet");
+            "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe following sub model parts are available:\n\t\"sub_inlet\"");
 
         KRATOS_CHECK_EXCEPTION_IS_THROWN(r_const_model_part.GetSubModelPart("Inlet1.random_sub_inlet"),
-            "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe following sub model parts are available:\n\tsub_inlet");
+            "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe following sub model parts are available:\n\t\"sub_inlet\"");
 
         // Checking SubSubSubModelPart
         ssmp.CreateSubModelPart("tiny_inlet");
@@ -414,10 +414,10 @@ namespace Kratos {
         KRATOS_CHECK_EQUAL("tiny_inlet", r_const_model_part.GetSubModelPart("Inlet1.sub_inlet.tiny_inlet").Name());
 
         KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.sub_inlet.big_inlet"),
-            "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe following sub model parts are available:\n\ttiny_inlet");
+            "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe following sub model parts are available:\n\t\"tiny_inlet\"");
 
         KRATOS_CHECK_EXCEPTION_IS_THROWN(r_const_model_part.GetSubModelPart("Inlet1.sub_inlet.big_inlet"),
-            "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe following sub model parts are available:\n\ttiny_inlet");
+            "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe following sub model parts are available:\n\t\"tiny_inlet\"");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartHasSubModelPart, KratosCoreFastSuite)

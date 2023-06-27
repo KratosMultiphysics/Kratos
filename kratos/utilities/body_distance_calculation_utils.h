@@ -145,13 +145,13 @@ public:
         PointerVector< Element > elements_to_solve;
         elements_to_solve.reserve(rElements.size());
 
-        PointerVector< Node < 3 > > active_nodes;
+        PointerVector< Node > active_nodes;
         active_nodes.reserve(rElements.size());
 
         std::vector<double> node_distance_values;
         node_distance_values.reserve(rElements.size());
 
-        PointerVector< Node < 3 > > failed_nodes;
+        PointerVector< Node > failed_nodes;
 
 
 
@@ -195,7 +195,7 @@ public:
             for (unsigned int current_position = 0; current_position != elements_to_solve.size(); current_position++)
             {
                 PointerVector< Element >::iterator current_element = (elements_to_solve.begin() + current_position);
-                Geometry< Node < 3 > >& geom = current_element->GetGeometry();
+                Geometry< Node >& geom = current_element->GetGeometry();
 
                 unsigned int unknown_node_index = 0;
 
@@ -277,7 +277,7 @@ public:
 
 
             //CHAPUZA TEST
-//                 for (PointerVector< Node < 3 > >::iterator it = failed_nodes.begin(); it != failed_nodes.end(); it++)
+//                 for (PointerVector< Node >::iterator it = failed_nodes.begin(); it != failed_nodes.end(); it++)
 //                 {
 //                     if (it->GetValue(IS_VISITED) != 1) //it was not possible to calculate the distance
 //                     {
@@ -291,7 +291,7 @@ public:
 //                KRATOS_WATCH(node_distance_values.size());
 //
 //                unsigned int k=0;
-//                for (PointerVector< Node < 3 > >::iterator it = active_nodes.begin(); it != active_nodes.end(); it++)
+//                for (PointerVector< Node >::iterator it = active_nodes.begin(); it != active_nodes.end(); it++)
 //                {
 //                    if (it->FastGetSolutionStepValue(rDistanceVar) > node_distance_values[k])
 //                        it->FastGetSolutionStepValue(rDistanceVar) = node_distance_values[k];
@@ -306,7 +306,7 @@ public:
 
 
             //now loop over all of the active nodes, and assign the minimum value of distance
-            for (PointerVector< Node < 3 > >::iterator it = active_nodes.begin(); it != active_nodes.end(); it++)
+            for (PointerVector< Node >::iterator it = active_nodes.begin(); it != active_nodes.end(); it++)
             {
                 if(it->FastGetSolutionStepValue(rDistanceVar) < max_distance)
                 {
@@ -351,14 +351,14 @@ public:
 
         //approximate computation of distance on failed nodes
         unsigned int confirmed_failures = 0;
-        for (PointerVector< Node < 3 > >::iterator it = failed_nodes.begin(); it != failed_nodes.end(); it++)
+        for (PointerVector< Node >::iterator it = failed_nodes.begin(); it != failed_nodes.end(); it++)
         {
             if (it->GetValue(IS_VISITED) != 1 ) //it was not possible to calculate the distance
             {
                 confirmed_failures++;
                 double davg = 0.0;
                 double counter = 0.0;
-                for (GlobalPointersVector< Node < 3 > >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin(); in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
+                for (GlobalPointersVector< Node >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin(); in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
                 {
                     if (in->GetValue(IS_VISITED) == 1)
                     {

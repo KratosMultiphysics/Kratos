@@ -24,7 +24,7 @@
 
 namespace Kratos {
 namespace Testing {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 const double oneThird = 1.0 / 3.0;
 const double twoThird = 2.0 / 3.0;
 
@@ -172,7 +172,7 @@ namespace {
         auto geom = GenerateReferenceTriangle2D10();
 
         Vector lumping_factors(10);
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::ROW_SUM);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::ROW_SUM);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 1.0/30.0, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 1.0/30.0, TOLERANCE);
@@ -185,7 +185,7 @@ namespace {
         KRATOS_CHECK_NEAR(lumping_factors[8], 3.0/40.0, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[9], 9.0/20.0, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::DIAGONAL_SCALING);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.014042867701404, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.014042867701404, TOLERANCE);
@@ -198,7 +198,7 @@ namespace {
         KRATOS_CHECK_NEAR(lumping_factors[8], 0.099778270509978, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[9], 0.359201773835920, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::QUADRATURE_ON_NODES);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::QUADRATURE_ON_NODES);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.1, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.1, TOLERANCE);

@@ -35,7 +35,7 @@ namespace MapperUtilities {
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointerType;
 
@@ -241,14 +241,7 @@ BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart);
 
 BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart);
 
-void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
-                                       const double Tolerance,
-                                       std::vector<double>& rBoundingBoxesWithTolerance);
-
 std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox);
-
-bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
-                              const array_1d<double, 3>& rCoords);
 
 void KRATOS_API(MAPPING_APPLICATION) SaveCurrentConfiguration(ModelPart& rModelPart);
 void KRATOS_API(MAPPING_APPLICATION) RestoreCurrentConfiguration(ModelPart& rModelPart);
@@ -258,7 +251,7 @@ void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVaria
 {
     KRATOS_TRY;
 
-    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(rModelPart.Nodes(), [&](Node& rNode){
         rNode.GetData().Erase(rVariable);
     });
 

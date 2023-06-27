@@ -15,7 +15,7 @@ namespace Kratos {
 
     void QuaternionIntegrationScheme::UpdateTranslationalVariables(
             int StepFlag,
-            Node < 3 >& i,
+            Node& i,
             array_1d<double, 3 >& coor,
             array_1d<double, 3 >& displ,
             array_1d<double, 3 >& delta_displ,
@@ -32,7 +32,7 @@ namespace Kratos {
 
     void QuaternionIntegrationScheme::CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const double moment_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -115,7 +115,7 @@ namespace Kratos {
 
     void QuaternionIntegrationScheme::CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const array_1d<double, 3 > moments_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
