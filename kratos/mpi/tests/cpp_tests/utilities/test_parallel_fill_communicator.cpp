@@ -267,10 +267,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromO
     
     // The data communicator
     const DataCommunicator& r_data_communicator = Testing::GetDefaultDataCommunicator();
-    
-    // // MPI data
-    // const int rank =  r_data_communicator.Rank();
-    // const int world_size = r_data_communicator.Size();
 
     // Fill the model part
     GenerateModelPartEntinties(r_model_part, r_data_communicator);
@@ -304,13 +300,23 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromO
     }
 
     // Indices to bring
-    std::vector<std::size_t> indices_to_bring;
-    std::vector<std::size_t> partition_origin;
+    std::unordered_set<std::size_t> set_indices_to_bring_just_ids;
+    std::vector<std::pair<std::size_t, std::size_t>> set_indices_to_bring;
     for (std::size_t  i = 0; i < number_of_gp; ++i) {
         if (!r_model_part.HasNode(indices[i])) {
-            indices_to_bring.push_back(indices[i]);
-            partition_origin.push_back(partition_index[i]);
+            if (set_indices_to_bring_just_ids.find(indices[i]) == set_indices_to_bring_just_ids.end()) {
+                set_indices_to_bring_just_ids.insert(indices[i]);
+                set_indices_to_bring.push_back({indices[i], partition_index[i]});
+            }
         }
+    }
+    std::vector<std::size_t> partition_origin;
+    partition_origin.reserve(set_indices_to_bring.size());
+    std::vector<std::size_t> indices_to_bring;
+    indices_to_bring.reserve(set_indices_to_bring.size());
+    for (auto& r_pair : set_indices_to_bring) {
+        indices_to_bring.push_back(r_pair.first);
+        partition_origin.push_back(r_pair.second);
     }
 
     // Generate map
@@ -321,11 +327,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromO
             it_found->second.push_back(indices_to_bring[i]);
         } else {
             std::vector<std::size_t> minor_vector(1, indices_to_bring[i]);
-           nodes_to_bring.insert({partition_origin[i], minor_vector}); 
+            nodes_to_bring.insert({partition_origin[i], minor_vector}); 
         }
     }
 
     // Bring entities
+    // filler.SetEchoLevel(FillCommunicator::FillCommunicatorEchoLevel::INFO);
     filler.BringEntitiesFromOtherPartitions(nodes_to_bring,elements_to_bring, conditions_to_bring);
 
     // Check the number of nodes (all partitions have 11 nodes)

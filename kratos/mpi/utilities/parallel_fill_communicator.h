@@ -272,11 +272,11 @@ private:
             std::stringstream buffer;
             buffer << "\nRank " << rank << " has to bring " << entity_name << "s from other partitions:" << std::endl;
             for (auto bring : rEntitiesToBring) {
-                buffer << "\tFrom rank " << bring.first << " " << bring.second.size() << " " << entity_name << "s\n\t" << bring.second << std::endl;
+                buffer << "\tFrom rank " << bring.first << ": " << bring.second.size() << " " << entity_name << "s\n\t" << bring.second << std::endl;
             }
             buffer << "\nRank " << rank << " has to send " << entity_name << "s from other partitions:" << std::endl;
             for (auto send : send_entities) {
-                buffer << "\tTo rank " << send.first << " " << send.second.size() << " " << entity_name << "s\n\t" << send.second << std::endl;
+                buffer << "\tTo rank " << send.first << ": " << send.second.size() << " " << entity_name << "s\n\t" << send.second << std::endl;
             }
             buffer << std::endl;
             std::cout << buffer.str();
