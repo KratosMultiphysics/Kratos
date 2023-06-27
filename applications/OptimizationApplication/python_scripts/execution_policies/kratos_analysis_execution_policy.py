@@ -36,6 +36,7 @@ class KratosAnalysisExecutionPolicy(ExecutionPolicy):
         self.parameters = parameters
         self.optimization_problem = optimization_problem
         self.parameters.ValidateAndAssignDefaults(default_settings)
+        self.parameters["analysis_output_settings"].ValidateAndAssignDefaults(default_settings["analysis_output_settings"])
 
         analysis_module = parameters["analysis_module"].GetString()
         analysis_type = parameters["analysis_type"].GetString()
