@@ -119,12 +119,12 @@ namespace Kratos
          /**
           * Sets on rElementalDofList the degrees of freedom of the considered element geometry
           */
-         void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+         void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
          /**
           * Sets on rResult the ID's of the element degrees of freedom
           */
-         void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+         void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
          /**
           * Sets on rValues the nodal displacements
@@ -150,7 +150,7 @@ namespace Kratos
           * @param rMassMatrix: the elemental mass matrix
           * @param rCurrentProcessInfo: the current process info instance
           */
-         void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+         void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * this is called during the assembling process in order
@@ -158,7 +158,7 @@ namespace Kratos
           * @param rDampingMatrix: the elemental damping matrix
           * @param rCurrentProcessInfo: the current process info instance
           */
-         void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+         void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
 
          //************************************************************************************
@@ -170,7 +170,7 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo) override;
+         int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
          ///@}
          ///@name Access

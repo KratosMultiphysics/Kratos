@@ -524,7 +524,7 @@ public:
     //***************************************************************************
 
     void InitializeNonLinearIteration(Condition::Pointer rCurrentCondition,
-                                      ProcessInfo& CurrentProcessInfo) override
+                                      const ProcessInfo& CurrentProcessInfo) //override
     {
         (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -534,7 +534,7 @@ public:
     //***************************************************************************
 
     void InitializeNonLinearIteration(Element::Pointer rCurrentElement,
-                                      ProcessInfo& CurrentProcessInfo) override
+                                      const ProcessInfo& CurrentProcessInfo) //override
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
@@ -549,7 +549,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -591,7 +591,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
 
         KRATOS_TRY
@@ -679,7 +679,7 @@ public:
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -733,7 +733,7 @@ public:
     void GetConditionDofList(
         Condition::Pointer rCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }
