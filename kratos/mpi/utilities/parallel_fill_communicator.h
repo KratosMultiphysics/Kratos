@@ -42,8 +42,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class ModelPart; // forward declaration
-
 /** 
  * @class ParallelFillCommunicator
  * @ingroup KratosMPI
