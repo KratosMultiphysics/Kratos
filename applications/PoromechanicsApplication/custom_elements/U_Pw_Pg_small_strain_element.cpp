@@ -1912,13 +1912,30 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(Ve
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability)*rVariables.IntegrationCoefficient;
+    // Compute the auxiliary matrix of the product between: gradNp^T * K * gradNp
+    // where gradNp is the gradient of the shape function vector associated with the pressure fields,
+    // and K is the permeability matrix.
+    noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
+    noalias(rVariables.PVector) = prod(rVariables.PDimMatrix,rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = rVariables.DynamicViscosityInverse*rVariables.FluidDensity*
-                                    prod(rVariables.PDimMatrix,rVariables.BodyAcceleration);
+    // Compute the effective saturation
+    Se->EffectiveSaturation(rVariables.Sw, rVariables.ResidualWaterSaturation);
 
-    //Distribute fluid body flow block vector into elemental vector
-    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    // Evaluate the water relative permeability
+    krw = this->WaterRelativePermeability(Se, rVariables);
+
+    // Evaluate the gas relative permeability
+    krg = this->GasRelativePermeability(Se, rVariables);
+
+    // Compute the fluid-flow sub-matrices
+    noalias(rVariables.PwVector) = (krw * rVariables.FluidDensity / rVariables.WaterDynamicViscosity) * rVariables.PVector;
+    noalias(rVariables.PgVector) = (krg * rVariables.GasDensity   / rVariables.GasDynamicViscosity  ) * rVariables.PVector;
+
+    //Add the contribution of the fluid body flow block vector into the residual of the mass balance equation of water
+    PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PwVector,TDim,TNumNodes);
+
+    //Add the contribution of the fluid body flow block vector into the residual of the mass balance equation of gas
+    PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PgVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
