@@ -89,8 +89,12 @@ class OptimizationAnalysis:
             self.__list_of_model_part_controllers.append(model_part_controller)
 
     def _CreateAnalyses(self):
+        default_settings = Kratos.Parameters("""{
+            "module": "KratosMultiphysics.OptimizationApplication.execution_policies"
+        }""")
         for analyses_settings in self.project_parameters["analyses"]:
-            execution_policy = ExecutionPolicyDecorator(self.model, analyses_settings, self.optimization_problem)
+            analyses_settings.AddMissingParameters(default_settings)
+            execution_policy = OptimizationComponentFactory(self.model, analyses_settings, self.optimization_problem)
             self.optimization_problem.AddComponent(execution_policy)
 
     def _CreateResponses(self):
