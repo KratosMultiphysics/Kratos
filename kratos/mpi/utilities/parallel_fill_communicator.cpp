@@ -62,15 +62,19 @@ void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
 
     // Retrieving the model part and the communicator
     auto& r_base_model_part = GetBaseModelPart();
+    const auto& r_data_communicator = r_base_model_part.GetCommunicator().GetDataCommunicator();
 
     // Call auxiliary methods
-    if (rNodesToBring.size() > 0) {
+    const std::size_t nodes_to_bring = r_data_communicator.SumAll(rNodesToBring.size());
+    if (nodes_to_bring > 0) {
         BringEntityFromOtherPartitions<Node>(r_base_model_part, rNodesToBring);
     }
-    if (rElementsToBring.size() > 0) {
+    const std::size_t elements_to_bring = r_data_communicator.SumAll(rElementsToBring.size());
+    if (elements_to_bring > 0) {
         BringEntityFromOtherPartitions<Element>(r_base_model_part, rElementsToBring);
     }
-    if (rConditionsToBring.size() > 0) {
+    const std::size_t conditions_to_bring = r_data_communicator.SumAll(rConditionsToBring.size());
+    if (conditions_to_bring > 0) {
         BringEntityFromOtherPartitions<Condition>(r_base_model_part, rConditionsToBring);
     }
 
