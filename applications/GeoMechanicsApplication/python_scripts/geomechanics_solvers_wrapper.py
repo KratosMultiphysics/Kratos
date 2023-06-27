@@ -9,13 +9,15 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
     if (type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-    solver_type_raw = 'Pw'#custom_settings["solver_settings"]["solver_type"].GetString()
     default_settings = KratosMultiphysics.Parameters("""{ "end_time" : 1.0 }""")
     end_time = default_settings["end_time"]
 
     try:
         params = custom_settings["solver_settings"]
-    except: params = custom_settings
+    except:
+        params = custom_settings
+
+    solver_type_raw = params["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
