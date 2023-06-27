@@ -1,7 +1,7 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
-from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting, DeleteDirectoryIfExisting
+from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
