@@ -324,9 +324,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromO
            nodes_to_bring.insert({partition_origin[i], minor_vector}); 
         }
     }
+
+    // Bring entities
     filler.BringEntitiesFromOtherPartitions(nodes_to_bring,elements_to_bring, conditions_to_bring);
-    
-    // TODO: Add checks
+
+    // Check the number of nodes (all partitions have 11 nodes)
+    KRATOS_CHECK_EQUAL(r_model_part.NumberOfNodes(), 11);
 }
 
 } // namespace Kratos::Testing
