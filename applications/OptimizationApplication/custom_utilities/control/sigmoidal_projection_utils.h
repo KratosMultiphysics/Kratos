@@ -39,8 +39,6 @@ public:
 
     using IndexType = std::size_t;
 
-    using GeometryType = ModelPart::ElementType::GeometryType;
-
     ///@}
     ///@name Static operations
     ///@{
@@ -48,26 +46,26 @@ public:
     template<class TContainerType>
     static ContainerExpression<TContainerType> ProjectForward(
         ContainerExpression<TContainerType>& rInputExpression,
-        std::vector<double> xValues,
-        std::vector<double> yValues,
-        double beta,
-        int penalFac);
+        const std::vector<double>& rXValues,
+        const std::vector<double>& rYValues,
+        const double Beta,
+        const int PenaltyFactor);
 
     template<class TContainerType>
     static ContainerExpression<TContainerType> ProjectBackward(
         ContainerExpression<TContainerType>& rInputExpression,
-        std::vector<double> xValues,
-        std::vector<double> yValues,
-        double beta,
-        int penalFac);
+        const std::vector<double>& rXValues,
+        const std::vector<double>& rYValues,
+        const double Beta,
+        const int PenaltyFactor);
 
     template<class TContainerType>
     static ContainerExpression<TContainerType> ComputeFirstDerivative(
         ContainerExpression<TContainerType>& rInputExpression,
-        std::vector<double> xValues,
-        std::vector<double> yValues,
-        double beta,
-        int penalFac);
+        const std::vector<double>& rXValues,
+        const std::vector<double>& rYValues,
+        const double Beta,
+        const int PenaltyFactor);
 
     ///@}
 };

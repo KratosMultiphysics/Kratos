@@ -31,11 +31,7 @@
 // Include base h
 #include "sigmoidal_projection_utils.h"
 
-namespace Kratos
-{
-
-///@name Kratos Classes
-///@{
+namespace SigmoidalValueProjectionUtils{
 
 bool HasVectorDuplicates(
     std::vector<double> values){
@@ -43,32 +39,32 @@ bool HasVectorDuplicates(
         return std::adjacent_find(values.begin(), values.end()) != values.end();
 };
 
-void CheckXYVectors(std::vector<double> xValues, std::vector<double> yValues){
-    if (xValues.size() != yValues.size())
+void CheckXYVectors(std::vector<double> rXValues, std::vector<double> rYValues){
+    if (rXValues.size() != rYValues.size())
         KRATOS_ERROR << "SigmoidalProjectionUtils: xLimits and yLimits should have the same size.\n";
 
-    if (xValues.size() < 2)
+    if (rXValues.size() < 2)
         KRATOS_ERROR << "SigmoidalProjectionUtils: xLimits and yLimits should have at least two entries.\n";
 
-    if (!std::is_sorted(xValues.begin(), xValues.end()))
+    if (!std::is_sorted(rXValues.begin(), rXValues.end()))
         KRATOS_ERROR << "SigmoidalProjectionUtils: xLimits should be sorted ascending.\n";
 
-    if (!std::is_sorted(yValues.begin(), yValues.end()))
-        KRATOS_ERROR << "SigmoidalProjectionUtils: yValues should be sorted ascending.\n";
+    if (!std::is_sorted(rYValues.begin(), rYValues.end()))
+        KRATOS_ERROR << "SigmoidalProjectionUtils: rYValues should be sorted ascending.\n";
 
-    if (HasVectorDuplicates(xValues))
-        KRATOS_ERROR << "SigmoidalProjectionUtils: xValues have duplications.\n";
+    if (HasVectorDuplicates(rXValues))
+        KRATOS_ERROR << "SigmoidalProjectionUtils: rXValues have duplications.\n";
 
-    if (HasVectorDuplicates(yValues))
-        KRATOS_ERROR << "SigmoidalProjectionUtils: yValues have duplications.\n";
+    if (HasVectorDuplicates(rYValues))
+        KRATOS_ERROR << "SigmoidalProjectionUtils: rYValues have duplications.\n";
 }
 
 double ProjectValueForward(
         double xValue,
         std::vector<double> xLimits,
         std::vector<double> yLimits,
-        double beta,
-        int penalFac)
+        double Beta,
+        int PenaltyFactor)
 {
 
     size_t size = xLimits.size();
@@ -91,10 +87,10 @@ double ProjectValueForward(
         y2 = yLimits[size - 1];
     }
 
-    double pow_val = -2.0 * beta * (xValue - (x1 + x2) / 2)  * penalFac;
+    double pow_val = -2.0 * Beta * (xValue - (x1 + x2) / 2)  * PenaltyFactor;
     double limit = std::log1p(std::numeric_limits<double>::max());
     pow_val = std::clamp(pow_val, -limit, limit);
-    return (y2 - y1) / std::pow((1.0 + std::exp(pow_val)),penalFac) + y1;
+    return (y2 - y1) / std::pow((1.0 + std::exp(pow_val)),PenaltyFactor) + y1;
 
 }
 
@@ -102,8 +98,8 @@ double ProjectValueBackward(
         double yValue,
         std::vector<double> xLimits,
         std::vector<double> yLimits,
-        double beta,
-        int penalFac)
+        double Beta,
+        int PenaltyFactor)
 {
 
     size_t size = xLimits.size();
@@ -131,15 +127,15 @@ double ProjectValueBackward(
     else if (std::abs(yValue-y2)<std::numeric_limits<double>::epsilon())
         return x2;
     else
-        return ((x2+x1)/2.0) + (1.0/(-2.0*beta)) * std::log(std::pow((y2-y1)/(yValue-y1),1.0/penalFac)-1);
+        return ((x2+x1)/2.0) + (1.0/(-2.0*Beta)) * std::log(std::pow((y2-y1)/(yValue-y1),1.0/PenaltyFactor)-1);
 }
 
 double ComputeFirstDerivativeAtValue(
         double xValue,
         std::vector<double> xLimits,
         std::vector<double> yLimits,
-        double beta,
-        int penalFac)
+        double Beta,
+        int PenaltyFactor)
 {
 
     size_t size = xLimits.size();
@@ -162,24 +158,33 @@ double ComputeFirstDerivativeAtValue(
         y2 = yLimits[size - 1];
     }
 
-    double pow_val = -2.0 * beta * (xValue - (x1 + x2) / 2)  * penalFac;
+    double pow_val = -2.0 * Beta * (xValue - (x1 + x2) / 2)  * PenaltyFactor;
     double limit = std::log1p(std::numeric_limits<double>::max());
     pow_val = std::clamp(pow_val, -limit, limit);
-    return (y2-y1) * (1.0/std::pow(1+std::exp(pow_val),penalFac+1)) * penalFac * 2.0 * beta * std::exp(pow_val);
+    return (y2-y1) * (1.0/std::pow(1+std::exp(pow_val),PenaltyFactor+1)) * PenaltyFactor * 2.0 * Beta * std::exp(pow_val);
 
 }
+}
+
+namespace Kratos
+{
+
+///@name Kratos Classes
+///@{
+
+
 
 template<class TContainerType>
 ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectForward(
     ContainerExpression<TContainerType>& rInputExpression,
-    std::vector<double> xValues,
-    std::vector<double> yValues,
-    double beta,
-    int penalFac)
+    const std::vector<double>& rXValues,
+    const std::vector<double>& rYValues,
+    const double Beta,
+    const int PenaltyFactor)
 {
     KRATOS_TRY
 
-    CheckXYVectors(xValues,yValues);
+    SigmoidalValueProjectionUtils::CheckXYVectors(rXValues,rYValues);
 
     const auto& r_input_expression = rInputExpression.GetExpression();
     const IndexType local_size_1 = rInputExpression.GetItemComponentCount();
@@ -191,11 +196,11 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectForward(
     auto& r_output_expression = *p_flat_data_expression;
 
 
-    IndexPartition<IndexType>(number_of_entities_1).for_each([&r_input_expression, &r_output_expression, &xValues, &yValues, &beta, &penalFac, local_size_1](const IndexType EntityIndex) {
+    IndexPartition<IndexType>(number_of_entities_1).for_each([&r_input_expression, &r_output_expression, &rXValues, &rYValues, &Beta, &PenaltyFactor, local_size_1](const IndexType EntityIndex) {
             const IndexType local_data_begin_index = EntityIndex * local_size_1;
             for (IndexType i = 0; i < local_size_1; ++i) {
                 double input_value = r_input_expression.Evaluate(EntityIndex, local_data_begin_index, i);
-                double projected_value = ProjectValueForward(input_value,xValues,yValues,beta,penalFac);
+                double projected_value = SigmoidalValueProjectionUtils::ProjectValueForward(input_value,rXValues,rYValues,Beta,PenaltyFactor);
                 r_output_expression.SetData(local_data_begin_index, i, projected_value);
             }
         });
@@ -208,14 +213,14 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectForward(
 template<class TContainerType>
 ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectBackward(
     ContainerExpression<TContainerType>& rInputExpression,
-    std::vector<double> xValues,
-    std::vector<double> yValues,
-    double beta,
-    int penalFac)
+    const std::vector<double>& rXValues,
+    const std::vector<double>& rYValues,
+    const double Beta,
+    const int PenaltyFactor)
 {
     KRATOS_TRY
 
-    CheckXYVectors(xValues,yValues);
+    SigmoidalValueProjectionUtils::CheckXYVectors(rXValues,rYValues);
 
     const auto& r_input_expression = rInputExpression.GetExpression();
     const IndexType local_size_1 = rInputExpression.GetItemComponentCount();
@@ -227,11 +232,11 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectBackward(
     auto& r_output_expression = *p_flat_data_expression;
 
 
-    IndexPartition<IndexType>(number_of_entities_1).for_each([&r_input_expression, &r_output_expression, &xValues, &yValues, &beta, &penalFac, local_size_1](const IndexType EntityIndex) {
+    IndexPartition<IndexType>(number_of_entities_1).for_each([&r_input_expression, &r_output_expression, &rXValues, &rYValues, &Beta, &PenaltyFactor, local_size_1](const IndexType EntityIndex) {
             const IndexType local_data_begin_index = EntityIndex * local_size_1;
             for (IndexType i = 0; i < local_size_1; ++i) {
                 double input_value = r_input_expression.Evaluate(EntityIndex, local_data_begin_index, i);
-                double projected_value = ProjectValueBackward(input_value,xValues,yValues,beta,penalFac);
+                double projected_value = SigmoidalValueProjectionUtils::ProjectValueBackward(input_value,rXValues,rYValues,Beta,PenaltyFactor);
                 r_output_expression.SetData(local_data_begin_index, i, projected_value);
             }
         });
@@ -244,14 +249,14 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectBackward(
 template<class TContainerType>
 ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(
     ContainerExpression<TContainerType>& rInputExpression,
-    std::vector<double> xValues,
-    std::vector<double> yValues,
-    double beta,
-    int penalFac)
+    const std::vector<double>& rXValues,
+    const std::vector<double>& rYValues,
+    const double Beta,
+    const int PenaltyFactor)
 {
     KRATOS_TRY
 
-    CheckXYVectors(xValues,yValues);
+    SigmoidalValueProjectionUtils::CheckXYVectors(rXValues,rYValues);
 
     const auto& r_input_expression = rInputExpression.GetExpression();
     const IndexType local_size_1 = rInputExpression.GetItemComponentCount();
@@ -263,11 +268,11 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDeriva
     auto& r_output_expression = *p_flat_data_expression;
 
 
-    IndexPartition<IndexType>(number_of_entities_1).for_each([&r_input_expression, &r_output_expression, &xValues, &yValues, &beta, &penalFac, local_size_1](const IndexType EntityIndex) {
+    IndexPartition<IndexType>(number_of_entities_1).for_each([&r_input_expression, &r_output_expression, &rXValues, &rYValues, &Beta, &PenaltyFactor, local_size_1](const IndexType EntityIndex) {
             const IndexType local_data_begin_index = EntityIndex * local_size_1;
             for (IndexType i = 0; i < local_size_1; ++i) {
                 double input_value = r_input_expression.Evaluate(EntityIndex, local_data_begin_index, i);
-                double derivative_value = ComputeFirstDerivativeAtValue(input_value,xValues,yValues,beta,penalFac);
+                double derivative_value = SigmoidalValueProjectionUtils::ComputeFirstDerivativeAtValue(input_value,rXValues,rYValues,Beta,PenaltyFactor);
                 r_output_expression.SetData(local_data_begin_index, i, derivative_value);
             }
         });
@@ -277,14 +282,14 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDeriva
     KRATOS_CATCH("");
 }
 
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ProjectForward(ContainerExpression<ModelPart::NodesContainerType>&, std::vector<double>, std::vector<double>, double, int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ProjectForward(ContainerExpression<ModelPart::ConditionsContainerType>&, std::vector<double>, std::vector<double>, double, int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ProjectForward(ContainerExpression<ModelPart::ElementsContainerType>&, std::vector<double>, std::vector<double>, double, int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ProjectBackward(ContainerExpression<ModelPart::NodesContainerType>&, std::vector<double>, std::vector<double>, double, int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ProjectBackward(ContainerExpression<ModelPart::ConditionsContainerType>&, std::vector<double>, std::vector<double>, double, int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ProjectBackward(ContainerExpression<ModelPart::ElementsContainerType>&, std::vector<double>, std::vector<double>, double, int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(ContainerExpression<ModelPart::NodesContainerType>&, std::vector<double>, std::vector<double>, double, int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(ContainerExpression<ModelPart::ConditionsContainerType>&, std::vector<double>, std::vector<double>, double, int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(ContainerExpression<ModelPart::ElementsContainerType>&, std::vector<double>, std::vector<double>, double, int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ProjectForward(ContainerExpression<ModelPart::NodesContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ProjectForward(ContainerExpression<ModelPart::ConditionsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ProjectForward(ContainerExpression<ModelPart::ElementsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ProjectBackward(ContainerExpression<ModelPart::NodesContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ProjectBackward(ContainerExpression<ModelPart::ConditionsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ProjectBackward(ContainerExpression<ModelPart::ElementsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(ContainerExpression<ModelPart::NodesContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(ContainerExpression<ModelPart::ConditionsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(ContainerExpression<ModelPart::ElementsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
 ///@}
 }

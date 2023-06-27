@@ -344,6 +344,8 @@ public:
             if(sum_obj_improvement>0.0 && current_is_feasible && prev_is_feasible)
                 scale = 0.8;
 
+            scale = 1.0;
+
             projection_step_size *= scale;
             mrSettings["projection_step_size"].SetDouble(projection_step_size);
 
