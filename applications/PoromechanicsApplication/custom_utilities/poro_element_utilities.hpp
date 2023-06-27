@@ -1512,6 +1512,22 @@ public:
 
     //----------------------------------------------------------------------------------------
 
+    static inline void AssembleUBlockTwoPhaseFlowVector(Vector& rRightHandSideVector, const array_1d<double,6>& UBlockTwoPhaseFlowVector)
+    {
+        //Triangle_2d_3
+        unsigned int Global_i, Local_i;
+
+        for(unsigned int i = 0; i < 3; i++)
+        {
+            Global_i = i * (2 + 2);
+            Local_i  = i * 2;
+
+            rRightHandSideVector[Global_i]   += UBlockTwoPhaseFlowVector[Local_i];
+            rRightHandSideVector[Global_i+1] += UBlockTwoPhaseFlowVector[Local_i+1];
+        }
+    }
+    //----------------------------------------------------------------------------------------
+
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,8>& UBlockVector)
     {
         //Quadrilateral_2d_4
@@ -1524,6 +1540,23 @@ public:
 
             rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
             rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    static inline void AssembleUBlockTwoPhaseFlowVector(Vector& rRightHandSideVector, const array_1d<double,8>& UBlockTwoPhaseFlowVector)
+    {
+        //Quadrilateral_2d_4
+        unsigned int Global_i, Local_i;
+
+        for(unsigned int i = 0; i < 4; i++)
+        {
+            Global_i = i * (2 + 2);
+            Local_i  = i * 2;
+
+            rRightHandSideVector[Global_i]   += UBlockTwoPhaseFlowVector[Local_i];
+            rRightHandSideVector[Global_i+1] += UBlockTwoPhaseFlowVector[Local_i+1];
         }
     }
 
@@ -1547,6 +1580,24 @@ public:
 
     //----------------------------------------------------------------------------------------
 
+    static inline void AssembleUBlockTwoPhaseFlowVector(Vector& rRightHandSideVector, const array_1d<double,12>& UBlockTwoPhaseFlowVector)
+    {
+        //Tetrahedra_3d_4
+        unsigned int Global_i, Local_i;
+
+        for(unsigned int i = 0; i < 4; i++)
+        {
+            Global_i = i * (3 + 2);
+            Local_i  = i * 3;
+
+            rRightHandSideVector[Global_i]   += UBlockTwoPhaseFlowVector[Local_i];
+            rRightHandSideVector[Global_i+1] += UBlockTwoPhaseFlowVector[Local_i+1];
+            rRightHandSideVector[Global_i+2] += UBlockTwoPhaseFlowVector[Local_i+2];
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,18>& UBlockVector)
     {
         //Prism_3d_6
@@ -1565,6 +1616,24 @@ public:
 
     //----------------------------------------------------------------------------------------
 
+    static inline void AssembleUBlockTwoPhaseFlowVector(Vector& rRightHandSideVector, const array_1d<double,18>& UBlockTwoPhaseFlowVector)
+    {
+        //Prism_3d_6
+        unsigned int Global_i, Local_i;
+
+        for(unsigned int i = 0; i < 6; i++)
+        {
+            Global_i = i * (3 + 2);
+            Local_i  = i * 3;
+
+            rRightHandSideVector[Global_i]   += UBlockTwoPhaseFlowVector[Local_i];
+            rRightHandSideVector[Global_i+1] += UBlockTwoPhaseFlowVector[Local_i+1];
+            rRightHandSideVector[Global_i+2] += UBlockTwoPhaseFlowVector[Local_i+2];
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,24>& UBlockVector)
     {
         //Hexahedra_3d_8
@@ -1578,6 +1647,24 @@ public:
             rRightHandSideVector[Global_i]   += UBlockVector[Local_i];
             rRightHandSideVector[Global_i+1] += UBlockVector[Local_i+1];
             rRightHandSideVector[Global_i+2] += UBlockVector[Local_i+2];
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    static inline void AssembleUBlockTwoPhaseFlowVector(Vector& rRightHandSideVector, const array_1d<double,24>& UBlockTwoPhaseFlowVector)
+    {
+        //Hexahedra_3d_8
+        unsigned int Global_i, Local_i;
+
+        for(unsigned int i = 0; i < 8; i++)
+        {
+            Global_i = i * (3 + 2);
+            Local_i  = i * 3;
+
+            rRightHandSideVector[Global_i]   += UBlockTwoPhaseFlowVector[Local_i];
+            rRightHandSideVector[Global_i+1] += UBlockTwoPhaseFlowVector[Local_i+1];
+            rRightHandSideVector[Global_i+2] += UBlockTwoPhaseFlowVector[Local_i+2];
         }
     }
 
