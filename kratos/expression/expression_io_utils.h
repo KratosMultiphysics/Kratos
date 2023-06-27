@@ -290,15 +290,15 @@ public:
             }
         );
 
-        for(IndexType i = 0; i < number_of_ghost_nodes; ++i) {
+        IndexPartition<IndexType>(number_of_ghost_nodes).for_each([&rGhostNodes, &values_proxy, &rApplyFunctor, &gp_list](const IndexType Index){
             // since ghost_indices passed to RetrieveGlobalIndexedPointers keeps the same order
             // when returning gp_list containing global pointers list, the corresponding ghost node
             // for proxy evaluated value can be correlated with indices.
-            auto& r_ghost_node = *(rGhostNodes.begin() + i);
-            const auto& r_ghost_node_expression_evaluated_values = values_proxy.Get(gp_list(i));
+            auto& r_ghost_node = *(rGhostNodes.begin() + Index);
+            const auto& r_ghost_node_expression_evaluated_values = values_proxy.Get(gp_list(Index));
 
             rApplyFunctor(r_ghost_node, r_ghost_node_expression_evaluated_values);
-        }
+        });
 
         KRATOS_CATCH("");
     }
