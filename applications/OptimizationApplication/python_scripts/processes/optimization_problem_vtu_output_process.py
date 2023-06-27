@@ -69,7 +69,7 @@ class CollectiveExpressionData(ExpressionData):
         return data
 
 class ExpressionVtuOutput:
-    def __init__(self, parameters: list, model_part: Kratos.ModelPart, optimization_problem: OptimizationProblem):
+    def __init__(self, parameters: 'dict[str, Any]', model_part: Kratos.ModelPart, optimization_problem: OptimizationProblem):
         self.model_part = model_part
         self.optimization_problem = optimization_problem
         self.output_file_name_prefix = parameters["output_file_name_prefix"]
