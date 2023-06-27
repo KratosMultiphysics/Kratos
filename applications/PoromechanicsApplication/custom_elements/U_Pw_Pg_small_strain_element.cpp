@@ -1320,7 +1320,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateFluxResidual( VectorType&
 
         //Evaluate the wetting saturation degree and its derivative wrt to the capilar pressure
         this->CalculateWaterSaturationDegree(Variables);
-        
+
         //Compute stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
@@ -1343,7 +1343,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateMixBodyForce( VectorType&
 {
     KRATOS_TRY
 
-    const unsigned int element_size = TNumNodes * (TDim + 1);
+    const unsigned int element_size = TNumNodes * (TDim + 2);
 
     //Resetting the RHS
     if ( rRightHandSideVector.size() != element_size )
@@ -1381,6 +1381,12 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateMixBodyForce( VectorType&
         noalias(Variables.Np) = row(NContainer,GPoint);
         PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute the capilar pressure at the integration point
+        Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
+
+        //Evaluate the wetting saturation degree and its derivative wrt to the capilar pressure
+        this->CalculateWaterSaturationDegree(Variables);
 
         //Compute stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -1402,7 +1408,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateNegInternalForce( VectorT
 {
     KRATOS_TRY
 
-    const unsigned int element_size = TNumNodes * (TDim + 1);
+    const unsigned int element_size = TNumNodes * (TDim + 2);
 
     //Resetting the RHS
     if ( rRightHandSideVector.size() != element_size )
@@ -1440,6 +1446,12 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateNegInternalForce( VectorT
         noalias(Variables.Np) = row(NContainer,GPoint);
         PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute the capilar pressure at the integration point
+        Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
+
+        //Evaluate the wetting saturation degree and its derivative wrt to the capilar pressure
+        this->CalculateWaterSaturationDegree(Variables);
 
         //Compute stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -1505,6 +1517,12 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateExplicitContributions (Ve
         noalias(Variables.Np) = row(NContainer,GPoint);
         PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute the capilar pressure at the integration point
+        Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
+
+        //Evaluate the wetting saturation degree and its derivative wrt to the capilar pressure
+        this->CalculateWaterSaturationDegree(Variables);
 
         //Compute stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
