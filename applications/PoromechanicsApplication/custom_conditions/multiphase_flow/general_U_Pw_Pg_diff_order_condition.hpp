@@ -8,10 +8,11 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
+//                   Danilo Cavalcanti
 //
 
-#if !defined(KRATOS_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED )
-#define  KRATOS_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED
+#if !defined(KRATOS_GENERAL_U_PW_PG_DIFF_ORDER_CONDITION_H_INCLUDED )
+#define  KRATOS_GENERAL_U_PW_PG_DIFF_ORDER_CONDITION_H_INCLUDED
 
 // System includes
 #include <cmath>
@@ -27,26 +28,26 @@
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : public Condition
+class KRATOS_API(POROMECHANICS_APPLICATION) GeneralUPwPgDiffOrderCondition : public Condition
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( GeneralUPwDiffOrderCondition );
+    KRATOS_CLASS_POINTER_DEFINITION( GeneralUPwPgDiffOrderCondition );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    GeneralUPwDiffOrderCondition();
+    GeneralUPwPgDiffOrderCondition();
 
     // Constructor 1
-    GeneralUPwDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    GeneralUPwPgDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
     // Constructor 2
-    GeneralUPwDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    GeneralUPwPgDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    virtual ~GeneralUPwDiffOrderCondition();
+    virtual ~GeneralUPwPgDiffOrderCondition();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -129,8 +130,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
 
-}; // class GeneralUPwDiffOrderCondition.
+}; // class GeneralUPwPgDiffOrderCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED defined
+#endif // KRATOS_GENERAL_U_PW_PG_DIFF_ORDER_CONDITION_H_INCLUDED defined
