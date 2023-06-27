@@ -882,7 +882,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixTy
 {
     KRATOS_TRY
 
-    const unsigned int element_size = TNumNodes * (TDim + 1);
+    const unsigned int element_size = TNumNodes * (TDim + 2);
 
     //Resizing mass matrix
     if ( rStiffnessMatrix.size1() != element_size )
@@ -1473,7 +1473,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateExplicitContributions (Ve
 {
     KRATOS_TRY
 
-    const unsigned int element_size = TNumNodes * (TDim + 1);
+    const unsigned int element_size = TNumNodes * (TDim + 2);
 
     //Resetting the RHS
     if ( rFluxResidual.size() != element_size )
