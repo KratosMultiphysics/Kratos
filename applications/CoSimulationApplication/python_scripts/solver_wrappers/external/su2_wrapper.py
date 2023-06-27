@@ -34,28 +34,30 @@ class SU2Wrapper(CoSimulationSolverWrapper):
         # Initialize the flow driver of SU2, this includes solver preprocessing
 
         self.FlowDriver = pysu2.CSinglezoneDriver(flow_filename, 1, self.comm)
-        FlowMarkerID = None
+        self.FlowMarkerID = None
         FlowMarkerName = settings["solver_wrapper_settings"]["interface_marker"].GetString()                                            # FSI marker (flow side)
         FlowMarkerList = self.FlowDriver.GetAllBoundaryMarkersTag()              # Get all the flow boundary tags
         FlowMarkerIDs = self.FlowDriver.GetAllBoundaryMarkers()                  # Get all the associated indices to the flow markers
         if FlowMarkerName in FlowMarkerList and FlowMarkerName in FlowMarkerIDs.keys():
-            FlowMarkerID = FlowMarkerIDs[FlowMarkerName]                      # Check if the flow FSI marker exists
-            self.nVertex_Marker_Flow = self.FlowDriver.GetNumberVertices(FlowMarkerID)    # Get the number of vertices of the flow FSI marker
+            self.FlowMarkerID = FlowMarkerIDs[FlowMarkerName]                      # Check if the flow FSI marker exists
+            self.nVertex_Marker_Flow = self.FlowDriver.GetNumberVertices(self.FlowMarkerID)    # Get the number of vertices of the flow FSI marker
         else:
             self.nVertex_Marker_Flow = 0
 
         # Getting mesh information from SU2 and store it as an Model Part
 
         self.comm.barrier()
-        local_nodal_coords = []
+        local_nodal_coords = np.zeros([self.nVertex_Marker_Flow, 3], dtype=np.float64)
         # local_nodal_coords = np.array(self.nVertex_Marker_Flow)
         for node_i in range(self.nVertex_Marker_Flow):
-            coords = self.FlowDriver.GetInitialMeshCoord(FlowMarkerID, node_i)
-            local_nodal_coords.append(coords[0])
-            local_nodal_coords.append(coords[1])
-            local_nodal_coords.append(coords[2])
+            coords = self.FlowDriver.GetInitialMeshCoord(self.FlowMarkerID, node_i)
+            local_nodal_coords[node_i, 0] = coords[0]
+            local_nodal_coords[node_i, 1] = coords[1]
+            local_nodal_coords[node_i, 2] = coords[2]
         
-        print(f"myid is {self.myid}, local_nodal_coords = {np.array(local_nodal_coords)}")
+        print(f"myid is {self.myid}, local_nodal_coords = {local_nodal_coords}")
+
+        Kratos
 
 
         model_part_utilities.CreateMainModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
@@ -70,6 +72,8 @@ class SU2Wrapper(CoSimulationSolverWrapper):
             }
             self.ImportData(data_config)
 
+        # Get Kratos variable with displacement and set it as SetMeshDisplacement
+
         if self.myid == 0:
             print("\n------------------------------ Begin Solver -----------------------------\n")
         self.FlowDriver.ResetConvergence()
@@ -77,6 +81,14 @@ class SU2Wrapper(CoSimulationSolverWrapper):
         self.FlowDriver.Run()
         self.FlowDriver.Postprocess()
         stopCalc = self.FlowDriver.Monitor(0)
+
+        # Recover the flow loads from SU2 and assign it to corresponding Kratos Variable
+        flow_loads=[]
+        for j in range(self.nVertex_Marker_Flow):
+            vertexLoad = self.FlowDriver.GetFlowLoad(self.FlowMarkerID, j)
+            flow_loads.append(vertexLoad)
+
+        print(f"myid is {self.myid}, local_force = {np.array(flow_loads)}")
 
         for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
             data_config = {
