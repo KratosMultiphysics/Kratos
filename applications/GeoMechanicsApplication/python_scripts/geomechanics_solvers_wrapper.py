@@ -12,9 +12,10 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
     default_settings = KratosMultiphysics.Parameters("""{ "end_time" : 1.0 }""")
     end_time = default_settings["end_time"]
 
-    try:
+    if custom_settings.Has("solver_settings"):
         params = custom_settings["solver_settings"]
-    except:
+        #To conform with other apps where only the "solver_settings" are passed
+    else:
         params = custom_settings
 
     solver_type_raw = params["solver_type"].GetString()
