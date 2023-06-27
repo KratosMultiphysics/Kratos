@@ -80,7 +80,7 @@ class ExpressionVtuOutput:
                 kratos_utils.DeleteDirectoryIfExisting(str(self.output_path))
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
             # now create the output path
-            self.output_path.mkdir(parents=True, exist_ok=True)
+            Kratos.FilesystemExtensions.MPISafeCreateDirectories(str(self.output_path))
         else:
             self.output_path = Path(".")
 
@@ -166,27 +166,9 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         else:
             raise RuntimeError(f"Only supports \"ascii\" and \"binary\" file_format. [ provided file_format = \"{file_format}\" ].")
 
-        self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
         self.list_of_expresson_vtu_outputs: 'list[ExpressionVtuOutput]' = []
         self.initialized_vtu_outputs = False
-
-    def ExecuteInitialize(self) -> None:
-        # get all the component names at the first writing point
-        if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
-            self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
-
-        for component_name in self.list_of_component_names:
-            self.list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
-
-        optimization_problem_data = self.optimization_problem.GetProblemDataContainer()
-
-        # check if there are vtu output requests from some other processes
-        if not optimization_problem_data.HasValue("requested_container_expression_outputs"):
-            optimization_problem_data["requested_container_expression_outputs"] = set()
-
-        for component in self.list_of_components:
-            optimization_problem_data["requested_container_expression_outputs"].add(component)
 
     def PrintOutput(self) -> None:
         if not self.initialized_vtu_outputs:
@@ -197,11 +179,19 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             expression_vtu_output.WriteOutput()
 
     def InitializeVtuOutputIO(self) -> None:
+        # get all the component names at the first writing point
+        if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
+            self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
+
+        list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
+        for component_name in self.list_of_component_names:
+            list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
+
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
         for global_k, global_v in global_values_map.items():
              # first check whether this is part of requested list of components
             found_valid_component = False
-            for component in self.list_of_components:
+            for component in list_of_components:
                 component_data = ComponentDataView(component, self.optimization_problem)
                 if global_k.startswith(component_data.GetDataPath()):
                      found_valid_component = True
