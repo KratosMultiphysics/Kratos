@@ -120,7 +120,7 @@ namespace Kratos
             // Getting data for the given geometry
             for(auto it_elem = mrModelPart.ElementsBegin(); it_elem!=mrModelPart.ElementsEnd(); ++it_elem) // Loop the elements
             {
-                Geometry<Node<3> >& geom = it_elem->GetGeometry(); 
+                Geometry<Node >& geom = it_elem->GetGeometry(); 
                 area = CalculateArea(geom);               // We call CalculateArea (private function)  
                 sum_areas += area;
                 for (unsigned int k = 0; k < 3; ++k) {

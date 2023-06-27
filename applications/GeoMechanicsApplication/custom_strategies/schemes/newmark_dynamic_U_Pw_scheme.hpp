@@ -74,7 +74,7 @@ public:
         KRATOS_TRY
 
         // Predict Displacements on free nodes and update Acceleration, Velocity and DtPressure
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             if (rNode.IsFixed(ACCELERATION_X))
             {
                 const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_X, 1);

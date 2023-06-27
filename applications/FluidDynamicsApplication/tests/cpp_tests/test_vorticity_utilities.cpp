@@ -37,13 +37,13 @@ void TriangleModelPartForVorticityTests(ModelPart& rModelPart) {
 
     // Nodal data
     Element& r_element = *(rModelPart.ElementsBegin());
-    Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
+    Geometry< Node >& r_geometry = r_element.GetGeometry();
 
     constexpr double omega = 1.0;
     constexpr double center[2] = {1.0,-1.0};
 
     for (unsigned int i = 0; i < 3; i++) {
-        Node<3>& r_node = r_geometry[i];
+        Node& r_node = r_geometry[i];
         double dx = r_node.X() - center[0];
         double dy = r_node.Y() - center[1];
         double r = std::sqrt(dx*dx + dy*dy);
@@ -71,13 +71,13 @@ void TetrahedraModelPartForVorticityTests(ModelPart& rModelPart) {
 
     // Nodal data
     Element& r_element = *(rModelPart.ElementsBegin());
-    Geometry< Node<3> >& r_geometry = r_element.GetGeometry();
+    Geometry< Node >& r_geometry = r_element.GetGeometry();
 
     constexpr double omega = 1.0;
     constexpr double center[3] = {1.0,0.0,-1.0};
 
     for (unsigned int i = 0; i < 4; i++) {
-        Node<3>& r_node = r_geometry[i];
+        Node& r_node = r_geometry[i];
         double dx = r_node.X() - center[0];
         //double dy = r_node.Y() - center[1];
         double dz = r_node.Z() - center[2];

@@ -22,7 +22,7 @@
 #include "includes/radiation_settings.h"
 
 namespace Kratos {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef array_1d<double, 3> Vector3;
 
 //Create Variables by type:

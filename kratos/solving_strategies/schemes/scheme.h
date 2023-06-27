@@ -10,15 +10,13 @@
 //  Main authors:    Riccardo Rossi
 //
 
+#pragma once
 
-#if !defined(KRATOS_SCHEME )
-#define  KRATOS_SCHEME
+// System includes
 
-/* System includes */
+// External includes
 
-/* External includes */
-
-/* Project includes */
+// Project includes
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "includes/kratos_parameters.h"
@@ -64,28 +62,34 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Scheme);
 
     /// The definition of the current class
-    typedef Scheme< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = Scheme<TSparseSpace, TDenseSpace>;
 
     /// Data type definition
-    typedef typename TSparseSpace::DataType TDataType;
+    using TDataType = typename TSparseSpace::DataType;
+
     /// Matrix type definition
-    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+    using TSystemMatrixType = typename TSparseSpace::MatrixType;
+
     /// Vector type definition
-    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    using TSystemVectorType = typename TSparseSpace::VectorType;
+
     /// Local system matrix type definition
-    typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
+    using LocalSystemMatrixType = typename TDenseSpace::MatrixType;
+
     /// Local system vector type definition
-    typedef typename TDenseSpace::VectorType LocalSystemVectorType;
+    using LocalSystemVectorType = typename TDenseSpace::VectorType;
 
     /// DoF type definition
-    typedef Dof<double> TDofType;
+    using TDofType = Dof<double>;
+
     /// DoF array type definition
-    typedef ModelPart::DofsArrayType DofsArrayType;
+    using DofsArrayType = ModelPart::DofsArrayType;
 
     /// Elements containers definition
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    using ElementsArrayType = ModelPart::ElementsContainerType;
+
     /// Conditions containers definition
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -376,36 +380,6 @@ public:
         // Finalizes non-linear iteration for all of the elements, conditions and constraints
         EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
 
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual condition)
-     * @warning Must be defined in derived classes
-     * @param rCurrentElement The element to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
-        Element::Pointer rCurrentElement,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_TRY
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual condition)
-     * @warning Must be defined in derived classes
-     * @param rCurrentCondition The condition to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
-        Condition::Pointer rCurrentCondition,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_TRY
         KRATOS_CATCH("")
     }
 
@@ -860,5 +834,3 @@ private:
 }; // Class Scheme
 
 } // namespace Kratos.
-
-#endif /* KRATOS_SCHEME  defined */

@@ -163,7 +163,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters>())
         .def("Execute", &GaussPointErrorUtility::Execute)
         .def("ExecuteGradient", &GaussPointErrorUtility::ExecuteGradient)
+        .def("ExecuteModelPart", &GaussPointErrorUtility::ExecuteModelPart)
+        .def("ExecuteModelPartGradient", &GaussPointErrorUtility::ExecuteModelPartGradient)
         .def("ExecuteOnConditions", &GaussPointErrorUtility::ExecuteOnConditions)
+        .def("ExecuteOnConditionsGradient", &GaussPointErrorUtility::ExecuteOnConditionsGradient)
         .def("ExecuteOnConditionsSolution", &GaussPointErrorUtility::ExecuteOnConditionsSolution)
     ;
 

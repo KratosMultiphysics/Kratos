@@ -49,11 +49,11 @@ public:
 
     LaplacianShiftedBoundaryLagrangeMultipliersCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry);
+        Geometry<Node>::Pointer pGeometry);
 
     LaplacianShiftedBoundaryLagrangeMultipliersCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry,
+        Geometry<Node>::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     LaplacianShiftedBoundaryLagrangeMultipliersCondition(

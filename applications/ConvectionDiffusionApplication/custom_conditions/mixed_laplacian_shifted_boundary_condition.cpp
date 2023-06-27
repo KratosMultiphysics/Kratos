@@ -22,7 +22,7 @@ namespace Kratos
 
 MixedLaplacianShiftedBoundaryCondition::MixedLaplacianShiftedBoundaryCondition(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry)
+    Geometry<Node>::Pointer pGeometry)
     : Condition(
         NewId,
         pGeometry)
@@ -31,7 +31,7 @@ MixedLaplacianShiftedBoundaryCondition::MixedLaplacianShiftedBoundaryCondition(
 
 MixedLaplacianShiftedBoundaryCondition::MixedLaplacianShiftedBoundaryCondition(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry,
+    Geometry<Node>::Pointer pGeometry,
     Properties::Pointer pProperties)
     : Condition(
         NewId,

@@ -862,7 +862,7 @@ private:
           double             NormDistTetNode;
           double             InnerProduct;
 
-          Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
+          Geometry< Node >& rFluidGeom = i_fluid_element->GetGeometry();
 
           for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
           {
@@ -909,7 +909,7 @@ private:
           const Point LinePoint1 = Point(IntersectionNode1Coord[0] , IntersectionNode1Coord[1] , IntersectionNode1Coord[2]);
           const Point LinePoint2 = Point(IntersectionNode2Coord[0] , IntersectionNode2Coord[1] , IntersectionNode2Coord[2]);
 
-          Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
+          Geometry< Node >& rFluidGeom = i_fluid_element->GetGeometry();
 
           for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
           {
@@ -1059,7 +1059,7 @@ private:
                                                 array_1d<double,4>&                         ElementalDistances,
                                                 array_1d<unsigned int,3>                    IndexNodes)
       {
-          Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
+          Geometry< Node >& rFluidGeom = i_fluid_element->GetGeometry();
 
           for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
           {
@@ -1137,7 +1137,7 @@ private:
       void AssignDistancesToElements(ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                      array_1d<double,4>                          ElementalDistances)
       {
-          Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
+          Geometry< Node >& rFluidGeom = i_fluid_element->GetGeometry();
 
           array_1d<double,4> MinElementalDistances;
 
@@ -1579,7 +1579,7 @@ private:
       }
 
 
-      void CalculateNodeDistance(Node<3>& rNode)
+      void CalculateNodeDistance(Node& rNode)
       {
           double coord[3] = {rNode.X(), rNode.Y(), rNode.Z()};
           double distance = DistancePositionInSpace(coord);
@@ -1592,7 +1592,7 @@ private:
               node_distance = -node_distance;
       }
 
-//      void CalculateNodeDistanceFromCell(Node<3>& rNode)
+//      void CalculateNodeDistanceFromCell(Node& rNode)
 //      {
 //          OctreeType::key_type node_key[3] = {octree->CalcKeyNormalized(rNode.X()), octree->CalcKeyNormalized(rNode.Y()), octree->CalcKeyNormalized(rNode.Z())};
 //          OctreeType::cell_type* pcell = octree->pGetCell(node_key);
@@ -1742,7 +1742,7 @@ private:
 //          {
 //              if(cell->pGetData()->size() > position)
 //              {
-//                  Node<3>* p_node = (*cell->pGetData())[position];
+//                  Node* p_node = (*cell->pGetData())[position];
 //                  if(p_node)
 //                  {
 //                      //KRATOS_WATCH(p_node->Id())

@@ -48,11 +48,11 @@ public:
 
     DisplacementShiftedBoundaryCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry);
+        Geometry<Node>::Pointer pGeometry);
 
     DisplacementShiftedBoundaryCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry,
+        Geometry<Node>::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     DisplacementShiftedBoundaryCondition(

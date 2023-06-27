@@ -21,7 +21,7 @@ namespace Kratos
 
 LaplacianShiftedBoundaryLagrangeMultipliersCondition::LaplacianShiftedBoundaryLagrangeMultipliersCondition(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry)
+    Geometry<Node>::Pointer pGeometry)
     : Condition(
         NewId,
         pGeometry)
@@ -30,7 +30,7 @@ LaplacianShiftedBoundaryLagrangeMultipliersCondition::LaplacianShiftedBoundaryLa
 
 LaplacianShiftedBoundaryLagrangeMultipliersCondition::LaplacianShiftedBoundaryLagrangeMultipliersCondition(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry,
+    Geometry<Node>::Pointer pGeometry,
     Properties::Pointer pProperties)
     : Condition(
         NewId,
