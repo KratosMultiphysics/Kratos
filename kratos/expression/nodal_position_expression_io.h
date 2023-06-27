@@ -98,7 +98,7 @@ public:
 
         NodalPositionExpressionOutput(
             ModelPart& rModelPart,
-            const ConfigurationType& rConfigurationType = ConfigurationType::Initial,
+            const ConfigurationType& rConfigurationType,
             const MeshType& rMeshType = MeshType::Local);
 
         ~NodalPositionExpressionOutput() override = default;
