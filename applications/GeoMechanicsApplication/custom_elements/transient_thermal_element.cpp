@@ -743,7 +743,28 @@ namespace Kratos
     template< unsigned int TDim, unsigned int TNumNodes >
     GeometryData::IntegrationMethod TransientThermalElement<TDim, TNumNodes>::GetIntegrationMethod() const
     {
-        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        GeometryData::IntegrationMethod GI_GAUSS;
+        const GeometryType& rGeom = GetGeometry();
+        const SizeType TNumNodes = rGeom.PointsNumber();
+        //
+        switch (TNumNodes) {
+        case 3:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            break;
+        case 6:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            break;
+        case 10:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
+            break;
+        case 15:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
+            break;
+        default:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            break;
+        }
+        return GI_GAUSS;
     }
 
     // ============================================================================================
