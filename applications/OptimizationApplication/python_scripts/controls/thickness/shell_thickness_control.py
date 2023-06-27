@@ -47,7 +47,7 @@ def GetImplicitFilterParameters(model_part: Kratos.ModelPart, parameters: Kratos
     shell_scalar_filter_parameters["solver_settings"].AddString("model_part_name",model_part_name)
     shell_scalar_filter_parameters["solver_settings"].AddValue("linear_solver_settings", linear_solver_settings)
 
-    fixed_model_parts = parameters["fixed_model_parts"].GetStringArray()
+    fixed_model_parts = parameters["fixed_model_parts_and_thicknesses"].keys()
 
     for fixed_model_part in fixed_model_parts:
         auto_process_settings = Kratos.Parameters(
@@ -93,8 +93,7 @@ class ShellThicknessControl(Control):
             "output_all_fields": false,
             "initial_physical_thickness":0.000001,
             "physical_thicknesses": [],
-            "fixed_model_parts": [],
-            "fixed_model_parts_thicknesses": [],
+            "fixed_model_parts_and_thicknesses": {},
             "utilities": []
         }""")
 
@@ -107,7 +106,7 @@ class ShellThicknessControl(Control):
         self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
         num_phys_thick = len(self.physical_thicknesses)
         if num_phys_thick == 0:
-            raise RuntimeError(f"The  physical_thicknesses can not be empty, at least min and max should be provided.")
+            raise RuntimeError(f"The physical_thicknesses can not be empty, at least min and max should be provided.")
         self.filtered_thicknesses = [i for i in range(len(self.physical_thicknesses))]
 
         self.filter_type = self.parameters["filter_settings"]["type"].GetString()
@@ -122,12 +121,9 @@ class ShellThicknessControl(Control):
 
         self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
 
-        self.fixed_model_parts = self.parameters["fixed_model_parts"].GetStringArray()
-        self.fixed_model_parts_thicknesses = self.parameters["fixed_model_parts_thicknesses"].GetVector()
-        if len(self.fixed_model_parts) != len(self.fixed_model_parts_thicknesses):
-            raise RuntimeError(f"fixed_model_parts and fixed_model_parts_thicknesses should have the same size !")
+        self.fixed_model_parts_and_thicknesses = self.parameters["fixed_model_parts_and_thicknesses"]
 
-        if not all(entry in self.physical_thicknesses for entry in self.fixed_model_parts_thicknesses):
+        if not all(entry.GetDouble() in self.physical_thicknesses for entry in self.fixed_model_parts_and_thicknesses.values()):
             raise RuntimeError(f"fixed_model_parts_thicknesses should exist in physical_thicknesses !")
 
         helmholtz_settings = GetImplicitFilterParameters(self.model_part, self.parameters)
@@ -241,11 +237,13 @@ class ShellThicknessControl(Control):
             un_buffered_data.SetValue("projection_derivative", self.projection_derivative_field.Clone(),overwrite=self.is_initialized)
 
     def _SetFixedModelPartValues(self, is_backward = False) -> None:
-        for model_part_name, model_part_value in zip(self.fixed_model_parts, self.fixed_model_parts_thicknesses):
+        for index in range(len(self.fixed_model_parts_and_thicknesses.keys())):
+            model_parts_name = self.fixed_model_parts_and_thicknesses.keys()[index]
+            model_parts_thickness = self.fixed_model_parts_and_thicknesses.values()[index].GetDouble()
             if is_backward:
-                model_part_value = 0.0
-            field =  Kratos.Expression.NodalExpression(self.model[model_part_name])
-            Kratos.Expression.LiteralExpressionIO.SetData(field, model_part_value)
+                model_parts_thickness = 0.0
+            field =  Kratos.Expression.NodalExpression(self.model[model_parts_name])
+            Kratos.Expression.LiteralExpressionIO.SetData(field, model_parts_thickness)
             Kratos.Expression.VariableExpressionIO.Write(field, KratosOA.HELMHOLTZ_SCALAR, True)
 
     def __str__(self) -> str:
