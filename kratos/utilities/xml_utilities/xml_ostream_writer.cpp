@@ -16,7 +16,7 @@
 #include <tuple>
 
 // Project includes
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "expression/literal_flat_expression.h"
 
 // Include base h
 #include "xml_ostream_writer.h"
