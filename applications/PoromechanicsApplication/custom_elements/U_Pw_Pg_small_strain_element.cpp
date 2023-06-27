@@ -1851,12 +1851,27 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(Vecto
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rVariables.PMatrix) = rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
+    // Compute auxiliary matrix: Np * Np^T * w * detJ
+    noalias(rVariables.NpNpT) = outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.DtPressureVector);
+    // Get compressibility coefficients
+    double Cww, Cwg, Cgw, Cgg;
+    this->GetCompressibilityCoefficients(Cww, Cwg, Cgw, Cgg, rVariables);
 
-    //Distribute compressibility block vector into elemental vector
-    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    // Compute the element compressibility sub-matrices
+    // * The DtPressureCoefficient is associated with the time discretization scheme.
+    noalias(rVariables.PwPwMatrix) = Cww * rVariables.NpNpT;
+    noalias(rVariables.PwPgMatrix) = Cwg * rVariables.NpNpT;
+    noalias(rVariables.PgPwMatrix) = Cgw * rVariables.NpNpT;
+    noalias(rVariables.PgPgMatrix) = Cgg * rVariables.NpNpT;
+
+    //Add the contribution of the compressibility terms in the residual of the mass balance of water equation: -Sww * dpwdt - Swg * dpgdt
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PwPwMatrix,rVariables.DtPressureVector) - prod(rVariables.PwPgMatrix,rVariables.DtGasPressureVector);
+    PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+
+    //Add the contribution of the compressibility terms in the residual of the mass balance of gas equation: -Sgw * dpwdt - Sgg * dpgdt
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PgPwMatrix,rVariables.DtPressureVector) - prod(rVariables.PgPgMatrix,rVariables.DtGasPressureVector);
+    PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
