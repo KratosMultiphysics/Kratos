@@ -532,12 +532,6 @@ void DEM_smooth_joint::CheckFailure(const int i_neighbour_count,
         //const double& bond_tau_zero_deviation = (*mpProperties)[BOND_TAU_ZERO_DEVIATION];
         const double& bond_interanl_friction = (*mpProperties)[BOND_INTERNAL_FRICC];
 
-        const double my_radius         = element1->GetRadius();
-        const double other_radius      = element2->GetRadius();
-        const double bond_radius_factor = (*mpProperties)[BOND_RADIUS_FACTOR];
-        double bond_radius = std::min(my_radius, other_radius) * bond_radius_factor;
-        double bond_calculation_area = Globals::Pi * bond_radius * bond_radius;
-
         double bond_current_tau_max = bond_tau_zero;
 
         if (contact_sigma >= 0) {
