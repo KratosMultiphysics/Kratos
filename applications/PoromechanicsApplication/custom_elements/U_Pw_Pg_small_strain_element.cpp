@@ -973,6 +973,9 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
         //Compute the capilar pressure at the integration point
         Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
 
+        //Evaluate the wetting saturation degree and its derivative wrt to the capilar pressure
+        this->CalculeWaterSaturationDegree(Variables);
+
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
@@ -1059,6 +1062,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
     rVariables.SolidCompressibilityCoeff = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid;
     rVariables.FluidCompressibilityCoeff = Porosity/Prop[BULK_MODULUS_FLUID];
+    rVariables.GasCompressibilityCoeff = Porosity/Prop[BULK_MODULUS_GAS];
     rVariables.BiotModulusInverse = rVariables.SolidCompressibilityCoeff + rVariables.FluidCompressibilityCoeff;
 
     //ProcessInfo variables
@@ -1610,26 +1614,59 @@ void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double 
 {
 
     // Get variables
-    double Sw = rVariables.Sw;
-    double pc = rVariables.ipCapilarPressure;
-    double Ms = rVariables.SolidCompressibilityCoeff;
-    double Mf = rVariables.FluidCompressibilityCoeff;
-    double Sg = 1.0 - Sw;
+    double Sw     = rVariables.Sw;
+    double dSwdpc = rVariables.dSwdpc;
+    double pc     = rVariables.ipCapilarPressure;
+    double Ms     = rVariables.SolidCompressibilityCoeff;
+    double Mf     = rVariables.FluidCompressibilityCoeff;
+    double Mg     = rVariables.GasCompressibilityCoeff;
+    double Phi    = rVariables.Porosity;
+    double Sg     = 1.0 - Sw;
 
-    // Evaluate the specific moisture relationship
-    double Cs;
-
-    // Compute the compressibility coefficients (CHECK THE SIGNS)
-    Cww = Ms * Sw * (Sw + Cs * pc) + Sw * Mf - Cs;
-    Cwg = Ms * Sw * (Sg - Cs * pc) + Cs;
-    Cgw = Ms * Sg * (Sg - Cs * pc) + Cs;
-    Cgg = Ms * Sg * (Sw + Cs * pc) + Sw * Mg - Cs;
+    // Compute the compressibility coefficients
+    Cww = Ms * Sw * (Sw + pc * dSwdpc) - dSwdpc * Phi + Sw * Mf;
+    Cwg = Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi;
+    Cgw = Ms * Sg * (Sw + pc * dSwdpc) + dSwdpc * Phi;
+    Cgg = Ms * Sg * (Sg - pc * dSwdpc) - dSwdpc * Phi + Sg * Mg;
 
     // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
     if (rVariables.AddGasDiffusion){
         Cgu += rVariables.HenryCoefficient * rVariables.Sw * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
     }
 
+}
+
+//----------------------------------------------------------------------------------------
+void UPwPgSmallStrainElement::CalculateWaterSaturationDegree(ElementVariables& rVariables)
+{
+    //Get material parameters
+    double Swr    = rVariables.ResidualWaterSaturation;
+    double lambda = rVariables.PoreSizeFactor;
+    double pb     = rVariables.GasEntryPressure;
+    double pc     = rVariables.ipCapilarPressure;
+
+    switch (rVariables.WaterSaturationLaw){
+        case 1: // -- Brooks and Corey
+        //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
+            
+            // Water saturation degree
+            rVariables.Sw = (1.0 - Swr)*pow(pb/pc,lambda) + Swr;
+
+            // Derivative of the water saturation degree with respect to the capilar pressure
+            rVariables.dSwdpc = (1.0 - Swr) * lambda * pb * pow(pb/pc,lambda-1) / (pc * pc);
+
+            break;
+
+        case 2: // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
+
+            // Water saturation degree
+            rVariables.Sw = (1.0 - Swr)*pow(1.0 + pow(pc/pb,1.0/(1.0-lambda)),-lambda) + Swr;
+
+            // Derivative of the water saturation degree with respect to the capilar pressure
+            rVariables.dSwdpc = (1.0 - Swr)*lambda/(pb * pow(pc/pb,1.0+1.0/(lambda-1.0)) * (lambda - 1.0) * pow(1.0+1.0/(pow(pc/pb,1/(lambda-1.0))),lambda+1.0));
+            
+            break;
+    }
 }
 
 //----------------------------------------------------------------------------------------

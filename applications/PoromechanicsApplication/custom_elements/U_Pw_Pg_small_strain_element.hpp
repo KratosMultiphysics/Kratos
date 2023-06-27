@@ -103,13 +103,21 @@ protected:
         double BiotModulusInverse;
         double SolidCompressibilityCoeff;
         double FluidCompressibilityCoeff;
+        double GasCompressibilityCoeff;
         double Porosity
         double HenryCoefficient;
         bool AddGasDiffusion = false;
 
         //Element state variables
         double Sw;
+        double dSwdpc;
         double ipCapilarPressure;
+        
+        // Water retention curve parameters
+        int WaterSaturationLaw;
+        double PoreSizeFactor;
+        double ResidualWaterSaturation;
+        double GasEntryPressure;
 
         ///ProcessInfo variables
         double VelocityCoefficient;
@@ -198,6 +206,8 @@ protected:
     void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void GetCouplingCompressibilityCoefficients(double Cwu, double Cgu, ElementVariables& rVariables);
+
+    void CalculateWaterSaturationDegree(ElementVariables& rVariables);
 
     void GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, ElementVariables& rVariables);
 
