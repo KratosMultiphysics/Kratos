@@ -16,23 +16,23 @@
 #include "geometries/quadrilateral_3d_4.h"
 
 // Project includes
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_conditions/multiphase_flow/general_U_Pw_Pg_diff_order_condition.hpp"
 
 namespace Kratos
 {
 
 // Default Constructor
-GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition() : Condition() {}
+GeneralUPwPgDiffOrderCondition::GeneralUPwPgDiffOrderCondition() : Condition() {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 1
-GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry) : Condition(NewId, pGeometry) {}
+GeneralUPwPgDiffOrderCondition::GeneralUPwPgDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry) : Condition(NewId, pGeometry) {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 2
-GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Condition(NewId, pGeometry, pProperties)
+GeneralUPwPgDiffOrderCondition::GeneralUPwPgDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Condition(NewId, pGeometry, pProperties)
 {
     mThisIntegrationMethod = this->GetIntegrationMethod();
 }
@@ -40,18 +40,18 @@ GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, Geom
 //----------------------------------------------------------------------------------------
 
 //Destructor
-GeneralUPwDiffOrderCondition::~GeneralUPwDiffOrderCondition() {}
+GeneralUPwPgDiffOrderCondition::~GeneralUPwPgDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer GeneralUPwPgDiffOrderCondition::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new GeneralUPwDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new GeneralUPwPgDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwPgDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -81,7 +81,7 @@ void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcess
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
+void GeneralUPwPgDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -89,7 +89,7 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
+    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes * 2;
 
     if(rConditionDofList.size() != ConditionSize)
         rConditionDofList.resize(ConditionSize);
@@ -123,14 +123,17 @@ void GeneralUPwDiffOrderCondition::GetDofList(DofsVectorType& rConditionDofList,
     }
 
     for(SizeType i=0; i<NumPNodes; i++)
+    {
         rConditionDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+        rConditionDofList[Index++] = GetGeometry()[i].pGetDof( GAS_PRESSURE );
+    }
 
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void GeneralUPwPgDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -138,7 +141,7 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSi
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
+    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes * 2;
 
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != ConditionSize )
@@ -161,24 +164,24 @@ void GeneralUPwDiffOrderCondition::CalculateLocalSystem( MatrixType& rLeftHandSi
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+void GeneralUPwPgDiffOrderCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR(std::logic_error,"GeneralUPwDiffOrderCondition::CalculateLeftHandSide not implemented","");
+    KRATOS_THROW_ERROR(std::logic_error,"GeneralUPwPgDiffOrderCondition::CalculateLeftHandSide not implemented","");
 
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+void GeneralUPwPgDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
+    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes * 2;
 
     //Resetting the RHS
     if ( rRightHandSideVector.size() != ConditionSize )
@@ -195,7 +198,7 @@ void GeneralUPwDiffOrderCondition::CalculateRightHandSide( VectorType& rRightHan
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
+void GeneralUPwPgDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -203,7 +206,7 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes;
+    const SizeType ConditionSize = NumUNodes * Dim + NumPNodes * 2;
 
     if ( rResult.size() != ConditionSize )
         rResult.resize( ConditionSize, false );
@@ -219,14 +222,17 @@ void GeneralUPwDiffOrderCondition::EquationIdVector(EquationIdVectorType& rResul
     }
 
     for ( SizeType i = 0; i < NumPNodes; i++ )
+    {
         rResult[Index++] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
+        rResult[Index++] = GetGeometry()[i].GetDof( GAS_PRESSURE ).EquationId();
+    }
 
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
+void GeneralUPwPgDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo,
                                         bool CalculateLHSMatrixFlag, bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
@@ -263,7 +269,7 @@ void GeneralUPwDiffOrderCondition::CalculateAll(MatrixType& rLeftHandSideMatrix,
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void GeneralUPwPgDiffOrderCondition::InitializeConditionVariables (ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -289,7 +295,7 @@ void GeneralUPwDiffOrderCondition::InitializeConditionVariables (ConditionVariab
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVariables,unsigned int PointNumber)
+void GeneralUPwPgDiffOrderCondition::CalculateKinematics(ConditionVariables& rVariables,unsigned int PointNumber)
 {
     KRATOS_TRY
 
@@ -302,7 +308,7 @@ void GeneralUPwDiffOrderCondition::CalculateKinematics(ConditionVariables& rVari
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
+void GeneralUPwPgDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
 
@@ -313,7 +319,7 @@ void GeneralUPwDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
+void GeneralUPwPgDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
 {
     KRATOS_TRY
 
@@ -324,14 +330,14 @@ void GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVari
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables)
+void GeneralUPwPgDiffOrderCondition::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables)
 {
 
 }
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateAndAddRHS(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
+void GeneralUPwPgDiffOrderCondition::CalculateAndAddRHS(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
 {
     KRATOS_TRY
 
@@ -342,7 +348,7 @@ void GeneralUPwDiffOrderCondition::CalculateAndAddRHS(VectorType& rRightHandSide
 
 //----------------------------------------------------------------------------------------
 
-void GeneralUPwDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
+void GeneralUPwPgDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
 {
     KRATOS_TRY
 
