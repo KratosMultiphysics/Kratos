@@ -1698,8 +1698,8 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(
     krg = this->GasRelativePermeability(Se, rVariables);
 
     // Compute the fluid-flow sub-matrices
-    noalias(PwPwMatrix) = krw * rVariables.PermMatrix / rVariables.WaterDynamicViscosity;
-    noalias(PwPwMatrix) = krg * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
+    noalias(rVariables.PwPwMatrix) = krw * rVariables.PermMatrix / rVariables.WaterDynamicViscosity;
+    noalias(rVariables.PgPgMatrix) = krg * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
 
     //Distribute fluid-flow block sub-matrices into the elemental matrix
     PoroElementUtilities::AssemblePwPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPwMatrix,TDim,TNumNodes);
@@ -1879,14 +1879,32 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
+    // Compute the auxiliary matrix of the product between: gradNp^T * K * gradNp
+    // where gradNp is the gradient of the shape function vector associated with the pressure fields,
+    // and K is the permeability matrix.
     noalias(rVariables.PDimMatrix) = prod(rVariables.GradNpT,mIntrinsicPermeability);
+    noalias(rVariables.PermMatrix) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
 
-    noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
+    // Compute the effective saturation
+    Se->EffectiveSaturation(rVariables.Sw, rVariables.ResidualWaterSaturation);
 
-    noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.PressureVector);
+    // Evaluate the water relative permeability
+    krw = this->WaterRelativePermeability(Se, rVariables);
 
-    //Distribute permeability block vector into elemental vector
-    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    // Evaluate the gas relative permeability
+    krg = this->GasRelativePermeability(Se, rVariables);
+
+    // Compute the fluid-flow sub-matrices
+    noalias(rVariables.PwPwMatrix) = krw * rVariables.PermMatrix / rVariables.WaterDynamicViscosity;
+    noalias(rVariables.PgPgMatrix) = krg * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
+
+    //Add the contribution of the permeability term in the residual of the mass balance of water equation: -Hww * pw
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PwPwMatrix,rVariables.PressureVector);
+    PoroElementUtilities::AssemblePwBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+
+    //Add the contribution of the permeability term in the residual of the mass balance of water equation: -Hgg * pg
+    noalias(rVariables.PVector) = -1.0*prod(rVariables.PgPgMatrix,rVariables.GasPressureVector);
+    PoroElementUtilities::AssemblePgBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
