@@ -166,6 +166,8 @@ protected:
         BoundedMatrix<double,TNumNodes,TDim> PDimMatrix;
         array_1d<double,TNumNodes*TDim> UVector;
         array_1d<double,TNumNodes> PVector;
+        array_1d<double,TNumNodes> PwVector;
+        array_1d<double,TNumNodes> PgVector;
         array_1d<double,TNumNodes> CapilarPressureVector;
     };
 
