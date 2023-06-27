@@ -52,6 +52,17 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) FillCommunicator
 {
 public:
+    ///@name  Enum's
+    ///@{
+
+    enum class FillCommunicatorEchoLevel
+    {
+        NO_PRINTING = 0, // No printing at all
+        INFO = 1,        // Just some additional info is printed
+        DEBUG_INFO = 2   // Debug info (+ INFO level) is printed
+    };
+
+    ///@}
     ///@name Type Definitions
     ///@{
 
@@ -137,6 +148,24 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief Set the echo level
+     * @param EchoLevel The echo level
+     */
+    void SetEchoLevel(const FillCommunicatorEchoLevel EchoLevel)
+    {
+        mEchoLevel = EchoLevel;
+    }
+
+    /**
+     * @brief Get the echo level
+     * @return The echo level
+     */
+    FillCommunicatorEchoLevel& GetEchoLevel()
+    {
+        return mEchoLevel;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -168,6 +197,8 @@ protected:
     ///@{
 
     const DataCommunicator& mrDataComm; /// Data communicator reference
+
+    FillCommunicatorEchoLevel mEchoLevel = FillCommunicatorEchoLevel::NO_PRINTING; /// Echo level
 
     ///@}
     ///@name Protected Operators
