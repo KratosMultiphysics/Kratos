@@ -974,7 +974,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHan
         Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
 
         //Evaluate the wetting saturation degree and its derivative wrt to the capilar pressure
-        this->CalculeWaterSaturationDegree(Variables);
+        this->CalculateWaterSaturationDegree(Variables);
 
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -1030,6 +1030,12 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHa
         noalias(Variables.Np) = row(NContainer,GPoint);
         PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
         PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+
+        //Compute the capilar pressure at the integration point
+        Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
+
+        //Evaluate the wetting saturation degree and its derivative wrt to the capilar pressure
+        this->CalculateWaterSaturationDegree(Variables);
 
         //Compute stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -1699,10 +1705,10 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(
     PoroElementUtilities::AssemblePwPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPwMatrix,TDim,TNumNodes);
     PoroElementUtilities::AssemblePgPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPgMatrix,TDim,TNumNodes);
 
-    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
+    // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered (TODO)
     if (rVariables.AddGasDiffusion){
-        PoroElementUtilities::AssemblePwPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPgMatrix,TDim,TNumNodes);
-        PoroElementUtilities::AssemblePgPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPwMatrix,TDim,TNumNodes);
+        //PoroElementUtilities::AssemblePwPgBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPgMatrix,TDim,TNumNodes);
+        //PoroElementUtilities::AssemblePgPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PgPwMatrix,TDim,TNumNodes);
     }
 }
 
