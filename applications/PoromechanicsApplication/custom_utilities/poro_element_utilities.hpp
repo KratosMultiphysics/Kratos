@@ -1683,6 +1683,36 @@ public:
         }
     }
 
+    //----------------------------------------------------------------------------------------
+
+    template< class TVectorType >
+    static inline void AssemblePwBlockVector(Vector& rRightHandSideVector,const TVectorType& PwBlockVector, const unsigned int& Dim, const unsigned int& NumNodes)
+    {
+        unsigned int Global_i;
+
+        for(unsigned int i = 0; i < NumNodes; i++)
+        {
+            Global_i = i * (Dim + 2) + Dim;
+
+            rRightHandSideVector[Global_i] += PwBlockVector[i];
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    template< class TVectorType >
+    static inline void AssemblePgBlockVector(Vector& rRightHandSideVector,const TVectorType& PgBlockVector, const unsigned int& Dim, const unsigned int& NumNodes)
+    {
+        unsigned int Global_i;
+
+        for(unsigned int i = 0; i < NumNodes; i++)
+        {
+            Global_i = i * (Dim + 2) + Dim + 1;
+
+            rRightHandSideVector[Global_i] += PgBlockVector[i];
+        }
+    }
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// CalculateExtrapolationMatrix
