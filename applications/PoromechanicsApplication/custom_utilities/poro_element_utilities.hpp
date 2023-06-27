@@ -1415,6 +1415,86 @@ public:
 
     //----------------------------------------------------------------------------------------
 
+    template< class TMatrixType >
+    static inline void AssemblePwPwBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PwPwBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
+    {
+        unsigned int Global_i, Global_j;
+
+        for(unsigned int i = 0; i < NumNodes; i++)
+        {
+            Global_i = i * (Dim + 2) + Dim;
+
+            for(unsigned int j = 0; j < NumNodes; j++)
+            {
+                Global_j = j * (Dim + 2) + Dim;
+
+                rLeftHandSideMatrix(Global_i,Global_j) += PwPwBlockMatrix(i,j);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    template< class TMatrixType >
+    static inline void AssemblePgPgBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PgPgBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
+    {
+        unsigned int Global_i, Global_j;
+
+        for(unsigned int i = 0; i < NumNodes; i++)
+        {
+            Global_i = i * (Dim + 2) + Dim + 1;
+
+            for(unsigned int j = 0; j < NumNodes; j++)
+            {
+                Global_j = j * (Dim + 2) + Dim + 1;
+
+                rLeftHandSideMatrix(Global_i,Global_j) += PgPgBlockMatrix(i,j);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    template< class TMatrixType >
+    static inline void AssemblePwPgBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PwPgBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
+    {
+        unsigned int Global_i, Global_j;
+
+        for(unsigned int i = 0; i < NumNodes; i++)
+        {
+            Global_i = i * (Dim + 2) + Dim;
+
+            for(unsigned int j = 0; j < NumNodes; j++)
+            {
+                Global_j = j * (Dim + 2) + Dim + 1;
+
+                rLeftHandSideMatrix(Global_i,Global_j) += PwPgBlockMatrix(i,j);
+            }
+        }
+    }
+    
+    //----------------------------------------------------------------------------------------
+
+    template< class TMatrixType >
+    static inline void AssemblePgPwBlockMatrix(Matrix& rLeftHandSideMatrix,const TMatrixType& PgPwBlockMatrix, const unsigned int& Dim, const unsigned int& NumNodes)
+    {
+        unsigned int Global_i, Global_j;
+
+        for(unsigned int i = 0; i < NumNodes; i++)
+        {
+            Global_i = i * (Dim + 2) + Dim + 1;
+
+            for(unsigned int j = 0; j < NumNodes; j++)
+            {
+                Global_j = j * (Dim + 2) + Dim;
+
+                rLeftHandSideMatrix(Global_i,Global_j) += PgPgBlockMatrix(i,j);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------
+
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector, const array_1d<double,6>& UBlockVector)
     {
         //Triangle_2d_3
