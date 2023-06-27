@@ -133,48 +133,75 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         # now get the intersected model parts
         intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, True)
 
-        # for physical_variable, merged_model_part in merged_model_part_map.items():
-
         for variable, collective_expression in physical_variable_collective_expressions.items():
 
             self.adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
 
             self.adjoint_model = Kratos.Model()
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
-            root_model_part_name = self.adjoint_model.GetModelPartNames()[0]
+            adjoint_model_part = adjoint_analysis._GetSolver().GetComputingModelPart()
 
-            def modify_parameters_in_analysis_stage():
-                for i, element in enumerate(self.model.GetModelPart(root_model_part_name).Elements):
-                    element.Properties[Kratos.YOUNG_MODULUS] = self.GetAnalysisModelPart().GetElement(element.Id).Properties[Kratos.YOUNG_MODULUS]
+            adjoint_analysis.Initialize()
 
-            adjoint_analysis.ModifyInitialProperties = modify_parameters_in_analysis_stage  # override responding function, it's a hack!!!!!
+            # create element specific properties in adjoint model part
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(adjoint_model_part, adjoint_model_part.Elements)
 
-            adjoint_analysis.Run()
+            # read primal E
+            primal_youngs_modulus = Kratos.Expression.ElementExpression(self.model_part)
+            KratosOA.PropertiesVariableExpressionIO.Read(primal_youngs_modulus, Kratos.YOUNG_MODULUS)
+            # print("primal_youngs_modulus", primal_youngs_modulus.Evaluate())
 
-            Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, self.adjoint_model[root_model_part_name], self.model[root_model_part_name])
+            # assign primal E to adjoint
+            adjoint_young_modulus = Kratos.Expression.ElementExpression(adjoint_model_part)
+            adjoint_young_modulus.SetExpression(primal_youngs_modulus.GetExpression())
+            KratosOA.PropertiesVariableExpressionIO.Write(adjoint_young_modulus, Kratos.YOUNG_MODULUS)
+
+            # def modify_parameters_in_analysis_stage():
+            #     for i, element in enumerate(self.model.GetModelPart(root_model_part_name).Elements):
+            #         element.Properties[Kratos.YOUNG_MODULUS] = self.GetAnalysisModelPart().GetElement(element.Id).Properties[Kratos.YOUNG_MODULUS]
+
+            # adjoint_analysis.ModifyInitialProperties = modify_parameters_in_analysis_stage  # override responding function, it's a hack!!!!!
+
+            adjoint_analysis.RunSolutionLoop()
+            adjoint_analysis.Finalize()
+
+            # for element in self.adjoint_model[self.adjoint_model.GetModelPartNames()[0]].Elements:
+            # print("getvalue", element.GetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY))
+            # print("propertiesvalue", element.Properties[KratosOA.YOUNG_MODULUS_SENSITIVITY])
+            # print("propertiesvalue", element.Properties[Kratos.YOUNG_MODULUS])
+
+            # raise RuntimeError(1)
+
+            # Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, self.adjoint_model[root_model_part_name], self.model[root_model_part_name])
 
             # now fill the collective expressions
 
             for expression in collective_expression.GetContainerExpressions():
                 if isinstance(expression, Kratos.Expression.ElementExpression):
-                    KratosOA.PropertiesVariableExpressionIO.Read(expression, StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
-                    KratosOA.PropertiesVariableExpressionIO.Write(expression, StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
+                    adjoint_young_modulus_sensitivity = Kratos.Expression.ElementExpression(adjoint_model_part)
+                    Kratos.Expression.VariableExpressionIO.Read(adjoint_young_modulus_sensitivity, KratosOA.YOUNG_MODULUS_SENSITIVITY)
+                    expression.SetExpression(adjoint_young_modulus_sensitivity.GetExpression())
+                    # print("expression", expression.Evaluate())
+                    # raise RuntimeError(1)
                 else:
                     KratosOA.PropertiesVariableExpressionIO.Read(expression, Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
 
-            # for element in self.model_part.Elements:
-            #     E = element.Properties[Kratos.YOUNG_MODULUS]
-            #     element.Properties[Kratos.YOUNG_MODULUS] = E
-
-            # # checking
-            # check_expression = Kratos.Expression.ElementExpression(expression.GetModelPart())
-            # KratosOA.PropertiesVariableExpressionIO.Read(check_expression, StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
-            # numpy_array = check_expression.Evaluate()
-            # Kratos.Expression.CArrayExpressionIO.Read(check_expression, numpy_array)
-            # Kratos.Expression.CArrayExpressionIO.Move(check_expression, numpy_array)
-            # Kratos.Expression.CArrayExpressionIO.Write(check_expression, numpy_array)
+            # print("adjoint_young_modulus_sensitivity", adjoint_young_modulus_sensitivity.Evaluate())
+            # print("adjoint_young_modulus", adjoint_young_modulus.Evaluate())
 
     def CalculateGradientWithFiniteDifferencing(self, physical_variable_collective_expressions: "dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]") -> "list(float)":
+        # for element in self.model_part.Elements:
+        #     E = element.Properties[Kratos.YOUNG_MODULUS]
+        #     element.Properties[Kratos.YOUNG_MODULUS] = E
+
+        # # checking
+        # check_expression = Kratos.Expression.ElementExpression(expression.GetModelPart())
+        # KratosOA.PropertiesVariableExpressionIO.Read(check_expression, StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
+        # numpy_array = check_expression.Evaluate()
+        # Kratos.Expression.CArrayExpressionIO.Read(check_expression, numpy_array)
+        # Kratos.Expression.CArrayExpressionIO.Move(check_expression, numpy_array)
+        # Kratos.Expression.CArrayExpressionIO.Write(check_expression, numpy_array)
+
         # first merge all the model parts
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 

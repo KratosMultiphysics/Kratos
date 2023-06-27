@@ -97,10 +97,7 @@ class AlgorithmSystemIdentification(Algorithm):
         for container_expression in obj_gradient_expressions.GetContainerExpressions():
 
             elements = container_expression.GetModelPart().Elements
-            gradient_vector = np.ndarray(shape=(len(elements), 1))
-
-            for i, element in enumerate(elements):
-                gradient_vector[i] = element.GetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY)
+            gradient_vector = np.reshape(container_expression.Evaluate(), (len(elements), 1))
 
             if search_direction == None:
                 search_direction = np.zeros(shape=(len(elements)))
@@ -114,7 +111,7 @@ class AlgorithmSystemIdentification(Algorithm):
                 damp=0.0,
             )[0]
 
-            search_direction *= -1.0
+            search_direction *= 1.0
 
             # search_direction = gradient_vector.reshape(gradient_vector.shape[0]) / np.max(np.abs(gradient_vector))
 

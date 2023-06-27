@@ -46,6 +46,7 @@
           "model_part_name": "Structure.left_support_positions_model_part",
           "variable_name": "DISPLACEMENT",
           "value": [0.0, 0.0, 0.0],
+          "constrained": [true, true, true],
           "interval": [0.0, "End"]
         }
       },
@@ -59,6 +60,7 @@
           "model_part_name": "Structure.right_support_positions_model_part",
           "variable_name": "DISPLACEMENT",
           "value": [0.0, 0.0, 0.0],
+          "constrained": [false, true, true],
           "interval": [0.0, "End"]
         }
       }
@@ -74,8 +76,8 @@
           "mesh_id": 0,
           "model_part_name": "Structure.point_load_positions_model_part",
           "variable_name": "POINT_LOAD",
-          "modulus": 1000000.0,
-          "direction": [0.0, 1.0, 0],
+          "modulus": -10000000.0,
+          "direction": [0.0, 1.0, 0.0],
           "interval": [0.0, "End"]
         }
       }
@@ -106,7 +108,10 @@
       {
         "Parameters": {
           "condition_data_value_variables": [],
-          "element_data_value_variables": [],
+          "element_data_value_variables": [
+            "YOUNG_MODULUS",
+            "YOUNG_MODULUS_SENSITIVITY"
+          ],
           "file_format": "ascii",
           "model_part_name": "Structure",
           "nodal_data_value_variables": [],
@@ -117,7 +122,7 @@
           ],
           "output_control_type": "step",
           "output_interval": 1,
-          "output_path": "vtk_output",
+          "output_path": "primal_vtk_output",
           "output_precision": 7,
           "output_sub_model_parts": true,
           "save_output_files_in_folder": true

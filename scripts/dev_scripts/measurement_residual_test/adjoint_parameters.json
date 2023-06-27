@@ -53,6 +53,7 @@
           "mesh_id": 0,
           "model_part_name": "Structure.left_support_positions_model_part",
           "variable_name": "ADJOINT_DISPLACEMENT",
+          "constrained": [true, true, true],
           "value": [0.0, 0.0, 0.0],
           "interval": [0.0, "End"]
         }
@@ -66,6 +67,7 @@
           "mesh_id": 0,
           "model_part_name": "Structure.right_support_positions_model_part",
           "variable_name": "ADJOINT_DISPLACEMENT",
+          "constrained": [false, true, true],
           "value": [0.0, 0.0, 0.0],
           "interval": [0.0, "End"]
         }
@@ -82,8 +84,8 @@
           "mesh_id": 0,
           "model_part_name": "Structure.point_load_positions_model_part",
           "variable_name": "POINT_LOAD",
-          "modulus": 10.0,
-          "direction": [0.0, 0.0, 1],
+          "modulus": 0.000000001,
+          "direction": [0.0, 1.0, 0.0],
           "interval": [0.0, "End"]
         }
       }

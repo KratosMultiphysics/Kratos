@@ -129,9 +129,7 @@ namespace Kratos
                             measurement_normal = sensor_data["measurement_direction_normal"].GetVector();
                             simulated_displacement = response_part.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof);
 
-                            simulated_displacement_projected_on_measurement = simulated_displacement[0] * measurement_normal[0] +
-                                                                              simulated_displacement[1] * measurement_normal[1] +
-                                                                              simulated_displacement[2] * measurement_normal[2];
+                            simulated_displacement_projected_on_measurement = inner_prod(simulated_displacement, measurement_normal);
 
                             rResponseGradient[i + 0] = measurement_normal[0] * (measurement_value - simulated_displacement_projected_on_measurement);
                             rResponseGradient[i + 1] = measurement_normal[1] * (measurement_value - simulated_displacement_projected_on_measurement);
