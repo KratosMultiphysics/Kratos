@@ -26,7 +26,9 @@
                     "@include_json": "primal_parameters.json"
                 },
                 "analysis_output_settings": {
-                        "nodal_solution_step_data_variables": ["DISPLACEMENT"]
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT"
+                    ]
                 }
             }
         }
@@ -45,7 +47,9 @@
             "name": "strain_energy",
             "type": "linear_strain_energy_response_function",
             "settings": {
-                "evaluated_model_part_names": ["Structure"],
+                "evaluated_model_part_names": [
+                    "Structure"
+                ],
                 "primal_analysis_name": "Structure_static",
                 "perturbation_size": 1e-8
             }
@@ -97,21 +101,6 @@
                         "output_file_name": "summary.csv",
                         "write_kratos_version": false,
                         "write_time_stamp": false
-                    }
-                },
-                {
-                    "type": "optimization_problem_vtu_output_process",
-                    "module": "KratosMultiphysics.OptimizationApplication.processes",
-                    "settings": {
-                        "file_format": "binary",
-                        "write_deformed_configuration": false,
-                        "output_path": "test_output",
-                        "list_of_output_components": [
-                            "all"
-                        ],
-                        "output_precision": 7,
-                        "output_interval": 1,
-                        "echo_level": 0
                     }
                 }
             ]
