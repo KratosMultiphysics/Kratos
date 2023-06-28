@@ -24,10 +24,10 @@ namespace Kratos {
 
 NodalPositionExpressionIO::NodalPositionExpressionInput::NodalPositionExpressionInput(
     const ModelPart& rModelPart,
-    const ConfigurationType& rConfigurationType,
+    const Configuration& rConfiguration,
     const MeshType& rMeshType)
     : mrModelPart(rModelPart),
-      mConfigurationType(rConfigurationType),
+      mConfiguration(rConfiguration),
       mMeshType(rMeshType)
 {
 }
@@ -39,8 +39,8 @@ Expression::Pointer NodalPositionExpressionIO::NodalPositionExpressionInput::Exe
 
     LiteralFlatExpression<double>::Pointer expression;
 
-    switch (mConfigurationType) {
-        case ConfigurationType::Initial:
+    switch (mConfiguration) {
+        case Configuration::Initial:
             expression = LiteralFlatExpression<double>::Create(number_of_nodes, {3});
             IndexPartition<IndexType>(number_of_nodes).for_each([&r_mesh, &expression](const IndexType Index) {
                 const auto& r_node = *(r_mesh.NodesBegin() + Index);
@@ -50,7 +50,7 @@ Expression::Pointer NodalPositionExpressionIO::NodalPositionExpressionInput::Exe
                 *current_data_start = r_node.Z0();
             });
             break;
-        case ConfigurationType::Current:
+        case Configuration::Current:
             expression = LiteralFlatExpression<double>::Create(number_of_nodes, {3});
             IndexPartition<IndexType>(number_of_nodes).for_each([&r_mesh, &expression](const IndexType Index) {
                 const auto& r_node = *(r_mesh.NodesBegin() + Index);
@@ -67,10 +67,10 @@ Expression::Pointer NodalPositionExpressionIO::NodalPositionExpressionInput::Exe
 
 NodalPositionExpressionIO::NodalPositionExpressionOutput::NodalPositionExpressionOutput(
     ModelPart& rModelPart,
-    const ConfigurationType& rConfigurationType,
+    const Configuration& rConfiguration,
     const MeshType& rMeshType)
     : mrModelPart(rModelPart),
-      mConfigurationType(rConfigurationType),
+      mConfiguration(rConfiguration),
       mMeshType(rMeshType)
 {
 }
@@ -94,8 +94,8 @@ void NodalPositionExpressionIO::NodalPositionExpressionOutput::Execute(const Exp
 
     const auto number_of_nodes = r_mesh.Nodes().size();
 
-    switch (mConfigurationType) {
-        case ConfigurationType::Initial:
+    switch (mConfiguration) {
+        case Configuration::Initial:
             IndexPartition<IndexType>(number_of_nodes).for_each([&r_mesh, &rExpression](const IndexType Index) {
                 const IndexType entity_data_start_index = Index * 3;
                 auto& r_node = *(r_mesh.NodesBegin() + Index);
@@ -115,7 +115,7 @@ void NodalPositionExpressionIO::NodalPositionExpressionOutput::Execute(const Exp
                 });
 
             break;
-        case ConfigurationType::Current:
+        case Configuration::Current:
             IndexPartition<IndexType>(number_of_nodes).for_each([&r_mesh, &rExpression](const IndexType Index) {
                 const IndexType entity_data_start_index = Index * 3;
                 auto& r_node = *(r_mesh.NodesBegin() + Index);
@@ -143,10 +143,10 @@ void NodalPositionExpressionIO::NodalPositionExpressionOutput::Execute(const Exp
 template<MeshType TMeshType>
 void NodalPositionExpressionIO::Read(
     ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
-    const ConfigurationType& rConfigurationType)
+    const Configuration& rConfiguration)
 {
     auto p_expression = NodalPositionExpressionInput(rContainerExpression.GetModelPart(),
-                                                     rConfigurationType, TMeshType)
+                                                     rConfiguration, TMeshType)
                             .Execute();
 
     rContainerExpression.SetExpression(p_expression);
@@ -155,16 +155,16 @@ void NodalPositionExpressionIO::Read(
 template<MeshType TMeshType>
 void NodalPositionExpressionIO::Write(
     const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
-    const ConfigurationType& rConfigurationType)
+    const Configuration& rConfiguration)
 {
     NodalPositionExpressionOutput(*rContainerExpression.pGetModelPart(),
-                                  rConfigurationType, TMeshType)
+                                  rConfiguration, TMeshType)
         .Execute(rContainerExpression.GetExpression());
 }
 
 #define KRATOS_INSTANTIATE_CONTAINER_NODAL_POSITION_EXPRESSION_IO(MESH_TYPE)                                                                                                            \
-    template KRATOS_API(KRATOS_CORE) void NodalPositionExpressionIO::Read(ContainerExpression<ModelPart::NodesContainerType, MESH_TYPE>&, const ConfigurationType&);        \
-    template KRATOS_API(KRATOS_CORE) void NodalPositionExpressionIO::Write(const ContainerExpression<ModelPart::NodesContainerType, MESH_TYPE>&, const ConfigurationType&); \
+    template KRATOS_API(KRATOS_CORE) void NodalPositionExpressionIO::Read(ContainerExpression<ModelPart::NodesContainerType, MESH_TYPE>&, const Configuration&);        \
+    template KRATOS_API(KRATOS_CORE) void NodalPositionExpressionIO::Write(const ContainerExpression<ModelPart::NodesContainerType, MESH_TYPE>&, const Configuration&); \
 
 KRATOS_INSTANTIATE_CONTAINER_NODAL_POSITION_EXPRESSION_IO(MeshType::Local)
 KRATOS_INSTANTIATE_CONTAINER_NODAL_POSITION_EXPRESSION_IO(MeshType::Interface)
