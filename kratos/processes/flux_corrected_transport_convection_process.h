@@ -23,6 +23,7 @@
 #include "containers/edge_based_data_structure.h"
 #include "includes/define.h"
 #include "processes/process.h"
+#include "solving_strategies/strategies/butcher_tableau.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
@@ -63,6 +64,8 @@ public:
 
     using IndexType = std::size_t;
 
+    using VariantTableauType = std::variant<ButcherTableauForwardEuler, ButcherTableauMidPointMethod, ButcherTableauRK3TVD, ButcherTableauRK4>;
+
     ///@}
     ///@name Pointer Definitions
     ///@{
@@ -90,6 +93,7 @@ public:
 
         // Assign all the required member variables
         mEchoLevel = ThisParameters["echo_level"].GetInt();
+        mTimeSchemeName = ThisParameters["time_scheme"].GetString();
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mMaxAllowedDt = ThisParameters["max_delta_time"].GetDouble();
         mDiffusionConstant = ThisParameters["diffusion_constant"].GetDouble();
@@ -131,7 +135,6 @@ public:
         // Note that we give the size such that the index matches the id of the corresponding node
         // Also note that this implies having a "fake" 0-id entry in the first position of the arrays
         mAuxSize = mpModelPart->NumberOfNodes() + 1;
-        mResidual.resize(mAuxSize);
         mSolution.resize(mAuxSize);
         mSolutionOld.resize(mAuxSize);
         mLowOrderUpdate.resize(mAuxSize);
@@ -196,7 +199,6 @@ public:
 
     void Clear() override
     {
-        mResidual.clear();
         mSolution.clear();
         mSolutionOld.clear();
         mLowOrderUpdate.clear();
@@ -214,7 +216,8 @@ public:
             "convection_variable_name" : "VELOCITY",
             "max_CFL" : 1.0,
             "max_delta_time" : 1.0,
-            "diffusion_constant" : 1.0
+            "diffusion_constant" : 1.0,
+            "time_scheme" : "RK3-TVD"
         })");
 
         return default_parameters;
@@ -264,6 +267,8 @@ private:
 
     ModelPart* mpModelPart; /// Pointer to the background mesh model part
 
+    std::string mTimeSchemeName; /// String containing the time integration scheme name
+
     SizeType mAuxSize; /// Size of the internal vector containers that equals the number of nodes plus one
 
     SizeType mEchoLevel; /// Level of information that is output
@@ -280,8 +285,6 @@ private:
 
     const Variable<array_1d<double,3>>* mpConvectionVar = nullptr; /// Pointer to the convection variable (e.g. VELOCITY)
 
-    std::vector<double> mResidual; /// Auxiliary vector to assemble the edge residuals
-
     std::vector<double> mSolution; /// Auxiliary vector containing the current solution
 
     std::vector<double> mSolutionOld; /// Auxiliary vector containing the previous step solution
@@ -293,7 +296,7 @@ private:
     std::vector<array_1d<double,3>> mConvectionValues; /// Auxiliary vector to store the convection variable values (e.g. VELOCITY)
 
     typename EdgeBasedDataStructure<TDim>::UniquePointer mpEdgeDataStructure; /// Pointer to the edge-based data structure
-
+    
     ///@}
     ///@name Private Operators
     ///@{
@@ -360,24 +363,18 @@ private:
     }
 
     void SolveSubStep(const double DeltaTime)
-    {
-        // Initialize containers for the current substep solve
-        IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
-            mResidual[i] = 0.0;
-            mLowOrderUpdate[i] = 0.0;
-            mHighOrderUpdate[i] = 0.0;
-        });
+    {   
+        // Calculate the low order Runge-Kutta update
+        const double low_order_max_iteration = 1;
+        const double low_order_diff_constant = mDiffusionConstant;
+        CalculateSolutionUpdate(mLowOrderUpdate, low_order_diff_constant, DeltaTime, low_order_max_iteration);
 
-        // Calculate residual
-        CalculateResidual(mSolutionOld, DeltaTime);
+        // Calculate the high order Runge-Kutta update
+        const double high_order_max_iteration = 5;
+        const double high_order_diff_constant = 0.0;
+        CalculateSolutionUpdate(mHighOrderUpdate, high_order_diff_constant, DeltaTime, high_order_max_iteration);
 
-        // Calculate the low order solution
-        CalculateLowOrderUpdate(DeltaTime);
-
-        // Calculate the high order solution update
-        CalculateHighOrderSolutionUpdate(DeltaTime);
-
-        // Add the low order update
+        // Add the low order update 
         IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
             mSolution[i] = mSolutionOld[i] + mLowOrderUpdate[i];
         });
@@ -394,8 +391,194 @@ private:
         });
     }
 
+    void CalculateSolutionUpdate(
+        std::vector<double>& rSolutionUpdate,
+        const double DiffusionConstant,
+        const double DeltaTime,
+        const double MaxIteration = 1)
+    {
+        // Get Butcher tableau variant with the selected Runge-Kutta scheme
+        const auto butcher_tableau_variant = GetButcherTableauVariant();
+
+        // Allocate auxiliary Runge-Kutta arrays
+        const SizeType rk_steps = std::visit([](const auto& rTableau){return rTableau.SubstepCount();}, butcher_tableau_variant);
+        std::vector<std::vector<double>> rk_residuals(mAuxSize, std::vector<double>(rk_steps, 0.0));
+    
+        // Initialize intermediate substep solution vector
+        std::vector<double> rk_u = mSolutionOld;
+
+        // Perform the Runge-Kutta intermediate steps
+        for (IndexType step = 1; step <= rk_steps; ++step) {
+            // Solve current Runge-Kutta step
+            const IndexType residual_column = step - 1;
+            const double rk_step_theta = std::visit([&step](const auto &rTableau) {return rTableau.GetIntegrationTheta(step);}, butcher_tableau_variant); // Runge-Kutta step integration theta
+            CalculateResidual(rk_residuals, rk_u, residual_column, DiffusionConstant, rk_step_theta * DeltaTime);
+
+            // Do the explicit lumped mass matrix solve to obtain the intermediate solutions
+            if (step != rk_steps) {
+                const auto [rk_mat_row_begin, rk_mat_row_end] = std::visit([&step](const auto& rTableau) {return rTableau.GetMatrixRow(step);}, butcher_tableau_variant); // Runge-Kutta matrix row
+                ExplicitSolveSolution(rk_u, rk_residuals, DeltaTime, rk_mat_row_begin, rk_mat_row_end, MaxIteration);
+            }
+        }
+
+        // Do the final solution update
+        const auto rk_weights = std::visit([](const auto& rTableau) -> auto {return rTableau.GetWeights();}, butcher_tableau_variant);
+        ExplicitSolveUpdate(rSolutionUpdate, rk_residuals, DeltaTime, rk_weights.begin(), rk_weights.end(), MaxIteration);
+    }
+    
+    auto GetButcherTableauVariant()
+    {
+        if (mTimeSchemeName == "forward_euler") {
+            return VariantTableauType(ButcherTableauForwardEuler());
+        } else if (mTimeSchemeName == "midpoint_method") {
+            return VariantTableauType(ButcherTableauMidPointMethod());
+        } else if (mTimeSchemeName == "RK3-TVD") {
+            return VariantTableauType(ButcherTableauRK3TVD());
+        } else if (mTimeSchemeName == "RK4") {
+            return VariantTableauType(ButcherTableauRK4());
+        } else {
+            KRATOS_ERROR << "Butcher tableau cannot be found for time scheme '" << mTimeSchemeName << "'. Available options are 'forward_euler','midpoint_method','RK3-TVD' and 'RK4'." << std::endl;
+        }
+    }
+
+    template<class TSolveCoeffsIterType>
+    void ExplicitSolveSolution(
+        std::vector<double>& rSolution,
+        const std::vector<std::vector<double>>& rResiduals,
+        const double DeltaTime,
+        const TSolveCoeffsIterType& rSolveCoeffBegin,
+        const TSolveCoeffsIterType& rSolveCoeffEnd,
+        const IndexType MaxIteration)
+    {
+        auto solution_updater = [&](std::vector<double>& rSolution, const IndexType NodeId, const double UpdateValue)
+        { rSolution[NodeId] = mSolutionOld[NodeId] + UpdateValue; };
+        ExplicitSolve(rSolution, rResiduals, DeltaTime, rSolveCoeffBegin, rSolveCoeffEnd, solution_updater, MaxIteration);
+    }
+
+    template<class TSolveCoeffsIterType>
+    void ExplicitSolveUpdate(
+        std::vector<double>& rUpdate,
+        const std::vector<std::vector<double>>& rResiduals,
+        const double DeltaTime,
+        const TSolveCoeffsIterType& rSolveCoeffBegin,
+        const TSolveCoeffsIterType& rSolveCoeffEnd,
+        const IndexType MaxIteration)
+    {
+        auto solution_updater = [&](std::vector<double> &rUpdate, const IndexType NodeId, const double UpdateValue)
+        { rUpdate[NodeId] = UpdateValue; };
+        ExplicitSolve(rUpdate, rResiduals, DeltaTime, rSolveCoeffBegin, rSolveCoeffEnd, solution_updater, MaxIteration);
+    }
+
+    template<class TSolveCoeffsIterType>
+    void ExplicitSolve(
+        std::vector<double>& rSolution,
+        const std::vector<std::vector<double>>& rResiduals,
+        const double DeltaTime,
+        const TSolveCoeffsIterType& rSolveCoeffBegin,
+        const TSolveCoeffsIterType& rSolveCoeffEnd,
+        const std::function<void(std::vector<double>&, const IndexType, const double)>& rUpdater,
+        const IndexType MaxIteration)
+    {
+        if (MaxIteration == 1) {
+            // Standard lumped mass matrix solve
+            IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
+                // Get nodal data
+                const auto it_node = mpModelPart->NodesBegin() + iNode;
+                const IndexType i_node_id = it_node->Id();
+
+                // Do the explicit lumped mass matrix solve
+                const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
+                const double update = (DeltaTime / M_l) * std::inner_product(rSolveCoeffBegin, rSolveCoeffEnd, rResiduals[i_node_id].begin(), 0.0);
+                rUpdater(rSolution, i_node_id, update);
+            });
+        } else {
+            // Get edge data structure containers
+            const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
+            const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
+            SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
+
+            // First explicit lumped mass matrix solve
+            // Note that in the case of iterative explicit solve this initializes the update and Galerkin residual vectors
+            std::vector<double> aux_update(mAuxSize);
+            std::vector<double> galerkin_residual(mAuxSize);
+            IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
+                // Get nodal data
+                const auto it_node = mpModelPart->NodesBegin() + iNode;
+                const IndexType i_node_id = it_node->Id();
+
+                // Do the explicit lumped mass matrix solve
+                const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
+                const double i_node_res = std::inner_product(rSolveCoeffBegin, rSolveCoeffEnd, rResiduals[i_node_id].begin(), 0.0);
+                galerkin_residual[i_node_id] = i_node_res;
+                aux_update[i_node_id] = (DeltaTime / M_l) * i_node_res;
+            });
+
+            // Do the consistent mass matrix solve (iteratively with lumped mass matrix)
+            std::vector<double> it_residual(mAuxSize);
+            for (IndexType i = 1; i < MaxIteration; ++i) {
+                // Initialize current iteration residual to the Galerkin one
+                IndexPartition<IndexType>(mAuxSize).for_each([&](IndexType i){
+                    it_residual[i] = galerkin_residual[i];
+                });
+
+                // Add the lumping correction
+                IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
+                    // Get current row (node) storage data
+                    const auto it_row = r_row_indices.begin() + iRow;
+                    const IndexType i_col_index = *it_row;
+                    const SizeType n_cols = *(it_row+1) - i_col_index;
+
+                    // Check that there are CSR columns (i.e. that current node involves an edge)
+                    if (n_cols != 0) {
+                        // i-node nodal data
+                        const double delta_u_h_i = aux_update[iRow];
+
+                        // j-node nodal loop (i.e. loop ij-edges)
+                        const auto i_col_begin = r_col_indices.begin() + i_col_index;
+                        for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
+                            // j-node nodal data
+                            IndexType j_node_id = *(i_col_begin + j_node);
+                            const double delta_u_h_j = aux_update[j_node_id];
+
+                            // Add previous iteration correction
+                            const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
+                            const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
+                            const double res_edge_i = Mc_ij * (delta_u_h_i - delta_u_h_j) / DeltaTime;
+                            const double res_edge_j = Mc_ij * (delta_u_h_j - delta_u_h_i) / DeltaTime;
+
+                            // Atomic additions
+                            AtomicAdd(it_residual[iRow], res_edge_i);
+                            AtomicAdd(it_residual[j_node_id], res_edge_j);
+                        }
+                    }
+                });
+
+                // Solve current iteration residual
+                IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
+                    // Get nodal data
+                    const auto it_node = mpModelPart->NodesBegin() + iNode;
+                    const IndexType i_node_id = it_node->Id();
+
+                    // Do the explicit lumped mass matrix solve
+                    const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
+                    aux_update[i_node_id] = (DeltaTime / M_l) * it_residual[i_node_id];
+                });
+            }
+
+            // Add the iterative update to the solution vector
+            IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
+                const auto it_node = mpModelPart->NodesBegin() + iNode;
+                const IndexType i_node_id = it_node->Id();
+                rUpdater(rSolution, i_node_id, aux_update[i_node_id]);
+            });
+        } 
+    }
+
     void CalculateResidual(
-        const std::vector<double>& rSolutionVector, 
+        std::vector<std::vector<double>>& rResiduals,
+        const std::vector<double>& rSolutionVector,
+        const IndexType ResidualColumn,
+        const double DiffusionConstant,
         const double DeltaTime)
     {
         // Get edge data structure containers
@@ -495,9 +678,19 @@ private:
                     // const double res_edge_i = 1.0 * c_edge * (u_i - u_j);
                     // const double res_edge_j = 1.0 * c_edge * (u_j - u_i);
 
+                    // Add low order scheme diffusion
+                    if (DiffusionConstant > 0.0) {
+                        const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
+                        const double c_tau = mDiffusionConstant / local_dt;
+                        const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
+                        const double ij_low_order_diff = c_tau * Mc_ij;
+                        res_edge_i += ij_low_order_diff * (u_j - u_i);
+                        res_edge_j += ij_low_order_diff * (u_i - u_j);
+                    }
+
                     // Atomic additions
-                    AtomicAdd(mResidual[iRow], res_edge_i);
-                    AtomicAdd(mResidual[j_node_id], res_edge_j);
+                    AtomicAdd(rResiduals[iRow][ResidualColumn], res_edge_i);
+                    AtomicAdd(rResiduals[j_node_id][ResidualColumn], res_edge_j);
                 }
             }
         });
@@ -516,140 +709,8 @@ private:
             for (IndexType d = 0; d < TDim; ++d) {
                 aux_res += u_i * r_i_vel[d] * rTLS[d];
             }
-            mResidual[i_node_id] -= aux_res;
+            rResiduals[i_node_id][ResidualColumn] -= aux_res;
         });
-    }
-
-    void CalculateLowOrderUpdate(const double DeltaTime)
-    {
-        // Get edge data structure containers
-        const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
-        const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
-        SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
-
-        // Initialize low order update container to the Taylor-Galerkin residual
-        IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
-            mLowOrderUpdate[i] = mResidual[i];
-        });
-
-        // Add the diffusion to the Taylor-Galerkin already computed residual
-        IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
-            // Get current row (node) storage data
-            const auto it_row = r_row_indices.begin() + iRow;
-            const IndexType i_col_index = *it_row;
-            const SizeType n_cols = *(it_row+1) - i_col_index;
-
-            // Check that there are CSR columns (i.e. that current node involves an edge)
-            if (n_cols != 0) {
-                // i-node nodal data
-                const double u_i = mSolutionOld[iRow];
-                const auto& r_i_vel = mConvectionValues[iRow];
-
-                // j-node nodal loop (i.e. loop ij-edges)
-                const auto i_col_begin = r_col_indices.begin() + i_col_index;
-                for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
-                    // j-node nodal data
-                    IndexType j_node_id = *(i_col_begin + j_node);
-                    const double u_j = mSolutionOld[j_node_id];
-                    const auto& r_j_vel = mConvectionValues[j_node_id];
-
-                    // Add low order scheme diffusion
-                    const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
-                    const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
-                    const double c_tau = mDiffusionConstant / local_dt;
-                    const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                    const double ij_low_order_diff =  c_tau * Mc_ij;
-                    const double res_edge_i = ij_low_order_diff * (u_j - u_i);
-                    const double res_edge_j = ij_low_order_diff * (u_i - u_j);
-
-                    // Atomic additions
-                    AtomicAdd(mLowOrderUpdate[iRow], res_edge_i);
-                    AtomicAdd(mLowOrderUpdate[j_node_id], res_edge_j);
-                }
-            }
-        });
-
-        // Do the explicit lumped mass matrix solve to obtain the low order update
-        IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
-            // Get nodal data
-            const auto it_node = mpModelPart->NodesBegin() + iNode;
-            const IndexType i_node_id = it_node->Id();
-
-            // Do the explicit lumped mass matrix solve
-            const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
-            const double solve_coeff = DeltaTime / M_l;
-            mLowOrderUpdate[i_node_id] *= solve_coeff;
-        });
-    }
-
-    void CalculateHighOrderSolutionUpdate(const double DeltaTime)
-    {
-        // Get edge data structure containers
-        const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
-        const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
-        SizeType aux_n_rows = r_row_indices.size() - 1; // Note that the last entry of the row container is the NNZ
-
-        // Initialize high order update container
-        IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
-            mHighOrderUpdate[i] = 0.0;
-        });
-
-        // Allocate auxiliar high order residual vector
-        std::vector<double> residual_high_order(mAuxSize);
-
-        // Do the consistent mass matrix solve (iteratively with lumped mass matrix)
-        const SizeType max_it = 5;
-        for (IndexType i = 0; i < max_it; ++i) {
-
-            // Initialize current iteration residual to the Galerkin one
-            IndexPartition<IndexType>(mAuxSize).for_each([&](IndexType i){
-                residual_high_order[i] = mResidual[i];
-            });
-
-            // Add the lumping correction
-            IndexPartition<IndexType>(aux_n_rows).for_each([&](IndexType iRow){
-                // Get current row (node) storage data
-                const auto it_row = r_row_indices.begin() + iRow;
-                const IndexType i_col_index = *it_row;
-                const SizeType n_cols = *(it_row+1) - i_col_index;
-
-                // Check that there are CSR columns (i.e. that current node involves an edge)
-                if (n_cols != 0) {
-                    // i-node nodal data
-                    const double delta_u_h_i = mHighOrderUpdate[iRow];
-
-                    // j-node nodal loop (i.e. loop ij-edges)
-                    const auto i_col_begin = r_col_indices.begin() + i_col_index;
-                    for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
-                        // j-node nodal data
-                        IndexType j_node_id = *(i_col_begin + j_node);
-                        const double delta_u_h_j = mHighOrderUpdate[j_node_id];
-
-                        // Add previous iteration correction
-                        const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
-                        const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                        const double res_edge_i = Mc_ij * (delta_u_h_i - delta_u_h_j) / DeltaTime;
-                        const double res_edge_j = Mc_ij * (delta_u_h_j - delta_u_h_i) / DeltaTime;
-
-                        // Atomic additions
-                        AtomicAdd(residual_high_order[iRow], res_edge_i);
-                        AtomicAdd(residual_high_order[j_node_id], res_edge_j);
-                    }
-                }
-            });
-
-            // Solve current iteration residual
-            IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
-                // Get nodal data
-                const auto it_node = mpModelPart->NodesBegin() + iNode;
-                const IndexType i_node_id = it_node->Id();
-
-                // Do the explicit lumped mass matrix solve
-                const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
-                const double solve_coeff = DeltaTime / M_l;
-                mHighOrderUpdate[i_node_id] = solve_coeff * residual_high_order[i_node_id];
-            });
-        }
     }
 
     void CalculateAntidiffusiveEdgeContributions(const double DeltaTime)
@@ -812,48 +873,6 @@ private:
             mSolution[i_node_id] += solve_coeff * antidiff_assembly[i_node_id];
         });
     }
-
-    // void CalculateLocalBounds(
-    //     std::vector<double>& rMinLocalBoundVector,
-    //     std::vector<double>& rMaxLocalBoundVector)
-    // {
-    //     // Calculate maximum and minimum allowed values
-    //     block_for_each(mpModelPart->Nodes(), [&](Node &rNode) {
-    //         // Initialize values for current node (i)
-    //         double u_min = std::numeric_limits<double>::max();
-    //         double u_max = std::numeric_limits<double>::lowest();
-
-    //         // i-node data
-    //         const IndexType i_id = rNode.Id();
-    //         const double u_i_low = mSolution[i_id];
-    //         const double u_i_old = mSolutionOld[i_id];
-    //         const double u_i_min = std::min(u_i_low, u_i_old);
-    //         const double u_i_max = std::max(u_i_low, u_i_old);
-
-    //         // j-node nodal loop (i.e. loop ij-edges)
-    //         auto& r_neighs_i = rNode.GetValue(NEIGHBOUR_NODES);
-    //         for (auto& rp_neigh : r_neighs_i) {
-    //             // j-node data
-    //             const IndexType j_id = rp_neigh.Id();
-    //             const double u_j_low = mSolution[j_id];
-    //             const double u_j_old = mSolutionOld[j_id];
-    //             const double u_j_min = std::min(u_j_low, u_j_old);
-    //             const double u_j_max = std::max(u_j_low, u_j_old);
-
-    //             // Check among current ij-edge nodes
-    //             const double u_ij_min = std::min(u_j_min, u_i_min);
-    //             const double u_ij_max = std::max(u_j_max, u_i_max);
-
-    //             // Check among edges sharing i-node
-    //             u_min = std::min(u_min, u_ij_min);
-    //             u_max = std::max(u_max, u_ij_max);
-    //         }
-
-    //         // Save maximum and minimum of all edges surrounding i-node
-    //         rMinLocalBoundVector[i_id] = u_min;
-    //         rMaxLocalBoundVector[i_id] = u_max;
-    //     });
-    // }
 
     ///@}
     ///@name Private  Access

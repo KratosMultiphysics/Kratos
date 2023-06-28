@@ -175,19 +175,30 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
         "model_part_name" : "ModelPart",
         "echo_level" : 1,
         "max_CFL" : 0.2,
-        "echo_level" : 2
+        "echo_level" : 2,
+        "time_scheme" : "forward_euler"
     })");
 
     // Set nodal values
     auto dist_func = [&](Node& rNode){
-        double dist;
+        double dist_disk = 0.0;
         const double aux_1 = std::sqrt(std::pow(rNode.X() - 0.5,2) + std::pow(rNode.Y() - 0.75,2));
         if (aux_1 <= 0.15 && (std::abs(rNode.X() - 0.5) >= 0.025 || rNode.Y() >= 0.85)) {
-            dist = 1.0;
-        } else {
-            dist = 0.0;
+            dist_disk = 1.0;
         }
-        return dist;
+
+        double dist_cone = 0.0;
+        const double aux_2 = std::sqrt(std::pow(rNode.X() - 0.5,2) + std::pow(rNode.Y() - 0.25,2));
+        if (aux_2 <= 0.15) {
+            dist_cone = 1 - aux_2/0.15;
+        }
+
+        double dist_hump = 0.0;
+        const double aux_3 = std::sqrt(std::pow(rNode.X() - 0.25, 2) + std::pow(rNode.Y() - 0.5, 2));
+        if (aux_3 <= 0.15) {
+            dist_hump = 0.25 + 0.25*std::cos(Globals::Pi * aux_3 / 0.15);
+        }
+        return std::max({dist_disk, dist_cone, dist_hump});
     };
     auto vel_func = [&](Node& rNode, array_1d<double,3>& rVel){
         rVel[0] = 0.5 - rNode.Y();
