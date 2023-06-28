@@ -147,7 +147,7 @@ void ExposeMapperToPython(pybind11::module& m)
             .def("Map",                 MapWithOptionsVector<TSparseSpace, TDenseSpace>)
             .def("Map",
                  py::overload_cast<Expression::Pointer,Flags>(&MapperType::Map),
-                 py::arg("source_expression"),
+                 py::arg("origin_expression"),
                  py::arg("mapping_options") = Flags())
             .def("InverseMap",          InverseMapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
             .def("InverseMap",          InverseMapWithoutOptionsVector<TSparseSpace, TDenseSpace>)

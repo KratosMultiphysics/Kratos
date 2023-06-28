@@ -505,8 +505,8 @@ private:
         const std::size_t origin_node_count = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
         const std::size_t destination_node_count = mrModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
         KRATOS_ERROR_IF_NOT(((origin_size == 0) == (origin_node_count == 0)) && (origin_size == 0 ? true : !bool(origin_size % origin_node_count)))
-            << "Source expression size (" << origin_size
-            << ") must be a multiple of the number of local nodes in the source model part (" << mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes() << ')';
+            << "Origin expression size (" << origin_size
+            << ") must be a multiple of the number of local nodes in the origin model part (" << mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes() << ')';
 
         // Get the pointer to the first item in the local vector
         // Sadly, this isn't starightforward because operator[] in Trilinos vector types
@@ -523,7 +523,7 @@ private:
             return p_begin;
         };
 
-        ComponentType* p_source_begin = get_vector_begin(*mpInterfaceVectorContainerOrigin).value();
+        ComponentType* p_origin_begin = get_vector_begin(*mpInterfaceVectorContainerOrigin).value();
 
         // Create an expression for each component of the destination expression
         // These will be filled one by one and combed at the end.
@@ -537,8 +537,8 @@ private:
             // Get the next component of the expression
             Expression::ConstPointer p_slice = Slice(pOriginExpression, i_component, 1);
 
-            // Evaluate the sliced expression to the target array
-            CArrayExpressionIO::Output(p_source_begin, origin_node_count).Execute(*p_slice);
+            // Evaluate the sliced expression to the destination array
+            CArrayExpressionIO::Output(p_origin_begin, origin_node_count).Execute(*p_slice);
 
             // Perform the transform
             this->ApplyTransform();
