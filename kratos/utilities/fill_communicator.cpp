@@ -46,8 +46,6 @@ void FillCommunicator::BringEntitiesFromOtherPartitions(
     const bool CallExecuteAfterBringingEntities
     )
 {
-    KRATOS_TRY
-    KRATOS_CATCH("");
 }
 
 void FillCommunicator::PrintDebugInfo()
