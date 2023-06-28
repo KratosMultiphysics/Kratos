@@ -72,9 +72,9 @@ namespace Kratos
 
             ///Constitutive Law parameters
             BoundedMatrix<double, TDim, TDim> ConstitutiveMatrix;
-            Vector Np;
-            Matrix GradNpT;
-            Matrix GradNpTInitialConfiguration;
+            Vector N;
+            Matrix GradNT;
+            Matrix GradNTInitialConfiguration;
 
             Vector detJContainer;
             Matrix NContainer;
@@ -127,12 +127,6 @@ namespace Kratos
         void EquationIdVector(EquationIdVectorType & rResult,
             const ProcessInfo & rCurrentProcessInfo) const override;
 
-        void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-        void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-        void GetValuesVector(Vector& rValues, int Step) const override;
-        void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
-        void GetSecondDerivativesVector(Vector& rValues, int Step) const override;
-
 
     protected:
 
@@ -183,14 +177,9 @@ namespace Kratos
 
         void CalculateThermalDispersionMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
 
-        void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-        void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     private:
-
-        /// Member Variables
 
         /// Serialization
 

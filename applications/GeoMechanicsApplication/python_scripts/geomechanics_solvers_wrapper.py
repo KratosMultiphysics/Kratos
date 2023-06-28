@@ -29,7 +29,7 @@ def CreateSolver(model, custom_settings):
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"geomechanics_U_Pw_solver\", \"geomechanics_Pw_solver\", \"geomechanics_t_solver\""
+            err_msg += "Available options are: \"geomechanics_U_Pw_solver\", \"geomechanics_Pw_solver\", \"geomechanics_T_solver\""
             raise Exception(err_msg)
 
     else:

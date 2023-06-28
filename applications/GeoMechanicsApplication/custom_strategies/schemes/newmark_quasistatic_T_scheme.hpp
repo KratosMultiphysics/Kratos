@@ -41,8 +41,6 @@ public:
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
     using MotherType = NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>;
     using MotherType::mDeltaTime;
-    using MotherType::mBeta;
-    using MotherType::mGamma;
     using MotherType::mTheta;
 
     ///Constructor
@@ -86,7 +84,7 @@ public:
 
         //check for minimum value of the buffer index.
         if (rModelPart.GetBufferSize() < 2)
-            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is "
+            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater or equal to 2. Current size is "
                          << rModelPart.GetBufferSize()
                          << std::endl;
 

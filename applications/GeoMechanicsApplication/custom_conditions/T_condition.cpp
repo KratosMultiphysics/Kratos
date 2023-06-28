@@ -77,40 +77,6 @@ void TCondition<TDim,TNumNodes>::CalculateLocalSystem(
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim,TNumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR << "TCondition::CalculateLeftHandSide is not implemented" << std::endl;
-
-    KRATOS_CATCH("");
-}
-
-// ============================================================================================
-// ============================================================================================
-template<unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim, TNumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    
-    unsigned int conditionSize = TNumNodes;
-    //Resetting the RHS
-    if ( rRightHandSideVector.size() != conditionSize )
-        rRightHandSideVector.resize( conditionSize, false );
-    noalias( rRightHandSideVector ) = ZeroVector( conditionSize );
-
-    this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-
-    KRATOS_CATCH( "" )
-}
-
-// ============================================================================================
-// ============================================================================================
-template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const

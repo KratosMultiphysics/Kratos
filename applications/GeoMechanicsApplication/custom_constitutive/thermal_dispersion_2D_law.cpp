@@ -61,13 +61,13 @@ namespace Kratos
         const double thermalCondSolidYX = r_material_properties[THERMAL_CONDUCTIVITY_SOLID_YX];
         const double thermalCondSolidYY = r_material_properties[THERMAL_CONDUCTIVITY_SOLID_YY];
 
-        const double c0 = porosity * saturation * thermalCondWater;
-        const double c1 = 1.0 - porosity;
+        const double cWater = porosity * saturation ;
+        const double cSolid = 1.0 - porosity;
         
-        C(INDEX_2D_HEAT_X, INDEX_2D_HEAT_X) = c1 * thermalCondSolidXX + c0;
-        C(INDEX_2D_HEAT_X, INDEX_2D_HEAT_Y) = c1 * thermalCondSolidXY;
-        C(INDEX_2D_HEAT_Y, INDEX_2D_HEAT_X) = c1 * thermalCondSolidYX;
-        C(INDEX_2D_HEAT_Y, INDEX_2D_HEAT_Y) = c1 * thermalCondSolidYY + c0;
+        C(INDEX_2D_HEAT_X, INDEX_2D_HEAT_X) = cSolid * thermalCondSolidXX + cWater * thermalCondWater;
+        C(INDEX_2D_HEAT_X, INDEX_2D_HEAT_Y) = cSolid * thermalCondSolidXY;
+        C(INDEX_2D_HEAT_Y, INDEX_2D_HEAT_X) = cSolid * thermalCondSolidYX;
+        C(INDEX_2D_HEAT_Y, INDEX_2D_HEAT_Y) = cSolid * thermalCondSolidYY + cWater * thermalCondWater;
         
         KRATOS_CATCH("")
     }

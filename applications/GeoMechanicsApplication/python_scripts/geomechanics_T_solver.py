@@ -12,7 +12,7 @@ def CreateSolver(model, custom_settings):
     return TSolver(model, custom_settings)
 
 class TSolver(GeoSolver):
-    '''Solver for the solution of displacement-pore pressure coupled problems.'''
+    '''Solver for the solution of thermal problems.'''
 
     # =============================================================================================
     # =============================================================================================
