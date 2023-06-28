@@ -41,6 +41,8 @@ public:
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
     using MotherType = NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>;
     using MotherType::mDeltaTime;
+    using MotherType::mGamma;
+    using MotherType::mTheta;
     using MotherType::mTheta;
 
     ///Constructor
