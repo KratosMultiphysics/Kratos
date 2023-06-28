@@ -779,7 +779,7 @@ class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
 
         a *= 3
 
-        Kratos.Expression.NodalPositionExpressionIO.Write(a, Kratos.Expression.NodalPositionExpressionIO.ConfigurationType.Initial)
+        Kratos.Expression.NodalPositionExpressionIO.Write(a, Kratos.Configuration.Initial)
 
         node: Kratos.Node
         for node in self.model_part.Nodes:
@@ -791,7 +791,7 @@ class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
 
         a *= 4
 
-        Kratos.Expression.NodalPositionExpressionIO.Write(a, Kratos.Expression.NodalPositionExpressionIO.ConfigurationType.Current)
+        Kratos.Expression.NodalPositionExpressionIO.Write(a, Kratos.Configuration.Current)
 
         node: Kratos.Node
         for node in self.model_part.Nodes:
@@ -799,7 +799,7 @@ class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
 
     def test_ReadInitial(self):
         a = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.NodalPositionExpressionIO.Read(a, Kratos.Expression.NodalPositionExpressionIO.ConfigurationType.Initial)
+        Kratos.Expression.NodalPositionExpressionIO.Read(a, Kratos.Configuration.Initial)
 
         a *= 5
         Kratos.Expression.VariableExpressionIO.Write(a, Kratos.VELOCITY, False)
@@ -811,7 +811,7 @@ class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
 
     def test_ReadCurrent(self):
         a = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.NodalPositionExpressionIO.Read(a, Kratos.Expression.NodalPositionExpressionIO.ConfigurationType.Current)
+        Kratos.Expression.NodalPositionExpressionIO.Read(a, Kratos.Configuration.Current)
 
         a *= 6
         Kratos.Expression.VariableExpressionIO.Write(a, Kratos.VELOCITY, False)

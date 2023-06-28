@@ -13,15 +13,13 @@
 #pragma once
 
 // System incldues
-#include <variant>
 
 // Project includes
-#include "containers/array_1d.h"
 #include "expression/container_expression.h"
 #include "expression/traits.h"
-#include "containers/variable.h"
 #include "expression_io.h"
 #include "includes/define.h"
+#include "includes/global_variables.h"
 #include "includes/model_part.h"
 
 namespace Kratos {
@@ -30,16 +28,12 @@ namespace Kratos {
 class KRATOS_API(KRATOS_CORE) NodalPositionExpressionIO
 {
 public:
-    ///@name Public enums
+    ///@name Type definitions
     ///@{
 
-    enum ConfigurationType
-    {
-        Initial = 1,
-        Current = 2
-    };
+    using Configuration = Kratos::Globals::Configuration;
 
-    ///}
+    ///@}
     ///@name Public classes
     ///@{
 
@@ -57,7 +51,7 @@ public:
 
         NodalPositionExpressionInput(
             const ModelPart& rModelPart,
-            const ConfigurationType& rConfigurationType = ConfigurationType::Initial,
+            const Configuration& rConfiguration,
             const MeshType& rMeshType = MeshType::Local);
 
         ~NodalPositionExpressionInput() override = default;
@@ -76,7 +70,7 @@ public:
 
         const ModelPart& mrModelPart;
 
-        const ConfigurationType mConfigurationType;
+        const Configuration mConfiguration;
 
         const MeshType mMeshType;
 
@@ -98,7 +92,7 @@ public:
 
         NodalPositionExpressionOutput(
             ModelPart& rModelPart,
-            const ConfigurationType& rConfigurationType,
+            const Configuration& rConfiguration,
             const MeshType& rMeshType = MeshType::Local);
 
         ~NodalPositionExpressionOutput() override = default;
@@ -117,7 +111,7 @@ public:
 
         ModelPart& mrModelPart;
 
-        const ConfigurationType mConfigurationType;
+        const Configuration mConfiguration;
 
         const MeshType mMeshType;
 
@@ -132,12 +126,12 @@ public:
     template<MeshType TMeshType = MeshType::Local>
     KRATOS_API(KRATOS_CORE) static void Read(
         ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
-        const ConfigurationType& rConfigurationType);
+        const Configuration& rConfiguration);
 
     template<MeshType TMeshType = MeshType::Local>
     KRATOS_API(KRATOS_CORE) static void Write(
         const ContainerExpression<ModelPart::NodesContainerType, TMeshType>& rContainerExpression,
-        const ConfigurationType& rConfigurationType);
+        const Configuration& rConfiguration);
 
     ///@}
 

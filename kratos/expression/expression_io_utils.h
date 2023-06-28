@@ -225,59 +225,56 @@ public:
     /**
      * @brief Evaluates a local expression on ghost nodes.
      *
-     * This method allows evaluating a local expression (@ref rLocalNodesExpression) (expressions are by default only works on local mesh) on
-     * the ghost nodes. @ref TGhostNodesContainerType can be either const ModelPart::NodesContainerType or ModelPart::NodesContainerType. Depending on
-     * the constness of the @ref TGhostNodesContainerType, the signature of the @ref rApplyFunctor differs.
-     *      If @ref TGhostNodesContainerType is const ModelPart::ContainerType -> void(const Node& rGhostNode, const std::vector<double>& rGhostNodeValues)
-     *      If @ref TGhostNodesContainerType is ModelPart::ContainerType -> void(Node& rGhostNode, const std::vector<double>& rGhostNodeValues)
+     * This method allows evaluating a local expression (@a rLocalNodesExpression) (by default, expressions act only on the local mesh) on
+     * the ghost nodes. The signature of the @ref rApplyFunctor is void(Node& rGhostNode, const std::vector<double>& rGhostNodeValues).
      *
-     * Once the given expressions are evaluated using MPI calls in the case of MPI, each vector of values for
+     * Once the given expression is evaluated using MPI calls in the case of MPI, each vector of values for
      * each ghost node is passed to the @ref rApplyFunctor.
      *
-     * @tparam TGhostNodesContainerType         Type of the ghost container. Should be either const or non-const ModelPart::ContainerType.
      * @tparam TApplyFunctor                    Functor with signature void(const/non-const Node& rGhostNode, const std::vector<double>& rValues).
-     * @param rDataCommunicator                 Data communicator of the model part having the local nodes.
+     * @param rCommunica    tor                 Communicator of the model part having the local nodes and ghost nodes.
      * @param rLocalNodesExpression             Expression.
-     * @param rLocalNodes                       Local nodes container.
-     * @param rGhostNodes                       Ghost nodes container.
      * @param rApplyFunctor                     Apply funktor to do something with each expression values evaluated for ghost nodes.
      */
-    template<class TGhostNodesContainerType, class TApplyFunctor>
+    template<class TApplyFunctor>
     static void EvaluateExpressionOnGhostNodes(
-        const DataCommunicator& rDataCommunicator,
+        Communicator& rCommunicator,
         const Expression& rLocalNodesExpression,
-        const ModelPart::NodesContainerType& rLocalNodes,
-        TGhostNodesContainerType& rGhostNodes,
         TApplyFunctor&& rApplyFunctor)
     {
         KRATOS_TRY
 
-        static_assert(std::is_same_v<std::remove_const_t<TGhostNodesContainerType>, ModelPart::NodesContainerType>,
-                      "Only const or non-const ModelPart::NodesContainerType is allowed as TGhostNodesContainerType");
+        const auto& r_local_nodes = rCommunicator.LocalMesh().Nodes();
+        const auto& r_data_communicator = rCommunicator.GetDataCommunicator();
+        auto& r_ghost_nodes = rCommunicator.GhostMesh().Nodes();
 
-        KRATOS_ERROR_IF_NOT(rLocalNodesExpression.NumberOfEntities() == rLocalNodes.size())
+        KRATOS_ERROR_IF_NOT(rLocalNodesExpression.NumberOfEntities() == r_local_nodes.size())
             << "Local expression number of entities and local nodes size mismatch [ local nodes size = "
-            << rLocalNodes.size() << ", local expression number of entities = "
+            << r_local_nodes.size() << ", local expression number of entities = "
             << rLocalNodesExpression.NumberOfEntities() << ", local expression = "
             << rLocalNodesExpression << " ].\n";
 
-        const IndexType number_of_ghost_nodes = rGhostNodes.size();
+        const IndexType number_of_ghost_nodes = r_ghost_nodes.size();
 
         std::vector<int> ghost_indices(number_of_ghost_nodes);
-        std::transform(rGhostNodes.begin(), rGhostNodes.end(), ghost_indices.begin(), [](const auto& rNode) { return rNode.Id(); });
-        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(rLocalNodes, ghost_indices, rDataCommunicator);
+        std::transform(r_ghost_nodes.begin(), r_ghost_nodes.end(), ghost_indices.begin(), [](const auto& rNode) { return rNode.Id(); });
+        auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(r_local_nodes, ghost_indices, r_data_communicator);
 
-        GlobalPointerCommunicator<ModelPart::NodeType> pointer_comm(rDataCommunicator, gp_list.ptr_begin(), gp_list.ptr_end());
+        GlobalPointerCommunicator<ModelPart::NodeType> pointer_comm(r_data_communicator, gp_list.ptr_begin(), gp_list.ptr_end());
 
         const IndexType number_of_components = rLocalNodesExpression.GetItemComponentCount();
 
-        auto values_proxy = pointer_comm.Apply(
-            [&rLocalNodesExpression, number_of_components, &rLocalNodes](GlobalPointer<ModelPart::NodeType>& rGP) -> std::vector<double> {
-                std::vector<double> values(number_of_components);
+        // since pointer_comm.Apply is not OpenMP parallelized and works on ghost nodes only,
+        // we can avoid allocating values vector in each run, and allocate once and pass
+        // it as a lambda function capture. At the point of return from the lambda
+        // function, it is returned as a copy.
+        std::vector<double> values(number_of_components);
 
-                const auto p_itr = rLocalNodes.find(rGP->Id());
-                if (p_itr != rLocalNodes.end()) {
-                    const IndexType local_index = std::distance(rLocalNodes.begin(), p_itr);
+        auto values_proxy = pointer_comm.Apply(
+            [&rLocalNodesExpression, number_of_components, &r_local_nodes, &values](GlobalPointer<ModelPart::NodeType>& rGP) -> std::vector<double> {
+                const auto p_itr = r_local_nodes.find(rGP->Id());
+                if (p_itr != r_local_nodes.end()) {
+                    const IndexType local_index = std::distance(r_local_nodes.begin(), p_itr);
                     const IndexType enitity_data_begin_index = local_index * number_of_components;
                     for (IndexType i = 0; i < number_of_components; ++i) {
                         values[i] = rLocalNodesExpression.Evaluate(local_index, enitity_data_begin_index, i);
@@ -290,11 +287,11 @@ public:
             }
         );
 
-        IndexPartition<IndexType>(number_of_ghost_nodes).for_each([&rGhostNodes, &values_proxy, &rApplyFunctor, &gp_list](const IndexType Index){
+        IndexPartition<IndexType>(number_of_ghost_nodes).for_each([&r_ghost_nodes, &values_proxy, &rApplyFunctor, &gp_list](const IndexType Index){
             // since ghost_indices passed to RetrieveGlobalIndexedPointers keeps the same order
             // when returning gp_list containing global pointers list, the corresponding ghost node
             // for proxy evaluated value can be correlated with indices.
-            auto& r_ghost_node = *(rGhostNodes.begin() + Index);
+            auto& r_ghost_node = *(r_ghost_nodes.begin() + Index);
             const auto& r_ghost_node_expression_evaluated_values = values_proxy.Get(gp_list(Index));
 
             rApplyFunctor(r_ghost_node, r_ghost_node_expression_evaluated_values);
