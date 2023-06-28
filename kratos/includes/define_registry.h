@@ -49,7 +49,6 @@
             auto &r_item = Registry::AddItem<RegistryItem>(key_name);                     \
             TFunctionType dispatcher = [](){return std::make_shared<X>();};               \
             r_item.AddItem<TFunctionType>("Prototype", std::move(dispatcher));            \
-        } else {                                                                          \
         }                                                                                 \
         return Registry::HasItem(key_name);                                               \
     }();
