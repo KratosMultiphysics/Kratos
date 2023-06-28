@@ -364,20 +364,15 @@ void AddExpressionIOToPython(pybind11::module& rModule)
         ;
 
     auto nodal_expression_io = rModule.def_submodule("NodalPositionExpressionIO");
-    pybind11::enum_<NodalPositionExpressionIO::ConfigurationType>(nodal_expression_io, "ConfigurationType")
-        .value("Initial", NodalPositionExpressionIO::ConfigurationType::Initial)
-        .value("Current", NodalPositionExpressionIO::ConfigurationType::Current)
-        ;
-
     pybind11::class_<NodalPositionExpressionIO::NodalPositionExpressionInput, NodalPositionExpressionIO::NodalPositionExpressionInput::Pointer, ExpressionInput>(
         nodal_expression_io, "Input")
         .def(pybind11::init<const ModelPart&,
-                            const NodalPositionExpressionIO::ConfigurationType&>(),
+                            const NodalPositionExpressionIO::Configuration&>(),
              pybind11::arg("model_part"),
-             pybind11::arg("configuration_type"))
+             pybind11::arg("configuration"))
         ;
-    nodal_expression_io.def("Read", &NodalPositionExpressionIO::Read<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration_type"));
-    nodal_expression_io.def("Write", &NodalPositionExpressionIO::Write<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration_type"));
+    nodal_expression_io.def("Read", &NodalPositionExpressionIO::Read<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration"));
+    nodal_expression_io.def("Write", &NodalPositionExpressionIO::Write<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration"));
 }
 
 
