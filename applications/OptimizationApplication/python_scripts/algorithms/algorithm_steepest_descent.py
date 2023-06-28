@@ -84,19 +84,19 @@ class AlgorithmSteepestDescent(Algorithm):
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
         search_direction = obj_grad * -1.0
-        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
+        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
         return search_direction
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
-        self.algorithm_data.GetBufferedData()["control_field_update"] = update
+        self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
 
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["control_field_update"]
         self.__control_field += update
-        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field
+        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:

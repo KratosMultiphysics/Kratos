@@ -81,7 +81,6 @@ class OptimizationAlgorithmTimeLogger:
         iteration_text = f"{self.optimizer_name} EoF Iteration {self.optimization_itr}"
         iteration_output = f"{'#'}  {iteration_text} [Elapsed Time: {elapsed_time_string}]  {'#'}"
 
-
         divided_line = len(iteration_output) * '#'
 
         to_print = f"{divided_line}\n{iteration_output}\n{divided_line}\n"

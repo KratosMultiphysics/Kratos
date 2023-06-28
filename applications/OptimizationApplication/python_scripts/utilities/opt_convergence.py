@@ -31,7 +31,7 @@ class MaxIterConvCriterion:
     @time_decorator()
     def IsConverged(self, search_direction=None) -> bool:
         iter = self.__optimization_problem.GetStep()
-        self.conv = True if iter >= self.__max_iter else False
+        self.conv = iter >= self.__max_iter
         DictLogger("Convergence info",self.GetInfo())
         return self.conv
 
@@ -61,7 +61,7 @@ class L2ConvCriterion:
     @time_decorator()
     def IsConverged(self) -> bool:
         iter = self.__optimization_problem.GetStep()
-        self.conv = True if iter >= self.__max_iter else False
+        self.conv = iter >= self.__max_iter
 
         algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
         if not algorithm_buffered_data.HasValue("search_direction"):
@@ -69,7 +69,7 @@ class L2ConvCriterion:
 
         self.norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
         if not self.conv:
-            self.conv = True if self.norm <= self.__tolerance else False
+            self.conv = self.norm <= self.__tolerance
 
         DictLogger("Convergence info",self.GetInfo())
 
