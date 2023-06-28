@@ -257,12 +257,21 @@ private:
         for (int i_rank = 0; i_rank < world_size; ++i_rank) {
             if (i_rank == rank) {
                 for (auto index : other_partition_indices) {
-                    r_data_communicator.Recv(send_entities[index], index, tag_send);
+                    std::vector<std::size_t> send_vector;
+                    r_data_communicator.Recv(send_vector, index, tag_send);
+                    // Just adding in case not empty
+                    if (send_vector.size() > 0) {
+                        send_entities[index] = send_vector;
+                    }
                 }
             } else {
                 auto it_find = rEntitiesToBring.find(i_rank);
+                // Sending in case defined
                 if (it_find != rEntitiesToBring.end()) {
                     r_data_communicator.Send(it_find->second, i_rank, tag_send);
+                } else { // Sending empty vector in case not defined
+                    std::vector<std::size_t> empty_vector;
+                    r_data_communicator.Send(empty_vector, i_rank, tag_send);
                 }
             }
         }
