@@ -84,12 +84,6 @@ public:
 
 protected:
 
-    // Member Variables
-
-    static constexpr unsigned int conditionSize = TNumNodes;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
