@@ -106,10 +106,8 @@ void NodalPositionExpressionIO::NodalPositionExpressionOutput::Execute(const Exp
 
             // now apply for the ghost nodes
             ExpressionIOUtils::EvaluateExpressionOnGhostNodes(
-                r_communicator.GetDataCommunicator(),
+                r_communicator,
                 rExpression,
-                r_nodes,
-                mrModelPart.GetCommunicator().GhostMesh().Nodes(),
                 [](auto& rNode, const auto& rValues){
                     rNode.X0() = rValues[0];
                     rNode.Y0() = rValues[1];
@@ -128,10 +126,8 @@ void NodalPositionExpressionIO::NodalPositionExpressionOutput::Execute(const Exp
 
             // now apply for the ghost nodes
             ExpressionIOUtils::EvaluateExpressionOnGhostNodes(
-                r_communicator.GetDataCommunicator(),
+                r_communicator,
                 rExpression,
-                r_nodes,
-                mrModelPart.GetCommunicator().GhostMesh().Nodes(),
                 [](auto& rNode, const auto& rValues){
                     rNode.X() = rValues[0];
                     rNode.Y() = rValues[1];
