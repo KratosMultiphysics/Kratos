@@ -43,7 +43,6 @@ add_app ${KRATOS_APP_DIR}/ContactStructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/IgaApplication;
 add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/ChimeraApplication;
-add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
@@ -72,7 +71,6 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 -DCMAKE_UNITY_BUILD=ON \
--DKRATOS_USE_PCH=ON \
 -DINCLUDE_MMG=ON                                    \
 
 # Build
