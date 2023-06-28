@@ -45,9 +45,9 @@ Expression::Pointer NodalPositionExpressionIO::NodalPositionExpressionInput::Exe
             IndexPartition<IndexType>(number_of_nodes).for_each([&r_mesh, &expression](const IndexType Index) {
                 const auto& r_node = *(r_mesh.NodesBegin() + Index);
                 double* current_data_start = expression->begin() + Index * 3;
-                *(current_data_start++) = r_node.X0();
-                *(current_data_start++) = r_node.Y0();
-                *(current_data_start) = r_node.Z0();
+                *current_data_start++ = r_node.X0();
+                *current_data_start++ = r_node.Y0();
+                *current_data_start = r_node.Z0();
             });
             break;
         case ConfigurationType::Current:
