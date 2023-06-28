@@ -225,7 +225,7 @@ public:
     /**
      * @brief Evaluates a local expression on ghost nodes.
      *
-     * This method allows evaluating a local expression (@ref rLocalNodesExpression) (expressions are by default only works on local mesh) on
+     * This method allows evaluating a local expression (@a rLocalNodesExpression) (by default, expressions act only on the local mesh) on
      * the ghost nodes. @ref TGhostNodesContainerType can be either const ModelPart::NodesContainerType or ModelPart::NodesContainerType. Depending on
      * the constness of the @ref TGhostNodesContainerType, the signature of the @ref rApplyFunctor differs.
      *      If @ref TGhostNodesContainerType is const ModelPart::ContainerType -> void(const Node& rGhostNode, const std::vector<double>& rGhostNodeValues)
