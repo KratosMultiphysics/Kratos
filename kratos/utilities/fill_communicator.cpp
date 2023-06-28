@@ -48,6 +48,27 @@ void FillCommunicator::GatherEntitiesFromOtherPartitions(
 {
 }
 
+void FillCommunicator::GatherNodesFromOtherPartitions(
+    const std::map<int, std::vector<std::size_t>>& rNodesToBring,
+    const bool CallExecuteAfterBringingEntities
+    )
+{
+}
+
+void FillCommunicator::GatherElementsFromOtherPartitions(
+    const std::map<int, std::vector<std::size_t>>& rElementsToBring,
+    const bool CallExecuteAfterBringingEntities
+    )
+{
+}
+
+void FillCommunicator::GatherConditionsFromOtherPartitions(
+    const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
+    const bool CallExecuteAfterBringingEntities
+    )
+{
+}
+
 void FillCommunicator::PrintDebugInfo()
 {
     PrintModelPartDebugInfo(mrBaseModelPart);

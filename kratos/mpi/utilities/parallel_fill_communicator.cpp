@@ -86,6 +86,81 @@ void ParallelFillCommunicator::GatherEntitiesFromOtherPartitions(
     KRATOS_CATCH("");
 }
 
+void ParallelFillCommunicator::GatherNodesFromOtherPartitions(
+    const std::map<int, std::vector<std::size_t>>& rNodesToBring,
+    const bool CallExecuteAfterBringingEntities
+    )
+{
+    KRATOS_TRY
+
+    // Retrieving the model part and the communicator
+    auto& r_base_model_part = GetBaseModelPart();
+    const auto& r_data_communicator = r_base_model_part.GetCommunicator().GetDataCommunicator();
+
+    // Call auxiliary methods
+    const std::size_t nodes_to_bring = r_data_communicator.SumAll(rNodesToBring.size());
+    if (nodes_to_bring > 0) {
+        GatherEntityFromOtherPartitions<Node>(r_base_model_part, rNodesToBring);
+    }
+
+    // Execute after bringing entities
+    if (CallExecuteAfterBringingEntities) {
+        Execute();
+    }
+
+    KRATOS_CATCH("");
+}
+
+void ParallelFillCommunicator::GatherElementsFromOtherPartitions(
+    const std::map<int, std::vector<std::size_t>>& rElementsToBring,
+    const bool CallExecuteAfterBringingEntities
+    )
+{
+    KRATOS_TRY
+
+    // Retrieving the model part and the communicator
+    auto& r_base_model_part = GetBaseModelPart();
+    const auto& r_data_communicator = r_base_model_part.GetCommunicator().GetDataCommunicator();
+
+    // Call auxiliary methods
+    const std::size_t elements_to_bring = r_data_communicator.SumAll(rElementsToBring.size());
+    if (elements_to_bring > 0) {
+        GatherEntityFromOtherPartitions<Element>(r_base_model_part, rElementsToBring);
+    }
+
+    // Execute after bringing entities
+    if (CallExecuteAfterBringingEntities) {
+        Execute();
+    }
+
+    KRATOS_CATCH("");
+}
+
+void ParallelFillCommunicator::GatherConditionsFromOtherPartitions(
+    const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
+    const bool CallExecuteAfterBringingEntities
+    )
+{
+    KRATOS_TRY
+
+    // Retrieving the model part and the communicator
+    auto& r_base_model_part = GetBaseModelPart();
+    const auto& r_data_communicator = r_base_model_part.GetCommunicator().GetDataCommunicator();
+
+    // Call auxiliary methods
+    const std::size_t conditions_to_bring = r_data_communicator.SumAll(rConditionsToBring.size());
+    if (conditions_to_bring > 0) {
+        GatherEntityFromOtherPartitions<Condition>(r_base_model_part, rConditionsToBring);
+    }
+
+    // Execute after bringing entities
+    if (CallExecuteAfterBringingEntities) {
+        Execute();
+    }
+
+    KRATOS_CATCH("");
+}
+
 void ParallelFillCommunicator::PrintModelPartDebugInfo(const ModelPart& rModelPart)
 {
     KRATOS_TRY

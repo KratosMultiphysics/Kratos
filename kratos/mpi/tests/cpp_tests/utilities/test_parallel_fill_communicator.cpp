@@ -259,7 +259,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPI
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromOtherPartitions, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorGatherEntitiesFromOtherPartitions, KratosMPICoreFastSuite)
 {
     // The model part
     Model current_model;

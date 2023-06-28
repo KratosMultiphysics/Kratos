@@ -115,6 +115,42 @@ public:
         ) override;
 
     /**
+     * @brief Function to gather nodes from other partitions
+     * @details This function is intended to gather nodes from other partitions. The map indicates the partitions to gather and the vector the nodes to gather from each partition. In the current serial case it does nothing.
+     * @note For the parallel implementation see ParallelFillCommunicator.
+     * @param rNodesToBring Nodes to gather from other partitions
+     * @param CallExecuteAfterBringingEntities Call Execute after gathering nodes
+     */
+    void GatherNodesFromOtherPartitions(
+        const std::map<int, std::vector<std::size_t>>& rNodesToBring,
+        const bool CallExecuteAfterBringingEntities = true
+        ) override;
+
+    /**
+     * @brief Function to gather elements from other partitions
+     * @details This function is intended to gather elements from other partitions. The map indicates the partitions to gather and the vector the elements to gather from each partition. In the current serial case it does nothing.
+     * @note For the parallel implementation see ParallelFillCommunicator.
+     * @param rElementsToBring Elements to gather from other partitions
+     * @param CallExecuteAfterBringingEntities Call Execute after gathering elements
+     */
+    void GatherElementsFromOtherPartitions(
+        const std::map<int, std::vector<std::size_t>>& rElementsToBring,
+        const bool CallExecuteAfterBringingEntities = true
+        ) override;
+
+    /**
+     * @brief Function to gather conditions from other partitions
+     * @details This function is intended to gather conditions from other partitions. The map indicates the partitions to gather and the vector the conditions to gather from each partition. In the current serial case it does nothing.
+     * @note For the parallel implementation see ParallelFillCommunicator.
+     * @param rConditionsToBring Conditions to gather from other partitions
+     * @param CallExecuteAfterBringingEntities Call Execute after gathering conditions
+     */
+    void GatherConditionsFromOtherPartitions(
+        const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
+        const bool CallExecuteAfterBringingEntities = true
+        ) override;
+
+    /**
      * @brief Function to print mesh information of the provided model part
      * @details This function is intended to check and print some mesh information
      * @param rModelPart Reference to the model part to be checked
