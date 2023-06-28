@@ -264,10 +264,14 @@ public:
 
         const IndexType number_of_components = rLocalNodesExpression.GetItemComponentCount();
 
-        auto values_proxy = pointer_comm.Apply(
-            [&rLocalNodesExpression, number_of_components, &r_local_nodes](GlobalPointer<ModelPart::NodeType>& rGP) -> std::vector<double> {
-                std::vector<double> values(number_of_components);
+        // since pointer_comm.Apply is not OpenMP parallelized and works on ghost nodes only,
+        // we can avoid allocating values vector in each run, and allocate once and pass
+        // it as a lambda function capture. At the point of return from the lambda
+        // function, it is returned as a copy.
+        std::vector<double> values(number_of_components);
 
+        auto values_proxy = pointer_comm.Apply(
+            [&rLocalNodesExpression, number_of_components, &r_local_nodes, &values](GlobalPointer<ModelPart::NodeType>& rGP) -> std::vector<double> {
                 const auto p_itr = r_local_nodes.find(rGP->Id());
                 if (p_itr != r_local_nodes.end()) {
                     const IndexType local_index = std::distance(r_local_nodes.begin(), p_itr);
