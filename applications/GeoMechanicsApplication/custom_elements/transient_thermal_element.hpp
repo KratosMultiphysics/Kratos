@@ -136,9 +136,6 @@ namespace Kratos
 
     protected:
 
-        GeometryData::IntegrationMethod mThisIntegrationMethod;
-        /// Member Variables
-
         void CalculateAll(MatrixType & rLeftHandSideMatrix,
             VectorType & rRightHandSideVector,
             const ProcessInfo & CurrentProcessInfo,
