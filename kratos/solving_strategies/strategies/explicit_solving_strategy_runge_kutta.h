@@ -304,7 +304,7 @@ protected:
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
                     const MatrixRow<LocalSystemMatrixType> substeps_k = row(rk_K, i_dof);
-                    r_u = r_u_old + (dt / mass) * inner_prod(weights, substeps_k);
+                    r_u = r_u_old + (dt / mass) * std::inner_product(weights.begin(), weights.end(), substeps_k.begin(), 0.0);
                 } else {
                     r_u = u_n(i_dof);
                 }
@@ -366,7 +366,8 @@ protected:
 
         // Fetch this substeps's values from tableau
         const double integration_theta = mButcherTableau.GetIntegrationTheta(SubStepIndex);
-        const auto alphas = mButcherTableau.GetMatrixRow(SubStepIndex); // Runge kutta matrix row
+        const auto alphas_begin = mButcherTableau.GetMatrixRowBegin(SubStepIndex); // Runge kutta matrix row begin
+        const auto alphas_end = mButcherTableau.GetMatrixRowEnd(SubStepIndex); // Runge kutta matrix row end
 
         // Set the RUNGE_KUTTA_STEP value. This has to be done prior to the InitializeRungeKuttaStep()
         r_process_info.GetValue(RUNGE_KUTTA_STEP) = SubStepIndex;
@@ -388,7 +389,7 @@ protected:
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector(i_dof);
                     const auto k = row(rIntermediateStepResidualVectors, i_dof);
-                    r_u = r_u_old + (dt / mass) * std::inner_product(alphas.begin, alphas.end, k.begin(), 0.0);
+                    r_u = r_u_old + (dt / mass) * std::inner_product(alphas_begin, alphas_end, k.begin(), 0.0);
                     /*                            ^~~~~~~~~~~~~~~~~~
                      * Using std::inner_product instead of boost's inner_prod because it allows us to
                      * chose a begin and, more importantly, an end.

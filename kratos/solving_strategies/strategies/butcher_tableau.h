@@ -71,15 +71,15 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef array_1d<double, TSubstepCount> VectorType;
+    typedef std::vector<double> VectorType;
 
     /* Using the following constructs allows us to multiply parts of vectors with parts of matrices
      * while avoiding BOOST's size checks. This is useful to skip multiplications by zero, since
      * for all explicit runge-kutta methods a_ij = 0 for i>j
      */
 
-    typedef array_1d<double,TSubstepCount-1> RowType;
-    typedef std::array<RowType, TSubstepCount-1> MatrixType;
+    typedef std::vector<double> RowType;
+    typedef std::vector<RowType> MatrixType;
 
     struct ArraySlice
     {
@@ -94,6 +94,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Destructor.
+    virtual ~ButcherTableau() = default;
 
     ///@}
     ///@name Operators
@@ -120,12 +122,19 @@ public:
      *          intended to be used with std::inner_product.
      */
 
-    ArraySlice GetMatrixRow(const unsigned int SubStepIndex) const
+    std::tuple<RowType::const_iterator, RowType::const_iterator> GetMatrixRow(const unsigned int SubStepIndex) const
     {
-        return ArraySlice{
-            mA[SubStepIndex - 1].begin(),
-            mA[SubStepIndex - 1].begin() + SubStepIndex
-        };
+        return {mA[SubStepIndex - 1].begin(), mA[SubStepIndex - 1].begin() + SubStepIndex};
+    }
+
+    RowType::const_iterator GetMatrixRowBegin(const unsigned int SubStepIndex) const
+    {
+        return mA[SubStepIndex - 1].begin();
+    }
+
+    RowType::const_iterator GetMatrixRowEnd(const unsigned int SubStepIndex) const
+    {
+        return mA[SubStepIndex - 1].begin() + SubStepIndex;
     }
 
     constexpr const VectorType& GetWeights() const
@@ -135,7 +144,7 @@ public:
 
     constexpr double GetIntegrationTheta(const unsigned int SubStepIndex) const
     {
-        return mC(SubStepIndex - 1);
+        return mC[SubStepIndex - 1];
     }
 
     ///@}
@@ -241,15 +250,15 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B;
-        B(0) = 1.0;
+        VectorType B(1);
+        B[0] = 1.0;
         return B;
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C;
-        C(0) = 0.0;
+        VectorType C(1);
+        C[0] = 0.0;
         return C;
     }
 
@@ -272,24 +281,24 @@ public:
 
     static const BaseType::MatrixType GenerateRKMatrix()
     {
-        MatrixType A;
+        MatrixType A(1, RowType(1));
         A[0][0] = 0.5;
         return A;
     }
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B;
-        B(0) = 0.0;
-        B(1) = 1.0;
+        VectorType B(2);
+        B[0] = 0.0;
+        B[1] = 1.0;
         return B;
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C;
-        C(0) = 0.0;
-        C(1) = 0.5;
+        VectorType C(2);
+        C[0] = 0.0;
+        C[1] = 0.5;
         return C;
     }
 
@@ -317,7 +326,7 @@ public:
 
     static const BaseType::MatrixType GenerateRKMatrix()
     {
-        MatrixType A;
+        MatrixType A(2, RowType(2));
         A[0][0] = 1;
         A[1][0] = 0.25;
         A[0][1] = 0.0;
@@ -327,19 +336,19 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B;
-        B(0) = 1.0 / 6.0;
-        B(1) = 1.0 / 6.0;
-        B(2) = 2.0 / 3.0;
+        VectorType B(3);
+        B[0] = 1.0 / 6.0;
+        B[1] = 1.0 / 6.0;
+        B[2] = 2.0 / 3.0;
         return B;
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C;
-        C(0) = 0.0;
-        C(1) = 1.0;
-        C(2) = 0.5;
+        VectorType C(3);
+        C[0] = 0.0;
+        C[1] = 1.0;
+        C[2] = 0.5;
         return C;
     }
 
@@ -361,8 +370,7 @@ public:
     typedef ButcherTableau<ButcherTableauRK4, 4, 4> BaseType;
     static const BaseType::MatrixType GenerateRKMatrix()
     {
-        MatrixType A;
-        std::fill(begin(A), end(A), ZeroVector(SubstepCount()-1));
+        MatrixType A(3, RowType(3,0.0));
         A[0][0] = 0.5;
         A[1][1] = 0.5;
         A[2][2] = 1.0;
@@ -371,21 +379,21 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B;
-        B(0) = 1.0 / 6.0;
-        B(1) = 1.0 / 3.0;
-        B(2) = 1.0 / 3.0;
-        B(3) = 1.0 / 6.0;
+        VectorType B(4);
+        B[0] = 1.0 / 6.0;
+        B[1] = 1.0 / 3.0;
+        B[2] = 1.0 / 3.0;
+        B[3] = 1.0 / 6.0;
         return B;
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C;
-        C(0) = 0.0;
-        C(1) = 0.5;
-        C(2) = 0.5;
-        C(3) = 1.0;
+        VectorType C(4);
+        C[0] = 0.0;
+        C[1] = 0.5;
+        C[2] = 0.5;
+        C[3] = 1.0;
         return C;
     }
 
