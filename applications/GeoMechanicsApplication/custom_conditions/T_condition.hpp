@@ -51,10 +51,7 @@ public:
     // Constructor 2
     TCondition( IndexType NewId,
                   GeometryType::Pointer pGeometry,
-                  PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties)
-    {
-        mThisIntegrationMethod = this->GetIntegrationMethod();
-    }
+                  PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties) {}
 
     // Destructor
     virtual ~TCondition() {}
@@ -89,7 +86,6 @@ protected:
 
     // Member Variables
 
-    GeometryData::IntegrationMethod mThisIntegrationMethod;
     static constexpr unsigned int conditionSize = TNumNodes;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

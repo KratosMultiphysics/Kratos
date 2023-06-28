@@ -43,7 +43,6 @@ public:
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
     using VectorType = Vector;
     using MatrixType = Matrix;
-    using TCondition<TDim,TNumNodes>::mThisIntegrationMethod;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
