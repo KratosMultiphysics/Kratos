@@ -51,7 +51,7 @@ void ParallelFillCommunicator::Execute()
     KRATOS_CATCH("");
 }
 
-void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
+void ParallelFillCommunicator::GatherEntitiesFromOtherPartitions(
     const std::map<int, std::vector<std::size_t>>& rNodesToBring,
     const std::map<int, std::vector<std::size_t>>& rElementsToBring,
     const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
@@ -67,15 +67,15 @@ void ParallelFillCommunicator::BringEntitiesFromOtherPartitions(
     // Call auxiliary methods
     const std::size_t nodes_to_bring = r_data_communicator.SumAll(rNodesToBring.size());
     if (nodes_to_bring > 0) {
-        BringEntityFromOtherPartitions<Node>(r_base_model_part, rNodesToBring);
+        GatherEntityFromOtherPartitions<Node>(r_base_model_part, rNodesToBring);
     }
     const std::size_t elements_to_bring = r_data_communicator.SumAll(rElementsToBring.size());
     if (elements_to_bring > 0) {
-        BringEntityFromOtherPartitions<Element>(r_base_model_part, rElementsToBring);
+        GatherEntityFromOtherPartitions<Element>(r_base_model_part, rElementsToBring);
     }
     const std::size_t conditions_to_bring = r_data_communicator.SumAll(rConditionsToBring.size());
     if (conditions_to_bring > 0) {
-        BringEntityFromOtherPartitions<Condition>(r_base_model_part, rConditionsToBring);
+        GatherEntityFromOtherPartitions<Condition>(r_base_model_part, rConditionsToBring);
     }
 
     // Execute after bringing entities
@@ -540,7 +540,7 @@ void ParallelFillCommunicator::GenerateMeshes(
 }
 
 template <class TObjectType>
-void ParallelFillCommunicator::BringEntityFromOtherPartitions(
+void ParallelFillCommunicator::GatherEntityFromOtherPartitions(
     ModelPart& rModelPart,
     const std::map<int, std::vector<std::size_t>>& rEntitiesToBring
     )
@@ -670,8 +670,8 @@ void ParallelFillCommunicator::BringEntityFromOtherPartitions(
     }
 }
 
-template void ParallelFillCommunicator::BringEntityFromOtherPartitions<Node>(ModelPart& rModelPart, const std::map<int, std::vector<std::size_t>>& rEntitiesToBring);
-template void ParallelFillCommunicator::BringEntityFromOtherPartitions<Element>(ModelPart& rModelPart, const std::map<int, std::vector<std::size_t>>& rEntitiesToBring);
-template void ParallelFillCommunicator::BringEntityFromOtherPartitions<Condition>(ModelPart& rModelPart, const std::map<int, std::vector<std::size_t>>& rEntitiesToBring);
+template void ParallelFillCommunicator::GatherEntityFromOtherPartitions<Node>(ModelPart& rModelPart, const std::map<int, std::vector<std::size_t>>& rEntitiesToBring);
+template void ParallelFillCommunicator::GatherEntityFromOtherPartitions<Element>(ModelPart& rModelPart, const std::map<int, std::vector<std::size_t>>& rEntitiesToBring);
+template void ParallelFillCommunicator::GatherEntityFromOtherPartitions<Condition>(ModelPart& rModelPart, const std::map<int, std::vector<std::size_t>>& rEntitiesToBring);
 
 }

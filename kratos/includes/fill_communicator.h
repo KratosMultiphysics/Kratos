@@ -115,15 +115,15 @@ public:
     virtual void Execute();
 
     /**
-     * @brief Function to bring entities from other partitions
-     * @details This function is intended to bring entities from other partitions. The map indicates the partitions to bring and the vector the entities to bring from each partition. In the current serial case it does nothing.
+     * @brief Function to gather entities from other partitions
+     * @details This function is intended to gather entities from other partitions. The map indicates the partitions to gather and the vector the entities to gather from each partition. In the current serial case it does nothing.
      * @note For the parallel implementation see ParallelFillCommunicator.
-     * @param rNodesToBring Nodes to bring from other partitions
-     * @param rElementsToBring Elements to bring from other partitions
-     * @param rConditionsToBring Conditions to bring from other partitions
-     * @param CallExecuteAfterBringingEntities Call Execute after bringing entities
+     * @param rNodesToBring Nodes to gather from other partitions
+     * @param rElementsToBring Elements to gather from other partitions
+     * @param rConditionsToBring Conditions to gather from other partitions
+     * @param CallExecuteAfterBringingEntities Call Execute after gathering entities
      */
-    virtual void BringEntitiesFromOtherPartitions(
+    virtual void GatherEntitiesFromOtherPartitions(
         const std::map<int, std::vector<std::size_t>>& rNodesToBring,
         const std::map<int, std::vector<std::size_t>>& rElementsToBring,
         const std::map<int, std::vector<std::size_t>>& rConditionsToBring,

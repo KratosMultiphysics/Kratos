@@ -333,7 +333,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorBringEntitiesFromO
 
     // Bring entities
     //filler.SetEchoLevel(FillCommunicator::FillCommunicatorEchoLevel::INFO);
-    filler.BringEntitiesFromOtherPartitions(nodes_to_bring,elements_to_bring, conditions_to_bring);
+    filler.GatherEntitiesFromOtherPartitions(nodes_to_bring,elements_to_bring, conditions_to_bring);
 
     // Check the number of nodes (all partitions have 11 nodes)
     KRATOS_CHECK_EQUAL(r_model_part.NumberOfNodes(), 11);
