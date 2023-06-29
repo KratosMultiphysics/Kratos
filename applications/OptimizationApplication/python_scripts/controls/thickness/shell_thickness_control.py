@@ -173,6 +173,11 @@ class ShellThicknessControl(Control):
     def GetControlField(self) -> ContainerExpressionTypes:
         return self.control_field
 
+    def GePhysicalField(self) -> ContainerExpressionTypes:
+        physical_thickness_field = Kratos.Expression.ElementExpression(self.model_part)
+        KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, Kratos.THICKNESS)
+        return physical_thickness_field
+
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         with TimeLogger("ShellThicknessControl::MapGradient", None, "Finished",False):
             keys = physical_gradient_variable_container_expression_map.keys()

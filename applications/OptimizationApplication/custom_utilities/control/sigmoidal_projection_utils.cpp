@@ -176,7 +176,7 @@ namespace Kratos
 
 template<class TContainerType>
 ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectForward(
-    ContainerExpression<TContainerType>& rInputExpression,
+    const ContainerExpression<TContainerType>& rInputExpression,
     const std::vector<double>& rXValues,
     const std::vector<double>& rYValues,
     const double Beta,
@@ -190,7 +190,7 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectForward(
     const IndexType local_size_1 = rInputExpression.GetItemComponentCount();
     const IndexType number_of_entities_1 = rInputExpression.GetContainer().size();
 
-    ContainerExpression<TContainerType> output_container(rInputExpression.GetModelPart());
+    ContainerExpression<TContainerType> output_container(*rInputExpression.pGetModelPart());
     auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_entities_1, rInputExpression.GetItemShape());
     output_container.SetExpression(p_flat_data_expression);
     auto& r_output_expression = *p_flat_data_expression;
@@ -212,7 +212,7 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectForward(
 
 template<class TContainerType>
 ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectBackward(
-    ContainerExpression<TContainerType>& rInputExpression,
+    const ContainerExpression<TContainerType>& rInputExpression,
     const std::vector<double>& rXValues,
     const std::vector<double>& rYValues,
     const double Beta,
@@ -226,7 +226,7 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectBackward(
     const IndexType local_size_1 = rInputExpression.GetItemComponentCount();
     const IndexType number_of_entities_1 = rInputExpression.GetContainer().size();
 
-    ContainerExpression<TContainerType> output_container(rInputExpression.GetModelPart());
+    ContainerExpression<TContainerType> output_container(*rInputExpression.pGetModelPart());
     auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_entities_1, rInputExpression.GetItemShape());
     output_container.SetExpression(p_flat_data_expression);
     auto& r_output_expression = *p_flat_data_expression;
@@ -248,7 +248,7 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectBackward(
 
 template<class TContainerType>
 ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(
-    ContainerExpression<TContainerType>& rInputExpression,
+    const ContainerExpression<TContainerType>& rInputExpression,
     const std::vector<double>& rXValues,
     const std::vector<double>& rYValues,
     const double Beta,
@@ -262,7 +262,7 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDeriva
     const IndexType local_size_1 = rInputExpression.GetItemComponentCount();
     const IndexType number_of_entities_1 = rInputExpression.GetContainer().size();
 
-    ContainerExpression<TContainerType> output_container(rInputExpression.GetModelPart());
+    ContainerExpression<TContainerType> output_container(*rInputExpression.pGetModelPart());
     auto p_flat_data_expression = LiteralFlatExpression<double>::Create(number_of_entities_1, rInputExpression.GetItemShape());
     output_container.SetExpression(p_flat_data_expression);
     auto& r_output_expression = *p_flat_data_expression;
@@ -282,14 +282,14 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDeriva
     KRATOS_CATCH("");
 }
 
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ProjectForward(ContainerExpression<ModelPart::NodesContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ProjectForward(ContainerExpression<ModelPart::ConditionsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ProjectForward(ContainerExpression<ModelPart::ElementsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ProjectBackward(ContainerExpression<ModelPart::NodesContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ProjectBackward(ContainerExpression<ModelPart::ConditionsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ProjectBackward(ContainerExpression<ModelPart::ElementsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(ContainerExpression<ModelPart::NodesContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(ContainerExpression<ModelPart::ConditionsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
-template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(ContainerExpression<ModelPart::ElementsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ProjectForward(const ContainerExpression<ModelPart::NodesContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ProjectForward(const ContainerExpression<ModelPart::ConditionsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ProjectForward(const ContainerExpression<ModelPart::ElementsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ProjectBackward(const ContainerExpression<ModelPart::NodesContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ProjectBackward(const ContainerExpression<ModelPart::ConditionsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ProjectBackward(const ContainerExpression<ModelPart::ElementsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::NodesContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(const ContainerExpression<ModelPart::NodesContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ConditionsContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(const ContainerExpression<ModelPart::ConditionsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
+template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<ModelPart::ElementsContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(const ContainerExpression<ModelPart::ElementsContainerType>&, const std::vector<double>&, const std::vector<double>&, const double, const int);
 ///@}
 }

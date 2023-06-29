@@ -45,7 +45,7 @@ public:
 
     template<class TContainerType>
     static ContainerExpression<TContainerType> ProjectForward(
-        ContainerExpression<TContainerType>& rInputExpression,
+        const ContainerExpression<TContainerType>& rInputExpression,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,
         const double Beta,
@@ -53,7 +53,7 @@ public:
 
     template<class TContainerType>
     static ContainerExpression<TContainerType> ProjectBackward(
-        ContainerExpression<TContainerType>& rInputExpression,
+        const ContainerExpression<TContainerType>& rInputExpression,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,
         const double Beta,
@@ -61,7 +61,7 @@ public:
 
     template<class TContainerType>
     static ContainerExpression<TContainerType> ComputeFirstDerivative(
-        ContainerExpression<TContainerType>& rInputExpression,
+        const ContainerExpression<TContainerType>& rInputExpression,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,
         const double Beta,
