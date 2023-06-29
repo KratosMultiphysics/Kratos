@@ -59,9 +59,26 @@ namespace Kratos
             mReductionFactor -= mReductionIncrement;
             KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduction factor: " << mReductionFactor << std::endl;
 
+            double phi = 0.;
+            double reduced_phi = 0.;
+            double c = 0.;
+            double reduced_c = 0.;
+            unsigned int previousPropertyId = 0;
             // Apply C/Phi Reduction procedure for the model part:
-            block_for_each(mrModelPart.Elements(), [this](Element& rElement) {
-                set_C_Phi(rElement);
+            block_for_each(mrModelPart.Elements(), [this,&phi,&reduced_phi,&c,&reduced_c,&previousPropertyId](Element& rElement) {
+                if (mrModelPart.GetProperties(rElement.GetProperties().Id()).Id() != previousPropertyId)
+                {
+                    phi         = GetAndCheckPhi(rElement.GetProperties());
+                    KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial Phi = " << phi << std::endl;
+                    reduced_phi = ComputeReducedPhi(phi);
+                    KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced Phi = " << reduced_phi << std::endl;
+                    c           = GetAndCheckC(rElement.GetProperties());
+                    KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial C = " << c << std::endl;
+                    reduced_c   = mReductionFactor * c;
+                    previousPropertyId = mrModelPart.GetProperties(rElement.GetProperties().Id()).Id();
+                    KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced C = " << reduced_c << std::endl;
+                }
+                set_C_Phi_At_Element(rElement, reduced_phi, reduced_c);
             });
             KRATOS_INFO("ApplyCPhiReductionProcess") << "End of Execute Initialize Solution Step" << std::endl;
             KRATOS_CATCH("")
@@ -84,43 +101,6 @@ namespace Kratos
         double mReductionFactor;
         double mPreviousReductionFactor;
         double mReductionIncrement;
-
-        void set_C_Phi(Element& rElement)
-        {
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "Element ID: " << rElement.Id() << std::endl;
-            // Get C/Phi material properties of this element
-            Element::PropertiesType& rProp = rElement.GetProperties();
-            ConstitutiveLaw::Pointer pConstitutiveLaw = rProp.GetValue(CONSTITUTIVE_LAW);
-//            const Properties& r_material_properties = rValues.GetMaterialProperties();
-// we hbben een constitutive law pointer, wat ik moet proberen in ConstitutiveLaw::Parameters zie linear_elastic_plane_strain_K0_law.cpp
-
-            // Check for UMAT PHI Parameter
-            double phi = GetAndCheckPhi(rProp);
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial Phi = " << phi << std::endl;
-
-            // Check for UMAT C Parameter
-            double c = GetAndCheckC(rProp);
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial C = " << c << std::endl;
-
-            // Phi converted to radians and then its tangent is reduced by the reduction factor
-            double phi_rad = MathUtils<>::DegreesToRadians(phi);
-            double tan_phi = std::tan(phi_rad);
-            double reduced_tan_phi = mReductionFactor * tan_phi;
-            double reduced_phi_rad = std::atan(reduced_tan_phi);
-            double reduced_phi = reduced_phi_rad * 180 / Globals::Pi; // TODO: RADIANSTODEGREES function!
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced Phi = " << reduced_phi << std::endl;
-
-            // C is reduced by the reduction factor
-            double reduced_c = mReductionFactor * c;
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced C = " << reduced_c << std::endl;
-
-            auto newParameters = rProp[UMAT_PARAMETERS];
-            newParameters[rProp[INDEX_OF_UMAT_PHI_PARAMETER]-1] = reduced_phi;
-            newParameters[rProp[INDEX_OF_UMAT_C_PARAMETER]-1]   = reduced_c;
-
-            SetValueAtElement(rElement, UMAT_PARAMETERS, newParameters);
-
-        }
 
         double GetAndCheckPhi(const Element::PropertiesType& rProp)
         {
@@ -150,6 +130,16 @@ namespace Kratos
             return phi;
         }
 
+        double ComputeReducedPhi(const double phi)
+        {
+            // Phi converted to radians and then its tangent is reduced by the reduction factor
+            double phi_rad = MathUtils<>::DegreesToRadians(phi);
+            double tan_phi = std::tan(phi_rad);
+            double reduced_tan_phi = mReductionFactor * tan_phi;
+            double reduced_phi_rad = std::atan(reduced_tan_phi);
+            return reduced_phi_rad * 180. / Globals::Pi; // TODO: RADIANSTODEGREES function!
+        }
+
         double GetAndCheckC(const Element::PropertiesType& rProp)
         {
             // Get the initial properties from the model part. Recall that we create a separate properties
@@ -177,6 +167,19 @@ namespace Kratos
             return c;
         }
 
+        void set_C_Phi_At_Element(Element& rElement, const double reduced_phi, const double reduced_c)
+        {
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Element ID: " << rElement.Id() << std::endl;
+            // Get C/Phi material properties of this element
+            Element::PropertiesType& rProp = rElement.GetProperties();
+
+            auto newParameters = rProp[UMAT_PARAMETERS];
+            newParameters[rProp[INDEX_OF_UMAT_PHI_PARAMETER]-1] = reduced_phi;
+            newParameters[rProp[INDEX_OF_UMAT_C_PARAMETER]-1]   = reduced_c;
+
+            SetValueAtElement(rElement, UMAT_PARAMETERS, newParameters);
+        }
+
         void SetValueAtElement(Element& rElement, const Variable<Vector>& rVar, const Vector& Value)
         {
 
@@ -195,5 +198,6 @@ namespace Kratos
             rElement.GetProperties().PrintData(std::cout);
         }
 
-    }; // class ApplyCPhiReductionProcess
-} // namespace Kratos
+    };
+
+}
