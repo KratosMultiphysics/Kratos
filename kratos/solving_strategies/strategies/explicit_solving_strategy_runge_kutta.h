@@ -7,12 +7,12 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla, Eduard Gómez
+//  Main authors:    Ruben Zorrilla
+//                   Eduard Gomez
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA)
-#define KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA
+#pragma once
 
 /* System includes */
 #include <numeric>
@@ -523,5 +523,3 @@ using ExplicitSolvingStrategyRungeKutta1 = ExplicitSolvingStrategyRungeKutta<TSp
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA  defined */

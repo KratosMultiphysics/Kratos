@@ -7,12 +7,11 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Eduard Gómez
+//  Main authors:    Eduard Gomez
 //
 //
 
-#if !defined(KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H)
-#define KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H
+#pragma once
 
 /* System includes */
 
@@ -405,5 +404,3 @@ public:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H  defined */
