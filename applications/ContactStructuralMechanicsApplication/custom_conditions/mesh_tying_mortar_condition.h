@@ -131,6 +131,9 @@ public:
 
     typedef ExactMortarIntegrationUtility<TDim, NumNodes, false, NumNodesMaster> IntegrationUtility;
 
+    // The threshold coefficient considered for checking
+    static constexpr double CheckThresholdCoefficient = 1.0e-12;
+
     ///@}
     ///@name  Enum's
     ///@{

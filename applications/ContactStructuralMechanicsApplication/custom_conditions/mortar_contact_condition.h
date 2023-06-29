@@ -150,6 +150,9 @@ public:
 
     typedef DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>         DerivativesUtilitiesType;
 
+    // The threshold coefficient considered for checking
+    static constexpr double CheckThresholdCoefficient = 1.0e-12;
+
     ///@}
     ///@name Life Cycle
     ///@{

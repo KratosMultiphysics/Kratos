@@ -300,7 +300,11 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     // We iterate over the nodes of the geometry
     for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
         // Computing auxiliary matrix
-        noalias(renormalizer_matrix) = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
+        if constexpr (TDim == 3) {
+            noalias(renormalizer_matrix) = ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry);
+        } else {
+            noalias(renormalizer_matrix) = IdentityMatrix(2, 2);
+        }
 
         // We compute the gradient and jacobian
         rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
@@ -375,7 +379,11 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node;
     for ( IndexType i_geometry = 0; i_geometry < TNumNodesMaster; ++i_geometry ) {
         // Computing auxiliary matrix
-        noalias(renormalizer_matrix) = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
+        if constexpr (TDim == 3) {
+            noalias(renormalizer_matrix) = ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry);
+        } else {
+            noalias(renormalizer_matrix) = IdentityMatrix(2, 2);
+        }
 
         // We compute the gradient and jacobian
         rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
@@ -937,7 +945,12 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
 
         DecompositionType decomp_geom( points_array );
 
-        const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
+        bool bad_shape;
+        if constexpr (TDim == 2) {
+            bad_shape = MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * CheckThresholdCoefficient);
+        } else { 
+            bad_shape = MortarUtilities::HeronCheck(decomp_geom);
+        }
 
         if (!bad_shape) {
             const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );

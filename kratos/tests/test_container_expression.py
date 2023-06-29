@@ -761,6 +761,66 @@ class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpr
     def _Evaluate(self, container_expression, variable):
         Kratos.Expression.VariableExpressionIO.Write(container_expression, variable)
 
+class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+
+        with kratos_unittest.WorkFolderScope(".", __file__, True):
+            ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
+
+        for node in cls.model_part.Nodes:
+            node.SetValue(Kratos.VELOCITY, Kratos.Array3([node.Id, node.Id + 1, node.Id + 2]))
+
+    def test_WriteInitial(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, False)
+
+        a *= 3
+
+        Kratos.Expression.NodalPositionExpressionIO.Write(a, Kratos.Configuration.Initial)
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(Kratos.Array3([node.X0, node.Y0, node.Z0]), node.GetValue(Kratos.VELOCITY) * 3)
+
+    def test_WriteCurrent(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, False)
+
+        a *= 4
+
+        Kratos.Expression.NodalPositionExpressionIO.Write(a, Kratos.Configuration.Current)
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(Kratos.Array3([node.X, node.Y, node.Z]), node.GetValue(Kratos.VELOCITY) * 4)
+
+    def test_ReadInitial(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.NodalPositionExpressionIO.Read(a, Kratos.Configuration.Initial)
+
+        a *= 5
+        Kratos.Expression.VariableExpressionIO.Write(a, Kratos.VELOCITY, False)
+
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(Kratos.Array3([node.X0, node.Y0, node.Z0]) * 5, node.GetValue(Kratos.VELOCITY))
+
+    def test_ReadCurrent(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.NodalPositionExpressionIO.Read(a, Kratos.Configuration.Current)
+
+        a *= 6
+        Kratos.Expression.VariableExpressionIO.Write(a, Kratos.VELOCITY, False)
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(Kratos.Array3([node.X0, node.Y0, node.Z0]) * 6, node.GetValue(Kratos.VELOCITY))
+
+
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
