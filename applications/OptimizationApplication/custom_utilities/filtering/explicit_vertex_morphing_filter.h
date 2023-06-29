@@ -70,7 +70,7 @@ public:
 
     ContainerExpression<TContainerType> FilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
-    ContainerExpression<TContainerType> UnFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    ContainerExpression<TContainerType> FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
     std::string Info() const;
 
@@ -85,6 +85,8 @@ private:
 
     typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
 
+    Expression::ConstPointer mpNodalDomainSizeExpression;
+
     EntityPointVector mEntityPointVector;
 
     IndexType mBucketSize = 100;
@@ -92,6 +94,13 @@ private:
     IndexType mMaxNumberOfNeighbors;
 
     typename KDTree::Pointer mpSearchTree;
+
+    ///@}
+    ///@name Private operations
+    ///@{
+
+    template<class TWeightIntegrationType>
+    ContainerExpression<TContainerType> GenericFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
     ///@}
 };
