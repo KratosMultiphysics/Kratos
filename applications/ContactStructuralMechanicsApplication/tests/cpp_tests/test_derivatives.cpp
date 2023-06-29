@@ -66,15 +66,15 @@ static inline void TestDerivatives(
     )
 {
     // Type definitions
-    using PointBelongType = PointBelong<TNumNodes>;
-    using ConditionArrayType = std::array<PointBelongType, TDim>;
-    using ConditionArrayListType = std::vector<ConditionArrayType>;
-    using LineType = Line2D2<Point>;
-    using TriangleType = Triangle3D3<Point>;
-    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
-    using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type;
-    using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, false, true>;
-    using IntegrationUtility = ExactMortarIntegrationUtility<TDim, TNumNodes, true>;
+    typedef PointBelong<TNumNodes> PointBelongType;
+    typedef array_1d<PointBelongType, TDim> ConditionArrayType;
+    typedef typename std::vector<ConditionArrayType> ConditionArrayListType;
+    typedef Line2D2<Point> LineType;
+    typedef Triangle3D3<Point> TriangleType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
+    typedef DerivativesUtilities<TDim, TNumNodes, false, true> DerivativesUtilitiesType;
+    typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true> IntegrationUtility;
     static constexpr double CheckThresholdCoefficient = 1.0e-12;
 
     // Some definitions

@@ -947,7 +947,7 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
 
         bool bad_shape;
         if constexpr (TDim == 2) {
-            bad_shape = MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * CheckThresholdCoefficient);
+            bad_shape = MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * CheckThresholdCoefficient);
         } else { 
             bad_shape = MortarUtilities::HeronCheck(decomp_geom);
         }
