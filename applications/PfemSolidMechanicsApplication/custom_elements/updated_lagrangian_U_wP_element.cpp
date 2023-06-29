@@ -143,7 +143,7 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUwPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const 
    {
       rElementalDofList.resize( 0 );
 
