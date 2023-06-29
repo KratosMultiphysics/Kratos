@@ -79,11 +79,16 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
 
     py::class_<GatherModelPartUtility>(m, "GatherModelPartUtility")
         .def(py::init<int, ModelPart&, int, ModelPart&>())
+        .def(py::init<int, ModelPart&, int, ModelPart&>())
         .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<double>)
         .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<array_1d<double, 3>>)
         .def("ScatterFromMaster", &GatherModelPartUtility::ScatterFromMaster<double>)
-        .def("ScatterFromMaster",
-             &GatherModelPartUtility::ScatterFromMaster<array_1d<double, 3>>);
+        .def("ScatterFromMaster", &GatherModelPartUtility::ScatterFromMaster<array_1d<double, 3>>)
+        .def_static("GatherEntitiesFromOtherPartitions", &GatherModelPartUtility::GatherEntitiesFromOtherPartitions)
+        .def_static("GatherNodesFromOtherPartitions", &GatherModelPartUtility::GatherNodesFromOtherPartitions)
+        .def_static("GatherElementsFromOtherPartitions", &GatherModelPartUtility::GatherElementsFromOtherPartitions)
+        .def_static("GatherConditionsFromOtherPartitions", &GatherModelPartUtility::GatherConditionsFromOtherPartitions)
+        ;
 
     py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils")
         .def(py::init<>())
