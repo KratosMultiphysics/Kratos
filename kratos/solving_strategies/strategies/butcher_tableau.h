@@ -81,12 +81,6 @@ public:
     typedef std::vector<double> RowType;
     typedef std::vector<RowType> MatrixType;
 
-    struct ArraySlice
-    {
-        typename RowType::const_iterator begin;
-        typename RowType::const_iterator end;
-    };
-
     static constexpr unsigned int Order() {return TOrder;}
     static constexpr unsigned int SubstepCount() {return TSubstepCount; }
 
