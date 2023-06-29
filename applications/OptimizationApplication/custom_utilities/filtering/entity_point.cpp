@@ -29,7 +29,8 @@ EntityPoint<TEntityType>::EntityPoint(
     const TEntityType& rEntity,
     const IndexType Id)
     : Point(GetPoint(rEntity)),
-      mId(Id)
+      mId(Id),
+      mpEntity(&rEntity)
 {
 }
 
@@ -37,6 +38,12 @@ template<class TEntityType>
 IndexType EntityPoint<TEntityType>::Id() const
 {
     return mId;
+}
+
+template<class TEntityType>
+const TEntityType& EntityPoint<TEntityType>::GetEntity() const
+{
+    return *mpEntity;
 }
 
 template<class TEntityType>

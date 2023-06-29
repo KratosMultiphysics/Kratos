@@ -49,12 +49,16 @@ public:
 
     IndexType Id() const;
 
+    const TEntityType& GetEntity() const;
+
     ///@}
 private:
     ///@name Private member variables
     ///@{
 
     const IndexType mId = 0;
+
+    const TEntityType* mpEntity;
 
     ///@}
     ///@name Private static methods
