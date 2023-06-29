@@ -10,7 +10,6 @@
 //  Main authors:    Riccardo Rossi
 //                   Michael Andre, https://github.com/msandre
 //                   Jordi Cotela Dalmau
-//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
