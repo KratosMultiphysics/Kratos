@@ -1,3 +1,5 @@
+from typing import Any
+
 # Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication as KOA
@@ -15,6 +17,7 @@ class HelmholtzAnalysis(AnalysisStage):
     def __init__(self, model: KM.Model, project_parameters: KM.Parameters):
         super().__init__(model, project_parameters)
         self.__source_data: ContainerExpressionTypes = None
+        self.__neighbour_entities: 'dict[Any, KM.Expression.NodalExpression]' = {}
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -91,12 +94,19 @@ class HelmholtzAnalysis(AnalysisStage):
         if isinstance(data_exp, KM.Expression.NodalExpression):
             mapped_values = data_exp
         else:
-            neighbour_entities = KM.Expression.NodalExpression(data_exp.GetModelPart())
-            if isinstance(data_exp, KM.Expression.ElementExpression):
-                KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbour_entities)
-            else:
-                KOA.ExpressionUtils.ComputeNumberOfNeighbourConditions(neighbour_entities)
-            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, neighbour_entities)
+            # following makes the number of neighbours computation to be executed once
+            # per given contaienr, hence if the mesh element/connectivity changes
+            # this computation needs to be redone. Especially in the case if MMG is
+            # used for re-meshing.
+            key = data_exp.GetContainer()
+            if key not in  self.__neighbour_entities.keys():
+                self.__neighbour_entities[key] = KM.Expression.NodalExpression(data_exp.GetModelPart())
+                if isinstance(data_exp, KM.Expression.ElementExpression):
+                    KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(self.__neighbour_entities[key])
+                else:
+                    KOA.ExpressionUtils.ComputeNumberOfNeighbourConditions(self.__neighbour_entities[key])
+
+            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, self.__neighbour_entities[key])
 
         filter_type = self._GetSolver().GetFilterType()
         if filter_type == "bulk_surface_shape" or filter_type == "general_vector":
