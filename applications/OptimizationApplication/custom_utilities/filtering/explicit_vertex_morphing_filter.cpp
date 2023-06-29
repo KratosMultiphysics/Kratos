@@ -177,7 +177,7 @@ void ExplicitVertexMorphingFilter<TContainerType>::ExplicitVertexMorphingFilter:
 
     BuiltinTimer timer;
 
-    KRATOS_INFO("OptimizationApplication") << "Creating search tree to perform mapping..." << std::endl;
+    KRATOS_INFO("ExplicitVertexMorphingFilter") << "Creating search tree to perform mapping..." << std::endl;
 
     const auto& r_container = ExplicitVertexMorphingFilterHelperUtilities::GetContainer<TContainerType>(mrModelPart);
 
@@ -213,7 +213,7 @@ void ExplicitVertexMorphingFilter<TContainerType>::ExplicitVertexMorphingFilter:
         }
     }
 
-    KRATOS_INFO("OptimizationApplication") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
+    KRATOS_INFO("ExplicitVertexMorphingFilter") << "Search tree created in: " << timer.ElapsedSeconds() << " s" << std::endl;
 
     KRATOS_CATCH("");
 }
