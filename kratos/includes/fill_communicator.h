@@ -13,7 +13,6 @@
 #pragma once
 
 // System includes
-#include <unordered_map>
 
 // External includes
 
