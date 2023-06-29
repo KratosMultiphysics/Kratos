@@ -106,7 +106,7 @@ class ShellThicknessControl(Control):
         self.physical_thicknesses = self.parameters["physical_thicknesses"].GetVector()
         num_phys_thick = len(self.physical_thicknesses)
         if num_phys_thick == 0:
-            raise RuntimeError(f"The physical_thicknesses can not be empty, at least min and max should be provided.")
+            raise RuntimeError("The physical_thicknesses can not be empty, at least min and max should be provided.")
         self.filtered_thicknesses = [i for i in range(len(self.physical_thicknesses))]
 
         self.filter_type = self.parameters["filter_settings"]["type"].GetString()
@@ -124,7 +124,7 @@ class ShellThicknessControl(Control):
         self.fixed_model_parts_and_thicknesses = self.parameters["fixed_model_parts_and_thicknesses"]
 
         if not all(entry.GetDouble() in self.physical_thicknesses for entry in self.fixed_model_parts_and_thicknesses.values()):
-            raise RuntimeError(f"fixed_model_parts_thicknesses should exist in physical_thicknesses !")
+            raise RuntimeError("fixed_model_parts_thicknesses should exist in physical_thicknesses !")
 
         helmholtz_settings = GetImplicitFilterParameters(self.model_part, self.parameters)
 
