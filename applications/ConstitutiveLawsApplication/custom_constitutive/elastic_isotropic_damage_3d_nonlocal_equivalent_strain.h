@@ -187,7 +187,8 @@ public:
      * @param rStrainVariable
      */
     void CalculateStressResponse(ConstitutiveLaw::Parameters& rValues,
-                                 double& rEquivalentStrain);
+                                 double& rEquivalentStrain,
+                                 double& rDamagevariable);
 
     /**
      * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stress
@@ -278,6 +279,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     double mEquivalentStrain;
+    double  mDamageVariable;
     ///@}
 
     ///@name Protected Operators

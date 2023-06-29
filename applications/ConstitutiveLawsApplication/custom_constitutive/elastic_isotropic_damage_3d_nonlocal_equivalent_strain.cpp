@@ -85,8 +85,9 @@ bool ElasticIsotropicDamage3DNonLocalEquivalentStrain::Has(const Variable<double
         return false;
     } else if(rThisVariable == EQUIVALENT_STRAIN){
         return true;
+    }else if (rThisVariable == DAMAGE_VARIABLE){
+        return true;
     }
-
     return false;
 }
 
@@ -102,7 +103,6 @@ bool ElasticIsotropicDamage3DNonLocalEquivalentStrain::Has(const Variable<Vector
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
     }
-
     return false;
 }
 
@@ -117,6 +117,8 @@ double& ElasticIsotropicDamage3DNonLocalEquivalentStrain::GetValue(
     KRATOS_TRY
     if(rThisVariable == EQUIVALENT_STRAIN){
         rValue = mEquivalentStrain;
+    }else if (rThisVariable == DAMAGE_VARIABLE){
+        rValue = mDamageVariable;
     }
     return rValue;
     KRATOS_CATCH("")
@@ -134,6 +136,8 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::SetValue(
     KRATOS_TRY
     if(rThisVariable == EQUIVALENT_STRAIN){
         mEquivalentStrain = rValue;
+    }else if (rThisVariable == DAMAGE_VARIABLE){
+        mDamageVariable = rValue;
     }
     KRATOS_CATCH("")
 }
@@ -160,8 +164,10 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::FinalizeMaterialResponseC
 {
     KRATOS_TRY
     double equivalent_strain;
-    this->CalculateStressResponse(rParametersValues, equivalent_strain);
+    double damage_variable;
+    this->CalculateStressResponse(rParametersValues, equivalent_strain, damage_variable);
     mEquivalentStrain = equivalent_strain;
+    mDamageVariable = damage_variable;
 
     KRATOS_CATCH("")
 }
@@ -174,7 +180,8 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateMaterialResponse
 {
     KRATOS_TRY
     double equivalent_strain;
-    CalculateStressResponse(rParametersValues, equivalent_strain);
+    double damage_variable;
+    CalculateStressResponse(rParametersValues, equivalent_strain, damage_variable);
 
     KRATOS_CATCH("")
 }
@@ -184,7 +191,8 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateMaterialResponse
 
 void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
-    double& rEquivalentStrain)
+    double& rEquivalentStrain,
+    double& rDamagevariable)
 {
     KRATOS_TRY
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
@@ -276,6 +284,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse(
         }
         if(D < 0.0) D = 0.0;
         rEquivalentStrain = local_equivalent_strain;
+        rDamagevariable = D;
     }
     KRATOS_CATCH("")
 }
@@ -420,10 +429,15 @@ double& ElasticIsotropicDamage3DNonLocalEquivalentStrain::CalculateValue(
     )
 {
     KRATOS_TRY
-    if (rThisVariable == EQUIVALENT_STRAIN) {
-        double equivalent_strain;
-        this->CalculateStressResponse( rParametersValues, equivalent_strain);
+    double equivalent_strain;
+    double damage_variable;
+    if (rThisVariable == EQUIVALENT_STRAIN || rThisVariable == DAMAGE_VARIABLE ) {
+        this->CalculateStressResponse( rParametersValues, equivalent_strain, damage_variable);
+    }
+    if(rThisVariable == EQUIVALENT_STRAIN){
         rValue = equivalent_strain;
+    }else if (rThisVariable == DAMAGE_VARIABLE){
+        rValue = damage_variable;
     }
     return( rValue );
     KRATOS_CATCH("")
@@ -467,6 +481,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::save(Serializer& rSeriali
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mEquivalentStrain", mEquivalentStrain);
+    rSerializer.save("mDamageVariable", mDamageVariable);
 }
 
 //************************************************************************************
@@ -476,6 +491,7 @@ void ElasticIsotropicDamage3DNonLocalEquivalentStrain::load(Serializer& rSeriali
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mEquivalentStrain", mEquivalentStrain);
+    rSerializer.load("mDamageVariable", mDamageVariable);
 }
 
 
