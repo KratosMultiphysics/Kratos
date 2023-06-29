@@ -39,7 +39,8 @@ void AddExplicitVertexMorphingFilter(
         .def(py::init<const ModelPart&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"))
         .def("SetFilterRadius", &ExplicitVertexMorphingFilter<TContainerType>::SetFilterRadius, py::arg("filter_radius"))
         .def("FilterField", &ExplicitVertexMorphingFilter<TContainerType>::FilterField, py::arg("unfiltered_field"))
-        .def("UnFilterField", &ExplicitVertexMorphingFilter<TContainerType>::UnFilterField, py::arg("filtered_field"))
+        .def("FilterIntegratedField", &ExplicitVertexMorphingFilter<TContainerType>::FilterIntegratedField, py::arg("filtered_field"))
+        .def("Update", &ExplicitVertexMorphingFilter<TContainerType>::Update)
         .def("__str__", &ExplicitVertexMorphingFilter<TContainerType>::Info)
         ;
 }
