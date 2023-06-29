@@ -14,6 +14,8 @@
 // System includes
 #include <vector>
 #include <tuple>
+#include <set>
+#include <algorithm>
 
 // Project includes
 #include "includes/data_communicator.h"
@@ -38,29 +40,59 @@ public:
 
     static void FillCoSimIOModelPart(
         CoSimIO::ModelPart& rCoSimIOModelPart,
-        const std::vector<std::pair<int, int>>& rNodeIdAndPartitionIdList,
+        const std::vector<std::pair<int, bool>>& rNodeIdAndPartitionIdList,
         const std::vector<std::vector<double>>& rNodeCoordinates,
         const DataCommunicator& rDataCommunicator)
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF_NOT(rNodeIdAndPartitionIdList.size() == rNodeCoordinates.size()) 
-            << "rNodeIdAndPartitionIdList and rNodeCoordinates size mismatch. [ rNodeIdAndPartitionIdList.size() = " 
+        KRATOS_ERROR_IF_NOT(rNodeIdAndPartitionIdList.size() == rNodeCoordinates.size())
+            << "rNodeIdAndPartitionIdList and rNodeCoordinates size mismatch. [ rNodeIdAndPartitionIdList.size() = "
             << rNodeIdAndPartitionIdList.size() << ", rNodeCoordinates.size() = " << rNodeCoordinates.size() << " ]\n";
 
-        rDataCommunicator.
+
+        // first do the communication and find out corresponding rank of each node
+        std::vector<int> local_global_ids_list;
+        local_global_ids_list.reserve(rNodeIdAndPartitionIdList.size());
+        for (IndexType i = 0; i < rNodeIdAndPartitionIdList.size(); ++i) {
+            const auto& id_parition_pair = rNodeIdAndPartitionIdList[i];
+
+            if (std::get<1>(id_parition_pair)) {
+                local_global_ids_list.push_back(std::get<0>(id_parition_pair));
+            }
+        }
+
+        const auto& r_all_global_node_ids = rDataCommunicator.AllGatherv(local_global_ids_list);
+        std::vector<std::set<int>> r_all_global_node_ids_set(r_all_global_node_ids.size());
+        std::transform(
+            r_all_global_node_ids.begin(),
+            r_all_global_node_ids.end(),
+            r_all_global_node_ids_set.begin(),
+            [](auto& rVector) { return std::set<int>(rVector.begin(), rVector.end()); });
 
         for (IndexType i = 0; i < rNodeIdAndPartitionIdList.size(); ++i) {
             const auto& id_parition_pair = rNodeIdAndPartitionIdList[i];
             const auto& node_locations = rNodeCoordinates[i];
 
-            const int node_id = std::get<0>(id_parition_pair);
-            const int parition_id = std::get<1>(id_parition_pair);
-            
-            if (rDataCommunicator.Rank() == parition_id) {
-                rCoSimIOModelPart.CreateNewNode(node_id, node_locations[0], node_locations[1], node_locations[2]);
+            const int global_id = std::get<0>(id_parition_pair);
+            const bool is_local = std::get<1>(id_parition_pair);
+
+            if (is_local) {
+                rCoSimIOModelPart.CreateNewNode(global_id, node_locations[0], node_locations[1], node_locations[2]);
             } else {
-                rCoSimIOModelPart.CreateNewGhostNode(node_id, node_locations[0], node_locations[1], node_locations[2], 0);
+                // now get the rank
+                IndexType rank;
+                for (rank = 0; rank < r_all_global_node_ids.size(); ++rank) {
+                    const auto itr = r_all_global_node_ids_set[rank].find(global_id);
+                    if (itr != r_all_global_node_ids_set[rank].end()) {
+                        break;
+                    }
+                }
+
+                KRATOS_ERROR_IF(rank == r_all_global_node_ids.size())
+                    << "Global id = " << global_id << " not found in any ranks.\n";
+
+                rCoSimIOModelPart.CreateNewGhostNode(global_id, node_locations[0], node_locations[1], node_locations[2], rank);
             }
         }
 

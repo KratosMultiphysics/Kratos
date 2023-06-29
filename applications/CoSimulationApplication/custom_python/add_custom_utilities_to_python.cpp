@@ -21,7 +21,6 @@
 #include "spaces/ublas_space.h"
 #include "custom_utilities/feti_dynamic_coupling_utilities.h"
 #include "custom_utilities/conversion_utilities.h"
-#include "custom_io/co_sim_model_part_importer.h"
 
 namespace Kratos::Python {
 
