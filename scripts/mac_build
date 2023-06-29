@@ -1,0 +1,247 @@
+#!/bin/bash
+# authors: Máté Kelemen
+# Run this script with the -h flag for info.
+
+# Name of this script
+script_name="$(basename ${BASH_SOURCE[0]})"
+
+# Function for printing usage info
+print_help() {
+    echo "$script_name - Configure, build, and install KratosMultiphysics."
+    echo "-h                    : print this help and exit"
+    echo "-C                    : clean build and install directories, then exit"
+    echo "-b build_path         : path to the build directory (created if it does not exist yet)"
+    echo "-i install_path       : path to the install directory (created if it does not exist yet)"
+    echo "-t build_type         : build type [FullDebug, Debug, Release, RelWithDebInfo] (Default: Release)"
+    echo "-a application_name   : name of the application to build (can be passed repeatedly to add more applications)"
+    echo
+    echo "This script provides a build environment for KratosMultiphysics targeting systems running on Apple Silicon."
+    echo "The interface is minimal, so users seeking more control over the build process are invited to tweak this"
+    echo "script to suit their requirements better."
+    echo
+    echo "By default, Kratos is installed to the site-packages directory of the available python"
+    echo "interpreter. This makes KratosMultiphysics and its applications immediately available from"
+    echo "anywhere on the system without having to append PYTHONPATH, provided that the same interpreter"
+    echo "is used. Note however, that it is recommend to use a virtual python environment to avoid tainting"
+    echo "the system python."
+    echo
+    echo "Build requirements:"
+    echo " - Homebrew"
+    echo " - CMake (can be installed from homebrew via 'brew install cmake')"
+    echo " - LLVM (can be installed from homebrew via 'brew install llvm')"
+    echo " - Boost (can be installed from homebrew via 'brew install boost')"
+    echo
+    echo "Recommended build tools:"
+    echo " - ccache ('brew install ccache')"
+    echo " - ninja ('brew install ccache')"
+    echo
+    echo "Caveats:"
+    echo "The clang that gets shipped by default lacks OpenMP binaries, so one option is to use another version"
+    echo "of the compiler without this shortcoming. Therefore, this script relies on LLVM installed from Homebrew."
+    echo "Note that the version of LLVM provided by Homebrew is likely different from that of the system, and is not"
+    echo "put on the PATH to avoid braking the standard build system."
+}
+
+# Require python3
+if ! command -v python3 &> /dev/null; then
+    echo "Error: python3 is not available"
+    exit 1
+fi
+
+# Function for getting the module paths associated with the current interpreter
+get_site_packages_dir() {
+    echo $(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+}
+
+# Utility variables
+# Path to the directory containing this script
+# (assumed to be kratos_repo_root/scripts)
+script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+source_dir="$(dirname "${script_dir}")" # <== path to the kratos repo root
+app_dir="${source_dir}/applications"    # <== path to the app directory of the kratos repo
+
+toolchain_root=""                       # <== root path of the compiler package (llvm)
+toolchain_bin=""                        # <== directory containing compiler executables
+toolchain_lib=""                        # <== directory containing compiler libraries
+toolchain_include=""                    # <== directory containing compiler headers
+
+generator_target="Unix Makefiles"       # <== name of the generator program in CMake
+ccache_flag=""                          # <== sets CXX_COMPILER_LAUNCHER in CMake to ccache if available
+mpi_flag="OFF"                          # <== MPI flag to pass to CMake via USE_MPI
+
+# Define default arguments
+build_type="Release".                   # <== passed to CMAKE_BUILD_TYPE
+build_dir="${source_dir}/build"         # <== path to the build directory
+install_dir="$(get_site_packages_dir)"  # <== path to install kratos to
+clean=0                                 # <== clean the build and install directories, then exit
+app_names=""                            # <== list of app names to build
+
+# Function to append the list of applications to build
+add_app() {
+    if [ "$1" != "${1#/}" ]; then       # <== absolute path
+        if [ -d "$1" ]; then
+            export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
+        fi
+    elif [ -d "$PWD/$1" ]; then         # <== relative path
+        export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$PWD/$1;"
+    elif [ -d "${app_dir}/$1" ]; then   # <== kratos app name
+        export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${app_dir}/$1;"
+    else
+        echo "Error: cannot find application: $1"
+        exit 1
+    fi
+}
+
+# Parse command line arguments
+while getopts "hCb:i:t:a:" arg; do
+    case "$arg" in
+        h)  # Print help and exit without doing anything
+            print_help
+            exit 0
+            ;;
+        C)  # Set clean flag
+            clean=1
+            ;;
+        b)  # Set build directory
+            build_dir="$OPTARG"
+            ;;
+        i)  # Set install directory
+            install_dir="$OPTARG"
+            ;;
+        t)  # Set build type
+            build_type="$OPTARG"
+            (("${build_type}" == "FullDebug" || "${build_type}" == "Debug" || "${build_type}" == "RelWithDebInfo" || "${build_type}" == "Release")) || (print_help && echo "Error: invalid build type: ${build_type}" && exit 1)
+            ;;
+        a)  # Add application
+            add_app "$OPTARG"
+            ;;
+        \?) # Unrecognized argumnet
+            echo "Error: unrecognized argument: $arg"
+            exit 1
+    esac
+done
+
+# Check write access to the build directory
+if [ -d "$build_dir" ]; then
+    if ! [[ -w "$build_dir" ]]; then
+        echo "Error: user '$(hostname)' has no write access to the build directory: '$build_dir'"
+        exit 1
+    fi
+fi
+
+# Check write access to the install dir
+if [ -d "$install_dir" ]; then
+    if ! [[ -w "$install_dir" ]]; then
+        echo "Error: user '$(hostname)' has no write access to the install directory: '$install_dir'"
+        exit 1
+    fi
+fi
+
+# If requested, clear build and install directories, then exit
+if [ $clean -ne 0 ]; then
+    for item in "$build_dir"; do
+        rm -rf "$item"
+    done
+    for item in "$install_dir/KratosMultiphysics"; do
+        rm -rf "$item"
+    done
+    for item in "$install_dir/libs"; do
+        rm -rf "$item"
+    done
+    exit 0
+fi
+
+# Check whether CMake is available
+if ! command -v cmake &> /dev/null; then
+    echo "Error: $script_name requires CMake"
+    echo "Consider running 'brew install cmake'"
+    exit 1
+fi
+
+# OpenMP is not available on the default clang
+# that Apple ships with its system, so another
+# toolchain must be used.
+# => this script relies on Homebrew to install
+# and find necessary packages (such as llvm).
+if ! command -v brew &> /dev/null; then
+    echo "Error: $script_name requires Homebrew"
+    exit 1
+fi
+
+check_homebrew_package() {
+    if ! brew list "$1" >/dev/null 2>&1; then
+        echo "Error: missing dependency: $1"
+        echo "Consider running 'brew install $1'"
+        exit 1
+    fi
+}
+
+# Check whether LLVM is installed, and populate related paths
+check_homebrew_package llvm
+toolchain_root="$(brew --prefix llvm)"
+toolchain_bin="${toolchain_root}/bin"
+toolchain_lib="${toolchain_root}/lib"
+toolchain_include="${toolchain_root}/include"
+
+# Check other required homebrew dependencies
+check_homebrew_package boost
+
+check_recommended_homebrew_package() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "Missing recommended dependency: $1. Consider running 'brew install $1'."
+        return 1
+    fi
+    return 0
+}
+
+# Optional dependency - ccache
+if check_recommended_homebrew_package ccache; then
+    ccache_flag="-DCXX_COMPILER_LAUNCHER:STRING=ccache"
+fi
+
+# Optional dependency - ninja
+if check_recommended_homebrew_package ninja; then
+    generator_target="Ninja"
+fi
+
+# Check whether MPI is available
+if command -v mpirun $> /dev/null; then
+    mpi_flag="ON"
+fi
+
+# Create the build directory if it does not exist yet
+if [ ! -d "$build_dir" ]; then
+    mkdir -p "$build_dir"
+fi
+
+# Configure
+if ! cmake                                                  \
+    "-H$source_dir"                                         \
+    "-B$build_dir"                                          \
+    "-DCMAKE_INSTALL_PREFIX:STRING=$install_dir"            \
+    "-G$generator_target"                                   \
+    "-DCMAKE_BUILD_TYPE:STRING=${build_type}"               \
+    "-DCMAKE_C_COMPILER:STRING=${toolchain_bin}/clang"      \
+    "-DCMAKE_CXX_COMPILER:STRING=${toolchain_bin}/clang++"  \
+    "-DOPENMP_LIBRARIES:STRING=${toolchain_lib}"            \
+    "-DOPENMP_INCLUDES:STRING=${toolchain_include}"         \
+    "-DOPENMP_C:STRING=${toolchain_bin}/clang"              \
+    "-DOPENMP_CXX:STRING=${toolchain_bin}/clang++"          \
+    "-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON"                     \
+    "$ccache_flag"                                          \
+    "-DUSE_MPI:BOOL=$mpi_flag"                              \
+    "-DUSE_EIGEN_MKL:BOOL=OFF"                              \
+    "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
+    "-DKRATOS_INSTALL_PYTHON_USING_LINKS:BOOL=ON"           \
+    "-DKRATOS_ENABLE_PROFILING:BOOL=OFF"                    \
+    ; then
+    exit $?
+fi
+
+# Build and install
+if ! cmake --build "$build_dir" --target install -j; then
+    exit $?
+fi
+
+exit 0

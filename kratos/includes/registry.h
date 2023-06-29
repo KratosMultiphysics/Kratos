@@ -71,6 +71,7 @@ public:
         std::string const& rItemFullName,
         TArgumentsList&&... Arguments)
     {
+        KRATOS_TRY
 
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
 
@@ -99,6 +100,8 @@ public:
         }
 
         return *p_current_item;
+
+        KRATOS_CATCH("")
     }
 
     ///@}

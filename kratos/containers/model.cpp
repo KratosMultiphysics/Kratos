@@ -77,14 +77,24 @@ ModelPart& Model::CreateModelPart( const std::string& ModelPartName, ModelPart::
     KRATOS_CATCH("")
 }
 
-void Model::DeleteModelPart( const std::string& ModelPartName  )
+void Model::DeleteModelPart( const std::string& rModelPartName  )
 {
     KRATOS_TRY
 
-    if(this->HasModelPart(ModelPartName)) {
-        mRootModelPartMap.erase(ModelPartName); //NOTE: the corresponding variable list should NOT be removed
+    if(this->HasModelPart(rModelPartName)) {
+        //NOTE: the corresponding variable list should NOT be removed
+        const auto delim_pos = rModelPartName.find('.');
+        if (delim_pos == std::string::npos) {
+            // It is a root model part
+            mRootModelPartMap.erase(rModelPartName); 
+        } else {
+            // Use root_model_part to delete submodelpart
+            const std::string& root_model_part_name = rModelPartName.substr(0, delim_pos);
+            ModelPart& r_root_model_part = this->GetModelPart(root_model_part_name);
+            r_root_model_part.RemoveSubModelPart(rModelPartName.substr(delim_pos+1));
+        }
     } else {
-        KRATOS_WARNING("Model") << "Attempting to delete inexisting modelpart : " << ModelPartName << std::endl;
+        KRATOS_WARNING("Model") << "Attempting to delete non-existent modelpart : " << rModelPartName << std::endl;
     }
 
     KRATOS_CATCH("")
