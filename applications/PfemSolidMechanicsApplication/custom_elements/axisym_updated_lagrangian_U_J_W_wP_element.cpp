@@ -847,7 +847,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Damping matrix
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, const ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
