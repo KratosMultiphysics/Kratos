@@ -117,7 +117,7 @@ public:
 
     std::tuple<RowType::const_iterator, RowType::const_iterator> GetMatrixRow(const unsigned int SubStepIndex) const
     {
-        return {GetMatrixRowBegin(SubStepIndex), GetMatrixRowEnd(GetMatrixRowEnd)};
+        return {GetMatrixRowBegin(SubStepIndex), GetMatrixRowEnd(SubStepIndex)};
     }
 
     RowType::const_iterator GetMatrixRowBegin(const unsigned int SubStepIndex) const noexcept
