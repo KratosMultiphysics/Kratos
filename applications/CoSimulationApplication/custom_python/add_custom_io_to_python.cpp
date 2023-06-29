@@ -400,7 +400,7 @@ void  AddCustomIOToPython(pybind11::module& m)
     mEMPIREAPI.def("EMPIRE_API_PrintTiming",  EMPIRE_API_Wrappers::SetPrintTiming);
 
     auto model_part_io = m.def_submodule("ModelPartIO");
-    model_part_io.def("FillCoSimIOModelPart", &CoSimModelPartImporter::FillCoSimIOModelPart, py::arg("co_sim_io_model_part"), py::arg("node_id_is_local_pairs_list"), py::arg("node_coordinates"), py::arg("data_communicator"));
+    model_part_io.def("FillCoSimIOModelPart", &CoSimModelPartImporter::FillCoSimIOModelPart, py::arg("model_part"), py::arg("node_id_is_local_pairs_list"), py::arg("node_coordinates"), py::arg("data_communicator"));
 }
 
 }  // namespace Kratos::Python.

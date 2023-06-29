@@ -15,12 +15,9 @@ import pysu2
 from mpi4py import MPI
 import numpy as np
 
-from KratosMultiphysics.CoSimulationApplication import CoSimIO
 
 
 def Create(settings, model, solver_name):
-    print(dir(CoSimIO))
-    raise RuntimeError(1)
     return SU2Wrapper(settings, model, solver_name)
 
 class SU2Wrapper(CoSimulationSolverWrapper):
@@ -30,9 +27,8 @@ class SU2Wrapper(CoSimulationSolverWrapper):
         flow_filename = settings["solver_wrapper_settings"]["input_file"].GetString()
 
         self.MPI = MPI
-        self.comm = MPI.COMM_WORLD			#MPI World communicator
-        self.myid = self.comm.Get_rank()
-
+        self.comm = MPI.COMM_WORLD
+        self.myid = self.comm.Get_rank()        	
         # Initialize the flow driver of SU2, this includes solver preprocessing
 
         self.FlowDriver = pysu2.CSinglezoneDriver(flow_filename, 1, self.comm)
@@ -48,26 +44,20 @@ class SU2Wrapper(CoSimulationSolverWrapper):
 
         # Getting mesh information from SU2 and store it as an Model Part
 
-        self.comm.barrier()
-        local_nodal_coords = np.zeros([self.nVertex_Marker_Flow, 3], dtype=np.float64)
+        local_nodal_coords = []
+        global_id_is_local_node_list = []
         # local_nodal_coords = np.array(self.nVertex_Marker_Flow)
         for node_i in range(self.nVertex_Marker_Flow):
             coords = self.FlowDriver.GetInitialMeshCoord(self.FlowMarkerID, node_i)
-            local_nodal_coords[node_i, 0] = coords[0]
-            local_nodal_coords[node_i, 1] = coords[1]
-            local_nodal_coords[node_i, 2] = coords[2]
-        
-        # print(f"myid is {self.myid}, local_nodal_coords = {local_nodal_coords}")
-
+            local_nodal_coords.append(coords)
+            is_local = not self.FlowDriver.IsAHaloNode(self.FlowMarkerID, node_i)
+            global_id = self.FlowDriver.GetVertexGlobalIndex(self.FlowMarkerID, node_i)
+            global_id_is_local_node_list.append([global_id, is_local])
 
         self.model_part = self.model.CreateModelPart(FlowMarkerName)
         self.model_part.AddNodalSolutionStepVariable(Kratos.MESH_DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
-        for node_i in range(self.nVertex_Marker_Flow):
-            self.model_part.CreateNewNode(node_i + 1, local_nodal_coords[node_i, 0], local_nodal_coords[node_i, 1], local_nodal_coords[node_i, 2])        
-
-        # model_part_utilities.CreateMainModelPartsFromCouplingDataSettings(self.settings["data"], self.model, self.name)
-        # model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
+        Kratos_CoSim.ModelPartIO.FillCoSimIOModelPart(self.model_part, global_id_is_local_node_list, local_nodal_coords, Kratos.ParallelEnvironment.GetDefaultDataCommunicator())
 
     def SolveSolutionStep(self):
 
@@ -83,16 +73,11 @@ class SU2Wrapper(CoSimulationSolverWrapper):
         Kratos.Expression.VariableExpressionIO.Read(displacements, Kratos.MESH_DISPLACEMENT, True)
         displacement_numpy = displacements.Evaluate()
 
-        for node_i in range(self.nVertex_Marker_Flow):
-            if self.comm.Get_rank() == 0:
-                print("Is Halo", self.FlowDriver.IsAHaloNode(self.FlowMarkerID, node_i))
-            # if self.FlowDriver.IsAHaloNode(self.FlowMarkerID, node_i):
-            #     print("Is Halo", self.FlowDriver.IsAHaloNode(self.FlowMarkerID, node_i))
-            self.FlowDriver.SetMeshDisplacement(self.FlowMarkerID, node_i, displacement_numpy[node_i][0], displacement_numpy[node_i][1], displacement_numpy[node_i][2])
+        for node_i, node in enumerate(self.model_part.Nodes):
+            mesh_displacement = node.GetSolutionStepValue(Kratos.MESH_DISPLACEMENT)
+            self.FlowDriver.SetMeshDisplacement(self.FlowMarkerID, node_i, mesh_displacement[0], mesh_displacement[1], mesh_displacement[2])
         
-        raise RuntimeError(1)
-
-        print(f"myid is {self.myid}, displacement = {displacement_numpy}")
+        print(f"displacement = {displacement_numpy}")
 
         if self.myid == 0:
             print("\n------------------------------ Begin Solver -----------------------------\n")
@@ -106,21 +91,14 @@ class SU2Wrapper(CoSimulationSolverWrapper):
 
         # Recover the flow loads from SU2 and assign it to corresponding Kratos Variable   
         flow_loads = np.zeros([self.nVertex_Marker_Flow, 3], dtype=np.float64)
-        for node_i in range(self.nVertex_Marker_Flow):
+        for node_i, node in enumerate(self.model_part.Nodes):
             vertex_load = self.FlowDriver.GetFlowLoad(self.FlowMarkerID, node_i)
-            flow_loads[node_i, 0] = vertex_load[0]
-            flow_loads[node_i, 1] = vertex_load[1]
-            flow_loads[node_i, 2] = vertex_load[2]     
-
+            node.SetSolutionStepValue(Kratos.REACTION, 0, Kratos.Array3(list(vertex_load)))
+            
         forces = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.CArrayExpressionIO.Read(forces, flow_loads)
-        Kratos.Expression.VariableExpressionIO.Write(forces, Kratos.REACTION, True)
+        Kratos.Expression.VariableExpressionIO.Read(forces, Kratos.REACTION, True)
 
-        temp = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(temp, Kratos.REACTION, True)
-
-        print(f"myid is {self.myid}, local_force = {np.array(flow_loads)}")
-        print(f"myid is {self.myid}, local_force = {temp.Evaluate()}")
+        print(f"local_force = {forces.Evaluate()}")
 
         # for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
         #     data_config = {

@@ -16,11 +16,14 @@
 #include <tuple>
 #include <set>
 #include <algorithm>
+#include <memory>
 
 // Project includes
+#include "containers/model.h"
 #include "includes/data_communicator.h"
 
 // Application includes
+#include "custom_utilities/co_sim_io_conversion_utilities.h"
 #include "custom_external_libraries/CoSimIO/co_sim_io/includes/model_part.hpp"
 
 namespace Kratos
@@ -39,12 +42,14 @@ public:
     ///@{
 
     static void FillCoSimIOModelPart(
-        CoSimIO::ModelPart& rCoSimIOModelPart,
+        ModelPart& rKratosModelPart,
         const std::vector<std::pair<int, bool>>& rNodeIdAndPartitionIdList,
         const std::vector<std::vector<double>>& rNodeCoordinates,
         const DataCommunicator& rDataCommunicator)
     {
         KRATOS_TRY
+
+        CoSimIO::ModelPart co_sim_model_part("dummy");
 
         KRATOS_ERROR_IF_NOT(rNodeIdAndPartitionIdList.size() == rNodeCoordinates.size())
             << "rNodeIdAndPartitionIdList and rNodeCoordinates size mismatch. [ rNodeIdAndPartitionIdList.size() = "
@@ -78,7 +83,7 @@ public:
             const bool is_local = std::get<1>(id_parition_pair);
 
             if (is_local) {
-                rCoSimIOModelPart.CreateNewNode(global_id, node_locations[0], node_locations[1], node_locations[2]);
+                co_sim_model_part.CreateNewNode(global_id, node_locations[0], node_locations[1], node_locations[2]);
             } else {
                 // now get the rank
                 IndexType rank;
@@ -92,9 +97,11 @@ public:
                 KRATOS_ERROR_IF(rank == r_all_global_node_ids.size())
                     << "Global id = " << global_id << " not found in any ranks.\n";
 
-                rCoSimIOModelPart.CreateNewGhostNode(global_id, node_locations[0], node_locations[1], node_locations[2], rank);
+                co_sim_model_part.CreateNewGhostNode(global_id, node_locations[0], node_locations[1], node_locations[2], rank);
             }
         }
+
+        CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_model_part, rKratosModelPart, rDataCommunicator);
 
         KRATOS_CATCH("");
     }
