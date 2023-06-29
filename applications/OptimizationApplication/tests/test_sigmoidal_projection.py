@@ -1,14 +1,6 @@
-
-from abc import ABC
-from abc import abstractmethod
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.KratosUnittest import TestCase
-
-# Import KratosUnittest
-import KratosMultiphysics.KratosUnittest as kratos_unittest
-
 class TestSigmoidalProjection(TestCase):
     @classmethod
     def setUpClass(cls):
