@@ -111,7 +111,9 @@ class MaterialPropertiesControlSystemIdentification(Control):
         num_of_nodes = len(self.model_part.Nodes)
         elements_per_node_list = np.ndarray(num_of_nodes)
 
-        for element in container_expression.GetModelPart().Elements:
+        Kratos.Expression.VariableExpressionIO.Write(container_expression, KratosOA.YOUNG_MODULUS_SENSITIVITY)
+
+        for i, element in enumerate(container_expression.GetModelPart().Elements):
             for node in element.GetNodes():
                 if not hasattr(node, str(kratos_variable)):
                     node.AddDof(kratos_variable)
@@ -119,7 +121,7 @@ class MaterialPropertiesControlSystemIdentification(Control):
         for i in range(self.mapping_options["num_smoothing_iterations"].GetInt()):
             elements_per_node_list *= 0.0
 
-            for element in container_expression.GetModelPart().Elements:
+            for i, element in enumerate(container_expression.GetModelPart().Elements):
                 for node in element.GetNodes():
                     if elements_per_node_list[node.Id-1] == 0:
                         node[kratos_variable] = 0.0
@@ -132,6 +134,10 @@ class MaterialPropertiesControlSystemIdentification(Control):
                     new_stiffness += node[kratos_variable] / elements_per_node_list[node.Id-1]
                 new_stiffness /= len(element.GetNodes())
                 element.SetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY, new_stiffness)
+
+        smoothed_sensitivity_expression = Kratos.Expression.ElementExpression(container_expression.GetModelPart())
+        Kratos.Expression.VariableExpressionIO.Read(smoothed_sensitivity_expression, KratosOA.YOUNG_MODULUS_SENSITIVITY)
+        container_expression.SetExpression(smoothed_sensitivity_expression.GetExpression())
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):

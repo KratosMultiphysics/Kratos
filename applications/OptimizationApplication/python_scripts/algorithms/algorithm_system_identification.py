@@ -111,7 +111,7 @@ class AlgorithmSystemIdentification(Algorithm):
                 damp=0.0,
             )[0]
 
-            search_direction *= 1.0
+            search_direction *= -1.0
 
             # search_direction = gradient_vector.reshape(gradient_vector.shape[0]) / np.max(np.abs(gradient_vector))
 
