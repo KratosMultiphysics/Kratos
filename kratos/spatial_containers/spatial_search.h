@@ -1650,8 +1650,8 @@ public:
     virtual void InitializeBoundingBox(const NodesContainerType& rStructureNodes);
 
     /**
-     * @brief This method allows to initialize the local bounding box (for elements)
      * @param rStructureElements The container of elements
+     * @brief This method allows to initialize the local bounding box (for elements)
      */
     virtual void InitializeBoundingBox(const ElementsContainerType& rStructureElements);
 

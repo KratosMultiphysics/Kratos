@@ -1467,4 +1467,3 @@ void SpatialSearch::InitializeBoundingBox(const ConditionsContainerType& rStruct
 }
 
 }
-
