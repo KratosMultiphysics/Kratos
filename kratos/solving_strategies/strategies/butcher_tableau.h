@@ -125,7 +125,7 @@ public:
         return mA[SubStepIndex - 1].begin();
     }
 
-    RowType::const_iterator GetMatrixRowEnd(const unsigned int SubStepIndex) const
+    RowType::const_iterator GetMatrixRowEnd(const unsigned int SubStepIndex) const noexcept
     {
         return mA[SubStepIndex - 1].begin() + SubStepIndex;
     }
