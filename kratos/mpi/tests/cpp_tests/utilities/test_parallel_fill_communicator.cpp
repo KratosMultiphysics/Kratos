@@ -39,13 +39,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(ParallelFillCommunicatorExecute, KratosMPI
     // Fill the model part
     MPICppTestUtilities::GenerateDistributedBarStructure(r_model_part, r_data_communicator);
 
-    // Compute communicaton plan and fill communicator meshes correctly
-    auto filler = ParallelFillCommunicator(r_model_part, r_data_communicator);
-    filler.Execute();
-
-    // // Debug info
-    // filler.PrintModelPartDebugInfo(r_model_part);
-
     // Check that the communicator is correctly filled
     const auto& r_neighbours_indices = r_model_part.GetCommunicator().NeighbourIndices();
     if (world_size == 1) {

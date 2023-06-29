@@ -170,6 +170,10 @@ void MPICppTestUtilities::GenerateDistributedBarStructure(
             rModelPart.AddElement(Kratos::make_intrusive<Testing::TestBarElement>( 11, pgeom11, p_prop));
         }
     }
+
+    // Compute communicaton plan and fill communicator meshes correctly
+    auto filler = ParallelFillCommunicator(rModelPart, rDataCommunicator);
+    filler.Execute();
 }
 
 /***********************************************************************************/
