@@ -120,7 +120,7 @@ public:
         return {GetMatrixRowBegin(SubStepIndex), GetMatrixRowEnd(GetMatrixRowEnd)};
     }
 
-    RowType::const_iterator GetMatrixRowBegin(const unsigned int SubStepIndex) const
+    RowType::const_iterator GetMatrixRowBegin(const unsigned int SubStepIndex) const noexcept
     {
         return mA[SubStepIndex - 1].begin();
     }
