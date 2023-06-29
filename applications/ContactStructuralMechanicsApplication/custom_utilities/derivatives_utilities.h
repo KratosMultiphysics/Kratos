@@ -110,6 +110,9 @@ public:
     /// The mortar operators
     typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNumNodesMaster>                   MortarConditionMatrices;
 
+    // The threshold coefficient considered for checking
+    static constexpr double CheckThresholdCoefficient = 1.0e-12;
+
     /// Definition of epsilon
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
