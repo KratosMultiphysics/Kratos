@@ -20,6 +20,7 @@
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/mpi_cpp_test_utilities.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
+#include "mpi/utilities/parallel_fill_communicator.h"
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.h"
 
 namespace Kratos
