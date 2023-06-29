@@ -29,16 +29,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GatherModelPartUtilityGatherEntitiesFromOt
     // The model part
     Model current_model;
     ModelPart& r_model_part = current_model.CreateModelPart("Main");
-    
+
     // The data communicator
     const DataCommunicator& r_data_communicator = Testing::GetDefaultDataCommunicator();
 
     // Fill the model part
     MPICppTestUtilities::GenerateDistributedBarStructure(r_model_part, r_data_communicator);
-
-    // Compute communicaton plan and fill communicator meshes correctly
-    auto filler = ParallelFillCommunicator(r_model_part, r_data_communicator);
-    filler.Execute();
 
     // The global pointer commmunicator for nodes
     GlobalPointersVector<Node> global_pointers;
