@@ -68,7 +68,7 @@ public:
 
     /// Pointer definition of GatherModelPartUtility
     KRATOS_CLASS_POINTER_DEFINITION(GatherModelPartUtility);
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -104,6 +104,9 @@ public:
         ModelPart& rDestinationModelPart
         );
 
+    /// Destructor.
+    virtual ~GatherModelPartUtility() = default;
+
     ///@}
     ///@name Operators
     ///@{
@@ -111,7 +114,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief This function gathers the model part on the master rank
      */
