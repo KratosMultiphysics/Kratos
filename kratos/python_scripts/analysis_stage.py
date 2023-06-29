@@ -125,7 +125,7 @@ class AnalysisStage(object):
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
-    def GetFinalData(self):
+    def GetAnalysisStageFinalData(self):
         return {}
 
     def InitializeSolutionStep(self):
