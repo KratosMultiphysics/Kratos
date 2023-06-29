@@ -31,7 +31,7 @@ class KratosGeoMechanicsSolverTests(KratosUnittest.TestCase):
 
         with self.assertRaises(ValueError) as context:
             self.create_solver(Kratos.Model(), parameters)
-        self.assertTrue("Scaling can only be used if rebuild level is 2" in str(context.exception))
+        self.assertTrue("Scaling can only be used if rebuild level is at least equal to 2" in str(context.exception))
 
         # reinitialize parameters
         parameters = geomechanics_solver.GeoMechanicalSolver.GetDefaultParameters()
