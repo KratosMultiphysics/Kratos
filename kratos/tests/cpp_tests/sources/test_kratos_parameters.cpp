@@ -559,6 +559,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
         "double_value": 2.0, // This is comment too, but using another comment
         "bool_value" : true, // This is another comment being meta as realizing that all the possibilities are already check
         "string_value" : "hello",/* This is a nihilist comment about the futile existence of the previous comment as a metacomment */
+        "s_array_value" : ["hello", "world"],
         "vector_value" : [5,3,4],
         "matrix_value" : [[1,2],[3,6]]
     })"); // if you add more values to this, make sure to add the corresponding in the loop
@@ -588,6 +589,12 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsMethods, KratosCoreFastSuite)
             KRATOS_CHECK(tmp[key].IsString());
         } else {
             KRATOS_CHECK_IS_FALSE(tmp[key].IsString());
+        }
+
+        if (key.find("s_array") != std::string::npos) {
+            KRATOS_CHECK(tmp[key].IsStringArray());
+        } else {
+            KRATOS_CHECK_IS_FALSE(tmp[key].IsStringArray());
         }
 
         if (key.find("vector") != std::string::npos) {
@@ -789,6 +796,36 @@ KRATOS_TEST_CASE_IN_SUITE(KratosParametersAddMethods, KratosCoreFastSuite)
     tmp.AddMatrix(key, matrix);
     const auto& A = tmp[key].GetMatrix();
     KRATOS_CHECK_MATRIX_EQUAL(A,matrix);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(KratosParametersIsStringArray, KratosCoreFastSuite)
+{
+    // Read and check Vectors from a Parameters-Object
+    Parameters tmp = Parameters(R"({
+        "valid_string_arrays" : [ ["hello", "world"],
+                                ["array", "string"],
+                                ["true","2","string"]
+        ],
+        "false_string_arrays" : [ [[]],
+                                [[2,3],2],
+                                [2,3,[2]],
+                                ["string",[]],
+                                [{"key":3},"2"],
+                                [2,3,{"key":3}],
+                                [true,"string"],
+                                ["5","string",2]
+        ]
+    })");
+
+    for (std::size_t i = 0;  i < tmp["valid_string_arrays"].size(); ++i) {
+        const auto& valid_vector = tmp["valid_string_arrays"][i];
+        KRATOS_CHECK(valid_vector.IsStringArray());
+    }
+
+    for (std::size_t i = 0;  i < tmp["false_string_arrays"].size(); ++i) {
+        const auto& false_vector = tmp["false_string_arrays"][i];
+        KRATOS_CHECK_IS_FALSE(false_vector.IsStringArray());
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosParametersVectorInterface, KratosCoreFastSuite)

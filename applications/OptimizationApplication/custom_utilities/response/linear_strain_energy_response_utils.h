@@ -14,13 +14,13 @@
 #pragma once
 
 // System includes
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "expression/container_expression.h"
 
 // Application includes
 
@@ -40,20 +40,21 @@ public:
 
     using GeometryType = ModelPart::ElementType::GeometryType;
 
-    using SensitivityFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
+    using PhysicalFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
 
-    using SensitivityVariableModelPartsListMap = std::unordered_map<SensitivityFieldVariableTypes, std::vector<ModelPart*>>;
+    using ContainerExpressionType = std::variant<ContainerExpression<ModelPart::NodesContainerType>::Pointer, ContainerExpression<ModelPart::ConditionsContainerType>::Pointer, ContainerExpression<ModelPart::ElementsContainerType>::Pointer>;
 
     ///@}
     ///@name Static operations
     ///@{
 
-    static double CalculateValue(const std::vector<ModelPart*>& rModelParts);
+    static double CalculateValue(ModelPart& rEvaluatedModelPart);
 
-    static void CalculateSensitivity(
-        ModelPart& rAnalysisModelPart,
-        const std::vector<ModelPart*>& rEvaluatedModelParts,
-        const SensitivityVariableModelPartsListMap& rSensitivityVariableModelPartInfo,
+    static void CalculateGradient(
+        const PhysicalFieldVariableTypes& rPhysicalVariable,
+        ModelPart& rGradientRequiredModelPart,
+        ModelPart& rGradientComputedModelPart,
+        std::vector<ContainerExpressionType>& rListOfContainerExpressions,
         const double PerturbationSize);
 
     ///@}
@@ -69,10 +70,8 @@ private:
         Vector& rX,
         const ProcessInfo& rProcessInfo);
 
-    static double CalculateModelPartValue(ModelPart& rModelPart);
-
     template<class TEntityType>
-    static void CalculateStrainEnergyEntitySemiAnalyticShapeSensitivity(
+    static void CalculateStrainEnergyEntitySemiAnalyticShapeGradient(
         TEntityType& rEntity,
         Vector& rX,
         Vector& rRefRHS,
@@ -82,23 +81,23 @@ private:
         std::vector<std::string>& rModelPartNames,
         const double Delta,
         const IndexType MaxNodeId,
-        const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
+        const Variable<array_1d<double, 3>>& rOutputGradientVariable);
 
-    static void CalculateStrainEnergySemiAnalyticShapeSensitivity(
+    static void CalculateStrainEnergySemiAnalyticShapeGradient(
         ModelPart& rModelPart,
         const double Delta,
-        const Variable<array_1d<double, 3>>& rOutputSensitivityVariable);
+        const Variable<array_1d<double, 3>>& rOutputGradientVariable);
 
-    static void CalculateStrainEnergyLinearlyDependentPropertySensitivity(
+    static void CalculateStrainEnergyLinearlyDependentPropertyGradient(
         ModelPart& rModelPart,
         const Variable<double>& rPrimalVariable,
-        const Variable<double>& rOutputSensitivityVariable);
+        const Variable<double>& rOutputGradientVariable);
 
-    static void CalculateStrainEnergySemiAnalyticPropertySensitivity(
+    static void CalculateStrainEnergySemiAnalyticPropertyGradient(
         ModelPart& rModelPart,
         const double Delta,
         const Variable<double>& rPrimalVariable,
-        const Variable<double>& rOutputSensitivityVariable);
+        const Variable<double>& rOutputGradientVariable);
 
     ///@}
 };
