@@ -157,6 +157,10 @@ const UPwSmallStrainInterfaceElement<2,4> mUPwSmallStrainInterfaceElement2D4N;
 const UPwSmallStrainInterfaceElement<3,6> mUPwSmallStrainInterfaceElement3D6N;
 const UPwSmallStrainInterfaceElement<3,8> mUPwSmallStrainInterfaceElement3D8N;
 
+const UPwSmallStrainInterfaceElement<2,4> mUPwPgSmallStrainInterfaceElement2D4N;
+const UPwSmallStrainInterfaceElement<3,6> mUPwPgSmallStrainInterfaceElement3D6N;
+const UPwSmallStrainInterfaceElement<3,8> mUPwPgSmallStrainInterfaceElement3D8N;
+
 const UPwSmallStrainLinkInterfaceElement<2,4> mUPwSmallStrainLinkInterfaceElement2D4N;
 const UPwSmallStrainLinkInterfaceElement<3,6> mUPwSmallStrainLinkInterfaceElement3D6N;
 const UPwSmallStrainLinkInterfaceElement<3,8> mUPwSmallStrainLinkInterfaceElement3D8N;
