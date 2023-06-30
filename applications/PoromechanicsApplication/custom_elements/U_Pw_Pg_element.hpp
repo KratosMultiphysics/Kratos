@@ -14,7 +14,7 @@
 
 
 #if !defined(KRATOS_U_PW_PG_ELEMENT_H_INCLUDED )
-#define  KRATOS_U_PW_ELEMENT_H_INCLUDED
+#define  KRATOS_U_PW_PG_ELEMENT_H_INCLUDED
 
 // Project includes
 #include "containers/array_1d.h"
