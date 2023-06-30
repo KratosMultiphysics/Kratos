@@ -27,6 +27,7 @@
 #include "custom_strategies/schemes/poro_newmark_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/poro_newmark_quasistatic_damped_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/poro_newmark_dynamic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/poro_newmark_dynamic_U_Pw_Pg_scheme.hpp"
 #include "custom_strategies/schemes/poro_explicit_cd_scheme.hpp"
 #include "custom_strategies/schemes/poro_explicit_vv_scheme.hpp"
 
@@ -54,8 +55,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
     typedef PoroNewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticUPwSchemeType;
-    typedef PoroNewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticDampedUPwSchemeType;
+    typedef PoroNewmarkQuasistaticUPwPgScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticUPwPgSchemeType;
+    typedef PoroNewmarkQuasistaticDampedUPwPgScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticDampedUPwPgSchemeType;
     typedef PoroNewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkDynamicUPwSchemeType;
+    typedef PoroNewmarkDynamicUPwPgScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkDynamicUPwPgSchemeType;
     typedef PoroExplicitCDScheme< SparseSpaceType, LocalSpaceType >  PoroExplicitCDSchemeType;
     typedef PoroExplicitVVScheme< SparseSpaceType, LocalSpaceType >  PoroExplicitVVSchemeType;
 
@@ -76,6 +79,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def( py::init<  double, double, double >());
     py::class_< PoroNewmarkDynamicUPwSchemeType,typename PoroNewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
     (m, "PoroNewmarkDynamicUPwScheme")
+    .def( py::init<  double, double, double >());
+    py::class_< PoroNewmarkQuasistaticUPwPgSchemeType, typename PoroNewmarkQuasistaticUPwPgSchemeType::Pointer, BaseSchemeType >
+    (m, "PoroNewmarkQuasistaticUPwPgScheme")
+    .def( py::init<  double, double, double >());
+    py::class_< PoroNewmarkQuasistaticDampedUPwPgSchemeType, typename PoroNewmarkQuasistaticDampedUPwPgSchemeType::Pointer, BaseSchemeType >
+    (m, "PoroNewmarkQuasistaticDampedUPwPgScheme")
+    .def( py::init<  double, double, double >());
+    py::class_< PoroNewmarkDynamicUPwPgSchemeType,typename PoroNewmarkDynamicUPwPgSchemeType::Pointer, BaseSchemeType >
+    (m, "PoroNewmarkDynamicUPwPgScheme")
     .def( py::init<  double, double, double >());
     py::class_< PoroExplicitCDSchemeType,typename PoroExplicitCDSchemeType::Pointer, BaseSchemeType >
     (m,"PoroExplicitCDScheme")
