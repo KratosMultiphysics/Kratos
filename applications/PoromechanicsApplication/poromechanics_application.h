@@ -39,6 +39,13 @@
 #include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_face_load_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_face_load_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_flux_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_gas_flux_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_face_load_interface_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_flux_interface_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_gas_flux_interface_condition.hpp"
 
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_Pg_small_strain_element.hpp"
