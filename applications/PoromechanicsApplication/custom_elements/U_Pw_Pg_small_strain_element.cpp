@@ -1059,17 +1059,24 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     KRATOS_TRY
 
     //Properties variables
-    const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
-    const double& Porosity = Prop[POROSITY];
-    rVariables.Porosity = Prop[POROSITY];
-    rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
-    rVariables.FluidDensity = Prop[DENSITY_WATER];
-    rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
+    const double& BulkModulusSolid       = Prop[BULK_MODULUS_SOLID];
+    const double& Porosity               = Prop[POROSITY];
+    rVariables.Porosity                  = Prop[POROSITY];
+    rVariables.DynamicViscosityInverse   = 1.0/Prop[DYNAMIC_VISCOSITY];
+    rVariables.WaterDynamicViscosity     = Prop[VISCOSITY_WATER];
+    rVariables.GasDynamicViscosity       = Prop[VISCOSITY_GAS];
+    rVariables.FluidDensity              = Prop[DENSITY_WATER];
+    rVariables.GasDensity                = Prop[DENSITY_GAS];
+    rVariables.GasDiffusionCoefficient   = Prop[GAS_DIFFUSION_COEFF];
+    rVariables.WaterSaturationLaw        = Prop[WATER_SATURATION_LAW];
+    rVariables.ResidualWaterSaturation   = Prop[RESIDUAL_WATER_SATURATION];
+    rVariables.PoreSizeFactor            = Prop[PORE_SIZE_FACTOR];
+    rVariables.GasEntryPressure          = Prop[GAS_ENTRY_PRESSURE];
+    rVariables.BiotCoefficient           = Prop[BIOT_COEFFICIENT];
     rVariables.SolidCompressibilityCoeff = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid;
     rVariables.FluidCompressibilityCoeff = Porosity/Prop[BULK_MODULUS_FLUID];
-    rVariables.GasCompressibilityCoeff = Porosity/Prop[BULK_MODULUS_GAS];
-    rVariables.BiotModulusInverse = rVariables.SolidCompressibilityCoeff + rVariables.FluidCompressibilityCoeff;
+    rVariables.GasCompressibilityCoeff   = Porosity/Prop[BULK_MODULUS_GAS];
+    rVariables.BiotModulusInverse        = rVariables.SolidCompressibilityCoeff + rVariables.FluidCompressibilityCoeff;
 
     //ProcessInfo variables
     rVariables.VelocityCoefficient = CurrentProcessInfo[VELOCITY_COEFFICIENT];
@@ -1608,7 +1615,7 @@ void UPwPgSmallStrainElement::GetCouplingCompressibilityCoefficients(double Cwu,
 
     // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
     if (rVariables.AddGasDiffusion){
-        Cgu += rVariables.HenryCoefficient * rVariables.Sw * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
+        Cgu += rVariables.GasDiffusionCoefficient * rVariables.Sw * (2.0 * rVariables.Porosity - rVariables.BiotCoefficient);
     }
 
 }
@@ -1694,8 +1701,8 @@ void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double 
 
     // Add the parts associated with the diffusion of the gas into the liquid phase, in case it is being considered
     if (Variables.AddGasDiffusion){
-        Cgw += -Variables.HenryCoefficient * (Ms * Sw * (Sw + pc * dSwdpc) + dSwdpc * Phi);
-        Cgg += -Variables.HenryCoefficient * (Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi - Sw * Mg);
+        Cgw += -Variables.GasDiffusionCoefficient * (Ms * Sw * (Sw + pc * dSwdpc) + dSwdpc * Phi);
+        Cgg += -Variables.GasDiffusionCoefficient * (Ms * Sw * (Sg - pc * dSwdpc) + dSwdpc * Phi - Sw * Mg);
     }
 
 }
