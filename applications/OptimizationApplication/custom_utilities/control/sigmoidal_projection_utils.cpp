@@ -19,7 +19,6 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "optimization_application_variables.h"
 
 // Include base h
 #include "sigmoidal_projection_utils.h"
