@@ -19,9 +19,6 @@
 #include "expression/unary_combine_expression.h"
 #include "expression/unary_reshape_expression.h"
 #include "expression/unary_slice_expression.h"
-#include "expression/literal_expression.h"
-#include "expression/literal_flat_expression.h"
-#include "expression/c_array_expression_io.h"
 #include "expression/arithmetic_operators.h"
 #include "expression/view_operators.h"
 
@@ -116,48 +113,6 @@ const ModelPart::ElementsContainerType& GetContainer<ModelPart::ElementsContaine
     return rMesh.Elements();
 }
 
-template <class TRawDataType, class TContainerExpressionType>
-void Read(
-    TContainerExpressionType& rContainerExpression,
-    TRawDataType const* pBegin,
-    const int NumberOfEntities,
-    int const* pShapeBegin,
-    const int ShapeSize)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(static_cast<unsigned int>(NumberOfEntities) == rContainerExpression.GetContainer().size())
-        << "Number of entities does not match with the local container size. [ "
-           "NumberOfEntities = "
-        << NumberOfEntities
-        << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
-
-    rContainerExpression.SetExpression(CArrayExpressionIO::Input(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
-
-    KRATOS_CATCH("");
-}
-
-template <class TRawDataType, class TContainerExpressionType>
-void MoveFrom(
-    TContainerExpressionType& rContainerExpression,
-    TRawDataType* pBegin,
-    const int NumberOfEntities,
-    int const* pShapeBegin,
-    const int ShapeSize)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(static_cast<unsigned int>(NumberOfEntities) == rContainerExpression.GetContainer().size())
-        << "Number of entities does not match with the local container size. [ "
-           "NumberOfEntities = "
-        << NumberOfEntities
-        << ", local container size = " << rContainerExpression.GetContainer().size() << " ].\n";
-
-    rContainerExpression.SetExpression(CArrayExpressionIO::MoveInput(pBegin, NumberOfEntities, pShapeBegin, ShapeSize).Execute());
-
-    KRATOS_CATCH("");
-}
-
 } // namespace ContainerExpressionHelperUtilities
 
 template <class TContainerType, MeshType TMeshType>
@@ -201,72 +156,6 @@ void ContainerExpression<TContainerType, TMeshType>::CopyFrom(
 }
 
 template <class TContainerType, MeshType TMeshType>
-void ContainerExpression<TContainerType, TMeshType>::Read(
-    double const* pBegin,
-    const int NumberOfEntities,
-    int const* pShapeBegin,
-    const int ShapeSize)
-{
-    ContainerExpressionHelperUtilities::Read(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
-}
-
-template <class TContainerType, MeshType TMeshType>
-void ContainerExpression<TContainerType, TMeshType>::Read(
-    int const* pBegin,
-    const int NumberOfEntities,
-    int const* pShapeBegin,
-    const int ShapeSize)
-{
-    ContainerExpressionHelperUtilities::Read(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
-}
-
-template <class TContainerType, MeshType TMeshType>
-void ContainerExpression<TContainerType, TMeshType>::MoveFrom(
-    double* pBegin,
-    const int NumberOfEntities,
-    int const* pShapeBegin,
-    const int ShapeSize)
-{
-    ContainerExpressionHelperUtilities::MoveFrom(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
-}
-
-template <class TContainerType, MeshType TMeshType>
-void ContainerExpression<TContainerType, TMeshType>::MoveFrom(
-    int* pBegin,
-    const int NumberOfEntities,
-    int const* pShapeBegin,
-    const int ShapeSize)
-{
-    ContainerExpressionHelperUtilities::MoveFrom(*this, pBegin, NumberOfEntities, pShapeBegin, ShapeSize);
-}
-
-template <class TContainerType, MeshType TMeshType>
-void ContainerExpression<TContainerType, TMeshType>::Evaluate(
-    double* pBegin,
-    const int NumberOfEntities,
-    int const* pShapeBegin,
-    const int ShapeSize) const
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(static_cast<unsigned int>(NumberOfEntities) == this->GetContainer().size())
-        << "Number of entities does not match with the local container size. [ "
-           "NumberOfEntities = "
-        << NumberOfEntities
-        << ", local container size = " << this->GetContainer().size() << " ].\n";
-
-    CArrayExpressionIO::Output(pBegin, NumberOfEntities * std::accumulate(pShapeBegin, pShapeBegin+ShapeSize, 1, [](const int V1, const int V2) { return V1 * V2; })).Execute(**this->mpExpression);
-
-    KRATOS_CATCH("");
-}
-
-template <class TContainerType, MeshType TMeshType>
-void ContainerExpression<TContainerType, TMeshType>::SetDataToZero()
-{
-    mpExpression = LiteralExpression<double>::Create(0.0, GetContainer().size());
-}
-
-template <class TContainerType, MeshType TMeshType>
 void ContainerExpression<TContainerType, TMeshType>::SetExpression(Expression::ConstPointer pExpression)
 {
     KRATOS_ERROR_IF(pExpression.get() == nullptr)
@@ -289,14 +178,14 @@ bool ContainerExpression<TContainerType, TMeshType>::HasExpression() const
 template <class TContainerType, MeshType TMeshType>
 const Expression& ContainerExpression<TContainerType, TMeshType>::GetExpression() const
 {
-    return *(*mpExpression);
+    return *mpExpression.value();
 }
 
 
 template <class TContainerType, MeshType TMeshType>
 Expression::ConstPointer ContainerExpression<TContainerType, TMeshType>::pGetExpression() const
 {
-    return *mpExpression;
+    return mpExpression.value();
 }
 
 template <class TContainerType, MeshType TMeshType>
@@ -495,7 +384,7 @@ KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power)
     ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& ContainerExpression<CONTAINER_TYPE, MESH_TYPE>::OPERATOR_NAME( \
         const double Value)                                                                                        \
     {                                                                                                              \
-        this->mpExpression = EXPRESSION_OPERATOR_NAME(*this->mpExpression, Value);                                 \
+        this->mpExpression = EXPRESSION_OPERATOR_NAME(this->mpExpression.value(), Value);                          \
         return *this;                                                                                              \
     }                                                                                                              \
     template <>                                                                                                    \
@@ -503,7 +392,7 @@ KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power)
         const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& Value)                                               \
     {                                                                                                              \
         this->mpExpression =                                                                                       \
-            EXPRESSION_OPERATOR_NAME(*this->mpExpression, Value.pGetExpression());                                 \
+            EXPRESSION_OPERATOR_NAME(this->mpExpression.value(), Value.pGetExpression());                          \
         return *this;                                                                                              \
     }
 
@@ -539,7 +428,7 @@ KRATOS_DEFINE_BINARY_CONTAINER_EXPRESSION_OPERATOR(Power)
         const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>& rScaling)                                    \
     {                                                                                                      \
         this->mpExpression =                                                                               \
-            Kratos::Scale(*this->mpExpression, rScaling.pGetExpression());                                 \
+            Kratos::Scale(this->mpExpression.value(), rScaling.pGetExpression());                          \
         return *this;                                                                                      \
     }
 

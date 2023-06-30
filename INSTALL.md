@@ -205,6 +205,8 @@ Then, these scripts can be launched through the system terminal.
 sh /path_to_kratos/scripts/configure.sh
 ```
 
+**NOTE**: In case the compiler runs out of memory, try increasing the swap size to at least 16 GB and re-starting the compilation process.
+
 *Windows*
 
 ```Shell
