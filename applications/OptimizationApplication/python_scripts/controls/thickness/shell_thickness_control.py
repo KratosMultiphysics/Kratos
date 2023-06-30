@@ -121,7 +121,9 @@ class ShellThicknessControl(Control):
 
         self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
 
-        self.fixed_model_parts_and_thicknesses = self.parameters["fixed_model_parts_and_thicknesses"]
+        self.fixed_model_parts_and_thicknesses: 'dict[str, float]' = {}
+        for model_part_name, thickness_params in self.parameters["fixed_model_parts_and_thicknesses"].items():
+            self.fixed_model_parts_and_thicknesses[model_part_name] = thickness_params.GetDouble()
 
         if not all(entry.GetDouble() in self.physical_thicknesses for entry in self.fixed_model_parts_and_thicknesses.values()):
             raise RuntimeError("fixed_model_parts_thicknesses should exist in physical_thicknesses !")
@@ -156,10 +158,10 @@ class ShellThicknessControl(Control):
         self._UpdateAndOutputFields()
         self.is_initialized = True
 
-    def Check(self):
+    def Check(self) -> None:
         return self.filter.Check()
 
-    def Finalize(self):
+    def Finalize(self) -> None:
         return self.filter.Finalize()
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
@@ -210,7 +212,7 @@ class ShellThicknessControl(Control):
                 return True
         return False
 
-    def _UpdateAndOutputFields(self):
+    def _UpdateAndOutputFields(self) -> None:
         # apply boundary conditions for the forward filtering
         self._SetFixedModelPartValues()
         # filter the control field
@@ -242,9 +244,7 @@ class ShellThicknessControl(Control):
             un_buffered_data.SetValue("projection_derivative", self.projection_derivative_field.Clone(),overwrite=self.is_initialized)
 
     def _SetFixedModelPartValues(self, is_backward = False) -> None:
-        for index in range(len(self.fixed_model_parts_and_thicknesses.keys())):
-            model_parts_name = self.fixed_model_parts_and_thicknesses.keys()[index]
-            model_parts_thickness = self.fixed_model_parts_and_thicknesses.values()[index].GetDouble()
+        for model_parts_name, model_parts_thickness in self.fixed_model_parts_and_thicknesses.items():
             if is_backward:
                 model_parts_thickness = 0.0
             field =  Kratos.Expression.NodalExpression(self.model[model_parts_name])
