@@ -549,7 +549,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) //override
     {
         KRATOS_TRY
 
@@ -591,7 +591,7 @@ public:
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) //override
     {
 
         KRATOS_TRY
@@ -632,7 +632,7 @@ public:
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) //override
     {
 
 
@@ -679,7 +679,7 @@ public:
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo) //See in ContactMechApp/custom_strategies/schemes, is the same, is not override anymore
     {
         KRATOS_TRY
 
@@ -721,7 +721,7 @@ public:
     void GetElementalDofList(
         Element::Pointer rCurrentElement,
         Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& CurrentProcessInfo) override
+        ProcessInfo& CurrentProcessInfo) //override
     {
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }
@@ -733,7 +733,7 @@ public:
     void GetConditionDofList(
         Condition::Pointer rCurrentCondition,
         Element::DofsVectorType& ConditionDofList,
-        const ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) //override
     {
         rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }
