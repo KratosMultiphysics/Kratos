@@ -7,7 +7,7 @@ from KratosMultiphysics.model_parameters_factory import KratosModelParametersFac
 
 class MultistageOrchestrator():
 
-    def __init__(self, settings) -> None:
+    def __init__(self, settings : KratosMultiphysics.Parameters) -> None:
         """Base class for multistage orchestrators
         
         Member variables:
@@ -29,7 +29,7 @@ class MultistageOrchestrator():
         err_msg = "Calling base MultistageOrchestrator Run() method. This must be implemented in derived orchestrators."
         raise NotImplementedError (err_msg)
 
-    def CheckStageSettings(self, stage_name):
+    def CheckStageSettings(self, stage_name : str):
         """Check the settings for the given stage name
         
         This methods performs the check of the given stage name settings.
@@ -43,7 +43,7 @@ class MultistageOrchestrator():
                 err_msg += " Place the 'modelers' section in the next stage 'stage_preprocess'."
                 raise Exception(err_msg)
 
-    def CreateStage(self, stage_name):
+    def CreateStage(self, stage_name : str):
         """This method creates a stage instance
 
         Given a stage name, this method creates the corresponding stage instance from the "analysis_stage" registry entry in the settings.
@@ -114,7 +114,7 @@ class MultistageOrchestrator():
         
         return stage_instance
 
-    def RunCurrentStagePreprocess(self, stage_name, data=None):
+    def RunCurrentStagePreprocess(self, stage_name : str, data=None):
         """This function executes the preprocess of current stage.
 
         Note that the stage preprocess involves the execution of modelers and operations.
@@ -140,7 +140,7 @@ class MultistageOrchestrator():
                     operation.Execute()
                 del operations_list
 
-    def RunCurrentStagePostprocess(self, stage_name, data=None):
+    def RunCurrentStagePostprocess(self, stage_name : str, data=None):
         """This function executes the postprocessing of current stage.
         
         Note that the stage postprocess deliberately involves operations only.
@@ -161,7 +161,7 @@ class MultistageOrchestrator():
 
         return self.project
    
-    def __GetModelers(self, stage_name):
+    def __GetModelers(self, stage_name : str):
         """This method creates the modelers at the preprocess execution point."""
 
         execution_point_settings = self.settings["stages"][stage_name]["stage_preprocess"]
@@ -169,7 +169,7 @@ class MultistageOrchestrator():
         factory = KratosModelParametersFactory(self.project.GetModel())
         return factory.ConstructListOfItems(execution_point_settings["modelers"])
 
-    def __GetOperations(self, execution_point, stage_name):
+    def __GetOperations(self, execution_point : str, stage_name : str):
         """This method creates the operations at any execution point."""
 
         if execution_point not in ["stage_preprocess","stage_postprocess"]:

@@ -3,7 +3,7 @@ from KratosMultiphysics.multistage_orchestrators.multistage_orchestrator import 
 
 class SequentialMultistageOrchestrator(MultistageOrchestrator):
 
-    def __init__(self, settings) -> None:
+    def __init__(self, settings : KratosMultiphysics.Parameters) -> None:
         super().__init__(settings)
 
     def Run(self):

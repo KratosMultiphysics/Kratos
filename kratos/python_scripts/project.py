@@ -9,9 +9,15 @@ import KratosMultiphysics
 class Project:
 
     def __init__(self) -> None:
-        '''
+        '''Kratos Multiphysics multistage project container
+
+        This class has two main purposes. First one is to hold the multistage components (output data, active stages and model)
+        Second one is to perform the checkpoint save and load operations.
         
-        Explain the members
+        Member variables:
+        output_data -- Dictionary containing the stages data retrieved from GetAnalysisStageFinalData
+        active_stages -- Dictionary containing the active (alive) stage instances
+        model -- Model instance
         '''
 
         self.output_data = {}
@@ -19,9 +25,11 @@ class Project:
         self.model = KratosMultiphysics.Model()
 
     def GetModel(self):
+        '''Returns the current multistage simulation model.'''
+
         return self.model
     
-    def AddActiveStage(self, stage_name, stage_instance):
+    def AddActiveStage(self, stage_name : str, stage_instance):
         '''Adds the provided stage instance to the active stages dictionary.'''
 
         if self.active_stages.has_key(stage_name):
@@ -29,12 +37,12 @@ class Project:
             raise Exception(err_msg)
         self.active_stages[stage_name] = stage_instance
 
-    def RemoveActiveStage(self, stage_name):
+    def RemoveActiveStage(self, stage_name : str):
         '''Removes an active stage instance from the current stages dictionary.'''
 
         del self.active_stages[stage_name]
 
-    def Save(self, save_folder_name, file_name):
+    def Save(self, save_folder_name : str, file_name : str):
         '''Saves the Project current status.'''
 
         # Set the list of modules (Kratos and non-Kratos) that have been added up to current save
@@ -64,7 +72,7 @@ class Project:
                 "required_modules" : required_modules
             }, checkpoint_file, protocol=2)
    
-    def Load(self, loading_point):
+    def Load(self, loading_point : str):
         '''Loads a saved Project status into current one.'''
 
         # Load save path file
