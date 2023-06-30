@@ -41,6 +41,7 @@
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
 
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_Pg_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
