@@ -14,13 +14,10 @@
 #pragma once
 
 // System includes
-#include <variant>
 #include <vector>
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "spatial_containers/spatial_containers.h"
 #include "expression/container_expression.h"
 
 // Application includes
