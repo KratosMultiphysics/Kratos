@@ -93,6 +93,13 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_3D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_load_3D_diff_order_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_face_load_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_face_load_interface_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_face_load_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_flux_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/multiphase_flow/U_Pw_Pg_normal_flux_interface_condition.cpp
+    
 )
 
 ## Define python interface sources
