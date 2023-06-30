@@ -18,7 +18,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_conditions/U_Pw_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_condition.hpp"
 #include "custom_utilities/interface_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
@@ -26,12 +26,12 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwFaceLoadInterfaceCondition : public UPwCondition<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPwPgFaceLoadInterfaceCondition : public UPwPgCondition<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwFaceLoadInterfaceCondition );
+    KRATOS_CLASS_POINTER_DEFINITION( UPwPgFaceLoadInterfaceCondition );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -40,25 +40,25 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
+    using UPwPgCondition<TDim,TNumNodes>::mThisIntegrationMethod;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwFaceLoadInterfaceCondition() : UPwCondition<TDim,TNumNodes>() {}
+    UPwPgFaceLoadInterfaceCondition() : UPwPgCondition<TDim,TNumNodes>() {}
 
     // Constructor 1
-    UPwFaceLoadInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwPgFaceLoadInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwPgCondition<TDim,TNumNodes>(NewId, pGeometry) {}
 
     // Constructor 2
-    UPwFaceLoadInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
+    UPwPgFaceLoadInterfaceCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwPgCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties)
     {
         // Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     }
 
     // Destructor
-    ~UPwFaceLoadInterfaceCondition() override {}
+    ~UPwPgFaceLoadInterfaceCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
 
-}; // class UPwFaceLoadInterfaceCondition.
+}; // class UPwPgFaceLoadInterfaceCondition.
 
 } // namespace Kratos.
 
