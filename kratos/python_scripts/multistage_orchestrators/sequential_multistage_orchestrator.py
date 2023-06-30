@@ -1,7 +1,7 @@
 import KratosMultiphysics
-from KratosMultiphysics.multistage_orquestrators.multistage_orquestrator import MultistageOrchestrator
+from KratosMultiphysics.multistage_orchestrators.multistage_orchestrator import MultistageOrchestrator
 
-class SequentialMultistageOrquestrator(MultistageOrchestrator):
+class SequentialMultistageOrchestrator(MultistageOrchestrator):
 
     def __init__(self, settings) -> None:
         super().__init__(settings)
@@ -16,8 +16,12 @@ class SequentialMultistageOrquestrator(MultistageOrchestrator):
         # Check if loading from checkpoint is required and load
         if self.settings["orchestrator"]["settings"].Has("load_from_checkpoint"):
             if not self.settings["orchestrator"]["settings"]["load_from_checkpoint"].IsNull():
-                loading_point = self.settings["orchestrator"]["settings"]["load_from_checkpoint"].GetString()
-                self.GetProject().Load(loading_point)
+                if not self.settings["orchestrator"]["settings"]["load_from_checkpoint"].IsString():
+                    err_msg = "'load_from_checkpoint' is expected to be null or a string with the loading point."
+                    raise TypeError(err_msg)
+                else:
+                    loading_point = self.settings["orchestrator"]["settings"]["load_from_checkpoint"].GetString()
+                    self.GetProject().Load(loading_point)
 
         # Run the stages list
         for stage_name in self.__GetExecutionList():
