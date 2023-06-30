@@ -144,9 +144,14 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 
             DecompositionType decomp_geom( points_array );
 
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            bool bad_shape;
+            if constexpr (TDim == 2) {
+                bad_shape = MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * CheckThresholdCoefficient);
+            } else { 
+                bad_shape = MortarUtilities::HeronCheck(decomp_geom);
+            }
 
-            if (bad_shape == false) {
+            if (!bad_shape) {
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
 
                 // Integrating the mortar operators
@@ -433,9 +438,14 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 
         DecompositionType decomp_geom( points_array );
 
-        const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+        bool bad_shape;
+        if constexpr (TDim == 2) {
+            bad_shape = MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * CheckThresholdCoefficient);
+        } else { 
+            bad_shape = MortarUtilities::HeronCheck(decomp_geom);
+        }
 
-        if (bad_shape == false) {
+        if (!bad_shape) {
             const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
 
             // Integrating the mortar operators
