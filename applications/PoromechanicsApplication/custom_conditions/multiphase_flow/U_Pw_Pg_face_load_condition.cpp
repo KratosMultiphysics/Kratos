@@ -19,15 +19,15 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer UPwFaceLoadCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer UPwPgFaceLoadCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new UPwFaceLoadCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new UPwPgFaceLoadCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwPgFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
@@ -64,14 +64,14 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandS
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
-        PoroConditionUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
+        PoroConditionUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,UVector);
     }
 }
 
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight)
+void UPwPgFaceLoadCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight)
 {
     double dx_dxi = Jacobian(0,0);
     double dy_dxi = Jacobian(1,0);
@@ -84,7 +84,7 @@ void UPwFaceLoadCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegra
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadCondition<3,3>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight)
+void UPwPgFaceLoadCondition<3,3>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight)
 {
     double NormalVector[3];
 
@@ -102,7 +102,7 @@ void UPwFaceLoadCondition<3,3>::CalculateIntegrationCoefficient(double& rIntegra
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadCondition<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight)
+void UPwPgFaceLoadCondition<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight)
 {
     double NormalVector[3];
 
@@ -119,8 +119,8 @@ void UPwFaceLoadCondition<3,4>::CalculateIntegrationCoefficient(double& rIntegra
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwFaceLoadCondition<2,2>;
-template class UPwFaceLoadCondition<3,3>;
-template class UPwFaceLoadCondition<3,4>;
+template class UPwPgFaceLoadCondition<2,2>;
+template class UPwPgFaceLoadCondition<3,3>;
+template class UPwPgFaceLoadCondition<3,4>;
 
 } // Namespace Kratos.
