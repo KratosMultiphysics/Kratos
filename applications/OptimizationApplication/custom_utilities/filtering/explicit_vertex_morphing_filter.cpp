@@ -133,7 +133,7 @@ void ComputeWeightForAllNeighbors(
     Expression const * const pExpression)
 {
     for (IndexType i = 0; i < NumberOfNeighbours; ++i) {
-        const double domain_size = GetDomainSize(rDesignPoint, pExpression);
+        const double domain_size = GetDomainSize(*rNeighbourNodes[i], pExpression);
         const double filter_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rNeighbourNodes[i]->Coordinates(), VertexMorphingRadius);
 
         rListOfWeights[i] = TWeightComputationType::Compute(filter_weight, domain_size);
