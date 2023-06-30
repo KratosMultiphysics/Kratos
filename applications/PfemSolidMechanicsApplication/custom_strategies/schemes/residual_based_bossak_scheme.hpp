@@ -345,7 +345,7 @@ public:
 
             for (ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)
             {
-                itElem->Initialize(); //function to initialize the element
+                itElem->Initialize(rModelPart.GetProcessInfo()); //function to initialize the element
             }
 
         }
@@ -382,7 +382,7 @@ public:
 
             for (ConditionsArrayType::iterator itCond = CondBegin; itCond != CondEnd; itCond++)
             {
-                itCond->Initialize(); //function to initialize the condition
+                itCond->Initialize(rModelPart.GetProcessInfo()); //function to initialize the condition
             }
 
         }
