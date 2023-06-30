@@ -5,38 +5,38 @@
 //   Revision:            $Revision:                 1.0 $
 //
 
-#if !defined(KRATOS_LINE_NORMAL_FLUID_FLUX_2D_DIFF_ORDER_CONDITION_H_INCLUDED )
-#define  KRATOS_LINE_NORMAL_FLUID_FLUX_2D_DIFF_ORDER_CONDITION_H_INCLUDED
+#if !defined(KRATOS_LINE_NORMAL_GAS_FLUX_2D_DIFF_ORDER_CONDITION_H_INCLUDED )
+#define  KRATOS_LINE_NORMAL_GAS_FLUX_2D_DIFF_ORDER_CONDITION_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_conditions/multiphase_flow/general_U_Pw_Pg_diff_order_condition.hpp"
 
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(POROMECHANICS_APPLICATION) LineNormalFluidFlux2DDiffOrderCondition : public GeneralUPwDiffOrderCondition
+class KRATOS_API(POROMECHANICS_APPLICATION) LineNormalGasFlux2DDiffOrderCondition : public GeneralUPwPgDiffOrderCondition
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( LineNormalFluidFlux2DDiffOrderCondition );
+    KRATOS_CLASS_POINTER_DEFINITION( LineNormalGasFlux2DDiffOrderCondition );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    LineNormalFluidFlux2DDiffOrderCondition();
+    LineNormalGasFlux2DDiffOrderCondition();
     
     // Constructor 1
-    LineNormalFluidFlux2DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    LineNormalGasFlux2DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
     // Constructor 2
-    LineNormalFluidFlux2DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    LineNormalGasFlux2DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     // Destructor
-    ~LineNormalFluidFlux2DDiffOrderCondition() override;
+    ~LineNormalGasFlux2DDiffOrderCondition() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -66,16 +66,16 @@ private:
     
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeneralUPwPgDiffOrderCondition )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeneralUPwPgDiffOrderCondition )
     }
     
-}; // class LineNormalFluidFlux2DDiffOrderCondition.
+}; // class LineNormalGasFlux2DDiffOrderCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_LINE_NORMAL_FLUID_FLUX_2D_DIFF_ORDER_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_LINE_NORMAL_GAS_FLUX_2D_DIFF_ORDER_CONDITION_H_INCLUDED defined 
