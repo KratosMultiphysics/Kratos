@@ -11,6 +11,8 @@
 //
 
 // System includes
+#include <string>
+#include <type_traits>
 
 // External includes
 #include <pybind11/stl.h>
@@ -26,22 +28,34 @@
 namespace Kratos {
 namespace Python {
 
-void  AddCustomControlUtilitiesToPython(pybind11::module& m)
+namespace detail
+{
+template <class TContainerType>
+void AddSigmoidalProjectionUtils(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    m.def_submodule("SigmoidalProjectionUtils")
-        .def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward<ModelPart::NodesContainerType>)
-        .def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward<ModelPart::ConditionsContainerType>)
-        .def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward<ModelPart::ElementsContainerType>)
-        .def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<ModelPart::NodesContainerType>)
-        .def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<ModelPart::ConditionsContainerType>)
-        .def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<ModelPart::ElementsContainerType>)
-        .def("ComputeFirstDerivative", &SigmoidalProjectionUtils::ComputeFirstDerivative<ModelPart::NodesContainerType>)
-        .def("ComputeFirstDerivative", &SigmoidalProjectionUtils::ComputeFirstDerivative<ModelPart::ConditionsContainerType>)
-        .def("ComputeFirstDerivative", &SigmoidalProjectionUtils::ComputeFirstDerivative<ModelPart::ElementsContainerType>)
-        ;
+    std::string container_type;
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        container_type = "nodal_expression";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        container_type = "condition_expression";
+    } else {
+        container_type = "element_expression";
+    }
 
+    m.def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    m.def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    m.def("ComputeFirstDerivative", &SigmoidalProjectionUtils::ComputeFirstDerivative<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+}
+} // namespace detail
+
+void  AddCustomControlUtilitiesToPython(pybind11::module& m)
+{
+    auto module = m.def_submodule("SigmoidalProjectionUtils");
+    detail::AddSigmoidalProjectionUtils<ModelPart::NodesContainerType>(module);
+    detail::AddSigmoidalProjectionUtils<ModelPart::ConditionsContainerType>(module);
+    detail::AddSigmoidalProjectionUtils<ModelPart::ElementsContainerType>(module);
 }
 
 }  // namespace Python.
