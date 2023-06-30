@@ -279,9 +279,36 @@ private:
 
 }; // Class GatherModelPartUtility
 
+///@}
+///@name Type Definitions
+///@{
+
 extern template void GatherModelPartUtility::GatherOnMaster(const Variable<double>&);
 extern template void GatherModelPartUtility::GatherOnMaster(const Variable<array_1d<double, 3>>&);
 extern template void GatherModelPartUtility::ScatterFromMaster(const Variable<double>&);
 extern template void GatherModelPartUtility::ScatterFromMaster(const Variable<array_1d<double, 3>>&);
+
+///@}
+///@name Input and output
+///@{
+
+/// input stream function
+inline std::istream & operator >>(std::istream& rIStream,
+                                  GatherModelPartUtility& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+inline std::ostream & operator <<(std::ostream& rOStream,
+                                  const GatherModelPartUtility& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 } // namespace Kratos.

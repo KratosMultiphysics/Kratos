@@ -88,6 +88,7 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
         .def_static("GatherNodesFromOtherPartitions", &GatherModelPartUtility::GatherNodesFromOtherPartitions)
         .def_static("GatherElementsFromOtherPartitions", &GatherModelPartUtility::GatherElementsFromOtherPartitions)
         .def_static("GatherConditionsFromOtherPartitions", &GatherModelPartUtility::GatherConditionsFromOtherPartitions)
+        .def("__str__", PrintObject<GatherModelPartUtility>)
         ;
 
     py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils")
