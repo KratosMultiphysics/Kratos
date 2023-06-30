@@ -130,6 +130,11 @@ endif()
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
 
+# Precompile most demanding / widely included headers
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosCore PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/includes/model_part.h>")
+endif(KRATOS_USE_PCH MATCHES ON)
+
 # Pass python version flags ONLY TO THE INTERFACE
 target_compile_definitions(Kratos PRIVATE
     PYTHON_VERSION_MAJOR=${PYTHON_VERSION_MAJOR}

@@ -76,6 +76,7 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     ;
 
     py::class_<GatherModelPartUtility>(m, "GatherModelPartUtility")
+        .def(py::init<int, ModelPart&, ModelPart&>())
         .def(py::init<int, ModelPart&, int, ModelPart&>())
         .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<double>)
         .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<array_1d<double, 3>>)
