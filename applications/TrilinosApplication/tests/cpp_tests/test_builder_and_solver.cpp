@@ -340,6 +340,7 @@ namespace Kratos::Testing
         auto p_prop = rModelPart.pGetProperties(1, 0);
         p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
         p_prop->SetValue(NODAL_AREA, 0.01);
+      
         /// Add dof
         for (auto& r_node : rModelPart.Nodes()) {
             r_node.AddDof(DISPLACEMENT_X, REACTION_X);
