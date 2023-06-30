@@ -31,7 +31,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         default_settings = Kratos.Parameters("""{
             "primal_analysis_name"           : "",
             "measurement_data_file"          : "MeasurementData.json",
-            "measurement_standard_deviation"  : 1,
+            "measurement_standard_deviation"  : 1.0,
             "perturbation_size"              : 1e-8,
             "adjoint_analysis_settings_file_name": "adjoint_parameters.json",
             "evaluated_model_part_names"     : [
@@ -139,7 +139,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
 
             self.adjoint_model = Kratos.Model()
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
-            adjoint_model_part = adjoint_analysis._GetSolver().GetComputingModelPart()
+            adjoint_model_part: Kratos.ModelPart = adjoint_analysis._GetSolver().GetComputingModelPart()
 
             adjoint_analysis.Initialize()
 
@@ -149,7 +149,6 @@ class MeasurementResidualResponseFunction(ResponseFunction):
             # read primal E
             primal_youngs_modulus = Kratos.Expression.ElementExpression(self.model_part)
             KratosOA.PropertiesVariableExpressionIO.Read(primal_youngs_modulus, Kratos.YOUNG_MODULUS)
-            # print("primal_youngs_modulus", primal_youngs_modulus.Evaluate())
 
             # assign primal E to adjoint
             adjoint_young_modulus = Kratos.Expression.ElementExpression(adjoint_model_part)
@@ -160,7 +159,6 @@ class MeasurementResidualResponseFunction(ResponseFunction):
             adjoint_analysis.Finalize()
 
             # now fill the collective expressions
-
             for expression in collective_expression.GetContainerExpressions():
                 if isinstance(expression, Kratos.Expression.ElementExpression):
                     adjoint_young_modulus_sensitivity = Kratos.Expression.ElementExpression(adjoint_model_part)

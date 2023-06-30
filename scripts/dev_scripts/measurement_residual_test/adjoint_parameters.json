@@ -25,7 +25,7 @@
       "response_part_name": "all_nodes_elements_model_part",
       "direction": [0.0, 1.0, 0.0],
       "traced_dof": "DISPLACEMENT",
-      "measurement_file_name": "MeasurementData.json"
+      "measurement_file_name": "MeasurementData_right_half.json"
     },
     "sensitivity_settings": {
       "sensitivity_model_part_name": "all_nodes_elements_model_part",

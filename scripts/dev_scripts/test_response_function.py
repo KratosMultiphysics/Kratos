@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
-from KratosMultiphysics.OptimizationApplication.responses.measurement_likelihood_response_function import MeasurementLikelihoodResponseFunction
+from KratosMultiphysics.OptimizationApplication.responses.measurement_residual_response_function import MeasurementResidualResponseFunction
 
 model = Kratos.Model()
 optimization_problem = OptimizationProblem()
@@ -41,9 +41,10 @@ with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
     response_function_settings = Kratos.Parameters("""{
             "evaluated_model_part_names": ["Structure"],
             "primal_analysis_name"      : "primal_analysis",
-            "perturbation_size"         : 1e-8
+            "perturbation_size"         : 1e-8,
+            "measurement_data_file": "MeasurementData_right_half.json"
         }""")
-    response_function: MeasurementLikelihoodResponseFunction = MeasurementLikelihoodResponseFunction("measurement_residual", model, response_function_settings, optimization_problem)
+    response_function: MeasurementResidualResponseFunction = MeasurementResidualResponseFunction("measurement_residual", model, response_function_settings, optimization_problem)
     optimization_problem.AddComponent(response_function)
 
     execution_policy_decorator.Initialize()

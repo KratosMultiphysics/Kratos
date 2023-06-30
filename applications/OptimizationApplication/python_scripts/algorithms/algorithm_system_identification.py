@@ -95,7 +95,7 @@ class AlgorithmSystemIdentification(Algorithm):
 
     def ComputeSearchDirection(self, obj_gradient_expressions_input) -> KratosOA.CollectiveExpression:
 
-        with TimeLogger("AlgorithmSteepestDescent::ComputeSearchDirection", None, "Finished"):
+        with TimeLogger("AlgorithmSystemIdentification::ComputeSearchDirection", None, "Finished"):
 
             obj_gradient_expressions_output = obj_gradient_expressions_input.Clone()
 
@@ -131,14 +131,14 @@ class AlgorithmSystemIdentification(Algorithm):
         return obj_gradient_expressions_output
 
     def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
-        with TimeLogger("AlgorithmSteepestDescent::ComputeControlUpdate", None, "Finished"):
+        with TimeLogger("AlgorithmSystemIdentification::ComputeControlUpdate", None, "Finished"):
             update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
             self.algorithm_data.GetBufferedData()["parameter_update_in iteration"] = update
 
         return self.UpdateControl
 
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
-        with TimeLogger("AlgorithmSteepestDescent::UpdateControl", None, "Finished"):
+        with TimeLogger("AlgorithmSystemIdentification::UpdateControl", None, "Finished"):
             update = self.algorithm_data.GetBufferedData()["parameter_update_in iteration"]
             self.__control_field += update
             self.algorithm_data.GetBufferedData()["Stiffness_in_iteration"] = self.__control_field
@@ -146,7 +146,7 @@ class AlgorithmSystemIdentification(Algorithm):
         return self.__control_field
 
     def Output(self) -> KratosOA.CollectiveExpression:
-        with TimeLogger("AlgorithmSteepestDescent::Output", None, "Finished"):
+        with TimeLogger("AlgorithmSystemIdentification::Output", None, "Finished"):
             self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
 
     def GetCurrentObjValue(self) -> float:

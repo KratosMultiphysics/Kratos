@@ -48,7 +48,10 @@
       "settings": {
         "evaluated_model_part_names": ["Structure"],
         "primal_analysis_name": "primal_analysis",
-        "perturbation_size": 1e-8
+        "adjoint_analysis_settings_file_name": "adjoint_parameters.json",
+        "measurement_data_file": "MeasurementData_right_half.json",
+        "perturbation_size": 1e-8,
+        "measurement_standard_deviation": 1.0
       }
     }
   ],
