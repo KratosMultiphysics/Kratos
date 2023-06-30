@@ -1,6 +1,7 @@
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest

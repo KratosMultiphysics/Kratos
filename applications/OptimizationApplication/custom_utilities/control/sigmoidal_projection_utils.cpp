@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <algorithm>
 
 // Project includes
 #include "expression/literal_flat_expression.h"
@@ -24,6 +25,8 @@
 #include "sigmoidal_projection_utils.h"
 
 namespace SigmoidalValueProjectionUtils{
+
+using IndexType = std::size_t;
 
 bool HasVectorDuplicates(const std::vector<double>& rValues)
 {
@@ -54,6 +57,21 @@ void CheckXYVectors(
         << "SigmoidalProjectionUtils: rYValues have duplications.\n";
 }
 
+IndexType GetUpperValueRangeIndex(
+    const double Value,
+    const std::vector<double>& rRanges)
+{
+    const  IndexType size = rRanges.size();
+    IndexType upper_index;
+    for (upper_index = 0; upper_index < size; ++upper_index) {
+        if (Value < rRanges[upper_index]) {
+            break;
+        }
+    }
+
+    return std::clamp(upper_index, 1UL, size - 1);
+}
+
 double ProjectValueForward(
     const double xValue,
     const std::vector<double>& rXLimits,
@@ -61,32 +79,17 @@ double ProjectValueForward(
     const double Beta,
     const int PenaltyFactor)
 {
+    const IndexType upper_index = GetUpperValueRangeIndex(xValue, rXLimits);
 
-    size_t size = rXLimits.size();
-    double x1 = rXLimits[0], x2 = rXLimits[1], y1 = rYLimits[0], y2 = rYLimits[1];
+    const double x1 = rXLimits[upper_index - 1];
+    const double x2 = rXLimits[upper_index];
+    const double y1 = rYLimits[upper_index - 1];
+    const double y2 = rYLimits[upper_index];
 
-    for (size_t i = 0; i < size - 1; ++i) {
-        if (xValue >= rXLimits[i] && xValue <= rXLimits[i + 1]) {
-            x1 = rXLimits[i];
-            x2 = rXLimits[i + 1];
-            y1 = rYLimits[i];
-            y2 = rYLimits[i + 1];
-            break;
-        }
-    }
-
-    if (xValue > rXLimits[size - 1]) {
-        x1 = rXLimits[size - 2];
-        x2 = rXLimits[size - 1];
-        y1 = rYLimits[size - 2];
-        y2 = rYLimits[size - 1];
-    }
-
+    const double limit = std::log1p(std::numeric_limits<double>::max());
     double pow_val = -2.0 * Beta * (xValue - (x1 + x2) / 2)  * PenaltyFactor;
-    double limit = std::log1p(std::numeric_limits<double>::max());
     pow_val = std::clamp(pow_val, -limit, limit);
-    return (y2 - y1) / std::pow((1.0 + std::exp(pow_val)),PenaltyFactor) + y1;
-
+    return (y2 - y1) / std::pow((1.0 + std::exp(pow_val)), PenaltyFactor) + y1;
 }
 
 double ProjectValueBackward(
@@ -96,8 +99,7 @@ double ProjectValueBackward(
     const double Beta,
     const int PenaltyFactor)
 {
-
-    size_t size = rXLimits.size();
+    IndexType size = rXLimits.size();
     KRATOS_ERROR_IF(yValue > rYLimits[size - 1] || yValue < rYLimits[0])
         << "SigmoidalProjectionUtils::ProjectValueBackward: yValue "
         << yValue << " is out of the given range " << rYLimits << "\n";
@@ -106,23 +108,22 @@ double ProjectValueBackward(
         << "SigmoidalProjectionUtils::ProjectValueBackward: yValue "
         << yValue << " is too big for backward projection !!! " << rYLimits << "\n";
 
-    double x1 = rXLimits[0], x2 = rXLimits[1], y1 = rYLimits[0], y2 = rYLimits[1];
-    for (size_t i = 0; i < size - 1; ++i) {
-        if (yValue >= rYLimits[i] && yValue <= rYLimits[i + 1]) {
-            x1 = rXLimits[i];
-            x2 = rXLimits[i + 1];
-            y1 = rYLimits[i];
-            y2 = rYLimits[i + 1];
-            break;
-        }
-    }
+    const IndexType upper_index = GetUpperValueRangeIndex(yValue, rYLimits);
 
-    if (std::abs(yValue-y1)<std::numeric_limits<double>::epsilon())
+    const double x1 = rXLimits[upper_index - 1];
+    const double x2 = rXLimits[upper_index];
+    const double y1 = rYLimits[upper_index - 1];
+    const double y2 = rYLimits[upper_index];
+
+    if (std::abs(yValue - y1) < std::numeric_limits<double>::epsilon()) {
         return x1;
-    else if (std::abs(yValue-y2)<std::numeric_limits<double>::epsilon())
+    } else if (std::abs(yValue - y2) < std::numeric_limits<double>::epsilon()) {
         return x2;
-    else
-        return ((x2+x1)/2.0) + (1.0/(-2.0*Beta)) * std::log(std::pow((y2-y1)/(yValue-y1),1.0/PenaltyFactor)-1);
+    } else {
+        return ((x2 + x1) / 2.0) +
+               (1.0 / (-2.0 * Beta)) *
+                   std::log(std::pow((y2 - y1) / (yValue - y1), 1.0 / PenaltyFactor) - 1);
+    }
 }
 
 double ComputeFirstDerivativeAtValue(
@@ -132,29 +133,15 @@ double ComputeFirstDerivativeAtValue(
     const double Beta,
     const int PenaltyFactor)
 {
+    const IndexType upper_index = GetUpperValueRangeIndex(xValue, rXLimits);
 
-    size_t size = rXLimits.size();
-    double x1 = rXLimits[0], x2 = rXLimits[1], y1 = rYLimits[0], y2 = rYLimits[1];
+    const double x1 = rXLimits[upper_index - 1];
+    const double x2 = rXLimits[upper_index];
+    const double y1 = rYLimits[upper_index - 1];
+    const double y2 = rYLimits[upper_index];
 
-    for (size_t i = 0; i < size - 1; ++i) {
-        if (xValue >= rXLimits[i] && xValue <= rXLimits[i + 1]) {
-            x1 = rXLimits[i];
-            x2 = rXLimits[i + 1];
-            y1 = rYLimits[i];
-            y2 = rYLimits[i + 1];
-            break;
-        }
-    }
-
-    if (xValue > rXLimits[size - 1]) {
-        x1 = rXLimits[size - 2];
-        x2 = rXLimits[size - 1];
-        y1 = rYLimits[size - 2];
-        y2 = rYLimits[size - 1];
-    }
-
-    double pow_val = -2.0 * Beta * (xValue - (x1 + x2) / 2)  * PenaltyFactor;
-    double limit = std::log1p(std::numeric_limits<double>::max());
+    const double limit = std::log1p(std::numeric_limits<double>::max());
+    double pow_val = -2.0 * Beta * (xValue - (x1 + x2) / 2) * PenaltyFactor;
     pow_val = std::clamp(pow_val, -limit, limit);
     return (y2 - y1) * (1.0 / std::pow(1 + std::exp(pow_val), PenaltyFactor + 1)) *
            PenaltyFactor * 2.0 * Beta * std::exp(pow_val);
