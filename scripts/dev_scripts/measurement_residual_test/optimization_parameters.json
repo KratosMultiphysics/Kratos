@@ -34,7 +34,8 @@
         "model_part_names": ["Structure"],
         "control_variable_name": "YOUNG_MODULUS",
         "mapping_options": {
-          "use_laplace_smoothing": true,
+          "use_smoothing": true,
+          "smoothing_technique": "element_node_element",
           "num_smoothing_iterations": 3
         }
       }

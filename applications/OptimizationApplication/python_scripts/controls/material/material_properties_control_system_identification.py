@@ -35,8 +35,9 @@ class MaterialPropertiesControlSystemIdentification(Control):
             "model_part_names"     : [""],
             "control_variable_name": "YOUNG_MODULUS",
             "mapping_options":{
-                "use_laplace_smoothing": false,
-                "num_smoothing_iterations" : 5
+                "use_smoothing": false,
+                "smoothing_technique":"element_node_element",
+                "num_smoothing_iterations" : 3
             }
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -99,14 +100,17 @@ class MaterialPropertiesControlSystemIdentification(Control):
 
         cloned_container_expression = physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
 
-        if self.mapping_options["use_laplace_smoothing"].GetBool():
-            self._LaplaceSmoothingForExpressionValues(
-                container_expression=cloned_container_expression,
-                kratos_variable=kratos_variable)
+        if self.mapping_options["use_smoothing"].GetBool():
+            if self.mapping_options["smoothing_technique"].GetString() == "element_node_element":
+                self._ElementNodeElementSmoothingForExpressionValues(
+                    container_expression=cloned_container_expression,
+                    kratos_variable=kratos_variable)
+            else:
+                ValueError(self.mapping_options["smoothing_technique"], "Only 'element_node_element' is allowed as a smoothing_technique.")
 
         return cloned_container_expression
 
-    def _LaplaceSmoothingForExpressionValues(self, container_expression: "ContainerExpressionTypes", kratos_variable: "SupportedSensitivityFieldVariableTypes") -> None:
+    def _ElementNodeElementSmoothingForExpressionValues(self, container_expression: "ContainerExpressionTypes", kratos_variable: "SupportedSensitivityFieldVariableTypes") -> None:
 
         num_of_nodes = len(self.model_part.Nodes)
         elements_per_node_list = np.ndarray(num_of_nodes)
