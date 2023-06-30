@@ -13,7 +13,7 @@
 
 
 // Application includes
-#include "custom_conditions/U_Pw_Pg_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_condition.hpp"
 
 namespace Kratos
 {
@@ -344,7 +344,7 @@ void UPwPgCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVec
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+// TODO
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgCondition<TDim,TNumNodes>::AddExplicitContribution(
     const VectorType& rRHSVector,
