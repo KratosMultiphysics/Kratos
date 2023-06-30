@@ -400,40 +400,7 @@ void UPwPgElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix,
 {
     KRATOS_TRY
 
-    const unsigned int element_size = TNumNodes * (TDim + 2);
-
-    //Resizing mass matrix
-    if ( rMassMatrix.size1() != element_size )
-        rMassMatrix.resize( element_size, element_size, false );
-    noalias( rMassMatrix ) = ZeroMatrix( element_size, element_size );
-
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
-    const unsigned int NumGPoints = integration_points.size();
-
-    //Defining shape functions and the determinant of the jacobian at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
-    Vector detJContainer(NumGPoints);
-    Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
-
-    //Defining necessary variables
-    double IntegrationCoefficient;
-    const double& Porosity = Prop[POROSITY];
-    const double Density = Porosity*(Prop[DENSITY_WATER]*Prop[SATURATION_WATER] + Prop[DENSITY_GAS]*Prop[SATURATION_GAS]) + (1.0-Porosity)*Prop[DENSITY_SOLID];           
-    BoundedMatrix<double,TDim+2, TNumNodes*(TDim+2)> Nut = ZeroMatrix(TDim+2, TNumNodes*(TDim+2));
-
-    //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-    {
-        PoroElementUtilities::CalculateNuElementMatrix(Nut,NContainer,GPoint);
-
-        //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
-
-        //Adding contribution to Mass matrix
-        noalias(rMassMatrix) += Density*prod(trans(Nut),Nut)*IntegrationCoefficient;
-    }
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateMassMatrix method for a particular element ... illegal operation!!", "" )
 
     KRATOS_CATCH( "" )
 }
@@ -778,33 +745,7 @@ void UPwPgElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftH
 {
     KRATOS_TRY
 
-    const auto& r_geom = GetGeometry();
-    const auto& r_prop = GetProperties();
-    const SizeType element_size = TNumNodes * (TDim + 1);
-
-    //Resizing mass matrix
-    if ( rLeftHandSideMatrix.size1() != element_size )
-        rLeftHandSideMatrix.resize( element_size, element_size, false );
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
-
-    const double& Porosity = r_prop[POROSITY];
-    const double density = Porosity*(Prop[DENSITY_WATER]*Prop[SATURATION_WATER] + Prop[DENSITY_GAS]*Prop[SATURATION_GAS]) + (1.0-Porosity)*Prop[DENSITY_SOLID]; 
-
-    const double thickness = (TDim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
-
-    // LUMPED MASS MATRIX
-    const double total_mass = r_geom.DomainSize() * density * thickness;
-
-    Vector lumping_factors;
-    lumping_factors = r_geom.LumpingFactors( lumping_factors );
-
-    for ( IndexType i = 0; i < TNumNodes; ++i ) {
-        const double temp = lumping_factors[i] * total_mass;
-        for ( IndexType j = 0; j < TDim; ++j ) {
-            IndexType index = i * (TDim + 1) + j;
-            rLeftHandSideMatrix(index,index) = temp;
-        }
-    }
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateLumpedMassMatrix method for a particular element ... illegal operation!!", "" )
 
     KRATOS_CATCH( "" )
 }

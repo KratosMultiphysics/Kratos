@@ -25,7 +25,7 @@
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
-{UPwPgElement
+{
 
 template< unsigned int TDim, unsigned int TNumNodes >
 class KRATOS_API(POROMECHANICS_APPLICATION) UPwPgSmallStrainElement : public UPwPgElement<TDim,TNumNodes>
@@ -107,7 +107,7 @@ protected:
         double SolidCompressibilityCoeff;
         double FluidCompressibilityCoeff;
         double GasCompressibilityCoeff;
-        double Porosity
+        double Porosity;
         double GasDiffusionCoefficient;
         bool   AddGasDiffusion = false;
 
@@ -185,6 +185,10 @@ protected:
 
     void CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix, const ProcessInfo& CurrentProcessInfo ) override;
 
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo ) override;
+
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
@@ -205,17 +209,19 @@ protected:
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
+    void CalculateAndAddMassMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
+
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void GetCouplingCompressibilityCoefficients(double Cwu, double Cgu, ElementVariables& rVariables);
+    void GetCouplingCompressibilityCoefficients(double& Cwu, double& Cgu, ElementVariables& rVariables);
 
     void CalculateWaterSaturationDegree(ElementVariables& rVariables);
 
-    void GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, const ElementVariables& Variables);
+    void GetCompressibilityCoefficients(double& Cww, double& Cwg, double& Cgw, double& Cgg, const ElementVariables& Variables);
 
     double EffectiveSaturation(double Sw, double Swr);
 

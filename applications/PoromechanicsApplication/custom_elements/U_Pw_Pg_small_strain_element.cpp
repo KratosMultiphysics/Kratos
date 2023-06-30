@@ -933,6 +933,102 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixTy
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
+void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int element_size = TNumNodes * (TDim + 2);
+
+    //Resizing mass matrix
+    if ( rMassMatrix.size1() != element_size )
+        rMassMatrix.resize( element_size, element_size, false );
+    noalias( rMassMatrix ) = ZeroMatrix( element_size, element_size );
+
+    //Previous definitions
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    //Containers of variables at all integration points
+    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+    Vector detJContainer(NumGPoints);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,mThisIntegrationMethod);
+
+    //Constitutive Law parameters
+    ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
+    ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+
+    //Element variables
+    ElementVariables Variables;
+    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,rCurrentProcessInfo);
+
+    //Loop over integration points
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+    {
+        //Compute Np and Nu
+        noalias(Variables.Np) = row(NContainer,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+
+        //Compute the capilar pressure at the integration point
+        Variables.ipCapilarPressure = inner_prod(Variables.Np,Variables.CapilarPressureVector);
+
+        //Evaluate the wetting saturation degree and its derivative wrt to the capilar pressure
+        this->CalculateWaterSaturationDegree(Variables);
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
+
+        //Adding contribution to Mass matrix
+        this->CalculateAndAddMassMatrix(rMassMatrix, Variables);
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+//TODO
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const auto& r_geom = GetGeometry();
+    const auto& r_prop = GetProperties();
+    const SizeType element_size = TNumNodes * (TDim + 1);
+
+    //Resizing mass matrix
+    if ( rLeftHandSideMatrix.size1() != element_size )
+        rLeftHandSideMatrix.resize( element_size, element_size, false );
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( element_size, element_size );
+
+    const double& Porosity = 1.0;  // TODO
+    const double density = 1.0;     // TODO
+
+    const double thickness = (TDim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+
+    // LUMPED MASS MATRIX
+    const double total_mass = r_geom.DomainSize() * density * thickness;
+
+    Vector lumping_factors;
+    lumping_factors = r_geom.LumpingFactors( lumping_factors );
+
+    for ( IndexType i = 0; i < TNumNodes; ++i ) {
+        const double temp = lumping_factors[i] * total_mass;
+        for ( IndexType j = 0; j < TDim; ++j ) {
+            IndexType index = i * (TDim + 1) + j;
+            rLeftHandSideMatrix(index,index) = temp;
+        }
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
 {
     KRATOS_TRY
@@ -1581,6 +1677,17 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(Mat
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
+void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMassMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+{
+    noalias(rVariables.UMatrix) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.Nu)*rVariables.IntegrationCoefficient*rVariables.VelocityCoefficient;
+
+    //Distribute stiffness block matrix into the elemental matrix
+    PoroElementUtilities::AssembleUBlockTwoPhaseFlowMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
 void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
     // Compute intermediate auxiliary vector and matrix
@@ -1608,7 +1715,8 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(Matr
 }
 
 //----------------------------------------------------------------------------------------
-void UPwPgSmallStrainElement::GetCouplingCompressibilityCoefficients(double Cwu, double Cgu, ElementVariables& rVariables)
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwPgSmallStrainElement<TDim,TNumNodes>::GetCouplingCompressibilityCoefficients(double& Cwu, double& Cgu, ElementVariables& rVariables)
 {
 
     Cwu = rVariables.BiotCoefficient*rVariables.Sw;
@@ -1648,7 +1756,8 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatr
 }
 
 //----------------------------------------------------------------------------------------
-void UPwPgSmallStrainElement::CalculateWaterSaturationDegree(ElementVariables& rVariables)
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateWaterSaturationDegree(ElementVariables& rVariables)
 {
     //Get material parameters
     double Swr    = rVariables.ResidualWaterSaturation;
@@ -1680,11 +1789,12 @@ void UPwPgSmallStrainElement::CalculateWaterSaturationDegree(ElementVariables& r
     }
 
     // Update the density based on the new saturation degree
-    rVariables.Density = rVariables.Sw * Variables.Porosity * rVariables.FluidDensity + (1.0 - rVariables.Sw) * rVariables.Porosity * rVariables.GasDensity + (1.0 - rVariables.Porosity)*rVariables.SolidDensity;
+    rVariables.Density = rVariables.Porosity * (rVariables.Sw * rVariables.FluidDensity + (1.0 - rVariables.Sw) * rVariables.GasDensity) + (1.0 - rVariables.Porosity)*rVariables.SolidDensity;
 }
 
 //----------------------------------------------------------------------------------------
-void UPwPgSmallStrainElement::GetCompressibilityCoefficients(double Cww, double Cwg, double Cgw, double Cgg, const ElementVariables& Variables)
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwPgSmallStrainElement<TDim,TNumNodes>::GetCompressibilityCoefficients(double& Cww, double& Cwg, double& Cgw, double& Cgg, const ElementVariables& Variables)
 {
 
     // Get variables
@@ -1724,13 +1834,13 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(
     noalias(rVariables.PermMatrix) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
 
     // Compute the effective saturation
-    Se->EffectiveSaturation(rVariables.Sw, rVariables.ResidualWaterSaturation);
+    double Se = this->EffectiveSaturation(rVariables.Sw, rVariables.ResidualWaterSaturation);
 
     // Evaluate the water relative permeability
-    krw = this->WaterRelativePermeability(Se, rVariables);
+    double krw = this->WaterRelativePermeability(Se, rVariables);
 
     // Evaluate the gas relative permeability
-    krg = this->GasRelativePermeability(Se, rVariables);
+    double krg = this->GasRelativePermeability(Se, rVariables);
 
     // Compute the fluid-flow sub-matrices
     noalias(rVariables.PwPwMatrix) = krw * rVariables.PermMatrix / rVariables.WaterDynamicViscosity;
@@ -1748,31 +1858,33 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(
 }
 
 //----------------------------------------------------------------------------------------
-double UPwPgSmallStrainElement::EffectiveSaturation(double Sw, double Swr)
+template< unsigned int TDim, unsigned int TNumNodes >
+double UPwPgSmallStrainElement<TDim,TNumNodes>::EffectiveSaturation(double Sw, double Swr)
 {
     double Se = (Sw - Swr)/(1.0 - Swr);
     return Se;    
 }
 
 //----------------------------------------------------------------------------------------
-double UPwPgSmallStrainElement::WaterRelativePermeability(double Se, const ElementVariables& Variables)
+template< unsigned int TDim, unsigned int TNumNodes >
+double UPwPgSmallStrainElement<TDim,TNumNodes>::WaterRelativePermeability(double Se, const ElementVariables& Variables)
 {
-    double krw;
+    double krw, nw, lambda;
 
     // Compute the water relative permeability according with the consitutive model
-    switch (rVariables.WaterSaturationLaw){
+    switch (Variables.WaterSaturationLaw){
         case 1: // -- Brooks and Corey
         //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) ----
            
-            double lambda = rVariables.PoreSizeFactor;
-            double nw = (2.0 + 3.0*lambda)/lambda
-            krw = pow(Se,nw);
+            lambda = Variables.PoreSizeFactor;
+            nw     = (2.0 + 3.0*lambda)/lambda;
+            krw    = pow(Se,nw);
 
             break;
 
         case 2: // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
 
-            double nw = 1.5
+            nw  = 1.5;
             krw = pow(Se,nw);
             
             break;
@@ -1781,24 +1893,25 @@ double UPwPgSmallStrainElement::WaterRelativePermeability(double Se, const Eleme
 }
 
 //----------------------------------------------------------------------------------------
-double UPwPgSmallStrainElement::GasRelativePermeability(double Se, const ElementVariables& Variables)
+template< unsigned int TDim, unsigned int TNumNodes >
+double UPwPgSmallStrainElement<TDim,TNumNodes>::GasRelativePermeability(double Se, const ElementVariables& Variables)
 {
-    double krg;
+    double krg, ng, lambda;
 
     // Compute the gas relative permeability according with the consitutive model
-    switch (rVariables.WaterSaturationLaw){
+    switch (Variables.WaterSaturationLaw){
         case 1: // -- Brooks and Corey
         //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
             
-            double lambda = rVariables.PoreSizeFactor;
-            double ng = (2.0 + lambda)/lambda
-            krg = pow(1.0-Se,2.0)*(1.0 - pow(Se,ng));
+            lambda = Variables.PoreSizeFactor;
+            ng     = (2.0 + lambda)/lambda;
+            krg    = pow(1.0-Se,2.0)*(1.0 - pow(Se,ng));
 
             break;
 
         case 2: // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
 
-            double ng = 3.0
+            ng  = 3.0;
             krg = pow(1.0-Se,ng);
             
             break;
@@ -1921,13 +2034,13 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(Ve
     noalias(rVariables.PermMatrix) = prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
 
     // Compute the effective saturation
-    Se->EffectiveSaturation(rVariables.Sw, rVariables.ResidualWaterSaturation);
+    double Se = this->EffectiveSaturation(rVariables.Sw, rVariables.ResidualWaterSaturation);
 
     // Evaluate the water relative permeability
-    krw = this->WaterRelativePermeability(Se, rVariables);
+    double krw = this->WaterRelativePermeability(Se, rVariables);
 
     // Evaluate the gas relative permeability
-    krg = this->GasRelativePermeability(Se, rVariables);
+    double krg = this->GasRelativePermeability(Se, rVariables);
 
     // Compute the fluid-flow sub-matrices
     noalias(rVariables.PwPwMatrix) = krw * rVariables.PermMatrix / rVariables.WaterDynamicViscosity;
@@ -1954,13 +2067,13 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(Vecto
     noalias(rVariables.PVector) = prod(rVariables.PDimMatrix,rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient;
 
     // Compute the effective saturation
-    Se->EffectiveSaturation(rVariables.Sw, rVariables.ResidualWaterSaturation);
+    double Se = this->EffectiveSaturation(rVariables.Sw, rVariables.ResidualWaterSaturation);
 
     // Evaluate the water relative permeability
-    krw = this->WaterRelativePermeability(Se, rVariables);
+    double krw = this->WaterRelativePermeability(Se, rVariables);
 
     // Evaluate the gas relative permeability
-    krg = this->GasRelativePermeability(Se, rVariables);
+    double krg = this->GasRelativePermeability(Se, rVariables);
 
     // Compute the fluid-flow sub-matrices
     noalias(rVariables.PwVector) = (krw * rVariables.FluidDensity / rVariables.WaterDynamicViscosity) * rVariables.PVector;
