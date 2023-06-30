@@ -361,9 +361,6 @@ namespace Kratos::Testing
         // if (WithConstraint) {
         //     rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode1, DISPLACEMENT_Y, *pnode2, DISPLACEMENT_Y, 1.0, 0.0);
         // }
-
-        // Compute communicaton plan and fill communicator meshes correctly
-        ParallelFillCommunicator(rModelPart, rDataCommunicator).Execute();
     }
 
     static TrilinosSparseSpaceType::MatrixType BuildSystem(
