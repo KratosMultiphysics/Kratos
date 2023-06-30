@@ -83,6 +83,4 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(thickness_field), 0.019999962733607157, 10)
 
 if __name__ == "__main__":
-    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
