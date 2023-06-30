@@ -46,7 +46,7 @@ public:
     ///Destructor
     // ============================================================================================
     // ============================================================================================
-    ~BackwardEulerQuasistaticTScheme() override {}
+    ~BackwardEulerQuasistaticTScheme() override = default;
 
 
 protected:

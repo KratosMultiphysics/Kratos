@@ -91,7 +91,7 @@ namespace Kratos
         };
 
     	/// Default Constructor
-        TransientThermalElement(IndexType NewId = 0);
+        explicit TransientThermalElement(IndexType NewId = 0);
 
         /// Constructor using an array of nodes
         TransientThermalElement(IndexType NewId,

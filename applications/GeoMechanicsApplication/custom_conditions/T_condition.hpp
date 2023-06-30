@@ -53,7 +53,7 @@ public:
     TCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    virtual ~TCondition();
+    ~TCondition() override;
 
     // ============================================================================================
     // ============================================================================================
