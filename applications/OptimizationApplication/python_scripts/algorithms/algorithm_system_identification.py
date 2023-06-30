@@ -19,6 +19,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 
 
@@ -27,8 +28,8 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
 
 class AlgorithmSystemIdentification(Algorithm):
-    def __init__(self, optimization_problem: OptimizationProblem) -> None:
-        self._optimization_problem = optimization_problem
+    #     def __init__(self, optimization_problem: OptimizationProblem) -> None:
+    #         self._optimization_problem = optimization_problem
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -86,42 +87,67 @@ class AlgorithmSystemIdentification(Algorithm):
         self.__objective.Check()
         self.master_control.Initialize()
         self.__control_field = self.master_control.GetControlField()  # GetInitialControlFields() later
+        self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
     def Finalize(self):
-        pass
+        self.__objective.Finalize()
+        self.master_control.Finalize()
 
     def ComputeSearchDirection(self, obj_gradient_expressions_input) -> KratosOA.CollectiveExpression:
 
-        obj_gradient_expressions_output = obj_gradient_expressions_input.Clone()
+        with TimeLogger("AlgorithmSteepestDescent::ComputeSearchDirection", None, "Finished"):
 
-        search_direction = None
+            obj_gradient_expressions_output = obj_gradient_expressions_input.Clone()
 
-        for container_expression in obj_gradient_expressions_output.GetContainerExpressions():
+            search_direction = None
 
-            elements = container_expression.GetModelPart().Elements
-            gradient_vector = np.reshape(container_expression.Evaluate(), (len(elements), 1))
+            for container_expression in obj_gradient_expressions_output.GetContainerExpressions():
 
-            if search_direction == None:
-                search_direction = np.zeros(shape=(len(elements)))
+                elements = container_expression.GetModelPart().Elements
+                gradient_vector = np.reshape(container_expression.Evaluate(), (len(elements), 1))
 
-            gauss_newton_likelihood = gradient_vector * self.GetCurrentObjValue()
-            gauss_newton_gradient = gradient_vector@gradient_vector.T
+                if search_direction == None:
+                    search_direction = np.zeros(shape=(len(elements)))
 
-            search_direction += ssl.lsmr(
-                gauss_newton_gradient,
-                gauss_newton_likelihood,
-                damp=0.0,
-            )[0]
+                gauss_newton_likelihood = gradient_vector * self.GetCurrentObjValue()
+                gauss_newton_gradient = gradient_vector@gradient_vector.T
 
-            search_direction *= -1.0
+                search_direction += ssl.lsmr(
+                    gauss_newton_gradient,
+                    gauss_newton_likelihood,
+                    damp=0.0,
+                )[0]
 
-            # search_direction = gradient_vector.reshape(gradient_vector.shape[0]) / np.max(np.abs(gradient_vector))
+                search_direction *= -1.0
 
-            # search_direction = container_expression.Evaluate() * -10e16
+                # search_direction = gradient_vector.reshape(gradient_vector.shape[0]) / np.max(np.abs(gradient_vector))
 
-            Kratos.Expression.CArrayExpressionIO.Read(container_expression, search_direction)
+                # search_direction = container_expression.Evaluate() * -10e16
+
+                Kratos.Expression.CArrayExpressionIO.Read(container_expression, search_direction)
+
+        self.algorithm_data.GetBufferedData()["search_direction"] = obj_gradient_expressions_output
 
         return obj_gradient_expressions_output
+
+    def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
+        with TimeLogger("AlgorithmSteepestDescent::ComputeControlUpdate", None, "Finished"):
+            update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
+            self.algorithm_data.GetBufferedData()["parameter_update_in iteration"] = update
+
+        return self.UpdateControl
+
+    def UpdateControl(self) -> KratosOA.CollectiveExpression:
+        with TimeLogger("AlgorithmSteepestDescent::UpdateControl", None, "Finished"):
+            update = self.algorithm_data.GetBufferedData()["parameter_update_in iteration"]
+            self.__control_field += update
+            self.algorithm_data.GetBufferedData()["Stiffness_in_iteration"] = self.__control_field
+
+        return self.__control_field
+
+    def Output(self) -> KratosOA.CollectiveExpression:
+        with TimeLogger("AlgorithmSteepestDescent::Output", None, "Finished"):
+            self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
 
     def GetCurrentObjValue(self) -> float:
         return self.__obj_val
@@ -135,46 +161,40 @@ class AlgorithmSystemIdentification(Algorithm):
             self.Solve()
         return self.converged
 
-    def Solve(self):
+    def Solve(self) -> bool:
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         while not self.converged:
-            print("")
-            with TimeLogger("Optimization", f" Start Iteration {self._optimization_problem.GetStep()}", f"End Iteration {self._optimization_problem.GetStep()}"):
+            with OptimizationAlgorithmTimeLogger("AlgorithmSystemIdentification", self._optimization_problem.GetStep()):
 
-                with TimeLogger("Calculate objective value", "Start", "End"):
-                    self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
-                    CallOnAll(self._optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Execute)
+                self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
+                CallOnAll(self._optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Execute)
 
-                    self.algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
-                    self.algorithm_data.GetBufferedData()["obj_rel_change[%]"] = self.__objective.GetRelativeChange() * 100
-                    initial_value = self.__objective.GetInitialValue()
-                    if initial_value:
-                        self.algorithm_data.GetBufferedData()["obj_abs_change[%]"] = self.__objective.GetAbsoluteChange() / initial_value * 100
-                    # print(self.__objective.GetInfo())
+                obj_info = self.__objective.GetInfo()
+                self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
+                self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
+                if "abs_change [%]" in obj_info:
+                    self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
 
-                with TimeLogger("Calculate gradient", "Start", "End"):
-                    obj_grad = self.__objective.CalculateStandardizedGradient()
+                obj_grad = self.__objective.CalculateStandardizedGradient()
 
-                with TimeLogger("Calculate design update", "Start", "End"):
-                    search_direction = self.ComputeSearchDirection(obj_grad)
-                    self.algorithm_data.GetBufferedData()["search_direction"] = search_direction  # The name ("search_direction") is important, it is used in the line search method!
+                self.ComputeSearchDirection(obj_grad)
 
-                    alpha = self.__line_search_method.ComputeStep()
-                    # alpha = 0.1
+                alpha = self.__line_search_method.ComputeStep()
+                # alpha = 0.1
 
-                    update = search_direction * alpha
-                    self.__control_field += update
+                self.ComputeControlUpdate(alpha)
 
-                self.algorithm_data.GetBufferedData()["parameter_update_in iteration"] = update
-                self.algorithm_data.GetBufferedData()["Stiffness_in_iteration"] = self.__control_field
+                self.UpdateControl()
+
+                self.Output()
 
                 self.converged = self.__convergence_criteria.IsConverged()
 
-                self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
-
                 self._optimization_problem.AdvanceStep()
 
-            self.Finalize()
+                self.Finalize()
+
+        return self.converged
 
     def GetOptimizedObjectiveValue(self) -> float:
         if self.converged:

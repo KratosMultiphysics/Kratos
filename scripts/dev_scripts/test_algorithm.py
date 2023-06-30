@@ -17,7 +17,7 @@ from KratosMultiphysics.OptimizationApplication.optimization_analysis import Opt
 
 def pre_operations():
     try:
-        shutil.rmtree("./vtu_results")
+        shutil.rmtree("./Optimization_Results")
     except:
         pass
     try:
@@ -27,16 +27,11 @@ def pre_operations():
 
 
 def post_operations():
-    os.makedirs("./vtu_results")
     os.makedirs("./other_results")
 
     # remove primal analysis files
     for file in glob('./Structure*.h5'):
         os.remove(file)
-
-    # move results to specific folders
-    for file in glob('./Structure_*.vtu'):
-        os.rename(str(file), "./vtu_results"+str(file)[1:])
 
     for file in glob('./*.csv')+glob('./*.time')+glob('./*.html'):
         os.rename(str(file), "./other_results"+str(file)[1:])

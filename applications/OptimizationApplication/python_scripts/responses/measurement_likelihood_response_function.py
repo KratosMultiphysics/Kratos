@@ -107,7 +107,7 @@ class MeasurementLikelihoodResponseFunction(ResponseFunction):
         return self.model_part
 
     def GetAnalysisModelPart(self) -> Kratos.ModelPart:
-        return self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().GetAnalysisModelPart()
+        return self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
 
     def CalculateValue(self) -> float:
 
