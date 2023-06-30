@@ -117,15 +117,15 @@ class TestSigmoidalProjection(TestCase):
     def test_ComputeFirstDerivative(self):
         test_field = self._GetContainerExpression()
         Kratos.Expression.LiteralExpressionIO.SetData(test_field, 5.5)
-        derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ComputeFirstDerivative(test_field,[1,2,3],[4,5,6],25.0,1)
+        derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(test_field,[1,2,3],[4,5,6],25.0,1)
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(derivative_field), 0.0, 4)
 
         Kratos.Expression.LiteralExpressionIO.SetData(test_field, 2.5)
-        derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ComputeFirstDerivative(test_field,[1,2,3],[4,5,6],25.0,1)
+        derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(test_field,[1,2,3],[4,5,6],25.0,1)
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(derivative_field), 12.5, 4)
 
         Kratos.Expression.LiteralExpressionIO.SetData(test_field, 1.5)
-        derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ComputeFirstDerivative(test_field,[1,2,3],[0,500,600],25.0,1)
+        derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(test_field,[1,2,3],[0,500,600],25.0,1)
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(derivative_field), 6250.0, 4)
 
 if __name__ == '__main__':

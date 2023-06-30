@@ -57,7 +57,7 @@ public:
         const int PenaltyFactor);
 
     template<class TContainerType>
-    static ContainerExpression<TContainerType> ComputeFirstDerivative(
+    static ContainerExpression<TContainerType> CalculateForwardProjectionGradient(
         const ContainerExpression<TContainerType>& rInputExpression,
         const std::vector<double>& rXValues,
         const std::vector<double>& rYValues,

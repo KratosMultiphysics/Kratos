@@ -227,7 +227,7 @@ class ShellThicknessControl(Control):
         # now update physical field
         KratosOA.PropertiesVariableExpressionIO.Write(projected_filtered_thickness_field, Kratos.THICKNESS)
         # compute and strore projection derivatives for consistent filtering of the sensitivities
-        self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.ComputeFirstDerivative(
+        self.projection_derivative_field = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(
                                                 filtered_thickness_field,
                                                 self.filtered_thicknesses,
                                                 self.physical_thicknesses,
