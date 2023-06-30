@@ -107,7 +107,7 @@ class ShellThicknessControl(Control):
         num_phys_thick = len(self.physical_thicknesses)
         if num_phys_thick == 0:
             raise RuntimeError("The physical_thicknesses can not be empty, at least min and max should be provided.")
-        self.filtered_thicknesses = [i for i in range(len(self.physical_thicknesses))]
+        self.filtered_thicknesses = [i for i, _ in enumerate(self.physical_thicknesses)]
 
         self.filter_type = self.parameters["filter_settings"]["type"].GetString()
         self.supported_filter_types = ["implicit"]
