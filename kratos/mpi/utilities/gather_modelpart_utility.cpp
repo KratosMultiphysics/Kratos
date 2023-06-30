@@ -1,3 +1,22 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//                   Michael Andre, https://github.com/msandre
+//                   Jordi Cotela Dalmau
+//
+
+// System includes
+
+// External includes
+
+// Project includes
 #include "mpi/utilities/gather_modelpart_utility.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "includes/data_communicator.h"
@@ -6,160 +25,122 @@
 namespace Kratos
 {
 
-GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
-                                               ModelPart& origin_model_part,
-                                               int mesh_id,
-                                               ModelPart& destination_model_part)
-    : mr_model_part(destination_model_part), mgather_rank(gather_rank)
+GatherModelPartUtility::GatherModelPartUtility(
+    const int GatherRank,
+    ModelPart& rOriginModelPart,
+    const int MeshId,
+    ModelPart& rDestinationModelPart
+    ) : mrModelPart(rDestinationModelPart), mGatherRank(GatherRank)
 {
     KRATOS_TRY;
 
-    const DataCommunicator& r_comm =
-        origin_model_part.GetCommunicator().GetDataCommunicator();
+    const DataCommunicator& r_comm = rOriginModelPart.GetCommunicator().GetDataCommunicator();
     const int mpi_rank = r_comm.Rank();
     const int mpi_size = r_comm.Size();
 
-    destination_model_part.GetNodalSolutionStepVariablesList() =
-        origin_model_part.GetNodalSolutionStepVariablesList();
-    if (r_comm.IsDistributed())
-    {
-      VariablesList* pVariablesList =
-          &destination_model_part.GetNodalSolutionStepVariablesList();
-      destination_model_part.SetCommunicator(
-          Communicator::Pointer(new MPICommunicator(pVariablesList, r_comm)));
+    rDestinationModelPart.GetNodalSolutionStepVariablesList() = rOriginModelPart.GetNodalSolutionStepVariablesList();
+    if (r_comm.IsDistributed()) {
+      VariablesList* pVariablesList = &rDestinationModelPart.GetNodalSolutionStepVariablesList();
+      rDestinationModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator(pVariablesList, r_comm)));
     }
-    destination_model_part.SetBufferSize(origin_model_part.GetBufferSize());
+    rDestinationModelPart.SetBufferSize(rOriginModelPart.GetBufferSize());
 
-    // copy the mesh of interest to destination_model_part
+    // Copy the mesh of interest to rDestinationModelPart
     // be careful to push back the pointer and not copy
     // construct the object
-    for (NodesContainerType::iterator it = origin_model_part.GetMesh(mesh_id).NodesBegin();
-         it != origin_model_part.GetMesh(mesh_id).NodesEnd(); ++it)
-    {
-        destination_model_part.Nodes().push_back(*it.base());
+    auto& r_mesh = rOriginModelPart.GetMesh(MeshId);
+    for (auto it = r_mesh.NodesBegin(); it != r_mesh.NodesEnd(); ++it) {
+        rDestinationModelPart.Nodes().push_back(*it.base());
     }
 
-    for (ElementsContainerType::iterator it =
-             origin_model_part.GetMesh(mesh_id).ElementsBegin();
-         it != origin_model_part.GetMesh(mesh_id).ElementsEnd(); ++it)
-    {
-        destination_model_part.Elements().push_back(*it.base());
+    for (auto it = r_mesh.ElementsBegin();  it != r_mesh.ElementsEnd(); ++it) {
+        rDestinationModelPart.Elements().push_back(*it.base());
     }
 
-    for (ConditionsContainerType::iterator it =
-             origin_model_part.GetMesh(mesh_id).ConditionsBegin();
-         it != origin_model_part.GetMesh(mesh_id).ConditionsEnd(); ++it)
-    {
-        destination_model_part.Conditions().push_back(*it.base());
+    for (auto it = r_mesh.ConditionsBegin(); it != r_mesh.ConditionsEnd(); ++it) {
+        rDestinationModelPart.Conditions().push_back(*it.base());
     }
 
-    // send everything to node with id "gather_rank"
+    // send everything to node with id "GatherRank"
     // transfer nodes
     std::vector<NodesContainerType> SendNodes(mpi_size);
     std::vector<NodesContainerType> RecvNodes(mpi_size);
-    SendNodes[gather_rank].reserve(destination_model_part.Nodes().size());
-    if (r_comm.IsDistributed())
-    {
-      for (NodesContainerType::iterator it = destination_model_part.NodesBegin();
-           it != destination_model_part.NodesEnd(); ++it)
-      {
+    SendNodes[GatherRank].reserve(rDestinationModelPart.Nodes().size());
+    if (r_comm.IsDistributed()) {
+      for (auto it = rDestinationModelPart.NodesBegin(); it != rDestinationModelPart.NodesEnd(); ++it) {
           // only send the nodes owned by this partition
           if (it->FastGetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-              SendNodes[gather_rank].push_back(*it.base());
+              SendNodes[GatherRank].push_back(*it.base());
       }
-    }
-    else
-    {
-      for (NodesContainerType::iterator it = destination_model_part.NodesBegin();
-           it != destination_model_part.NodesEnd(); ++it)
-      {
-          SendNodes[gather_rank].push_back(*it.base());
+    } else {
+      for (auto it = rDestinationModelPart.NodesBegin(); it != rDestinationModelPart.NodesEnd(); ++it) {
+          SendNodes[GatherRank].push_back(*it.base());
       }
     }
 
-    destination_model_part.GetCommunicator().TransferObjects(SendNodes, RecvNodes);
-    for (unsigned int i = 0; i < RecvNodes.size(); i++)
-    {
-        for (NodesContainerType::iterator it = RecvNodes[i].begin();
-             it != RecvNodes[i].end(); ++it)
-            if (destination_model_part.Nodes().find(it->Id()) ==
-                destination_model_part.Nodes().end())
-                destination_model_part.Nodes().push_back(*it.base());
+    rDestinationModelPart.GetCommunicator().TransferObjects(SendNodes, RecvNodes);
+    for (unsigned int i = 0; i < RecvNodes.size(); i++) {
+        for (auto it = RecvNodes[i].begin(); it != RecvNodes[i].end(); ++it) {
+            if (rDestinationModelPart.Nodes().find(it->Id()) == rDestinationModelPart.Nodes().end())
+                rDestinationModelPart.Nodes().push_back(*it.base());
+        }
     }
-    int temp = destination_model_part.Nodes().size();
-    destination_model_part.Nodes().Unique();
-    KRATOS_ERROR_IF(temp != int(destination_model_part.Nodes().size()))
-        << "the destination_model_part has repeated nodes";
+    int temp = rDestinationModelPart.Nodes().size();
+    rDestinationModelPart.Nodes().Unique();
+    KRATOS_ERROR_IF(temp != int(rDestinationModelPart.Nodes().size())) << "The rDestinationModelPart has repeated nodes" << std::endl;
     SendNodes.clear();
     RecvNodes.clear();
 
-    // transfer elements
+    // Transfer elements
     std::vector<ElementsContainerType> SendElements(mpi_size);
     std::vector<ElementsContainerType> RecvElements(mpi_size);
-    SendElements[gather_rank].reserve(destination_model_part.Elements().size());
-    for (ElementsContainerType::iterator it = destination_model_part.ElementsBegin();
-         it != destination_model_part.ElementsEnd(); ++it)
-    {
-        SendElements[gather_rank].push_back(*it.base());
+    SendElements[GatherRank].reserve(rDestinationModelPart.Elements().size());
+    for (auto it = rDestinationModelPart.ElementsBegin(); it != rDestinationModelPart.ElementsEnd(); ++it) {
+        SendElements[GatherRank].push_back(*it.base());
     }
-    destination_model_part.GetCommunicator().TransferObjects(SendElements, RecvElements);
-    for (unsigned int i = 0; i < RecvElements.size(); i++)
-    {
-        for (ElementsContainerType::iterator it = RecvElements[i].begin();
-             it != RecvElements[i].end(); ++it)
-        {
-            // replace the nodes copied with the element by nodes
-            // in the model part
+    rDestinationModelPart.GetCommunicator().TransferObjects(SendElements, RecvElements);
+    for (unsigned int i = 0; i < RecvElements.size(); i++) {
+        for (auto it = RecvElements[i].begin(); it != RecvElements[i].end(); ++it) {
+            // Replace the nodes copied with the element by nodes in the model part
             Element::GeometryType& rGeom = it->GetGeometry();
             unsigned int NumNodes = rGeom.PointsNumber();
-            for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-            {
-                NodesContainerType::iterator itNode =
-                    destination_model_part.Nodes().find(rGeom(iNode)->Id());
-                if (itNode != destination_model_part.Nodes().end())
+            for (unsigned int iNode = 0; iNode < NumNodes; iNode++) {
+                auto itNode = rDestinationModelPart.Nodes().find(rGeom(iNode)->Id());
+                if (itNode != rDestinationModelPart.Nodes().end())
                     rGeom(iNode) = *itNode.base();
             }
-            destination_model_part.Elements().push_back(*it.base());
+            rDestinationModelPart.Elements().push_back(*it.base());
         }
     }
     SendElements.clear();
     RecvElements.clear();
 
-    // transfer conditions
+    // Transfer conditions
     std::vector<ConditionsContainerType> SendConditions(mpi_size);
     std::vector<ConditionsContainerType> RecvConditions(mpi_size);
-    SendConditions[gather_rank].reserve(destination_model_part.Conditions().size());
-    for (ConditionsContainerType::iterator it = destination_model_part.ConditionsBegin();
-         it != destination_model_part.ConditionsEnd(); ++it)
-    {
-        SendConditions[gather_rank].push_back(*it.base());
+    SendConditions[GatherRank].reserve(rDestinationModelPart.Conditions().size());
+    for (auto it = rDestinationModelPart.ConditionsBegin(); it != rDestinationModelPart.ConditionsEnd(); ++it) {
+        SendConditions[GatherRank].push_back(*it.base());
     }
-    destination_model_part.GetCommunicator().TransferObjects(SendConditions, RecvConditions);
-    for (unsigned int i = 0; i < RecvConditions.size(); i++)
-    {
-        for (ConditionsContainerType::iterator it = RecvConditions[i].begin();
-             it != RecvConditions[i].end(); ++it)
-        {
-            // replace the nodes copied with the condition by nodes
-            // in the model part
+    rDestinationModelPart.GetCommunicator().TransferObjects(SendConditions, RecvConditions);
+    for (unsigned int i = 0; i < RecvConditions.size(); i++) {
+        for (auto it = RecvConditions[i].begin(); it != RecvConditions[i].end(); ++it) {
+            // Replace the nodes copied with the condition by nodes in the model part
             Condition::GeometryType& rGeom = it->GetGeometry();
             unsigned int NumNodes = rGeom.PointsNumber();
-            for (unsigned int iNode = 0; iNode < NumNodes; iNode++)
-            {
-                NodesContainerType::iterator itNode =
-                    destination_model_part.Nodes().find(rGeom(iNode)->Id());
-                if (itNode != destination_model_part.Nodes().end())
+            for (unsigned int iNode = 0; iNode < NumNodes; iNode++) {
+                auto itNode = rDestinationModelPart.Nodes().find(rGeom(iNode)->Id());
+                if (itNode != rDestinationModelPart.Nodes().end())
                     rGeom(iNode) = *itNode.base();
             }
-            destination_model_part.Conditions().push_back(*it.base());
+            rDestinationModelPart.Conditions().push_back(*it.base());
         }
     }
     SendConditions.clear();
     RecvConditions.clear();
 
-    if (r_comm.IsDistributed())
-    {
-      ParallelFillCommunicator(destination_model_part, r_comm).Execute();
+    if (r_comm.IsDistributed()) {
+        ParallelFillCommunicator(rDestinationModelPart, r_comm).Execute();
     }
 
     KRATOS_CATCH("");
@@ -168,7 +149,7 @@ GatherModelPartUtility::GatherModelPartUtility(int gather_rank,
 void GatherModelPartUtility::GatherOnMaster()
 {
     KRATOS_TRY;
-    mr_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
+    mrModelPart.GetCommunicator().SynchronizeNodalSolutionStepsData();
     KRATOS_CATCH("");
 }
 
@@ -176,7 +157,7 @@ template <class TDataType>
 void GatherModelPartUtility::GatherOnMaster(const Variable<TDataType>& ThisVariable)
 {
     KRATOS_TRY;
-    mr_model_part.GetCommunicator().SynchronizeVariable(ThisVariable);
+    mrModelPart.GetCommunicator().SynchronizeVariable(ThisVariable);
     KRATOS_CATCH("");
 }
 
@@ -185,12 +166,10 @@ void GatherModelPartUtility::ScatterFromMaster(const Variable<TDataType>& ThisVa
 {
     KRATOS_TRY;
 
-    Communicator& r_comm = mr_model_part.GetCommunicator();
+    Communicator& r_comm = mrModelPart.GetCommunicator();
 
-    if (mgather_rank != r_comm.GetDataCommunicator().Rank())
-    {
-        for (NodesContainerType::iterator it = mr_model_part.NodesBegin();
-             it != mr_model_part.NodesEnd(); ++it)
+    if (mGatherRank != r_comm.GetDataCommunicator().Rank()) {
+        for (auto it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it)
             it->FastGetSolutionStepValue(ThisVariable) = ThisVariable.Zero();
     }
     r_comm.AssembleCurrentData(ThisVariable);
@@ -203,9 +182,20 @@ template void GatherModelPartUtility::GatherOnMaster(const Variable<array_1d<dou
 template void GatherModelPartUtility::ScatterFromMaster(const Variable<double>&);
 template void GatherModelPartUtility::ScatterFromMaster(const Variable<array_1d<double, 3>>&);
 
-namespace Internals
+std::string GatherModelPartUtility::Info() const
 {
+    std::stringstream buffer;
+    buffer << "GatherModelPartUtility";
+    return buffer.str();
+}
 
+void GatherModelPartUtility::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << "GatherModelPartUtility" << std::endl;
+}
+
+void GatherModelPartUtility::PrintData(std::ostream& rOStream) const
+{
 }
 
 } // namespace Kratos.
