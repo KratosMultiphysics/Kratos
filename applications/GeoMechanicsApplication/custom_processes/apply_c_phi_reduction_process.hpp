@@ -54,33 +54,26 @@ namespace Kratos
         void ExecuteInitializeSolutionStep() override
         {
             KRATOS_TRY
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "Start of Execute Initialize Solution Step" << std::endl;
-
             mReductionFactor -= mReductionIncrement;
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduction factor: " << mReductionFactor << std::endl;
 
-            double phi = 0.;
-            double reduced_phi = 0.;
-            double c = 0.;
-            double reduced_c = 0.;
+            double phi                      = 0.;
+            double reduced_phi              = 0.;
+            double c                        = 0.;
+            double reduced_c                = 0.;
             unsigned int previousPropertyId = 0;
             // Apply C/Phi Reduction procedure for the model part:
             block_for_each(mrModelPart.Elements(), [this,&phi,&reduced_phi,&c,&reduced_c,&previousPropertyId](Element& rElement) {
+                // Only compute new c and phi if the Id changes
                 if (mrModelPart.GetProperties(rElement.GetProperties().Id()).Id() != previousPropertyId)
                 {
                     phi         = GetAndCheckPhi(rElement.GetProperties());
-                    KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial Phi = " << phi << std::endl;
                     reduced_phi = ComputeReducedPhi(phi);
-                    KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced Phi = " << reduced_phi << std::endl;
                     c           = GetAndCheckC(rElement.GetProperties());
-                    KRATOS_INFO("ApplyCPhiReductionProcess") << "Initial C = " << c << std::endl;
                     reduced_c   = mReductionFactor * c;
                     previousPropertyId = mrModelPart.GetProperties(rElement.GetProperties().Id()).Id();
-                    KRATOS_INFO("ApplyCPhiReductionProcess") << "Reduced C = " << reduced_c << std::endl;
                 }
                 set_C_Phi_At_Element(rElement, reduced_phi, reduced_c);
             });
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "End of Execute Initialize Solution Step" << std::endl;
             KRATOS_CATCH("")
         }
 
@@ -169,33 +162,27 @@ namespace Kratos
 
         void set_C_Phi_At_Element(Element& rElement, const double reduced_phi, const double reduced_c)
         {
-            KRATOS_INFO("ApplyCPhiReductionProcess") << "Element ID: " << rElement.Id() << std::endl;
             // Get C/Phi material properties of this element
             Element::PropertiesType& rProp = rElement.GetProperties();
 
+            // Overwrite C and Phi in the UMAT_PATAMETERS
             auto newParameters = rProp[UMAT_PARAMETERS];
             newParameters[rProp[INDEX_OF_UMAT_PHI_PARAMETER]-1] = reduced_phi;
             newParameters[rProp[INDEX_OF_UMAT_C_PARAMETER]-1]   = reduced_c;
 
+            // Write back to the element
             SetValueAtElement(rElement, UMAT_PARAMETERS, newParameters);
         }
 
         void SetValueAtElement(Element& rElement, const Variable<Vector>& rVar, const Vector& Value)
         {
-
             Properties& r_prop = rElement.GetProperties();
-            KRATOS_INFO("SetValueAtElement") << "Properties ID of initial instance: " << r_prop.Id() << std::endl;
-
             // Copies properties
             Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(r_prop);
-            KRATOS_INFO("SetValueAtElement") << "Properties ID of new instance: " << p_new_prop->Id() << std::endl;
 
             // Adds new properties to the element
             p_new_prop->SetValue(rVar, Value);
             rElement.SetProperties(p_new_prop);
-
-            KRATOS_INFO("Retrieval of written thing ") << std::endl;
-            rElement.GetProperties().PrintData(std::cout);
         }
 
     };
