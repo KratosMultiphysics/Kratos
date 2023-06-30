@@ -4,6 +4,8 @@ import KratosMultiphysics.GeoMechanicsApplication as GMA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
+    time_dependent_load = '["0.0", "-2.0*t", "0.0"]'
+    time_dependent_velocity = ' "2.0*t" '
 
     def setUp(self):
         self.current_model = KratosMultiphysics.Model()
@@ -1311,7 +1313,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         
         parameters = self.base_parameters
         parameters.AddVector("origin", [0.5, 0, 0])
-        parameters["load"]=KratosMultiphysics.Parameters("""["0.0", "-2.0*t", "0.0"]""")
+        parameters["load"]=KratosMultiphysics.Parameters(self.time_dependent_load)
         
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
@@ -1362,7 +1364,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [0.5, 0, 0])
-        parameters["load"]=KratosMultiphysics.Parameters("""["0.0", "-2.0*t", "0.0"]""")
+        parameters["load"]=KratosMultiphysics.Parameters(self.time_dependent_load)
         parameters.AddVector("configuration", [0.25])
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
@@ -1411,7 +1413,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [0.5, 0, 0])
-        parameters["load"]=KratosMultiphysics.Parameters("""["0.0", "-2.0*t", "0.0"]""")
+        parameters["load"]=KratosMultiphysics.Parameters(self.time_dependent_load)
         parameters.AddVector("configuration", [-0.25])
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
@@ -1460,7 +1462,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
 
         parameters = self.base_parameters
-        parameters["velocity"]=KratosMultiphysics.Parameters(""" "2.0*t" """)
+        parameters["velocity"]=KratosMultiphysics.Parameters(self.time_dependent_velocity)
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
@@ -1518,7 +1520,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
 
         parameters = self.base_parameters
-        parameters["velocity"]=KratosMultiphysics.Parameters(""" "2.0*t" """)
+        parameters["velocity"]=KratosMultiphysics.Parameters(self.time_dependent_velocity)
         parameters.AddVector("configuration", [0.5])
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
@@ -1577,7 +1579,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
 
         parameters = self.base_parameters
-        parameters["velocity"]=KratosMultiphysics.Parameters(""" "2.0*t" """)
+        parameters["velocity"]=KratosMultiphysics.Parameters(self.time_dependent_velocity)
         parameters.AddVector("configuration", [-0.25])
         
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
