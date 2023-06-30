@@ -8,25 +8,26 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
+//                   Danilo Cavalcanti
 //
 
 
 // Application includes
-#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_face_load_interface_condition.hpp"
 
 namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new UPwFaceLoadInterfaceCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new UPwPgFaceLoadInterfaceCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     
@@ -41,7 +42,7 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::Initialize(const ProcessInfo
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<2,2>::CalculateInitialGap(const GeometryType& Geom)
+void UPwPgFaceLoadInterfaceCondition<2,2>::CalculateInitialGap(const GeometryType& Geom)
 {
     mInitialGap.resize(1);
     
@@ -53,7 +54,7 @@ void UPwFaceLoadInterfaceCondition<2,2>::CalculateInitialGap(const GeometryType&
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<3,4>::CalculateInitialGap(const GeometryType& Geom)
+void UPwPgFaceLoadInterfaceCondition<3,4>::CalculateInitialGap(const GeometryType& Geom)
 {
     mInitialGap.resize(2);
     
@@ -68,7 +69,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CalculateInitialGap(const GeometryType&
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwPgFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
@@ -117,14 +118,14 @@ void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rR
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
-        PoroConditionUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
+        PoroConditionUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,UVector);
     }
 }
 
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,2,2>& rRotationMatrix,
+void UPwPgFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,2,2>& rRotationMatrix,
                                                                 const double& MinimumJointWidth, const Element::GeometryType& Geom)
 {
     //Line_interface_2d_2
@@ -153,7 +154,7 @@ void UPwFaceLoadInterfaceCondition<2,2>::CheckJointWidth(double& rJointWidth, bo
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,3,3>& rRotationMatrix,
+void UPwPgFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,3,3>& rRotationMatrix,
                                                             const double& MinimumJointWidth, const Element::GeometryType& Geom)
 {
     //Quadrilateral_interface_3d_4
@@ -211,7 +212,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CheckJointWidth(double& rJointWidth, bo
 //----------------------------------------------------------------------------------------
     
 template< >
-void UPwFaceLoadInterfaceCondition<2,2>::CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,2,4>& Nu,
+void UPwPgFaceLoadInterfaceCondition<2,2>::CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,2,4>& Nu,
                                                                         const array_1d<double,4>& DisplacementVector, array_1d<double,2>& rRelDispVector,
                                                                         const BoundedMatrix<double,2,2>& RotationMatrix,
                                                                         array_1d<double,2>& rLocalRelDispVector, const double& MinimumJointWidth,
@@ -243,7 +244,7 @@ void UPwFaceLoadInterfaceCondition<2,2>::CalculateJointWidth( double& rJointWidt
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,3,12>& Nu,
+void UPwPgFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,3,12>& Nu,
                                                                         const array_1d<double,12>& DisplacementVector, array_1d<double,3>& rRelDispVector,
                                                                         const BoundedMatrix<double,3,3>& RotationMatrix,
                                                                         array_1d<double,3>& rLocalRelDispVector, const double& MinimumJointWidth,
@@ -275,7 +276,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CalculateJointWidth( double& rJointWidt
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth)
+void UPwPgFaceLoadInterfaceCondition<2,2>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth)
 {
     // Note: since we cannot include the determinant of the Jacobian here (because the Jacobian could be singular), we do not multiply the JointWidth by the Weight 
     //       In a normal line load we would have |J| * w = L/2.0 * 2.0 = L
@@ -285,7 +286,7 @@ void UPwFaceLoadInterfaceCondition<2,2>::CalculateIntegrationCoefficient(double&
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwFaceLoadInterfaceCondition<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth)
+void UPwPgFaceLoadInterfaceCondition<3,4>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth)
 {
     KRATOS_TRY
     
@@ -304,7 +305,7 @@ void UPwFaceLoadInterfaceCondition<3,4>::CalculateIntegrationCoefficient(double&
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwFaceLoadInterfaceCondition<2,2>;
-template class UPwFaceLoadInterfaceCondition<3,4>;
+template class UPwPgFaceLoadInterfaceCondition<2,2>;
+template class UPwPgFaceLoadInterfaceCondition<3,4>;
 
 } // Namespace Kratos.
