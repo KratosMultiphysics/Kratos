@@ -179,8 +179,8 @@ class AlgorithmSystemIdentification(Algorithm):
 
                 self.ComputeSearchDirection(obj_grad)
 
-                alpha = self.__line_search_method.ComputeStep()
-                # alpha = 0.1
+                # alpha = self.__line_search_method.ComputeStep()
+                alpha = 0.01
 
                 self.ComputeControlUpdate(alpha)
 

@@ -43,7 +43,7 @@
   "responses": [
     {
       "name": "measurement_residual",
-      "type": "measurement_likelihood_response_function",
+      "type": "measurement_residual_response_function",
       "settings": {
         "evaluated_model_part_names": ["Structure"],
         "primal_analysis_name": "primal_analysis",
@@ -62,7 +62,7 @@
       },
       "conv_settings": {
         "type": "max_iter",
-        "max_iter": 40
+        "max_iter": 20
       }
     },
     "controls": ["system_identification_control"],
