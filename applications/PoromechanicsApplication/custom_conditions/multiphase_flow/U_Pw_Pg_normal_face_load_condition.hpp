@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_U_PW_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_U_PW_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED
+#if !defined(KRATOS_U_PW_PG_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED )
+#define  KRATOS_U_PW_PG_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
@@ -25,12 +25,12 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(POROMECHANICS_APPLICATION) UPwNormalFaceLoadCondition : public UPwCondition<TDim,TNumNodes>
+class KRATOS_API(POROMECHANICS_APPLICATION) UPwPgNormalFaceLoadCondition : public UPwPgCondition<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwNormalFaceLoadCondition );
+    KRATOS_CLASS_POINTER_DEFINITION( UPwPgNormalFaceLoadCondition );
     
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -39,21 +39,21 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
+    using UPwPgCondition<TDim,TNumNodes>::mThisIntegrationMethod;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default constructor
-    UPwNormalFaceLoadCondition() : UPwCondition<TDim,TNumNodes>() {}
+    UPwPgNormalFaceLoadCondition() : UPwPgCondition<TDim,TNumNodes>() {}
     
     // Constructor 1
-    UPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    UPwPgNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : UPwPgCondition<TDim,TNumNodes>(NewId, pGeometry) {}
     
     // Constructor 2
-    UPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    UPwPgNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwPgCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
     // Destructor
-    ~UPwNormalFaceLoadCondition() override {}
+    ~UPwPgNormalFaceLoadCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -104,8 +104,8 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     }
     
-}; // class UPwNormalFaceLoadCondition.
+}; // class UPwPgNormalFaceLoadCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_U_PW_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_U_PW_PG_NORMAL_FACE_LOAD_CONDITION_H_INCLUDED defined 
