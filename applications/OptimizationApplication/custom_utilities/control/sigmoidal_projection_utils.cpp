@@ -222,7 +222,7 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectBackward(
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(
+ContainerExpression<TContainerType> SigmoidalProjectionUtils::CalculateGradient(
     const ContainerExpression<TContainerType>& rInputExpression,
     const std::vector<double>& rXValues,
     const std::vector<double>& rYValues,
@@ -264,7 +264,7 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDeriva
     template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ProjectBackward(        \
         const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                         \
         const std::vector<double>&, const double, const int);                                                                           \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ComputeFirstDerivative( \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::CalculateGradient( \
         const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                         \
         const std::vector<double>&, const double, const int);
 

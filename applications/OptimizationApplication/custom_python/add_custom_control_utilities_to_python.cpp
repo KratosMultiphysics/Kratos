@@ -46,7 +46,7 @@ void AddSigmoidalProjectionUtils(pybind11::module& m)
 
     m.def("ProjectForward", &SigmoidalProjectionUtils::ProjectForward<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
     m.def("ProjectBackward", &SigmoidalProjectionUtils::ProjectBackward<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
-    m.def("ComputeFirstDerivative", &SigmoidalProjectionUtils::ComputeFirstDerivative<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
+    m.def("CalculateGradient", &SigmoidalProjectionUtils::CalculateGradient<TContainerType>, py::arg(container_type.c_str()), py::arg("x_values"), py::arg("y_values"), py::arg("beta"), py::arg("penalty_factor"));
 }
 } // namespace detail
 
