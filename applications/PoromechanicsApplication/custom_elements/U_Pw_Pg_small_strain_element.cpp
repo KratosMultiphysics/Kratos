@@ -1065,6 +1065,7 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(Element
     rVariables.DynamicViscosityInverse   = 1.0/Prop[DYNAMIC_VISCOSITY];
     rVariables.WaterDynamicViscosity     = Prop[VISCOSITY_WATER];
     rVariables.GasDynamicViscosity       = Prop[VISCOSITY_GAS];
+    rVariables.SolidDensity              = Prop[DENSITY_SOLID];
     rVariables.FluidDensity              = Prop[DENSITY_WATER];
     rVariables.GasDensity                = Prop[DENSITY_GAS];
     rVariables.GasDiffusionCoefficient   = Prop[GAS_DIFFUSION_COEFF];
@@ -1677,6 +1678,9 @@ void UPwPgSmallStrainElement::CalculateWaterSaturationDegree(ElementVariables& r
             
             break;
     }
+
+    // Update the density based on the new saturation degree
+    rVariables.Density = rVariables.Sw * Variables.Porosity * rVariables.FluidDensity + (1.0 - rVariables.Sw) * rVariables.Porosity * rVariables.GasDensity + (1.0 - rVariables.Porosity)*rVariables.SolidDensity;
 }
 
 //----------------------------------------------------------------------------------------

@@ -97,8 +97,10 @@ protected:
         ///Properties variables
         double WaterDynamicViscosity;
         double GasDynamicViscosity;
+        double DynamicViscosityInverse;
         double FluidDensity;
         double GasDensity;
+        double SolidDensity;
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
@@ -106,8 +108,8 @@ protected:
         double FluidCompressibilityCoeff;
         double GasCompressibilityCoeff;
         double Porosity
-        double HenryCoefficient;
-        bool AddGasDiffusion = false;
+        double GasDiffusionCoefficient;
+        bool   AddGasDiffusion = false;
 
         //Element state variables
         double Sw;
@@ -115,7 +117,7 @@ protected:
         double ipCapilarPressure;
         
         // Water retention curve parameters
-        int WaterSaturationLaw;
+        int    WaterSaturationLaw;
         double PoreSizeFactor;
         double ResidualWaterSaturation;
         double GasEntryPressure;
