@@ -25,7 +25,9 @@
 
 //schemes
 #include "custom_strategies/schemes/poro_newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/poro_newmark_quasistatic_U_Pw_Pg_scheme.hpp"
 #include "custom_strategies/schemes/poro_newmark_quasistatic_damped_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/poro_newmark_quasistatic_damped_U_Pw_Pg_scheme.hpp"
 #include "custom_strategies/schemes/poro_newmark_dynamic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/poro_newmark_dynamic_U_Pw_Pg_scheme.hpp"
 #include "custom_strategies/schemes/poro_explicit_cd_scheme.hpp"
@@ -56,6 +58,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef PoroNewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticUPwSchemeType;
     typedef PoroNewmarkQuasistaticUPwPgScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticUPwPgSchemeType;
+    typedef PoroNewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticDampedUPwSchemeType;
     typedef PoroNewmarkQuasistaticDampedUPwPgScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkQuasistaticDampedUPwPgSchemeType;
     typedef PoroNewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkDynamicUPwSchemeType;
     typedef PoroNewmarkDynamicUPwPgScheme< SparseSpaceType, LocalSpaceType >  PoroNewmarkDynamicUPwPgSchemeType;

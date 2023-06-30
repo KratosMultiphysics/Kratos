@@ -1488,7 +1488,7 @@ public:
             {
                 Global_j = j * (Dim + 2) + Dim;
 
-                rLeftHandSideMatrix(Global_i,Global_j) += PgPgBlockMatrix(i,j);
+                rLeftHandSideMatrix(Global_i,Global_j) += PgPwBlockMatrix(i,j);
             }
         }
     }
