@@ -44,6 +44,9 @@ EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
     // Set the order of the MLS extension operator used in the MLS shape functions utility
     mMLSExtensionOperatorOrder = ThisParameters["mls_extension_operator_order"].GetInt();
 
+    // Set whether intersection points should be added to the cloud points or only positive nodes
+    mIncludeIntersectionPoints = ThisParameters["include_intersection_points"].GetBool();
+
     // Set whether nodal distances will be modified to avoid levelset zeros
     mAvoidZeroDistances = ThisParameters["avoid_zero_distances"].GetBool();
 
@@ -55,7 +58,8 @@ EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
 void EmbeddedMLSConstraintProcess::Execute()
 {
     // Declare extension operator map for negative nodes of split elements
-    NodesCloudMapType ext_op_map;
+    NodesCloudMapType extension_operator_map;
+    NodesOffsetMapType constraint_offset_map;
 
     if (mAvoidZeroDistances) { ModifyDistances(); }
 
@@ -63,21 +67,26 @@ void EmbeddedMLSConstraintProcess::Execute()
     // NOTE: this will deactivate all negative as well as intersected elements
     SetInterfaceFlags();
 
-    // Calculate the conforming extension basis 
-    CalculateConformingExtensionBasis(ext_op_map);
-
+    // Calculate the conforming extension basis
+    if (mIncludeIntersectionPoints) {
+        CalculateConformingExtensionBasisIncludingBC(extension_operator_map, constraint_offset_map);
+    } else {
+        CalculateConformingExtensionBasis(extension_operator_map, constraint_offset_map);
+    }
     // Reactivate intersected and negative elements as well as their nodes depending on the process settings
     ReactivateElementsAndNodes();
 
     // Apply extension constraints to negative nodes of split elements
-    ApplyExtensionConstraints(ext_op_map);
+    ApplyExtensionConstraints(extension_operator_map, constraint_offset_map);
 }
 
 /* Protected functions ****************************************************/
 
 /* Private functions ****************************************************/
-   
-void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasis(NodesCloudMapType& rExtensionOperatorMap)
+
+void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasis(
+    NodesCloudMapType& rExtensionOperatorMap,
+    NodesOffsetMapType& rConstraintOffsetMap)
 {
     // Get the MLS shape functions function
     auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
@@ -96,7 +105,8 @@ void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasis(NodesCloudM
                     // Get the current negative node neighbours cloud
                     Matrix cloud_nodes_coordinates;
                     PointerVector<NodeType> cloud_nodes;
-                    SetNegativeNodeSupportCloud(r_node, cloud_nodes, cloud_nodes_coordinates);
+                    PointerVector<NodeType> positive_neighbor_nodes;
+                    SetNegativeNodeSupportCloud(r_node, cloud_nodes, positive_neighbor_nodes, cloud_nodes_coordinates);
 
                     // Calculate the MLS basis in the current negative node
                     Vector N_container;
@@ -113,25 +123,115 @@ void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasis(NodesCloudM
                         cloud_data_vector(i_cl_nod) = i_data;
                     }
 
+                    // Pair pointer to negative node with vector of pairs of a pointer to a positive node with its MLS shape function value and add it to the extension operator map
                     auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
                     rExtensionOperatorMap.insert(ext_op_key_data);
+
+                    // Pair pointer to negative node with offset for the master-slave constraint of that node and add it to the constraint offset map
+                    auto offset_key_data = std::make_pair(&r_node, 0.0);
+                    rConstraintOffsetMap.insert(offset_key_data);
                 }
             }
         }
     }
 }
 
-void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& rExtensionOperatorMap)
+void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasisIncludingBC(
+    NodesCloudMapType& rExtensionOperatorMap,
+    NodesOffsetMapType& rConstraintOffsetMap)
+{
+    // Get the MLS shape functions function
+    auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
+
+    // Loop the elements to create the negative nodes MLS basis
+    for (auto& rElement : mpModelPart->Elements()) {
+        // Check if the element is split
+        const auto& r_geom = rElement.GetGeometry();
+        if (IsSplit(r_geom)) {
+
+            // Find the intersected element negative nodes
+            for (auto& r_node : r_geom) {
+                // Check whether node is negative (not ACTIVE) or already was added because of a previous element
+                const std::size_t found = rExtensionOperatorMap.count(&r_node);
+                if (r_node.IsNot(ACTIVE) && !found) {
+
+                    // Get the current negative node neighbours cloud and directly neighboring positive nodes
+                    Matrix cloud_nodes_coordinates;
+                    PointerVector<NodeType> cloud_nodes;
+                    PointerVector<NodeType> positive_neighbor_nodes;
+                    SetNegativeNodeSupportCloud(r_node, cloud_nodes, positive_neighbor_nodes, cloud_nodes_coordinates);
+
+                    // Get the current negative node intersection points
+                    Matrix intersection_points_coordinates;
+                    SetNegativeNodeIntersectionPoints(r_node, positive_neighbor_nodes, intersection_points_coordinates);
+
+                    // Add matrix of cloud nodes to matrix of intersection points to get matrix of all cloud points
+                    Matrix cloud_points_coordinates;
+                    const std::size_t n_cl_nod = cloud_nodes.size();
+                    const std::size_t n_int_pt = positive_neighbor_nodes.size();
+                    cloud_points_coordinates.resize(n_cl_nod+n_int_pt, 3);
+                    for (std::size_t i_cl_nod = 0; i_cl_nod < n_cl_nod; ++i_cl_nod) {
+                        cloud_points_coordinates(i_cl_nod, 0) = cloud_nodes_coordinates(i_cl_nod, 0);
+                        cloud_points_coordinates(i_cl_nod, 1) = cloud_nodes_coordinates(i_cl_nod, 1);
+                        cloud_points_coordinates(i_cl_nod, 2) = cloud_nodes_coordinates(i_cl_nod, 2);
+                    }
+                    for (std::size_t i_int_pt = 0; i_int_pt < n_int_pt; ++i_int_pt) {
+                        cloud_points_coordinates(n_cl_nod+i_int_pt, 0) = intersection_points_coordinates(i_int_pt, 0);
+                        cloud_points_coordinates(n_cl_nod+i_int_pt, 1) = intersection_points_coordinates(i_int_pt, 1);
+                        cloud_points_coordinates(n_cl_nod+i_int_pt, 2) = intersection_points_coordinates(i_int_pt, 2);
+                    }
+
+                    // Calculate the MLS basis in the current negative node
+                    Vector N_container;
+                    const array_1d<double,3> r_coords = r_node.Coordinates();
+                    const double mls_kernel_rad = CalculateKernelRadius(cloud_points_coordinates, r_coords);
+                    p_mls_sh_func(cloud_points_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
+
+                    // Save the extension operator nodal data
+                    CloudDataVectorType cloud_data_vector(n_cl_nod);
+                    for (std::size_t i_cl_nod = 0; i_cl_nod < n_cl_nod; ++i_cl_nod) {
+                        auto p_cl_node = cloud_nodes(i_cl_nod);
+                        auto i_data = std::make_pair(p_cl_node, N_container[i_cl_nod]);
+                        cloud_data_vector(i_cl_nod) = i_data;
+                    }
+
+                    // Calculate Master-slave constraint offset based on BC values at the intersection points and their MLS shape function values
+                    double constraint_offset = 0.0;
+                    for (std::size_t i_int_pt = 0; i_int_pt < n_int_pt; ++i_int_pt) {
+                        // Get boundary condition value for the intersection point  // TODO  different boundary condition?!?
+                        //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);  // TODO =0.0 if value_bc = 0.0 ???
+                        const double value_bc = std::pow(intersection_points_coordinates(i_int_pt, 0), 2) + std::pow(intersection_points_coordinates(i_int_pt, 1), 2);
+                        // Add influence of value at intersection point to the constraint for the negative node
+                        constraint_offset += value_bc * N_container[n_cl_nod+i_int_pt];
+                    }
+
+                    // Pair pointer to negative node with vector of pairs of a pointer to a positive node with its MLS shape function value and add it to the extension operator map
+                    auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
+                    rExtensionOperatorMap.insert(ext_op_key_data);
+
+                    // Pair pointer to negative node with offset for the master-slave constraint of that node and add it to the constraint offset map
+                    auto offset_key_data = std::make_pair(&r_node, constraint_offset);
+                    rConstraintOffsetMap.insert(offset_key_data);
+                }
+            }
+        }
+    }
+}
+
+void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(
+    NodesCloudMapType& rExtensionOperatorMap,
+    NodesOffsetMapType& rConstraintOffsetMap)
 {
     // Initialize counter of master slave constraints
     ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
-    // Get variable to constrain 
+    // Get variable to constrain
     const auto& r_var = KratosComponents<Variable<double>>::Get("TEMPERATURE");
 
     // Loop through all negative nodes of split elements (slave nodes)
     for (auto it_slave = rExtensionOperatorMap.begin(); it_slave != rExtensionOperatorMap.end(); ++it_slave) {
         auto p_slave_node = std::get<0>(*it_slave);
         auto& r_ext_op_data = rExtensionOperatorMap[p_slave_node];
+        double offset = rConstraintOffsetMap[p_slave_node];
 
         // Add one master slave constraint for every node of the support cloud (master) of the negative node (slave)
         // The contributions of each master will be summed up in the BuilderAndSolver to give an equation for the slave dof
@@ -141,11 +241,12 @@ void EmbeddedMLSConstraintProcess::ApplyExtensionConstraints(NodesCloudMapType& 
             const double support_node_N = std::get<1>(r_node_data);
 
             // Add master slave constraint, the support node MLS shape function value N serves as weight of the constraint
-            mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++, 
-            *p_support_node, r_var, *p_slave_node, r_var, 
-            support_node_N, 0.0);
+            mpModelPart->CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", id++,
+            *p_support_node, r_var, *p_slave_node, r_var,
+            support_node_N, offset);
+            offset = 0.0;
         }
-    }  
+    }
 }
 
 void EmbeddedMLSConstraintProcess::SetInterfaceFlags()
@@ -247,8 +348,8 @@ void EmbeddedMLSConstraintProcess::ModifyDistances()
         double& d = it_node->FastGetSolutionStepValue(DISTANCE);
 
         // Check if the distance values are close to zero, if so set the tolerance as distance value
-        if (std::abs(d) < tol_d) { 
-            d = (d > 0.0) ? tol_d : -tol_d; 
+        if (std::abs(d) < tol_d) {
+            d = (d > 0.0) ? tol_d : -tol_d;
         }
     }
 }
@@ -265,6 +366,17 @@ bool EmbeddedMLSConstraintProcess::IsSplit(const GeometryType& rGeometry)
         }
     }
     return (n_pos != 0 && n_neg != 0);
+}
+
+bool EmbeddedMLSConstraintProcess::IsSmallCut(const GeometryType& rGeometry)
+{
+    const double tol_d = 0.001;
+    for (const auto& r_node : rGeometry) {
+        if (abs(r_node.FastGetSolutionStepValue(DISTANCE)) < tol_d) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool EmbeddedMLSConstraintProcess::IsNegative(const GeometryType& rGeometry)
@@ -311,6 +423,7 @@ MLSShapeFunctionsFunctionType EmbeddedMLSConstraintProcess::GetMLSShapeFunctions
 void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
     const NodeType& rNegativeNode,
     PointerVector<NodeType>& rCloudNodes,
+    PointerVector<NodeType>& rPositiveNeighborNodes,
     Matrix& rCloudCoordinates)
 {
     // Find the positive side support cloud of nodes
@@ -332,6 +445,13 @@ void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
             aux_set.insert(p_node);
             prev_layer_nodes.push_back(p_node);
         }
+    }
+    // Get vector of pointers to all positive nodes, the node is directly connected to
+    const std::size_t n_positive_neigbors = aux_set.size();
+    rPositiveNeighborNodes.resize(n_positive_neigbors);
+    std::size_t i_neighbor = 0;
+    for (auto it_set = aux_set.begin(); it_set != aux_set.end(); ++it_set) {
+        rPositiveNeighborNodes(i_neighbor++) = *it_set;
     }
 
     // Add first layer neighbours to map
@@ -392,6 +512,32 @@ void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
         rCloudCoordinates(iNode, 1) = rAuxCoordTLS[1];
         rCloudCoordinates(iNode, 2) = rAuxCoordTLS[2];
     });
+}
+
+void EmbeddedMLSConstraintProcess::SetNegativeNodeIntersectionPoints(
+    const NodeType& rNegativeNode,
+    PointerVector<NodeType>& rPositiveNeighborNodes,
+    Matrix& rIntersectionPointsCoordinates)
+{
+    // Resize coordinate matrix
+    const std::size_t n_positive_neighbors = rPositiveNeighborNodes.size();
+    rIntersectionPointsCoordinates.resize(n_positive_neighbors, 3);
+
+    // Use distance values of negative node and each directly neighboring positive node to calculate intersection point between the negative node and that positive node
+    const double dist_neg_node = rNegativeNode.FastGetSolutionStepValue(DISTANCE);
+    for (std::size_t i_node = 0; i_node < n_positive_neighbors; ++i_node) {
+        array_1d<double,3> int_pt_coord;
+        // Distance of positive node
+        auto p_pos_node = rPositiveNeighborNodes(i_node);
+        const double dist_pos_node = p_pos_node->FastGetSolutionStepValue(DISTANCE);
+        // Calculate coordinates of intersection point using the distance values and coordinates of the negative node and the positive node
+        const double int_pt_rel_location = std::abs(dist_neg_node/(dist_pos_node-dist_neg_node));
+        int_pt_coord = rNegativeNode + int_pt_rel_location * (*p_pos_node - rNegativeNode);
+        // Add intersection point to coordinate matrix of intersection points for the negative node
+        rIntersectionPointsCoordinates(i_node, 0) = int_pt_coord[0];
+        rIntersectionPointsCoordinates(i_node, 1) = int_pt_coord[1];
+        rIntersectionPointsCoordinates(i_node, 2) = int_pt_coord[2];
+    }
 }
 
 double EmbeddedMLSConstraintProcess::CalculateKernelRadius(

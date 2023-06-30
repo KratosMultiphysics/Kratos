@@ -46,7 +46,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility to add MLS-based master-slave-constraints to negative nodes of intersected elements 
+/// Utility to add MLS-based master-slave-constraints to negative nodes of intersected elements
 /// in order to prevent small cut instabilities.
 /// By default, the process also deactivates full negative distance elements.
 class EmbeddedMLSConstraintProcess : public Process
@@ -69,6 +69,8 @@ public:
     using CloudDataVectorType = DenseVector<std::pair<NodeType::Pointer, double>>;
 
     using NodesCloudMapType = std::unordered_map<NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
+
+    using NodesOffsetMapType = std::unordered_map<NodeType::Pointer, double, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
 
     ///@}
     ///@name Pointer Definitions
@@ -104,6 +106,7 @@ public:
         const Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
             "mls_extension_operator_order" : 1,
+            "include_intersection_points" : false,
             "avoid_zero_distances" : true,
             "deactivate_negative_elements" : true,
             "deactivate_intersected_elements" : false
@@ -191,6 +194,8 @@ private:
 
     std::size_t mMLSExtensionOperatorOrder;
 
+    bool mIncludeIntersectionPoints;
+
     bool mAvoidZeroDistances;
 
     bool mDeactivateNegativeElements;
@@ -205,10 +210,16 @@ private:
     ///@{
 
     void CalculateConformingExtensionBasis(
-        NodesCloudMapType& rExtensionOperatorMap);
+        NodesCloudMapType& rExtensionOperatorMap,
+        NodesOffsetMapType& rConstraintOffsetMap);
+
+    void CalculateConformingExtensionBasisIncludingBC(
+        NodesCloudMapType& rExtensionOperatorMap,
+        NodesOffsetMapType& rConstraintOffsetMap);
 
     void ApplyExtensionConstraints(
-        NodesCloudMapType& rExtensionOperatorMap);
+        NodesCloudMapType& rExtensionOperatorMap,
+        NodesOffsetMapType& rConstraintOffsetMap);
 
     void SetInterfaceFlags();
 
@@ -218,6 +229,8 @@ private:
 
     bool IsSplit(const GeometryType& rGeometry);
 
+    bool IsSmallCut(const GeometryType& rGeometry);
+
     bool IsNegative(const GeometryType& rGeometry);
 
     MLSShapeFunctionsFunctionType GetMLSShapeFunctionsFunction();
@@ -225,7 +238,13 @@ private:
     void SetNegativeNodeSupportCloud(
         const NodeType& rNegativeNode,
         PointerVector<NodeType>& rCloudNodes,
+        PointerVector<NodeType>& rPositiveNeighborNodes,
         Matrix& rCloudCoordinates);
+
+    void SetNegativeNodeIntersectionPoints(
+        const NodeType& rNegativeNode,
+        PointerVector<NodeType>& rPositiveNeighborNodes,
+        Matrix& rIntersectionPointsCoordinates);
 
     double CalculateKernelRadius(
         const Matrix& rCloudCoordinates,

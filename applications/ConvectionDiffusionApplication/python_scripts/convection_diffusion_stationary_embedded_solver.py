@@ -83,6 +83,7 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
             settings = KratosMultiphysics.Parameters("""{}""")
             settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
             settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["mls_extension_operator_order"].GetInt())
+            settings.AddEmptyValue("include_intersection_points").SetBool(True)
             settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
             settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
             settings.AddEmptyValue("deactivate_intersected_elements").SetBool(False)
@@ -97,6 +98,7 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
                 d = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 if abs(d) < tol_d:
                     if d > 0.0:
+                        # NOTE: Turn positive small cuts into negative ones with -tol_d instead of +tol_d
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol_d)
                     else:
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -tol_d)
