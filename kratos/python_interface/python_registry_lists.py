@@ -34,3 +34,8 @@ python_processes_to_be_registered = [
 python_stages_to_be_registered = [
     "analysis_stage.AnalysisStage"
 ]
+
+python_multistage_orchestrators_to_be_registered = [
+    "multistage_orchestrators.multistage_orchestrator.MultistageOrchestrator",
+    "multistage_orchestrators.sequential_multistage_orchestrator.SequentialMultistageOrchestrator"
+]

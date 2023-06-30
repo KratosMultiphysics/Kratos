@@ -9,6 +9,11 @@ import KratosMultiphysics
 class Project:
 
     def __init__(self) -> None:
+        '''
+        
+        Explain the members
+        '''
+
         self.output_data = {}
         self.active_stages = {}
         self.model = KratosMultiphysics.Model()
