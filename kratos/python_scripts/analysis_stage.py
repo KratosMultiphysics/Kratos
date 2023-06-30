@@ -205,6 +205,20 @@ class AnalysisStage(object):
         """this function is where the user could change material parameters as a part of the solution step """
         pass
 
+    def Save(self, serializer):
+        """Serializes current analysis stage instance
+
+        This method is intended to make the class pure Python (pickable). This means serialize all the Kratos objects with the given serializer to then destroy them.
+        """
+        pass
+
+    def Load(self, serializer):
+        """Loads current analysis stage instance
+        
+        From the given serializer, this method restores current class from a pure Python status (pickable) to the one in the serializer.
+        """
+        pass
+
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
             self._solver = self._CreateSolver()
