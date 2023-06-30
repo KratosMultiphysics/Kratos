@@ -8,25 +8,26 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ignasi de Pouplana
+//                   Danilo Cavalcanti
 //
 
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_normal_face_load_condition.hpp"
 
 namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Condition::Pointer UPwNormalFaceLoadCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
+Condition::Pointer UPwPgNormalFaceLoadCondition<TDim,TNumNodes>::Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new UPwNormalFaceLoadCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new UPwPgNormalFaceLoadCondition(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
+void UPwPgNormalFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo )
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
@@ -63,14 +64,14 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRigh
                 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
-        PoroConditionUtilities::AssembleUBlockVector(rRightHandSideVector,UVector);
+        PoroConditionUtilities::AssembleUBlockTwoPhaseFlowVector(rRightHandSideVector,UVector);
     }
 }
 
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwNormalFaceLoadCondition<2,2>::InitializeConditionVariables(NormalFaceLoadVariables& rVariables, const GeometryType& Geom)
+void UPwPgNormalFaceLoadCondition<2,2>::InitializeConditionVariables(NormalFaceLoadVariables& rVariables, const GeometryType& Geom)
 {
     for(unsigned int i=0; i<2; i++)
     {
@@ -82,7 +83,7 @@ void UPwNormalFaceLoadCondition<2,2>::InitializeConditionVariables(NormalFaceLoa
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwNormalFaceLoadCondition<3,3>::InitializeConditionVariables(NormalFaceLoadVariables& rVariables, const GeometryType& Geom)
+void UPwPgNormalFaceLoadCondition<3,3>::InitializeConditionVariables(NormalFaceLoadVariables& rVariables, const GeometryType& Geom)
 {
     for(unsigned int i=0; i<3; i++)
     {
@@ -93,7 +94,7 @@ void UPwNormalFaceLoadCondition<3,3>::InitializeConditionVariables(NormalFaceLoa
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwNormalFaceLoadCondition<3,4>::InitializeConditionVariables(NormalFaceLoadVariables& rVariables, const GeometryType& Geom)
+void UPwPgNormalFaceLoadCondition<3,4>::InitializeConditionVariables(NormalFaceLoadVariables& rVariables, const GeometryType& Geom)
 {
     for(unsigned int i=0; i<4; i++)
     {
@@ -104,7 +105,7 @@ void UPwNormalFaceLoadCondition<3,4>::InitializeConditionVariables(NormalFaceLoa
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwNormalFaceLoadCondition<2,2>::CalculateTractionVector(array_1d<double,2>& rTractionVector,const Matrix& Jacobian,const Matrix& NContainer,
+void UPwPgNormalFaceLoadCondition<2,2>::CalculateTractionVector(array_1d<double,2>& rTractionVector,const Matrix& Jacobian,const Matrix& NContainer,
                                                                 const NormalFaceLoadVariables& Variables,const unsigned int& GPoint)
 {
     double NormalStress = 0.0;
@@ -125,7 +126,7 @@ void UPwNormalFaceLoadCondition<2,2>::CalculateTractionVector(array_1d<double,2>
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwNormalFaceLoadCondition<3,3>::CalculateTractionVector(array_1d<double,3>& rTractionVector,const Matrix& Jacobian,const Matrix& NContainer,
+void UPwPgNormalFaceLoadCondition<3,3>::CalculateTractionVector(array_1d<double,3>& rTractionVector,const Matrix& Jacobian,const Matrix& NContainer,
                                                                 const NormalFaceLoadVariables& Variables,const unsigned int& GPoint)
 {
     double NormalStress = 0.0;
@@ -151,7 +152,7 @@ void UPwNormalFaceLoadCondition<3,3>::CalculateTractionVector(array_1d<double,3>
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwNormalFaceLoadCondition<3,4>::CalculateTractionVector(array_1d<double,3>& rTractionVector,const Matrix& Jacobian,const Matrix& NContainer,
+void UPwPgNormalFaceLoadCondition<3,4>::CalculateTractionVector(array_1d<double,3>& rTractionVector,const Matrix& Jacobian,const Matrix& NContainer,
                                                                 const NormalFaceLoadVariables& Variables,const unsigned int& GPoint)
 {
     double NormalStress = 0.0;
@@ -177,15 +178,15 @@ void UPwNormalFaceLoadCondition<3,4>::CalculateTractionVector(array_1d<double,3>
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFaceLoadCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& Weight)
+void UPwPgNormalFaceLoadCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& Weight)
 {
     rIntegrationCoefficient = Weight;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class UPwNormalFaceLoadCondition<2,2>;
-template class UPwNormalFaceLoadCondition<3,3>;
-template class UPwNormalFaceLoadCondition<3,4>;
+template class UPwPgNormalFaceLoadCondition<2,2>;
+template class UPwPgNormalFaceLoadCondition<3,3>;
+template class UPwPgNormalFaceLoadCondition<3,4>;
 
 } // Namespace Kratos.
