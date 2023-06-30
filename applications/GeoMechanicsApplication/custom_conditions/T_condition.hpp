@@ -40,23 +40,23 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TCondition);
     
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
 
     // Default constructor
-    TCondition() : Condition() {}
+    TCondition();
 
     // Constructor 1
-    TCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : Condition(NewId, pGeometry) {}
+    TCondition(IndexType NewId, GeometryType::Pointer pGeometry);
     
     // Constructor 2
-    TCondition( IndexType NewId,
-                  GeometryType::Pointer pGeometry,
-                  PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties) {}
+    TCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    virtual ~TCondition() {}
+    virtual ~TCondition();
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
 
     Condition::Pointer Create(IndexType NewId,
                               NodesArrayType const& ThisNodes,
@@ -65,7 +65,8 @@ public:
     void GetDofList(DofsVectorType& rConditionDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -74,7 +75,8 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult,
                           const ProcessInfo& rCurrentProcessInfo) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
 
 protected:
 
@@ -85,7 +87,8 @@ protected:
     virtual void CalculateRHS(VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
 
 private:
     

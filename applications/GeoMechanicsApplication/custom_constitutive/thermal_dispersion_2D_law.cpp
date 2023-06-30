@@ -42,24 +42,23 @@ namespace Kratos
 
     // ============================================================================================
     // ============================================================================================
-    GeoThermalDispersion2DLaw::~GeoThermalDispersion2DLaw() {}
+    GeoThermalDispersion2DLaw::~GeoThermalDispersion2DLaw() = default;
 
     // ============================================================================================
     // ============================================================================================
     void GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(
         Matrix& C,
-        ConstitutiveLaw::Parameters& rValues)
+        const Properties& rProp)
     {
         KRATOS_TRY
 
-        const Properties& r_material_properties = rValues.GetMaterialProperties();
-        const double porosity = r_material_properties[POROSITY];
-        const double saturation = r_material_properties[SATURATION];
-        const double thermalCondWater = r_material_properties[THERMAL_CONDUCTIVITY_WATER];
-        const double thermalCondSolidXX = r_material_properties[THERMAL_CONDUCTIVITY_SOLID_XX];
-        const double thermalCondSolidXY = r_material_properties[THERMAL_CONDUCTIVITY_SOLID_XY];
-        const double thermalCondSolidYX = r_material_properties[THERMAL_CONDUCTIVITY_SOLID_YX];
-        const double thermalCondSolidYY = r_material_properties[THERMAL_CONDUCTIVITY_SOLID_YY];
+        const double porosity = rProp[POROSITY];
+        const double saturation = rProp[SATURATION];
+        const double thermalCondWater = rProp[THERMAL_CONDUCTIVITY_WATER];
+        const double thermalCondSolidXX = rProp[THERMAL_CONDUCTIVITY_SOLID_XX];
+        const double thermalCondSolidXY = rProp[THERMAL_CONDUCTIVITY_SOLID_XY];
+        const double thermalCondSolidYX = rProp[THERMAL_CONDUCTIVITY_SOLID_YX];
+        const double thermalCondSolidYY = rProp[THERMAL_CONDUCTIVITY_SOLID_YY];
 
         const double cWater = porosity * saturation ;
         const double cSolid = 1.0 - porosity;

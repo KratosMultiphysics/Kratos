@@ -71,7 +71,7 @@ namespace Kratos
             array_1d<double, TNumNodes> DtTemperatureVector;
 
             ///Constitutive Law parameters
-            BoundedMatrix<double, TDim, TDim> ConstitutiveMatrix;
+            Matrix ConstitutiveMatrix;
             Vector N;
             Matrix GradNT;
             Matrix GradNTInitialConfiguration;
@@ -91,23 +91,23 @@ namespace Kratos
         };
 
     	/// Default Constructor
-        TransientThermalElement(IndexType NewId = 0) : BaseType(NewId) {}
+        TransientThermalElement(IndexType NewId = 0);
 
         /// Constructor using an array of nodes
         TransientThermalElement(IndexType NewId,
-            const NodesArrayType & ThisNodes) : BaseType(NewId, ThisNodes) {}
+            const NodesArrayType& ThisNodes);
 
         /// Constructor using Geometry
         TransientThermalElement(IndexType NewId,
-            GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry) {}
+            GeometryType::Pointer pGeometry);
 
         /// Constructor using Properties
         TransientThermalElement(IndexType NewId,
             GeometryType::Pointer pGeometry,
-            PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties) {}
+            PropertiesType::Pointer pProperties);
 
         /// Destructor
-        ~TransientThermalElement() override {}
+        ~TransientThermalElement() override;
 
         Element::Pointer Create(IndexType NewId,
             NodesArrayType const& ThisNodes,
@@ -174,8 +174,6 @@ namespace Kratos
 
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override;
-
-        void CalculateThermalDispersionMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
 
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 

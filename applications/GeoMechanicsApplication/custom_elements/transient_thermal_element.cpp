@@ -12,9 +12,39 @@
 
 // Application includes
 #include "custom_elements/transient_thermal_element.hpp"
+#include "custom_constitutive/thermal_dispersion_2D_law.hpp"
 
 namespace Kratos
 {
+
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    TransientThermalElement(IndexType NewId) : Element(NewId) {}
+
+    /// Constructor using an array of nodes
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    TransientThermalElement(IndexType NewId,
+        const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
+
+    /// Constructor using Geometry
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    TransientThermalElement(IndexType NewId,
+        GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}
+
+    /// Constructor using Properties
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    TransientThermalElement(IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties) : Element(NewId, pGeometry, pProperties) {}
+
+    /// Destructor
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    ~TransientThermalElement() = default;
+
     // ============================================================================================
 	// ============================================================================================
     template<unsigned int TDim, unsigned int TNumNodes>
@@ -177,10 +207,10 @@ namespace Kratos
             KRATOS_ERROR << "SOLID_COMPRESSIBILITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
         if (TDim == 2) {
-            // If this is a 2D problem, nodes must be in XY plane
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                if (Geom[i].Z() != 0.0)
-                    KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
+            auto pos = std::find_if(Geom.begin(), Geom.end(),
+                                    [](const auto& node) { return node.Z() != 0.0;  });
+            if (pos != Geom.end()) {
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
             }
         }
 
@@ -420,7 +450,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-    	this->CalculateThermalDispersionMatrix(rVariables.ConstitutiveMatrix, rVariables);
+        rVariables.ConstitutiveMatrix = ZeroMatrix(TDim, TDim);
+        const Properties& rProp = this->GetProperties();
+        GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(rVariables.ConstitutiveMatrix, rProp);
 
         BoundedMatrix<double, TDim, TNumNodes> Temp = prod(rVariables.ConstitutiveMatrix, trans(rVariables.GradNT));
         TMatrix = prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
@@ -527,26 +559,6 @@ namespace Kratos
         rVariables.SolidThermalConductivityYY = rProp[THERMAL_CONDUCTIVITY_SOLID_YY];
         rVariables.Saturation = rProp[SATURATION];
         rVariables.DtTemperatureCoefficient = rProp[DT_TEMPERATURE_COEFFICIENT];
-
-        KRATOS_CATCH("")
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::CalculateThermalDispersionMatrix(
-        BoundedMatrix<double, TDim, TDim>& C,
-        ElementVariables& rVariables)
-    {
-        KRATOS_TRY
-
-        const double cWater = rVariables.Porosity * rVariables.Saturation;
-        const double cSolid = 1.0 - rVariables.Porosity;
-
-        C(0, 0) = cSolid * rVariables.SolidThermalConductivityXX + cWater * rVariables.WaterThermalConductivity;
-        C(0, 1) = cSolid * rVariables.SolidThermalConductivityXY;
-        C(1, 0) = cSolid * rVariables.SolidThermalConductivityYX;
-        C(1, 1) = cSolid * rVariables.SolidThermalConductivityYY + cWater * rVariables.WaterThermalConductivity;
 
         KRATOS_CATCH("")
     }

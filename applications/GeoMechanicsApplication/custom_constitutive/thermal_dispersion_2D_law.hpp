@@ -86,14 +86,6 @@ public:
      */
     ~GeoThermalDispersion2DLaw() override;
 
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
     /**
      * @brief Dimension of the law:
      * @return The dimension were the law is working
@@ -103,69 +95,13 @@ public:
         return 2;
     }
 
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
     /**
      * @brief It calculates the constitutive matrix C
      * @param C The constitutive matrix
      */
-    void CalculateThermalDispersionMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues);
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
+    static void CalculateThermalDispersionMatrix(Matrix& C, const Properties& rValues);
 
 private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
 
     ///@}
     ///@name Serialization

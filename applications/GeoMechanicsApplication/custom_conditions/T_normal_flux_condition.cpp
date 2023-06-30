@@ -22,6 +22,26 @@ namespace Kratos
 
 // ============================================================================================
 // ============================================================================================
+// Default constructor
+template<unsigned int TDim, unsigned int TNumNodes>
+TNormalFluxCondition<TDim, TNumNodes>::TNormalFluxCondition() : TCondition<TDim, TNumNodes>() {}
+
+// Constructor 1
+template<unsigned int TDim, unsigned int TNumNodes>
+TNormalFluxCondition<TDim, TNumNodes>::TNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : TCondition<TDim, TNumNodes>(NewId, pGeometry) {}
+
+// Constructor 2
+template<unsigned int TDim, unsigned int TNumNodes>
+TNormalFluxCondition<TDim, TNumNodes>::TNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties) : TCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties) {}
+
+// Destructor
+template<unsigned int TDim, unsigned int TNumNodes>
+TNormalFluxCondition<TDim, TNumNodes>::~TNormalFluxCondition() = default;
+
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer TNormalFluxCondition<TDim,TNumNodes>::Create(
     IndexType NewId,NodesArrayType const& ThisNodes,

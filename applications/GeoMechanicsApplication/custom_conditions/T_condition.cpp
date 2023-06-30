@@ -18,6 +18,29 @@
 namespace Kratos
 {
 
+// ============================================================================================
+// ============================================================================================
+// Default constructor
+template<unsigned int TDim, unsigned int TNumNodes>
+TCondition<TDim, TNumNodes>::TCondition() : Condition() {}
+
+// Constructor 1
+template<unsigned int TDim, unsigned int TNumNodes>
+TCondition<TDim, TNumNodes>::TCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Condition(NewId, pGeometry) {}
+
+// Constructor 2
+template<unsigned int TDim, unsigned int TNumNodes>
+TCondition<TDim, TNumNodes>::TCondition(IndexType NewId, GeometryType::Pointer pGeometry, 
+    PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties) {}
+
+// Destructor
+template<unsigned int TDim, unsigned int TNumNodes>
+TCondition<TDim, TNumNodes>::~TCondition() = default;
+
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer TCondition<TDim,TNumNodes>::Create(
     IndexType NewId,
