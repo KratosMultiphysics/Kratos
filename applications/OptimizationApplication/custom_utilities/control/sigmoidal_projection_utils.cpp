@@ -25,12 +25,16 @@
 
 namespace SigmoidalValueProjectionUtils{
 
-bool HasVectorDuplicates(const std::vector<double>& rValues) {
+bool HasVectorDuplicates(const std::vector<double>& rValues)
+{
     std::set<double> unique_values(rValues.begin(), rValues.end());
     return unique_values.size() != rValues.size();
 };
 
-void CheckXYVectors(std::vector<double> rXValues, std::vector<double> rYValues){
+void CheckXYVectors(
+    const std::vector<double>& rXValues,
+    const std::vector<double>& rYValues)
+{
     KRATOS_ERROR_IF(rXValues.size() != rYValues.size())
         << "SigmoidalProjectionUtils: rXLimits and rYLimits should have the same size.\n";
 
