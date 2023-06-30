@@ -104,10 +104,6 @@ double ProjectValueBackward(
         << "SigmoidalProjectionUtils::ProjectValueBackward: yValue "
         << yValue << " is out of the given range " << rYLimits << "\n";
 
-    KRATOS_ERROR_IF(std::abs(yValue)>std::numeric_limits<double>::max())
-        << "SigmoidalProjectionUtils::ProjectValueBackward: yValue "
-        << yValue << " is too big for backward projection !!! " << rYLimits << "\n";
-
     const IndexType upper_index = GetUpperValueRangeIndex(yValue, rYLimits);
 
     const double x1 = rXLimits[upper_index - 1];
