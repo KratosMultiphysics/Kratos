@@ -69,7 +69,9 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
 
     # Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_Pg_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_Pg_small_strain_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_interface_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_link_interface_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/U_Pw_small_strain_FIC_element.cpp
