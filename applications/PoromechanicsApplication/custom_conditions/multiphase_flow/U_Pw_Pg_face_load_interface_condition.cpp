@@ -13,7 +13,7 @@
 
 
 // Application includes
-#include "custom_conditions/multiphase_flow/U_Pw_face_load_interface_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_face_load_interface_condition.hpp"
 
 namespace Kratos
 {

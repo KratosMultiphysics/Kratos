@@ -18,7 +18,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_conditions/multiphase_flow/U_Pw_condition.hpp"
+#include "custom_conditions/multiphase_flow/U_Pw_Pg_condition.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
