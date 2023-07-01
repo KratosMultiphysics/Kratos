@@ -8,13 +8,10 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_NLOPT_objective import StandardizedNLOPTObjective
+from KratosMultiphysics.OptimizationApplication.algorithms.standardized_NLOPT_constraint import StandardizedNLOPTConstraint
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
-from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
-from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -31,12 +28,19 @@ class NLOPTAlgorithms(Algorithm):
             "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
             "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
             "objective"         : {},
+            "constraints"         : [],
             "controls"          : [],
             "echo_level"        : 0,
-            "settings"          : {
-                "echo_level"      : 0,
-                "line_search"     : {},
-                "conv_settings"   : {}
+            "NLOPT_settings"          : {
+                "algorithm_name"      : "MMA",
+                "algorithm_settings"     : {},
+                "stopping_criteria"   : {
+                    "objective_rel_tol": "",
+                    "objective_abs_tol": "",
+                    "controls_rel_tol": "",
+                    "controls_abs_tol": "",
+                    "maximum_function_evalualtion": 10
+                }
             }
         }""")
 
@@ -47,26 +51,30 @@ class NLOPTAlgorithms(Algorithm):
 
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.master_control = MasterControl() # Need to fill it with controls
-
+        # controls
+        self.master_control = MasterControl()
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
             self.master_control.AddControl(control)
-
-
-        settings = parameters["settings"]
-        settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["settings"])
-
-        self.echo_level = settings["echo_level"].GetInt()
-
-        ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
-
-        self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
-        self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
-
-        self.__objective = StandardizedNLOPTObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self.__control_field = None
-        self.__obj_val = None
+
+        # objective & constraints
+        self.__objective = StandardizedNLOPTObjective(parameters["objective"], self.master_control, self._optimization_problem)
+        self.__constraints = []
+        for constraint_settings in parameters["constraints"]:
+            self.__constraints.append(StandardizedNLOPTConstraint(constraint_settings, self.master_control, self._optimization_problem))
+
+        # nlopt settings
+        NLOPT_settings = parameters["NLOPT_settings"]
+        NLOPT_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["NLOPT_settings"])
+
+        # nlopt algorithm settings
+        self.algorithm_name = NLOPT_settings["algorithm_name"].GetString()
+        self.algorithm_settings = NLOPT_settings["algorithm_settings"]
+
+        # stopping
+        self.stopping_criteria = NLOPT_settings["stopping_criteria"]
+        self.stopping_criteria.ValidateAndAssignDefaults(self.GetDefaultParameters()["NLOPT_settings"]["stopping_criteria"])
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -76,80 +84,30 @@ class NLOPTAlgorithms(Algorithm):
 
     def Initialize(self):
         self.converged = False
-        self.__obj_val = None
         self.__objective.Initialize()
         self.__objective.Check()
+        for constraint in self.__constraints:
+            constraint.Initialize()
+            constraint.Check()
         self.master_control.Initialize()
         self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
     def Finalize(self):
         self.__objective.Finalize()
+        for constraint in self.__constraints:
+            constraint.Finalize()
         self.master_control.Finalize()
-
-    def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
-        with TimeLogger("NLOPTAlgorithms::ComputeSearchDirection", None, "Finished"):
-            search_direction = obj_grad * -1.0
-            self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
-        return search_direction
-
-    def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
-        with TimeLogger("NLOPTAlgorithms::ComputeControlUpdate", None, "Finished"):
-            update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
-            self.algorithm_data.GetBufferedData()["control_field_update"] = update
-
-    def UpdateControl(self) -> KratosOA.CollectiveExpression:
-        with TimeLogger("NLOPTAlgorithms::UpdateControl", None, "Finished"):
-            update = self.algorithm_data.GetBufferedData()["control_field_update"]
-            self.__control_field += update
-            self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field
-
-    def Output(self) -> KratosOA.CollectiveExpression:
-        with TimeLogger("NLOPTAlgorithms::Output", None, "Finished"):
-            self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
-
-    def GetCurrentObjValue(self) -> float:
-        return self.__obj_val
-
-    def GetCurrentControlField(self):
-        return self.__control_field
 
     def Solve(self):
         x0 = self.__control_field.Evaluate()
-        psudo_gradient = numpy.zeros(x0.size)
-        self.__objective.CalculateStandardizedValueAndGradients(x0,psudo_gradient)
-        self.__objective.CalculateStandardizedValueAndGradients(x0,psudo_gradient)
-        print(psudo_gradient)
-        hj
-        # while not self.converged:
-        #     with OptimizationAlgorithmTimeLogger("NLOPTAlgorithms",self._optimization_problem.GetStep()):
-        #         self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
-        #         obj_info = self.__objective.GetInfo()
-        #         self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
-        #         self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
-        #         if "abs_change [%]" in obj_info:
-        #             self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
-
-        #         obj_grad = self.__objective.CalculateStandardizedGradient()
-
-        #         self.ComputeSearchDirection(obj_grad)
-
-        #         alpha = self.__line_search_method.ComputeStep()
-
-        #         self.ComputeControlUpdate(alpha)
-
-        #         self.Output()
-
-        #         self.UpdateControl()
-
-        #         self.converged = self.__convergence_criteria.IsConverged()
-
-        #         self._optimization_problem.AdvanceStep()
-
-        # return self.converged
-
-    def GetOptimizedObjectiveValue(self) -> float:
-        if self.converged:
-            return self.__obj_val
-        else:
-            raise RuntimeError("Optimization problem hasn't been solved.")
+        opt = nlopt.opt(nlopt.LD_MMA, x0.size)
+        opt.set_min_objective(self.__objective.CalculateStandardizedValueAndGradients)
+        for constraint in self.__constraints:
+            opt.add_inequality_constraint(lambda x,grad: constraint.CalculateStandardizedValueAndGradients(x,grad),1e-8)
+        opt.set_ftol_rel(1e-4)
+        # opt.set_xtol_rel(1e-6)
+        opt.set_maxeval(200)
+        opt.optimize(x0)
+        minf = opt.last_optimum_value()
+        print("minimum value = ", minf)
