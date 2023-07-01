@@ -90,7 +90,7 @@ inline void GenericAtomicAdd(
     } else {
         // This will be never reached. But having this
         // gives some peace of mind.
-        static_assert(false, "Unsupported atomic add.");
+        static_assert(!std::is_same_v<TDataType1, TDataType1>, "Unsupported atomic add.");
     }
 }
 
