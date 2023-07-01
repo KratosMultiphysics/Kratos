@@ -35,6 +35,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_filters_to_python.h"
+#include "custom_python/add_custom_control_utilities_to_python.h"
 
 // ==============================================================================
 
@@ -61,6 +62,9 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
 
     auto response_utils = m.def_submodule("ResponseUtils");
     AddCustomResponseUtilitiesToPython(response_utils);
+
+    auto control_utils = m.def_submodule("ControlUtils");
+    AddCustomControlUtilitiesToPython(control_utils);
 
     //registering variables in python
 

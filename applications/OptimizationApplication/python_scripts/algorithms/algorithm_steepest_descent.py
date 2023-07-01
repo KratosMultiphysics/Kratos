@@ -7,7 +7,7 @@ from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algo
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.opt_convergence import CreateConvergenceCriteria
 from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import CreateLineSearch
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -67,6 +67,7 @@ class AlgorithmSteepestDescent(Algorithm):
     def Check(self):
         pass
 
+    @time_decorator()
     def Initialize(self):
         self.converged = False
         self.__obj_val = None
@@ -80,26 +81,26 @@ class AlgorithmSteepestDescent(Algorithm):
         self.__objective.Finalize()
         self.master_control.Finalize()
 
+    @time_decorator()
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
-        with TimeLogger("AlgorithmSteepestDescent::ComputeSearchDirection", None, "Finished"):
-            search_direction = obj_grad * -1.0
-            self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
+        search_direction = obj_grad * -1.0
+        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
         return search_direction
 
+    @time_decorator()
     def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
-        with TimeLogger("AlgorithmSteepestDescent::ComputeControlUpdate", None, "Finished"):
-            update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
-            self.algorithm_data.GetBufferedData()["control_field_update"] = update
+        update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
+        self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
 
+    @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
-        with TimeLogger("AlgorithmSteepestDescent::UpdateControl", None, "Finished"):
-            update = self.algorithm_data.GetBufferedData()["control_field_update"]
-            self.__control_field += update
-            self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field
+        update = self.algorithm_data.GetBufferedData()["control_field_update"]
+        self.__control_field += update
+        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
 
+    @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
-        with TimeLogger("AlgorithmSteepestDescent::Output", None, "Finished"):
-            self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
+        self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
 
     def GetCurrentObjValue(self) -> float:
         return self.__obj_val
@@ -107,6 +108,7 @@ class AlgorithmSteepestDescent(Algorithm):
     def GetCurrentControlField(self):
         return self.__control_field
 
+    @time_decorator()
     def Solve(self):
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
