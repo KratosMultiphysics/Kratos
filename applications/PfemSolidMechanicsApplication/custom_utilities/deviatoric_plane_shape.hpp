@@ -8,7 +8,7 @@
 
 #if !defined(KRATOS_DEVIATORIC_SHAPE_UTILITIES)
 #define KRATOS_DEVIATORIC_SHAPE_UTILITIES
-#define PI 3.1415926535898
+#define m_PI 3.1415926535898  //ATTENTION: PI is defined in clipper library
 
 /*#ifdef FIND_MAX
 #undef FIND_MAX
