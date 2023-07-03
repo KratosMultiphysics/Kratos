@@ -128,11 +128,11 @@ class UPwPgSolver(PythonSolver):
         # Add water pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.WATER_PRESSURE)
         # Add gas pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.GAS_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.GAS_PRESSURE)
         # Add reactions for the water pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         # Add reactions for the gas pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_GAS_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.REACTION_GAS_PRESSURE)
         # Add dynamic variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DT_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.DT_GAS_PRESSURE)
@@ -151,7 +151,7 @@ class UPwPgSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_EFFECTIVE_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_WATER_PRESSURE_GRADIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_GAS_PRESSURE_GRADIENT)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_GAS_PRESSURE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
 
         # Add variables from gp to nodal variable list
@@ -197,7 +197,7 @@ class UPwPgSolver(PythonSolver):
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.WATER_PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
         ## Gas dofs
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.GAS_PRESSURE, KratosMultiphysics.REACTION_GAS_PRESSURE,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosPoro.GAS_PRESSURE, KratosPoro.REACTION_GAS_PRESSURE,self.main_model_part)
 
         if(self.settings["solution_type"].GetString() == "implicit_dynamic"):
             for node in self.main_model_part.Nodes:
