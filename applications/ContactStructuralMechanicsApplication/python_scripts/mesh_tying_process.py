@@ -180,15 +180,12 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         """
         # Determine the geometry of the element
         super()._get_final_string(key)
-        number_nodes, number_nodes_master = self._compute_number_nodes_elements()
-        geometry_element = self.__type_element(number_nodes)
-        geometry_element_master = self.__type_element(number_nodes_master)
         # We compute the number of nodes of the conditions
         number_nodes, number_nodes_master = super()._compute_number_nodes()
         if number_nodes != number_nodes_master:
-            return geometry_element + str(number_nodes_master) + "N" + geometry_element_master
+            return str(number_nodes_master) + "N"
         else:
-            return geometry_element
+            return ""
 
     def _initialize_search_conditions(self):
         """ This method initializes some conditions values
@@ -218,49 +215,3 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
 
         # Setting the conditions
         KM.VariableUtils().SetNonHistoricalVariable(KM.NORMAL, zero_vector, self._get_process_model_part().Conditions)
-
-    def _compute_number_nodes_elements(self):
-        """ This method computes the  number of nodes per element
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        # We compute the number of nodes of the geometry
-        if self.predefined_master_slave and self.dimension == 3:
-            slave_defined = False
-            master_defined = False
-            for elem in self.main_model_part.Elements:
-                nodes = elem.GetNodes()
-                for node in nodes:
-                    if node.Is(KM.SLAVE):
-                        number_nodes = len(elem.GetNodes())
-                        slave_defined = True
-                    if node.Is(KM.MASTER):
-                        number_nodes_master = len(elem.GetNodes())
-                        master_defined = True
-                if slave_defined and master_defined:
-                    break
-        else:
-            number_nodes = len(self.main_model_part.Elements[1].GetNodes())
-            number_nodes_master = number_nodes
-
-        return number_nodes, number_nodes_master
-
-    def __type_element(self, number_nodes):
-        """ This method computes the type of element considered
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        number_nodes -- The number of nodes of the element
-        """
-
-        if self.dimension == 2:
-            if number_nodes == 3:
-                return "Triangle"
-            elif number_nodes == 4:
-                return "Quadrilateral"
-        else:
-            if number_nodes == 4:
-                return "Tetrahedron"
-            elif number_nodes == 8:
-                return "Hexahedron"
