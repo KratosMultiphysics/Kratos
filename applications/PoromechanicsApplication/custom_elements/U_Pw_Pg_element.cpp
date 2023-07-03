@@ -183,7 +183,7 @@ void UPwPgElement<TDim,TNumNodes>::GetDofList( DofsVectorType& rElementalDofList
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int element_size = TNumNodes * (TDim + 1);
+    const unsigned int element_size = TNumNodes * (TDim + 2);
     unsigned int index = 0;
 
     if (rElementalDofList.size() != element_size)
