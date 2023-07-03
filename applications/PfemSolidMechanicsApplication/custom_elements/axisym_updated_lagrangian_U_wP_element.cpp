@@ -139,7 +139,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void AxisymUpdatedLagrangianUwPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
    {
       rElementalDofList.resize( 0 );
 
@@ -155,7 +155,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void AxisymUpdatedLagrangianUwPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -239,80 +239,80 @@ namespace Kratos
 
    }
 
-   //************************************************************************************
-   //************************************************************************************
+   ////************************************************************************************
+   ////************************************************************************************
 
-   //**********************************GET DOUBLE VALUE**********************************
-   //************************************************************************************
+   ////**********************************GET DOUBLE VALUE**********************************
+   ////************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-         std::vector<double>& rValues,
-         const ProcessInfo& rCurrentProcessInfo )
-   {
+   //void AxisymUpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+   //      std::vector<double>& rValues,
+   //      const ProcessInfo& rCurrentProcessInfo )
+   //{
 
-      /*const unsigned int& integration_points_number = mConstitutiveLawVector.size();
-        if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number );*/
+   //   /*const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+   //     if ( rValues.size() != integration_points_number )
+   //     rValues.resize( integration_points_number );*/
 
-      if ( rVariable == POROSITY ||  rVariable == DENSITY )
-      {
-         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-      }
-      else if ( rVariable == VOID_RATIO )
-      {
-         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-      }
-      else if ( rVariable == PERMEABILITY )
-      {
-         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-      }
-      else if ( rVariable == DETERMINANT_F)
-      {
-         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-      }
-      else{
+   //   if ( rVariable == POROSITY ||  rVariable == DENSITY )
+   //   {
+   //      CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+   //   }
+   //   else if ( rVariable == VOID_RATIO )
+   //   {
+   //      CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+   //   }
+   //   else if ( rVariable == PERMEABILITY )
+   //   {
+   //      CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+   //   }
+   //   else if ( rVariable == DETERMINANT_F)
+   //   {
+   //      CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+   //   }
+   //   else{
 
-         AxisymmetricUpdatedLagrangianElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+   //      AxisymmetricUpdatedLagrangianElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
-      }
+   //   }
 
-   }
+   //}
 
-   //**********************************GET VECTOR VALUE**********************************
-   //************************************************************************************
+   ////**********************************GET VECTOR VALUE**********************************
+   ////************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
-   {
-      if ( rVariable == DARCY_FLOW ) {
+   //void AxisymUpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Vector> & rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo)
+   //{
+   //   if ( rVariable == DARCY_FLOW ) {
 
-         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
+   //      CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
 
-      }
-      else{
+   //   }
+   //   else{
 
-         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+   //      LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
-      }
+   //   }
 
 
-   }
+   //}
 
-   //**********************************GET TENSOR VALUE**********************************
-   //************************************************************************************
+   ////**********************************GET TENSOR VALUE**********************************
+   ////************************************************************************************
 
-   void AxisymUpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
-   {
-      if ( rVariable == TOTAL_CAUCHY_STRESS) 
-      {
-         CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
-      }
-      else {
+   //void AxisymUpdatedLagrangianUwPElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
+   //{
+   //   if ( rVariable == TOTAL_CAUCHY_STRESS) 
+   //   {
+   //      CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
+   //   }
+   //   else {
 
-         LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
+   //      LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
 
-      }
+   //   }
 
-   }
+   //}
 
 
    // *********************** Calculate double On Integration Points *************************
@@ -330,7 +330,7 @@ namespace Kratos
             rOutput.resize( mConstitutiveLawVector.size() );
 
          std::vector<double>  DetF0; 
-         GetValueOnIntegrationPoints( DETERMINANT_F, DetF0, rCurrentProcessInfo);
+         CalculateOnIntegrationPoints( DETERMINANT_F, DetF0, rCurrentProcessInfo);
 
          if (rOutput.size() != integration_points_number)
             rOutput.resize( integration_points_number) ;
@@ -342,7 +342,7 @@ namespace Kratos
       }
       else if ( rVariable == VOID_RATIO) {
 
-         GetValueOnIntegrationPoints( POROSITY, rOutput, rCurrentProcessInfo);
+          CalculateOnIntegrationPoints( POROSITY, rOutput, rCurrentProcessInfo);
 
          const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 
@@ -397,7 +397,7 @@ namespace Kratos
          }
 
          std::vector<double>  Porosity; 
-         GetValueOnIntegrationPoints( POROSITY, Porosity, rCurrentProcessInfo);
+         CalculateOnIntegrationPoints( POROSITY, Porosity, rCurrentProcessInfo);
          double PorosityInitial = GetProperties()[INITIAL_POROSITY];
          double initialVoidRatio = PorosityInitial / (1.0 - PorosityInitial);
 
@@ -502,7 +502,7 @@ namespace Kratos
             rOutput.resize( mConstitutiveLawVector.size() );
          }
          // only for one gauss point element
-         GetValueOnIntegrationPoints( CAUCHY_STRESS_TENSOR, rOutput, rCurrentProcessInfo);
+         CalculateOnIntegrationPoints( CAUCHY_STRESS_TENSOR, rOutput, rCurrentProcessInfo);
 
          const unsigned int& integration_points_number = mConstitutiveLawVector.size();
          const unsigned int number_of_nodes = GetGeometry().size();
@@ -718,7 +718,7 @@ namespace Kratos
    }
 
 
-   int AxisymUpdatedLagrangianUwPElement::Check( const ProcessInfo & rCurrentProcessInfo )
+   int AxisymUpdatedLagrangianUwPElement::Check( const ProcessInfo & rCurrentProcessInfo ) const
    {
 	KRATOS_TRY
 	int correct = 0;
@@ -726,14 +726,14 @@ namespace Kratos
 	correct = AxisymmetricUpdatedLagrangianElement::Check( rCurrentProcessInfo );
 
 
-      if ( this->GetProperties().Has(THICKNESS) ) {
-	      double thickness = this->GetProperties()[THICKNESS];
-	      if ( thickness <= 0.0) {
-		      this->GetProperties()[THICKNESS] = 1.0;
-	      }
-      } else {
-	     this->GetProperties()[THICKNESS] = 1.0;
-      } 
+      //if ( this->GetProperties().Has(THICKNESS) ) {
+	     // double thickness = this->GetProperties()[THICKNESS];
+	     // if ( thickness <= 0.0) {
+		    //  this->GetProperties()[THICKNESS] = 1.0;
+	     // }
+      //} else {
+	     //this->GetProperties()[THICKNESS] = 1.0;
+      //} 
 
 	return correct;
 	KRATOS_CATCH("");
