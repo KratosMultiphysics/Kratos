@@ -46,7 +46,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
             "variable_name"               : "DISPLACEMENT",
             "zero_tolerance_factor"       : 1.0,
             "integration_order"           : 2,
-            "consider_tessellation"       : false,
+            "consider_tessellation"       : true,
             "normal_check_proportion"     : 0.1,
             "search_parameters" : {
                 "type_search"                 : "in_radius_with_obb",
