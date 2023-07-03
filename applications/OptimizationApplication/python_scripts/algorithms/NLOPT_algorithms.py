@@ -11,6 +11,7 @@ from KratosMultiphysics.OptimizationApplication.controls.master_control import M
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm import Algorithm
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
+from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -124,6 +125,7 @@ class NLOPTAlgorithms(Algorithm):
 
     def Solve(self):
         self.nlopt_optimizer.optimize(self.x0)
+        CallOnAll(self._optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
         self.LogTermination()
 
     def LogTermination(self):
