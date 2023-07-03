@@ -51,7 +51,6 @@ class StandardizedNLOPTObjective(ResponseRoutine):
             self.__scaling = -scaling
         else:
             raise RuntimeError(f"Requesting unsupported type {self.__objective_type} for objective response function. Supported types are: \n\tminimization\n\tmaximization")
-        self.__master_control_field = None
 
     def GetInitialValue(self) -> float:
         if self.__unbuffered_data.HasValue("initial_value"):
@@ -61,35 +60,41 @@ class StandardizedNLOPTObjective(ResponseRoutine):
 
     def Initialize(self):
         super().Initialize()
-        self.__master_control_field = self.GetMasterControl().GetControlField().Evaluate()
 
     def CalculateStandardizedValueAndGradients(self, control_field: numpy.ndarray, gradient_field: numpy.ndarray, save_value: bool = True) -> float:
 
-        if numpy.linalg.norm(control_field-self.__master_control_field) > 1e-9 and gradient_field.size > 0:
+        # update the master control
+        update_status = self.GetMasterControl().Update(control_field)
+        master_control_updated = False
+        for is_updated in update_status.values():
+            if is_updated:
+                master_control_updated = True
+                break
+        # output
+        if master_control_updated and gradient_field.size > 0:
             CallOnAll(self.__optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
             self.__optimization_problem.AdvanceStep()
 
         with TimeLogger(f"CalculateStandardizedValueAndGradients {self.GetReponse().GetName()} value", None, "Finished"):
-            response_value = self.CalculateValue(control_field)
-            standardized_response_value = response_value * self.__scaling
+            response_value = self.CalculateValue()
 
             if not self.__unbuffered_data.HasValue("initial_value"):
                 self.__unbuffered_data["initial_value"] = response_value
-                standardized_response_value = 1.0
-            else:
-                standardized_response_value /= self.__unbuffered_data["initial_value"]
 
             if save_value:
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
                 self.__buffered_data["value"] = response_value
 
+            # print the info
             DictLogger("Objective info",self.GetInfo())
+
+            # compute standardization factor
+            standardization_factor = self.__scaling / abs(self.__unbuffered_data["initial_value"])
+            standardized_response_value = standardization_factor * response_value
 
             if gradient_field.size > 0:
                 gradient_collective_expression = self.CalculateGradient()
-                gradient_field[:] = gradient_collective_expression.Evaluate() * self.__scaling
-
-                gradient_field[:] /= self.__unbuffered_data["initial_value"]
+                gradient_field[:] = standardization_factor * gradient_collective_expression.Evaluate()
 
                 if save_value:
                     # save the physical gradients for post processing in unbuffered data container.
@@ -107,7 +112,7 @@ class StandardizedNLOPTObjective(ResponseRoutine):
                         if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                         # cloning is a cheap operation, it only moves underlying pointers
                         # does not create additional memory.
-                        self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()                
+                        self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
 
         return standardized_response_value
 

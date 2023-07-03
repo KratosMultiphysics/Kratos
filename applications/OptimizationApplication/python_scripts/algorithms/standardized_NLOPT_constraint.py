@@ -65,7 +65,7 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
             if not self.__reference_value is None: self.__reference_value *= -1
         else:
             raise RuntimeError(f"Provided \"type\" = {self.__constraint_type} is not supported in constraint response functions. Followings are supported options: \n\t=\n\t<\n\t>")
-        self.__master_control_field = None
+
         self.__zero_threshold = sys.float_info.epsilon
 
     def IsEqualityType(self) -> str:
@@ -83,18 +83,31 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
 
     def Initialize(self):
         super().Initialize()
-        self.__master_control_field = self.GetMasterControl().GetControlField().Evaluate()
 
     def CalculateStandardizedValueAndGradients(self, control_field: numpy.ndarray, gradient_field: numpy.ndarray, save_value: bool = True) -> float:
 
-        # if numpy.linalg.norm(control_field-self.__master_control_field) > 1e-9 and gradient_field.size > 0:
-        #     CallOnAll(self.__optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
-        #     self.__optimization_problem.AdvanceStep()
+        # update the master control
+        update_status = self.GetMasterControl().Update(control_field)
+        master_control_updated = False
+        for is_updated in update_status.values():
+            if is_updated:
+                master_control_updated = True
+                break
+        # output
+        if master_control_updated and gradient_field.size > 0:
+            CallOnAll(self.__optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
+            self.__optimization_problem.AdvanceStep()
 
         with TimeLogger(f"StandardizedNLOPTConstraint::Calculate {self.GetReponse().GetName()} value", None, "Finished"):
-            self.response_value = self.CalculateValue(control_field)
+            self.response_value = self.CalculateValue()
             if not self.__unbuffered_data.HasValue("initial_value"):
                 self.__unbuffered_data["initial_value"] = self.response_value
+
+            if save_value:
+                if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+                self.__buffered_data["value"] = self.response_value
+
+            DictLogger("Constraint info",self.GetInfo())
 
             ref_value = self.GetReferenceValue()
             standardized_response_value = self.response_value - ref_value
@@ -102,12 +115,6 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
             if abs(ref_value) > self.__zero_threshold:
                 standardization_factor /= abs(ref_value)
             standardized_response_value *= standardization_factor
-
-            if save_value:
-                if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
-                self.__buffered_data["value"] = self.response_value
-
-            DictLogger("Constraint info",self.GetInfo())
 
             if gradient_field.size > 0:
                 gradient_collective_expression = self.CalculateGradient()
