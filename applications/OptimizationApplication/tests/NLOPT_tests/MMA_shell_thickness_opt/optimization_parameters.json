@@ -78,13 +78,8 @@
         "type": "NLOPT_algorithms",
         "NLOPT_settings"          : {
                 "algorithm_name"      : "MMA",
-                "algorithm_settings"     : {},
                 "stopping_criteria"   : {
-                    "objective_rel_tol": "",
-                    "objective_abs_tol": "",
-                    "controls_rel_tol": "",
-                    "controls_abs_tol": "",
-                    "maximum_function_evalualtion": 10
+                    "maximum_function_evalualtion": 2
                 }
         },
         "controls": [
@@ -112,22 +107,15 @@
                     "module": "KratosMultiphysics.OptimizationApplication.processes",
                     "settings": {
                         "output_file_name": "summary.csv",
-                        "write_kratos_version": false,
-                        "write_time_stamp": false
-                    }
-                },
-                {
-                    "type": "optimization_problem_vtu_output_process",
-                    "module": "KratosMultiphysics.OptimizationApplication.processes",
-                    "settings": {
-                        "file_format": "binary",
-                        "write_deformed_configuration": false,
-                        "list_of_output_components": [
-                            "all"
-                        ],
-                        "output_precision": 7,
-                        "output_interval": 1,
-                        "echo_level": 0
+                        "write_kratos_version"     : false,
+                        "write_time_stamp"         : false,
+                        "list_of_output_components": ["all"],
+                        "format_info": {
+                            "int_length"     : 7,
+                            "float_precision": 9,
+                            "bool_values"    : ["no", "yes"],
+                            "string_length"  : 14
+                        }
                     }
                 }
             ]
