@@ -74,62 +74,56 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MeshTyingMortarCondition );
 
     /// Base class definitions
-    typedef PairedCondition                                                               BaseType;
+    using BaseType = PairedCondition;
 
     /// Vector type definition
-    typedef typename BaseType::VectorType                                               VectorType;
+    using VectorType = typename BaseType::VectorType;
 
     /// Matrix type definition
-    typedef typename BaseType::MatrixType                                               MatrixType;
+    using MatrixType = typename BaseType::MatrixType;
 
     /// Index type definition
-    typedef typename BaseType::IndexType                                                 IndexType;
+    using IndexType = typename BaseType::IndexType;
 
     /// Geometry pointer definition
-    typedef typename BaseType::GeometryType::Pointer                           GeometryPointerType;
+    using GeometryPointerType = typename BaseType::GeometryType::Pointer;
 
     /// Nodes array type definition
-    typedef typename BaseType::NodesArrayType                                       NodesArrayType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
 
     /// Properties pointer definition
-    typedef typename BaseType::PropertiesType::Pointer                       PropertiesPointerType;
+    using PropertiesPointerType = typename BaseType::PropertiesType::Pointer;
 
     /// Point definition
-    typedef Point                                                                        PointType;
-
-    /// Node type definition
-    typedef Node                                                                       NodeType;
+    using PointType = Point;
 
     /// Geoemtry type definition
-    typedef Geometry<NodeType>                                                        GeometryType;
+    using GeometryType = Geometry<Node>;
 
     // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType                         IntegrationPointsType;
+    using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
 
-    // Type definition of the components of an array_1d
-    typedef Variable<double> Array1DComponentsType;
+    using ConditionArrayListType = typename std::vector<array_1d<PointType, TDim>>;
 
-    typedef typename std::vector<array_1d<PointType,TDim>>                  ConditionArrayListType;
+    using LineType = Line2D2<Point>;
 
-    typedef Line2D2<Point>                                                                LineType;
+    using TriangleType = Triangle3D3<Point>;
 
-    typedef Triangle3D3<Point>                                                        TriangleType;
-
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
 
     static constexpr SizeType NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
 
     static constexpr SizeType NumNodesMaster = (TNumNodesElemMaster == 3 || (TDim == 2 && TNumNodesElemMaster == 4)) ? 2 : TNumNodesElemMaster == 4 ? 3 : 4;
 
-    typedef BoundedMatrix<double, NumNodes, NumNodes>                                  MatrixDualLM;
+    using MatrixDualLM = BoundedMatrix<double, NumNodes, NumNodes>;
 
-    typedef MortarKinematicVariables<NumNodes, NumNodesMaster>                     GeneralVariables;
+    using GeneralVariables = MortarKinematicVariables<NumNodes, NumNodesMaster>;
 
-    typedef DualLagrangeMultiplierOperators<NumNodes, NumNodesMaster>                        AeData;
+    using AeData = DualLagrangeMultiplierOperators<NumNodes, NumNodesMaster>;
 
-    typedef MortarOperator<NumNodes, NumNodesMaster>                        MortarConditionMatrices;
+    using MortarConditionMatrices = MortarOperator<NumNodes, NumNodesMaster>;
 
-    typedef ExactMortarIntegrationUtility<TDim, NumNodes, false, NumNodesMaster> IntegrationUtility;
+    using IntegrationUtility = ExactMortarIntegrationUtility<TDim, NumNodes, false, NumNodesMaster>;
 
     // The threshold coefficient considered for checking
     static constexpr double CheckThresholdCoefficient = 1.0e-12;

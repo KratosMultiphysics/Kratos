@@ -6232,9 +6232,9 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
         }
     } else {
         const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
-        const Array1DComponentsType& r_var_x = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_X");
-        const Array1DComponentsType& r_var_y = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Y");
-        const Array1DComponentsType& r_var_z = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Z");
+        const auto& r_var_x = KratosComponents<Variable<double>>::Get(r_variable_name+"_X");
+        const auto& r_var_y = KratosComponents<Variable<double>>::Get(r_variable_name+"_Y");
+        const auto& r_var_z = KratosComponents<Variable<double>>::Get(r_variable_name+"_Z");
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
             const NodeType& r_master_node = r_current_master[i_master];
             rResult[index++] = r_master_node.GetDof( r_var_x ).EquationId( );
@@ -6251,9 +6251,9 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
         }
     } else {
         const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
-        const Array1DComponentsType& r_var_x = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_X");
-        const Array1DComponentsType& r_var_y = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Y");
-        const Array1DComponentsType& r_var_z = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Z");
+        const auto& r_var_x = KratosComponents<Variable<double>>::Get(r_variable_name+"_X");
+        const auto& r_var_y = KratosComponents<Variable<double>>::Get(r_variable_name+"_Y");
+        const auto& r_var_z = KratosComponents<Variable<double>>::Get(r_variable_name+"_Z");
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
             const NodeType& r_slave_node = r_current_slave[i_slave];
             rResult[index++] = r_slave_node.GetDof( r_var_x ).EquationId( );
@@ -6310,9 +6310,9 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
         }
     } else {
         const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
-        const Array1DComponentsType& r_var_x = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_X");
-        const Array1DComponentsType& r_var_y = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Y");
-        const Array1DComponentsType& r_var_z = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Z");
+        const auto& r_var_x = KratosComponents<Variable<double>>::Get(r_variable_name+"_X");
+        const auto& r_var_y = KratosComponents<Variable<double>>::Get(r_variable_name+"_Y");
+        const auto& r_var_z = KratosComponents<Variable<double>>::Get(r_variable_name+"_Z");
         for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
             const NodeType& r_master_node = r_current_master[i_master];
             rConditionalDofList[index++] = r_master_node.pGetDof( r_var_x );
@@ -6329,9 +6329,9 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
         }
     } else {
         const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
-        const Array1DComponentsType& r_var_x = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_X");
-        const Array1DComponentsType& r_var_y = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Y");
-        const Array1DComponentsType& r_var_z = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Z");
+        const auto& r_var_x = KratosComponents<Variable<double>>::Get(r_variable_name+"_X");
+        const auto& r_var_y = KratosComponents<Variable<double>>::Get(r_variable_name+"_Y");
+        const auto& r_var_z = KratosComponents<Variable<double>>::Get(r_variable_name+"_Z");
         for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
             const NodeType& r_slave_node = r_current_slave[i_slave];
             rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_x );
