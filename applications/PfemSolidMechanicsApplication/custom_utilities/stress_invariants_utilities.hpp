@@ -8,7 +8,7 @@
 
 #if !defined(KRATOS_STRESS_INVARIANTS_UTILITIES)
 #define KRATOS_STRESS_INVARIANTS_UTILITIES
-#define PI 3.1415926535898
+#define m_PI 3.1415926535898
 
 /*#ifdef FIND_MAX
 #undef FIND_MAX
@@ -85,10 +85,10 @@ namespace Kratos
 
             double epsi = 1.0e-9;
             if ( fabs( Lode ) > 1.0-epsi) {
-               Lode = -30.0*PI / 180.0 * Lode / fabs(Lode);
+               Lode = -30.0*m_PI / 180.0 * Lode / fabs(Lode);
             }
             else if ( J2 < 10.0*epsi) {
-               Lode = 30.0*PI / 180.0;
+               Lode = 30.0*m_PI / 180.0;
             } 
             else {
                Lode = std::asin( -Lode) / 3.0;
