@@ -589,10 +589,10 @@ namespace Clipper2Lib {
     if (radiusX <= 0) return Path<T>();
     if (radiusY <= 0) radiusY = radiusX;
     if (steps <= 2)
-      steps = static_cast<int>(PI * sqrt((radiusX + radiusY) / 2));
+      steps = static_cast<int>(m_PI * sqrt((radiusX + radiusY) / 2));
 
-    double si = std::sin(2 * PI / steps);
-    double co = std::cos(2 * PI / steps);
+    double si = std::sin(2 * m_PI / steps);
+    double co = std::cos(2 * m_PI / steps);
     double dx = co, dy = si;
     Path<T> result;
     result.reserve(steps);

@@ -20,7 +20,7 @@
 namespace Clipper2Lib 
 {
 
-	const double PI = 3.141592653589793238;
+	static const double m_PI = 3.141592653589793238;
 
 	//By far the most widely used filling rules for polygons are EvenOdd
 	//and NonZero, sometimes called Alternate and Winding respectively.

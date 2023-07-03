@@ -316,7 +316,7 @@ void ClipperOffset::OffsetOpenPath(Group& group, Path64& path, EndType end_type)
 		group.path_.push_back(GetPerpendic(path[0], norms[0], group_delta_));
 		break;
 	case EndType::Round:
-		DoRound(group, path, 0,0, PI);
+		DoRound(group, path, 0,0, m_PI);
 		break;
 	default:
 		DoSquare(group, path, 0, 0);
@@ -344,7 +344,7 @@ void ClipperOffset::OffsetOpenPath(Group& group, Path64& path, EndType end_type)
 		group.path_.push_back(GetPerpendic(path[highI], norms[highI], group_delta_));
 		break;
 	case EndType::Round:
-		DoRound(group, path, highI, highI, PI);
+		DoRound(group, path, highI, highI, m_PI);
 		break;
 	default:
 		DoSquare(group, path, highI, highI);
@@ -385,7 +385,7 @@ void ClipperOffset::DoGroupOffset(Group& group, double delta)
 //calculate a sensible number of steps (for 360 deg for the given offset
 	if (group.join_type_ == JoinType::Round || group.end_type_ == EndType::Round)
 	{
-		steps_per_rad_ = PI / std::acos(1 - arcTol / abs_group_delta_) / (PI *2);
+		steps_per_rad_ = m_PI / std::acos(1 - arcTol / abs_group_delta_) / (m_PI *2);
 	}
 
 	bool is_closed_path = IsClosedPath(group.end_type_);
