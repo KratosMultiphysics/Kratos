@@ -88,6 +88,7 @@ class TestAlgorithmSteepestDescent(kratos_unittest.TestCase):
     def test_Optimize(self):
         self.algorithm.Initialize()
         conv = self.algorithm.Solve()
+        self.algorithm.Finalize()
         self.assertTrue(conv)
         self.assertEqual(self.algorithm.GetOptimizedObjectiveValue(), 14.249999999999998)
         self.assertVectorAlmostEqual(self.algorithm.GetCurrentControlField().Evaluate(), [1.85, 3.7])

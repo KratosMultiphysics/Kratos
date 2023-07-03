@@ -37,6 +37,7 @@ class HelmholtzSolverBase(PythonSolver):
 
         # Get the filter radius
         self.filter_radius = self.settings["filter_radius"].GetDouble()
+        self.filter_type = self.settings["filter_type"].GetString()
 
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Construction finished")
 
@@ -118,6 +119,12 @@ class HelmholtzSolverBase(PythonSolver):
 
     def GetComputingModelPart(self):
         return self.helmholtz_model_part
+
+    def GetFilterType(self) -> str:
+        return self.filter_type
+
+    def GetFilterRadius(self) -> str:
+        return self.filter_radius
 
     #### Protected functions ####
 
