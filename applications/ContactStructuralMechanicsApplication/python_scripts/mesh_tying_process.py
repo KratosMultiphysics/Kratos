@@ -171,22 +171,6 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         # We define the condition name to be used
         return "MeshTyingMortar"
 
-    def _get_final_string(self, key = "0"):
-        """ This method returns the final string of the condition name
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        key -- The key to identify the current pair
-        """
-        # Determine the geometry of the element
-        super()._get_final_string(key)
-        # We compute the number of nodes of the conditions
-        number_nodes, number_nodes_master = super()._compute_number_nodes()
-        if number_nodes != number_nodes_master:
-            return str(number_nodes_master) + "N"
-        else:
-            return ""
-
     def _initialize_search_conditions(self):
         """ This method initializes some conditions values
 
