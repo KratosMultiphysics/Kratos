@@ -104,10 +104,6 @@ double ProjectValueBackward(
         << "SigmoidalProjectionUtils::ProjectValueBackward: yValue "
         << yValue << " is out of the given range " << rYLimits << "\n";
 
-    KRATOS_ERROR_IF(std::abs(yValue)>std::numeric_limits<double>::max())
-        << "SigmoidalProjectionUtils::ProjectValueBackward: yValue "
-        << yValue << " is too big for backward projection !!! " << rYLimits << "\n";
-
     const IndexType upper_index = GetUpperValueRangeIndex(yValue, rYLimits);
 
     const double x1 = rXLimits[upper_index - 1];
@@ -222,7 +218,7 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ProjectBackward(
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDerivative(
+ContainerExpression<TContainerType> SigmoidalProjectionUtils::CalculateForwardProjectionGradient(
     const ContainerExpression<TContainerType>& rInputExpression,
     const std::vector<double>& rXValues,
     const std::vector<double>& rYValues,
@@ -264,7 +260,7 @@ ContainerExpression<TContainerType> SigmoidalProjectionUtils::ComputeFirstDeriva
     template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ProjectBackward(        \
         const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                         \
         const std::vector<double>&, const double, const int);                                                                           \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::ComputeFirstDerivative( \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) ContainerExpression<CONTAINER_TYPE> SigmoidalProjectionUtils::CalculateForwardProjectionGradient( \
         const ContainerExpression<CONTAINER_TYPE>&, const std::vector<double>&,                                                         \
         const std::vector<double>&, const double, const int);
 
