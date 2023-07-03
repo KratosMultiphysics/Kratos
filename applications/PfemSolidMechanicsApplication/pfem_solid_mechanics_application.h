@@ -274,73 +274,73 @@ namespace Kratos
 
     const TotalUpdatedLagrangianUPElement mTotalUpdatedLagrangianUPElement2D3N;
 
-    //updated lagrangian
-    const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement2D3N;
-    const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement3D4N;
-    const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement2D3N;
-    const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement3D4N;
+    // //updated lagrangian
+    // const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement2D3N;
+    // const UpdatedLagrangianUwPElement                      mUpdatedLagrangianUwPElement3D4N;
+    // const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement2D3N;
+    // const UpdatedLagrangianUwPStabElement              mUpdatedLagrangianUwPStabElement3D4N;
 
-    const UpdatedLagrangianUWElement                        mUpdatedLagrangianUWElement2D3N;
-    const UpdatedLagrangianUWwPElement                    mUpdatedLagrangianUWwPElement2D3N;
-    const UpdatedLagrangianUWwPDMEElement        mUpdatedLagrangianUWwPDMEElement2D3N;
-    const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement2D3N;
-    const UpdatedLagrangianUJWwPHOElement              mUpdatedLagrangianUJWwPHOElement2D3N;
-    const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement2D3N;
-    const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement3D4N;
-    const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement3D4N;
-    const SmallDisplacementUWwPElement                    mSmallDisplacementUWwPElement2D3N;
+    // const UpdatedLagrangianUWElement                        mUpdatedLagrangianUWElement2D3N;
+    // const UpdatedLagrangianUWwPElement                    mUpdatedLagrangianUWwPElement2D3N;
+    // const UpdatedLagrangianUWwPDMEElement        mUpdatedLagrangianUWwPDMEElement2D3N;
+    // const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement2D3N;
+    // const UpdatedLagrangianUJWwPHOElement              mUpdatedLagrangianUJWwPHOElement2D3N;
+    // const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement2D3N;
+    // const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement3D4N;
+    // const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement3D4N;
+    // const SmallDisplacementUWwPElement                    mSmallDisplacementUWwPElement2D3N;
 
-    const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
-    const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
+    // const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
+    // const AxisymUpdatedLagrangianUwPStabElement  mAxisymUpdatedLagrangianUwPStabElement2D3N;
 
-    const UpdatedLagrangianUJElement         mUpdatedLagrangianUJElement2D3N;
-    const UpdatedLagrangianUJElement         mUpdatedLagrangianUJElement3D4N;
-    const UpdatedLagrangianUJPElement        mUpdatedLagrangianUJPElement2D3N;
-    const UpdatedLagrangianUPressureElement mUpdatedLagrangianUPressureElement2D3N;
-
-
-    const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement2D3N;
-    const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement3D4N;
-    const UpdatedLagrangianUPwPElement mUpdatedLagrangianUPwPElement2D3N;
-
-    const AxisymUpdatedLagrangianUJElement                mAxisymUpdatedLagrangianUJElement2D3N; 
-    const AxisymUpdatedLagrangianUJwPElement            mAxisymUpdatedLagrangianUJwPElement2D3N; 
-    const AxisymUpdatedLagrangianUJWwPElement          mAxisymUpdatedLagrangianUJWwPElement2D3N; 
-    const AxisymUpdatedLagrangianUJWwPDMEElement    mAxisymUpdatedLagrangianUJWwPDMEElement2D3N; 
-
-    const AxisymUpdatedLagrangianUPressureElement mAxisymUpdatedLagrangianUPressureElement2D3N; 
-    const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 
+    // const UpdatedLagrangianUJElement         mUpdatedLagrangianUJElement2D3N;
+    // const UpdatedLagrangianUJElement         mUpdatedLagrangianUJElement3D4N;
+    // const UpdatedLagrangianUJPElement        mUpdatedLagrangianUJPElement2D3N;
+    // const UpdatedLagrangianUPressureElement mUpdatedLagrangianUPressureElement2D3N;
 
 
-    const BorjaHenckyCamClayPlastic3DLaw                        mBorjaHenckyCamClayPlastic3DLaw;
-    const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
-    const BorjaHenckyCamClayPlasticPlaneStrain2DLaw              mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
-    const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
-    const HenckyJ2PlasticAxisym2DLaw                                            mHenckyJ2PlasticAxisym2DLaw;
-    const HenckyTrescaPlasticAxisym2DLaw                                    mHenckyTrescaPlasticAxisym2DLaw;
-    const NewHenckyTrescaPlasticAxisym2DLaw                              mNewHenckyTrescaPlasticAxisym2DLaw;
-    const HenckyTrescaPlasticPlaneStrain2DLaw                          mHenckyTrescaPlasticPlaneStrain2DLaw;
-    const NewHenckyTrescaPlasticPlaneStrain2DLaw                    mNewHenckyTrescaPlasticPlaneStrain2DLaw;
-    const HenckyTresca3DLaw                                                              mHenckyTresca3DLaw;
+    // const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement2D3N;
+    // const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement3D4N;
+    // const UpdatedLagrangianUPwPElement mUpdatedLagrangianUPwPElement2D3N;
 
-    const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
-    const HenckyPlasticUPJ2PlaneStrain2DLaw                   mHenckyPlasticUPJ2PlaneStrain2DLaw;
-    const HenckyPlasticUPTrescaAxisym2DLaw                    mHenckyPlasticUPTrescaAxisym2DLaw;
-    const HenckyPlasticUPTrescaPlaneStrain2DLaw               mHenckyPlasticUPTrescaPlaneStrain2DLaw;
+    // const AxisymUpdatedLagrangianUJElement                mAxisymUpdatedLagrangianUJElement2D3N; 
+    // const AxisymUpdatedLagrangianUJwPElement            mAxisymUpdatedLagrangianUJwPElement2D3N; 
+    // const AxisymUpdatedLagrangianUJWwPElement          mAxisymUpdatedLagrangianUJWwPElement2D3N; 
+    // const AxisymUpdatedLagrangianUJWwPDMEElement    mAxisymUpdatedLagrangianUJWwPDMEElement2D3N; 
+
+    // const AxisymUpdatedLagrangianUPressureElement mAxisymUpdatedLagrangianUPressureElement2D3N; 
+    // const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 
 
 
-    const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
-    const TrescaExplicitFlowRule             mTrescaExplicitFlowRule; 
-    const BorjaCamClayExplicitFlowRule       mBorjaCamClayExplicitFlowRule;
+    // const BorjaHenckyCamClayPlastic3DLaw                        mBorjaHenckyCamClayPlastic3DLaw;
+    // const BorjaHenckyCamClayPlasticAxisym2DLaw                        mBorjaHenckyCamClayPlasticAxisym2DLaw;
+    // const BorjaHenckyCamClayPlasticPlaneStrain2DLaw              mBorjaHenckyCamClayPlasticPlaneStrain2DLaw;
+    // const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
+    // const HenckyJ2PlasticAxisym2DLaw                                            mHenckyJ2PlasticAxisym2DLaw;
+    // const HenckyTrescaPlasticAxisym2DLaw                                    mHenckyTrescaPlasticAxisym2DLaw;
+    // const NewHenckyTrescaPlasticAxisym2DLaw                              mNewHenckyTrescaPlasticAxisym2DLaw;
+    // const HenckyTrescaPlasticPlaneStrain2DLaw                          mHenckyTrescaPlasticPlaneStrain2DLaw;
+    // const NewHenckyTrescaPlasticPlaneStrain2DLaw                    mNewHenckyTrescaPlasticPlaneStrain2DLaw;
+    // const HenckyTresca3DLaw                                                              mHenckyTresca3DLaw;
+
+    // const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
+    // const HenckyPlasticUPJ2PlaneStrain2DLaw                   mHenckyPlasticUPJ2PlaneStrain2DLaw;
+    // const HenckyPlasticUPTrescaAxisym2DLaw                    mHenckyPlasticUPTrescaAxisym2DLaw;
+    // const HenckyPlasticUPTrescaPlaneStrain2DLaw               mHenckyPlasticUPTrescaPlaneStrain2DLaw;
+
+
+    // const J2ExplicitFlowRule                 mJ2ExplicitFlowRule; 
+    // const TrescaExplicitFlowRule             mTrescaExplicitFlowRule; 
+    // const BorjaCamClayExplicitFlowRule       mBorjaCamClayExplicitFlowRule;
 
 
 
-    const J2YieldCriterion                   mJ2YieldCriterion;
-    const TrescaYieldCriterion               mTrescaYieldCriterion;
-    const NewTrescaYieldCriterion            mNewTrescaYieldCriterion;
-    const CamClayYieldCriterion              mCamClayYieldCriterion;
+    // const J2YieldCriterion                   mJ2YieldCriterion;
+    // const TrescaYieldCriterion               mTrescaYieldCriterion;
+    // const NewTrescaYieldCriterion            mNewTrescaYieldCriterion;
+    // const CamClayYieldCriterion              mCamClayYieldCriterion;
 
-    const CamClayHardeningLaw       mCamClayHardeningLaw;
+    // const CamClayHardeningLaw       mCamClayHardeningLaw;
 
 
     ///@} 
