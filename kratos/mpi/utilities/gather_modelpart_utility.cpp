@@ -365,7 +365,7 @@ void GatherModelPartUtility::GatherEntityFromOtherPartitions(
             buffer << "\tTo rank " << send.first << ": " << send.second.size() << " " << entity_name << "s\n\t" << send.second << std::endl;
         }
         buffer << std::endl;
-        std::cout << buffer.str();
+        KRATOS_INFO("GatherModelPartUtility") << buffer.str();
     }
 
     // Use serializer
