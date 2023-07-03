@@ -9,6 +9,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 import numpy
 import sys
+import time as timer
+import datetime
 
 class StandardizedNLOPTConstraint(ResponseRoutine):
     """Standardized constraint response function
@@ -94,8 +96,9 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
                 master_control_updated = True
                 break
         # output
-        if master_control_updated and gradient_field.size > 0:
+        if master_control_updated:
             CallOnAll(self.__optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
+            self.LogOptimizationStep()
             self.__optimization_problem.AdvanceStep()
 
         with TimeLogger(f"StandardizedNLOPTConstraint::Calculate {self.GetReponse().GetName()} value", None, "Finished"):
@@ -162,3 +165,16 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
             "violation [%]": self.GetAbsoluteViolation()
         }
         return info
+
+    def LogOptimizationStep(self):
+
+        now = datetime.datetime.now()
+        now_str = now.strftime("%Y-%m-%d %H:%M:%S")
+        iteration_text = f" EoF Iteration {self.__optimization_problem.GetStep()}"
+        iteration_output = f"{'#'}  {iteration_text} [Time: {now_str}]  {'#'}"
+
+        divided_line = len(iteration_output) * '#'
+
+        to_print = f"{divided_line}\n{iteration_output}\n{divided_line}\n"
+
+        Kratos.Logger.PrintInfo(to_print)
