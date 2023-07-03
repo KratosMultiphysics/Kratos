@@ -53,6 +53,9 @@ with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
     # now replace the properties
     KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model["Structure.all_nodes_elements_model_part"], model_part.Elements)
 
+    for element in model_part.Elements:
+        element.Properties[Kratos.YOUNG_MODULUS] += 30000000000.0 * (element.Id + 1)
+
     execution_policy_decorator.Execute()
     ref_value = response_function.CalculateValue()
     print(f"Objective value {ref_value}")
@@ -61,7 +64,18 @@ with kratos_unittest.WorkFolderScope("measurement_residual_test", __file__):
     response_function.CalculateGradient({Kratos.YOUNG_MODULUS: sensitivity_expressions})
     for expression in sensitivity_expressions.GetContainerExpressions():
         data = expression.Evaluate()
-        print(data)
+        # print(data)
 
     results = response_function.CalculateGradientWithFiniteDifferencing({Kratos.YOUNG_MODULUS: sensitivity_expressions})
-    print(results)
+
+    import numpy as np
+    np_fd_data = np.array(results)
+    # print(results)
+
+    import matplotlib.pyplot as plt
+    x = np.arange(0, len(model_part.Elements))
+    plt.plot(x, -np_fd_data, ".", label="fd")
+    plt.plot(x, data, "--", label="ad")
+    plt.legend(loc="upper right")
+    plt.show()
+    print(np.linalg.norm(-np_fd_data - data))

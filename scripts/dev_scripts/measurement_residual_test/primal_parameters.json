@@ -108,22 +108,14 @@
       {
         "Parameters": {
           "condition_data_value_variables": [],
-          "element_data_value_variables": [
-            "YOUNG_MODULUS",
-            "YOUNG_MODULUS_SENSITIVITY"
-          ],
+          "element_data_value_variables": [],
           "file_format": "binary",
           "model_part_name": "Structure",
-          "nodal_data_value_variables": [
-            "YOUNG_MODULUS",
-            "YOUNG_MODULUS_SENSITIVITY"
-          ],
+          "nodal_data_value_variables": [],
           "nodal_solution_step_data_variables": [
             "DISPLACEMENT",
             "REACTION",
-            "ROTATION",
-            "YOUNG_MODULUS",
-            "YOUNG_MODULUS_SENSITIVITY"
+            "ROTATION"
           ],
           "output_control_type": "step",
           "output_interval": 1,

@@ -15,13 +15,26 @@
   "analyses": [
     {
       "name": "primal_analysis",
-      "type": "stepping_analysis_execution_policy",
+      "type": "kratos_analysis_execution_policy",
       "settings": {
         "model_part_names": ["Structure"],
         "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
         "analysis_type": "StructuralMechanicsAnalysis",
         "analysis_settings": {
           "@include_json": "primal_parameters.json"
+        },
+        "analysis_output_settings": {
+          "nodal_solution_step_data_variables": [
+            "DISPLACEMENT",
+            "REACTION",
+            "ROTATION"
+          ],
+          "nodal_data_value_variables": [],
+          "element_data_value_variables": [
+            "YOUNG_MODULUS",
+            "YOUNG_MODULUS_SENSITIVITY"
+          ],
+          "condition_data_value_variables": []
         }
       }
     }
@@ -61,12 +74,12 @@
       "echo_level": 0,
       "line_search": {
         "type": "const_step",
-        "init_step": 0.001,
+        "init_step": 1,
         "gradient_scaling": "none"
       },
       "conv_settings": {
         "type": "max_iter",
-        "max_iter": 20
+        "max_iter": 100
       }
     },
     "controls": ["system_identification_control"],

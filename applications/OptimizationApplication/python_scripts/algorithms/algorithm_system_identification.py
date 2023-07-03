@@ -135,6 +135,14 @@ class AlgorithmSystemIdentification(Algorithm):
             update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
             self.algorithm_data.GetBufferedData()["parameter_update_in iteration"] = update
 
+        # TODO: remove after testing
+        # for container_expression in update.GetContainerExpressions():
+        #     current_values = container_expression.Evaluate()
+        #     random_value = np.random.normal(0, np.max(np.abs(current_values))*0.1, current_values.size)
+        #     random_values_expression = Kratos.Expression.ElementExpression(container_expression.GetModelPart())
+        #     Kratos.Expression.CArrayExpressionIO.Read(random_values_expression, random_value)
+        #     container_expression += random_values_expression
+
         return self.UpdateControl
 
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
@@ -162,6 +170,8 @@ class AlgorithmSystemIdentification(Algorithm):
         return self.converged
 
     def Solve(self) -> bool:
+        np.random.seed = 123456789
+
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSystemIdentification", self._optimization_problem.GetStep()):
@@ -179,8 +189,8 @@ class AlgorithmSystemIdentification(Algorithm):
 
                 self.ComputeSearchDirection(obj_grad)
 
-                # alpha = self.__line_search_method.ComputeStep()
-                alpha = 0.01
+                alpha = self.__line_search_method.ComputeStep()
+                # alpha = 0.01
 
                 self.ComputeControlUpdate(alpha)
 

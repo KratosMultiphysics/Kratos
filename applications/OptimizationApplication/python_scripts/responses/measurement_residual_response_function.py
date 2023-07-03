@@ -110,6 +110,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         return self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
 
     def CalculateValue(self) -> float:
+        self.primal_analysis_execution_policy_decorator.Execute()
 
         objective_value = 0
         for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
@@ -218,8 +219,6 @@ class MeasurementResidualResponseFunction(ResponseFunction):
 
                 old_stiffness = element.Properties[Kratos.YOUNG_MODULUS]
                 element.Properties[Kratos.YOUNG_MODULUS] += perturbation
-
-                self.primal_analysis_execution_policy_decorator.Execute()
 
                 objective_value = self.CalculateValue()
 
