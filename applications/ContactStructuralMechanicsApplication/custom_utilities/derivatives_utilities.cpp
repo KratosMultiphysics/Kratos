@@ -300,7 +300,11 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     // We iterate over the nodes of the geometry
     for ( IndexType i_geometry = 0; i_geometry < TNumNodes; ++i_geometry ) {
         // Computing auxiliary matrix
-        noalias(renormalizer_matrix) = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
+        if constexpr (TDim == 3) {
+            noalias(renormalizer_matrix) = ImplementationDerivativesUtilities::ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry);
+        } else {
+            noalias(renormalizer_matrix) = IdentityMatrix(2, 2);
+        }
 
         // We compute the gradient and jacobian
         rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
@@ -375,7 +379,11 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
     array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node;
     for ( IndexType i_geometry = 0; i_geometry < TNumNodesMaster; ++i_geometry ) {
         // Computing auxiliary matrix
-        noalias(renormalizer_matrix) = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
+        if constexpr (TDim == 3) {
+            noalias(renormalizer_matrix) = ImplementationDerivativesUtilities::ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry);
+        } else {
+            noalias(renormalizer_matrix) = IdentityMatrix(2, 2);
+        }
 
         // We compute the gradient and jacobian
         rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
@@ -937,7 +945,12 @@ bool DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
 
         DecompositionType decomp_geom( points_array );
 
-        const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
+        bool bad_shape;
+        if constexpr (TDim == 2) {
+            bad_shape = MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * CheckThresholdCoefficient);
+        } else { 
+            bad_shape = MortarUtilities::HeronCheck(decomp_geom);
+        }
 
         if (!bad_shape) {
             const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
@@ -1080,48 +1093,6 @@ inline BoundedMatrix<double, 3, 3> DerivativesUtilities<TDim, TNumNodes, TFricti
             aux_matrix(0, itry) = (rDiffVector[0] - diff)/coeff;
             aux_matrix(1, itry) = (rDiffVector[1] - diff)/coeff;
             aux_matrix(2, itry) = (rDiffVector[2] - diff)/coeff;
-
-            return aux_matrix;
-        }
-    }
-
-    return IdentityMatrix(3, 3);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster>
-inline BoundedMatrix<double, 3, 3> DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::ComputeRenormalizerMatrix(
-    const BoundedMatrix<double, TNumNodes, TDim>& rDiffMatrix,
-    const BoundedMatrix<double, TNumNodes, TDim>& rDeltaNormal,
-    const IndexType iGeometry
-    )
-{
-    KRATOS_TRY
-
-    BoundedMatrix<double, 3, 3> aux_matrix;
-    for (IndexType itry = 0; itry < 3; ++itry) {
-        if (rDeltaNormal(iGeometry, itry) > ZeroTolerance) {
-
-            const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
-            const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
-
-            const double diff = rDeltaNormal(iGeometry, aux_index_1) + rDeltaNormal(iGeometry, aux_index_2);
-            const double coeff = rDeltaNormal(iGeometry, itry);
-
-            aux_matrix(0, aux_index_1) = 1.0;
-            aux_matrix(0, aux_index_2) = 1.0;
-            aux_matrix(1, aux_index_1) = 1.0;
-            aux_matrix(1, aux_index_2) = 1.0;
-            aux_matrix(2, aux_index_1) = 1.0;
-            aux_matrix(2, aux_index_2) = 1.0;
-
-            aux_matrix(0, itry) = (rDiffMatrix(iGeometry, 0) - diff)/coeff;
-            aux_matrix(1, itry) = (rDiffMatrix(iGeometry, 1) - diff)/coeff;
-            aux_matrix(2, itry) = (rDiffMatrix(iGeometry, 2) - diff)/coeff;
 
             return aux_matrix;
         }

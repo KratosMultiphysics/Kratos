@@ -1,0 +1,63 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1        0.00000        1.00000        0.00000
+    2        0.00000        0.50000        0.00000
+    3        0.00000        0.00000        0.00000
+    4        1.00000        1.00000        0.00000
+    5        1.00000        0.50000        0.00000
+    6        1.00000        0.00000        0.00000
+    7        2.00000        1.00000        0.00000
+    8        2.00000        0.50000        0.00000
+    9        2.00000        0.00000        0.00000
+End Nodes
+
+Begin Elements ShellThickElement3D4N// GUI group identifier: plate
+         1          0          8          7          4          5
+         2          0          9          8          5          6
+         3          0          2          3          6          5
+         4          0          2          5          4          1
+End Elements
+
+Begin SubModelPart shell // Group plate // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+         3
+         4
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart support // Group support // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         6
+         7
+         8
+         9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
