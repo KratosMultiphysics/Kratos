@@ -66,7 +66,7 @@ public:
     //     auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(node_list, indices, r_default_comm );
     //     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(node_list, indices, r_default_comm );
 
-    //     GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+    //     GlobalPointerCommunicator<Node> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
     //     // Note: I think this can be change for an access function with std::tuple of the variables instead of a loop, but not in C++11/14
     //     for(auto & variableData: rModelPart.GetNodalSolutionStepVariablesList()) {
@@ -174,7 +174,7 @@ public:
         auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(node_list, indices, r_default_comm );
         auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(node_list, indices, r_default_comm );
 
-        GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+        GlobalPointerCommunicator<Node> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
         CheckHistoricalVariable(rModelPart, rVariable, pointer_comm, gp_map);
     }
@@ -183,8 +183,8 @@ public:
     static void CheckHistoricalVariable(
         ModelPart & rModelPart,
         const TVarType & rVariable,
-        GlobalPointerCommunicator<Node<3>> & rPointerCommunicator, 
-        std::unordered_map<int, GlobalPointer<Node<3>>> & gp_map) 
+        GlobalPointerCommunicator<Node> & rPointerCommunicator, 
+        std::unordered_map<int, GlobalPointer<Node>> & gp_map) 
     {
         DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
         
@@ -195,7 +195,7 @@ public:
 
         // Create the data functior
         auto data_proxy = rPointerCommunicator.Apply(
-            [&rVariable](GlobalPointer< Node<3> >& gp)-> std::pair<typename TVarType::Type, bool> {
+            [&rVariable](GlobalPointer< Node >& gp)-> std::pair<typename TVarType::Type, bool> {
                 return {gp->FastGetSolutionStepValue(rVariable),gp->IsFixed(rVariable)};
             }
         );

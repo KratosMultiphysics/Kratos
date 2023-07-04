@@ -16,7 +16,6 @@
 
 // Project includes
 #include "utilities/geometrical_projection_utilities.h"
-/* Mortar includes */
 #include "custom_conditions/mesh_tying_mortar_condition.h"
 
 namespace Kratos
@@ -24,64 +23,76 @@ namespace Kratos
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Create(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Create(
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesType::Pointer pProperties ) const
 {
-    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster> >( NewId, this->GetParentGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Create(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster> >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Create(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+Condition::Pointer MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pMasterGeom) const
 {
-    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster> >( NewId, pGeom, pProperties, pMasterGeom);
+    return Kratos::make_intrusive< MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster> >( NewId, pGeom, pProperties, pMasterGeom);
 }
 
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::~MeshTyingMortarCondition( )
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::~MeshTyingMortarCondition( )
 = default;
 
 //************************** STARTING - ENDING  METHODS ***************************//
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
+    // Initialize BaseType
     BaseType::Initialize(rCurrentProcessInfo);
 
     // We get the unkown variable
     const std::string r_variable_name = GetProperties().Has(TYING_VARIABLE) ? GetProperties().GetValue(TYING_VARIABLE) : "DISPLACEMENT";
     if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
-        mpDoubleVariables.push_back(&KratosComponents<Variable<double>>::Get(r_variable_name));
+        mpDoFVariables.push_back(&KratosComponents<Variable<double>>::Get(r_variable_name));
+        mpLMVariables.push_back(&SCALAR_LAGRANGE_MULTIPLIER);
     } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
-        mpArray1DVariables.push_back(&KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name));
+        mpDoFVariables.reserve(TDim);
+        mpLMVariables.reserve(TDim);
+        mpDoFVariables.push_back(&KratosComponents<Variable<double>>::Get(r_variable_name + "_X"));
+        mpLMVariables.push_back(&VECTOR_LAGRANGE_MULTIPLIER_X);
+        mpDoFVariables.push_back(&KratosComponents<Variable<double>>::Get(r_variable_name + "_Y"));
+        mpLMVariables.push_back(&VECTOR_LAGRANGE_MULTIPLIER_Y);
+        // In case of 3D, we add the Z variable
+        if constexpr (TDim == 3) {
+            mpDoFVariables.push_back(&KratosComponents<Variable<double>>::Get(r_variable_name + "_Z"));
+            mpLMVariables.push_back(&VECTOR_LAGRANGE_MULTIPLIER_Z);
+        }
     } else {
         KRATOS_ERROR << "Compatible variables are: double or array_1d<double, 3> " << std::endl;
     }
@@ -144,9 +155,14 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 
             DecompositionType decomp_geom( points_array );
 
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+            bool bad_shape;
+            if constexpr (TDim == 2) {
+                bad_shape = MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * CheckThresholdCoefficient);
+            } else { 
+                bad_shape = MortarUtilities::HeronCheck(decomp_geom);
+            }
 
-            if (bad_shape == false) {
+            if (!bad_shape) {
                 const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
 
                 // Integrating the mortar operators
@@ -177,8 +193,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -190,8 +206,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -203,8 +219,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Initiali
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -216,8 +232,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Finalize
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -229,8 +245,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Finalize
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateLocalSystem(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
@@ -239,16 +255,17 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     KRATOS_TRY;
 
     // Compute the matrix size
-    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
-    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+    const SizeType matrix_size = mpDoFVariables.size() * (2 * TNumNodes + TNumNodesMaster);
 
     // Resizing as needed the LHS
-    if ( rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size )
-            rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
+    if ( rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size ) {
+        rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
+    }
 
     // Resizing as needed the RHS
-    if ( rRightHandSideVector.size() != matrix_size )
+    if ( rRightHandSideVector.size() != matrix_size ) {
         rRightHandSideVector.resize( matrix_size, false );
+    }
 
     // Calculate condition system
     CalculateConditionSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo );
@@ -259,19 +276,19 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateLeftHandSide(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Compute the matrix size
-    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
-    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+    const SizeType matrix_size = mpDoFVariables.size() * (2 * TNumNodes + TNumNodesMaster);
 
     // Resizing as needed the LHS
-    if ( rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size )
+    if ( rLeftHandSideMatrix.size1() != matrix_size || rLeftHandSideMatrix.size2() != matrix_size ) {
         rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
+    }
 
     // Creating an auxiliary vector
     VectorType aux_right_hand_side_vector = Vector();
@@ -283,8 +300,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateRightHandSide(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -293,12 +310,12 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     MatrixType aux_left_hand_side_matrix = Matrix();
 
     // Compute the matrix size
-    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
-    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+    const SizeType matrix_size = mpDoFVariables.size() * (2 * TNumNodes + TNumNodesMaster);
 
     // Resizing as needed the RHS
-    if ( rRightHandSideVector.size() != matrix_size )
+    if ( rRightHandSideVector.size() != matrix_size ) {
         rRightHandSideVector.resize( matrix_size, false );
+    }
 
     // Calculate condition system
     CalculateConditionSystem(aux_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo, false );
@@ -307,8 +324,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateMassMatrix(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -323,8 +340,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateDampingMatrix(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -339,8 +356,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::CalculateConditionSystem(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim, TNumNodes, TNumNodesMaster>::CalculateConditionSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -351,16 +368,17 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::Calcula
     KRATOS_TRY;
 
     // Create the current DoF data
-    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
+    const TensorValue tensor_value = static_cast<TensorValue>(mpDoFVariables.size());
 
-    if (tensor_value ==  ScalarValue) {
+    if (tensor_value == ScalarValue) {
+        // Create the current DoF data
         DofData<ScalarValue> dof_data;
 
         // Initialize the DoF data
         this->InitializeDofData<ScalarValue>(dof_data);
 
         // Update slave element info
-        dof_data.UpdateMasterPair(this->GetPairedGeometry(), mpDoubleVariables, mpArray1DVariables);
+        dof_data.UpdateMasterPair(this->GetPairedGeometry(), mpDoFVariables);
 
         // Assemble of the matrix is required
         if ( ComputeLHS ) {
@@ -374,24 +392,28 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::Calcula
             this->CalculateLocalRHS<ScalarValue>( rRightHandSideVector, mrThisMortarConditionMatrices, dof_data);
         }
     } else {
-        DofData<static_cast<TensorValue>(TDim)> dof_data;
+        // Template argument
+        constexpr TensorValue TTensor = static_cast<TensorValue>(TDim);
+
+        // Create the current DoF data
+        DofData<TTensor> dof_data;
 
         // Initialize the DoF data
-        this->InitializeDofData<static_cast<TensorValue>(TDim)>(dof_data);
+        this->InitializeDofData<TTensor>(dof_data);
 
         // Update slave element info
-        dof_data.UpdateMasterPair(this->GetPairedGeometry(), mpDoubleVariables, mpArray1DVariables);
+        dof_data.UpdateMasterPair(this->GetPairedGeometry(), mpDoFVariables);
 
         // Assemble of the matrix is required
         if ( ComputeLHS ) {
             // Calculate the local contribution
-            this->CalculateLocalLHS<static_cast<TensorValue>(TDim)>(rLeftHandSideMatrix, mrThisMortarConditionMatrices, dof_data);
+            this->CalculateLocalLHS<TTensor>(rLeftHandSideMatrix, mrThisMortarConditionMatrices, dof_data);
         }
 
         // Assemble of the vector is required
         if ( ComputeRHS) {
             // Calculate the local contribution
-            this->CalculateLocalRHS<static_cast<TensorValue>(TDim)>( rRightHandSideVector, mrThisMortarConditionMatrices, dof_data);
+            this->CalculateLocalRHS<TTensor>( rRightHandSideVector, mrThisMortarConditionMatrices, dof_data);
         }
     }
 
@@ -401,8 +423,8 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::Calcula
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateAe(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+bool MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateAe(
     const array_1d<double, 3>& rNormalMaster,
     MatrixDualLM& rAe,
     GeneralVariables& rVariables,
@@ -414,7 +436,7 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
     AeData rAeData;
     rAeData.Initialize();
 
-    rAe = ZeroMatrix(NumNodes, NumNodes);
+    rAe = ZeroMatrix(TNumNodes, TNumNodes);
 
     // The slave geometry
     GeometryType& r_slave_geometry = this->GetParentGeometry();
@@ -433,9 +455,14 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 
         DecompositionType decomp_geom( points_array );
 
-        const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
+        bool bad_shape;
+        if constexpr (TDim == 2) {
+            bad_shape = MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry.Length() * CheckThresholdCoefficient);
+        } else { 
+            bad_shape = MortarUtilities::HeronCheck(decomp_geom);
+        }
 
-        if (bad_shape == false) {
+        if (!bad_shape) {
             const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
 
             // Integrating the mortar operators
@@ -468,8 +495,8 @@ bool MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /*********************************COMPUTE KINEMATICS*********************************/
 /************************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateKinematics(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateKinematics(
     GeneralVariables& rVariables,
     const MatrixDualLM& rAe,
     const array_1d<double, 3>& rNormalMaster,
@@ -497,8 +524,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /*************** METHODS TO CALCULATE THE CONTACT CONDITION MATRICES ***************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::MasterShapeFunctionValue(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::MasterShapeFunctionValue(
     GeneralVariables& rVariables,
     const array_1d<double, 3>& rNormalMaster,
     const PointType& rLocalPoint
@@ -526,7 +553,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::MasterSh
 
 template< >
 template< >
-void MeshTyingMortarCondition<2,3,3>::CalculateLocalLHS<MeshTyingMortarCondition<2,3,3>::ScalarValue>(
+void MeshTyingMortarCondition<2,2,2>::CalculateLocalLHS<MeshTyingMortarCondition<2,2,2>::ScalarValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -585,7 +612,7 @@ void MeshTyingMortarCondition<2,3,3>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template< >
 template< >
-void MeshTyingMortarCondition<2,3,3>::CalculateLocalLHS<MeshTyingMortarCondition<2,3,3>::Vector2DValue>(
+void MeshTyingMortarCondition<2,2,2>::CalculateLocalLHS<MeshTyingMortarCondition<2,2,2>::Vector2DValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector2DValue>& rDofData
@@ -752,233 +779,7 @@ void MeshTyingMortarCondition<2,3,3>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template< >
 template< >
-void MeshTyingMortarCondition<2,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<2,4,4>::ScalarValue>(
-    Matrix& rLocalLHS,
-    const MortarConditionMatrices& rMortarConditionMatrices,
-    const DofData<ScalarValue>& rDofData
-    )
-{
-    // We get the mortar operators
-    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
-
-    const double clhs0 =     -MOperator(0,0);
-    const double clhs1 =     -MOperator(1,0);
-    const double clhs2 =     -MOperator(0,1);
-    const double clhs3 =     -MOperator(1,1);
-
-    rLocalLHS(0,0)=0;
-    rLocalLHS(0,1)=0;
-    rLocalLHS(0,2)=0;
-    rLocalLHS(0,3)=0;
-    rLocalLHS(0,4)=clhs0;
-    rLocalLHS(0,5)=clhs1;
-    rLocalLHS(1,0)=0;
-    rLocalLHS(1,1)=0;
-    rLocalLHS(1,2)=0;
-    rLocalLHS(1,3)=0;
-    rLocalLHS(1,4)=clhs2;
-    rLocalLHS(1,5)=clhs3;
-    rLocalLHS(2,0)=0;
-    rLocalLHS(2,1)=0;
-    rLocalLHS(2,2)=0;
-    rLocalLHS(2,3)=0;
-    rLocalLHS(2,4)=DOperator(0,0);
-    rLocalLHS(2,5)=DOperator(1,0);
-    rLocalLHS(3,0)=0;
-    rLocalLHS(3,1)=0;
-    rLocalLHS(3,2)=0;
-    rLocalLHS(3,3)=0;
-    rLocalLHS(3,4)=DOperator(0,1);
-    rLocalLHS(3,5)=DOperator(1,1);
-    rLocalLHS(4,0)=clhs0;
-    rLocalLHS(4,1)=clhs2;
-    rLocalLHS(4,2)=DOperator(0,0);
-    rLocalLHS(4,3)=DOperator(0,1);
-    rLocalLHS(4,4)=0;
-    rLocalLHS(4,5)=0;
-    rLocalLHS(5,0)=clhs1;
-    rLocalLHS(5,1)=clhs3;
-    rLocalLHS(5,2)=DOperator(1,0);
-    rLocalLHS(5,3)=DOperator(1,1);
-    rLocalLHS(5,4)=0;
-    rLocalLHS(5,5)=0;
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< >
-template< >
-void MeshTyingMortarCondition<2,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<2,4,4>::Vector2DValue>(
-    Matrix& rLocalLHS,
-    const MortarConditionMatrices& rMortarConditionMatrices,
-    const DofData<Vector2DValue>& rDofData
-    )
-{
-    // We get the mortar operators
-    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
-
-    const double clhs0 =     -MOperator(0,0);
-    const double clhs1 =     -MOperator(1,0);
-    const double clhs2 =     -MOperator(0,1);
-    const double clhs3 =     -MOperator(1,1);
-
-    rLocalLHS(0,0)=0;
-    rLocalLHS(0,1)=0;
-    rLocalLHS(0,2)=0;
-    rLocalLHS(0,3)=0;
-    rLocalLHS(0,4)=0;
-    rLocalLHS(0,5)=0;
-    rLocalLHS(0,6)=0;
-    rLocalLHS(0,7)=0;
-    rLocalLHS(0,8)=clhs0;
-    rLocalLHS(0,9)=0;
-    rLocalLHS(0,10)=clhs1;
-    rLocalLHS(0,11)=0;
-    rLocalLHS(1,0)=0;
-    rLocalLHS(1,1)=0;
-    rLocalLHS(1,2)=0;
-    rLocalLHS(1,3)=0;
-    rLocalLHS(1,4)=0;
-    rLocalLHS(1,5)=0;
-    rLocalLHS(1,6)=0;
-    rLocalLHS(1,7)=0;
-    rLocalLHS(1,8)=0;
-    rLocalLHS(1,9)=clhs0;
-    rLocalLHS(1,10)=0;
-    rLocalLHS(1,11)=clhs1;
-    rLocalLHS(2,0)=0;
-    rLocalLHS(2,1)=0;
-    rLocalLHS(2,2)=0;
-    rLocalLHS(2,3)=0;
-    rLocalLHS(2,4)=0;
-    rLocalLHS(2,5)=0;
-    rLocalLHS(2,6)=0;
-    rLocalLHS(2,7)=0;
-    rLocalLHS(2,8)=clhs2;
-    rLocalLHS(2,9)=0;
-    rLocalLHS(2,10)=clhs3;
-    rLocalLHS(2,11)=0;
-    rLocalLHS(3,0)=0;
-    rLocalLHS(3,1)=0;
-    rLocalLHS(3,2)=0;
-    rLocalLHS(3,3)=0;
-    rLocalLHS(3,4)=0;
-    rLocalLHS(3,5)=0;
-    rLocalLHS(3,6)=0;
-    rLocalLHS(3,7)=0;
-    rLocalLHS(3,8)=0;
-    rLocalLHS(3,9)=clhs2;
-    rLocalLHS(3,10)=0;
-    rLocalLHS(3,11)=clhs3;
-    rLocalLHS(4,0)=0;
-    rLocalLHS(4,1)=0;
-    rLocalLHS(4,2)=0;
-    rLocalLHS(4,3)=0;
-    rLocalLHS(4,4)=0;
-    rLocalLHS(4,5)=0;
-    rLocalLHS(4,6)=0;
-    rLocalLHS(4,7)=0;
-    rLocalLHS(4,8)=DOperator(0,0);
-    rLocalLHS(4,9)=0;
-    rLocalLHS(4,10)=DOperator(1,0);
-    rLocalLHS(4,11)=0;
-    rLocalLHS(5,0)=0;
-    rLocalLHS(5,1)=0;
-    rLocalLHS(5,2)=0;
-    rLocalLHS(5,3)=0;
-    rLocalLHS(5,4)=0;
-    rLocalLHS(5,5)=0;
-    rLocalLHS(5,6)=0;
-    rLocalLHS(5,7)=0;
-    rLocalLHS(5,8)=0;
-    rLocalLHS(5,9)=DOperator(0,0);
-    rLocalLHS(5,10)=0;
-    rLocalLHS(5,11)=DOperator(1,0);
-    rLocalLHS(6,0)=0;
-    rLocalLHS(6,1)=0;
-    rLocalLHS(6,2)=0;
-    rLocalLHS(6,3)=0;
-    rLocalLHS(6,4)=0;
-    rLocalLHS(6,5)=0;
-    rLocalLHS(6,6)=0;
-    rLocalLHS(6,7)=0;
-    rLocalLHS(6,8)=DOperator(0,1);
-    rLocalLHS(6,9)=0;
-    rLocalLHS(6,10)=DOperator(1,1);
-    rLocalLHS(6,11)=0;
-    rLocalLHS(7,0)=0;
-    rLocalLHS(7,1)=0;
-    rLocalLHS(7,2)=0;
-    rLocalLHS(7,3)=0;
-    rLocalLHS(7,4)=0;
-    rLocalLHS(7,5)=0;
-    rLocalLHS(7,6)=0;
-    rLocalLHS(7,7)=0;
-    rLocalLHS(7,8)=0;
-    rLocalLHS(7,9)=DOperator(0,1);
-    rLocalLHS(7,10)=0;
-    rLocalLHS(7,11)=DOperator(1,1);
-    rLocalLHS(8,0)=clhs0;
-    rLocalLHS(8,1)=0;
-    rLocalLHS(8,2)=clhs2;
-    rLocalLHS(8,3)=0;
-    rLocalLHS(8,4)=DOperator(0,0);
-    rLocalLHS(8,5)=0;
-    rLocalLHS(8,6)=DOperator(0,1);
-    rLocalLHS(8,7)=0;
-    rLocalLHS(8,8)=0;
-    rLocalLHS(8,9)=0;
-    rLocalLHS(8,10)=0;
-    rLocalLHS(8,11)=0;
-    rLocalLHS(9,0)=0;
-    rLocalLHS(9,1)=clhs0;
-    rLocalLHS(9,2)=0;
-    rLocalLHS(9,3)=clhs2;
-    rLocalLHS(9,4)=0;
-    rLocalLHS(9,5)=DOperator(0,0);
-    rLocalLHS(9,6)=0;
-    rLocalLHS(9,7)=DOperator(0,1);
-    rLocalLHS(9,8)=0;
-    rLocalLHS(9,9)=0;
-    rLocalLHS(9,10)=0;
-    rLocalLHS(9,11)=0;
-    rLocalLHS(10,0)=clhs1;
-    rLocalLHS(10,1)=0;
-    rLocalLHS(10,2)=clhs3;
-    rLocalLHS(10,3)=0;
-    rLocalLHS(10,4)=DOperator(1,0);
-    rLocalLHS(10,5)=0;
-    rLocalLHS(10,6)=DOperator(1,1);
-    rLocalLHS(10,7)=0;
-    rLocalLHS(10,8)=0;
-    rLocalLHS(10,9)=0;
-    rLocalLHS(10,10)=0;
-    rLocalLHS(10,11)=0;
-    rLocalLHS(11,0)=0;
-    rLocalLHS(11,1)=clhs1;
-    rLocalLHS(11,2)=0;
-    rLocalLHS(11,3)=clhs3;
-    rLocalLHS(11,4)=0;
-    rLocalLHS(11,5)=DOperator(1,0);
-    rLocalLHS(11,6)=0;
-    rLocalLHS(11,7)=DOperator(1,1);
-    rLocalLHS(11,8)=0;
-    rLocalLHS(11,9)=0;
-    rLocalLHS(11,10)=0;
-    rLocalLHS(11,11)=0;
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< >
-template< >
-void MeshTyingMortarCondition<3,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,4>::ScalarValue>(
+void MeshTyingMortarCondition<3,3,3>::CalculateLocalLHS<MeshTyingMortarCondition<3,3,3>::ScalarValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -1087,7 +888,7 @@ void MeshTyingMortarCondition<3,4,4>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,4>::Vector3DValue>(
+void MeshTyingMortarCondition<3,3,3>::CalculateLocalLHS<MeshTyingMortarCondition<3,3,3>::Vector3DValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -1844,7 +1645,7 @@ void MeshTyingMortarCondition<3,4,4>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,8,8>::CalculateLocalLHS<MeshTyingMortarCondition<3,8,8>::ScalarValue>(
+void MeshTyingMortarCondition<3,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,4>::ScalarValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -2023,7 +1824,7 @@ void MeshTyingMortarCondition<3,8,8>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,8,8>::CalculateLocalLHS<MeshTyingMortarCondition<3,8,8>::Vector3DValue>(
+void MeshTyingMortarCondition<3,4,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,4>::Vector3DValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -3354,7 +3155,7 @@ void MeshTyingMortarCondition<3,8,8>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,4,8>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,8>::ScalarValue>(
+void MeshTyingMortarCondition<3,3,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,3,4>::ScalarValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -3485,7 +3286,7 @@ void MeshTyingMortarCondition<3,4,8>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,4,8>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,8>::Vector3DValue>(
+void MeshTyingMortarCondition<3,3,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,3,4>::Vector3DValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -4416,7 +4217,7 @@ void MeshTyingMortarCondition<3,4,8>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,8,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,8,4>::ScalarValue>(
+void MeshTyingMortarCondition<3,4,3>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,3>::ScalarValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -4568,7 +4369,7 @@ void MeshTyingMortarCondition<3,8,4>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template< >
 template< >
-void MeshTyingMortarCondition<3,8,4>::CalculateLocalLHS<MeshTyingMortarCondition<3,8,4>::Vector3DValue>(
+void MeshTyingMortarCondition<3,4,3>::CalculateLocalLHS<MeshTyingMortarCondition<3,4,3>::Vector3DValue>(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -5683,7 +5484,6 @@ void MeshTyingMortarCondition<3,8,4>::CalculateLocalLHS<MeshTyingMortarCondition
 
 }
 
-
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
@@ -5692,7 +5492,7 @@ void MeshTyingMortarCondition<3,8,4>::CalculateLocalLHS<MeshTyingMortarCondition
 
 template<>
 template<>
-void MeshTyingMortarCondition<2,3, 3>::CalculateLocalRHS<MeshTyingMortarCondition<2,3,3>::ScalarValue>(
+void MeshTyingMortarCondition<2,2,2>::CalculateLocalRHS<MeshTyingMortarCondition<2,2,2>::ScalarValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -5723,7 +5523,7 @@ void MeshTyingMortarCondition<2,3, 3>::CalculateLocalRHS<MeshTyingMortarConditio
 
 template<>
 template<>
-void MeshTyingMortarCondition<2,3, 3>::CalculateLocalRHS<MeshTyingMortarCondition<2,3,3>::Vector2DValue>(
+void MeshTyingMortarCondition<2,2,2>::CalculateLocalRHS<MeshTyingMortarCondition<2,2,2>::Vector2DValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector2DValue>& rDofData
@@ -5738,7 +5538,6 @@ void MeshTyingMortarCondition<2,3, 3>::CalculateLocalRHS<MeshTyingMortarConditio
     // Mortar operators
     const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
-
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
     rLocalRHS[1]=MOperator(0,0)*lm(0,1) + MOperator(1,0)*lm(1,1);
@@ -5760,75 +5559,7 @@ void MeshTyingMortarCondition<2,3, 3>::CalculateLocalRHS<MeshTyingMortarConditio
 
 template<>
 template<>
-void MeshTyingMortarCondition<2,4, 4>::CalculateLocalRHS<MeshTyingMortarCondition<2,4,4>::ScalarValue>(
-    Vector& rLocalRHS,
-    const MortarConditionMatrices& rMortarConditionMatrices,
-    const DofData<ScalarValue>& rDofData
-    )
-{
-    // Initialize values
-    const BoundedMatrix<double, 2, ScalarValue> u1 = rDofData.u1;
-    const BoundedMatrix<double, 2, ScalarValue> u2 = rDofData.u2;
-
-    const BoundedMatrix<double, 2, ScalarValue> lm = rDofData.LagrangeMultipliers;
-
-    // Mortar operators
-    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
-
-
-    rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
-    rLocalRHS[1]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0);
-    rLocalRHS[2]=-(DOperator(0,0)*lm(0,0) + DOperator(1,0)*lm(1,0));
-    rLocalRHS[3]=-(DOperator(0,1)*lm(0,0) + DOperator(1,1)*lm(1,0));
-    rLocalRHS[4]=-DOperator(0,0)*u1(0,0) - DOperator(0,1)*u1(1,0) + MOperator(0,0)*u2(0,0) + MOperator(0,1)*u2(1,0);
-    rLocalRHS[5]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0);
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-template<>
-void MeshTyingMortarCondition<2,4, 4>::CalculateLocalRHS<MeshTyingMortarCondition<2,4,4>::Vector2DValue>(
-    Vector& rLocalRHS,
-    const MortarConditionMatrices& rMortarConditionMatrices,
-    const DofData<Vector2DValue>& rDofData
-    )
-{
-    // Initialize values
-    const BoundedMatrix<double, 2, Vector2DValue> u1 = rDofData.u1;
-    const BoundedMatrix<double, 2, Vector2DValue> u2 = rDofData.u2;
-
-    const BoundedMatrix<double, 2, Vector2DValue> lm = rDofData.LagrangeMultipliers;
-
-    // Mortar operators
-    const BoundedMatrix<double, 2, 2>& MOperator = rMortarConditionMatrices.MOperator;
-    const BoundedMatrix<double, 2, 2>& DOperator = rMortarConditionMatrices.DOperator;
-
-
-    rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0);
-    rLocalRHS[1]=MOperator(0,0)*lm(0,1) + MOperator(1,0)*lm(1,1);
-    rLocalRHS[2]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0);
-    rLocalRHS[3]=MOperator(0,1)*lm(0,1) + MOperator(1,1)*lm(1,1);
-    rLocalRHS[4]=-(DOperator(0,0)*lm(0,0) + DOperator(1,0)*lm(1,0));
-    rLocalRHS[5]=-(DOperator(0,0)*lm(0,1) + DOperator(1,0)*lm(1,1));
-    rLocalRHS[6]=-(DOperator(0,1)*lm(0,0) + DOperator(1,1)*lm(1,0));
-    rLocalRHS[7]=-(DOperator(0,1)*lm(0,1) + DOperator(1,1)*lm(1,1));
-    rLocalRHS[8]=-DOperator(0,0)*u1(0,0) - DOperator(0,1)*u1(1,0) + MOperator(0,0)*u2(0,0) + MOperator(0,1)*u2(1,0);
-    rLocalRHS[9]=-DOperator(0,0)*u1(0,1) - DOperator(0,1)*u1(1,1) + MOperator(0,0)*u2(0,1) + MOperator(0,1)*u2(1,1);
-    rLocalRHS[10]=-DOperator(1,0)*u1(0,0) - DOperator(1,1)*u1(1,0) + MOperator(1,0)*u2(0,0) + MOperator(1,1)*u2(1,0);
-    rLocalRHS[11]=-DOperator(1,0)*u1(0,1) - DOperator(1,1)*u1(1,1) + MOperator(1,0)*u2(0,1) + MOperator(1,1)*u2(1,1);
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-template<>
-void MeshTyingMortarCondition<3,4, 4>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,4>::ScalarValue>(
+void MeshTyingMortarCondition<3,3,3>::CalculateLocalRHS<MeshTyingMortarCondition<3,3,3>::ScalarValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -5843,7 +5574,6 @@ void MeshTyingMortarCondition<3,4, 4>::CalculateLocalRHS<MeshTyingMortarConditio
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0);
     rLocalRHS[1]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0) + MOperator(2,1)*lm(2,0);
@@ -5862,7 +5592,7 @@ void MeshTyingMortarCondition<3,4, 4>::CalculateLocalRHS<MeshTyingMortarConditio
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,4, 4>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,4>::Vector3DValue>(
+void MeshTyingMortarCondition<3,3,3>::CalculateLocalRHS<MeshTyingMortarCondition<3,3,3>::Vector3DValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -5877,7 +5607,6 @@ void MeshTyingMortarCondition<3,4, 4>::CalculateLocalRHS<MeshTyingMortarConditio
     // Mortar operators
     const BoundedMatrix<double, 3, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0);
     rLocalRHS[1]=MOperator(0,0)*lm(0,1) + MOperator(1,0)*lm(1,1) + MOperator(2,0)*lm(2,1);
@@ -5914,7 +5643,7 @@ void MeshTyingMortarCondition<3,4, 4>::CalculateLocalRHS<MeshTyingMortarConditio
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,8, 8>::CalculateLocalRHS<MeshTyingMortarCondition<3,8,8>::ScalarValue>(
+void MeshTyingMortarCondition<3,4,4>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,4>::ScalarValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -5929,7 +5658,6 @@ void MeshTyingMortarCondition<3,8, 8>::CalculateLocalRHS<MeshTyingMortarConditio
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0) + MOperator(3,0)*lm(3,0);
     rLocalRHS[1]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0) + MOperator(2,1)*lm(2,0) + MOperator(3,1)*lm(3,0);
@@ -5951,7 +5679,7 @@ void MeshTyingMortarCondition<3,8, 8>::CalculateLocalRHS<MeshTyingMortarConditio
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,8, 8>::CalculateLocalRHS<MeshTyingMortarCondition<3,8,8>::Vector3DValue>(
+void MeshTyingMortarCondition<3,4,4>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,4>::Vector3DValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -5966,7 +5694,6 @@ void MeshTyingMortarCondition<3,8, 8>::CalculateLocalRHS<MeshTyingMortarConditio
     // Mortar operators
     const BoundedMatrix<double, 4, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0) + MOperator(3,0)*lm(3,0);
     rLocalRHS[1]=MOperator(0,0)*lm(0,1) + MOperator(1,0)*lm(1,1) + MOperator(2,0)*lm(2,1) + MOperator(3,0)*lm(3,1);
@@ -6012,7 +5739,7 @@ void MeshTyingMortarCondition<3,8, 8>::CalculateLocalRHS<MeshTyingMortarConditio
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,4, 8>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,8>::ScalarValue>(
+void MeshTyingMortarCondition<3,3,4>::CalculateLocalRHS<MeshTyingMortarCondition<3,3,4>::ScalarValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -6027,7 +5754,6 @@ void MeshTyingMortarCondition<3,4, 8>::CalculateLocalRHS<MeshTyingMortarConditio
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0);
     rLocalRHS[1]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0) + MOperator(2,1)*lm(2,0);
@@ -6047,7 +5773,7 @@ void MeshTyingMortarCondition<3,4, 8>::CalculateLocalRHS<MeshTyingMortarConditio
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,4, 8>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,8>::Vector3DValue>(
+void MeshTyingMortarCondition<3,3,4>::CalculateLocalRHS<MeshTyingMortarCondition<3,3,4>::Vector3DValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -6062,7 +5788,6 @@ void MeshTyingMortarCondition<3,4, 8>::CalculateLocalRHS<MeshTyingMortarConditio
     // Mortar operators
     const BoundedMatrix<double, 3, 4>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 3, 3>& DOperator = rMortarConditionMatrices.DOperator;
-
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0);
     rLocalRHS[1]=MOperator(0,0)*lm(0,1) + MOperator(1,0)*lm(1,1) + MOperator(2,0)*lm(2,1);
@@ -6102,7 +5827,7 @@ void MeshTyingMortarCondition<3,4, 8>::CalculateLocalRHS<MeshTyingMortarConditio
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,8, 4>::CalculateLocalRHS<MeshTyingMortarCondition<3,8,4>::ScalarValue>(
+void MeshTyingMortarCondition<3,4,3>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,3>::ScalarValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<ScalarValue>& rDofData
@@ -6117,7 +5842,6 @@ void MeshTyingMortarCondition<3,8, 4>::CalculateLocalRHS<MeshTyingMortarConditio
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0) + MOperator(3,0)*lm(3,0);
     rLocalRHS[1]=MOperator(0,1)*lm(0,0) + MOperator(1,1)*lm(1,0) + MOperator(2,1)*lm(2,0) + MOperator(3,1)*lm(3,0);
@@ -6138,7 +5862,7 @@ void MeshTyingMortarCondition<3,8, 4>::CalculateLocalRHS<MeshTyingMortarConditio
 
 template<>
 template<>
-void MeshTyingMortarCondition<3,8, 4>::CalculateLocalRHS<MeshTyingMortarCondition<3,8,4>::Vector3DValue>(
+void MeshTyingMortarCondition<3,4,3>::CalculateLocalRHS<MeshTyingMortarCondition<3,4,3>::Vector3DValue>(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
     const DofData<Vector3DValue>& rDofData
@@ -6153,7 +5877,6 @@ void MeshTyingMortarCondition<3,8, 4>::CalculateLocalRHS<MeshTyingMortarConditio
     // Mortar operators
     const BoundedMatrix<double, 4, 3>& MOperator = rMortarConditionMatrices.MOperator;
     const BoundedMatrix<double, 4, 4>& DOperator = rMortarConditionMatrices.DOperator;
-
 
     rLocalRHS[0]=MOperator(0,0)*lm(0,0) + MOperator(1,0)*lm(1,0) + MOperator(2,0)*lm(2,0) + MOperator(3,0)*lm(3,0);
     rLocalRHS[1]=MOperator(0,0)*lm(0,1) + MOperator(1,0)*lm(1,1) + MOperator(2,0)*lm(2,1) + MOperator(3,0)*lm(3,1);
@@ -6194,8 +5917,8 @@ void MeshTyingMortarCondition<3,8, 4>::CalculateLocalRHS<MeshTyingMortarConditio
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::EquationIdVector(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -6203,8 +5926,7 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
     KRATOS_TRY;
 
     // Compute the matrix size
-    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
-    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+    const SizeType matrix_size = mpDoFVariables.size() * (2 * TNumNodes + TNumNodesMaster);
 
     if (rResult.size() != matrix_size) {
         rResult.resize( matrix_size, false );
@@ -6215,55 +5937,28 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
     /* ORDER - [ MASTER, SLAVE, LM ] */
     // Master Nodes DoF Equation IDs
     const GeometryType& r_current_master = this->GetPairedGeometry();
-
-    if (tensor_value == ScalarValue) {
-        for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
-            rResult[index++] = r_current_master[i_master].GetDof( *mpDoubleVariables[0] ).EquationId( );
-        }
-    } else {
-        const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
-        const Array1DComponentsType& r_var_x = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_X");
-        const Array1DComponentsType& r_var_y = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Y");
-        const Array1DComponentsType& r_var_z = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Z");
-        for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
-            const NodeType& r_master_node = r_current_master[i_master];
-            rResult[index++] = r_master_node.GetDof( r_var_x ).EquationId( );
-            rResult[index++] = r_master_node.GetDof( r_var_y ).EquationId( );
-            if constexpr (TDim == 3) rResult[index++] = r_master_node.GetDof( r_var_z ).EquationId( );
+    for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) {
+        const Node& r_master_node = r_current_master[i_master];
+        for (auto& p_var : mpDoFVariables) {
+            rResult[index++] = r_master_node.GetDof(*p_var).EquationId( );
         }
     }
 
+
     // Slave Nodes DoF Equation IDs
     const GeometryType& r_current_slave = this->GetParentGeometry();
-    if (tensor_value == ScalarValue) {
-        for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            rResult[index++] = r_current_slave[i_slave].GetDof( *mpDoubleVariables[0] ).EquationId( );
-        }
-    } else {
-        const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
-        const Array1DComponentsType& r_var_x = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_X");
-        const Array1DComponentsType& r_var_y = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Y");
-        const Array1DComponentsType& r_var_z = KratosComponents<Array1DComponentsType>::Get(r_variable_name+"_Z");
-        for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            const NodeType& r_slave_node = r_current_slave[i_slave];
-            rResult[index++] = r_slave_node.GetDof( r_var_x ).EquationId( );
-            rResult[index++] = r_slave_node.GetDof( r_var_y ).EquationId( );
-            if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( r_var_z ).EquationId( );
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
+        const Node& r_slave_node = r_current_slave[i_slave];
+        for (auto& p_var : mpDoFVariables) {
+            rResult[index++] = r_slave_node.GetDof(*p_var).EquationId( );
         }
     }
 
     // Slave Nodes LM Equation IDs
-    if (tensor_value == ScalarValue) {
-        for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave )  {
-            const NodeType& r_slave_node = r_current_slave[i_slave];
-            rResult[index++] = r_slave_node.GetDof( SCALAR_LAGRANGE_MULTIPLIER ).EquationId( );
-        }
-    } else {
-        for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            const NodeType& r_slave_node = r_current_slave[i_slave];
-            rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
-            rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
-            if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
+        const Node& r_slave_node = r_current_slave[i_slave];
+        for (auto& p_var : mpLMVariables) {
+            rResult[index++] = r_slave_node.GetDof(*p_var).EquationId( );
         }
     }
 
@@ -6273,16 +5968,16 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Equation
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofList(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim, TNumNodes, TNumNodesMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
     KRATOS_TRY;
 
-    const TensorValue tensor_value = (mpDoubleVariables.size() == 1) ? ScalarValue : static_cast<TensorValue>(TDim);
-    const SizeType matrix_size = tensor_value * (2 * NumNodes + NumNodesMaster);
+    // Compute the matrix size
+    const SizeType matrix_size = mpDoFVariables.size() * (2 * TNumNodes + TNumNodesMaster);
 
     if (rConditionalDofList.size() != matrix_size) {
         rConditionalDofList.resize( matrix_size );
@@ -6293,55 +5988,28 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
     /* ORDER - [ MASTER, SLAVE, LM ] */
     // Master Nodes DoF Equation IDs
     const GeometryType& r_current_master = this->GetPairedGeometry();
-
-    if (tensor_value == ScalarValue) {
-        for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master )  {
-            rConditionalDofList[index++] = r_current_master[i_master].pGetDof( *mpDoubleVariables[0] );
-        }
-    } else {
-        const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
-        const Array1DComponentsType& r_var_x = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_X");
-        const Array1DComponentsType& r_var_y = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Y");
-        const Array1DComponentsType& r_var_z = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Z");
-        for ( IndexType i_master = 0; i_master < NumNodesMaster; ++i_master ) {
-            const NodeType& r_master_node = r_current_master[i_master];
-            rConditionalDofList[index++] = r_master_node.pGetDof( r_var_x );
-            rConditionalDofList[index++] = r_master_node.pGetDof( r_var_y );
-            if constexpr (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( r_var_z );
+    for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) {
+        const Node& r_master_node = r_current_master[i_master];
+        for (auto& p_var : mpDoFVariables) {
+            rConditionalDofList[index++] = r_master_node.pGetDof(*p_var);
         }
     }
 
+
     // Slave Nodes DoF Equation IDs
     const GeometryType& r_current_slave = this->GetParentGeometry();
-    if (tensor_value == ScalarValue) {
-        for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            rConditionalDofList[index++] = r_current_slave[i_slave].pGetDof( *mpDoubleVariables[0] );
-        }
-    } else {
-        const std::string& r_variable_name = (*mpArray1DVariables[0]).Name();
-        const Array1DComponentsType& r_var_x = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_X");
-        const Array1DComponentsType& r_var_y = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Y");
-        const Array1DComponentsType& r_var_z = KratosComponents< Array1DComponentsType>::Get(r_variable_name+"_Z");
-        for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            const NodeType& r_slave_node = r_current_slave[i_slave];
-            rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_x );
-            rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_y );
-            if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( r_var_z );
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
+        const Node& r_slave_node = r_current_slave[i_slave];
+        for (auto& p_var : mpDoFVariables) {
+            rConditionalDofList[index++] = r_slave_node.pGetDof(*p_var);
         }
     }
 
     // Slave Nodes LM Equation IDs
-    if (tensor_value == ScalarValue) {
-        for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            const NodeType& r_slave_node = r_current_slave[i_slave];
-            rConditionalDofList[index++] = r_slave_node.pGetDof( SCALAR_LAGRANGE_MULTIPLIER );
-        }
-    } else {
-        for ( IndexType i_slave = 0; i_slave < NumNodes; ++i_slave ) {
-            const NodeType& r_slave_node = r_current_slave[i_slave];
-            rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
-            rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
-            if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
+    for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
+        const Node& r_slave_node = r_current_slave[i_slave];
+        for (auto& p_var : mpLMVariables) {
+            rConditionalDofList[index++] = r_slave_node.pGetDof(*p_var);
         }
     }
 
@@ -6351,8 +6019,8 @@ void MeshTyingMortarCondition<TDim, TNumNodesElem, TNumNodesElemMaster>::GetDofL
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateOnIntegrationPoints(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -6376,8 +6044,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateOnIntegrationPoints(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
     std::vector< array_1d<double, 3 > >& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -6401,8 +6069,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::CalculateOnIntegrationPoints(
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
     const ProcessInfo& rCurrentProcessInfo
@@ -6426,8 +6094,8 @@ void MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim, SizeType TNumNodesElem, SizeType TNumNodesElemMaster>
-int MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Check(const ProcessInfo& rCurrentProcessInfo) const
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+int MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -6445,11 +6113,10 @@ int MeshTyingMortarCondition<TDim,TNumNodesElem, TNumNodesElemMaster>::Check(con
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MeshTyingMortarCondition<2, 3, 3>; // 2DLine/Triangle
-template class MeshTyingMortarCondition<2, 4, 4>; // 2DLine/Quadrilateral
-template class MeshTyingMortarCondition<3, 4, 4>; // 3D Triangle/Tetrahedron
-template class MeshTyingMortarCondition<3, 8, 8>; // 3D Quadrilateral/Hexahedra
-template class MeshTyingMortarCondition<3, 4, 8>; // 3D Triangle/Tetrahedron
-template class MeshTyingMortarCondition<3, 8, 4>; // 3D Quadrilateral/Hexahedra
+template class MeshTyingMortarCondition<2, 2, 2>; // 2D Line/Line
+template class MeshTyingMortarCondition<3, 3, 3>; // 3D Triangle/Triangle
+template class MeshTyingMortarCondition<3, 4, 4>; // 3D Quadrilateral/Quadrilateral
+template class MeshTyingMortarCondition<3, 3, 4>; // 3D Triangle/Quadrilateral
+template class MeshTyingMortarCondition<3, 4, 3>; // 3D Quadrilateral/Triangle
 
 } // Namespace Kratos

@@ -59,7 +59,7 @@ namespace Kratos
     ///@{
 
     /// NodeType
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// KratosVariable or KratosVariableComponent
     typedef const TVariableType*     VariablePointer;

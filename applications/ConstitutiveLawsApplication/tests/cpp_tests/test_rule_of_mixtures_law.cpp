@@ -30,7 +30,7 @@ namespace Kratos
 namespace Testing
 {
 /// Nodetype definition
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 // void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
 // {

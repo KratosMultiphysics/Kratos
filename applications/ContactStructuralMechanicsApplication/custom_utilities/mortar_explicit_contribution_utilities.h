@@ -77,10 +77,10 @@ public:
     typedef Point                                                                        PointType;
 
     /// Node type definition
-    typedef Node<3>                                                                       NodeType;
+    typedef Node                                                                       NodeType;
 
     /// Geoemtry type definition
-    typedef Geometry<NodeType>                                                        GeometryType;
+    typedef Geometry<Node>                                                            GeometryType;
 
     // Type definition for integration methods
     typedef GeometryType::IntegrationPointsArrayType                         IntegrationPointsType;
@@ -118,6 +118,9 @@ public:
     typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true, TNumNodesMaster>                                IntegrationUtility;
 
     typedef DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>         DerivativesUtilitiesType;
+
+    // The threshold coefficient considered for checking
+    static constexpr double CheckThresholdCoefficient = 1.0e-12;
 
     ///@}
     ///@name Operators

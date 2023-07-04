@@ -4,24 +4,24 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
+// System includes
 #include <string>
 
 // External includes
 
 // Project includes
 #include "includes/kernel.h"
-#include "includes/parallel_environment.h"
+#include "testing/testing.h"
 #include "testing/distributed_test_case.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 DistributedTestCase::DistributedTestCase(std::string const& Name):
     TestCase(Name)
@@ -51,6 +51,11 @@ bool DistributedTestCase::IsDisabled() const
     return !IsEnabled();
 }
 
+bool DistributedTestCase::IsDistributedTest() const
+{
+    return true;
+}
+
 std::string DistributedTestCase::Info() const
 {
     return "Distributed test case " + Name();
@@ -58,11 +63,10 @@ std::string DistributedTestCase::Info() const
 
 void DistributedTestCase::CheckRemoteFailure()
 {
-    bool success_on_this_rank = GetResult().IsSucceed();
-    const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
-    bool global_success = r_comm.AndReduceAll(success_on_this_rank);
-    if (success_on_this_rank && !global_success)
-    {
+    const bool success_on_this_rank = GetResult().IsSucceed();
+    const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+    const bool global_success = r_comm.AndReduceAll(success_on_this_rank);
+    if (success_on_this_rank && !global_success) {
         TestCaseResult remote_failure(GetResult());
         remote_failure.SetToFailed();
         remote_failure.SetErrorMessage("Test was reported as successful on this rank, but failed on a different rank.");
@@ -72,5 +76,4 @@ void DistributedTestCase::CheckRemoteFailure()
 
 ///@}
 
-}
-}
+} // namespace Kratos::Testing.

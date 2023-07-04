@@ -86,7 +86,7 @@ public:
             unsigned int substep = 0;
 
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
-            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+            Node ::Pointer pparticle = *(iparticle.base());
 
             array_1d<double,3> current_position = iparticle->GetInitialPosition() + iparticle->FastGetSolutionStepValue(DISPLACEMENT,1);
 
@@ -105,7 +105,7 @@ public:
 
                 if(substep > 1 ) //first check if it falls within the same element
                 {
-                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                    Geometry< Node >& geom = pelement->GetGeometry();
                     is_found = geom.IsInside(current_position, aux_point_local_coordinates, 1.0e-5);
                     geom.ShapeFunctionsValues(N, aux_point_local_coordinates);
 
@@ -121,7 +121,7 @@ public:
 
                 if (is_found == true)
                 {
-                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                    Geometry< Node >& geom = pelement->GetGeometry();
 
                     const double new_step_factor = static_cast<double>(substep)/subdivisions;
                     const double old_step_factor = 1.0 - new_step_factor;
@@ -177,7 +177,7 @@ public:
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
             ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
-            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+            Node ::Pointer pparticle = *(iparticle.base());
 
             array_1d<double,3> initial_position = iparticle->GetInitialPosition() + iparticle->FastGetSolutionStepValue(DISPLACEMENT,1);
 
@@ -187,7 +187,7 @@ public:
             {
                 is_found = mpSearchStructure->FindPointOnMesh(initial_position, N, pelement, result_begin, max_results);
                 if( is_found == false) goto end_of_particle;
-                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                Geometry< Node >& geom = pelement->GetGeometry();
                 noalias(v1) = N[0] * ( geom[0].FastGetSolutionStepValue(VELOCITY,1));
                 for (unsigned int k = 1; k < geom.size(); k++)
                     noalias(v1) += N[k] * ( geom[k].FastGetSolutionStepValue(VELOCITY,1) );
@@ -199,7 +199,7 @@ public:
                 noalias(x) = initial_position + (0.5*dt)*v1;
                 is_found = mpSearchStructure->FindPointOnMesh(x, N, pelement, result_begin, max_results);
                 if( is_found == false) goto end_of_particle;
-                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                Geometry< Node >& geom = pelement->GetGeometry();
                 const double new_step_factor = 0.5;
                 const double old_step_factor = 0.5;
 
@@ -214,7 +214,7 @@ public:
                 const array_1d<double,3> x = initial_position + (0.5*dt)*v2;
                 is_found = mpSearchStructure->FindPointOnMesh(x, N, pelement, result_begin, max_results);
                 if( is_found == false) goto end_of_particle;
-                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                Geometry< Node >& geom = pelement->GetGeometry();
                 const double new_step_factor = 0.5; //as the step before
                 const double old_step_factor = 0.5;
 
@@ -229,7 +229,7 @@ public:
                 const array_1d<double,3> x = initial_position + (dt)*v3;
                 is_found = mpSearchStructure->FindPointOnMesh(x, N, pelement, result_begin, max_results);
                 if( is_found == false) goto end_of_particle;
-                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                Geometry< Node >& geom = pelement->GetGeometry();
                 noalias(v4) = N[0] * ( geom[0].FastGetSolutionStepValue(VELOCITY));
                 for (unsigned int k = 1; k < geom.size(); k++)
                     noalias(v4) += N[k] * ( geom[k].FastGetSolutionStepValue(VELOCITY) );
@@ -264,7 +264,7 @@ public:
         int nerased_el = 0;
         for(ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it!=rModelPart.ElementsEnd(); it++)
         {
-            Geometry< Node<3> >& geom = it->GetGeometry();
+            Geometry< Node >& geom = it->GetGeometry();
 
 //	    bool erase_el = false;
             for(unsigned int i=0; i<geom.size(); i++)

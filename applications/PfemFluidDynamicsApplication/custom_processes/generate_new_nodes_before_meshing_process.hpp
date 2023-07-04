@@ -169,7 +169,7 @@ namespace Kratos
 
 					// std::vector<array_1d<double, 3>> CornerWallNewPositions;
 					// std::vector<array_1d<SizeType, 4>> CornerWallNodesIDToInterpolate;
-					// std::vector<Node<3>::DofsContainerType> CornerWallNewDofs;
+					// std::vector<Node::DofsContainerType> CornerWallNewDofs;
 					// int cornerWallNewNodes = 0;
 					// int maxOfNewWallNodes = toleredExtraNodes;
 					// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
@@ -324,7 +324,7 @@ namespace Kratos
 		///@name Private Operations
 		///@{
 
-		void CopyDofs(Node<3>::DofsContainerType const &From, Node<3>::DofsContainerType &To)
+		void CopyDofs(Node::DofsContainerType const &From, Node::DofsContainerType &To)
 		{
 			for (auto &p_dof : From)
 			{
@@ -335,7 +335,7 @@ namespace Kratos
 		void InsertNodeInCornerElement2D(Element::GeometryType &Element,
 										 std::vector<array_1d<double, 3>> &new_positions,
 										 std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
-										 std::vector<Node<3>::DofsContainerType> &NewDofs,
+										 std::vector<Node::DofsContainerType> &NewDofs,
 										 int &CountNodes)
 		{
 			KRATOS_TRY
@@ -441,7 +441,7 @@ namespace Kratos
 		void InsertNodeInCornerElement3D(Element::GeometryType &Element,
 										 std::vector<array_1d<double, 3>> &new_positions,
 										 std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
-										 std::vector<Node<3>::DofsContainerType> &NewDofs,
+										 std::vector<Node::DofsContainerType> &NewDofs,
 										 int &CountNodes)
 		{
 			KRATOS_TRY
@@ -1625,7 +1625,7 @@ namespace Kratos
 
 		void CreateAndAddNewNodesInCornerWall(std::vector<array_1d<double, 3>> &new_positions,
 											  std::vector<array_1d<SizeType, 4>> &nodes_id_to_interpolate,
-											  std::vector<Node<3>::DofsContainerType> &NewDofs,
+											  std::vector<Node::DofsContainerType> &NewDofs,
 											  int ElementsToRefine,
 											  SizeType &maxId)
 		{
@@ -1633,7 +1633,7 @@ namespace Kratos
 
 			const SizeType dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-			std::vector<Node<3>::Pointer> list_of_new_nodes;
+			std::vector<Node::Pointer> list_of_new_nodes;
 
 			// assign data to dofs
 			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
@@ -1649,7 +1649,7 @@ namespace Kratos
 				if (dimension == 3)
 					z = new_positions[nn][2];
 
-				Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id, x, y, z);
+				Node::Pointer pnode = mrModelPart.CreateNewNode(id, x, y, z);
 				pnode->Set(NEW_ENTITY); // not boundary
 				list_of_new_nodes.push_back(pnode);
 				if (mrRemesh.InputInitializedFlag)
@@ -1664,11 +1664,11 @@ namespace Kratos
 				// //set buffer size
 				pnode->SetBufferSize(mrModelPart.GetBufferSize());
 
-				Node<3>::DofsContainerType &reference_dofs = NewDofs[nn];
+				Node::DofsContainerType &reference_dofs = NewDofs[nn];
 
-				for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+				for (Node::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 				{
-					Node<3>::DofType &rDof = **iii;
+					Node::DofType &rDof = **iii;
 					pnode->pAddDof(rDof);
 				}
 
@@ -1683,7 +1683,7 @@ namespace Kratos
 
 			// set the coordinates to the original value
 			const array_1d<double, 3> ZeroNormal(3, 0.0);
-			for (std::vector<Node<3>::Pointer>::iterator it = list_of_new_nodes.begin(); it != list_of_new_nodes.end(); it++)
+			for (std::vector<Node::Pointer>::iterator it = list_of_new_nodes.begin(); it != list_of_new_nodes.end(); it++)
 			{
 				const array_1d<double, 3> &displacement = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
 				(*it)->X0() = (*it)->X() - displacement[0];
@@ -1707,7 +1707,7 @@ namespace Kratos
 
 			const SizeType dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-			std::vector<Node<3>::Pointer> list_of_new_nodes;
+			std::vector<Node::Pointer> list_of_new_nodes;
 			double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
 			double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
 
@@ -1739,8 +1739,8 @@ namespace Kratos
 				if (dimension == 3)
 					z = new_positions[nn][2];
 
-				// Node<3>::Pointer pnode = mrModelPart.CreateNewNode(id, x, y, z);
-				pnode = Kratos::make_intrusive<Node<3>>(id, x, y, z);
+				// Node::Pointer pnode = mrModelPart.CreateNewNode(id, x, y, z);
+				pnode = Kratos::make_intrusive<Node>(id, x, y, z);
 
 				pnode->Set(NEW_ENTITY); // not boundary
 
@@ -1756,14 +1756,14 @@ namespace Kratos
 				// //set buffer size
 				pnode->SetBufferSize(mrModelPart.GetBufferSize());
 
-				// Node<3>::DofsContainerType &reference_dofs = NewDofs[nn];
-				// for (Node<3>::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+				// Node::DofsContainerType &reference_dofs = NewDofs[nn];
+				// for (Node::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 				// {
-				// 	Node<3>::DofType &rDof = **iii;
+				// 	Node::DofType &rDof = **iii;
 				// 	pnode->pAddDof(rDof);
 				// }
 				// generating the dofs
-				for (Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
+				for (Node::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
 				{
 					NodeType::DofType &rDof = **i_dof;
 					NodeType::DofType::Pointer pNewDof = pnode->pAddDof(rDof);
@@ -1805,7 +1805,7 @@ namespace Kratos
 
 			// set the coordinates to the original value
 			const array_1d<double, 3> ZeroNormal(3, 0.0);
-			for (std::vector<Node<3>::Pointer>::iterator it = list_of_new_nodes.begin(); it != list_of_new_nodes.end(); it++)
+			for (std::vector<Node::Pointer>::iterator it = list_of_new_nodes.begin(); it != list_of_new_nodes.end(); it++)
 			{
 				const array_1d<double, 3> &displacement = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
 				(*it)->X0() = (*it)->X() - displacement[0];
@@ -1822,7 +1822,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void InterpolateFromTwoNodes(Node<3>::Pointer master_node, Node<3>::Pointer slave_node_1, Node<3>::Pointer slave_node_2, VariablesList &rVariablesList)
+		void InterpolateFromTwoNodes(Node::Pointer master_node, Node::Pointer slave_node_1, Node::Pointer slave_node_2, VariablesList &rVariablesList)
 		{
 
 			KRATOS_TRY
@@ -1924,7 +1924,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void TakeMaterialPropertiesFromNotRigidNode(Node<3>::Pointer master_node, Node<3>::Pointer SlaveNode)
+		void TakeMaterialPropertiesFromNotRigidNode(Node::Pointer master_node, Node::Pointer SlaveNode)
 		{
 
 			KRATOS_TRY

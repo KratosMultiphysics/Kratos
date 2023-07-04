@@ -75,6 +75,7 @@ static inline void TestDerivatives(
     typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
     typedef DerivativesUtilities<TDim, TNumNodes, false, true> DerivativesUtilitiesType;
     typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true> IntegrationUtility;
+    static constexpr double CheckThresholdCoefficient = 1.0e-12;
 
     // Some definitions
     const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION]);
@@ -197,8 +198,8 @@ static inline void TestDerivatives(
                     DecompositionType decomp_geom( points_array );
                     DecompositionType decomp_geom0( points_array0 );
 
-                    const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry_0.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
-                    const bool bad_shape0 = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom0, r_slave_geometry_0.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom0);
+                    const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry_0.Length() * CheckThresholdCoefficient) : MortarUtilities::HeronCheck(decomp_geom);
+                    const bool bad_shape0 = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom0, r_slave_geometry_0.Length() * CheckThresholdCoefficient) : MortarUtilities::HeronCheck(decomp_geom0);
 
                     if ((bad_shape == false) && (bad_shape0 == false)) {
                         const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
