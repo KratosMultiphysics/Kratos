@@ -70,7 +70,7 @@ class ResponseRoutine:
     def GetReponse(self) -> ResponseFunction:
         return self.__response
 
-    def CalculateValue(self, control_field: KratosOA.CollectiveExpression) -> float:
+    def CalculateValue(self, control_field: KratosOA.CollectiveExpression=None) -> float:
         """Calculates the value of the response.
 
         This method updates the design with the provided control field. If a control field is updated
@@ -84,14 +84,8 @@ class ResponseRoutine:
             float: Respone value.
         """
         # update using the master control and get updated states.
-        update_states = self.__master_control.Update(control_field)
-
-        compute_response_value_flag = False
-        for control, is_updated in update_states.items():
-            if is_updated and control in self.__contributing_controls_list:
-                compute_response_value_flag = True
-
-        compute_response_value_flag = compute_response_value_flag or self.__response_value is None
+        if control_field is not None:
+            self.__master_control.Update(control_field)
 
         # TODO: In the case of having two analysis with the same mesh (model parts) for two different
         #       responses, we need to flag all the anayses which are affected by the control update_state
@@ -106,8 +100,8 @@ class ResponseRoutine:
         #     # in the execution policies which has some intersection with the modified model parts.
         #     ChangeExecutionPolicyStates(modified_model_parts, False, self.__optimization_problem)
 
-        if compute_response_value_flag:
-            self.__response_value = self.__response.CalculateValue()
+        # if compute_response_value_flag:
+        self.__response_value = self.__response.CalculateValue()
 
         return self.__response_value
 

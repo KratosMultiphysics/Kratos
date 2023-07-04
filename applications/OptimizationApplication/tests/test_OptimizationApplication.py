@@ -32,6 +32,7 @@ import test_buffered_dict
 import control.test_master_control
 import control.material.test_material_properties_control
 import control.thickness.test_shell_thickness_control
+import NLOPT_tests.MMA_shell_thickness_opt.test_NLOP_optimizers
 import filtering.implicit_filters_tests
 import filtering.explicit_filters_tests
 import test_component_data_view
@@ -95,6 +96,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.test_master_control.TestMassterControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.material.test_material_properties_control.TestMaterialPropertiesControl]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.thickness.test_shell_thickness_control.TestShellThicknessControl]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NLOPT_tests.MMA_shell_thickness_opt.test_NLOP_optimizers.TestNLOPTOptimizers]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.implicit_filters_tests.HelmholtzAnalysisTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.explicit_filters_tests.TestExplicitVertexMorphingFilter]))
