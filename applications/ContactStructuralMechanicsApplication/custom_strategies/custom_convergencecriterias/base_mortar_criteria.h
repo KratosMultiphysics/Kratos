@@ -76,22 +76,22 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( PURE_SLIP );
 
     /// The base class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >            BaseType;
+    using BaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = BaseMortarConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType                       DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType               TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType               TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// The GidIO type
-    typedef GidIO<>                                                GidIOBaseType;
+    using GidIOBaseType = GidIO<>;
 
     ///@}
     ///@name Life Cycle
@@ -242,7 +242,7 @@ public:
     {
         // We save the current WEIGHTED_GAP in the buffer
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
         });
 

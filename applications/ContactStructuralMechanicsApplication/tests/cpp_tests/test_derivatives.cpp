@@ -29,13 +29,30 @@
 
 namespace Kratos::Testing
 {
-typedef std::size_t                                              IndexType;
+using IndexType = std::size_t;
 
 ///Type definition for integration methods
-typedef GeometryData::IntegrationMethod                   IntegrationMethod;
+using IntegrationMethod = GeometryData::IntegrationMethod;
 
-enum class CheckLevel {LEVEL_EXACT = 0, LEVEL_QUADRATIC_CONVERGENCE = 1, LEVEL_DEBUG = 2, LEVEL_FULL_DEBUG = 3};
-enum class DerivateToCheck {CHECK_SHAPE_FUNCTION = 0, CHECK_JACOBIAN = 1, CHECK_PHI = 2, CHECK_NORMAL = 3};
+/**
+ * @brief An enumeration of the different levels of checks that can be performed on derivatives.
+ */
+enum class CheckLevel {
+    LEVEL_EXACT = 0, ///< An exact check.
+    LEVEL_QUADRATIC_CONVERGENCE = 1, ///< A check with quadratic convergence.
+    LEVEL_DEBUG = 2, ///< A debug-level check.
+    LEVEL_FULL_DEBUG = 3 ///< A full debug-level check.
+};
+
+/**
+ * @brief An enumeration of the different types of derivatives that can be checked.
+ */
+enum class DerivateToCheck {
+    CHECK_SHAPE_FUNCTION = 0, ///< A check of the shape function.
+    CHECK_JACOBIAN = 1, ///< A check of the Jacobian.
+    CHECK_PHI = 2, ///< A check of the phi function.
+    CHECK_NORMAL = 3 ///< A check of the normal.
+};
 
 /**
 * @brief This method is used to check the quadratic convergence of the derivatives
@@ -66,15 +83,16 @@ static inline void TestDerivatives(
     )
 {
     // Type definitions
-    typedef PointBelong<TNumNodes> PointBelongType;
-    typedef array_1d<PointBelongType, TDim> ConditionArrayType;
-    typedef typename std::vector<ConditionArrayType> ConditionArrayListType;
-    typedef Line2D2<Point> LineType;
-    typedef Triangle3D3<Point> TriangleType;
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
-    typedef DerivativesUtilities<TDim, TNumNodes, false, true> DerivativesUtilitiesType;
-    typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true> IntegrationUtility;
+    using PointBelongType = PointBelong<TNumNodes>;
+    using ConditionArrayType = array_1d<PointBelongType, TDim>;
+    using ConditionArrayListType = typename std::vector<ConditionArrayType>;
+    using LineType = Line2D2<Point>;
+    using TriangleType = Triangle3D3<Point>;
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
+    using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type;
+    using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, false, true>;
+    using IntegrationUtility = ExactMortarIntegrationUtility<TDim, TNumNodes, true>;
+
     static constexpr double CheckThresholdCoefficient = 1.0e-12;
 
     // Some definitions

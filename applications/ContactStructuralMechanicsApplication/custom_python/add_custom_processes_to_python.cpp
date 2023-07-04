@@ -83,6 +83,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     // Simple contact search
+    // TODO: Reduce code duplication using templates
     py::class_<SimpleContactSearchProcess<2, 2>, typename SimpleContactSearchProcess<2, 2>::Pointer, Process>(m, "SimpleContactSearchProcess2D2N")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
@@ -155,6 +156,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     // Advanced contact search
+    // TODO: Reduce code duplication using templates
     py::class_<AdvancedContactSearchProcess<2, 2>, typename AdvancedContactSearchProcess<2, 2>::Pointer, Process>(m, "AdvancedContactSearchProcess2D2N")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
@@ -234,6 +236,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     // MPC contact search
+    // TODO: Reduce code duplication using templates
     py::class_<MPCContactSearchProcess<2, 2>, typename MPCContactSearchProcess<2, 2>::Pointer, Process>(m, "MPCContactSearchProcess2D2N")
     .def(py::init<ModelPart&>())
     .def(py::init<ModelPart&, Parameters>())
@@ -306,6 +309,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     // Normal gap process
+    // TODO: Reduce code duplication using templates
     py::class_<NormalGapProcess<2, 2>, typename NormalGapProcess<2, 2>::Pointer, Process>(m, "NormalGapProcess2D2N")
     .def(py::init<ModelPart&, ModelPart&>())
     .def(py::init<ModelPart&, ModelPart&, const bool>())

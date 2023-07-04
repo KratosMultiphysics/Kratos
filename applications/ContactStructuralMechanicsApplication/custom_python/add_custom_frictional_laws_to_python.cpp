@@ -30,42 +30,44 @@ namespace py = pybind11;
 
 void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 {
+    // TODO: Reduce code duplication with templates
+
     /// Frictional laws
     /* Base class */
-    typedef FrictionalLawWithDerivative<2,2,false,2> FrictionalLaw2D2N;
-    typedef FrictionalLawWithDerivative<3,3,false,3> FrictionalLaw3D3N;
-    typedef FrictionalLawWithDerivative<3,4,false,4> FrictionalLaw3D4N;
-    typedef FrictionalLawWithDerivative<3,3,false,4> FrictionalLaw3D3N4N;
-    typedef FrictionalLawWithDerivative<3,4,false,3> FrictionalLaw3D4N3N;
-    typedef FrictionalLawWithDerivative<2,2,true,2> FrictionalLaw2D2NNV;
-    typedef FrictionalLawWithDerivative<3,3,true,3> FrictionalLaw3D3NNV;
-    typedef FrictionalLawWithDerivative<3,4,true,4> FrictionalLaw3D4NNV;
-    typedef FrictionalLawWithDerivative<3,3,true,4> FrictionalLaw3D3N4NNV;
-    typedef FrictionalLawWithDerivative<3,4,true,3> FrictionalLaw3D4N3NNV;
+    using FrictionalLaw2D2N = FrictionalLawWithDerivative<2, 2, false, 2>;
+    using FrictionalLaw3D3N = FrictionalLawWithDerivative<3, 3, false, 3>;
+    using FrictionalLaw3D4N = FrictionalLawWithDerivative<3, 4, false, 4>;
+    using FrictionalLaw3D3N4N = FrictionalLawWithDerivative<3, 3, false, 4>;
+    using FrictionalLaw3D4N3N = FrictionalLawWithDerivative<3, 4, false, 3>;
+    using FrictionalLaw2D2NNV = FrictionalLawWithDerivative<2, 2, true, 2>;
+    using FrictionalLaw3D3NNV = FrictionalLawWithDerivative<3, 3, true, 3>;
+    using FrictionalLaw3D4NNV = FrictionalLawWithDerivative<3, 4, true, 4>;
+    using FrictionalLaw3D3N4NNV = FrictionalLawWithDerivative<3, 3, true, 4>;
+    using FrictionalLaw3D4N3NNV = FrictionalLawWithDerivative<3, 4, true, 3>;
 
     /* Tresca */
-    typedef TrescaFrictionalLaw<2,2,false,2> TrescaFrictionalLaw2D2N;
-    typedef TrescaFrictionalLaw<3,3,false,3> TrescaFrictionalLaw3D3N;
-    typedef TrescaFrictionalLaw<3,4,false,4> TrescaFrictionalLaw3D4N;
-    typedef TrescaFrictionalLaw<3,3,false,4> TrescaFrictionalLaw3D3N4N;
-    typedef TrescaFrictionalLaw<3,4,false,3> TrescaFrictionalLaw3D4N3N;
-    typedef TrescaFrictionalLaw<2,2,true,2> TrescaFrictionalLaw2D2NNV;
-    typedef TrescaFrictionalLaw<3,3,true,3> TrescaFrictionalLaw3D3NNV;
-    typedef TrescaFrictionalLaw<3,4,true,4> TrescaFrictionalLaw3D4NNV;
-    typedef TrescaFrictionalLaw<3,3,true,4> TrescaFrictionalLaw3D3N4NNV;
-    typedef TrescaFrictionalLaw<3,4,true,3> TrescaFrictionalLaw3D4N3NNV;
+    using TrescaFrictionalLaw2D2N = TrescaFrictionalLaw<2, 2, false, 2>;
+    using TrescaFrictionalLaw3D3N = TrescaFrictionalLaw<3, 3, false, 3>;
+    using TrescaFrictionalLaw3D4N = TrescaFrictionalLaw<3, 4, false, 4>;
+    using TrescaFrictionalLaw3D3N4N = TrescaFrictionalLaw<3, 3, false, 4>;
+    using TrescaFrictionalLaw3D4N3N = TrescaFrictionalLaw<3, 4, false, 3>;
+    using TrescaFrictionalLaw2D2NNV = TrescaFrictionalLaw<2, 2, true, 2>;
+    using TrescaFrictionalLaw3D3NNV = TrescaFrictionalLaw<3, 3, true, 3>;
+    using TrescaFrictionalLaw3D4NNV = TrescaFrictionalLaw<3, 4, true, 4>;
+    using TrescaFrictionalLaw3D3N4NNV = TrescaFrictionalLaw<3, 3, true, 4>;
+    using TrescaFrictionalLaw3D4N3NNV = TrescaFrictionalLaw<3, 4, true, 3>;
 
     /* Coulomb */
-    typedef CoulombFrictionalLaw<2,2,false,2> CoulombFrictionalLaw2D2N;
-    typedef CoulombFrictionalLaw<3,3,false,3> CoulombFrictionalLaw3D3N;
-    typedef CoulombFrictionalLaw<3,4,false,4> CoulombFrictionalLaw3D4N;
-    typedef CoulombFrictionalLaw<3,3,false,4> CoulombFrictionalLaw3D3N4N;
-    typedef CoulombFrictionalLaw<3,4,false,3> CoulombFrictionalLaw3D4N3N;
-    typedef CoulombFrictionalLaw<2,2,true,2> CoulombFrictionalLaw2D2NNV;
-    typedef CoulombFrictionalLaw<3,3,true,3> CoulombFrictionalLaw3D3NNV;
-    typedef CoulombFrictionalLaw<3,4,true,4> CoulombFrictionalLaw3D4NNV;
-    typedef CoulombFrictionalLaw<3,3,true,4> CoulombFrictionalLaw3D3N4NNV;
-    typedef CoulombFrictionalLaw<3,4,true,3> CoulombFrictionalLaw3D4N3NNV;
+    using CoulombFrictionalLaw2D2N = CoulombFrictionalLaw<2, 2, false, 2>;
+    using CoulombFrictionalLaw3D3N = CoulombFrictionalLaw<3, 3, false, 3>;
+    using CoulombFrictionalLaw3D4N = CoulombFrictionalLaw<3, 4, false, 4>;
+    using CoulombFrictionalLaw3D3N4N = CoulombFrictionalLaw<3, 3, false, 4>;
+    using CoulombFrictionalLaw3D4N3N = CoulombFrictionalLaw<3, 4, false, 3>;
+    using CoulombFrictionalLaw2D2NNV = CoulombFrictionalLaw<2, 2, true, 2>;
+    using CoulombFrictionalLaw3D3NNV = CoulombFrictionalLaw<3, 3, true, 3>;
+    using CoulombFrictionalLaw3D4NNV = CoulombFrictionalLaw<3, 4, true, 4>;
+    using CoulombFrictionalLaw3D3N4NNV = CoulombFrictionalLaw<3, 3, true, 4>;
+    using CoulombFrictionalLaw3D4N3NNV = CoulombFrictionalLaw<3, 4, true, 3>;
 
     // Base class
     py::class_<FrictionalLaw, typename FrictionalLaw::Pointer>(m, "FrictionalLaw")

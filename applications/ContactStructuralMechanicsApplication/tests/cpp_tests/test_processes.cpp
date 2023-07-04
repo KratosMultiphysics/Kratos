@@ -24,7 +24,6 @@
 
 namespace Kratos::Testing 
 {
-typedef Node NodeType;
 
 /** 
 * Checks the correct work of the AALM  dynamic penalty process
@@ -47,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(AALMProcess1, KratosContactStructuralMechanicsFastSuit
     max_gap_factor = 1.0;
     
     // First we create the nodes 
-    NodeType::Pointer p_node_1 = r_model_part.CreateNewNode(0,0.0,0.0,0.0);
+    Node::Pointer p_node_1 = r_model_part.CreateNewNode(0,0.0,0.0,0.0);
     p_node_1->SetValue(NODAL_AREA, 1.0);
     p_node_1->FastGetSolutionStepValue(NODAL_H) = 0.1;
     p_node_1->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.05;
