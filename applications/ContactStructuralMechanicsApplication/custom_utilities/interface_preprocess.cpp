@@ -404,12 +404,12 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(2);
 
-                Line2D2< NodeType > lin_1(rEdgeGeometry(0), rEdgeGeometry(1));
+                Line2D2< Node > lin_1(rEdgeGeometry(0), rEdgeGeometry(1));
                 CreateNewCondition(pThisProperties, lin_1, rConditionId, r_condition);
                 condition_ids[0] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Line2D2< NodeType > lin_2(rEdgeGeometry(1), rEdgeGeometry(2));
+                Line2D2< Node > lin_2(rEdgeGeometry(1), rEdgeGeometry(2));
                 CreateNewCondition(pThisProperties, lin_2, rConditionId, r_condition);
                 condition_ids[1] = rConditionId;
                 ++rCondCounter;
@@ -481,12 +481,12 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(2);
 
-                Triangle3D3< NodeType > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(2));
+                Triangle3D3< Node > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(2));
                 CreateNewCondition(pThisProperties, tri_1, rConditionId, r_condition);
                 condition_ids[0] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_2(rFaceGeometry(2), rFaceGeometry(3), rFaceGeometry(0));
+                Triangle3D3< Node > tri_2(rFaceGeometry(2), rFaceGeometry(3), rFaceGeometry(0));
                 CreateNewCondition(pThisProperties, tri_2, rConditionId, r_condition);
                 condition_ids[1] = rConditionId;
                 ++rCondCounter;
@@ -507,22 +507,22 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(4);
 
-                Triangle3D3< NodeType > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(5));
+                Triangle3D3< Node > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(5));
                 CreateNewCondition(pThisProperties, tri_1, rConditionId, r_condition);
                 condition_ids[0] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_2(rFaceGeometry(1), rFaceGeometry(2), rFaceGeometry(3));
+                Triangle3D3< Node > tri_2(rFaceGeometry(1), rFaceGeometry(2), rFaceGeometry(3));
                 CreateNewCondition(pThisProperties, tri_2, rConditionId, r_condition);
                 condition_ids[1] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_3(rFaceGeometry(1), rFaceGeometry(3), rFaceGeometry(5));
+                Triangle3D3< Node > tri_3(rFaceGeometry(1), rFaceGeometry(3), rFaceGeometry(5));
                 CreateNewCondition(pThisProperties, tri_3, rConditionId, r_condition);
                 condition_ids[2] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_4(rFaceGeometry(3), rFaceGeometry(4), rFaceGeometry(5));
+                Triangle3D3< Node > tri_4(rFaceGeometry(3), rFaceGeometry(4), rFaceGeometry(5));
                 CreateNewCondition(pThisProperties, tri_4, rConditionId, r_condition);
                 condition_ids[3] = rConditionId;
                 ++rCondCounter;
@@ -543,32 +543,32 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(6);
 
-                Triangle3D3< NodeType > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(7));
+                Triangle3D3< Node > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(7));
                 CreateNewCondition(pThisProperties, tri_1, rConditionId, r_condition);
                 condition_ids[0] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_2(rFaceGeometry(1), rFaceGeometry(5), rFaceGeometry(7));
+                Triangle3D3< Node > tri_2(rFaceGeometry(1), rFaceGeometry(5), rFaceGeometry(7));
                 CreateNewCondition(pThisProperties, tri_2, rConditionId, r_condition);
                 condition_ids[1] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_3(rFaceGeometry(1), rFaceGeometry(3), rFaceGeometry(5));
+                Triangle3D3< Node > tri_3(rFaceGeometry(1), rFaceGeometry(3), rFaceGeometry(5));
                 CreateNewCondition(pThisProperties, tri_3, rConditionId, r_condition);
                 condition_ids[2] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_4(rFaceGeometry(1), rFaceGeometry(2), rFaceGeometry(3));
+                Triangle3D3< Node > tri_4(rFaceGeometry(1), rFaceGeometry(2), rFaceGeometry(3));
                 CreateNewCondition(pThisProperties, tri_4, rConditionId, r_condition);
                 condition_ids[3] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_5(rFaceGeometry(3), rFaceGeometry(4), rFaceGeometry(5));
+                Triangle3D3< Node > tri_5(rFaceGeometry(3), rFaceGeometry(4), rFaceGeometry(5));
                 CreateNewCondition(pThisProperties, tri_5, rConditionId, r_condition);
                 condition_ids[4] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_6(rFaceGeometry(5), rFaceGeometry(6), rFaceGeometry(7));
+                Triangle3D3< Node > tri_6(rFaceGeometry(5), rFaceGeometry(6), rFaceGeometry(7));
                 CreateNewCondition(pThisProperties, tri_6, rConditionId, r_condition);
                 condition_ids[5] = rConditionId;
                 ++rCondCounter;
@@ -589,42 +589,42 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(8);
 
-                Triangle3D3< NodeType > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(8));
+                Triangle3D3< Node > tri_1(rFaceGeometry(0), rFaceGeometry(1), rFaceGeometry(8));
                 CreateNewCondition(pThisProperties, tri_1, rConditionId, r_condition);
                 condition_ids[0] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_2(rFaceGeometry(1), rFaceGeometry(2), rFaceGeometry(3));
+                Triangle3D3< Node > tri_2(rFaceGeometry(1), rFaceGeometry(2), rFaceGeometry(3));
                 CreateNewCondition(pThisProperties, tri_2, rConditionId, r_condition);
                 condition_ids[1] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_3(rFaceGeometry(1), rFaceGeometry(3), rFaceGeometry(8));
+                Triangle3D3< Node > tri_3(rFaceGeometry(1), rFaceGeometry(3), rFaceGeometry(8));
                 CreateNewCondition(pThisProperties, tri_3, rConditionId, r_condition);
                 condition_ids[2] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_4(rFaceGeometry(8), rFaceGeometry(3), rFaceGeometry(4));
+                Triangle3D3< Node > tri_4(rFaceGeometry(8), rFaceGeometry(3), rFaceGeometry(4));
                 CreateNewCondition(pThisProperties, tri_4, rConditionId, r_condition);
                 condition_ids[3] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_5(rFaceGeometry(8), rFaceGeometry(4), rFaceGeometry(5));
+                Triangle3D3< Node > tri_5(rFaceGeometry(8), rFaceGeometry(4), rFaceGeometry(5));
                 CreateNewCondition(pThisProperties, tri_5, rConditionId, r_condition);
                 condition_ids[4] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_6(rFaceGeometry(5), rFaceGeometry(6), rFaceGeometry(7));
+                Triangle3D3< Node > tri_6(rFaceGeometry(5), rFaceGeometry(6), rFaceGeometry(7));
                 CreateNewCondition(pThisProperties, tri_6, rConditionId, r_condition);
                 condition_ids[5] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_7(rFaceGeometry(5), rFaceGeometry(7), rFaceGeometry(8));
+                Triangle3D3< Node > tri_7(rFaceGeometry(5), rFaceGeometry(7), rFaceGeometry(8));
                 CreateNewCondition(pThisProperties, tri_7, rConditionId, r_condition);
                 condition_ids[6] = rConditionId;
                 ++rCondCounter;
                 ++rConditionId;
-                Triangle3D3< NodeType > tri_8(rFaceGeometry(0), rFaceGeometry(8), rFaceGeometry(7));
+                Triangle3D3< Node > tri_8(rFaceGeometry(0), rFaceGeometry(8), rFaceGeometry(7));
                 CreateNewCondition(pThisProperties, tri_8, rConditionId, r_condition);
                 condition_ids[7] = rConditionId;
                 ++rCondCounter;

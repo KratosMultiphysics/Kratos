@@ -75,49 +75,58 @@ public:
     /// Base class definitions
     using BaseType = PairedCondition;
 
-    /// Vector type definition
+    /// Type definition for the vector used in the condition
     using VectorType = typename BaseType::VectorType;
 
-    /// Matrix type definition
+    /// Type definition for the matrix used in the condition
     using MatrixType = typename BaseType::MatrixType;
 
-    /// Index type definition
+    /// Type definition for the index used in the condition
     using IndexType = typename BaseType::IndexType;
 
-    /// Geometry pointer definition
+    /// Type definition for the pointer to the geometry used in the condition
     using GeometryPointerType = typename BaseType::GeometryType::Pointer;
 
-    /// Nodes array type definition
+    /// Type definition for the array of nodes used in the condition
     using NodesArrayType = typename BaseType::NodesArrayType;
 
-    /// Properties pointer definition
+    /// Type definition for the pointer to the properties used in the condition
     using PropertiesPointerType = typename BaseType::PropertiesType::Pointer;
 
-    /// Point definition
+    /// Definition of a point
     using PointType = Point;
 
-    /// Geoemtry type definition
+    /// Definition of the geometry type
     using GeometryType = Geometry<Node>;
 
-    // Type definition for integration methods
+    /// Type definition for the integration points in the geometry
     using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
 
+    /// Type definition for the array list of conditions with points
     using ConditionArrayListType = typename std::vector<array_1d<PointType, TDim>>;
 
+    /// Line type definition
     using LineType = Line2D2<Point>;
 
+    /// Triangle type definition
     using TriangleType = Triangle3D3<Point>;
 
+    /// Type definition for the decomposition based on dimension
     using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
 
+    /// Type definition for the matrix used for dual Lagrange multipliers
     using MatrixDualLM = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
+    /// Type definition for general kinematic variables of the mortar condition
     using GeneralVariables = MortarKinematicVariables<TNumNodes, TNumNodesMaster>;
 
+    /// Type definition for the operators of dual Lagrange multipliers
     using AeData = DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>;
 
+    /// Type definition for the mortar condition matrices
     using MortarConditionMatrices = MortarOperator<TNumNodes, TNumNodesMaster>;
 
+    /// Type definition for the integration utility of the mortar condition
     using IntegrationUtility = ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster>;
 
     // The threshold coefficient considered for checking
