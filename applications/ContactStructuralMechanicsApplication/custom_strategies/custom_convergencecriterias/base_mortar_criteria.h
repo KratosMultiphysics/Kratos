@@ -180,8 +180,8 @@ public:
         ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("Contact");
 
         // We update the normals if necessary
-        const auto normal_variation = r_process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(r_process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
-        if (normal_variation != NO_DERIVATIVES_COMPUTATION) {
+        const auto normal_variation = r_process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(r_process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION;
+        if (normal_variation != NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION) {
             ComputeNodesMeanNormalModelPartWithPairedNormal(rModelPart); // Update normal of the conditions
         }
 

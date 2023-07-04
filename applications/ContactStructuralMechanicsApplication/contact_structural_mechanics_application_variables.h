@@ -54,7 +54,7 @@ namespace Kratos
     /**
      * @brief An enumeration of the different options for normal derivatives computation.
      */
-    enum NormalDerivativesComputation {
+    enum class NormalDerivativesComputation {
         NO_DERIVATIVES_COMPUTATION = 0, ///< No computation of normal derivatives.
         ELEMENTAL_DERIVATIVES = 1, ///< Computation of normal derivatives at the element level.
         NODAL_ELEMENTAL_DERIVATIVES = 2, ///< Computation of normal derivatives at the node level.
