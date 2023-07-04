@@ -16,6 +16,7 @@
 #include <tuple>
 
 // Project includes
+#include "includes/data_communicator.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
 
@@ -24,48 +25,6 @@
 
 namespace Kratos
 {
-
-namespace GenericReductionHelperUtilities
-{
-
-template<class TDataType>
-void ResizeAndInitialize(
-    TDataType& rLocalValue,
-    const TDataType& rTargetValue,
-    const double InitializationValue)
-{
-    if constexpr(std::is_same_v<TDataType, Vector>) {
-        if (rLocalValue.size() != rTargetValue.size()) {
-            rLocalValue = Vector(rTargetValue.size(), InitializationValue);
-        }
-    } else if constexpr(std::is_same_v<TDataType, Matrix>) {
-        if (rLocalValue.size1() != rTargetValue.size1() || rLocalValue.size2() != rTargetValue.size2()) {
-            rLocalValue = Matrix(rTargetValue.size1(), rTargetValue.size2(), InitializationValue);
-        }
-    }
-}
-
-template<class TDataType>
-void ThreadSafeResizeAndInitialize(
-    TDataType& rLocalValue,
-    const TDataType& rTargetValue,
-    const double InitializationValue)
-{
-    if constexpr(std::is_same_v<TDataType, Vector>) {
-        KRATOS_CRITICAL_SECTION
-        if (rLocalValue.size() != rTargetValue.size()) {
-            rLocalValue = Vector(rTargetValue.size(), InitializationValue);
-        }
-    } else if constexpr(std::is_same_v<TDataType, Matrix>) {
-        KRATOS_CRITICAL_SECTION
-        if (rLocalValue.size1() != rTargetValue.size1() ||
-            rLocalValue.size2() != rTargetValue.size2()) {
-            rLocalValue = Matrix(rTargetValue.size1(), rTargetValue.size2(), InitializationValue);
-        }
-    }
-}
-
-} // namespace GenericReductionHelperUtilities
 
 template<class TDataType>
 class GenericSumReduction
@@ -116,6 +75,20 @@ public:
         }
 
     }
+
+    static void Synchronize(
+        return_type& rValue,
+        const DataCommunicator& rDataCommunicator)
+    {
+        if (DataTypeTraits<TDataType>::SynchronizeSize(rValue, rDataCommunicator)) {
+            DataTypeTraits<TDataType>::Initialize(rValue, mInitializationValue);
+        }
+
+        typename DataTypeTraits<TDataType>::VectorType local_values, global_values;
+        DataTypeTraits<TDataType>::FillToVector(local_values, rValue);
+        rDataCommunicator.SumAll(local_values, global_values);
+        DataTypeTraits<TDataType>::FillFromVector(rValue, global_values);
+    }
 };
 
 template<class TDataType>
@@ -124,7 +97,7 @@ class GenericMinReduction
 public:
     using data_type = TDataType;
 
-    using indices_type = std::vector<unsigned int>;
+    using indices_type = std::vector<int>;
 
     using return_type = std::tuple<TDataType, indices_type>;
 
@@ -162,7 +135,7 @@ public:
             DataTypeTraits<TDataType>::Initialize(min_values, mInitializationValue);
             // now initialize the indices vector size
             DataTypeTraits<indices_type>::Resize(min_indices, indices_type(DataTypeTraits<TDataType>::Size(min_values)));
-            DataTypeTraits<indices_type>::Initialize(min_indices, std::numeric_limits<unsigned int>::max());
+            DataTypeTraits<indices_type>::Initialize(min_indices, std::numeric_limits<int>::max());
         }
 
         if constexpr(std::is_arithmetic_v<data_type>) {
@@ -203,7 +176,7 @@ public:
             DataTypeTraits<TDataType>::Initialize(min_values, mInitializationValue);
             // now initialize the indices vector size
             DataTypeTraits<indices_type>::Resize(min_indices, indices_type(DataTypeTraits<TDataType>::Size(min_values)));
-            DataTypeTraits<indices_type>::Initialize(min_indices, std::numeric_limits<unsigned int>::max());
+            DataTypeTraits<indices_type>::Initialize(min_indices, std::numeric_limits<int>::max());
         }
 
         if constexpr(std::is_arithmetic_v<data_type>) {
@@ -226,7 +199,48 @@ public:
                 }
             }
         }
+    }
 
+    static void Synchronize(
+        return_type& rValue,
+        const DataCommunicator& rDataCommunicator)
+    {
+        auto& min_values = std::get<0>(rValue);
+        auto& min_indices = std::get<1>(rValue);
+
+        if (DataTypeTraits<TDataType>::SynchronizeSize(min_values, rDataCommunicator)) {
+            DataTypeTraits<TDataType>::Initialize(min_values, mInitializationValue);
+            DataTypeTraits<indices_type>::Resize(min_indices, indices_type(DataTypeTraits<TDataType>::Size(min_values)));
+            DataTypeTraits<indices_type>::Initialize(min_indices, std::numeric_limits<int>::max());
+        }
+
+        const int world_size = rDataCommunicator.Size();
+
+        // first get the values from all ranks
+        typename DataTypeTraits<TDataType>::VectorType local_values;
+        DataTypeTraits<TDataType>::FillToVector(local_values, min_values);
+        std::vector<typename DataTypeTraits<TDataType>::VectorType> global_values(world_size);
+        global_values = rDataCommunicator.AllGatherv(local_values);
+
+        // now get indices corresponding to above values from all ranks
+        std::vector<indices_type> global_indices(world_size);
+        global_indices = rDataCommunicator.AllGatherv(min_indices);
+
+        // now get the min
+        TDataType current_values;
+        DataTypeTraits<TDataType>::Resize(current_values, min_values);
+        for (int rank = 0; rank < world_size; ++rank) {
+            const auto& rank_values = global_values[rank];
+            const auto& rank_indices = global_indices[rank];
+            DataTypeTraits<TDataType>::FillFromVector(current_values, rank_values);
+
+            for (IndexType i = 0; i < DataTypeTraits<TDataType>::Size(rank_values); ++i) {
+                if (DataTypeTraits<TDataType>::GetComponent(current_values, i) < DataTypeTraits<TDataType>::GetComponent(min_values, i)) {
+                    DataTypeTraits<TDataType>::GetComponent(min_values, i) = DataTypeTraits<TDataType>::GetComponent(current_values, i);
+                    DataTypeTraits<TDataType>::GetComponent(min_indices, i) = rank_indices[i];
+                }
+            }
+        }
     }
 };
 
@@ -236,7 +250,7 @@ class GenericMaxReduction
 public:
     using data_type = TDataType;
 
-    using indices_type = std::vector<unsigned int>;
+    using indices_type = std::vector<int>;
 
     using return_type = std::tuple<TDataType, indices_type>;
 
@@ -339,7 +353,48 @@ public:
                 }
             }
         }
+    }
 
+    static void Synchronize(
+        return_type& rValue,
+        const DataCommunicator& rDataCommunicator)
+    {
+        auto& max_values = std::get<0>(rValue);
+        auto& max_indices = std::get<1>(rValue);
+
+        if (DataTypeTraits<TDataType>::SynchronizeSize(max_values, rDataCommunicator)) {
+            DataTypeTraits<TDataType>::Initialize(max_values, mInitializationValue);
+            DataTypeTraits<indices_type>::Resize(max_indices, indices_type(DataTypeTraits<TDataType>::Size(max_values)));
+            DataTypeTraits<indices_type>::Initialize(max_indices, std::numeric_limits<unsigned int>::max());
+        }
+
+        const int world_size = rDataCommunicator.Size();
+
+        // first get the values from all ranks
+        typename DataTypeTraits<TDataType>::VectorType local_values;
+        DataTypeTraits<TDataType>::FillToVector(local_values, max_values);
+        std::vector<typename DataTypeTraits<TDataType>::VectorType> global_values(world_size);
+        global_values = rDataCommunicator.AllGatherv(local_values);
+
+        // now get indices corresponding to above values from all ranks
+        std::vector<indices_type> global_indices(world_size);
+        global_indices = rDataCommunicator.AllGatherv(max_indices);
+
+        // now get the min
+        TDataType current_values;
+        DataTypeTraits<TDataType>::Resize(current_values, max_values);
+        for (int rank = 0; rank < world_size; ++rank) {
+            const auto& rank_values = global_values[rank];
+            const auto& rank_indices = global_indices[rank];
+            DataTypeTraits<TDataType>::FillFromVector(current_values, rank_values);
+
+            for (IndexType i = 0; i < DataTypeTraits<TDataType>::Size(rank_values); ++i) {
+                if (DataTypeTraits<TDataType>::GetComponent(current_values, i) > DataTypeTraits<TDataType>::GetComponent(max_values, i)) {
+                    DataTypeTraits<TDataType>::GetComponent(max_values, i) = DataTypeTraits<TDataType>::GetComponent(current_values, i);
+                    DataTypeTraits<TDataType>::GetComponent(max_indices, i) = rank_indices[i];
+                }
+            }
+        }
     }
 };
 
