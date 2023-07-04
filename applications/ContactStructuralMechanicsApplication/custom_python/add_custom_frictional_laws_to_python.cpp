@@ -60,6 +60,14 @@ namespace py = pybind11;
 
 void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 {
+    // Base class
+    py::class_<FrictionalLaw, typename FrictionalLaw::Pointer>(m, "FrictionalLaw")
+    .def(py::init<>())
+    .def("GetFrictionCoefficient",&FrictionalLaw::GetFrictionCoefficient)
+    .def("GetThresholdValue",&FrictionalLaw::GetThresholdValue)
+    ;
+
+    // Register derived classes
     RegisterFrictionalLaws<2, 2, false, 2>(m, "2D2N");
     RegisterFrictionalLaws<3, 3, false, 3>(m, "3D3N");
     RegisterFrictionalLaws<3, 4, false, 4>(m, "3D4N");
