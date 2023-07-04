@@ -1765,27 +1765,34 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateWaterSaturationDegree(Ele
     double pb     = rVariables.GasEntryPressure;
     double pc     = rVariables.ipCapilarPressure;
 
-    switch (rVariables.WaterSaturationLaw){
-        case 1: // -- Brooks and Corey
-        //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
-            
-            // Water saturation degree
-            rVariables.Sw = (1.0 - Swr)*pow(pb/pc,lambda) + Swr;
+    // If the capillar pressure is lower than the gas-entry pressure, the porous media is fully saturated with the wetting phase.
+    rVariables.Sw     = 1.0;
+    rVariables.dSwdpc = 0.0;
 
-            // Derivative of the water saturation degree with respect to the capilar pressure
-            rVariables.dSwdpc = (1.0 - Swr) * lambda * pb * pow(pb/pc,lambda-1) / (pc * pc);
+    if(pc > pb)
+    {
+        switch (rVariables.WaterSaturationLaw){
+            case 1: // -- Brooks and Corey
+            //           (see pg. 479 from Khoei's 2015 book: Extended Finite Element: theory and applications, ISBN 978-1-118-45768-9) -----
+                
+                // Water saturation degree
+                rVariables.Sw = (1.0 - Swr)*pow(pb/pc,lambda) + Swr;
 
-            break;
+                // Derivative of the water saturation degree with respect to the capilar pressure
+                rVariables.dSwdpc = (1.0 - Swr) * lambda * pb * pow(pb/pc,lambda-1) / (pc * pc);
 
-        case 2: // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
+                break;
 
-            // Water saturation degree
-            rVariables.Sw = (1.0 - Swr)*pow(1.0 + pow(pc/pb,1.0/(1.0-lambda)),-lambda) + Swr;
+            case 2: // -- van Genuchten (https://www.sciencedirect.com/science/article/pii/S0266352X22004657) -----
 
-            // Derivative of the water saturation degree with respect to the capilar pressure
-            rVariables.dSwdpc = (1.0 - Swr)*lambda/(pb * pow(pc/pb,1.0+1.0/(lambda-1.0)) * (lambda - 1.0) * pow(1.0+1.0/(pow(pc/pb,1/(lambda-1.0))),lambda+1.0));
-            
-            break;
+                // Water saturation degree
+                rVariables.Sw = (1.0 - Swr)*pow(1.0 + pow(pc/pb,1.0/(1.0-lambda)),-lambda) + Swr;
+
+                // Derivative of the water saturation degree with respect to the capilar pressure
+                rVariables.dSwdpc = (1.0 - Swr)*lambda/(pb * pow(pc/pb,1.0+1.0/(lambda-1.0)) * (lambda - 1.0) * pow(1.0+1.0/(pow(pc/pb,1/(lambda-1.0))),lambda+1.0));
+                
+                break;
+        }
     }
 
     // Update the density based on the new saturation degree
@@ -1842,9 +1849,12 @@ void UPwPgSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(
     // Evaluate the gas relative permeability
     double krg = this->GasRelativePermeability(Se, rVariables);
 
+    // Residual permeabilities (TEMP/TODO)
+    double reskrg = 0.0001;
+
     // Compute the fluid-flow sub-matrices
     noalias(rVariables.PwPwMatrix) = krw * rVariables.PermMatrix / rVariables.WaterDynamicViscosity;
-    noalias(rVariables.PgPgMatrix) = krg * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
+    noalias(rVariables.PgPgMatrix) = std::max(krg,reskrg) * rVariables.PermMatrix / rVariables.GasDynamicViscosity;
 
     //Distribute fluid-flow block sub-matrices into the elemental matrix
     PoroElementUtilities::AssemblePwPwBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PwPwMatrix,TDim,TNumNodes);
@@ -1889,6 +1899,7 @@ double UPwPgSmallStrainElement<TDim,TNumNodes>::WaterRelativePermeability(double
             
             break;
     }
+    krw = std::min(krw,0.0001);
     return krw;    
 }
 
@@ -1916,6 +1927,7 @@ double UPwPgSmallStrainElement<TDim,TNumNodes>::GasRelativePermeability(double S
             
             break;
     }
+    krg = std::min(krg,0.0001);
     return krg;    
 }
 
