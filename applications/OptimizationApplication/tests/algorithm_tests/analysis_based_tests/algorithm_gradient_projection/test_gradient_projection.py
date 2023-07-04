@@ -6,7 +6,7 @@ from KratosMultiphysics.OptimizationApplication.optimization_analysis import Opt
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 class TestSteepestDescentAnalysis(kratos_unittest.TestCase):
-    def test_steepest_descent_analysis(self):
+    def test_gradient_projection_analysis(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
             with open("optimization_parameters.json", "r") as file_input:
                 parameters = Kratos.Parameters(file_input.read())

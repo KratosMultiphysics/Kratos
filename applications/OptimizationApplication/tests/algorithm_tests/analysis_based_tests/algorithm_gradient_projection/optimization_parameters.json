@@ -15,7 +15,7 @@
     "analyses": [
         {
             "name": "Structure_static",
-            "type": "stepping_analysis_execution_policy",
+            "type": "kratos_analysis_execution_policy",
             "settings": {
                 "model_part_names": [
                     "Structure"
@@ -24,13 +24,21 @@
                 "analysis_type": "StructuralMechanicsAnalysis",
                 "analysis_settings": {
                     "@include_json": "primal_parameters.json"
+                },
+                "analysis_output_settings": {
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT"
+                    ],
+                    "nodal_data_value_variables": [],
+                    "element_data_value_variables": [],
+                    "condition_data_value_variables": []
                 }
             }
         }
     ],
     "responses": [
         {
-            "name": "mass_Structure",
+            "name": "mass",
             "type": "mass_response_function",
             "settings": {
                 "evaluated_model_part_names": [
@@ -42,7 +50,9 @@
             "name": "strain_energy",
             "type": "linear_strain_energy_response_function",
             "settings": {
-                "evaluated_model_part_names": ["Structure"],
+                "evaluated_model_part_names": [
+                    "Structure"
+                ],
                 "primal_analysis_name": "Structure_static",
                 "perturbation_size": 1e-8
             }
@@ -50,13 +60,26 @@
     ],
     "controls": [
         {
-            "name": "material_control",
-            "type": "material.material_properties_control",
+            "name": "thickness_control",
+            "type": "thickness.shell_thickness_control",
             "settings": {
-                "model_part_names": [
+                "controlled_model_part_names": [
                     "Structure"
                 ],
-                "control_variable_name": "YOUNG_MODULUS"
+                "filter_settings": {
+                    "type": "implicit",
+                    "radius": 0.2,
+                    "linear_solver_settings": {
+                        "solver_type": "LinearSolversApplication.pardiso_lu"
+                    }
+                },
+                "output_all_fields": false,
+                "beta_value": 25.0,
+                "initial_physical_thickness": 0.15,
+                "physical_thicknesses": [
+                    0.1,
+                    0.2
+                ]
             }
         }
     ],
@@ -66,7 +89,7 @@
             "echo_level": 0,
             "line_search": {
                 "type": "const_step",
-                "init_step": 1e9,
+                "init_step": 1e-2,
                 "gradient_scaling": "inf_norm"
             },
             "conv_settings": {
@@ -75,21 +98,22 @@
             },
             "linear_solver_settings": {
                 "solver_type": "LinearSolversApplication.dense_col_piv_householder_qr"
-            }
+            },
+            "correction_size": 1e-2
         },
         "controls": [
-            "material_control"
+            "thickness_control"
         ],
         "objective": {
-            "response_name": "strain_energy",
+            "response_name": "mass",
             "type": "minimization",
             "scaling": 1.0
         },
         "constraints": [
             {
-                "response_name"   : "strain_energy",
-                "type"            : ">=",
-                "scaling"         : 1.0,
+                "response_name": "strain_energy",
+                "type": "<=",
+                "scaling": 1.0,
                 "scaled_ref_value": "initial_value"
             }
         ]
@@ -104,7 +128,16 @@
                     "settings": {
                         "output_file_name": "summary.csv",
                         "write_kratos_version": false,
-                        "write_time_stamp": false
+                        "write_time_stamp": false,
+                        "format_info": {
+                            "int_length": 7,
+                            "float_precision": 8,
+                            "bool_values": [
+                                "no",
+                                "yes"
+                            ],
+                            "string_length": 10
+                        }
                     }
                 }
             ]

@@ -59,13 +59,16 @@ class ResponseRoutine:
                     self.__contributing_controls_list.append(control)
 
         if not self.__contributing_controls_list:
-            raise RuntimeError(f"The controls does not have any influence over the response {self.GetReponseName()}.")
+            raise RuntimeError(f"The controls does not have any influence over the response {self.GetResponseName()}.")
 
     def Check(self):
         pass
 
     def Finalize(self):
         pass
+
+    def GetResponseName(self):
+        return self.__response.GetName()
 
     def GetReponse(self) -> ResponseFunction:
         return self.__response
