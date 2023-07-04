@@ -136,9 +136,9 @@ public:
      * @brief Function to gather entities from other partitions
      * @details This function is intended to gather entities from other partitions. The map indicates the partitions to gather and the vector the entities to gather from each partition. In the current serial case it does nothing.
      * @param rModelPart Model part to gather entities from other partitions
-     * @param rNodesToBring Nodes to gather from other partitions
-     * @param rElementsToBring Elements to gather from other partitions
-     * @param rConditionsToBring Conditions to gather from other partitions
+     * @param rNodesToBring Nodes to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
+     * @param rElementsToBring Elements to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
+     * @param rConditionsToBring Conditions to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
      * @param CallExecuteAfterBringingEntities Call Execute after gathering entities
      * @param EchoLevel The verbosity level
      */
@@ -155,7 +155,7 @@ public:
      * @brief Function to gather nodes from other partitions
      * @details This function is intended to gather nodes from other partitions. The map indicates the partitions to gather and the vector the nodes to gather from each partition. In the current serial case it does nothing.
      * @param rModelPart Model part to gather entities from other partitions
-     * @param rNodesToBring Nodes to gather from other partitions
+     * @param rNodesToBring Nodes to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
      * @param CallExecuteAfterBringingEntities Call Execute after gathering nodes
      * @param EchoLevel The verbosity level
      */
@@ -170,7 +170,7 @@ public:
      * @brief Function to gather elements from other partitions
      * @details This function is intended to gather elements from other partitions. The map indicates the partitions to gather and the vector the elements to gather from each partition. In the current serial case it does nothing.
      * @param rModelPart Model part to gather entities from other partitions
-     * @param rElementsToBring Elements to gather from other partitions
+     * @param rElementsToBring Elements to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
      * @param CallExecuteAfterBringingEntities Call Execute after gathering elements
      * @param EchoLevel The verbosity level
      */
@@ -185,7 +185,7 @@ public:
      * @brief Function to gather conditions from other partitions
      * @details This function is intended to gather conditions from other partitions. The map indicates the partitions to gather and the vector the conditions to gather from each partition. In the current serial case it does nothing.
      * @param rModelPart Model part to gather entities from other partitions
-     * @param rConditionsToBring Conditions to gather from other partitions
+     * @param rConditionsToBring Conditions to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
      * @param CallExecuteAfterBringingEntities Call Execute after gathering conditions
      * @param EchoLevel The verbosity level
      */
@@ -245,7 +245,7 @@ private:
      * @brief Function to gather entities from other partitions
      * @details This function is intended to gather entities from other partitions. The map indicates the partitions to gather and the vector the entities to gather from each partition. In the current serial case it does nothing.
      * @param rModelPart Model part to gather entities from other partitions
-     * @param rEntitiesToBring Entities to gather from other partitions
+     * @param rEntitiesToBring Entities to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
      * @param EchoLevel The verbosity level
      */
     template <class TObjectType>
