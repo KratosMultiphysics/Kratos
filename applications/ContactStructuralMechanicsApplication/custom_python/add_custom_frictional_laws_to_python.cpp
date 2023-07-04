@@ -24,39 +24,39 @@
 #include "custom_frictional_laws/tresca_frictional_law.h"
 #include "custom_frictional_laws/coulomb_frictional_law.h"
 
+namespace Kratos::Python
+{
+namespace py = pybind11;
+
 /**
  * @brief Registers frictional laws in the given module.
  * @param m the module to register the laws in
  * @param rEndName the name to append to the law names
  */
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
-void RegisterFrictionalLaws(pybind11::module& m, const std::string& rEndName)
+void RegisterFrictionalLaws(py::module& m, const std::string& rEndName)
 {
     // Base class
-    using FrictionalLawWithDerivativeType = Kratos::FrictionalLawWithDerivative<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>;
+    using FrictionalLawWithDerivativeType = FrictionalLawWithDerivative<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>;
     std::string name = "FrictionalLaw" + rEndName;
-    pybind11::class_<FrictionalLawWithDerivativeType, typename FrictionalLawWithDerivativeType::Pointer, Kratos::FrictionalLaw>(m, name.c_str())
-    .def(pybind11::init<>())
+    py::class_<FrictionalLawWithDerivativeType, typename FrictionalLawWithDerivativeType::Pointer, FrictionalLaw>(m, name.c_str())
+    .def(py::init<>())
     ;
 
     // Tresca frictional law
-    using TrescaFrictionalLawType = Kratos::TrescaFrictionalLaw<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>;
+    using TrescaFrictionalLawType = TrescaFrictionalLaw<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>;
     name = "TrescaFrictionalLaw" + rEndName;
-    pybind11::class_<TrescaFrictionalLawType, typename TrescaFrictionalLawType::Pointer, FrictionalLawWithDerivativeType>(m, name.c_str())
-    .def(pybind11::init<>())
+    py::class_<TrescaFrictionalLawType, typename TrescaFrictionalLawType::Pointer, FrictionalLawWithDerivativeType>(m, name.c_str())
+    .def(py::init<>())
     ;
 
     // Coulomb frictional law
-    using CoulombFrictionalLawType = Kratos::CoulombFrictionalLaw<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>;
+    using CoulombFrictionalLawType = CoulombFrictionalLaw<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>;
     name = "CoulombFrictionalLaw" + rEndName;
-    pybind11::class_<CoulombFrictionalLawType, typename CoulombFrictionalLawType::Pointer, FrictionalLawWithDerivativeType>(m, name.c_str())
-    .def(pybind11::init<>())
+    py::class_<CoulombFrictionalLawType, typename CoulombFrictionalLawType::Pointer, FrictionalLawWithDerivativeType>(m, name.c_str())
+    .def(py::init<>())
     ;
 }
-
-namespace Kratos::Python
-{
-namespace py = pybind11;
 
 void  AddCustomFrictionalLawsToPython(pybind11::module& m)
 {
