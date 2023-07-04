@@ -374,6 +374,27 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointL
             CalculateGaussPointSlipTangentialCorrectionLHSContribution(lhs_gauss, data);
         }
     }
+    // Add P= PEXTERNAL CONTRIBUTION FOR OUTLET.
+    // // Add Neumann BC contribution
+    if (this->Is(OUTLET)){
+
+        for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node)
+        {
+            for (std::size_t j_node = 0; j_node < TNumNodes; ++j_node)
+            {
+                for (std::size_t d = 0; d < TDim; ++d)
+                {
+                    lhs_gauss(i_node * LocalSize + d, j_node * LocalSize + TDim) += data.wGauss * data.N[j_node] * data.N[i_node] * data.Normal[d];
+
+
+                }
+            }
+        }
+        // KRATOS_WATCH(data.N)
+        // KRATOS_WATCH(data.Normal)
+        // KRATOS_WATCH(lhs_gauss)
+
+    }
 }
 
 
@@ -403,6 +424,27 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointR
         if (this->Is(SLIP) && rProcessInfo[SLIP_TANGENTIAL_CORRECTION_SWITCH]) {
             CalculateGaussPointSlipTangentialCorrectionRHSContribution(rhs_gauss, data);
         }
+    }
+
+    if (this->Is(OUTLET)){
+        const GeometryType &rGeom = this->GetGeometry();
+
+        // Add Neumann BC contribution
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+            const double p = rGeom[i].FastGetSolutionStepValue(PRESSURE);
+
+            for (unsigned int j = 0; j < TNumNodes; ++j)
+            {
+        unsigned int row = j * LocalSize;
+        for (unsigned int d = 0; d < TDim; ++d)
+        {
+                    rhs_gauss[row + d] -= data.wGauss * data.N[j] * data.N[i] * p * data.Normal[d];
+
+        }
+            }
+        }
+
     }
 }
 

@@ -14,9 +14,6 @@ class FluidDynamicsAnalysisHydraulic(FluidDynamicsAnalysis):
     def __init__(self,model,project_parameters,flush_frequency=10.0):
         super().__init__(model,project_parameters)
 
-        self.flush_frequency = flush_frequency
-        self.last_flush = time.time()
-
     def ModifyInitialGeometry(self):
 
             h0=0.5

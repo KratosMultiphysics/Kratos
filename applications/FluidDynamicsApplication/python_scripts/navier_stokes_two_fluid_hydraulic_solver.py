@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
+import math
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -31,7 +32,11 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             },
             "material_import_settings": {
                 "materials_filename": ""
-            }
+            },
+            "distance_reading_settings"    : {
+                "import_mode"         : "from_mdpa",
+                "distance_file_name"  : "no_distance_file"
+            },
             "maximum_iterations": 7,
             "echo_level": 0,
             "compute_reactions": false,
@@ -56,6 +61,8 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 "maximum_delta_time"  : 1.0,
                 "time_step"           : 0.0
             },
+            "periodic": "periodic",
+            "move_mesh_flag": false,
             "formulation": {
                 "dynamic_tau": 1.0,
                 "mass_source":true
@@ -64,6 +71,8 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             "artificial_visocosity_settings":{
                 "limiter_coefficient": 1000
             },
+            "time_order": 2,
+            "time_scheme": "NEEDS TO BE FIXED --> PROBLEMS CONVERGENCE CRITERIO",
             "eulerian_fm_ale": true,
             "eulerian_fm_ale_settings":{
                 "max_CFL" : 1.0,
@@ -119,7 +128,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         super(NavierStokesTwoFluidsHydraulicSolver,self).__init__(model,custom_settings)
 
-
         self.element_name = "TwoFluidNavierStokesAlphaMethod"
         self.rho_inf = 0.0
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SPECTRAL_RADIUS_LIMIT, self.rho_inf)
@@ -127,7 +135,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 
-        self.min_buffer_size = 3
+        self.min_buffer_size = 2
 
         # Set the levelset characteristic variables and add them to the convection settings
         # These are required to be set as some of the auxiliary processes admit user-defined variables
@@ -183,7 +191,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE) # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT) # Distance gradient nodal values
 
@@ -195,12 +202,10 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             # Auxiliary variable to store the gradient of the historical scalar to be convected
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CONVECTION_SCALAR_GRADIENT)
 
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.AUXILIAR_VECTOR_VELOCITY)
+
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
-
-    def PrepareModelPart(self):
-        # Call the base solver PrepareModelPart()
-        super().PrepareModelPart()
 
     def Initialize(self):
         computing_model_part = self.GetComputingModelPart()
@@ -235,7 +240,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
-
         self._GetLevelSetConvectionProcess()
 
         # Instantiate the eulerian historical data convection
@@ -247,28 +251,30 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
         # Non historical variable are initilized in order to avoid memory problems
-
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ACCELERATION, self.main_model_part.Nodes)
         if self.artificial_viscosity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
-
-        #FIXME: Check that this is required. Note that right now the convection process is the one computing NODAL_H if nodal tau is active
-        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.GetComputingModelPart())
-        find_nodal_h.Execute()
-
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
 
 
     def InitializeSolutionStep(self):
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
-            self._ComputeInitialStepWaterVolume()
+            self._ComputeStepInitialWaterVolume()
+
+
+        # Perform the convection of the historical database (Eulerian FM-ALE)
+        if self.eulerian_fm_ale:
+            self.__PerformEulerianFmAleVelocity()
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-Lagrangian method is performed.")
+
 
         # Perform the level-set convection according to the previous step velocity
-        self._PerformLevelSetConvection()
+        self.__PerformLevelSetConvection()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
-
+        print("aqui peta")
         # Perform distance correction to prevent ill-conditioned cuts
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
@@ -278,9 +284,8 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Accumulative water volume error ratio due to level set. Adding source term
         self._ComputeVolumeError()
 
-        # Perform the convection of the historical database (Eulerian FM-ALE)
-        if self.eulerian_fm_ale:
-            self._PerformEulerianFmAleVelocity()
+        if self.artificial_viscosity:
+            self.__CalculateArtificialViscosity()
 
         # Initialize the solver current step
         self._GetSolutionStrategy().InitializeSolutionStep()
@@ -307,12 +312,12 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Acceleration for generalised alpha time integration method.
         self.__CalculateTimeIntegrationAcceleration()
 
-        # Artificial viscosity for shock capturing.
-        if self.artificial_viscosity:
-            self.__CalculateArtificialViscosity()
+        # # Artificial viscosity for shock capturing.
+        # if self.artificial_viscosity:
+        #     self.__CalculateArtificialViscosity()
 
 
-    def _ComputeInitialStepWaterVolume(self):
+    def _ComputeStepInitialWaterVolume(self):
 
         # Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
         if self.__initial_system_volume is None:
@@ -356,6 +361,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 KratosMultiphysics.VELOCITY, 0)
             acceleration_n=node.GetValue(KratosMultiphysics.ACCELERATION)
             acceleration_alpha_method=(v-vn)/(gamma*dt)+((gamma-1)/gamma)*acceleration_n
+            # acceleration_alpha_method = acceleration_n+alpha_m*(v-vn-acceleration_n*dt)/(dt*gamma)
             node.SetValue(KratosMultiphysics.ACCELERATION,acceleration_alpha_method)
 
     def __CalculateArtificialViscosity(self):
@@ -363,51 +369,89 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         properties_1 = self.main_model_part.Properties[1]
         water_dynamic_viscosity_max = self.artificial_limiter_coefficient * properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
         for element in self.GetComputingModelPart().Elements:
-            artificial_viscosity_gauss = element.CalculateOnIntegrationPoints(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.ProcessInfo)
-            item = 0
-            elem_artificial_viscosity= 0.0
-            for item in artificial_viscosity_gauss:
-                elem_artificial_viscosity += item
-                item +=1
-            elem_artificial_viscosity /= item
+            elem_artificial_viscosity = element.Calculate(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.ProcessInfo)
+
             if elem_artificial_viscosity > water_dynamic_viscosity_max:
                 elem_artificial_viscosity = water_dynamic_viscosity_max
+            nodes = element.GetNodes()
+            neg_nodes=0
+            pos_nodes=0
+            for node in nodes:
+                distance=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                if distance>0:
+                    pos_nodes += 1
+                else:
+                    neg_nodes+=1
+            if neg_nodes>0 and pos_nodes>0:
+                elem_artificial_viscosity= 0.0
+            # elif pos_nodes==3:
+            #     elem_artificial_viscosity = 0.0
+
             element.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
 
-    def _PerformLevelSetConvection(self):
+    def __PerformLevelSetConvection(self):
         # Solve the levelset convection problem
         self._GetLevelSetConvectionProcess().Execute()
 
-    def _PerformEulerianFmAleVelocity(self):
+    def __PerformEulerianFmAleVelocity(self):
 
         # Solve the historical data convection problem
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         velocity_components = [KratosMultiphysics.VELOCITY_X,KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.VELOCITY_Z]
+        auxiliar_velocity_componentes = [
+            KratosCFD.AUXILIAR_VECTOR_VELOCITY_X, KratosCFD.AUXILIAR_VECTOR_VELOCITY_Y, KratosCFD.AUXILIAR_VECTOR_VELOCITY_Z]
         mesh_var = [KratosMultiphysics.MESH_VELOCITY_X,KratosMultiphysics.MESH_VELOCITY_Y,KratosMultiphysics.MESH_VELOCITY_Z]
 
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,self.eulerian_convection_var, self.main_model_part, self.main_model_part, 0, 0)
         #TODO: These 2 are not needed as the CloneSolutionStep does it
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,self.eulerian_convection_var, self.main_model_part, self.main_model_part, 1, 1)
-        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,self.eulerian_convection_var, self.main_model_part, self.main_model_part, 2, 2)
 
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(self.eulerian_gradient, self.main_model_part.Nodes)
 
         for i in range(domain_size):
 
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 0, 0)
-            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 1, 1)
-
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(velocity_components[i], self.fm_ale_variable, self.main_model_part, self.main_model_part, 1,1)
             self._GetEulerianFmAleProcess().Execute()
+            KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(self.fm_ale_variable, auxiliar_velocity_componentes[i], self.main_model_part, self.main_model_part, 0, 0)
             self.__CorrectVelocityHistory(velocity_components[i], mesh_var[i])
+        self.__SlipConditionFixity()
 
     def __CorrectVelocityHistory(self,velocity_components, mesh_variable):
         for node in self.GetComputingModelPart().Nodes:
                 velocity_history_corrected = node.GetSolutionStepValue(self.fm_ale_variable)
-                if not node.IsFixed(velocity_components):
+                if node.Is(KratosMultiphysics.SLIP):
+                    pass
+
+                elif not node.IsFixed(velocity_components):
                     node.SetSolutionStepValue(velocity_components, velocity_history_corrected)
                     node.SetSolutionStepValue(velocity_components, 1, velocity_history_corrected)
                     node.SetSolutionStepValue(mesh_variable, velocity_history_corrected)
+                    node.SetSolutionStepValue(mesh_variable,1, velocity_history_corrected)
+
+
+    def DotProduct(self,A, B):
+        result = 0
+        for i, j in zip(A, B):
+            result += i*j
+        return result
+
+
+    def __SlipConditionFixity(self):
+        for node in self.GetComputingModelPart().Nodes:
+            if node.Is(KratosMultiphysics.SLIP):
+                    n = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
+                    n/=math.sqrt(n[0]**2+n[1]**2+n[2]**2)
+                    # n /= math.sqrt(n[0]**2+n[1]**2)
+                    v = node.GetSolutionStepValue(KratosCFD.AUXILIAR_VECTOR_VELOCITY)
+                    v_prooj = self.DotProduct(v,n)
+                    v -= v_prooj * n
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, v)
+                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, 1, v)
+                    node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, v)
+                    node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, 1,v)
+
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
@@ -530,16 +574,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self._distance_reinitialization_process = self._CreateDistanceReinitializationProcess()
         return self._distance_reinitialization_process
 
-    def _GetDistanceGradientProcess(self):
-        if not hasattr(self, '_distance_gradient_process'):
-            self._distance_gradient_process = self._CreateDistanceGradientProcess()
-        return self._distance_gradient_process
-
-    def _GetConsistentNodalPressureGradientProcess(self):
-        if not hasattr(self, '_consistent_nodal_pressure_gradient_process'):
-            self._consistent_nodal_pressure_gradient_process = self._CreateConsistentNodalPressureGradientProcess()
-        return self._consistent_nodal_pressure_gradient_process
-
     def _GetDistanceModificationProcess(self):
         if not hasattr(self, '_distance_modification_process'):
             self._distance_modification_process = self.__CreateDistanceModificationProcess()
@@ -625,21 +659,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
 
         return distance_reinitialization_process
-
-    def _CreateDistanceGradientProcess(self):
-        distance_gradient_process = KratosMultiphysics.ComputeNodalGradientProcess(
-                self.main_model_part,
-                self._levelset_variable,
-                self._levelset_gradient_variable,
-                KratosMultiphysics.NODAL_AREA)
-
-        return distance_gradient_process
-
-    def _CreateConsistentNodalPressureGradientProcess(self):
-        consistent_nodal_pressure_gradient_process = KratosCFD.CalulateLevelsetConsistentNodalGradientProcess(
-                self.main_model_part)
-
-        return consistent_nodal_pressure_gradient_process
 
     def __CreateDistanceModificationProcess(self):
         # Set suitable distance correction settings for free-surface problems
