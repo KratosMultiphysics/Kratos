@@ -1,9 +1,9 @@
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import HasContainerExpression
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
 class MasterControl:
     """Master control class.
@@ -87,6 +87,7 @@ class MasterControl:
 
         return control_fields
 
+    @time_decorator()
     def MapGradient(self, physical_space_gradient_variable_and_collective_expressions_map: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> KratosOA.CollectiveExpression:
         """Maps physical space gradients to a collective expression.
 
@@ -127,6 +128,8 @@ class MasterControl:
         Returns:
             KratosOA.CollectiveExpression: Control space sensitivities.
         """
+
+
         mapped_gradients = KratosOA.CollectiveExpression()
 
         for control in self.__list_of_controls:
@@ -158,6 +161,7 @@ class MasterControl:
 
         return mapped_gradients
 
+    @time_decorator()
     def Update(self, update_collective_expressions: KratosOA.CollectiveExpression) -> 'dict[Control, bool]':
         """Update each control with given collective expression's respective container expression.
 
@@ -180,4 +184,7 @@ class MasterControl:
         return update_map
 
     def Initialize(self):
+        pass
+
+    def Finalize(self):
         pass

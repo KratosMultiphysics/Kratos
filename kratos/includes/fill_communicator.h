@@ -10,8 +10,7 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_FILL_COMMUNICATOR_H_INCLUDED )
-#define  KRATOS_FILL_COMMUNICATOR_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -23,36 +22,46 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 
 ///@}
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name  Enum's
 ///@{
-
 
 ///@}
 ///@name  Functions
 ///@{
 
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Base class defining the API for the fill communicator utilities
-/** The objective of this class is to set the API for the derived ParallelFillCommunicator utilities
+/** 
+ * @class FillCommunicator
+ * @ingroup KratosCore
+ * @brief Base class defining the API for the fill communicator utilities
+ * @details The objective of this class is to set the API for the derived ParallelFillCommunicator utilities
+ * @author Ruben Zorrilla
  */
 class KRATOS_API(KRATOS_CORE) FillCommunicator
 {
 public:
+    ///@name  Enum's
+    ///@{
+
+    enum class FillCommunicatorEchoLevel
+    {
+        NO_PRINTING = 0, // No printing at all
+        INFO = 1,        // Just some additional info is printed
+        DEBUG_INFO = 2   // Debug info (+ INFO level) is printed
+    };
+
+    ///@}
     ///@name Type Definitions
     ///@{
 
@@ -63,13 +72,22 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
+    /** 
+     * @brief Constructor (deprecated)
+     * @param rModelPart The model part to recompute the communication plan for MPI
+     */
     KRATOS_DEPRECATED_MESSAGE("This constructor is deprecated, please use the one that accepts a DataCommunicator")
     FillCommunicator(ModelPart& rModelPart);
 
+    /** 
+     * @brief Constructor.
+     * @param rModelPart The model part to recompute the communication plan for MPI
+     * @param rDataCommunicator The communicator to recompute the communication plan for MPI
+     */
     FillCommunicator(
         ModelPart& rModelPart,
-        const DataCommunicator& rDataComm);
+        const DataCommunicator& rDataCommunicator
+        );
 
     /// Copy constructor.
     FillCommunicator(FillCommunicator const& rOther) = delete;
@@ -90,8 +108,8 @@ public:
 
     /**
      * @brief Execute the communicator fill
-     * This method is intended to perform the communicator filling In the current serial case it does nothing.
-     * For the parallel implementation see ParallelFillCommunicator.
+     * @details This method is intended to perform the communicator filling. In the current serial case it does nothing.
+     * @note For the parallel implementation see ParallelFillCommunicator.
      */
     virtual void Execute();
 
@@ -103,8 +121,8 @@ public:
 
     /**
      * @brief Function to print mesh information of the provided model part
-     * This function is intended to check and print some mesh information
-     * In the current serial case it is almost empty and only basic checks are performed
+     * @details This function is intended to check and print some mesh information
+     * @note In the current serial case it is almost empty and only basic checks are performed
      * @param rModelPart Reference to the model part to be checked
      */
     virtual void PrintModelPartDebugInfo(const ModelPart& rModelPart);
@@ -113,11 +131,27 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief Set the echo level
+     * @param EchoLevel The echo level
+     */
+    void SetEchoLevel(const FillCommunicatorEchoLevel EchoLevel)
+    {
+        mEchoLevel = EchoLevel;
+    }
+
+    /**
+     * @brief Get the echo level
+     * @return The echo level
+     */
+    FillCommunicatorEchoLevel GetEchoLevel() const
+    {
+        return mEchoLevel;
+    }
 
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -136,33 +170,35 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
 
-    const DataCommunicator& mrDataComm;
+    const DataCommunicator& mrDataComm; /// Data communicator reference
+
+    FillCommunicatorEchoLevel mEchoLevel = FillCommunicatorEchoLevel::NO_PRINTING; /// Echo level
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     ///@}
     ///@name Protected  Access
     ///@{
 
+    /**
+     * @brief Get the base model part
+     * @return The base model part
+     */
     ModelPart& GetBaseModelPart()
     {
         return mrBaseModelPart;
@@ -172,28 +208,24 @@ protected:
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
 
     ///@}
 private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrBaseModelPart;
+    ModelPart& mrBaseModelPart; /// The base model part
 
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -203,16 +235,13 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
 
     ///@}
 }; // Class FillCommunicator
@@ -221,7 +250,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -249,5 +277,3 @@ inline std::ostream & operator <<(
 
 ///@}
 } // namespace Kratos.
-
-#endif // KRATOS_FILL_COMMUNICATOR_H_INCLUDED  defined
