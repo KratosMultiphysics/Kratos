@@ -48,6 +48,20 @@ struct DataTypeTraits
         return false;
     }
 
+    static RawDataType& GetComponent(
+        TDataType& rValue,
+        const IndexType Index)
+    {
+        return rValue;
+    }
+
+    static RawDataType GetComponent(
+        const TDataType& rValue,
+        const IndexType Index)
+    {
+        return rValue;
+    }
+
     static IndexType Size(const TDataType& rValue)
     {
         return 1;
@@ -99,6 +113,20 @@ struct DataTypeTraits<array_1d<TDataType, TSize>>
         const DataType& rTarget)
     {
         return false;
+    }
+
+    static RawDataType& GetComponent(
+        DataType& rValue,
+        const IndexType Index)
+    {
+        return rValue[Index];
+    }
+
+    static RawDataType GetComponent(
+        const DataType& rValue,
+        const IndexType Index)
+    {
+        return rValue[Index];
     }
 
     static IndexType Size(const DataType& rValue)
@@ -157,6 +185,20 @@ struct DataTypeTraits<Vector>
         } else {
             return false;
         }
+    }
+
+    static RawDataType& GetComponent(
+        DataType& rValue,
+        const IndexType Index)
+    {
+        return rValue[Index];
+    }
+
+    static RawDataType GetComponent(
+        const DataType& rValue,
+        const IndexType Index)
+    {
+        return rValue[Index];
     }
 
     static IndexType Size(const DataType& rValue)
@@ -233,6 +275,20 @@ struct DataTypeTraits<Matrix>
         }
     }
 
+    static RawDataType& GetComponent(
+        DataType& rValue,
+        const IndexType Index)
+    {
+        return rValue.data()[Index];
+    }
+
+    static RawDataType GetComponent(
+        const DataType& rValue,
+        const IndexType Index)
+    {
+        return rValue.data()[Index];
+    }
+
     static IndexType Size(const DataType& rValue)
     {
         return rValue.size1() * rValue.size2();
@@ -304,6 +360,20 @@ struct DataTypeTraits<std::vector<TDataType>>
         } else {
             return false;
         }
+    }
+
+    static RawDataType& GetComponent(
+        DataType& rValue,
+        const IndexType Index)
+    {
+        return rValue[Index];
+    }
+
+    static RawDataType GetComponent(
+        const DataType& rValue,
+        const IndexType Index)
+    {
+        return rValue[Index];
     }
 
     static IndexType Size(const DataType& rValue)
