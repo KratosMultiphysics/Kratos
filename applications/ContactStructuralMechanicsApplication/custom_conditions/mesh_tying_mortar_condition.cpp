@@ -545,8 +545,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
 
     // Iterate over the number of dofs on master side
     for (IndexType i = 0; i < dof_size; ++i) {
-        for (IndexType j = 0; j < TNumNodes; ++j) {
-            for (IndexType k = 0; k < TNumNodesMaster; ++k) {
+        for (IndexType j = 0; j < TNumNodesMaster; ++j) {
+            for (IndexType k = 0; k < TNumNodes; ++k) {
                 rLocalLHS(initial_row_index + j * dof_size + i, initial_column_index + k * dof_size + i) = - r_MOperator(k, j);
                 rLocalLHS(initial_column_index + k * dof_size + i, initial_row_index + j * dof_size + i) = - r_MOperator(k, j);
             }
