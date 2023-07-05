@@ -176,7 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
         "echo_level" : 1,
         "max_CFL" : 0.2,
         "echo_level" : 2,
-        "time_scheme" : "forward_euler"
+        "time_scheme" : "RK3-TVD"
     })");
 
     // Set nodal values
@@ -224,7 +224,9 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
     gid_io_convection.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0, 1);
     gid_io_convection.WriteNodalResults(VELOCITY, r_model_part.Nodes(), 0, 1);
 
-    const double dt = 1.0e-1;
+    // const double dt = 1.0e-3;
+    // const double t_end = 1.0e-3;
+    const double dt = 1.0e-2;
     const double t_end = 6.28;
     r_model_part.GetProcessInfo()[TIME] = 0.0;
     r_model_part.GetProcessInfo()[DELTA_TIME] = dt;

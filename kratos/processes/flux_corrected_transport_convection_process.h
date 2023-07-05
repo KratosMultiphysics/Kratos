@@ -167,24 +167,21 @@ public:
             mConvectionValues[i_node_id] = it_node->GetSolutionStepValue(*mpConvectionVar,1); //convective velocity at n
         });
 
-        // Substepping loop according to max CFL
-        IndexType step = 1;
-        const double max_dt = target_time - prev_time;
-        const double cfl_dt = this->CalculateSubStepDeltaTime();
-        double min_dt = std::min(max_dt, cfl_dt); // Check if the user defined delta time is more restrictive than the CFL one
-        KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << "Solving FCT convection with \u0394t = " << min_dt << std::endl;
-        while (target_time - prev_time > 1.0e-12) {
-            // Check that current time step doesn't exceed the target time
-            // Use maximum allowable time step if it doesn't exceed the target time
-            // Otherwise the difference between current time and target one is used (e.g. last substep or very small user defined delta time)
-            const double dt = prev_time + min_dt > target_time ? target_time - prev_time : min_dt;
-
+        // Get maximum time increment according to global CFL
+        const double target_dt = target_time - prev_time; // Time to be covered by the substepping loop
+        const double cfl_dt = this->CalculateSubStepDeltaTime(); // Maximum time increment according to edge mesh CFL
+        const double max_dt = std::min(cfl_dt, mMaxAllowedDt); // Check if the user defined delta time is more restrictive than the CFL one
+        const SizeType n_steps = std::ceil(target_dt / max_dt); // Required number of substeps (rounded up)
+        const double dt = target_dt / n_steps; // Time increment to be used in the substep loop
+        KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << "Solving FCT convection with \u0394t = " << dt << " (max allowed \u0394t = " <<  max_dt << ")" << std::endl;
+        
+        // Substepping time loop
+        for (IndexType step = 1; step <= n_steps; ++step) {
             // Solve current substep
             KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 1) << "Substep = " << step << " - Time = " <<  prev_time << " - \u0394t = " << dt << std::endl;
             this->SolveSubStep(dt);
 
             // Advance in time
-            step++;
             prev_time += dt;
         }
 
@@ -367,17 +364,72 @@ private:
         // Calculate the low order Runge-Kutta update
         const double low_order_max_iteration = 1;
         const double low_order_diff_constant = mDiffusionConstant;
-        CalculateSolutionUpdate(mLowOrderUpdate, low_order_diff_constant, DeltaTime, low_order_max_iteration);
 
         // Calculate the high order Runge-Kutta update
-        const double high_order_max_iteration = 5;
+        const double high_order_max_iteration = 3;
         const double high_order_diff_constant = 0.0;
-        CalculateSolutionUpdate(mHighOrderUpdate, high_order_diff_constant, DeltaTime, high_order_max_iteration);
 
-        // Add the low order update 
-        IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
-            mSolution[i] = mSolutionOld[i] + mLowOrderUpdate[i];
-        });
+        // Get Butcher tableau variant with the selected Runge-Kutta scheme
+        const auto butcher_tableau_variant = GetButcherTableauVariant();
+
+        // Allocate auxiliary Runge-Kutta arrays
+        const SizeType rk_steps = std::visit([](const auto& rTableau){return rTableau.SubstepCount();}, butcher_tableau_variant);
+        std::vector<std::vector<double>> rk_residuals_lo(mAuxSize, std::vector<double>(rk_steps, 0.0));
+        std::vector<std::vector<double>> rk_residuals_ho(mAuxSize, std::vector<double>(rk_steps, 0.0));
+    
+        // Initialize intermediate substep solution vector
+        std::vector<double> rk_u_lo = mSolutionOld;
+        std::vector<double> rk_u_ho = mSolutionOld;
+
+        // Perform the Runge-Kutta intermediate steps
+        for (IndexType step = 1; step <= rk_steps; ++step) {
+            // Solve current Runge-Kutta step
+            const IndexType residual_column = step - 1;
+            const double rk_step_theta = std::visit([&step](const auto &rTableau) {return rTableau.GetIntegrationTheta(step);}, butcher_tableau_variant); // Runge-Kutta step integration theta
+            
+            // Calculate low order residual
+            CalculateResidual(rk_residuals_lo, rk_u_lo, residual_column, low_order_diff_constant, rk_step_theta * DeltaTime);
+
+            // Calculate high order residual
+            CalculateResidual(rk_residuals_ho, rk_u_ho, residual_column, high_order_diff_constant, rk_step_theta * DeltaTime);
+
+            if (step != rk_steps) {
+                // Do the explicit lumped mass matrix solve to obtain the intermediate solutions
+                const auto [rk_mat_row_begin, rk_mat_row_end] = std::visit([&step](const auto& rTableau) {return rTableau.GetMatrixRow(step);}, butcher_tableau_variant); // Runge-Kutta matrix row
+                ExplicitSolveSolution(rk_u_lo, rk_residuals_lo, DeltaTime, rk_mat_row_begin, rk_mat_row_end, low_order_max_iteration);
+                ExplicitSolveSolution(rk_u_ho, rk_residuals_ho, DeltaTime, rk_mat_row_begin, rk_mat_row_end, high_order_max_iteration);
+
+                // Set the auxiliary arrays required to calculate the antidiffusive fluxes
+                IndexPartition<IndexType>(mAuxSize).for_each([&](IndexType i){
+                    mSolution[i] = rk_u_lo[i];
+                    mHighOrderUpdate[i] = rk_u_ho[i] - mSolutionOld[i];
+                });
+
+                // Current substep time advance coefficient to calculate the limiting
+                double time_coeff = 0.0;
+                for (auto it = rk_mat_row_begin; it != rk_mat_row_end; ++it) {
+                    time_coeff += *it;
+                }
+
+                // Calculate the antidiffusive edge contributions
+                // CalculateAntidiffusiveEdgeContributions(rk_step_theta * DeltaTime);
+                CalculateAntidiffusiveEdgeContributions(time_coeff * DeltaTime);
+
+                // Evaluate limiter
+                // EvaluateLimiter(rk_step_theta * DeltaTime);
+                EvaluateLimiter(time_coeff * DeltaTime);
+
+                // Set low and high order solutions to the limited one
+                rk_u_lo = mSolution;
+                rk_u_ho = mSolution;
+            }
+
+        }
+
+        // Do the final solution update
+        const auto rk_weights = std::visit([](const auto& rTableau) -> auto {return rTableau.GetWeights();}, butcher_tableau_variant);
+        ExplicitSolveSolution(mSolution, rk_residuals_lo, DeltaTime, rk_weights.begin(), rk_weights.end(), low_order_max_iteration);
+        ExplicitSolveUpdate(mHighOrderUpdate, rk_residuals_ho, DeltaTime, rk_weights.begin(), rk_weights.end(), high_order_max_iteration);
 
         // Calculate the antidiffusive edge contributions
         CalculateAntidiffusiveEdgeContributions(DeltaTime);
@@ -390,6 +442,35 @@ private:
             mSolutionOld[i] = mSolution[i];
         });
     }
+
+    // void SolveSubStep(const double DeltaTime)
+    // {   
+    //     // Calculate the low order Runge-Kutta update
+    //     const double low_order_max_iteration = 1;
+    //     const double low_order_diff_constant = mDiffusionConstant;
+    //     CalculateSolutionUpdate(mLowOrderUpdate, low_order_diff_constant, DeltaTime, low_order_max_iteration);
+
+    //     // Calculate the high order Runge-Kutta update
+    //     const double high_order_max_iteration = 5;
+    //     const double high_order_diff_constant = 0.0;
+    //     CalculateSolutionUpdate(mHighOrderUpdate, high_order_diff_constant, DeltaTime, high_order_max_iteration);
+
+    //     // Add the low order update 
+    //     IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
+    //         mSolution[i] = mSolutionOld[i] + mLowOrderUpdate[i];
+    //     });
+
+    //     // Calculate the antidiffusive edge contributions
+    //     CalculateAntidiffusiveEdgeContributions(DeltaTime);
+
+    //     // Evaluate limiter
+    //     EvaluateLimiter(DeltaTime);
+
+    //     // Do the current step solution update
+    //     IndexPartition<IndexType>(mAuxSize).for_each([this](IndexType i){
+    //         mSolutionOld[i] = mSolution[i];
+    //     });
+    // }
 
     void CalculateSolutionUpdate(
         std::vector<double>& rSolutionUpdate,
@@ -715,6 +796,10 @@ private:
 
     void CalculateAntidiffusiveEdgeContributions(const double DeltaTime)
     {
+        // Check input time increment
+        KRATOS_ERROR_IF(DeltaTime < 1.0e-12)
+            << "Antidiffusive edge contributions cannot be computed as provided time increment " << DeltaTime << "is close to zero." << std::endl;
+
         // Get edge data structure containers
         const auto &r_row_indices = mpEdgeDataStructure->GetRowIndices();
         const auto &r_col_indices = mpEdgeDataStructure->GetColIndices();
@@ -730,9 +815,8 @@ private:
             // Check that there are CSR columns (i.e. that current node involves an edge)
             if (n_cols != 0) {
                 // i-node nodal data
-                const double u_i = mSolution[iRow]; //u_l
-                // const double u_i = mSolutionOld[iRow]; //u_n
-                const double u_h_i = mHighOrderUpdate[iRow];
+                const double u_i = mSolution[iRow]; // i-node low order solution (prediction)
+                const double du_h_i = mHighOrderUpdate[iRow]; // i-node high order solution update
                 const auto& r_i_vel = mConvectionValues[iRow];
 
                 // j-node nodal loop (i.e. loop ij-edges)
@@ -740,9 +824,8 @@ private:
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    const double u_j = mSolution[j_node_id]; //u_l
-                    // const double u_j = mSolutionOld[j_node_id]; //u_n
-                    const double u_h_j = mHighOrderUpdate[j_node_id];
+                    const double u_j = mSolution[j_node_id]; // j-node low order solution (prediction)
+                    const double du_h_j = mHighOrderUpdate[j_node_id]; // j-node high order solution update
                     const auto& r_j_vel = mConvectionValues[j_node_id];
 
                     // Calculate and store the antidiffusive flux edge contribution
@@ -750,8 +833,15 @@ private:
                     const double local_dt = CalculateEdgeLocalDeltaTime(r_ij_edge_data.GetLength(), norm_2(r_i_vel), norm_2(r_j_vel));
                     const double c_tau = mDiffusionConstant * DeltaTime / local_dt;
                     const double Mc_ij = r_ij_edge_data.GetOffDiagonalConsistentMass();
-                    const double AEC_ij = Mc_ij * (c_tau * (u_i - u_j) + (u_h_i - u_h_j)) / DeltaTime;
-                    r_ij_edge_data.SetAntidiffusiveEdgeContribution(AEC_ij);
+                    const double AEC_ij = Mc_ij * (c_tau * (u_i - u_j) + (du_h_i - du_h_j)) / DeltaTime;
+
+                    // Prelimiting step (avoids steepening)
+                    // This step removes the antidiffusive fluxes that flatten the solution profile instead of steepening it
+                    if (AEC_ij * (u_j - u_i) > 0.0) {
+                        r_ij_edge_data.SetAntidiffusiveEdgeContribution(0.0);
+                    } else {
+                        r_ij_edge_data.SetAntidiffusiveEdgeContribution(AEC_ij);
+                    }
                 }
             }
         });
@@ -780,8 +870,12 @@ private:
             // Check that there are CSR columns (i.e. that current node involves an edge)
             if (n_cols != 0) {
                 // i-node nodal data
-                // const double u_i = mSolution[iRow]; //u_l
-                const double u_i = mSolutionOld[iRow]; //u_n
+                const double u_i = mSolution[iRow]; //u_l
+                // const double u_i = mSolutionOld[iRow]; //u_n
+
+                // const double u_i_min = std::min(mSolution[iRow], mSolutionOld[iRow]);
+                // const double u_i_max = std::max(mSolution[iRow], mSolutionOld[iRow]);
+
                 const double M_l_i = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(iRow);
 
                 // j-node nodal loop (i.e. loop ij-edges)
@@ -789,9 +883,12 @@ private:
                 for (IndexType j_node = 0; j_node < n_cols; ++j_node) {
                     // j-node nodal data
                     IndexType j_node_id = *(i_col_begin + j_node);
-                    // const double u_j = mSolution[j_node_id]; //u_l
-                    const double u_j = mSolutionOld[j_node_id]; //u_n
+                    const double u_j = mSolution[j_node_id]; //u_l
+                    // const double u_j = mSolutionOld[j_node_id]; //u_n
                     const double M_l_j = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(j_node_id);
+
+                    // const double u_j_min = std::min(mSolution[j_node_id], mSolutionOld[j_node_id]);
+                    // const double u_j_max = std::max(mSolution[j_node_id], mSolutionOld[j_node_id]);
 
                     // Get the antidiffusive flux edge contribution
                     const auto& r_ij_edge_data = mpEdgeDataStructure->GetEdgeData(iRow, j_node_id);
@@ -810,6 +907,16 @@ private:
                     Q_max[iRow] = std::max(Q_max[iRow], aux_val_i);
                     Q_min[j_node_id] = std::min(Q_min[j_node_id], aux_val_j);
                     Q_max[j_node_id] = std::max(Q_max[j_node_id], aux_val_j);
+
+                    // const double aux_val_i_min = M_l_i * (u_j_min - u_i_min) / DeltaTime;
+                    // const double aux_val_i_max = M_l_i * (u_j_max - u_i_max) / DeltaTime;
+                    // const double aux_val_j_min = M_l_j * (u_i_min - u_j_min) / DeltaTime;
+                    // const double aux_val_j_max = M_l_j * (u_i_max - u_j_max) / DeltaTime;
+
+                    // Q_min[iRow] = std::min(Q_min[iRow], aux_val_i_min);
+                    // Q_max[iRow] = std::max(Q_max[iRow], aux_val_i_max);
+                    // Q_min[j_node_id] = std::min(Q_min[j_node_id], aux_val_j_min);
+                    // Q_max[j_node_id] = std::max(Q_max[j_node_id], aux_val_j_max);
                 }
             }
         });
@@ -818,14 +925,36 @@ private:
         std::vector<double> R_min(mAuxSize);
         std::vector<double> R_max(mAuxSize);
         IndexPartition<IndexType>(mAuxSize).for_each([&](IndexType i){
+            // const double P_min_i = P_min[i];
+            // const double P_max_i = P_max[i];
+            // if (P_max_i > 1.0e-12 && P_min_i < -1.0e-12) {
+            //     R_min[i] = std::min(1.0, Q_min[i] / P_min_i);
+            //     R_max[i] = std::min(1.0, Q_max[i] / P_max_i);
+            // } else {
+            //     R_min[i] = 0.0;
+            //     R_max[i] = 0.0;
+            // }
+
+            // R_{i}^{-} nodal correction factor calculation
             const double P_min_i = P_min[i];
-            const double P_max_i = P_max[i];
-            if (P_max_i > 1.0e-12 && P_min_i < -1.0e-12) {
-                R_min[i] = std::min(1.0, Q_min[i] / P_min_i);
-                R_max[i] = std::min(1.0, Q_max[i] / P_max_i);
+            if (std::abs(P_min_i) < 1.0e-12) {
+                // Check if Q_{i}^{-}/P_{i}^{-} quotient is minus or plus "infinite"
+                // Note that this would result in either min(1,-1) or min(1,1)
+                R_min[i] = Q_min[i] * P_min_i < 0.0 ? -1.0 : 1.0;
             } else {
-                R_min[i] = 0.0;
-                R_max[i] = 0.0;
+                // Standard Q_{i}^{-}/P_{i}^{-} quotient case
+                R_min[i] = std::min(1.0, Q_min[i] / P_min_i);
+            }
+
+            // R_{i}^{+} nodal correction factor calculation
+            const double P_max_i = P_max[i];
+            if (std::abs(P_max_i) < 1.0e-12) {
+                // Check if Q_{i}^{+}/P_{i}^{+} quotient is minus or plus "infinite"
+                // Note that this would result in either min(1,-1) or min(1,1)
+                R_max[i] = Q_max[i] * P_max_i < 0.0 ? -1.0 : 1.0;
+            } else {
+                // Standard Q_{i}^{+}/P_{i}^{+} quotient case
+                R_max[i] = std::min(1.0, Q_max[i] / P_max_i);
             }
         });
 
