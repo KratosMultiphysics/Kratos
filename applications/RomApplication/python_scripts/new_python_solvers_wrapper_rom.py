@@ -11,7 +11,8 @@ def _GetAvailableSolverWrapperModules():
         "KratosMultiphysics.FluidDynamicsApplication"       : "python_solvers_wrapper_fluid",
         "KratosMultiphysics.StructuralMechanicsApplication" : "python_solvers_wrapper_structural",
         "KratosMultiphysics.ConvectionDiffusionApplication" : "python_solvers_wrapper_convection_diffusion",
-        "KratosMultiphysics.CompressiblePotentialFlowApplication" : "python_solvers_wrapper_compressible_potential"
+        "KratosMultiphysics.CompressiblePotentialFlowApplication" : "python_solvers_wrapper_compressible_potential",
+        "KratosMultiphysics.GeoMechanicsApplication" : "geomechanics_solvers_wrapper"
     }
 
 

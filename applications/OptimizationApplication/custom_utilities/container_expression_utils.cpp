@@ -14,6 +14,7 @@
 #include <cmath>
 #include <variant>
 #include <numeric>
+#include <type_traits>
 
 // Project includes
 #include "expression/variable_expression_data_io.h"
@@ -26,6 +27,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "optimization_application_variables.h"
@@ -67,6 +69,37 @@ VariablePairVariantType GetTemporaryVariable1And2(const std::vector<IndexType>& 
                      << rShape << ". Only scalar and array3 data shapes are supported for temporary variable retrieval.\n";
     }
     return std::make_pair(&TEMPORARY_SCALAR_VARIABLE_1, &TEMPORARY_SCALAR_VARIABLE_2);
+}
+
+template<class TDataType1, class TDataType2,
+         std::enable_if_t<std::disjunction_v<
+                    std::is_arithmetic<TDataType1>,
+                    std::is_same<TDataType1, Vector>,
+                    std::is_same<TDataType1, Matrix>>
+                    , bool> = true>
+inline void GenericAtomicAdd(
+    TDataType1& rOutput,
+    const TDataType2& rInput)
+{
+    if constexpr(std::is_arithmetic_v<TDataType1>) {
+        AtomicAdd(rOutput, rInput);
+    } else if constexpr(std::is_same_v<TDataType1, Vector>) {
+        AtomicAddVector(rOutput, rInput);
+    } else if constexpr(std::is_same_v<TDataType1, Matrix>) {
+        AtomicAddMatrix(rOutput, rInput);
+    } else {
+        // This will be never reached. But having this
+        // gives some peace of mind.
+        static_assert(!std::is_same_v<TDataType1, TDataType1>, "Unsupported atomic add.");
+    }
+}
+
+template<class TDataType, std::size_t TSize, class TDataType2>
+inline void GenericAtomicAdd(
+    array_1d<TDataType, TSize>& rOutput,
+    const TDataType2& rInput)
+{
+    AtomicAdd<TDataType, TSize>(rOutput, rInput);
 }
 
 template<class TDataType>
@@ -473,9 +506,9 @@ void ContainerExpressionUtils::MapContainerVariableToNodalVariable(
             auto p_entity = (r_container.begin() + EntityIndex);
             auto& r_geometry = p_entity->GetGeometry();
             for (auto& r_node : r_geometry) {
-                r_node.SetLock();
-                r_node.GetValue(*p_variable) += rValue / r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_2);
-                r_node.UnSetLock();
+                ContainerVariableDataHolderUtilsHelper::GenericAtomicAdd(
+                    r_node.GetValue(*p_variable),
+                    rValue / r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_2));
             }
         });
 

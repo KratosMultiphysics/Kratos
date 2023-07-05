@@ -34,15 +34,19 @@ namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
+
 ///@}
 ///@name Type Definitions
 ///@{
+
 ///@}
 ///@name  Enum's
 ///@{
+
 ///@}
 ///@name  Functions
 ///@{
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -66,15 +70,17 @@ public:
     ///@name Enums
     ///@{
 
-    /// This enum is used to identify each index whick kind is
+    /**
+     * @brief An enumeration of the different types of blocks used in the mixed Uzawa-LM linear solver.
+     */
     enum class BlockType {
-            OTHER,
-            MASTER,
-            SLAVE_INACTIVE,
-            SLAVE_ACTIVE,
-            LM_INACTIVE,
-            LM_ACTIVE
-            };
+        OTHER, ///< A block of another type.
+        MASTER, ///< A master block.
+        SLAVE_INACTIVE, ///< An inactive slave block.
+        SLAVE_ACTIVE, ///< An active slave block.
+        LM_INACTIVE, ///< An inactive Lagrange multiplier block.
+        LM_ACTIVE ///< An active Lagrange multiplier block.
+    };
 
     ///@name Type Definitions
     ///@{
@@ -89,53 +95,51 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION (MixedULMLinearSolver);
 
     /// The base class corresponds to the an iterative solver
-    typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
+    using BaseType = IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>;
 
     /// The base class for the linear solver
-    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> LinearSolverType;
+    using LinearSolverType = LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>;
 
     /// The pointer to a linear solver
-    typedef typename LinearSolverType::Pointer LinearSolverPointerType;
+    using LinearSolverPointerType = typename LinearSolverType::Pointer;
 
     /// The sparse matrix type
-    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+    using SparseMatrixType = typename TSparseSpaceType::MatrixType;
 
     /// The vector type
-    typedef typename TSparseSpaceType::VectorType VectorType;
+    using VectorType = typename TSparseSpaceType::VectorType;
 
     /// The dense matrix type
-    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    using DenseMatrixType = typename TDenseSpaceType::MatrixType;
 
     /// The dense vector type
-    typedef typename TDenseSpaceType::VectorType DenseVectorType;
-
-    /// The node type
-    typedef Node NodeType;
+    using DenseVectorType = typename TDenseSpaceType::VectorType;
 
     /// The definition of the dof type
-    typedef typename ModelPart::DofType DofType;
+    using DofType = typename ModelPart::DofType;
 
     /// The array containing the dofs
-    typedef typename ModelPart::DofsArrayType DofsArrayType;
+    using DofsArrayType = typename ModelPart::DofsArrayType;
 
     /// An array of conditions
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    using ConditionsArrayType = typename ModelPart::ConditionsContainerType;
 
     /// An array of nodes
-    typedef ModelPart::NodesContainerType NodesArrayType;
+    using NodesArrayType = typename ModelPart::NodesContainerType;
 
     /// The size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// A vector of indexes
-    typedef DenseVector<IndexType> IndexVectorType;
+    using IndexVectorType = DenseVector<IndexType>;
 
     /// A vector of types
-    typedef DenseVector<BlockType> BlockTypeVectorType;
+    using BlockTypeVectorType = DenseVector<BlockType>;
 
+    /// The zero tolerance considerered
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -521,7 +525,7 @@ public:
             // In case of block builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
-                const NodeType& node = rModelPart.GetNode(node_id);
+                const Node& node = rModelPart.GetNode(node_id);
                 if (i_dof.EquationId() < rA.size1()) {
                     tot_active_dofs++;
                     if (IsLMDof(i_dof)) {
@@ -545,7 +549,7 @@ public:
             // In case of elimination builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
-                const NodeType& node = rModelPart.GetNode(node_id);
+                const Node& node = rModelPart.GetNode(node_id);
                 tot_active_dofs++;
                 if (IsLMDof(i_dof)) {
                     if (node.Is(ACTIVE))
@@ -607,7 +611,7 @@ public:
             // In case of block builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
-                const NodeType& r_node = rModelPart.GetNode(node_id);
+                const Node& r_node = rModelPart.GetNode(node_id);
                 if (i_dof.EquationId() < rA.size1()) {
                     if (IsLMDof(i_dof)) {
                         if (r_node.Is(ACTIVE)) {
@@ -658,7 +662,7 @@ public:
             // In case of elimination builder and solver
             for (auto& i_dof : rDofSet) {
                 node_id = i_dof.Id();
-                const NodeType& r_node = rModelPart.GetNode(node_id);
+                const Node& r_node = rModelPart.GetNode(node_id);
                 if (IsLMDof(i_dof)) {
                     if (r_node.Is(ACTIVE)) {
                         mLMActiveIndices[lm_active_counter] = global_pos;
