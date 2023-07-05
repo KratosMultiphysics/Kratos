@@ -188,6 +188,10 @@ public:
                 BossakBaseType::UpdateVelocity(r_current_velocity, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
                 BossakBaseType::UpdateAcceleration(r_current_acceleration, r_delta_displacement, r_previous_velocity, r_previous_acceleration);
             }
+
+            if (it_node->Is(SLIP)) {
+                mRotationTool.ConstraintDerivatives(r_current_velocity, r_current_acceleration, *it_node);
+            }
         }
 
         KRATOS_CATCH( "" )
@@ -270,6 +274,9 @@ public:
                 BossakBaseType::UpdateAcceleration (r_current_acceleration, r_current_displacement, r_previous_velocity, r_previous_acceleration);
             }
 
+            if (i->Is(SLIP)) {
+                mRotationTool.ConstraintDerivatives(r_current_velocity, r_current_acceleration, *i);
+            }
 		}
 
         KRATOS_CATCH( "" );

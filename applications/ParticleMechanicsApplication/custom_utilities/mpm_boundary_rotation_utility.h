@@ -460,6 +460,22 @@ public:
 		}
 	}
 
+    // Constraints velocities and accelerations normal to SLIP condition to zero
+    void ConstraintDerivatives(array_1d<double, 3>& rCurrentVelocity,
+                               array_1d<double, 3>& rCurrentAcceleration,
+                               const NodeType& rNode){
+        // rotate to local normal-tangential frame
+        this->RotateVector(rCurrentVelocity, rNode);
+        this->RotateVector(rCurrentAcceleration, rNode);
+
+        rCurrentVelocity[0] = 0;
+        rCurrentAcceleration[0] = 0;
+
+        // rotate back to global coordinates
+        this->RotateVector(rCurrentVelocity, rNode, true);
+        this->RotateVector(rCurrentAcceleration, rNode, true);
+    }
+
 	///@}
 	///@name Access
 	///@{
