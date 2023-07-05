@@ -24,6 +24,7 @@
 /* Utilities */
 #include "utilities/math_utils.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
+// #include "custom_utilities/logging_settings.hpp"
 
 namespace Kratos
 {

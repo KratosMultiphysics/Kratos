@@ -565,6 +565,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
             }
         }
     }
+
+    // // Debugging
+    // LOG_MATRIX_PRETTY(rLocalLHS);
 }
 
 /***********************************************************************************/
@@ -589,20 +592,23 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRH
     // Get the DoF size
     const SizeType dof_size = mpDoFVariables.size();
 
-    // Slave side
-    for (IndexType i = 0; i < TNumNodes; ++i) {
+    // Master side
+    for (IndexType i = 0; i < TNumNodesMaster; ++i) {
         subrange(rLocalRHS, i * dof_size, (i + 1) * dof_size) = prod(r_lm, row(r_MOperator, i));
     }
 
-    // Master side
-    for (IndexType i = 0; i < TNumNodesMaster; ++i) {
-        subrange(rLocalRHS, (TNumNodes + i) * dof_size, (TNumNodes + i + 1) * dof_size) = - prod(r_lm, row(r_DOperator, i));
+    // Slave side
+    for (IndexType i = 0; i < TNumNodes; ++i) {
+        subrange(rLocalRHS, (TNumNodesMaster + i) * dof_size, (TNumNodesMaster + i + 1) * dof_size) = - prod(r_lm, row(r_DOperator, i));
     }
 
     // LM slave side
     for (IndexType i = 0; i < TNumNodes; ++i) {
         subrange(rLocalRHS, (TNumNodes + TNumNodesMaster + i) * dof_size, (TNumNodes + TNumNodesMaster + i + 1) * dof_size) = - prod(r_u1, row(r_DOperator, i)) + prod(r_u2, row(r_MOperator, i));
     }
+
+    // // Debugging
+    // LOG_VECTOR_PRETTY(rLocalRHS);
 }
 
 /***********************************************************************************/
