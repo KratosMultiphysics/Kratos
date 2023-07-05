@@ -72,19 +72,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ContactErrorMeshCriteria );
 
     /// The base convergence criteria class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                       BaseType;
+    using BaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef ContactErrorMeshCriteria< TSparseSpace, TDenseSpace >                 ClassType;
+    using ClassType = ContactErrorMeshCriteria<TSparseSpace, TDenseSpace>;
 
-   /// The dofs array type
-    typedef typename BaseType::DofsArrayType                                  DofsArrayType;
+    /// The dofs array type
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType                          TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     ///@}
     ///@name Enum's
