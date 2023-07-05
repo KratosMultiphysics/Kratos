@@ -69,7 +69,7 @@ public:
     GeometricalObjectsBins(
         TIteratorType GeometricalObjectsBegin,
         TIteratorType GeometricalObjectsEnd,
-        double Tolerance = 1e-12
+        const double Tolerance = 1e-12
         )
     {
         mTolerance = Tolerance;
