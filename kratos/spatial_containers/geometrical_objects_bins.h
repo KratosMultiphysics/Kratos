@@ -92,7 +92,9 @@ public:
      * @tparam TContainer The container type
      */
     template<typename TContainer>
-    GeometricalObjectsBins(TContainer& rGeometricalObjectsVector, double Tolerance = 1e-12)
+    GeometricalObjectsBins(
+        TContainer& rGeometricalObjectsVector,
+        const double Tolerance = 1e-12)
         : GeometricalObjectsBins(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end(), Tolerance)
     {
     }
