@@ -682,21 +682,17 @@ private:
     // Serialization
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.save("MortarConditionMatrices", mMortarConditionMatrices);
-        rSerializer.save("DoFVariables", mpDoFVariables);
-        rSerializer.save("LMVariables", mpLMVariables);
-    }
+    /**
+     * @brief Saves the MeshTyingMortarCondition object to a serializer.
+     * @param rSerializer the serializer to save to
+     */
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.load("MortarConditionMatrices", mMortarConditionMatrices);
-        rSerializer.load("DoFVariables", mpDoFVariables);
-        rSerializer.load("LMVariables", mpLMVariables);
-    }
+    /**
+     * @brief Loads the MeshTyingMortarCondition from a serializer.
+     * @param rSerializer the serializer to load from
+     */
+    void load(Serializer& rSerializer) override;
 
     ///@}
 
