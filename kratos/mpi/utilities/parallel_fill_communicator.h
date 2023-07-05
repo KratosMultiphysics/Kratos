@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//	                 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -190,7 +190,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mPartitionIndexCheckPerformed = false;
+    bool mPartitionIndexCheckPerformed = false; /// If the partition index check is performed
 
     ///@}
     ///@name Private Operators
