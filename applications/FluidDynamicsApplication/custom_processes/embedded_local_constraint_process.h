@@ -59,6 +59,14 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using DofType = Dof<double>;
+
+    using DofPointerVectorType = std::vector<DofType::Pointer>;
+
+    using MatrixType = Matrix;
+
+    using VectorType = Vector;
+
     using IndexType = ModelPart::IndexType;
 
     using NodeType = ModelPart::NodeType;
@@ -107,7 +115,7 @@ public:
         const Parameters default_parameters = Parameters(R"({
             "model_part_name"                 : "",
             "apply_to_all_negative_cut_nodes" : true,
-            "use_mls_shape_functions"         : true,
+            "use_mls_shape_functions"         : false,
             "include_intersection_points"     : true,
             "avoid_zero_distances"            : true,
             "deactivate_negative_elements"    : true,
