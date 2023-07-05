@@ -596,7 +596,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRH
     IndexType initial_index = 0;
 
     // Master side
-    const Matrix Mlm = prod(r_MOperator, r_lm);
+    const Matrix Mlm = prod(trans(r_MOperator), r_lm);
     for (IndexType i = 0; i < TNumNodesMaster; ++i) {
         for (IndexType j = 0; j < dof_size; ++j) {
             rLocalRHS[initial_index + i * dof_size + j] = Mlm(i, j);
@@ -605,7 +605,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRH
 
     // Slave side
     initial_index = TNumNodesMaster * dof_size;
-    const Matrix Dlm = prod(r_DOperator, r_lm);
+    const Matrix Dlm = prod(trans(r_DOperator), r_lm);
     for (IndexType i = 0; i < TNumNodes; ++i) {
         for (IndexType j = 0; j < dof_size; ++j) {
             rLocalRHS[initial_index + i * dof_size + j] = - Dlm(i, j);
