@@ -613,6 +613,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             settings.AddEmptyValue("apply_to_all_negative_cut_nodes").SetBool(apply_to_all)
             settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
             settings.AddEmptyValue("mls_extension_operator_order").SetInt(mls_order)
+            settings.AddEmptyValue("include_intersection_points").SetBool(False)
             settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
             settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
             settings.AddEmptyValue("deactivate_intersected_elements").SetBool(False)

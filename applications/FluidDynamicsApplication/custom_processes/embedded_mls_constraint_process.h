@@ -81,6 +81,8 @@ public:
 
     using NodesCloudMapType = std::unordered_map< NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer> >;
 
+    using NodesOffsetMapType = std::unordered_map<NodeType::Pointer, double, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
+
     ///@}
     ///@name Pointer Definitions
 
@@ -113,11 +115,12 @@ public:
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"({
-            "model_part_name" : "",
+            "model_part_name"                 : "",
             "apply_to_all_negative_cut_nodes" : true,
-            "mls_extension_operator_order" : 1,
-            "avoid_zero_distances" : true,
-            "deactivate_negative_elements" : true,
+            "mls_extension_operator_order"    : 1,
+            "include_intersection_points"     : false,
+            "avoid_zero_distances"            : true,
+            "deactivate_negative_elements"    : true,
             "deactivate_intersected_elements" : false
         })" );
 
@@ -203,6 +206,7 @@ private:
 
     std::size_t mMLSExtensionOperatorOrder;
 
+    bool mIncludeIntersectionPoints;
     bool mApplyToAllNegativeCutNodes;
 
     bool mAvoidZeroDistances;
@@ -218,11 +222,17 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateConformingExtensionBasis(
-        NodesCloudMapType& rExtensionOperatorMap);
+    void CalculateNodeClouds(
+        NodesCloudMapType& rExtensionOperatorMap,
+        NodesOffsetMapType& rOffsetsMap);
 
-    void ApplyExtensionConstraints(
-        NodesCloudMapType& rExtensionOperatorMap);
+    void CalculateNodeCloudsIncludingBC(
+        NodesCloudMapType& rExtensionOperatorMap,
+        NodesOffsetMapType& rOffsetsMap);
+
+    void ApplyConstraints(
+        NodesCloudMapType& rExtensionOperatorMap,
+        NodesOffsetMapType& rOffsetsMap);
 
     void SetInterfaceFlags();
 
@@ -241,7 +251,13 @@ private:
     void SetNegativeNodeSupportCloud(
         const NodeType& rNegativeNode,
         PointerVector<NodeType>& rCloudNodes,
+        PointerVector<NodeType>& rPositiveNeighborNodes,
         Matrix& rCloudCoordinates);
+
+    void SetNegativeNodeIntersectionPoints(
+        const NodeType& rNegativeNode,
+        PointerVector<NodeType>& rPositiveNeighborNodes,
+        Matrix& rIntersectionPointsCoordinates);
 
     double CalculateKernelRadius(
         const Matrix& rCloudCoordinates,
