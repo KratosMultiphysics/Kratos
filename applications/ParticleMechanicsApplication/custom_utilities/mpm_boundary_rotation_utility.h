@@ -25,6 +25,9 @@
 #include "geometries/geometry.h"
 #include "utilities/coordinate_transformation_utilities.h"
 
+// Application includes
+#include "particle_mechanics_application_variables.h"
+
 namespace Kratos {
 
 ///@addtogroup ParticleMechanicsApplication
@@ -128,16 +131,17 @@ public:
 		this->Rotate(rLocalVector,rGeometry);
 	}
 
-    // Auxilliary function to clear friction-related flags -- MUST be called before attempting re-building of RHS in the
-    // same non-linear iteration!!!
+    // Auxiliary function to clear friction-related flags --
+    // MUST be called before (re-)building the RHS in a given non-linear iteration
     static void ClearFrictionFlag(const ModelPart &rModelPart) {
         KRATOS_TRY
         // Loop over the grid nodes performed to clear INLET flag for indicating that nodal friction has alr been set
-        for(int iter = 0; iter < static_cast<int>(rModelPart.Nodes().size()); ++iter)
-        {
-            auto i = rModelPart.NodesBegin() + iter;
-
-            (i)->Reset(INLET);
+        // and remove the accumulated normal forces
+        for(NodeType &curr_node : rModelPart.Nodes()){
+            curr_node.SetLock();
+            curr_node.Reset(INLET);
+            curr_node.FastGetSolutionStepValue(MPM_NORMAL_FORCE) = 0.0;
+            curr_node.UnSetLock();
         }
         KRATOS_CATCH( "" )
     }
@@ -181,6 +185,15 @@ public:
                         }
                         rLocalMatrix(j, j) = 1.0; // set diagonal term to 1.0
                     }
+
+                    /// Computation of nodal reaction forces due to conforming SLIP BC -- use MPM_NORMAL_FORCE
+                    /// as frame of reference is aligned with node normals [& not global frame of ref per REACTION]
+                    // Accumulate RHS values along normal direction to FORCE_RESIDUAL [nodal reaction forces due to conforming SLIP]
+                    // -- when converged, RHS ~= 0 -> FORCE_RESIDUAL = -RHS value [computed without adding reaction force]
+
+                    rGeometry[itNode].SetLock();
+                    rGeometry[itNode].FastGetSolutionStepValue(MPM_NORMAL_FORCE) -= rLocalVector[j];
+                    rGeometry[itNode].UnSetLock();
 
                     // Set value of normal displacement at node directly to the normal displacement of the boundary mesh
 					rLocalVector[j] = inner_prod(rN,displacement);

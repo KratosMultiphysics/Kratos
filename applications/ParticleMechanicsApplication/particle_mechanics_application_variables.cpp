@@ -124,4 +124,7 @@ namespace Kratos
 
     // Stabilization variables
     KRATOS_CREATE_VARIABLE(int, STABILIZATION_TYPE)
+
+    // For friction, nodal normal force [easier this way]
+    KRATOS_CREATE_VARIABLE(double, MPM_NORMAL_FORCE)
 }
