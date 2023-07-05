@@ -155,7 +155,7 @@ void EmbeddedMLSConstraintProcess::CalculateConformingExtensionBasisIncludingBC(
                 const std::size_t found = rExtensionOperatorMap.count(&r_node);
                 if (r_node.IsNot(ACTIVE) && !found) {
 
-                    // Get the current negative node neighbours cloud and directly neighboring positive nodes
+                    // Get the current negative node neighbors cloud and directly neighboring positive nodes
                     Matrix cloud_nodes_coordinates;
                     PointerVector<NodeType> cloud_nodes;
                     PointerVector<NodeType> positive_neighbor_nodes;
@@ -433,8 +433,8 @@ void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
     std::vector<NodeType::Pointer> prev_layer_nodes;
     const std::size_t n_layers = mMLSExtensionOperatorOrder + 1;
 
-    // Find the negative nodes neighbours that are in the surrogate boundary
-    // This is to find the first layer of positive nodes neighbouring a negative one
+    // Find the negative nodes neighbors that are in the surrogate boundary
+    // This is to find the first layer of positive nodes neighboring a negative one
     auto& no_const_node = const_cast<NodeType&>(rNegativeNode);
     auto& r_nod_neigh = no_const_node.GetValue(NEIGHBOUR_NODES);
     const std::size_t n_neigh = r_nod_neigh.size();
@@ -454,7 +454,7 @@ void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
         rPositiveNeighborNodes(i_neighbor++) = *it_set;
     }
 
-    // Add first layer neighbours to map
+    // Add first layer neighbors to map
     // Note that we check the order of the MLS interpolation to add nodes from enough interior layers
     for (std::size_t i_layer = 0; i_layer < n_layers; ++i_layer) {
         for (auto& p_node : prev_layer_nodes) {
@@ -476,7 +476,7 @@ void EmbeddedMLSConstraintProcess::SetNegativeNodeSupportCloud(
     }
 
     // Check that the current nodes are enough to perform the MLS calculation
-    // If not sufficient, add the nodal neighbours of the current nodes to the cloud of points
+    // If not sufficient, add the nodal neighbors of the current nodes to the cloud of points
     const std::size_t n_cloud_nodes_temp = aux_set.size();
     KRATOS_ERROR_IF(n_cloud_nodes_temp == 0) << "Degenerated case with no neighbours. Check if the node " << rNegativeNode.Id() << " belongs to an intersected and isolated element." << std::endl;
     if (n_cloud_nodes_temp < GetRequiredNumberOfPoints()) {

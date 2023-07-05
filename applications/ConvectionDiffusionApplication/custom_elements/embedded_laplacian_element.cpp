@@ -247,6 +247,10 @@ void EmbeddedLaplacianElement<TTDim>::AddPositiveElementSide(
 
     //RHS -= K*temp
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
+
+    // KRATOS_WATCH("AddPositiveElementSide")
+    // KRATOS_WATCH(rRightHandSideVector)
+    // KRATOS_WATCH(rLeftHandSideMatrix)
 }
 
 template<std::size_t TTDim>
@@ -340,7 +344,6 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
         // // circle cut
         // const double temp_bc = ( 1.0 - std::pow(xg_coords[0],2) - std::pow(xg_coords[1],2) ) / 4.0;
 
-
         // Add Nitsche contributions
         for (std::size_t i = 0; i < NumNodes; ++i) {
 
@@ -355,11 +358,12 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
 
             for (std::size_t j = 0; j < NumNodes; ++j) {
                 // Add contribution of Nitsche boundary condition to LHS
+                // INFO: changed to use constraints to apply Dirichlet BC | 0.0;  //
                 rLeftHandSideMatrix(i, j) += aux_bc_1 * N(j) - aux_bc_2 * N(j);
 
                 // Calculate and add interface flux contribution
                 for (std::size_t d = 0; d < TTDim; ++d) {
-                    const double aux_flux = weight_gauss * conductivity_gauss * N(i) * unit_normal(d) * DN_DX(j,d);
+                    const double aux_flux = weight_gauss * conductivity_gauss * N(i) * DN_DX(j,d) * unit_normal(d);
 
                     rLeftHandSideMatrix(i, j) -= aux_flux;
                     rRightHandSideVector(i) += aux_flux * temp(j);
@@ -367,9 +371,13 @@ void EmbeddedLaplacianElement<TTDim>::AddNitscheBoundaryTerms(
             }
 
             // Add contribution of Nitsche boundary condition to RHS
+            // INFO: changed to use constraints to apply Dirichlet BC | 0.0;  //
             rRightHandSideVector(i) -= (aux_bc_1 - aux_bc_2) * (temp_gauss - aux_temp_bc);
         }
     }
+    // KRATOS_WATCH("AddNitscheBoundaryTerms")
+    // KRATOS_WATCH(rRightHandSideVector)
+    // KRATOS_WATCH(rLeftHandSideMatrix)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
