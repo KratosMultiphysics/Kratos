@@ -6113,6 +6113,30 @@ int MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Check(const Proce
 /***********************************************************************************/
 /***********************************************************************************/
 
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
+    rSerializer.save("MortarConditionMatrices", mMortarConditionMatrices);
+    rSerializer.save("DoFVariables", mpDoFVariables);
+    rSerializer.save("LMVariables", mpLMVariables);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
+void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
+    rSerializer.load("MortarConditionMatrices", mMortarConditionMatrices);
+    rSerializer.load("DoFVariables", mpDoFVariables);
+    rSerializer.load("LMVariables", mpLMVariables);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class MeshTyingMortarCondition<2, 2, 2>; // 2D Line/Line
 template class MeshTyingMortarCondition<3, 3, 3>; // 3D Triangle/Triangle
 template class MeshTyingMortarCondition<3, 4, 4>; // 3D Quadrilateral/Quadrilateral
