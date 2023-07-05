@@ -1,5 +1,6 @@
 import dataclasses as dc
 from typing import List
+from typing import Union
 
 
 @dc.dataclass
@@ -8,7 +9,7 @@ class LoadDataContainer:
     position_of_mesh_vertex: List[float] = dc.field(default_factory=lambda: [0.0, 0.0, 0.0])
     direction_normal: List[float] = dc.field(default_factory=lambda: [0.0, 1.0, 0.0])
     strength_in_N: float = 1.0
-    mesh_node_id: int = None
+    model_part_name: str = "load_model_part"
 
 
 @dc.dataclass
