@@ -15,7 +15,7 @@ class Project:
         Second one is to perform the checkpoint save and load operations.
         
         Member variables:
-        output_data -- Dictionary containing the stages data retrieved from GetAnalysisStageFinalData
+        output_data -- Dictionary containing the stages data retrieved from GetFinalData
         active_stages -- Dictionary containing the active (alive) stage instances
         model -- Model instance
         '''

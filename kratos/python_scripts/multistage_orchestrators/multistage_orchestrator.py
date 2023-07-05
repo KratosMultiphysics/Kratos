@@ -125,7 +125,7 @@ class MultistageOrchestrator():
 
         if self.settings["stages"][stage_name].Has("stage_preprocess"):
             if self.settings["stages"][stage_name]["stage_preprocess"].Has("modelers"):
-                modelers_list = self.__GetModelers(stage_name)
+                modelers_list = self.__CreateListOfModelers(stage_name)
                 for modeler in modelers_list:
                     modeler.SetupGeometryModel()
                 for modeler in modelers_list:
@@ -135,7 +135,7 @@ class MultistageOrchestrator():
                 del modelers_list
 
             if self.settings["stages"][stage_name]["stage_preprocess"].Has("operations"):
-                operations_list = self.__GetOperations("stage_preprocess", stage_name)
+                operations_list = self.__CreateListOfOperations("stage_preprocess", stage_name)
                 for operation in operations_list:
                     operation.Execute()
                 del operations_list
@@ -151,7 +151,7 @@ class MultistageOrchestrator():
 
         if self.settings["stages"][stage_name].Has("stage_postprocess"):
             if self.settings["stages"][stage_name]["stage_postprocess"].Has("operations"):
-                operations_list = self.__GetOperations("stage_postprocess", stage_name)
+                operations_list = self.__CreateListOfOperations("stage_postprocess", stage_name)
                 for operation in operations_list:
                     operation.Execute()
                 del operations_list
@@ -161,7 +161,7 @@ class MultistageOrchestrator():
 
         return self.project
    
-    def __GetModelers(self, stage_name : str):
+    def __CreateListOfModelers(self, stage_name : str):
         """This method creates the modelers at the preprocess execution point."""
 
         execution_point_settings = self.settings["stages"][stage_name]["stage_preprocess"]
@@ -169,7 +169,7 @@ class MultistageOrchestrator():
         factory = KratosModelParametersFactory(self.project.GetModel())
         return factory.ConstructListOfItems(execution_point_settings["modelers"])
 
-    def __GetOperations(self, execution_point : str, stage_name : str):
+    def __CreateListOfOperations(self, execution_point : str, stage_name : str):
         """This method creates the operations at any execution point."""
 
         if execution_point not in ["stage_preprocess","stage_postprocess"]:

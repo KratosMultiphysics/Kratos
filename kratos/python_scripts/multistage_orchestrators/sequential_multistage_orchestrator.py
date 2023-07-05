@@ -38,7 +38,7 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
             current_stage.Run()
 
             # Get the final data dictionary
-            self.GetProject().output_data[stage_name] = current_stage.GetAnalysisStageFinalData()
+            self.GetProject().output_data[stage_name] = current_stage.GetFinalData()
 
             # Execute current stage postprocess
             self.RunCurrentStagePostprocess(stage_name)
