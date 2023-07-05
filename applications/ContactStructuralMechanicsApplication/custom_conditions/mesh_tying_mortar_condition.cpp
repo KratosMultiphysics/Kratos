@@ -119,7 +119,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Initialize(const
     rVariables.Initialize();
 
     // Initialize the mortar operators
-    mrThisMortarConditionMatrices.Initialize();
+    mMortarConditionMatrices.Initialize();
 
     // We call the exact integration utility
     const double distance_threshold = 1.0e24;
@@ -141,7 +141,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Initialize(const
         rVariables.Initialize();
 
         // Initialize the mortar operators
-        mrThisMortarConditionMatrices.Initialize();
+        mMortarConditionMatrices.Initialize();
 
         const bool dual_LM = CalculateAe(r_normal_master, Ae, rVariables, conditions_points_slave, this_integration_method);
 
@@ -179,7 +179,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Initialize(const
 
                     const double integration_weight = integration_points_slave[point_number].Weight();
 
-                    mrThisMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);
+                    mMortarConditionMatrices.CalculateMortarOperators(rVariables, integration_weight);
                 }
             }
         }
@@ -383,13 +383,13 @@ void MeshTyingMortarCondition<TDim, TNumNodes, TNumNodesMaster>::CalculateCondit
         // Assemble of the matrix is required
         if ( ComputeLHS ) {
             // Calculate the local contribution
-            this->CalculateLocalLHS<ScalarValue>(rLeftHandSideMatrix, mrThisMortarConditionMatrices, dof_data);
+            this->CalculateLocalLHS<ScalarValue>(rLeftHandSideMatrix, mMortarConditionMatrices, dof_data);
         }
 
         // Assemble of the vector is required
         if ( ComputeRHS) {
             // Calculate the local contribution
-            this->CalculateLocalRHS<ScalarValue>( rRightHandSideVector, mrThisMortarConditionMatrices, dof_data);
+            this->CalculateLocalRHS<ScalarValue>( rRightHandSideVector, mMortarConditionMatrices, dof_data);
         }
     } else {
         // Template argument
@@ -407,13 +407,13 @@ void MeshTyingMortarCondition<TDim, TNumNodes, TNumNodesMaster>::CalculateCondit
         // Assemble of the matrix is required
         if ( ComputeLHS ) {
             // Calculate the local contribution
-            this->CalculateLocalLHS<TTensor>(rLeftHandSideMatrix, mrThisMortarConditionMatrices, dof_data);
+            this->CalculateLocalLHS<TTensor>(rLeftHandSideMatrix, mMortarConditionMatrices, dof_data);
         }
 
         // Assemble of the vector is required
         if ( ComputeRHS) {
             // Calculate the local contribution
-            this->CalculateLocalRHS<TTensor>( rRightHandSideVector, mrThisMortarConditionMatrices, dof_data);
+            this->CalculateLocalRHS<TTensor>( rRightHandSideVector, mMortarConditionMatrices, dof_data);
         }
     }
 
