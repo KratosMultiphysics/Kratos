@@ -444,11 +444,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    MortarConditionMatrices mMortarConditionMatrices;      /// The mortar operators
+    MortarConditionMatrices mMortarConditionMatrices;    /// The mortar operators
 
-    std::vector<const Variable<double>*> mpDoFVariables;   /// The list of DoF variables
+    std::vector<const Variable<double>*> mpDoFVariables; /// The list of DoF variables
 
-    std::vector<const Variable<double>*> mpLMVariables;    /// The list of LM variables
+    std::vector<const Variable<double>*> mpLMVariables;  /// The list of LM variables
 
     ///@}
     ///@name Protected Operators
