@@ -136,7 +136,7 @@ class ReadFromSwInterfaceProcess(KM.Process):
             
     def DistributeVelocityToPfem(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
-            # self.CorrectVelocity()
+            self.CorrectVelocity()
             self.Moving_v()
 
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 3:
