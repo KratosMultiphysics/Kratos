@@ -1,0 +1,71 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "shell",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "static",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "model_part_name" : "shell",
+        "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.0
+        },
+        "model_import_settings"              : {
+            "input_type"     : "use_input_model_part"
+        },
+            "material_import_settings" :{
+            "materials_filename": "materials_2D.json"
+        },
+        "rotation_dofs"                      : true,
+                            "linear_solver_settings" : {
+                                "solver_type" : "LinearSolversApplication.pardiso_lu"
+                            } 
+    },
+    "processes": {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "shell.edge_support",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module"   : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorByDirectionToConditionProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "shell.surface_load",
+                "variable_name"   : "SURFACE_LOAD",
+                "modulus"         : 1000.0,
+                "direction"       : [0.0,-1.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "shell",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "constrained"     : false,
+                "modulus"         : 0.0,
+                "direction"       : [0.0,-1.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }]
+    },
+    
+    "output_processes" : {
+    }
+}

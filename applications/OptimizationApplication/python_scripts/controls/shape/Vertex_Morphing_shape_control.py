@@ -211,14 +211,13 @@ class VertexMorphingShapeControl(Control):
         shape_update -= new_shape
 
         # now update shape
-        KratosOA.ControlUtils.ShapeUtils.SetNodalCoordinates(new_shape)
+        # KratosOA.ControlUtils.ShapeUtils.SetNodalCoordinates(new_shape)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         un_buffered_data.SetValue("shape_update", shape_update.Clone(),overwrite=self.is_initialized)
         if self.output_all_fields:
             un_buffered_data.SetValue("control_shape", self.control_field.Clone(),overwrite=self.is_initialized)
-
 
     def _SetFixedModelPartValues(self, is_backward = False) -> None:
         for model_part_name in self.parameters["fixed_model_parts"].keys():
