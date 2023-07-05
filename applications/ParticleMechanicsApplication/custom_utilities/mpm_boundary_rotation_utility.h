@@ -197,7 +197,7 @@ public:
                         nodal_velocity = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
 
                         // TODO: make threshold configurable?
-                        this->RotateVector(nodal_velocity, rGeometry[itNode], VELOCITY_THRESHOLD);
+                        this->RotateAndNormalizeVector(nodal_velocity, rGeometry[itNode], VELOCITY_THRESHOLD);
 
                         // apply friction force in opposite direction of tangential velocity components
                         for (unsigned dim = 1; dim < this->GetDomainSize(); dim++) {
@@ -301,7 +301,7 @@ public:
 
                             nodal_velocity = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
 
-                            this->RotateVector(nodal_velocity, rGeometry[itNode], VELOCITY_THRESHOLD);
+                            this->RotateAndNormalizeVector(nodal_velocity, rGeometry[itNode], VELOCITY_THRESHOLD);
 
                             // TODO: do this in a condition object (makes more sense since later you'll need the nodal force)
                             // obtain friction contribution of at boundary particle [currently fixed FRICTION_FORCE] and extrapolate to nodes
@@ -534,15 +534,37 @@ private:
 	///@{
 
 
-    /// Helper function to rotate a 3-vector to the coordinate system defined by the NORMAL defined at rNode
+    /// Helper function to rotate a 3-vector to and from the coordinate system defined by the NORMAL defined at rNode
     /**
      @param rVector Vector to be rotated
      @param rNode A reference to the node associated with the vector
-     @param threshold Value below which the value of the component is considered 0 [ default value: machine epsilon ]
+     @param toGlobalCoordinates If true, instead rotates the vector back to the global coordinates [default: false]
      */
-    void RotateVector(array_1d<double, 3> &rVector, const Node &rNode, const double threshold = std::numeric_limits<double>::epsilon()) const {
+    void RotateVector( array_1d<double, 3> &rVector,
+                       const Node &rNode,
+                       const bool toGlobalCoordinates = false,
+                       const double threshold = std::numeric_limits<double>::epsilon() ) const {
         array_1d<double, 3> rotated_nodal_vector = ZeroVector(3);
         BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3);
+
+        this->LocalRotationOperatorPure(rotation_matrix, rNode);
+        noalias(rotated_nodal_vector) = prod(toGlobalCoordinates ? trans(rotation_matrix) : rotation_matrix, rVector);
+
+        rVector = rotated_nodal_vector;
+    }
+
+    /// Additionally normalizes the rotated vector
+    /**
+     @param rVector Vector to be rotated
+     @param rNode A reference to the node associated with the vector
+     @param toGlobalCoordinates If true, instead rotates the vector back to the global coordinates [default: false]
+     @param threshold Value below which the value of the component is considered 0 [ default value: machine epsilon ]
+     */
+    void RotateAndNormalizeVector( array_1d<double, 3> &rVector,
+                      const Node &rNode,
+                      const bool toGlobalCoordinates = false,
+                      const double threshold = std::numeric_limits<double>::epsilon() ) const {
+        RotateVector(rVector, rNode, toGlobalCoordinates);
 
         // Check if velocity is close to zero [ALL components below threshold]
         bool is_zero_vector = true;
@@ -553,16 +575,11 @@ private:
         }
 
         // If not close to zero, rotate the vector and obtain its norm
-        // Otherwise do nothing (leaves rotated_vector as ZeroVector)
+        // Otherwise do nothing
         if(!is_zero_vector){
-            this->LocalRotationOperatorPure(rotation_matrix, rNode);
-            noalias(rotated_nodal_vector) = prod(rotation_matrix, rVector);
-            this->Normalize(rotated_nodal_vector);
+            this->Normalize(rVector);
         }
-
-        rVector = rotated_nodal_vector;
     }
-
 	///@}
 	///@name Private  Access
 	///@{
