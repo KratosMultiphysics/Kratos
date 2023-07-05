@@ -119,4 +119,22 @@ void PairedCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentPr
     KRATOS_CATCH( "" );
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void PairedCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+    rSerializer.save("PairedNormal", mPairedNormal);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void PairedCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+    rSerializer.load("PairedNormal", mPairedNormal);
+}
+
 } // Namespace Kratos
