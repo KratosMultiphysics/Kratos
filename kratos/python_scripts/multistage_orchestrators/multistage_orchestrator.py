@@ -7,21 +7,20 @@ from KratosMultiphysics.model_parameters_factory import KratosModelParametersFac
 
 class MultistageOrchestrator():
 
-    def __init__(self, settings : KratosMultiphysics.Parameters) -> None:
+    def __init__(self, project : Project) -> None:
         """Base class for multistage orchestrators
         
         Member variables:
-        settings -- Kratos parameters dictionary encapsulating the multistage settings
         project -- Kratos project instance
         """
 
-        # Store required member variables
-        self.settings = settings
-        self.project = Project()
+        # Store pointer to current project
+        # Note that the project already contains the multistage simulation settings
+        self.__project = project
 
         # Add Kratos version and compilation to settings
         kratos_version = f"{KratosMultiphysics.KratosGlobals.Kernel.Version()}-{KratosMultiphysics.KratosGlobals.Kernel.BuildType()}"
-        self.settings.AddString("kratos_version", kratos_version)
+        self.__project.GetSettings().AddString("kratos_version", kratos_version)
 
     def Run(self):
         """Main function that runs the complete multistage simulation."""
@@ -37,8 +36,8 @@ class MultistageOrchestrator():
         This is due to the fact that the Check() of the stage instance is to be called within its Initialize() method.
         """
 
-        if self.settings["stages"][stage_name].Has("stage_postprocess"):
-            if self.settings["stages"][stage_name]["stage_postprocess"].Has("modelers"):
+        if self.__project.GetSettings()["stages"][stage_name].Has("stage_postprocess"):
+            if self.__project.GetSettings()["stages"][stage_name]["stage_postprocess"].Has("modelers"):
                 err_msg = f"Found 'modelers' field in 'stage_postprocess' of stage {stage_name}."
                 err_msg += " Place the 'modelers' section in the next stage 'stage_preprocess'."
                 raise Exception(err_msg)
@@ -51,7 +50,7 @@ class MultistageOrchestrator():
         """
 
         # Get the current analysis stage class and module names
-        input_analysis_stage = self.settings["stages"][stage_name]["analysis_stage"].GetString()
+        input_analysis_stage = self.__project.GetSettings()["stages"][stage_name]["analysis_stage"].GetString()
 
         # Check if the current stage is to be obtained from the Kratos registry
         if input_analysis_stage.split(".")[0] == "Stages":
@@ -104,10 +103,10 @@ class MultistageOrchestrator():
         if hasattr(analysis_stage_module, analysis_stage_class_name):
             # First we check for the expected class name
             analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
-            stage_instance = analysis_stage_class(self.project.GetModel(),  KratosMultiphysics.Parameters(self.settings["stages"][stage_name]))
+            stage_instance = analysis_stage_class(self.__project.GetModel(),  KratosMultiphysics.Parameters(self.__project.GetSettings()["stages"][stage_name]))
         elif hasattr(analysis_stage_module, "Create"):
             # If Kratos convention is not fulfilled we search for a Create method
-            stage_instance = analysis_stage_module.Create(self.project.GetModel(),  KratosMultiphysics.Parameters(self.settings["stages"][stage_name]))
+            stage_instance = analysis_stage_module.Create(self.__project.GetModel(),  KratosMultiphysics.Parameters(self.__project.GetSettings()["stages"][stage_name]))
         else:
             err_msg = f"Analysis stage in '{analysis_stage_module_name}' Python module cannot be created. Please check class name or provide a 'Create' method."
             raise Exception(err_msg)
@@ -123,8 +122,8 @@ class MultistageOrchestrator():
         data -- Custom data argument to be used in derived classes
         """
 
-        if self.settings["stages"][stage_name].Has("stage_preprocess"):
-            if self.settings["stages"][stage_name]["stage_preprocess"].Has("modelers"):
+        if self.__project.GetSettings()["stages"][stage_name].Has("stage_preprocess"):
+            if self.__project.GetSettings()["stages"][stage_name]["stage_preprocess"].Has("modelers"):
                 modelers_list = self.__CreateListOfModelers(stage_name)
                 for modeler in modelers_list:
                     modeler.SetupGeometryModel()
@@ -134,7 +133,7 @@ class MultistageOrchestrator():
                     modeler.SetupModelPart()
                 del modelers_list
 
-            if self.settings["stages"][stage_name]["stage_preprocess"].Has("operations"):
+            if self.__project.GetSettings()["stages"][stage_name]["stage_preprocess"].Has("operations"):
                 operations_list = self.__CreateListOfOperations("stage_preprocess", stage_name)
                 for operation in operations_list:
                     operation.Execute()
@@ -149,8 +148,8 @@ class MultistageOrchestrator():
         data -- Custom data argument to be used in derived classes
         """
 
-        if self.settings["stages"][stage_name].Has("stage_postprocess"):
-            if self.settings["stages"][stage_name]["stage_postprocess"].Has("operations"):
+        if self.__project.GetSettings()["stages"][stage_name].Has("stage_postprocess"):
+            if self.__project.GetSettings()["stages"][stage_name]["stage_postprocess"].Has("operations"):
                 operations_list = self.__CreateListOfOperations("stage_postprocess", stage_name)
                 for operation in operations_list:
                     operation.Execute()
@@ -159,14 +158,14 @@ class MultistageOrchestrator():
     def GetProject(self):
         """Returns the project."""
 
-        return self.project
+        return self.__project
    
     def __CreateListOfModelers(self, stage_name : str):
         """This method creates the modelers at the preprocess execution point."""
 
-        execution_point_settings = self.settings["stages"][stage_name]["stage_preprocess"]
+        execution_point_settings = self.__project.GetSettings()["stages"][stage_name]["stage_preprocess"]
 
-        factory = KratosModelParametersFactory(self.project.GetModel())
+        factory = KratosModelParametersFactory(self.__project.GetModel())
         return factory.ConstructListOfItems(execution_point_settings["modelers"])
 
     def __CreateListOfOperations(self, execution_point : str, stage_name : str):
@@ -175,7 +174,7 @@ class MultistageOrchestrator():
         if execution_point not in ["stage_preprocess","stage_postprocess"]:
             err_msg = f"Wrong execution point '{execution_point}'. Supported ones are 'stage_preprocess' and 'stage_postprocess'."
             raise Exception(err_msg)
-        execution_point_settings = self.settings["stages"][stage_name][execution_point]
+        execution_point_settings = self.__project.GetSettings()["stages"][stage_name][execution_point]
 
-        factory = KratosModelParametersFactory(self.project.GetModel())
+        factory = KratosModelParametersFactory(self.__project.GetModel())
         return factory.ConstructListOfItems(execution_point_settings["operations"])

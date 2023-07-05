@@ -14,13 +14,13 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
         self.__GetStagesToCheckpointList()
 
         # Check if loading from checkpoint is required and load
-        if self.settings["orchestrator"]["settings"].Has("load_from_checkpoint"):
-            if not self.settings["orchestrator"]["settings"]["load_from_checkpoint"].IsNull():
-                if not self.settings["orchestrator"]["settings"]["load_from_checkpoint"].IsString():
+        if self.GetProject().GetSettings()["orchestrator"]["settings"].Has("load_from_checkpoint"):
+            if not self.GetProject().GetSettings()["orchestrator"]["settings"]["load_from_checkpoint"].IsNull():
+                if not self.GetProject().GetSettings()["orchestrator"]["settings"]["load_from_checkpoint"].IsString():
                     err_msg = "'load_from_checkpoint' is expected to be null or a string with the loading point."
                     raise TypeError(err_msg)
                 else:
-                    loading_point = self.settings["orchestrator"]["settings"]["load_from_checkpoint"].GetString()
+                    loading_point = self.GetProject().GetSettings()["orchestrator"]["settings"]["load_from_checkpoint"].GetString()
                     self.GetProject().Load(loading_point)
 
         # Run the stages list
@@ -38,7 +38,7 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
             current_stage.Run()
 
             # Get the final data dictionary
-            self.GetProject().output_data[stage_name] = current_stage.GetFinalData()
+            self.GetProject().GetOutputData()[stage_name] = current_stage.GetFinalData()
 
             # Execute current stage postprocess
             self.RunCurrentStagePostprocess(stage_name)
@@ -46,13 +46,14 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
             # Delete current stage instance
             del current_stage
 
+            # Output validated simulation settings (with defaults) as simulation report
+            output_settings_name = self.__PrepareOutputSettings(stage_name)
+
             # Check the current stage is to be checkpointed and save it if so
             if stage_name in self.__GetStagesToCheckpointList():
                 save_folder_name = self.__GetStagesCheckpointFolder()
-                self.GetProject().Save(save_folder_name, stage_name)
-                
-            # Output validated simulation settings (with defaults) as simulation report
-            self.__OutputValidatedSettings()
+                self.GetProject().Save(save_folder_name, stage_name, output_settings_name)
+
 
     def GetNumberOfStages(self):
         '''Returns the number of stages.'''
@@ -66,16 +67,16 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
         '''
 
         # Check if the execution list has been already created
-        if not hasattr(self, "__execution_list"):
+        if not hasattr(self, "_execution_list"):
             # Default case in which the execution list is provided by the user
-            if self.settings["orchestrator"]["settings"].Has("execution_list"):
-                self.__execution_list = self.settings["orchestrator"]["settings"]["execution_list"].GetStringArray()
+            if self.GetProject().GetSettings()["orchestrator"]["settings"].Has("execution_list"):
+                self._execution_list = self.GetProject().GetSettings()["orchestrator"]["settings"]["execution_list"].GetStringArray()
             # If not provided, create an auxiliary execution list from the stages declaration order
             else:
                 KratosMultiphysics.Logger.PrintInfo("'execution_list' is not provided. Stages will be executed according to their declaration order.")
-                self.__execution_list = list(self.settings["stages"].keys())
+                self._execution_list = list(self.GetProject().GetSettings()["stages"].keys())
 
-        return self.__execution_list
+        return self._execution_list
 
     def __GetStagesToCheckpointList(self):
         '''Creates and returns the stages checkpoint list.
@@ -85,22 +86,21 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
         '''
 
         # Check if the checkpoint stages list has been already created
-        if not hasattr(self, "__stages_to_checkpoint_list"):
-
-            if self.settings["orchestrator"]["settings"]["stage_checkpoints"].IsBool():
-                if self.settings["orchestrator"]["settings"]["stage_checkpoints"].GetBool():
+        if not hasattr(self, "_stages_to_checkpoint_list"):
+            if self.GetProject().GetSettings()["orchestrator"]["settings"]["stage_checkpoints"].IsBool():
+                if self.GetProject().GetSettings()["orchestrator"]["settings"]["stage_checkpoints"].GetBool():
                     # All stages are to be checkpointed
-                    self.__stages_to_checkpoint_list = self.__GetExecutionList()
+                    self._stages_to_checkpoint_list = self.__GetExecutionList()
                 else:
                     # Create an empty list to avoid errors
-                    self.__stages_to_checkpoint_list = []
+                    self._stages_to_checkpoint_list = []
 
-            elif self.settings["orchestrator"]["settings"]["stage_checkpoints"].IsStringArray():
+            elif self.GetProject().GetSettings()["orchestrator"]["settings"]["stage_checkpoints"].IsStringArray():
                 # Check that the stages asked to be checkpointed are in the execution list
-                stages_asked_to_checkpoint = self.settings["orchestrator"]["settings"]["stage_checkpoints"].GetStringArray()
+                stages_asked_to_checkpoint = self.GetProject().GetSettings()["orchestrator"]["settings"]["stage_checkpoints"].GetStringArray()
                 aux_diff = set(stages_asked_to_checkpoint) - set(self.__GetExecutionList())
                 if len(aux_diff) == 0:
-                    self.__stages_to_checkpoint_list = stages_asked_to_checkpoint
+                    self._stages_to_checkpoint_list = stages_asked_to_checkpoint
                 else:
                     err_msg = f"User asked to checkpoint stages that are not present in 'execution_list'. Please remove these {list(aux_diff)}."
                     raise ValueError(err_msg)
@@ -108,34 +108,68 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
                 err_msg = "'stage_checkpoints' value must be bool or a list with the stages to be checkpointed."
                 raise TypeError(err_msg)
         
-        return self.__stages_to_checkpoint_list
+        return self._stages_to_checkpoint_list
     
     def __GetStagesCheckpointFolder(self):
         '''Gets the folder to store the checkpoint files from the settings.'''
 
-        if self.settings["orchestrator"]["settings"].Has("stage_checkpoints_folder"):
-            return self.settings["orchestrator"]["settings"]["stage_checkpoints_folder"].GetString()
+        if self.GetProject().GetSettings()["orchestrator"]["settings"].Has("stage_checkpoints_folder"):
+            return self.GetProject().GetSettings()["orchestrator"]["settings"]["stage_checkpoints_folder"].GetString()
         else:
             warn_msg = "'stage_checkpoints_folder' is not provided. Creating a default 'checkpoints' one."
             KratosMultiphysics.Logger.PrintWarning(warn_msg)
             return 'checkpoints'
         
-    def __OutputValidatedSettings(self):
-        if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().Rank() == 0:
-            output_validated_settings = False
-            if self.settings["orchestrator"]["settings"].Has("output_validated_settings"):
-                if self.settings["orchestrator"]["settings"]["output_validated_settings"].IsBool():
-                    # If a bool is provided, we save the settings with a default name
-                    output_validated_settings = self.settings["orchestrator"]["settings"]["output_validated_settings"].GetBool()
-                    output_validated_settings_name = "ProjectParametersValidated.json"
-                elif self.settings["orchestrator"]["settings"]["output_validated_settings"].IsString():
-                    # If a string is provided it is taken as output name
-                    output_validated_settings = True
-                    output_validated_settings_name = self.settings["orchestrator"]["settings"]["output_validated_settings"].GetString()
-                else:
-                    err_msg = "'output_validated_settings' type is not supported. It is expected to be either a bool or a string."
-                    raise TypeError(err_msg)
+    def __PrepareOutputSettings(self, stage_name : str):
+        '''Prepares the settings to be output.
+        
+        This function modifies current settings in order to prepare them to be output.
+        This includes setting the loading checkpoint as the one to be saved and modifying the execution list accordingly.
+        '''
 
-            if output_validated_settings:
-                with open(f"{output_validated_settings_name}", 'w') as parameter_output_file:
-                    parameter_output_file.write(self.settings.PrettyPrintJsonString())
+        output_validated_settings = False
+        output_validated_settings_name = None
+        orchestrator_settings = self.GetProject().GetSettings()["orchestrator"]["settings"]
+        if orchestrator_settings.Has("output_validated_settings"):
+            if orchestrator_settings["output_validated_settings"].IsBool():
+                # If a bool is provided, we save the settings with a default name
+                output_validated_settings = orchestrator_settings["output_validated_settings"].GetBool()
+                output_validated_settings_name = f"ProjectParametersValidated_{stage_name}.json"
+            elif orchestrator_settings["output_validated_settings"].IsString():
+                # If a string is provided it is taken as output name
+                output_validated_settings = True
+                user_defined_name = orchestrator_settings["output_validated_settings"].GetString()
+                output_validated_settings_name = f"{user_defined_name}_{stage_name}.json"
+            else:
+                err_msg = "'output_validated_settings' type is not supported. It is expected to be either a bool or a string."
+                raise TypeError(err_msg)
+
+        # Setting as the next stage as default loading point
+        if output_validated_settings:
+            # Get next stage name
+            # Note that we check if current stage is last one. If so, we keep current loading checkpoint value
+            position = self.__GetExecutionList().index(stage_name)
+            if not position == self.GetNumberOfStages() - 1:
+                # Set the next stage as loading point
+                loading_point = f"{self.__GetStagesCheckpointFolder()}/{stage_name}"
+                if orchestrator_settings.Has("load_from_checkpoint"):
+                    orchestrator_settings["load_from_checkpoint"].SetString(loading_point)
+                else:
+                    orchestrator_settings.AddString("load_from_checkpoint", loading_point)
+
+                # Remove current checkpointed stage from the execution list
+                # Note that we deliberately do it in a copy to avoid modifying the current execution one
+                new_execution_list = self.__GetExecutionList().copy()
+                new_execution_list.remove(stage_name)
+                orchestrator_settings["execution_list"].SetStringArray(new_execution_list)
+            else:
+                # If there is load checkpoint remove it as this is the last stage
+                if orchestrator_settings.Has("load_from_checkpoint"):
+                    orchestrator_settings.RemoveValue("load_from_checkpoint")
+
+                # Set an empty execution list
+                new_execution_list = []
+                orchestrator_settings["execution_list"].SetStringArray(new_execution_list)
+
+        return output_validated_settings_name
+

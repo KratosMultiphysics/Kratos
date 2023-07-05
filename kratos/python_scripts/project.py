@@ -8,41 +8,58 @@ import KratosMultiphysics
 
 class Project:
 
-    def __init__(self) -> None:
+    def __init__(self, settings : KratosMultiphysics.Parameters) -> None:
         '''Kratos Multiphysics multistage project container
 
         This class has two main purposes. First one is to hold the multistage components (output data, active stages and model)
         Second one is to perform the checkpoint save and load operations.
         
         Member variables:
-        output_data -- Dictionary containing the stages data retrieved from GetFinalData
-        active_stages -- Dictionary containing the active (alive) stage instances
-        model -- Model instance
+        __settings -- Kratos parameters object with the multistage simulation settings
+        __output_data -- Dictionary containing the stages data retrieved from GetFinalData
+        __active_stages -- Dictionary containing the active (alive) stage instances
+        __model -- Model instance
         '''
 
-        self.output_data = {}
-        self.active_stages = {}
-        self.model = KratosMultiphysics.Model()
+        self.__output_data = {}
+        self.__active_stages = {}
+        self.__settings = settings
+        self.__model = KratosMultiphysics.Model()
 
     def GetModel(self):
         '''Returns the current multistage simulation model.'''
 
-        return self.model
+        return self.__model
+    
+    def GetSettings(self):
+        '''Returns the current multistage simulation settings.'''
+
+        return self.__settings
+    
+    def GetOutputData(self):
+        '''Returns the current multistage simulation output data container.'''
+
+        return self.__output_data
+    
+    def GetActiveStages(self):
+        '''Returns the current multistage simulation active stages dictionary.'''
+
+        return self.__active_stages
     
     def AddActiveStage(self, stage_name : str, stage_instance):
         '''Adds the provided stage instance to the active stages dictionary.'''
 
-        if self.active_stages.has_key(stage_name):
+        if self.__active_stages.has_key(stage_name):
             err_msg = f"Stage '{stage_name}' is already active and cannot be added to active stages."
             raise Exception(err_msg)
-        self.active_stages[stage_name] = stage_instance
+        self.__active_stages[stage_name] = stage_instance
 
     def RemoveActiveStage(self, stage_name : str):
         '''Removes an active stage instance from the current stages dictionary.'''
 
-        del self.active_stages[stage_name]
+        del self.__active_stages[stage_name]
 
-    def Save(self, save_folder_name : str, file_name : str):
+    def Save(self, save_folder_name : str, checkpoint_file_name : str, output_settings_file_name : str = None):
         '''Saves the Project current status.'''
 
         # Set the list of modules (Kratos and non-Kratos) that have been added up to current save
@@ -53,24 +70,30 @@ class Project:
         KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(checkpoint_path)
 
         # Save current status
-        with open(os.path.join(checkpoint_path, file_name), 'wb+') as checkpoint_file:
+        with open(os.path.join(checkpoint_path, checkpoint_file_name), 'wb+') as checkpoint_file:
             # Serialize current model and stages
             serializer = KratosMultiphysics.StreamSerializer()
-            serializer.Save("Model", self.model)
+            serializer.Save("Model", self.__model)
             stage_names_list = []
             stage_instances_list = []
-            for stage_name, stage_instance in self.active_stages.items():
+            for stage_name, stage_instance in self.__active_stages.items():
                 stage_instance.Save(serializer) # Make stage instance pickable by serializing and deleting all Kratos objects
                 stage_names_list.append(stage_name) # Append current stage name
                 stage_instances_list.append(stage_instance) # Append current stage pickable instance
             
             pickle.dump({
                 "serializer" : serializer,
-                "output_data" : self.output_data,
+                "output_data" : self.__output_data,
                 "stage_names" : stage_names_list,
                 "stage_instances" : stage_instances_list,
                 "required_modules" : required_modules
             }, checkpoint_file, protocol=2)
+
+        # Output current settings
+        if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().Rank() == 0:
+            if output_settings_file_name:
+                with open(os.path.join(checkpoint_path, output_settings_file_name), 'w') as parameter_output_file:
+                    parameter_output_file.write(self.__settings.PrettyPrintJsonString())
    
     def Load(self, loading_point : str):
         '''Loads a saved Project status into current one.'''
@@ -86,13 +109,13 @@ class Project:
                 importlib.import_module(module_name)
 
             # Load model
-            loaded_data["serializer"].Load("Model", self.model)
+            loaded_data["serializer"].Load("Model", self.__model)
 
             # Load stages
             for stage_name, stage_instance in zip(loaded_data["stage_names"], loaded_data["stage_instances"]):
                 stage_instance.Load(loaded_data["serializer"]) # Take stage instance and restore it to its status before serialization
-                self.active_stages[stage_name] = stage_instance # Append current stage instance to the active stages list
+                self.__active_stages[stage_name] = stage_instance # Append current stage instance to the active stages list
 
             # Load output data dictionary
-            self.output_data = loaded_data["output_data"]
+            self.__output_data = loaded_data["output_data"]
  
