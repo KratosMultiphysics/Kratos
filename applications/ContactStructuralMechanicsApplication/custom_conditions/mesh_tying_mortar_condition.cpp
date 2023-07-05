@@ -592,19 +592,33 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRH
     // Get the DoF size
     const SizeType dof_size = mpDoFVariables.size();
 
+    // Initial index 
+    IndexType initial_index = 0;
+
     // Master side
+    const Matrix Mlm = prod(r_MOperator, r_lm);
     for (IndexType i = 0; i < TNumNodesMaster; ++i) {
-        subrange(rLocalRHS, i * dof_size, (i + 1) * dof_size) = prod(r_lm, row(r_MOperator, i));
+        for (IndexType j = 0; j < dof_size; ++j) {
+            rLocalRHS[initial_index + i * dof_size + j] = Mlm(i, j);
+        }
     }
 
     // Slave side
+    initial_index = TNumNodesMaster * dof_size;
+    const Matrix Dlm = prod(r_DOperator, r_lm);
     for (IndexType i = 0; i < TNumNodes; ++i) {
-        subrange(rLocalRHS, (TNumNodesMaster + i) * dof_size, (TNumNodesMaster + i + 1) * dof_size) = - prod(r_lm, row(r_DOperator, i));
+        for (IndexType j = 0; j < dof_size; ++j) {
+            rLocalRHS[initial_index + i * dof_size + j] = - Dlm(i, j);
+        }
     }
 
     // LM slave side
+    initial_index = (TNumNodes + TNumNodesMaster) * dof_size;
+    const Matrix Du1Mu2 = prod(r_DOperator, r_u1) - prod(r_MOperator, r_u2);
     for (IndexType i = 0; i < TNumNodes; ++i) {
-        subrange(rLocalRHS, (TNumNodes + TNumNodesMaster + i) * dof_size, (TNumNodes + TNumNodesMaster + i + 1) * dof_size) = - prod(r_u1, row(r_DOperator, i)) + prod(r_u2, row(r_MOperator, i));
+        for (IndexType j = 0; j < dof_size; ++j) {
+            rLocalRHS[initial_index + i * dof_size + j] = - Du1Mu2(i, j);
+        }
     }
 
     // // Debugging
