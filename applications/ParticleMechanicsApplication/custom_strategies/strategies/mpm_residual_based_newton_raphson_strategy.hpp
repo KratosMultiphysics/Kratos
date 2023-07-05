@@ -232,7 +232,6 @@ public:
             if (this->mpConvergenceCriteria->GetActualizeRHSflag() == true)
             {
                 TSparseSpace::SetToZero(rb);
-                MPMBoundaryRotationUtility<LocalSystemMatrixType, LocalSystemVectorType>::ClearFrictionFlag(BaseType::GetModelPart());
                 p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);
             }
 

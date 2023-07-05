@@ -283,6 +283,14 @@ public:
         mRotationTool.ClearFrictionFlag(mGridModelPart);
     }
 
+    // Clear friction-related flags so that RHS can be properly constructed for current iteration
+    void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
+                                   TSystemVectorType &rb) override {
+        BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        mRotationTool.ClearFrictionFlag(mGridModelPart);
+    }
+
     /**
      * @brief It initializes time step solution for MPM simulations.
      * @details The initialize solution step here also perform the following procedures:
