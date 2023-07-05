@@ -391,7 +391,7 @@ protected:
     /**
      * This data will be used to compute teh derivatives
      */
-    template< const TensorValue TTensor >
+    template<const TensorValue TTensor>
     struct DofData
     {
     public:
@@ -580,7 +580,7 @@ protected:
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDofData The class containing all the information needed in order to compute the jacobian
      */
-    template< const TensorValue TTensor >
+    template<const TensorValue TTensor>
     void CalculateLocalLHS(
         Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
@@ -593,7 +593,7 @@ protected:
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDofData The class containing all the information needed in order to compute the jacobian
      */
-    template< const TensorValue TTensor >
+    template<const TensorValue TTensor>
     void CalculateLocalRHS(
         Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
