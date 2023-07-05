@@ -444,7 +444,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    MortarConditionMatrices mrThisMortarConditionMatrices; /// The mortar operators
+    MortarConditionMatrices mMortarConditionMatrices;      /// The mortar operators
 
     std::vector<const Variable<double>*> mpDoFVariables;   /// The list of DoF variables
 
@@ -682,17 +682,17 @@ private:
     // Serialization
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
-        // TODO
-    }
+    /**
+     * @brief Saves the MeshTyingMortarCondition object to a serializer.
+     * @param rSerializer the serializer to save to
+     */
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
-        // TODO
-    }
+    /**
+     * @brief Loads the MeshTyingMortarCondition from a serializer.
+     * @param rSerializer the serializer to load from
+     */
+    void load(Serializer& rSerializer) override;
 
     ///@}
 

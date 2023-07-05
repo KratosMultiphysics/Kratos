@@ -363,17 +363,17 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-        rSerializer.save("PairedNormal", mPairedNormal);
-    }
+    /**
+     * @brief Saves the PairedCondition object to a serializer.
+     * @param rSerializer the serializer to save to
+     */
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-        rSerializer.load("PairedNormal", mPairedNormal);
-    }
+    /**
+     * @brief Loads the PairedCondition from a serializer.
+     * @param rSerializer the serializer to load from
+     */
+    void load(Serializer& rSerializer) override;
 
     ///@}
 
