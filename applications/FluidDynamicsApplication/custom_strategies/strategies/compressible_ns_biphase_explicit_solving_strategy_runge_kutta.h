@@ -773,9 +773,9 @@ private:
             rNode.FastGetSolutionStepValue(TEMPERATURE) = temp;
             rNode.FastGetSolutionStepValue(PRESSURE) = pressure;
             rNode.FastGetSolutionStepValue(GAS_PRESSURE) = pressure/(1 - sol_conc); 
-            rNode.GetValue(SOUND_VELOCITY) = sound_velocity;
-            rNode.GetValue(MACH) = norm_2(rVelocity) / sound_velocity;
-            rNode.GetValue(DYNAMIC_PRESSURE) = 0.5 * r_rho * inner_prod(rVelocity, rVelocity);
+            rNode.FastGetSolutionStepValue(SOUND_VELOCITY) = sound_velocity;
+            rNode.FastGetSolutionStepValue(MACH) = norm_2(rVelocity) / sound_velocity;
+            rNode.FastGetSolutionStepValue(DYNAMIC_PRESSURE) = 0.5 * r_rho * inner_prod(rVelocity, rVelocity);
         
         });
     }
