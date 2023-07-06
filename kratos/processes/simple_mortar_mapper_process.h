@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SIMPLE_MORTAR_MAPPER_PROCESS)
-#define KRATOS_SIMPLE_MORTAR_MAPPER_PROCESS
+#pragma once
 
 // System includes
 #include <unordered_map>
@@ -46,7 +45,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -74,7 +73,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Point BaseType;
+    using BaseType = Point;
 
     /// Counted pointer of PointMapper
     KRATOS_CLASS_POINTER_DEFINITION( PointMapper );
@@ -222,54 +221,65 @@ public:
     /// Pointer definition of SimpleMortarMapperProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcess);
 
-    typedef Point                                        PointType;
-    typedef Node                                       NodeType;
-    typedef Geometry<NodeType>                        GeometryType;
-    typedef Geometry<PointType>                  GeometryPointType;
+    //// Type definition for Point
+    using PointType = Point;
 
-    /// Type definition for integration methods
-    typedef GeometryData::IntegrationMethod      IntegrationMethod;
+    /// Type definition for node geometry
+    using GeometryType = Geometry<Node>;
 
-    /// Auxiliar geometries
-    typedef Line2D2<PointType>                            LineType;
-    typedef Triangle3D3<PointType>                    TriangleType;
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    /// Type definition for point geometry
+    using GeometryPointType = Geometry<PointType>;
 
+    //// Type definition for integration methods
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
-    /// Linear solver
-    typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector>               LocalSpaceType;
-    typedef typename SparseSpaceType::MatrixType                 MatrixType;
-    typedef typename SparseSpaceType::VectorType                 VectorType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    /// Type definition for LineType
+    using LineType = Line2D2<PointType>;
 
+    /// Type definition for TriangleType
+    using TriangleType = Triangle3D3<PointType>;
+
+    /// Type definition for DecompositionType based on TDim value
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
+
+    /// Type definition for sparse space type
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
+    /// Type definition for local space type
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+
+    /// Type definition for matrix
+    using MatrixType = typename SparseSpaceType::MatrixType;
+
+    /// Type definition for vector
+    using VectorType = typename SparseSpaceType::VectorType;
+
+    /// Type definition for linear solver
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
     /// Index type definition
-    typedef std::size_t                                          IndexType;
+    using IndexType = std::size_t;
 
     /// A map for integers
-    typedef std::unordered_map<IndexType, IndexType>                IntMap;
+    using IntMap = std::unordered_map<IndexType, IndexType>;
 
     /// BoundedMatrix
-    typedef BoundedMatrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
+    using BoundedMatrixType = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
-    // Type definitions for the tree
-    typedef PointMapper                                     PointMapperType;
-    typedef PointMapperType::Pointer                       PointTypePointer;
-    typedef std::vector<PointTypePointer>                       PointVector;
-    typedef PointVector::iterator                             PointIterator;
-    typedef std::vector<double>                              DistanceVector;
-    typedef DistanceVector::iterator                       DistanceIterator;
+    /// Type definitions for the tree
+    using PointMapperType = PointMapper;
+    using PointTypePointer = typename PointMapperType::Pointer;
+    using PointVector = std::vector<PointTypePointer>;
 
     // KDtree definitions
-    typedef Bucket< 3ul, PointMapperType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTreeType;
+    using BucketType = Bucket<3ul, PointMapperType, PointVector>;
+    using KDTreeType = Tree<KDTreePartition<BucketType>>;
 
     /// Mortar definition
-    typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster>                        MortarKinematicVariablesType;
-    typedef MortarOperator<TNumNodes, TNumNodesMaster>                                            MortarOperatorType;
-    typedef DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>          DualLagrangeMultiplierOperatorsType;
-    typedef ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster> ExactMortarIntegrationUtilityType;
+    using MortarKinematicVariablesType = MortarKinematicVariables<TNumNodes, TNumNodesMaster>;
+    using MortarOperatorType = MortarOperator<TNumNodes, TNumNodesMaster>;
+    using DualLagrangeMultiplierOperatorsType = DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>;
+    using ExactMortarIntegrationUtilityType = ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster>;
 
     /// Auxiliar struct for mapping
     struct TLS {
@@ -401,11 +411,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -433,36 +441,6 @@ public:
     ///@{
 
     ///@}
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -992,4 +970,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-#endif /* KRATOS_SIMPLE_MORTAR_MAPPER_PROCESS defined */
