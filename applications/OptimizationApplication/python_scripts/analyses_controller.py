@@ -12,7 +12,7 @@
 #
 
 # additional imports
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_info import OptimizationInfo
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
@@ -30,9 +30,9 @@ class AnalysesController:
 
         self.execution_policy_decorators = {}
         for execution_policy_settings in self.execution_policies_settings:
-            execution_policy_wrapper = ExecutionPolicyDecorator(self.model, execution_policy_settings, OptimizationInfo())
-            if not execution_policy_wrapper.GetExecutionPolicyName() in self.execution_policy_decorators.keys():
-                self.execution_policy_decorators[execution_policy_wrapper.GetExecutionPolicyName()] = execution_policy_wrapper
+            execution_policy_wrapper = ExecutionPolicyDecorator(self.model, execution_policy_settings, OptimizationProblem())
+            if not execution_policy_wrapper.GetName() in self.execution_policy_decorators.keys():
+                self.execution_policy_decorators[execution_policy_wrapper.GetName()] = execution_policy_wrapper
             else:
                 raise RuntimeError(f"Found already existing execution policy with the name \"{execution_policy_wrapper.GetExecutionPolicyName()}\". Please provide unique names.")
 
@@ -50,9 +50,9 @@ class AnalysesController:
     # --------------------------------------------------------------------------
     def Initialize(self):
         for execution_policy_wrapper in self.execution_policy_decorators.values():
-            execution_policy_name = execution_policy_wrapper.GetExecutionPolicyName()
+            execution_policy_name = execution_policy_wrapper.GetName()
             with TimeLogger(self.__class__.__name__, f"Initializing {execution_policy_name}...", f"Finished initializing {execution_policy_name}"):
-                execution_policy_wrapper.ExecuteInitialize()
+                execution_policy_wrapper.Initialize()
 
     # --------------------------------------------------------------------------
     def RunAnalysis(self, execution_policy_name: str):

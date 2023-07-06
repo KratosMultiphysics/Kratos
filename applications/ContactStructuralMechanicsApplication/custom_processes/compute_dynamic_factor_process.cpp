@@ -35,7 +35,7 @@ void ComputeDynamicFactorProcess::Execute()
 
     // We iterate over the node
     NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
-    block_for_each(r_nodes_array, [&max_gap_threshold, &common_epsilon, &max_gap_factor](NodeType& rNode) {
+    block_for_each(r_nodes_array, [&max_gap_threshold, &common_epsilon, &max_gap_factor](Node& rNode) {
         // Computing only on SLAVE nodes
         if (rNode.Is(SLAVE) && rNode.Is(ACTIVE)) {
             // Weighted values

@@ -79,26 +79,23 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Definition of the node type
-    typedef Node<3> NodeType;
+    /// Definition of the geometry type
+    using GeometryType = Geometry<Node>;
 
     /// Definition of the geometry type
-    typedef Geometry<NodeType> GeometryType;
-
-    /// Definition of the geometry type
-    typedef GeometryType::Pointer GeometryPointerType;
+    using GeometryPointerType = typename GeometryType::Pointer;
 
     /// Definition of the points array type
-    typedef GeometryType::PointsArrayType PointsArrayType;
+    using PointsArrayType = typename GeometryType::PointsArrayType;
 
     /// Line type definition
-    typedef Line2D2<NodeType> LineType;
+    using LineType = Line2D2<Node>;
 
     /// Triangle type definition
-    typedef Triangle3D3<NodeType> TriangleType;
+    using TriangleType = Triangle3D3<Node>;
 
     /// Quadrilateral type definition
-    typedef Quadrilateral3D4<NodeType> QuadrilateralType;
+    using QuadrilateralType = Quadrilateral3D4<Node>;
 
     /// Pointer definition of KratosContactStructuralMechanicsApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosContactStructuralMechanicsApplication);
@@ -170,46 +167,36 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -220,12 +207,11 @@ private:
 
     /* CONDITIONS*/
     // Mesh tying mortar condition
-    const MeshTyingMortarCondition<2, 3> mMeshTyingMortarCondition2D2NTriangle;                   // 2DLine/Triangle
-    const MeshTyingMortarCondition<2, 4> mMeshTyingMortarCondition2D2NQuadrilateral;              // 2DLine/Quadrilateral
-    const MeshTyingMortarCondition<3, 4> mMeshTyingMortarCondition3D3NTetrahedron;                // 3D Triangle/Tetrahedron
-    const MeshTyingMortarCondition<3, 8> mMeshTyingMortarCondition3D4NHexahedron;                 // 3D Quadrilateral/Hexahedra
-    const MeshTyingMortarCondition<3, 4, 8> mMeshTyingMortarCondition3D3NTetrahedron4NHexahedron; // 3D Triangle/Tetrahedron-Quadrilateral/Hexahedra
-    const MeshTyingMortarCondition<3, 8, 4> mMeshTyingMortarCondition3D4NHexahedron3NTetrahedron; // 3D Quadrilateral/Hexahedra-Triangle/Tetrahedron
+    const MeshTyingMortarCondition<2, 2> mMeshTyingMortarCondition2D2N;      // 2D Line/Line
+    const MeshTyingMortarCondition<3, 3> mMeshTyingMortarCondition3D3N;      // 3D Triangle/Triangle
+    const MeshTyingMortarCondition<3, 4> mMeshTyingMortarCondition3D4N;      // 3D Quadrilateral/Quadrilateral
+    const MeshTyingMortarCondition<3, 3, 4> mMeshTyingMortarCondition3D3N4N; // 3D Triangle/Quadrilateral
+    const MeshTyingMortarCondition<3, 4, 3> mMeshTyingMortarCondition3D4N3N; // 3D Quadrilateral/Triangle
 
     // ALM Mortar contact conditions
     // Frictionless cases

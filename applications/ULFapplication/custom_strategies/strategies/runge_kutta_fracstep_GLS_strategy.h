@@ -123,9 +123,9 @@ namespace Kratos
 
       typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-      typedef Node<3> PointType;
+      typedef Node PointType;
 
-      typedef Node<3>::Pointer PointPointerType;
+      typedef Node::Pointer PointPointerType;
 
       typedef std::vector<PointType::Pointer>           PointVector;
 
@@ -240,7 +240,7 @@ namespace Kratos
 
 
 	  Element & ref_el = model_part.Elements().front();
-	  Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
+	  Geometry<Node >::Pointer p_null_geom=Geometry< Node >::Pointer(new Geometry< Node >);
 
 	  //int id=1;
 	  if constexpr (TDim==2)
@@ -693,7 +693,7 @@ namespace Kratos
             for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)
 	      {
                 //get the list of nodes of the element
-                Geometry< Node<3> >& geom = it->GetGeometry();
+                Geometry< Node >& geom = it->GetGeometry();
                 
                 double volume;
                 GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
@@ -749,7 +749,7 @@ namespace Kratos
             //array_1d<double,3> aux0, aux1, aux2, aux3; //this are sized to 3 even in 2D!!
             for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)
 	      {
-                Geometry< Node<3> >& geom = it->GetGeometry();
+                Geometry< Node >& geom = it->GetGeometry();
 		
                 pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
                 pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
@@ -909,7 +909,7 @@ namespace Kratos
 	for(ModelPart::ElementsContainerType::iterator i = r_model_part.ElementsBegin(); i!=r_model_part.ElementsEnd(); i++)
 	  {
 	  
-	    Geometry< Node<3> >& geom = i->GetGeometry();
+	    Geometry< Node >& geom = i->GetGeometry();
 	    //counting number of structural nodes
 	    unsigned int str_nr=0;
 	    //for (int k = 0;k<TDim+1;k++)
@@ -967,7 +967,7 @@ namespace Kratos
 	for(ModelPart::ElementsContainerType::iterator i = r_model_part.ElementsBegin(); i!=r_model_part.ElementsEnd(); i++)
 	  {
 	  
-	    Geometry< Node<3> >& geom = i->GetGeometry();
+	    Geometry< Node >& geom = i->GetGeometry();
 	    unsigned int str_nr=0;
 	    for (unsigned int k = 0; k<i->GetGeometry().size(); k++)
 	      {
@@ -1053,7 +1053,7 @@ namespace Kratos
 	for(ModelPart::ElementsContainerType::iterator im = model_part.ElementsBegin() ;  im != model_part.ElementsEnd() ; ++im)
 	  {
 	    //get the geometry
-	    Geometry< Node<3> >& geom = im->GetGeometry();
+	    Geometry< Node >& geom = im->GetGeometry();
 	
 	    double Area = GeometryUtils::CalculateVolume2D(geom);
 	
@@ -1090,7 +1090,7 @@ namespace Kratos
 		    double p=0.0; 
 		    unsigned int counter=0;
 		
-		    for (GlobalPointersVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+		    for (GlobalPointersVector< Node >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
 			 i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
 		      {
 			//If the a node is a node of a "good neighbor"

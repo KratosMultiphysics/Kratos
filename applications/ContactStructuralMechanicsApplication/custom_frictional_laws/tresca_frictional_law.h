@@ -62,22 +62,19 @@ public:
     ///@{
 
     /// Base class definition
-    typedef FrictionalLawWithDerivative<TDim,TNumNodes,TNormalVariation, TNumNodesMaster> BaseType;
+    using BaseType = FrictionalLawWithDerivative<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>;
 
     /// Definition of the derivative data
-    typedef typename BaseType::DerivativeDataType DerivativeDataType;
+    using DerivativeDataType = typename BaseType::DerivativeDataType;
 
     /// The definition of the mortar operators
-    typedef typename BaseType::MortarConditionMatrices MortarConditionMatrices;
-
-    /// Node definition
-    typedef Node<3> NodeType;
+    using MortarConditionMatrices = typename BaseType::MortarConditionMatrices;
 
     /// Index type definition
-    typedef std::size_t IndexType;
+    using IndexType= std::size_t;
 
     /// Size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -120,7 +117,7 @@ public:
      * @param rCurrentProcessInfo The current instance of the process info
      */
     double GetThresholdValue(
-        const NodeType& rNode,
+        const Node& rNode,
         const PairedCondition& rCondition,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
@@ -136,7 +133,7 @@ public:
      * @param IndexNode The corresponding node index on the condition geometry
      */
     double GetDerivativeThresholdValue(
-        const NodeType& rNode,
+        const Node& rNode,
         const PairedCondition& rCondition,
         const ProcessInfo& rCurrentProcessInfo,
         const DerivativeDataType& rDerivativeData,

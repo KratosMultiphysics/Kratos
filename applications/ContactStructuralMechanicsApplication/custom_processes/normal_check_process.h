@@ -54,14 +54,13 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // Some geometrical definitions
-    typedef Node<3>                                              NodeType;
-    typedef Point                                               PointType;
-    typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
+    /// Some geometrical definitions
+    using PointType = Point;
+    using CoordinatesArrayType = typename PointType::CoordinatesArrayType;
 
     /// Definition of geometries
-    typedef Geometry<NodeType>                               GeometryType;
-    typedef Geometry<PointType>                         GeometryPointType;
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<PointType>;
 
     /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();

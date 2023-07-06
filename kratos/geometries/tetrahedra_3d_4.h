@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TETRAHEDRA_3D_4_H_INCLUDED )
-#define  KRATOS_TETRAHEDRA_3D_4_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -25,6 +24,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "integration/tetrahedron_gauss_legendre_integration_points.h"
 #include "geometries/plane.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -164,6 +164,14 @@ public:
      * type as its result.
      */
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+
+    /**
+     * A third order tensor to hold shape functions' local second derivatives.
+     * ShapefunctionsLocalGradients function return this
+     * type as its result.
+     */
+    typedef typename BaseType::ShapeFunctionsSecondDerivativesType
+    ShapeFunctionsSecondDerivativesType;
 
     /**
      * Type of the normal vector used for normal to edges in geomety.
@@ -1410,6 +1418,28 @@ public:
                 rResult[i] = DN_DX;
     }
 
+    /**
+     * returns the second order derivatives of all shape functions
+     * in given arbitrary points
+     * @param rResult a third order tensor which contains the second derivatives
+     * @param rPoint the given point the second order derivatives are calculated in
+     */
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
+    {
+        if ( rResult.size() != this->PointsNumber() )
+        {
+            // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
+            ShapeFunctionsGradientsType temp( this->PointsNumber() );
+            rResult.swap( temp );
+        }
+
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
+        {
+            rResult[i] = ZeroMatrix(3,3);
+        }
+
+        return rResult;
+    }
 
     /**
      * @brief Test if this geometry intersects with other geometry
@@ -1622,9 +1652,49 @@ public:
         }
     }
 
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
     /**
-     * Input and output
-     */
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        // Point to compute distance to
+        const Point point(rPointGlobalCoordinates);
+
+        // Check if point is inside
+        CoordinatesArrayType aux_coordinates;
+        if (this->IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
+            return 0.0;
+        }
+
+        // Compute distance to faces
+        std::array<double, 4> distances;
+        distances[0] = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(2), this->GetPoint(3), this->GetPoint(1), point);
+        distances[1] = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(3), this->GetPoint(2), point);
+        distances[2] = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(3), point);
+        distances[3] = GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(2), this->GetPoint(1), point);
+        const auto min = std::min_element(distances.begin(), distances.end());
+        return *min;
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
 
     /**
      * Turn back information as a string.
@@ -2001,9 +2071,6 @@ GeometryData Tetrahedra3D4<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Tetrahedra3D4<TPointType>::msGeometryDimension(
-    3, 3, 3);
+const GeometryDimension Tetrahedra3D4<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TETRAHEDRA_3D_4_H_INCLUDED  defined

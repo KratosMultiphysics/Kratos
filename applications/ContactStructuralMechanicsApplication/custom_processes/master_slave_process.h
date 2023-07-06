@@ -55,13 +55,12 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MasterSlaveProcess);
 
     /// Index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// General type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Geometry<NodeType>                           GeometryType;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    using GeometryType = Geometry<Node>;
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle

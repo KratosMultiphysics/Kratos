@@ -529,7 +529,7 @@ void FIC<TElementData>::CalculateTau(
     double &TauMomentum,
     array_1d<double,3> &TauGrad) const
 {
-    const Geometry< Node<3> >& r_geometry = this->GetGeometry();
+    const Geometry< Node >& r_geometry = this->GetGeometry();
 
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
@@ -600,7 +600,7 @@ void FIC<TElementData>::CalculateTauGrad(
     }
 
     // Calculate characteristic lenghts on the gradient directions and gradient norms
-    const Geometry< Node<3> >& r_geometry = this->GetGeometry();
+    const Geometry< Node >& r_geometry = this->GetGeometry();
     array_1d<double,3> Hg = ZeroVector(3);
     array_1d<double,3> GradNorm;
     for (unsigned int d = 0; d < Dim; d++)

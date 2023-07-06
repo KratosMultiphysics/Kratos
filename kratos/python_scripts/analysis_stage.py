@@ -125,6 +125,15 @@ class AnalysisStage(object):
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
+    def GetFinalData(self):
+        """Returns the final data dictionary.
+        
+        The main purpose of this function is to retrieve any data (in a key-value format) from outside the stage.
+        Note that even though it can be called at any point, it is intended to be called at the end of the stage run. 
+        """
+        
+        return {}
+
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) BEFORE solving the solution step.

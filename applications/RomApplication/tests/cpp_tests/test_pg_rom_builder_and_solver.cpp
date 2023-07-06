@@ -125,7 +125,7 @@ ModelPart& FillModel(Model& model)
     mpart.GetNode(3).FastGetSolutionStepValue(TEMPERATURE) = 300;
 
     // Elements
-    using LineType = Line2D2<Node<3>>;
+    using LineType = Line2D2<Node>;
     auto pProperties = mpart.pGetProperties(0);
     for(std::size_t i=1; i<=2; ++i)
     {
@@ -135,8 +135,8 @@ ModelPart& FillModel(Model& model)
     }
 
     // Basis
-    const auto phi_1 = [](Node<3> const&){ return 1.0; };
-    const auto phi_2 = [](Node<3> const& r_node){ return r_node.X(); };
+    const auto phi_1 = [](Node const&){ return 1.0; };
+    const auto phi_2 = [](Node const& r_node){ return r_node.X(); };
     Matrix phi_3 = ZeroMatrix(1,3);
     // Setting the 3rd mode to be the residual
     phi_3(0,0) = 0.5;

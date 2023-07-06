@@ -194,7 +194,7 @@ public:
 
 
         //generate new nodes
-        Node < 3 > ::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
+        Node ::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
         for(int i=in.numberofpoints; i< out.numberofpoints; i++)
         {
             int base = i * 3;
@@ -202,15 +202,15 @@ public:
             double y = out.pointlist[base+1];
             double z = out.pointlist[base+2];
 
-            Node<3>::Pointer p_new_node = Node<3>::Pointer(new Node<3>(i+1, x, y, z));
+            Node::Pointer p_new_node = Node::Pointer(new Node(i+1, x, y, z));
 
             // Giving model part's variables list to the node
             p_new_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
             p_new_node->SetBufferSize(mrModelPart.NodesBegin()->GetBufferSize());
-            for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
+            for (Node ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
-                Node < 3 > ::DofType &rDof = **iii;
-                Node < 3 > ::DofType::Pointer p_new_dof = p_new_node->pAddDof(rDof);
+                Node ::DofType &rDof = **iii;
+                Node ::DofType::Pointer p_new_dof = p_new_node->pAddDof(rDof);
                 (p_new_dof)->FreeDof(); //the variables are left as free for the internal node
             }
 
@@ -226,7 +226,7 @@ public:
         {
             int base=i*4;
 
-            Tetrahedra3D4<Node<3> > geom(
+            Tetrahedra3D4<Node > geom(
                 *( (nodes_begin +  out.tetrahedronlist[base]-1).base() 	),
                 *( (nodes_begin +  out.tetrahedronlist[base+1]-1).base() 	),
                 *( (nodes_begin +  out.tetrahedronlist[base+2]-1).base() 	),

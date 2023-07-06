@@ -13,6 +13,7 @@
 #define CLIPPER2_VERSION "1.0.5"
 
 #include <cstdlib>
+#include <stdint.h>
 #include <queue>
 #include <stdexcept>
 #include <vector>

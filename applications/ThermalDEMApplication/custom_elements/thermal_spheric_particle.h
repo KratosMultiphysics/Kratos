@@ -37,10 +37,10 @@ namespace Kratos
       typedef ParticleWeakVectorType::ptr_iterator    ParticleWeakIteratorType_ptr;
       typedef GlobalPointersVector<Element>::iterator ParticleWeakIteratorType;
 
-      typedef Node<3>                             NodeType;
+      typedef Node                             NodeType;
       typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
       typedef std::size_t                         IndexType;
-      typedef Geometry<Node<3>>                   GeometryType;
+      typedef Geometry<Node>                   GeometryType;
       typedef Properties                          PropertiesType;
 
       // Definitions
@@ -134,7 +134,6 @@ namespace Kratos
       array_1d<double,3> GetParticleAngularVelocity           (void);
       double             GetParticleTemperature               (void);
       double             GetParticleRadius                    (void);
-      double             GetParticleSurfaceArea               (void);
       double             GetParticleCharacteristicLength      (void);
       double             GetParticleVolume                    (void);
       double             GetParticleYoung                     (void);
@@ -198,6 +197,7 @@ namespace Kratos
       // THIS IS TO AVOID MAKING THERMAL PARTICLE A TEMPALTE CLASS TO INHERIT FROM CYLINDER PARTICLE
       double CalculateVolume          (void) override;
       double CalculateMomentOfInertia (void) override;
+      double GetParticleSurfaceArea   (void);
 
       // Pointers to auxiliary objects
       HeatExchangeMechanism*       mpDirectConductionModel;

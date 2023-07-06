@@ -80,7 +80,7 @@ protected:
 
         //Update Acceleration, Velocity and DtPressure
 
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
 
             noalias(rNode.FastGetSolutionStepValue(VELOCITY))     = (  rNode.FastGetSolutionStepValue(DISPLACEMENT)
                                                                      - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / mDeltaTime;

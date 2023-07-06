@@ -58,31 +58,28 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FindIntersectedGeometricalObjectsWithOBBContactSearchProcess);
 
     /// Definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Definition of the point type
-    typedef Point PointType;
+    using PointType = Point;
 
     /// Definition of the base type
-    typedef FindIntersectedGeometricalObjectsProcess BaseProcessType;
+    using BaseProcessType = FindIntersectedGeometricalObjectsProcess;
 
     /// Definition of the base type
-    typedef FindIntersectedGeometricalObjectsWithOBBProcess BaseType;
+    using BaseType = FindIntersectedGeometricalObjectsWithOBBProcess;
 
     /// Octree type definition
-    typedef typename BaseType::OctreeType OctreeType;
-
-    /// Definition of the node type
-    using NodeType = Node<3>;
+    using OctreeType = typename BaseType::OctreeType;
 
     /// Definition of the geometry type
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType = Geometry<Node>;
 
     /// Definition of the entity container type
-    typedef PointerVectorSet<Condition, IndexedObject> EntityContainerType;
+    using EntityContainerType = PointerVectorSet<Condition, IndexedObject>;
 
     ///@}
     ///@name Life Cycle

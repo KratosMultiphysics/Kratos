@@ -34,21 +34,32 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Geometry<Node<3>> GeometryType;
+    using GeometryType = Geometry<Node>;
 
 ///@}
 ///@name  Enum's
 ///@{
 
     /**
-     * @brief We use this to differentiate between cases of friction
+     * @brief An enumeration of the different cases of friction that can be used in the contact search process.
      */
-    enum class FrictionalCase {FRICTIONLESS = 0, FRICTIONLESS_COMPONENTS = 1, FRICTIONAL = 2, FRICTIONLESS_PENALTY = 3, FRICTIONAL_PENALTY = 4  };
+    enum class FrictionalCase {
+        FRICTIONLESS = 0, ///< Frictionless contact.
+        FRICTIONLESS_COMPONENTS = 1, ///< Frictionless contact with components.
+        FRICTIONAL = 2, ///< Frictional contact.
+        FRICTIONLESS_PENALTY = 3, ///< Frictionless contact with penalty method.
+        FRICTIONAL_PENALTY = 4 ///< Frictional contact with penalty method.
+    };
 
     /**
-     * @brief This enum is used to define the different options for normal derivatives computation
+     * @brief An enumeration of the different options for normal derivatives computation.
      */
-    enum NormalDerivativesComputation {NO_DERIVATIVES_COMPUTATION = 0, ELEMENTAL_DERIVATIVES = 1, NODAL_ELEMENTAL_DERIVATIVES = 2, NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE = 3};
+    enum class NormalDerivativesComputation {
+        NO_DERIVATIVES_COMPUTATION = 0, ///< No computation of normal derivatives.
+        ELEMENTAL_DERIVATIVES = 1, ///< Computation of normal derivatives at the element level.
+        NODAL_ELEMENTAL_DERIVATIVES = 2, ///< Computation of normal derivatives at the node level.
+        NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE = 3 ///< No computation of normal derivatives, but update of the normal vector.
+    };
 
 ///@}
 ///@name  Functions

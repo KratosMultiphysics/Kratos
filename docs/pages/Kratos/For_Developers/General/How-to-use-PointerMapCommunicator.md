@@ -8,7 +8,7 @@ summary:
 
 Kratos provides a data proxy mechanism, based on the use of "GlobalPointers" to simplify communications involving non local data. In order to retrieve information on local and remote nodes, one can follow this wiki page [How to use PointerCommunicator](How-to-use-PointerCommunicator) to get more information.
 
-The `GlobalPointerMapCommunicator` is designed to be used in a situation where, it is required to set an `enitity` (could be `Node`, `Element` or `Condition`, etc...) value. This `entity` can be in a local process (which is always the case in serial runs) or local/remote processes (which is the case for distributed runs). So `GlobalPointerMapCommunicator` takes care of the communication burden therefore user does not need to bother whether simulation is run on serial or distributed.
+The `GlobalPointerMapCommunicator` is designed to be used in a situation where, it is required to set an *entity* (could be `Node`, `Element` or `Condition`, etc...) value. This **entity* can be in a local process (which is always the case in serial runs) or local/remote processes (which is the case for distributed runs). So `GlobalPointerMapCommunicator` takes care of the communication burden therefore user does not need to bother whether simulation is run on serial or distributed.
 
 To explain the usage, lets take the following example of doing assembly in a serial run where an element value (i.e. `TEMPERATURE`) needs to be distributed among its nodal neighbours.
 ```cpp
@@ -35,13 +35,13 @@ VariableUtils.SetNonHistoricalVariableToZero(TEMPERATURE, model_part.Nodes);
 
 // create the global pointer map communicator
 // will not do anything in serial case.
-GlobalPointerMapCommunicator<Node<3>, double> pointer_map_comm(r_default_comm);
+GlobalPointerMapCommunicator<Node, double> pointer_map_comm(r_default_comm);
 
 // creates the proxy method for updating
 // this proxy is called upon only with gps in their owning processes. No communication is done in here.
 // this proxy needs to be always thread safe for parallel loops of the entitiy being passed.
-// In this case the entity is of type Node<3>
-const auto& apply_proxy = pointer_map_comm.GetApplyProxy([](Node<3>& rNode, const double& NewValue) {
+// In this case the entity is of type Node
+const auto& apply_proxy = pointer_map_comm.GetApplyProxy([](Node& rNode, const double& NewValue) {
     rNode.GetValue(TEMPERATURE) += NewValue;
 });
 

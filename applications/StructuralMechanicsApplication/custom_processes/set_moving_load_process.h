@@ -1,11 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Aron Noordam
 //
@@ -46,6 +45,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetMovingLoadProcess : public
 public:
     ///@name Type Definitions
     ///@{
+    ///
+    
 
     ///@}
     ///@name Pointer Definitions
@@ -84,7 +85,8 @@ public:
      */
     void ExecuteFinalizeSolutionStep() override;
 
-    ///@}
+
+	///@}
     ///@name Input and output
     ///@{
 
