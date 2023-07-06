@@ -24,35 +24,16 @@
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-//erases the nodes marked as
-/** Detail class definition.
-*/
+/// Delete particle elements and conditions with flag TO_ERASE
 
 class ParticleEraseProcess
         : public Process
 {
 public:
+
     ///@name Type Definitions
     ///@{
 
@@ -67,15 +48,7 @@ public:
     ParticleEraseProcess(ModelPart& model_part)
         : mr_model_part(model_part)
     {
-        KRATOS_TRY
-        KRATOS_CATCH("");
     }
-
-    /// Destructor.
-    virtual ~ParticleEraseProcess()
-    {
-    }
-
 
     ///@}
     ///@name Operators
@@ -85,7 +58,6 @@ public:
     {
         Execute();
     }
-
 
     ///@}
     ///@name Operations
@@ -110,17 +82,6 @@ public:
         KRATOS_CATCH("");
     }
 
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
     ///@}
     ///@name Input and output
     ///@{
@@ -142,90 +103,14 @@ public:
     {
     }
 
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
-
-    ///@}
     ///@name Member Variables
     ///@{
+
     ModelPart& mr_model_part;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    ParticleEraseProcess& operator=(ParticleEraseProcess const& rOther);
-
-    /// Copy constructor.
-    //NodeAndElementEraseProcess(NodeAndElementEraseProcess const& rOther);
-
 
     ///@}
 
@@ -233,14 +118,8 @@ private:
 
 ///@}
 
-///@name Type Definitions
-///@{
-
-
-///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -256,7 +135,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
-///@}
 
+///@}
 
 }  // namespace Kratos.
