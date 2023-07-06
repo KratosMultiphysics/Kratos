@@ -700,26 +700,49 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        // shape function container.
+        // Shape function container.
         NurbsVolumeShapeFunction shape_function_container(
             mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, NumberOfShapeFunctionDerivatives);
 
         // Resize containers.
-        if (rResultGeometries.size() != rIntegrationPoints.size())
-            rResultGeometries.resize(rIntegrationPoints.size());
+        if (rResultGeometries.size() != 1){
+            rResultGeometries.resize(1);
+        }
 
-        auto default_method = this->GetDefaultIntegrationMethod();
-        SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+        const auto default_method = this->GetDefaultIntegrationMethod();
+
+        const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+        const SizeType num_points = rIntegrationPoints.size();
+
+        KRATOS_ERROR_IF(num_points < 1) << "List of integration points is empty.\n";
+
+        KRATOS_ERROR_IF(NumberOfShapeFunctionDerivatives != 2) << "NumberOfShapeFunctionDerivatives must be 2.\n";
 
         Matrix N(1, num_nonzero_cps);
         DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
 
-        for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; ++i) {
-            const IndexType num_derivatives = (2 + i) * (3 + i) / 2;
-            shape_function_derivatives[i].resize(num_nonzero_cps, num_derivatives);
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType integration_points;
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType shape_function_values;
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType shape_function_gradients;
+
+        // Default integration method is Gauss_1.
+        integration_points[0] = rIntegrationPoints;
+        shape_function_gradients[0].resize(rIntegrationPoints.size());
+        shape_function_values[0].resize(rIntegrationPoints.size(), num_nonzero_cps);
+
+        for( IndexType i_point = 0; i_point < num_points; ++i_point){
+            for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; ++i) {
+                const IndexType num_derivatives = (2 + i) * (3 + i) / 2;
+                shape_function_gradients[0][i_point].resize(num_nonzero_cps, num_derivatives);
+            }
         }
 
-        for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
+        // Centroid of points. This will be used to identify knot span.
+        // Single point might be located on the boundary of two knot spans.
+        array_1d<double, 3> centroid(3, 0.0);
+
+        // Fill containers
+        for (IndexType i_point = 0; i_point < num_points; ++i_point)
         {
             // Attention: Weights are not yet implemented.
             // if (IsRational()) {
@@ -727,43 +750,54 @@ public:
             //         mKnotsU, mKnotsV, mKnotsW, mWeights, rIntegrationPoints[i][0], rIntegrationPoints[i][1], rIntegrationPoints[i][2]);
             // }
 
+            // Compute centroid
+            centroid += rIntegrationPoints[i_point].Coordinates();
+
             shape_function_container.ComputeBSplineShapeFunctionValues(
-                mKnotsU, mKnotsV, mKnotsW, rIntegrationPoints[i][0], rIntegrationPoints[i][1], rIntegrationPoints[i][2]);
+                mKnotsU, mKnotsV, mKnotsW,
+                rIntegrationPoints[i_point][0], rIntegrationPoints[i_point][1], rIntegrationPoints[i_point][2]);
 
-
-            /// Get List of Control Points
-            PointsArrayType nonzero_control_points(num_nonzero_cps);
-            auto cp_indices = shape_function_container.ControlPointIndices(
-                NumberOfControlPointsU(), NumberOfControlPointsV(), NumberOfControlPointsW());
+            /// Get Shape Functions
             for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                nonzero_control_points(j) = pGetPoint(cp_indices[j]);
-            }
-            /// Get Shape Functions N
-            for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                N(0, j) = shape_function_container(j, 0);
+                shape_function_values[0](i_point, j) = shape_function_container(j, 0);
             }
 
-            /// Get Shape Function Derivatives DN_De, ...
+            // Get Shape Function Derivatives DN_De, ...
             if (NumberOfShapeFunctionDerivatives > 0) {
                 IndexType shape_derivative_index = 1;
                 for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; ++n) {
                     const IndexType num_derivatives = (2 + n) * (3 + n) / 2;
                     for (IndexType k = 0; k < num_derivatives; ++k) {
                         for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                            shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
+                            shape_function_gradients[0][i_point](j, k) = shape_function_container(j, shape_derivative_index + k);
                         }
                     }
                     shape_derivative_index += num_derivatives;
                 }
             }
-
-            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                default_method, rIntegrationPoints[i],
-                N, shape_function_derivatives);
-
-            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
         }
+
+        /// Get List of Control Points
+        PointsArrayType nonzero_control_points(num_nonzero_cps);
+        centroid /= num_points;
+        shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnotsU, mKnotsV, mKnotsW,
+                centroid[0], centroid[1], centroid[2]);
+
+        auto cp_indices = shape_function_container.ControlPointIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV(), NumberOfControlPointsW());
+
+        for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+            nonzero_control_points(j) = pGetPoint(cp_indices[j]);
+        }
+
+        // Instantiate shape function container
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+            default_method, integration_points,
+            shape_function_values, shape_function_gradients);
+
+        rResultGeometries(0) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
+            this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
     }
 
     ///@}
