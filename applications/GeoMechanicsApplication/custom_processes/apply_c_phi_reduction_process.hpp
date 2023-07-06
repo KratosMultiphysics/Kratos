@@ -71,6 +71,7 @@ namespace Kratos
                     c           = GetAndCheckC(rElement.GetProperties());
                     reduced_c   = mReductionFactor * c;
                     previousPropertyId = mrModelPart.GetProperties(rElement.GetProperties().Id()).Id();
+                    KRATOS_INFO("ApplyCPhiReductionProces") << "c = " << reduced_c << " (" << c << ") phi = " << reduced_phi <<" (" << phi << ")" <<std::endl;
                 }
                 set_C_Phi_At_Element(rElement, reduced_phi, reduced_c);
             });
@@ -87,6 +88,11 @@ namespace Kratos
             } else {
                 mPreviousReductionFactor = mReductionFactor;
             }
+        }
+
+        void ExecuteFinalize() override
+        {
+            KRATOS_INFO("ApplyCPhiReductionProcess") << "Final safety factor = " << 1.0 / mReductionFactor << std::endl;
         }
 
     private:
