@@ -76,7 +76,7 @@ public:
     ///@{
 
     /// Base class definition
-    typedef Point BaseType;
+    using BaseType = Point;
 
     /// Counted pointer of PointObject
     KRATOS_CLASS_POINTER_DEFINITION( PointObject );
