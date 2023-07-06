@@ -7,6 +7,6 @@ This folder contains the test cases:
 - [K<sub>0</sub> procedure normal consolidation with OCR](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc_ocr/README.md)
 - [K<sub>0</sub> procedure normal consolidation with skew layers](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc_skew_layers/README.md)
 - [K<sub>0</sub> procedure normal consolidation with skew layers and dam](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc_skew_layers_dam/README.md)
-- [K<sub>0</sub> procedure with umat](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_nc_umat/README.md)
+- [K<sub>0</sub> procedure with umat](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_k0_umat/README.md)
 - [K<sub>0</sub> procedure for simple dike](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/GeoMechanicsApplication/tests/test_k0_procedure_process/test_k0_procedure_simple_dike/README.md)
 
