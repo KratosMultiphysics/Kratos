@@ -60,6 +60,10 @@ public:
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
+    typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType IntegrationPointsContainerType;
+    typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
+    typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+
     // Using base class functionalities.
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
@@ -700,6 +704,7 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
+        KRATOS_ERROR_IF(NumberOfShapeFunctionDerivatives != 2) << "NumberOfShapeFunctionDerivatives must be 2.\n";
         // Shape function container.
         NurbsVolumeShapeFunction shape_function_container(
             mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, NumberOfShapeFunctionDerivatives);
@@ -713,19 +718,14 @@ public:
 
         const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
         const SizeType num_points = rIntegrationPoints.size();
-
         KRATOS_ERROR_IF(num_points < 1) << "List of integration points is empty.\n";
 
-        KRATOS_ERROR_IF(NumberOfShapeFunctionDerivatives != 2) << "NumberOfShapeFunctionDerivatives must be 2.\n";
+        // Initialize containers.
+        IntegrationPointsContainerType integration_points;
+        ShapeFunctionsValuesContainerType shape_function_values;
+        ShapeFunctionsLocalGradientsContainerType shape_function_gradients;
 
-        Matrix N(1, num_nonzero_cps);
-        DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
-
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::IntegrationPointsContainerType integration_points;
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsValuesContainerType shape_function_values;
-        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>::ShapeFunctionsLocalGradientsContainerType shape_function_gradients;
-
-        // Default integration method is Gauss_1.
+        // Only default integration method Gauss_1=0 is used.
         integration_points[0] = rIntegrationPoints;
         shape_function_gradients[0].resize(rIntegrationPoints.size());
         shape_function_values[0].resize(rIntegrationPoints.size(), num_nonzero_cps);
@@ -750,14 +750,14 @@ public:
             //         mKnotsU, mKnotsV, mKnotsW, mWeights, rIntegrationPoints[i][0], rIntegrationPoints[i][1], rIntegrationPoints[i][2]);
             // }
 
-            // Compute centroid
+            // Compute centroid.
             centroid += rIntegrationPoints[i_point].Coordinates();
 
             shape_function_container.ComputeBSplineShapeFunctionValues(
                 mKnotsU, mKnotsV, mKnotsW,
                 rIntegrationPoints[i_point][0], rIntegrationPoints[i_point][1], rIntegrationPoints[i_point][2]);
 
-            /// Get Shape Functions
+            /// Get Shape Functions.
             for (IndexType j = 0; j < num_nonzero_cps; ++j) {
                 shape_function_values[0](i_point, j) = shape_function_container(j, 0);
             }
@@ -777,7 +777,7 @@ public:
             }
         }
 
-        /// Get List of Control Points
+        /// Get List of Control Points.
         PointsArrayType nonzero_control_points(num_nonzero_cps);
         centroid /= num_points;
         shape_function_container.ComputeBSplineShapeFunctionValues(
@@ -791,11 +791,12 @@ public:
             nonzero_control_points(j) = pGetPoint(cp_indices[j]);
         }
 
-        // Instantiate shape function container
+        // Instantiate shape function container.
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
             default_method, integration_points,
             shape_function_values, shape_function_gradients);
 
+        // Create quadrature point geometry.
         rResultGeometries(0) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
             this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
     }
