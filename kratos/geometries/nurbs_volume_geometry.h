@@ -690,7 +690,7 @@ public:
     ///@{
 
     /**
-     * @brief Creates a quadrature point geometries for one knot span / element
+     * @brief Creates a quadrature point geometry for one knot span / element
      *        from a list of integration points.
      * @param rResultGeometries List of quadrature point geometries. Will contain only one geometry.
      * @param rIntegrationPoints List of provided integration points. Must be inside the same element.
