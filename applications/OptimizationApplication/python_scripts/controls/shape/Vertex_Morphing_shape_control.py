@@ -133,8 +133,7 @@ class VertexMorphingShapeControl(Control):
         # initiliaze the filter
         self.filter.Initialize()
         physical_shape_field = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(physical_shape_field,[0,0,0])
-        KratosOA.ControlUtils.ShapeUtils.GetNodalCoordinates(physical_shape_field)
+        Kratos.Expression.NodalPositionExpressionIO.Read(physical_shape_field, Kratos.Configuration.Initial)
         self._SetFixedModelPartValues(False)
         self.control_field = self.filter.UnFilterField(physical_shape_field)
 
@@ -161,8 +160,7 @@ class VertexMorphingShapeControl(Control):
 
     def GePhysicalField(self) -> ContainerExpressionTypes:
         physical_shape_field = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(physical_shape_field,[0,0,0])
-        KratosOA.ControlUtils.ShapeUtils.GetNodalCoordinates(physical_shape_field)
+        Kratos.Expression.NodalPositionExpressionIO.Read(physical_shape_field, Kratos.Configuration.Initial)
         return physical_shape_field
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
@@ -206,12 +204,12 @@ class VertexMorphingShapeControl(Control):
 
         # compute shape update
         shape_update = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(shape_update,[0,0,0])
-        KratosOA.ControlUtils.ShapeUtils.GetNodalCoordinates(shape_update)
+        Kratos.Expression.NodalPositionExpressionIO.Read(shape_update, Kratos.Configuration.Initial)
         shape_update -= new_shape
 
         # now update shape
-        # KratosOA.ControlUtils.ShapeUtils.SetNodalCoordinates(new_shape)
+        Kratos.Expression.NodalPositionExpressionIO.Write(new_shape, Kratos.Configuration.Initial)
+        Kratos.Expression.NodalPositionExpressionIO.Write(new_shape, Kratos.Configuration.Current)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
@@ -226,7 +224,7 @@ class VertexMorphingShapeControl(Control):
             if is_backward:
                 Kratos.Expression.LiteralExpressionIO.SetData(field,[0,0,0])
             else:
-                KratosOA.ControlUtils.ShapeUtils.GetNodalCoordinates(field)
+                Kratos.Expression.NodalPositionExpressionIO.Read(field, Kratos.Configuration.Initial)
 
             Kratos.Expression.VariableExpressionIO.Write(field, KratosOA.HELMHOLTZ_VECTOR,True)
 
