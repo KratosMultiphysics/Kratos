@@ -37,9 +37,11 @@ void AddExplicitVertexMorphingFilter(
 
     py::class_<ExplicitVertexMorphingFilter<TContainerType>, typename ExplicitVertexMorphingFilter<TContainerType>::Pointer>(m, rName.c_str())
         .def(py::init<const ModelPart&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"))
+        .def(py::init<const ModelPart&, const ModelPart&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("fixed_model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"))
         .def("SetFilterRadius", &ExplicitVertexMorphingFilter<TContainerType>::SetFilterRadius, py::arg("filter_radius"))
         .def("FilterField", &ExplicitVertexMorphingFilter<TContainerType>::FilterField, py::arg("unfiltered_field"))
         .def("FilterIntegratedField", &ExplicitVertexMorphingFilter<TContainerType>::FilterIntegratedField, py::arg("filtered_field"))
+        .def("GetIntegrationWeights", &ExplicitVertexMorphingFilter<TContainerType>::GetIntegrationWeights, py::arg("integration_weight_field"))
         .def("Update", &ExplicitVertexMorphingFilter<TContainerType>::Update)
         .def("__str__", &ExplicitVertexMorphingFilter<TContainerType>::Info)
         ;

@@ -129,14 +129,22 @@ void ComputeWeightForAllNeighbors(
     const double VertexMorphingRadius,
     const EntityPoint<TEntityType>& rDesignPoint,
     const std::vector<typename EntityPoint<TEntityType>::Pointer>& rNeighbourNodes,
+    const Point::Pointer rDampingNearestPoint,
     const IndexType NumberOfNeighbours,
     Expression const * const pExpression)
 {
+
+    double damping_multiplier = 1.0;
+    if(rDampingNearestPoint!=nullptr){
+        double max_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rDesignPoint.Coordinates(), VertexMorphingRadius);
+        damping_multiplier = 1.0 - rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rDampingNearestPoint->Coordinates(), VertexMorphingRadius) / max_weight;
+    }
+
     for (IndexType i = 0; i < NumberOfNeighbours; ++i) {
         const double domain_size = GetDomainSize(*rNeighbourNodes[i], pExpression);
         const double filter_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rNeighbourNodes[i]->Coordinates(), VertexMorphingRadius);
 
-        rListOfWeights[i] = TWeightComputationType::Compute(filter_weight, domain_size);
+        rListOfWeights[i] = damping_multiplier *  TWeightComputationType::Compute(filter_weight, domain_size);
         rSumOfWeights += filter_weight * domain_size;
     }
 }
@@ -152,6 +160,20 @@ ExplicitVertexMorphingFilter<TContainerType>::ExplicitVertexMorphingFilter(
       mMaxNumberOfNeighbors(MaxNumberOfNeighbours)
 {
     mpKernelFunction = Kratos::make_unique<FilterFunction>(rKernelFunctionType);
+    Update();
+}
+
+template<class TContainerType>
+ExplicitVertexMorphingFilter<TContainerType>::ExplicitVertexMorphingFilter(
+    const ModelPart& rModelPart,
+    const ModelPart& rFixedModelPart,
+    const std::string& rKernelFunctionType,
+    const IndexType MaxNumberOfNeighbours)
+    : mrModelPart(rModelPart),
+      mMaxNumberOfNeighbors(MaxNumberOfNeighbours)
+{
+    mpKernelFunction = Kratos::make_unique<FilterFunction>(rKernelFunctionType);
+    mpFixedModelPart = &rFixedModelPart;
     Update();
 }
 
@@ -191,6 +213,21 @@ void ExplicitVertexMorphingFilter<TContainerType>::ExplicitVertexMorphingFilter:
     });
 
     mpSearchTree =  Kratos::make_shared<ExplicitVertexMorphingFilter::KDTree>(mEntityPointVector.begin(), mEntityPointVector.end(), mBucketSize);
+
+    // now make the tree for fixed model part
+    if (mpFixedModelPart!=nullptr){
+        const auto& r_f_container = ExplicitVertexMorphingFilterHelperUtilities::GetContainer<TContainerType>(*mpFixedModelPart);
+        if (mFixedModelPartEntityPointVector.size() != r_f_container.size()) {
+            mFixedModelPartEntityPointVector.resize(r_f_container.size());
+        }
+
+        // now fill the points vector
+        IndexPartition<IndexType>(r_f_container.size()).for_each([&](const IndexType Index) {
+            mFixedModelPartEntityPointVector[Index] = Kratos::make_shared<EntityPoint<EntityType>>(*(r_f_container.begin() + Index), Index);
+        });
+
+        mpFixedModelPartSearchTree =  Kratos::make_shared<ExplicitVertexMorphingFilter::KDTree>(mFixedModelPartEntityPointVector.begin(), mFixedModelPartEntityPointVector.end(), mBucketSize);    
+    }
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
         const auto& r_nodes = mrModelPart.Nodes();
@@ -257,6 +294,8 @@ ContainerExpression<TContainerType> ExplicitVertexMorphingFilter<TContainerType>
 
         EntityPointVector mNeighbourEntityPoints;
         std::vector<double> mResultingSquaredDistances;
+        Point::Pointer mpDampingNearestPoint = nullptr;
+        
     };
 
     IndexPartition<IndexType>(r_container.size()).for_each(TLS(mMaxNumberOfNeighbors), [&](const IndexType Index, TLS& rTLS){
@@ -270,11 +309,16 @@ ContainerExpression<TContainerType> ExplicitVertexMorphingFilter<TContainerType>
                                             rTLS.mResultingSquaredDistances.begin(),
                                             mMaxNumberOfNeighbors);
 
+        if (mpFixedModelPart!=nullptr){
+            double rPointDistance = 0;
+            rTLS.mpDampingNearestPoint = mpFixedModelPartSearchTree->SearchNearestPoint(entity_point,rPointDistance);
+        }
+
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
         double sum_of_weights = 0.0;
         ExplicitVertexMorphingFilterHelperUtilities::ComputeWeightForAllNeighbors<EntityType, TWeightIntegrationType>(
             sum_of_weights, list_of_weights, *mpKernelFunction, vertex_morphing_radius,
-            entity_point, rTLS.mNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mpDampingNearestPoint, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         const IndexType current_data_begin = Index * stride;
 
@@ -306,6 +350,32 @@ template<class TContainerType>
 ContainerExpression<TContainerType> ExplicitVertexMorphingFilter<TContainerType>::FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
     return GenericFilterField<ExplicitVertexMorphingFilterHelperUtilities::NonIntegratedWeight>(rContainerExpression);
+}
+
+template<class TContainerType>
+void ExplicitVertexMorphingFilter<TContainerType>::GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const
+{
+    KRATOS_ERROR_IF_NOT(rContainerExpression.HasExpression())
+        << "Uninitialized container expression given. "
+        << rContainerExpression;
+
+    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
+        << "The given container expression model part and filter model part mismatch.";
+
+    const IndexType stride = rContainerExpression.GetItemComponentCount();
+    const auto& r_container = rContainerExpression.GetContainer();
+    auto p_expression = LiteralFlatExpression<double>::Create(r_container.GetContainer().size(), rContainerExpression.GetItemShape());
+    rContainerExpression.SetExpression(p_expression);
+
+    IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index){
+        EntityPoint<EntityType> entity(*(r_container.begin() + Index), Index);
+        auto integration_weight = ExplicitVertexMorphingFilterHelperUtilities::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get());
+        const IndexType current_data_begin = Index * stride;
+        for (IndexType j = 0; j < stride; ++j) {
+            double& current_index_value = *(p_expression->begin() + current_data_begin + j);
+            current_index_value = integration_weight;
+        }
+    });
 }
 
 template<class TContainerType>

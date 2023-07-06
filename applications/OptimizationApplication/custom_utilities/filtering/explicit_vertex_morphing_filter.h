@@ -61,6 +61,12 @@ public:
         const std::string& rKernelFunctionType,
         const IndexType MaxNumberOfNeighbours);
 
+    ExplicitVertexMorphingFilter(
+        const ModelPart& rModelPart,
+        const ModelPart& rFixedModelPart,
+        const std::string& rKernelFunctionType,
+        const IndexType MaxNumberOfNeighbours);
+
     ///@}
     ///@name Public operations
 
@@ -72,6 +78,8 @@ public:
 
     ContainerExpression<TContainerType> FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
+    void GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
+
     std::string Info() const;
 
     ///@}
@@ -81,6 +89,8 @@ private:
 
     const ModelPart& mrModelPart;
 
+    const ModelPart* mpFixedModelPart = nullptr;
+
     FilterFunction::UniquePointer mpKernelFunction;
 
     typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
@@ -89,11 +99,15 @@ private:
 
     EntityPointVector mEntityPointVector;
 
+    EntityPointVector mFixedModelPartEntityPointVector;
+
     IndexType mBucketSize = 100;
 
     IndexType mMaxNumberOfNeighbors;
 
     typename KDTree::Pointer mpSearchTree;
+
+    typename KDTree::Pointer mpFixedModelPartSearchTree;
 
     ///@}
     ///@name Private operations
