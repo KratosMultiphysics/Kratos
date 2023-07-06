@@ -28,6 +28,7 @@
 #include "utilities/math_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "processes/find_nodal_neighbours_process.h" 
+#include "processes/find_global_nodal_neighbours_process.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -278,6 +279,9 @@ public:
     {
         auto& r_model_part = BaseType::GetModelPart();
         const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        FindNodalNeighboursProcess process(r_model_part);
+            process.Execute();
 
         // Call the base RK4 finalize substep method
         BaseType::Initialize();
@@ -672,7 +676,7 @@ private:
 
         while (check == 1 && count < 1)
         {
-
+            
             check = 0;
 
             #pragma omp parallel for
@@ -724,6 +728,9 @@ private:
                 it_node->FastGetSolutionStepValue(MOMENTUM_RHS)      =  mom_i - alpha_dm*dm_corr/iAreaTOT;
                 it_node->FastGetSolutionStepValue(TOTAL_ENERGY_RHS)  =  ene_i - alpha_de*ene_corr/iAreaTOT;
                 
+ //               if(fabs( - alpha_de*ene_corr/iAreaTOT) > 1e-3)
+ //                   printf("corr_ene = %.3e\n",  - alpha_de*ene_corr/iAreaTOT);
+
 
             }
 

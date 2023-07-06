@@ -64,11 +64,11 @@ void ShockCapturing2d_new(const double mu,
 {
     const int SpaceDimension  = 2;
 	
-    double alpha  	  = 0.2;
-	double alpha_dc   = 0.0;
-	double alpha_de	  = 0.2;
+    double alpha  	  = 0.5;
+	double alpha_dc   = 1.0;
+	double alpha_de	  = 1.0;
 	const double tol  = 1e-32;
-    const double tol2 = 1e-32;                               
+    const double tol2 = 1e-32;                              
 
     unsigned int i;
 
