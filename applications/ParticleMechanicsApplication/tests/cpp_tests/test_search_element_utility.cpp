@@ -189,7 +189,7 @@ namespace Testing
     }
 
     ///// Check if search function works properly
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElement, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementQuad2D, KratosParticleMechanicsFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -238,6 +238,126 @@ namespace Testing
         KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 9);
         KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 10);
         KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[3].Id(), 3);
+    }
+
+    ///// Check if search function works properly
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementTri2D, KratosParticleMechanicsFastSuite)
+    {
+        // First Coordinates of Material Point: (0.0, 0.2, 0.0)
+        array_1d<double, 3> mp_coordinate;
+        mp_coordinate[0] = 0.0;
+        mp_coordinate[1] = 0.2;
+        mp_coordinate[2] = 0.0;
+        const double int_weight = 1.5;
+
+        const IndexType grid_case = 10;
+
+        Model current_model;
+        ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
+
+        ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
+        PrepareGeneralBackgroundModelPart(r_background_model_part, grid_case);
+        PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
+
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+        const double search_tolerance = 1e-7;
+        const double check_tolerance = 1e-10;
+
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+            MP_COORD, { mp_coordinate }, r_current_process_info);
+
+        MPMSearchElementUtility::SearchElement<2>(
+            r_background_model_part, r_mpm_model_part, 1000, search_tolerance);
+
+        std::vector<array_1d<double, 3>> coords;
+        r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
+            MP_COORD, coords, r_current_process_info);
+        KRATOS_CHECK_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
+
+        // Check nodes
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 1);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 6);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 5);
+
+        Matrix shape_functions_values = r_mpm_model_part.GetElement(2).GetGeometry().ShapeFunctionsValues();
+        KRATOS_CHECK_NEAR(shape_functions_values(0,0), 0.8, check_tolerance);
+        KRATOS_CHECK_NEAR(shape_functions_values(0,1), 0.0, check_tolerance);
+        KRATOS_CHECK_NEAR(shape_functions_values(0,2), 0.2, check_tolerance);
+
+        // New Coordinates of Material Point
+        mp_coordinate[0] = 1.2;
+        mp_coordinate[1] = 0.0;
+        mp_coordinate[2] = 0.0;
+
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+            MP_COORD, { mp_coordinate }, r_current_process_info);
+
+        MPMSearchElementUtility::SearchElement<2>(
+            r_background_model_part, r_mpm_model_part, 1000, search_tolerance);
+
+        r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
+            MP_COORD, coords, r_current_process_info);
+        KRATOS_CHECK_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
+
+        // Check nodes
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 2);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 3);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 7);
+
+        shape_functions_values = r_mpm_model_part.GetElement(2).GetGeometry().ShapeFunctionsValues();
+        KRATOS_CHECK_NEAR(shape_functions_values(0,0), 0.8, check_tolerance);
+        KRATOS_CHECK_NEAR(shape_functions_values(0,1), 0.2, check_tolerance);
+        KRATOS_CHECK_NEAR(shape_functions_values(0,2), 0.0, check_tolerance);
+
+        // New Coordinates of Material Point
+        mp_coordinate[0] = 2.6;
+        mp_coordinate[1] = 2.1;
+        mp_coordinate[2] = 0.0;
+
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+            MP_COORD, { mp_coordinate }, r_current_process_info);
+
+        MPMSearchElementUtility::SearchElement<2>(
+            r_background_model_part, r_mpm_model_part, 1000, search_tolerance);
+
+        r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
+            MP_COORD, coords, r_current_process_info);
+        KRATOS_CHECK_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
+
+        // Check nodes
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 11);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 12);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 16);
+
+        shape_functions_values = r_mpm_model_part.GetElement(2).GetGeometry().ShapeFunctionsValues();
+        KRATOS_CHECK_NEAR(shape_functions_values(0,0), 0.4, check_tolerance);
+        KRATOS_CHECK_NEAR(shape_functions_values(0,1), 0.5, check_tolerance);
+        KRATOS_CHECK_NEAR(shape_functions_values(0,2), 0.1, check_tolerance);
+
+        // New Coordinates of Material Point
+        mp_coordinate[0] = 0.2349;
+        mp_coordinate[1] = 2.7238;
+        mp_coordinate[2] = 0.0;
+
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+            MP_COORD, { mp_coordinate }, r_current_process_info);
+
+        MPMSearchElementUtility::SearchElement<2>(
+            r_background_model_part, r_mpm_model_part, 1000, search_tolerance);
+
+        r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
+            MP_COORD, coords, r_current_process_info);
+        KRATOS_CHECK_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
+
+        // Check nodes
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 9);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 14);
+        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 13);
+
+        shape_functions_values = r_mpm_model_part.GetElement(2).GetGeometry().ShapeFunctionsValues();
+        KRATOS_CHECK_NEAR(shape_functions_values(0,0), 0.2762, check_tolerance);
+        KRATOS_CHECK_NEAR(shape_functions_values(0,1), 0.2349, check_tolerance);
+        KRATOS_CHECK_NEAR(shape_functions_values(0,2), 0.4889, check_tolerance);
     }
 
     /// PQMPM test 1 - MP domain is entirely within cell and should only make 1 mp
