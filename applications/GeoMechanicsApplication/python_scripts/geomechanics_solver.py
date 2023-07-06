@@ -21,8 +21,8 @@ class GeoMechanicalSolver(PythonSolver):
 
         super().__init__(model, custom_settings)
 
-        # # Overwrite the default settings with user-provided parameters.
-        # self.settings.ValidateAndAssignDefaults(default_settings)
+        self.ValidateSettings()
+
         model_part_name = self.settings["model_part_name"].GetString()
 
         if model_part_name == "":
@@ -136,6 +136,26 @@ class GeoMechanicalSolver(PythonSolver):
 
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
+
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+
+        super().ValidateSettings()
+
+        # Checks if scaling is used in combination with rebuild level lower than 2 and prebuild dynamics, if so it
+        # throws an error
+        if (self.settings.Has("linear_solver_settings") and
+            self.settings["linear_solver_settings"].Has("scaling") and
+            self.settings["linear_solver_settings"]["scaling"].GetBool()):
+            if (self.settings.Has("rebuild_level") and
+                self.settings["rebuild_level"].GetInt() < 2):
+                raise ValueError("Scaling can only be used if rebuild level is at least equal to 2")
+            if (self.settings.Has("prebuild_dynamics") and
+                self.settings["prebuild_dynamics"].GetBool()):
+                raise ValueError("Scaling can not be used if prebuild dynamics is true")
+
+
 
     def AddVariables(self):
         # this can safely be called also for restarts, it is internally checked if the variables exist already
@@ -521,6 +541,16 @@ class GeoMechanicalSolver(PythonSolver):
                                                                            compute_reactions,
                                                                            reform_step_dofs,
                                                                            move_mesh_flag)
+
+        elif strategy_type.lower() == "linear":
+            solving_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(self.computing_model_part,
+                                                                              self.scheme,
+                                                                              builder_and_solver,
+                                                                              compute_reactions,
+                                                                              reform_step_dofs,
+                                                                              False,
+                                                                              move_mesh_flag)
+
         else:
             raise Exception("Undefined strategy type", strategy_type)
 

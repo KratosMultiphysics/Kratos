@@ -35,14 +35,14 @@ void NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>::Execute()
 
     // We set the auxiliary Coordinates
     const array_1d<double, 3> zero_array = ZeroVector(3);
-    block_for_each(r_nodes_array_master, [&](NodeType& rNode) {
+    block_for_each(r_nodes_array_master, [&](Node& rNode) {
         if (mSearchOrientation) {
             rNode.SetValue(AUXILIAR_COORDINATES, rNode.Coordinates());
         } else {
             rNode.SetValue(AUXILIAR_COORDINATES, zero_array);
         }
     });
-    block_for_each(r_nodes_array_slave, [&](NodeType& rNode) {
+    block_for_each(r_nodes_array_slave, [&](Node& rNode) {
         if (!mSearchOrientation) {
             rNode.SetValue(AUXILIAR_COORDINATES, rNode.Coordinates());
         } else {
@@ -93,7 +93,7 @@ void NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeNormalGap(NodesA
     KRATOS_TRY
 
     struct auxiliary {array_1d<double, 3> normal, auxiliary_coordinates, components_gap; double gap = 0.0; };
-    block_for_each(rNodes, auxiliary(), [this](NodeType& rNode, auxiliary& aux) {
+    block_for_each(rNodes, auxiliary(), [this](Node& rNode, auxiliary& aux) {
         if (rNode.Is(SLAVE) == this->mSearchOrientation) {
             // We compute the gap
             noalias(aux.normal) = rNode.FastGetSolutionStepValue(NORMAL);

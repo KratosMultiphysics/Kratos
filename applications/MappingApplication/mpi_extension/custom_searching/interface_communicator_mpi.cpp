@@ -23,12 +23,13 @@
 #include "containers/model.h"
 #include "input_output/vtk_output.h"
 #include "interface_communicator_mpi.h"
+#include "utilities/search_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 
 namespace Kratos
 {
 
-typedef std::size_t SizeType;
+using SizeType = std::size_t;
 
 /***********************************************************************************/
 /* PUBLIC Methods */
@@ -40,7 +41,7 @@ InterfaceCommunicatorMPI::InterfaceCommunicatorMPI(ModelPart& rModelPartOrigin,
                           rMapperLocalSystems,
                           SearchSettings)
 {
-    // set up the buffers
+    // Set up the buffers
     MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
     MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
 
@@ -75,7 +76,7 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const MapperInterfaceIn
 
     // Apply tolerance to bounding boxes
     std::vector<double> bounding_boxes_with_tol;
-    MapperUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
+    SearchUtilities::ComputeBoundingBoxesWithTolerance(mGlobalBoundingBoxes,
                                                        mSearchRadius,
                                                        bounding_boxes_with_tol);
 
