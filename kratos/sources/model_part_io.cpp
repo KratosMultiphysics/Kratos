@@ -3639,7 +3639,9 @@ void  ModelPartIO::ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, Mo
     KRATOS_CATCH("")
 }
 
-void  ModelPartIO::ReadSubModelPartGeometriesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart)
+void  ModelPartIO::ReadSubModelPartGeometriesBlock(
+    ModelPart& rMainModelPart,
+    ModelPart& rSubModelPart)
 {
     KRATOS_TRY
 
@@ -3649,12 +3651,12 @@ void  ModelPartIO::ReadSubModelPartGeometriesBlock(ModelPart& rMainModelPart, Mo
 
     while (!mpStream->eof())
     {
-        ReadWord(word); // Reading the node id or End
+        ReadWord(word); // Reading the geometry id or End
         if (CheckEndBlock("SubModelPartGeometries", word))
             break;
 
         ExtractValue(word, geometry_id);
-                    ordered_ids.push_back(geometry_id);
+        ordered_ids.push_back(geometry_id);
     }
     std::sort(ordered_ids.begin(), ordered_ids.end());
     rSubModelPart.AddGeometries(ordered_ids);
