@@ -31,6 +31,15 @@ void PointObject<Node>::UpdatePoint()
 /***********************************************************************************/
 
 template<>
+void PointObject<GeometricalObject>::UpdatePoint()
+{
+    noalias(this->Coordinates()) = mpObject->GetGeometry().Center().Coordinates();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
 void PointObject<Condition>::UpdatePoint()
 {
     noalias(this->Coordinates()) = mpObject->GetGeometry().Center().Coordinates();
@@ -46,6 +55,7 @@ void PointObject<Element>::UpdatePoint()
 }
 
 template class PointObject<Node>;
+template class PointObject<GeometricalObject>;
 template class PointObject<Condition>;
 template class PointObject<Element>;
 
