@@ -21,18 +21,14 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
+#include "includes/mortar_classes.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/atomic_utilities.h"
-
-/* Custom includes */
-#include "includes/mortar_classes.h"
-
-/* Custom utilities */
 #include "utilities/exact_mortar_segmentation_utility.h"
 
 /* Tree structures */
-// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
+#include "spatial_containers/specialized_spatial_search.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
@@ -58,136 +54,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/**
- * @ingroup KratosCore
- * @class PointMapper
- * @brief Custom Point container to be used by the mapper
- * @details The main difference with this point and the base one is that it contains the pointer to geometrical object where the center of the points belongs
- * @author Vicente Mataix Ferrandiz
- */
-class PointMapper
-    : public Point
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    using BaseType = Point;
-
-    /// Counted pointer of PointMapper
-    KRATOS_CLASS_POINTER_DEFINITION( PointMapper );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructors
-    PointMapper():
-        BaseType(),
-        mpOriginGeometricalObject(nullptr)
-    {}
-
-    PointMapper(const array_1d<double, 3>& Coords)
-        :BaseType(Coords),
-         mpOriginGeometricalObject(nullptr)
-    {}
-
-    PointMapper(GeometricalObject::Pointer pGeometricalObject):
-        mpOriginGeometricalObject(pGeometricalObject)
-    {
-        UpdatePoint();
-    }
-
-    PointMapper(
-        const array_1d<double, 3>& Coords,
-        GeometricalObject::Pointer pGeometricalObject
-    ):
-        BaseType(Coords),
-        mpOriginGeometricalObject(pGeometricalObject)
-    {}
-
-    ///Copy constructor  (not really required)
-    PointMapper(const PointMapper& rhs):
-        BaseType(rhs),
-        mpOriginGeometricalObject(rhs.mpOriginGeometricalObject)
-    {
-    }
-
-    /// Destructor.
-    ~PointMapper() override= default;
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * @brief Returns the point
-     * @return The point
-     */
-    BaseType GetPoint()
-    {
-        BaseType Point(this->Coordinates());
-        return Point;
-    }
-
-    /**
-     * @brief Set the point
-     * @param Point The point
-     */
-    void SetPoint(const BaseType Point)
-    {
-        this->Coordinates() = Point.Coordinates();
-    }
-
-    /**
-     * @brief Sets the geometrical object associated to the point
-     * @param pGeometricalObject The pointer to the geometrical object
-     */
-    void SetCondition(GeometricalObject::Pointer pGeometricalObject)
-    {
-        mpOriginGeometricalObject = pGeometricalObject;
-    }
-
-    /**
-     * @brief Returns the geometrical object associated to the point
-     * @return mpOriginGeometricalObject The pointer to the geometrical object associated to the point
-     */
-    GeometricalObject::Pointer GetGeometricalObject()
-    {
-        KRATOS_DEBUG_ERROR_IF(mpOriginGeometricalObject.get() == nullptr) << "GeometricalObject no initialized in the PointMapper class" << std::endl;
-        return mpOriginGeometricalObject;
-    }
-
-    /**
-     * @brief This method checks everything is right
-     */
-    void Check()
-    {
-        KRATOS_TRY;
-
-        auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
-        KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointMapper class" << std::endl;
-        KRATOS_ERROR_IF(mpOriginGeometricalObject->use_count() == 0) << "GeometricalObject no initialized in the PointMapper class" << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This function updates the database, using as base for the coordinates the geometrical object center
-     */
-    void UpdatePoint()
-    {
-        noalias(this->Coordinates()) = mpOriginGeometricalObject->GetGeometry().Center().Coordinates();
-    }
-
-private:
-    ///@name Member Variables
-    ///@{
-    GeometricalObject::Pointer mpOriginGeometricalObject; /// GeometricalObject pointer
-    ///@}
-
-}; // Class PointMapper
 
 /**
  * @ingroup KratosCore
@@ -267,7 +133,7 @@ public:
     using BoundedMatrixType = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
     /// Type definitions for the tree
-    using PointMapperType = PointMapper;
+    using PointMapperType = PointObject<GeometricalObject>;
     using PointTypePointer = typename PointMapperType::Pointer;
     using PointVector = std::vector<PointTypePointer>;
 
@@ -915,7 +781,7 @@ private:
             IndexSet::Pointer indexes_set = rGeometricalObject.GetValue(INDEX_SET);
 
             for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
-                auto p_geometrical_object_master = points_found[i_point]->GetGeometricalObject();
+                auto p_geometrical_object_master = points_found[i_point]->pGetObject();
                 indexes_set->AddId(p_geometrical_object_master->Id());
             }
         }
