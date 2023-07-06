@@ -690,7 +690,7 @@ public:
     ///@{
 
     /**
-     * @brief Creates a list of quadrature point geometries.
+     * @brief Creates a list of quadrature point geometries
      *        from a list of integration points.
      * @param rResultGeometries List of quadrature point geometries.
      * @param NumberOfShapeFunctionDerivatives the number of evaluated
@@ -758,7 +758,6 @@ public:
             ShapeFunctionsValuesContainerType shape_function_values;
             ShapeFunctionsLocalGradientsContainerType shape_function_gradients;
 
-            // Only default integration method Gauss_1=0 is used.
             integration_points[0] = rIntegrationPoints;
             shape_function_gradients[0].resize(rIntegrationPoints.size());
             shape_function_values[0].resize(rIntegrationPoints.size(), num_nonzero_cps);
