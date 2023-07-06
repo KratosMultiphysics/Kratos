@@ -106,6 +106,12 @@ namespace Kratos
             GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties);
 
+        // Assignment operator.
+        TransientThermalElement& operator=(TransientThermalElement const& rOther) = delete;
+
+        // Copy constructor.
+        TransientThermalElement(TransientThermalElement const& rOther) = delete;
+
         /// Destructor
         ~TransientThermalElement() override;
 
@@ -192,12 +198,6 @@ namespace Kratos
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
         }
-
-        // Assignment operator.
-        TransientThermalElement& operator=(TransientThermalElement const& rOther);
-
-        // Copy constructor.
-        TransientThermalElement(TransientThermalElement const& rOther);
 
     }; // Class TransientThermalElement
 

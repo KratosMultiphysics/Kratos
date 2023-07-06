@@ -15,6 +15,7 @@
 
 
 // Application includes
+#include "utilities/math_utils.h"
 #include "custom_conditions/T_normal_flux_condition.hpp"
 
 namespace Kratos
@@ -120,24 +121,17 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
     const Matrix& Jacobian,
     const double& Weight)
 {
+    Vector NormalVector = ZeroVector(TDim);
+
     if (TDim == 2)
     {
-        const double dx_dxi = Jacobian(0, 0);
-        const double dy_dxi = Jacobian(1, 0);
-        const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-        rIntegrationCoefficient = ds * Weight;
+        NormalVector = column(Jacobian, 0);
     }
     else if (TDim == 3)
     {
-        double NormalVector[3];
-        NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
-        NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
-        NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
-        const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
-            + NormalVector[1] * NormalVector[1]
-            + NormalVector[2] * NormalVector[2]);
-        rIntegrationCoefficient = dA * Weight;
+        MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
     }
+    rIntegrationCoefficient = Weight * MathUtils<double>::Norm(NormalVector);
 }
 
 // ============================================================================================

@@ -82,7 +82,7 @@ namespace Kratos
         if (rElementalDofList.size() != N_DOF)
             rElementalDofList.resize(N_DOF);
 
-        for (unsigned int i = 0; i < TNumNodes; ++i)
+        for (unsigned int i = 0; i < N_DOF; ++i)
         {
             rElementalDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
         }
@@ -176,11 +176,11 @@ namespace Kratos
         if (!Prop.Has(DENSITY_SOLID) || Prop[DENSITY_SOLID] < 0.0)
             KRATOS_ERROR << "DENSITY_SOLID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (!Prop.Has(HEAT_CAPACITY_WATER) || Prop[HEAT_CAPACITY_WATER] < 0.0)
-            KRATOS_ERROR << "HEAT_CAPACITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
+        if (!Prop.Has(SPECIFIC_HEAT_CAPACITY_WATER) || Prop[SPECIFIC_HEAT_CAPACITY_WATER] < 0.0)
+            KRATOS_ERROR << "SPECIFIC_HEAT_CAPACITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (!Prop.Has(HEAT_CAPACITY_SOLID) || Prop[HEAT_CAPACITY_SOLID] < 0.0)
-            KRATOS_ERROR << "HEAT_CAPACITY_SOLID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
+        if (!Prop.Has(SPECIFIC_HEAT_CAPACITY_SOLID) || Prop[SPECIFIC_HEAT_CAPACITY_SOLID] < 0.0)
+            KRATOS_ERROR << "SPECIFIC_HEAT_CAPACITY_SOLID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
         if (!Prop.Has(THERMAL_CONDUCTIVITY_WATER) || Prop[THERMAL_CONDUCTIVITY_WATER] < 0.0)
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
@@ -550,8 +550,8 @@ namespace Kratos
         rVariables.WaterDensity = rProp[DENSITY_WATER];
         rVariables.SolidDensity = rProp[DENSITY_SOLID];
         rVariables.Porosity = rProp[POROSITY];
-        rVariables.WaterHeatCapacity = rProp[HEAT_CAPACITY_WATER];
-        rVariables.SolidHeatCapacity = rProp[HEAT_CAPACITY_SOLID];
+        rVariables.WaterHeatCapacity = rProp[SPECIFIC_HEAT_CAPACITY_WATER];
+        rVariables.SolidHeatCapacity = rProp[SPECIFIC_HEAT_CAPACITY_SOLID];
         rVariables.WaterThermalConductivity = rProp[THERMAL_CONDUCTIVITY_WATER];
         rVariables.SolidThermalConductivityXX = rProp[THERMAL_CONDUCTIVITY_SOLID_XX];
         rVariables.SolidThermalConductivityXY = rProp[THERMAL_CONDUCTIVITY_SOLID_XY];
