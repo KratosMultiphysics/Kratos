@@ -690,10 +690,10 @@ public:
     ///@{
 
     /**
-     * @brief Creates a list of quadrature point geometries
+     * @brief Creates a quadrature point geometries for one knot span / element
      *        from a list of integration points.
-     * @param rResultGeometries List of quadrature point geometries.
-     * @param rIntegrationPoints List of provided integration points.
+     * @param rResultGeometries List of quadrature point geometries. Will contain only one geometry.
+     * @param rIntegrationPoints List of provided integration points. Must be inside the same element.
      * @param NumberOfShapeFunctionDerivatives the number of evaluated
      *        derivatives of shape functions at the quadrature point geometries.
      * @see quadrature_point_geometry.h
