@@ -443,10 +443,9 @@ namespace Testing {
         // Check general information, input to ouput
         typename Geometry<NodeType>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = pyramid.GetDefaultIntegrationInfo();
-        pyramid.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<NodeType>::GeometriesArrayType quadrature_points;
-        pyramid.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
+        pyramid.CreateQuadraturePointGeometries(quadrature_points, 3, integration_info);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 1440);
         double sum = 0;
