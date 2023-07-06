@@ -34,7 +34,7 @@ namespace Kratos {
 ///@{
 
 template<class TContainerType>
-class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitVertexMorphingFilter
+class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitFilter
 {
 public:
     ///@name Type definitions
@@ -50,18 +50,18 @@ public:
     using KDTree = Tree<KDTreePartition<BucketType>>;
 
     /// Pointer definition of ContainerMapper
-    KRATOS_CLASS_POINTER_DEFINITION(ExplicitVertexMorphingFilter);
+    KRATOS_CLASS_POINTER_DEFINITION(ExplicitFilter);
 
     ///@}
     ///@name LifeCycle
     ///@{
 
-    ExplicitVertexMorphingFilter(
+    ExplicitFilter(
         const ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
         const IndexType MaxNumberOfNeighbours);
 
-    ExplicitVertexMorphingFilter(
+    ExplicitFilter(
         const ModelPart& rModelPart,
         const ModelPart& rFixedModelPart,
         const std::string& rKernelFunctionType,
@@ -126,7 +126,7 @@ private:
 template<class TContainerType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const ExplicitVertexMorphingFilter<TContainerType>& rThis)
+    const ExplicitFilter<TContainerType>& rThis)
 {
     return rOStream << rThis.Info();
 }

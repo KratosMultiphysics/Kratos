@@ -6,7 +6,7 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
-class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
+class TestExplicitFilter(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
@@ -14,20 +14,20 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
         with kratos_unittest.WorkFolderScope(".", __file__):
             ReadModelPart("solid", cls.model_part)
 
-    def test_NodalExplicitVertexMorphingFilterConditionConsistency(self):
+    def test_NodalExplicitFilterConditionConsistency(self):
         model_part = self.model_part.GetSubModelPart("design")
-        vm_filter = KratosOA.NodalExplicitVertexMorphingFilter(model_part, "linear", 1000)
+        vm_filter = KratosOA.NodalExplicitFilter(model_part, "linear", 1000)
         self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
 
-    def test_NodalExplicitVertexMorphingFilterElementConsistency(self):
+    def test_NodalExplicitFilterElementConsistency(self):
         model_part = self.model_part.GetSubModelPart("structure")
-        vm_filter = KratosOA.NodalExplicitVertexMorphingFilter(model_part, "linear", 1000)
+        vm_filter = KratosOA.NodalExplicitFilter(model_part, "linear", 1000)
         self.__RunConsistencyTest(vm_filter, model_part.Nodes, model_part)
 
-    def test_NodalExplicitVertexMorphingFilterElementConsistencyWithDamping(self):
+    def test_NodalExplicitFilterElementConsistencyWithDamping(self):
         model_part = self.model_part.GetSubModelPart("structure")
         fixed_model_part = self.model_part.GetSubModelPart("fixed")
-        vm_filter = KratosOA.NodalExplicitVertexMorphingFilter(model_part, fixed_model_part, "linear", 1000)
+        vm_filter = KratosOA.NodalExplicitFilter(model_part, fixed_model_part, "linear", 1000)
         filter_radius =  Kratos.Expression.NodalExpression(model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, 2.0)
         vm_filter.SetFilterRadius(filter_radius)
@@ -45,12 +45,12 @@ class TestExplicitVertexMorphingFilter(kratos_unittest.TestCase):
         filtered_integrated_data = vm_filter.FilterIntegratedField(integrated_constant_field)
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(filtered_integrated_data), 4.582575694955841, 8)
 
-    def test_ConditionExplicitVertexMorphingFilterConsistency(self):
-        vm_filter = KratosOA.ConditionExplicitVertexMorphingFilter(self.model_part, "linear", 1000)
+    def test_ConditionExplicitFilterConsistency(self):
+        vm_filter = KratosOA.ConditionExplicitFilter(self.model_part, "linear", 1000)
         self.__RunConsistencyTest(vm_filter, self.model_part.Conditions, self.model_part)
 
-    def test_ElementExplicitVertexMorphingFilterConsistency(self):
-        vm_filter = KratosOA.ElementExplicitVertexMorphingFilter(self.model_part, "linear", 1000)
+    def test_ElementExplicitFilterConsistency(self):
+        vm_filter = KratosOA.ElementExplicitFilter(self.model_part, "linear", 1000)
         self.__RunConsistencyTest(vm_filter, self.model_part.Elements, self.model_part)
 
     def __RunConsistencyTest(self, vm_filter, entities, model_part):
