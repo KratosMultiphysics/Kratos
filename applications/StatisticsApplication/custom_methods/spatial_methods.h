@@ -759,7 +759,6 @@ public:
 
         template <class TDataType>
         std::tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>, std::vector<double>, std::vector<double>> static GetNormDistribution(
-
             const ModelPart& rModelPart,
             const Variable<TDataType>& rVariable,
             const std::string& rNormType,
