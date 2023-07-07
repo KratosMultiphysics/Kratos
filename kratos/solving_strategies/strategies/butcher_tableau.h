@@ -282,10 +282,7 @@ public:
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C(2);
-        C[0] = 0.0;
-        C[1] = 0.5;
-        return C;
+        return VectorType {0.0, 0.5};
     }
 
     static std::string Name()
