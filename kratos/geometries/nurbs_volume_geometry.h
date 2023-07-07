@@ -763,10 +763,7 @@ public:
             shape_function_values[0].resize(rIntegrationPoints.size(), num_nonzero_cps);
 
             for( IndexType i_point = 0; i_point < num_points; ++i_point){
-                for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; ++i) {
-                    const IndexType num_derivatives = (2 + i) * (3 + i) / 2;
-                    shape_function_gradients[0][i_point].resize(num_nonzero_cps, num_derivatives);
-                }
+                shape_function_gradients[0][i_point].resize(num_nonzero_cps, 3);
             }
 
             // Centroid of points. This will be used to identify knot span.
@@ -789,16 +786,9 @@ public:
                 }
 
                 // Get Shape Function Derivatives DN_De, ...
-                if (NumberOfShapeFunctionDerivatives > 0) {
-                    IndexType shape_derivative_index = 1;
-                    for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; ++n) {
-                        const IndexType num_derivatives = (2 + n) * (3 + n) / 2;
-                        for (IndexType k = 0; k < num_derivatives; ++k) {
-                            for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                                shape_function_gradients[0][i_point](j, k) = shape_function_container(j, shape_derivative_index + k);
-                            }
-                        }
-                        shape_derivative_index += num_derivatives;
+                for (IndexType k = 0; k < 3; ++k) {
+                    for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+                        shape_function_gradients[0][i_point](j, k) = shape_function_container(j, 1 + k);
                     }
                 }
             }
