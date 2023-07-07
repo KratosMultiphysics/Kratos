@@ -360,12 +360,10 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B(4);
-        B[0] = 1.0 / 6.0;
-        B[1] = 1.0 / 3.0;
-        B[2] = 1.0 / 3.0;
-        B[3] = 1.0 / 6.0;
-        return B;
+        return VectorType {1.0 / 6.0,
+                           1.0 / 3.0,
+                           1.0 / 3.0,
+                           1.0 / 6.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
