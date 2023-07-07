@@ -23,7 +23,7 @@
 #include "includes/kratos_components.h"
 #include "modeler/modeler.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/variable_utils.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -78,45 +78,7 @@ public:
     ///@{
 
     /// Convert the geometry model or import analysis suitable models.
-    void SetupModelPart() override
-    {
-        // Get the elements list from input settings
-        const auto& r_elements_list = mParameters.GetValue("elements_list");
-        const SizeType n_element_pairs = r_elements_list.size();
-        KRATOS_WARNING_IF("CreateEntitiesFromGeometriesModeler", mEchoLevel != 0 && n_element_pairs == 0)
-            << "No elements found in element list." << std::endl;
-
-        // Loop the element list to create the correspoding entities
-        for (auto& r_data : r_elements_list) {
-            // Get current substitution settings
-            const std::string entity_name = r_data["element_name"].GetString();
-            const std::string model_part_name = r_data["model_part_name"].GetString();
-            auto& r_model_part = mpModel->GetModelPart(model_part_name);
-
-            // Wipe current model part entities
-            RemoveModelPartEntities(r_model_part);
-
-            // Loop submodelpart geometries to create the corresponding entities from them
-            const SizeType n_geom = r_model_part.NumberOfGeometries();
-            const auto& r_ref_entity = KratosComponents<Element>::Get(entity_name);
-
-            ModelPart::ElementsContainerType entities_to_add_ids;
-            entities_to_add_ids.reserve(n_geom);
-
-            // auto elements_to_add = IndexPartition<IndexType>(n_geom).for_each<AccumReduction<Element::Pointer, ModelPart::ElementsContainerType>>(
-            //     IndexType iGeom, [](int &rValue) {
-            //         auto it_geom = r_model_part.GeometriesBegin() + iGeom;
-            //         r_ref_entity.Create(it_geom->Id(), it_geom->pGetGeometry(), nullptr);
-            // });
-
-            // IndexPartition<IndexType>(n_geom).for_each([&](IndexType iGeom){
-            //     auto it_geom = r_model_part.GeometriesBegin() + iGeom;
-            //     // r_model_part.CreateNewElement(entity_name, it_geom->Id(), it_geom->pGetGeometry(), nullptr);
-            //     // r_model_part.CreateNewElement(entity_name, it_geom->Id(), it_geom->pGetGeometry(), nullptr);
-            // });
-
-        }
-    }
+    void SetupModelPart() override;
 
     /// This method provides the defaults parameters to avoid conflicts between the different constructors
     const Parameters GetDefaultParameters() const override
@@ -166,19 +128,49 @@ private:
     ///@name Private Operations
     ///@{
 
-    void RemoveModelPartEntities(ModelPart& rModelPart)
+    template <class TEntityType>
+    void LoopEntitiesList(Parameters EntitiesList);
+
+    template <class TEntityType>
+    void RemoveModelPartEntities(ModelPart& rModelPart);
+
+    template <class TEntityType, class TEntitiesContainerType>
+    void CreateEntitiesFromGeometries(
+        const std::string EntityName,
+        ModelPart& rModelPart)
     {
-        auto& r_root_model_part = rModelPart.GetRootModelPart();
-        const SizeType n_elements = r_root_model_part.NumberOfElements();
-        const SizeType n_conditions = r_root_model_part.NumberOfElements();
-        KRATOS_WARNING_IF("CreateEntitiesFromGeometriesModeler", n_elements != 0)
-            << "There are " << n_elements << " elements in '" << r_root_model_part.FullName() << "' model part. These are to be removed." << std::endl;
-        KRATOS_WARNING_IF("CreateEntitiesFromGeometriesModeler", n_conditions != 0)
-            << "There are " << n_conditions << " conditions in '" << r_root_model_part.FullName() << "' model part. These are to be removed." << std::endl;
-        VariableUtils().SetFlag(TO_ERASE, true, r_root_model_part.Elements());
-        VariableUtils().SetFlag(TO_ERASE, true, r_root_model_part.Conditions());
-        r_root_model_part.RemoveElementsFromAllLevels(TO_ERASE);
-        r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        // Get entity prototype from KratosComponents
+        const auto &r_ref_entity = KratosComponents<TEntityType>::Get(EntityName);
+
+        // Create the entities container and allocate space
+        TEntitiesContainerType entities_to_add;
+        entities_to_add.reserve(rModelPart.NumberOfGeometries());
+
+        // Get current max element id
+        SizeType max_id;
+        const auto& r_root_model_part = rModelPart.GetRootModelPart();
+        if constexpr (std::is_same<TEntityType, Element>::value) {
+            max_id = block_for_each<MaxReduction<SizeType>>(r_root_model_part.Elements(), [](auto& rElement){
+                return rElement.Id();
+            });
+        } else {
+            max_id = block_for_each<MaxReduction<SizeType>>(r_root_model_part.Conditions(), [](auto& rCondition){
+                return rCondition.Id();
+            });
+        }
+
+        // Loop geometries to create the corresponding entities from them
+        for (auto &r_geom : rModelPart.Geometries()) {
+            auto p_entity = r_ref_entity.Create(++max_id, r_geom, nullptr);
+            entities_to_add.push_back(p_entity);
+        }
+
+        // Add the created entities to current submodelpart
+        if constexpr (std::is_same<TEntityType, Element>::value) {
+            rModelPart.AddElements(entities_to_add.begin(), entities_to_add.end());
+        } else {
+            rModelPart.AddConditions(entities_to_add.begin(), entities_to_add.end());
+        }
     }
 
     ///@}

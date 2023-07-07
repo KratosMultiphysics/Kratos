@@ -21,6 +21,7 @@
 #include "modeler/modeler_factory.h"
 #include "modeler/edge_swapping_2d_modeler.h"
 #include "modeler/connectivity_preserve_modeler.h"
+#include "modeler/create_entities_from_geometries_modeler.h"
 #include "modeler/serial_model_part_combinator_modeler.h"
 #include "modeler/duplicate_mesh_modeler.h"
 #include "modeler/copy_properties_modeler.h"
@@ -109,6 +110,9 @@ void  AddModelerToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters>())
     ;
 
+    py::class_< CreateEntitiesFromGeometriesModeler, CreateEntitiesFromGeometriesModeler::Pointer, Modeler >(m, "CreateEntitiesFromGeometriesModeler")
+        .def(py::init<Model&, Parameters>())
+    ;
 }
 
 }  // namespace Python.
