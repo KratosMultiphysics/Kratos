@@ -29,16 +29,6 @@ namespace Norms
 
 using IndexType = std::size_t;
 
-using DataType = std::variant<
-                        int,
-                        double,
-                        array_1d<double, 3>,
-                        array_1d<double, 4>,
-                        array_1d<double, 6>,
-                        array_1d<double, 9>,
-                        Vector,
-                        Matrix>;
-
 class Value {
 public:
     ///@name Type definitions
