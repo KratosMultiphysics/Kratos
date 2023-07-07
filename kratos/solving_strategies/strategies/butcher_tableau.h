@@ -243,9 +243,7 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B(1);
-        B[0] = 1.0;
-        return B;
+        return VectorType {1.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
