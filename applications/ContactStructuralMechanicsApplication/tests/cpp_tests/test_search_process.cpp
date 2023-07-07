@@ -25,7 +25,6 @@
 
 namespace Kratos::Testing
 {
-typedef Node NodeType;
 
 // void GiDIOSearchDebug(ModelPart& rModelPart)
 // {
@@ -80,11 +79,11 @@ void CreatePlaneCilynderProblemForSearch(
         x = dx * i;
         y = Slope * dx * i;
         id_node++;
-        NodeType::Pointer p_node_1 = r_contact_model_part.CreateNewNode(id_node, x , y , 0.0);
+        Node::Pointer p_node_1 = r_contact_model_part.CreateNewNode(id_node, x , y , 0.0);
         p_node_1->Set(SLAVE, true);
         p_node_1->Set(MASTER, false);
         id_node++;
-        NodeType::Pointer p_node_2 = r_contact_model_part.CreateNewNode(id_node, x , y , 1.0);
+        Node::Pointer p_node_2 = r_contact_model_part.CreateNewNode(id_node, x , y , 1.0);
         p_node_2->Set(SLAVE, true);
         p_node_2->Set(MASTER, false);
     }
@@ -108,11 +107,11 @@ void CreatePlaneCilynderProblemForSearch(
         x = Radius * std::sin(count * dtheta);
         y = Radius * (1.0 - std::cos(count * dtheta));
         id_node++;
-        NodeType::Pointer p_node_1 = r_contact_model_part.CreateNewNode(id_node, x, y , 0.0);
+        Node::Pointer p_node_1 = r_contact_model_part.CreateNewNode(id_node, x, y , 0.0);
         p_node_1->Set(SLAVE, false);
         p_node_1->Set(MASTER, true);
         id_node++;
-        NodeType::Pointer p_node_2 = r_contact_model_part.CreateNewNode(id_node, x, y , 1.0);
+        Node::Pointer p_node_2 = r_contact_model_part.CreateNewNode(id_node, x, y , 1.0);
         p_node_2->Set(SLAVE, false);
         p_node_2->Set(MASTER, true);
         count++;

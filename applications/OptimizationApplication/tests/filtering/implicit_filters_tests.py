@@ -192,6 +192,11 @@ class HelmholtzAnalysisTest(TestCase):
 
 
     def test_scalar_solid_filter(self):
+        # initialization of the filter done here so that filtering radius is set.
+        # Since, some of the filters use the same model part, the process info is shared
+        # hence it is required to change the filter radius based on the filter type
+        # to get the expected result.
+        self.solid_scalar_filter.Initialize()
 
         unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.solid_model_part)
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, 1.0)
@@ -217,6 +222,11 @@ class HelmholtzAnalysisTest(TestCase):
         self.solid_scalar_filter.Finalize()
 
     def test_vector_solid_filter(self):
+        # initialization of the filter done here so that filtering radius is set.
+        # Since, some of the filters use the same model part, the process info is shared
+        # hence it is required to change the filter radius based on the filter type
+        # to get the expected result.
+        self.solid_vector_filter.Initialize()
 
         unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.solid_model_part)
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
@@ -242,6 +252,11 @@ class HelmholtzAnalysisTest(TestCase):
         self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 6.48074, 4)
 
     def test_scalar_shell_filter(self):
+        # initialization of the filter done here so that filtering radius is set.
+        # Since, some of the filters use the same model part, the process info is shared
+        # hence it is required to change the filter radius based on the filter type
+        # to get the expected result.
+        self.shell_scalar_filter.Initialize()
 
         unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.shell_model_part)
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, 1.0)
@@ -267,6 +282,11 @@ class HelmholtzAnalysisTest(TestCase):
         self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 3.0, 4)
 
     def test_scalar_closed_shell_filter(self):
+        # initialization of the filter done here so that filtering radius is set.
+        # Since, some of the filters use the same model part, the process info is shared
+        # hence it is required to change the filter radius based on the filter type
+        # to get the expected result.
+        self.closed_shell_scalar_filter.Initialize()
 
         unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.closed_shell_model_part)
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, 1.0)
@@ -290,6 +310,11 @@ class HelmholtzAnalysisTest(TestCase):
         self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 2.8284271247, 4)
 
     def test_vector_shell_filter(self):
+        # initialization of the filter done here so that filtering radius is set.
+        # Since, some of the filters use the same model part, the process info is shared
+        # hence it is required to change the filter radius based on the filter type
+        # to get the expected result.
+        self.shell_vector_filter.Initialize()
 
         unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.shell_model_part)
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
@@ -317,6 +342,11 @@ class HelmholtzAnalysisTest(TestCase):
         self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 5.1961524, 4)
 
     def test_bulk_surface_shape(self):
+        # initialization of the filter done here so that filtering radius is set.
+        # Since, some of the filters use the same model part, the process info is shared
+        # hence it is required to change the filter radius based on the filter type
+        # to get the expected result.
+        self.bulk_surface_filter.Initialize()
 
         unfiltered_uniform_field_nodal = KM.Expression.NodalExpression(self.solid_model_part)
         KM.Expression.LiteralExpressionIO.SetData(unfiltered_uniform_field_nodal, KM.Array3([1, 1, 1]))
