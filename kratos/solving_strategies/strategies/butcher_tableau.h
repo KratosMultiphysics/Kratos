@@ -246,16 +246,12 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B(1);
-        B[0] = 1.0;
-        return B;
+        return VectorType {1.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C(1);
-        C[0] = 0.0;
-        return C;
+        return VectorType {0.0};
     }
 
     static std::string Name()
@@ -284,18 +280,12 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B(2);
-        B[0] = 0.0;
-        B[1] = 1.0;
-        return B;
+        return VectorType {0.0, 1.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C(2);
-        C[0] = 0.0;
-        C[1] = 0.5;
-        return C;
+        return VectorType {0.0, 0.5};
     }
 
     static std::string Name()
@@ -332,20 +322,16 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B(3);
-        B[0] = 1.0 / 6.0;
-        B[1] = 1.0 / 6.0;
-        B[2] = 2.0 / 3.0;
-        return B;
+        return VectorType {1.0 / 6.0,
+                           1.0 / 6.0,
+                           2.0 / 3.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C(3);
-        C[0] = 0.0;
-        C[1] = 1.0;
-        C[2] = 0.5;
-        return C;
+        return VectorType {0.0,
+                           1.0,
+                           0.5};
     }
 
     static std::string Name()
@@ -375,22 +361,18 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B(4);
-        B[0] = 1.0 / 6.0;
-        B[1] = 1.0 / 3.0;
-        B[2] = 1.0 / 3.0;
-        B[3] = 1.0 / 6.0;
-        return B;
+        return VectorType {1.0 / 6.0,
+                           1.0 / 3.0,
+                           1.0 / 3.0,
+                           1.0 / 6.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C(4);
-        C[0] = 0.0;
-        C[1] = 0.5;
-        C[2] = 0.5;
-        C[3] = 1.0;
-        return C;
+        return VectorType {0.0,
+                           0.5,
+                           0.5,
+                           1.0};
     }
 
     static std::string Name()
