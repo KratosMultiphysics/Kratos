@@ -7,24 +7,30 @@ import importlib
 import KratosMultiphysics
 
 class Project:
+    '''Kratos Multiphysics multistage project container.
+
+    This class has two main purposes. First one is to hold the multistage components (output data, active stages and model)
+    Second one is to perform the checkpoint save and load operations.
+    
+    Member variables:
+    __settings -- Kratos parameters object with the multistage simulation settings
+    __output_data -- Dictionary containing the stages data retrieved from GetFinalData
+    __active_stages -- Dictionary containing the active (alive) stage instances
+    __model -- Model instance
+    '''
 
     def __init__(self, settings : KratosMultiphysics.Parameters) -> None:
-        '''Kratos Multiphysics multistage project container
+        '''Constructs the multistage project container instance and sets current Kratos version in the settings.'''
 
-        This class has two main purposes. First one is to hold the multistage components (output data, active stages and model)
-        Second one is to perform the checkpoint save and load operations.
-        
-        Member variables:
-        __settings -- Kratos parameters object with the multistage simulation settings
-        __output_data -- Dictionary containing the stages data retrieved from GetFinalData
-        __active_stages -- Dictionary containing the active (alive) stage instances
-        __model -- Model instance
-        '''
-
+        # Declare member variables
         self.__output_data = {}
         self.__active_stages = {}
         self.__settings = settings
         self.__model = KratosMultiphysics.Model()
+
+        # Add Kratos version and compilation to settings
+        kratos_version = f"{KratosMultiphysics.KratosGlobals.Kernel.Version()}-{KratosMultiphysics.KratosGlobals.Kernel.BuildType()}"
+        self.__settings.AddString("kratos_version", kratos_version)
 
     def GetModel(self):
         '''Returns the current multistage simulation model.'''
