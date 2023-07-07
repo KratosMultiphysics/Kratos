@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Eduard Gomez
 //
@@ -13,16 +13,15 @@
 
 #pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "containers/array_1d.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -70,15 +69,15 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<double> VectorType;
+    using VectorType = std::vector<double>;
 
     /* Using the following constructs allows us to multiply parts of vectors with parts of matrices
      * while avoiding BOOST's size checks. This is useful to skip multiplications by zero, since
      * for all explicit runge-kutta methods a_ij = 0 for i>j
      */
 
-    typedef std::vector<double> RowType;
-    typedef std::vector<RowType> MatrixType;
+    using RowType = std::vector<double>;
+    using MatrixType = std::vector<RowType>;
 
     static constexpr unsigned int Order() {return TOrder;}
     static constexpr unsigned int SubstepCount() {return TSubstepCount; }
