@@ -15,6 +15,7 @@
 // System includes
 #include <algorithm>
 #include <type_traits>
+#include <variant>
 
 // Project includes
 #include "containers/array_1d.h"
@@ -23,6 +24,16 @@
 
 namespace Kratos
 {
+
+using SupportedDataType = std::variant<
+                        int,
+                        double,
+                        array_1d<double, 3>,
+                        array_1d<double, 4>,
+                        array_1d<double, 6>,
+                        array_1d<double, 9>,
+                        Vector,
+                        Matrix>;
 
 template<class TDataType>
 struct DataTypeTraits
@@ -210,23 +221,34 @@ struct DataTypeTraits<Vector>
         DataType& rValue,
         const DataCommunicator& rDataCommunicator)
     {
+        KRATOS_TRY
+
         // first communicate all the sizes
         const int world_size = rDataCommunicator.Size();
-        std::vector<int> local_size(1UL, rValue.size());
-        std::vector<int> sizes(world_size);
+        std::vector<unsigned int> local_size(1UL, rValue.size());
+        std::vector<unsigned int> sizes(world_size);
         rDataCommunicator.AllGather(local_size, sizes);
 
+        bool is_resized = false;
         if (rValue.size() == 0) {
             // now find non zero size to set this ranks empty vector
             for (const auto size : sizes) {
                 if (size > 0) {
                     rValue.resize(size, false);
-                    return true;
+                    is_resized = true;
+                    break;
                 }
             }
         }
 
-        return false;
+        // check all sizes in all ranks
+        KRATOS_ERROR_IF(std::all_of(sizes.begin(), sizes.end(), [&rValue](const auto Size) {
+            return Size == 0 || (Size > 0 && Size == rValue.size());
+        })) << "All the ranks should have the same vector size.\n";
+
+        return is_resized;
+
+        KRATOS_CATCH("");
     }
 
     static void FillToVector(
@@ -298,22 +320,33 @@ struct DataTypeTraits<Matrix>
         DataType& rValue,
         const DataCommunicator& rDataCommunicator)
     {
-        // first communicate all the sizes
-        const int world_size = rDataCommunicator.Size();
-        std::vector<std::vector<int>> sizes(world_size);
-        sizes = rDataCommunicator.AllGatherv(std::vector<int>{static_cast<int>(rValue.size1()), static_cast<int>(rValue.size2())});
+        KRATOS_TRY
 
+        // first communicate all the sizes
+        const unsigned int world_size = rDataCommunicator.Size();
+        std::vector<std::vector<unsigned int>> sizes(world_size);
+        sizes = rDataCommunicator.AllGatherv(std::vector<unsigned int>{static_cast<unsigned int>(rValue.size1()), static_cast<unsigned int>(rValue.size2())});
+
+        bool is_resized = false;
         if (rValue.size1() == 0 || rValue.size2() == 0) {
             // now find non zero size to set this ranks empty vector
             for (const auto& size_info : sizes) {
                 if (size_info[0] > 0 && size_info[1] > 0) {
                     rValue.resize(size_info[0], size_info[1], false);
-                    return true;
+                    is_resized = true;
+                    break;
                 }
             }
         }
 
-        return false;
+        // check all sizes in all ranks
+        KRATOS_ERROR_IF(std::all_of(sizes.begin(), sizes.end(), [&rValue](const auto SizeInfo) {
+            return SizeInfo[0] == 0 || SizeInfo[1] == 0 || (SizeInfo[0] > 0 && SizeInfo[0] == rValue.size1() && SizeInfo[1] == rValue.size2());
+        })) << "All the ranks should have the same matrix size.\n";
+
+        return is_resized;
+
+        KRATOS_CATCH("");
     }
 
     static void FillToVector(
@@ -385,23 +418,34 @@ struct DataTypeTraits<std::vector<TDataType>>
         DataType& rValue,
         const DataCommunicator& rDataCommunicator)
     {
+        KRATOS_TRY
+
         // first communicate all the sizes
         const int world_size = rDataCommunicator.Size();
-        std::vector<int> local_size(1UL, rValue.size());
-        std::vector<int> sizes(world_size);
+        std::vector<unsigned int> local_size(1UL, rValue.size());
+        std::vector<unsigned int> sizes(world_size);
         rDataCommunicator.AllGather(local_size, sizes);
 
+        bool is_resized = false;
         if (rValue.size() == 0) {
             // now find non zero size to set this ranks empty vector
             for (const auto size : sizes) {
                 if (size > 0) {
                     rValue.resize(size, false);
-                    return true;
+                    is_resized = true;
+                    break;
                 }
             }
         }
 
-        return false;
+        // check all sizes in all ranks
+        KRATOS_ERROR_IF(std::all_of(sizes.begin(), sizes.end(), [&rValue](const auto Size) {
+            return Size == 0 || (Size > 0 && Size == rValue.size());
+        })) << "All the ranks should have the same vector size.\n";
+
+        return is_resized;
+
+        KRATOS_CATCH("");
     }
 
     static void FillToVector(
