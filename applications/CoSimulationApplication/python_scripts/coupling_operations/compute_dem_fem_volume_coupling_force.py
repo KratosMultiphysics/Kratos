@@ -24,7 +24,7 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
         self.step=0
         self.timesteps=self.force_end_time/self.dt
         self.max_force=0.025
-        self.force_slope=self.max_force/self.timesteps # to reach max force iwithin force_end_time
+        self.force_slope=self.max_force/self.timesteps # to reach max force within force_end_time
 
 
     def InitializeCouplingIteration(self):

@@ -19,7 +19,7 @@ class ComputeDemMomentum(CoSimulationCouplingOperation):
         self.model_part = self.model[self.model_part_name]
   
 
-    def InitializeCouplingIteration(self): # currently total lagrange method
+    def InitializeCouplingIteration(self): # currently total lagrange method , linear momentum contains mass x displacement
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(KM.LINEAR_MOMENTUM, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.DISPLACEMENT))
 
@@ -28,7 +28,7 @@ class ComputeDemMomentum(CoSimulationCouplingOperation):
         for node in self.model_part.Nodes:
             if node.Id in node_ids:
                 node.SetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE, [0,0.025,0])
-            #node.SetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE, node.GetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE)* node.GetSolutionStepValue(KM.NODAL_MASS))
+            #node.SetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE, node.GetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE)* node.GetSolutionStepValue(KM.NODAL_MASS)) # if nodal mass needs to be multiplied with external applied force
 
     @classmethod
     def _GetDefaultParameters(cls):
