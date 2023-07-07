@@ -65,6 +65,11 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }
+            },
+            "scale_factor_parameters" : {
+                "manual_scale_factor"         : false,
+                "stiffness_factor"            : 1.0,
+                "scale_factor"                : 1.0e0
             }
         }
         """)
@@ -106,6 +111,17 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
 
         # We call to the base process
         super().ExecuteInitialize()
+
+        # Scale factor settings
+        if self.mesh_tying_settings["scale_factor_parameters"]["manual_scale_factor"].GetBool():
+            self.scale_factor = self.mesh_tying_settings["scale_factor_parameters"]["scale_factor"].GetDouble()
+        else:
+            scale_factor_var_parameters = KM.Parameters("""{
+                "compute_penalty"      : false
+            }""")
+            scale_factor_var_parameters.AddValue("stiffness_factor", self.mesh_tying_settings["scale_factor_parameters"]["stiffness_factor"])
+            self.scale_factor_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, scale_factor_var_parameters)
+            self.scale_factor_process.Execute()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
