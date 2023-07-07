@@ -269,6 +269,7 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
     // Get material properties
     double kN     = rVariables.NormalStiffness;
     double kS     = rVariables.ShearStiffness;
+    double c      = rVariables.Cohesion;
     double ft     = rVariables.TensileStrength;
     double tanPhi = std::tan(rVariables.FrictionAngle);
     double tanPsi = std::tan(rVariables.DilatancyAngle);
@@ -285,7 +286,10 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
     Flags& Options = rValues.GetOptions();
 
     // Initialize the traction vector with the trial elastic test
-    rStressVector = TrialStressVector;                             
+    rStressVector = TrialStressVector;             
+
+    // Get the shear resultant
+    double ts = this->GetShearResultantStressVector(rStressVector);                
     
     // Compute the normal to the plastic potential surface (np) and its derivative wrt to the stress vector
     this->DerivativesPlasticPotentialSurface(rStressVector, rVariables, rEPlasticVariables, rValues);
@@ -293,8 +297,11 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
     // Compute the normal to the yield surface (n)
     this->DerivativesYieldSurface(rStressVector, rVariables, rEPlasticVariables, rValues);
 
+    // Compute the value of the normal traction at the intersection between the two surfaces
+    double ts_intersection = c - ft*tanPhi;
+
     // Return mapping    
-    if((rEPlasticVariables.YieldFunction_MC < 0.0) && (rEPlasticVariables.YieldFunction_CutOff > 0.0)){ // -------------- Return to the cut-off surface
+    if((std::abs(ts) < ts_intersection) && (rEPlasticVariables.YieldFunction_CutOff > 0.0)){ // -------------- Return to the cut-off surface
 
         // Compute the plastic multiplier
         PlasticMultiplier_TC = rEPlasticVariables.YieldFunction_CutOff / kN;
@@ -348,6 +355,7 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
         // Update the normal component of the traction vector
         noalias(Tel_np) = prod(ElasticConstitutiveMatrix, dep);
         rStressVector -= Tel_np;
+        KRATOS_WATCH(rStressVector)
 
         // Update the current plastic displacement jumps
         mPlasticStrainVector = mOldPlasticStrainVector + dep;
