@@ -72,5 +72,7 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
                     raise RuntimeError(f"The specified analysis model part name mismatch [ specified analysis model part name = {self.analysis_model_part_name}, used analysis model part name = {self.current_analysis._GetSolver().GetComputingModelPart().FullName()} ].")
             elif isinstance(self.current_analysis, MultistageOrchestrator):
                 return self.current_analysis.GetProject().GetModel()[self.analysis_model_part_name]
+            else:
+                raise RuntimeError(f"Unsupported analysis type = {self.current_analysis}.")
         else:
             raise RuntimeError("The analysis is not run yet.")
