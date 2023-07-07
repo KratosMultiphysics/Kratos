@@ -13,7 +13,7 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
             "name"                 : "test",
             "type": "independent_analysis_execution_policy",
             "settings": {
-                "analysis_type"    : "MultistageAnalysis",
+                "analysis_type"    : "SequentialMultistageOrchestrator",
                 "analysis_settings": {
                     "stages": [],
                     "execution_list":[]

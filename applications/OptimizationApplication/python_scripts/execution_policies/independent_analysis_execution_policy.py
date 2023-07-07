@@ -3,7 +3,7 @@ from importlib import import_module
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
-from KratosMultiphysics.multistage_analysis import MultistageAnalysis
+from KratosMultiphysics.multistage_orchestrators.sequential_multistage_orchestrator import SequentialMultistageOrchestrator
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
 
