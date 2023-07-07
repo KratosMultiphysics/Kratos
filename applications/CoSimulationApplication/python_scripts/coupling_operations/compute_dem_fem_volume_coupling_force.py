@@ -5,6 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as SMA
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
+import math
 
 def Create(*args):
     return ComputeNodalCouplingForce(*args)
@@ -16,39 +17,73 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
         self.model = solver_wrappers[self.settings["solver"].GetString()].model
         self.model_part_name = self.settings["model_part_name"].GetString()
         self.model_part = self.model[self.model_part_name]
-        self.penalty = self.settings["penalty"].GetDouble()  
+        self.penalty_max = self.settings["penalty_max"].GetDouble()  
         self.dt= self.settings["timestep"].GetDouble() 
+        self.force_end_time= self.settings["force_end_time"].GetDouble() 
+        self.tolerance= self.settings["velocity_tolerance"].GetDouble() 
+        self.step=0
+        self.timesteps=self.force_end_time/self.dt
+        self.max_force=0.025
+        self.force_slope=self.max_force/self.timesteps # to reach max force iwithin force_end_time
 
 
     def InitializeCouplingIteration(self):
 
-        for node in self.model_part.Nodes: 
+
+        self.step+=1
+        pointload=min(self.force_slope*self.step,self.max_force) # gradually increasing point load
+
+        node_ids = [1,2,3,4]  # for assigning point loads to the top nodes
+
+        for node in self.model_part.Nodes:  
+          
+                if node.Id in node_ids:   # assigning point loads
+
+                    node.SetSolutionStepValue(SMA.POINT_LOAD,[0,-pointload,0])
+                    print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD))
+                     
                 total_mass = node.GetSolutionStepValue(KM.NODAL_MAUX)
-                if(total_mass!=0): 
-                    velocity_dem = node.GetSolutionStepValue(KM.LINEAR_MOMENTUM) / total_mass
-                    node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, self.dt * (velocity_dem - node.GetSolutionStepValue(KM.VELOCITY)))
-                    body_force_density= node.GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)* self.penalty* -1
-                    node.SetSolutionStepValue(KM.VOLUME_ACCELERATION, node.GetSolutionStepValue(KM.VOLUME_ACCELERATION) + body_force_density)
+
+                if(total_mass!=0): # check for hybrid region
+                    node.SetSolutionStepValue(SMA.POINT_LOAD,[0,0,0]) #nodal coupling forces set to zero before every iteration
+                    node.SetSolutionStepValue(KM.VELOCITY_LAPLACIAN,[0,0,0]) # force to map to dem (set to zero before every iteration)
+                    Displacement_dem = node.GetSolutionStepValue(KM.LINEAR_MOMENTUM) / total_mass # total lagrange method- calculating homogenised displacement
+                    node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, Displacement_dem - node.GetSolutionStepValue(KM.DISPLACEMENT))# total lagrange method : calcualting displacement difference
 
         for elem in self.model_part.Elements:
              if(elem.GetNodes()[0].GetSolutionStepValue(KM.NODAL_MAUX))!=0:  
                 for i in range(elem.GetGeometry().IntegrationPointsNumber()): #gauss quadrature
-                    w = 1 #w = (elem.GetGeometry().IntegrationPoints[i].Weight())?
+                    w = 1 
                     J = (elem.GetGeometry().DeterminantOfJacobian(i))
                     shape_functions = elem.GetGeometry().ShapeFunctionsValues()
                     for n in range(len(elem.GetNodes())):
                         for m in range(len(elem.GetNodes())):
-                            vol = self.penalty * w * J * shape_functions[(i,n)] * shape_functions[(i,m)]
-                            elem.GetNodes()[n].SetSolutionStepValue(SMA.POINT_LOAD, elem.GetNodes()[n].GetSolutionStepValue(SMA.POINT_LOAD) + vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT))  
+                            vol = self.penalty_max * w * J * shape_functions[(i,n)] * shape_functions[(i,m)]
+                            elem.GetNodes()[n].SetSolutionStepValue(SMA.POINT_LOAD, elem.GetNodes()[n].GetSolutionStepValue(SMA.POINT_LOAD) + 2* vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT))
+                            if(elem.GetNodes()[n].GetSolutionStepValue(KM.NODAL_MAUX))>0.002: # mass of one particle is 0.00131kg, checking if the node has contribution from 2 elements
+                                 elem.GetNodes()[n].SetSolutionStepValue(KM.VELOCITY_LAPLACIAN,elem.GetNodes()[n].GetSolutionStepValue(KM.VELOCITY_LAPLACIAN) - vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)) #storing force to map to dem 
+                            else:
+                                 elem.GetNodes()[n].SetSolutionStepValue(KM.VELOCITY_LAPLACIAN,elem.GetNodes()[n].GetSolutionStepValue(KM.VELOCITY_LAPLACIAN) - 2 * vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)) #storing force to map to dem   
+     
+        print("After calculation of point loads")
+        for node in self.model_part.Nodes: 
+                print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD)) 
 
+        print(self.model_part.NumberOfConditions(0))
 
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"                : "UNSPECIFIED",
             "model_part_name"       : "",
-            "penalty"               : 1e5,
-            "timestep"              : 1e-5
+            "penalty_max"           : 1e11,
+            "timestep"              : 1e-5,
+            "force_end_time"        : 1e-1,
+            "velocity_tolerance"    : 1e-6
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
+
+
+
+

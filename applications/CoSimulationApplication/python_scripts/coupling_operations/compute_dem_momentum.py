@@ -19,10 +19,16 @@ class ComputeDemMomentum(CoSimulationCouplingOperation):
         self.model_part = self.model[self.model_part_name]
   
 
-    def InitializeCouplingIteration(self):
+    def InitializeCouplingIteration(self): # currently total lagrange method
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.LINEAR_MOMENTUM, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.VELOCITY))
+            node.SetSolutionStepValue(KM.LINEAR_MOMENTUM, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.DISPLACEMENT))
 
+    def FinalizeCouplingIteration(self):
+        node_ids = [22,40,47,52] # for assigning loads to the bottom nodes
+        for node in self.model_part.Nodes:
+            if node.Id in node_ids:
+                node.SetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE, [0,0.025,0])
+            #node.SetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE, node.GetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE)* node.GetSolutionStepValue(KM.NODAL_MASS))
 
     @classmethod
     def _GetDefaultParameters(cls):
