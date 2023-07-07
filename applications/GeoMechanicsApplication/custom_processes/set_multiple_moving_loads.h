@@ -83,9 +83,9 @@ namespace Kratos {
         ///@name Member Variables
         ///@{
 
-	        ModelPart& mrModelPart;
-	        Parameters mParameters;
-	        std::vector<SetMovingLoadProcess> mMovingPointLoadsProcesses;
+            ModelPart& mrModelPart;
+            Parameters mParameters;
+            unique_ptr<std::vector<SetMovingLoadProcess>> mMovingPointLoadsProcesses;
         ///@}
         ///
         ///@name Operations
@@ -93,13 +93,13 @@ namespace Kratos {
         
         /**
         * \brief Clones condition into a new sub body part of the compute model part
-    	*/
-			ModelPart& CloneMovingConditionInComputeModelPart(const std::string& NewBodyPartName);
+        */
+            ModelPart& CloneMovingConditionInComputeModelPart(const std::string& NewBodyPartName);
 
         /**
         * \brief Get maximum index of current conditions in root
         */
-			int GetMaxConditionsIndex();
+            int GetMaxConditionsIndex();
 
         /**
         * \brief Remove cloned conditions as they are not executed
@@ -108,4 +108,4 @@ namespace Kratos {
 
         ///@}
     };
-	}
+    }
