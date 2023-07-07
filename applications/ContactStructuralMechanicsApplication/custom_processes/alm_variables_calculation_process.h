@@ -87,8 +87,11 @@ public:
 
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
+        // Assign members variables from parameters
         mFactorStiffness = ThisParameters["stiffness_factor"].GetDouble();
         mPenaltyScale = ThisParameters["penalty_scale_factor"].GetDouble();
+        mComputeScaleFactor = ThisParameters["compute_scale_factor"].GetBool();
+        mComputePenalty = ThisParameters["compute_penalty"].GetBool();
 
         KRATOS_ERROR_IF_NOT(rThisModelPart.HasNodalSolutionStepVariable( rNodalLengthVariable )) << "Missing variable " << rNodalLengthVariable;
 
@@ -96,8 +99,7 @@ public:
     }
 
     /// Destructor.
-    ~ALMVariablesCalculationProcess() override
-    = default;
+    ~ALMVariablesCalculationProcess() override = default;
 
     ///@}
     ///@name Access
@@ -108,17 +110,12 @@ public:
     ///@{
 
     ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
     ///@name Operators
     ///@{
 
+    /**
+     * @brief Executes the process
+     */
     void operator()()
     {
         Execute();
@@ -128,6 +125,9 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Executes the process
+     */
     void Execute() override;
 
     /**
@@ -137,8 +137,10 @@ public:
     {
         const Parameters default_parameters = Parameters(R"(
         {
-            "stiffness_factor"                     : 10.0,
-            "penalty_scale_factor"                 : 1.0
+            "stiffness_factor"     : 10.0,
+            "penalty_scale_factor" : 1.0,
+            "compute_scale_factor" : true,
+            "compute_penalty"      : true
         })" );
 
         return default_parameters;
@@ -148,11 +150,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -176,10 +176,6 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -188,10 +184,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;              // The main model part
-    Variable<double>& mrNodalLengthVariable; // The variable used to messure the lenght of the element
-    double mFactorStiffness;                 // The proportion between stiffness and penalty/scale factor
-    double mPenaltyScale;                    // The penalty/scale factor proportion
+    ModelPart& mrThisModelPart;              /// The main model part
+    Variable<double>& mrNodalLengthVariable; /// The variable used to messure the lenght of the element
+    double mFactorStiffness;                 /// The proportion between stiffness and penalty/scale factor
+    double mPenaltyScale;                    /// The penalty/scale factor proportion
+    bool mComputeScaleFactor;                /// If compute the scale factor
+    bool mComputePenalty;                    /// If compute the penalty
 
     ///@}
     ///@name Private Operators
@@ -224,28 +222,26 @@ private:
 }; // Class ALMVariablesCalculationProcess
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
 /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   ALMVariablesCalculationProcess& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ALMVariablesCalculationProcess& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
+inline std::istream& operator >> (std::istream& rIStream,
+                                  ALMVariablesCalculationProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const ALMVariablesCalculationProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 }
