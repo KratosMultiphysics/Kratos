@@ -122,11 +122,13 @@ public:
 
     RowType::const_iterator GetMatrixRowBegin(const unsigned int SubStepIndex) const noexcept
     {
+        KRATOS_DEBUG_ERROR_IF(SubStepIndex == 0) << "Provided substep is 0. This must be greater than or equal to 1." << std::endl;
         return mA[SubStepIndex - 1].begin();
     }
 
     RowType::const_iterator GetMatrixRowEnd(const unsigned int SubStepIndex) const noexcept
     {
+        KRATOS_DEBUG_ERROR_IF(SubStepIndex == 0) << "Provided substep is 0. This must be greater than or equal to 1." << std::endl;
         return mA[SubStepIndex - 1].begin() + SubStepIndex;
     }
 
@@ -137,6 +139,7 @@ public:
 
     constexpr double GetIntegrationTheta(const unsigned int SubStepIndex) const
     {
+        KRATOS_DEBUG_ERROR_IF(SubStepIndex == 0) << "Provided substep is 0. This must be greater than or equal to 1." << std::endl;
         return mC[SubStepIndex - 1];
     }
 
