@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 from KratosMultiphysics import mpi, Tester
 
@@ -18,10 +19,16 @@ def main():
 
     if args.match_string:
         Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)
-        Tester.RunTestCases(args.match_string)
+        return Tester.RunTestCases(args.match_string)
     else:
         Tester.SetVerbosity(Tester.Verbosity.TESTS_LIST)
-        Tester.RunTestSuite("KratosMPICoreFastSuite")
+        return Tester.RunAllDistributedTestCases()
 
 if __name__ == '__main__':
-    main()
+    try:
+        exit_code = main()
+    except Exception as e:
+        print('[Error]:', e, file=sys.stderr)
+        exit_code = 1
+
+    sys.exit(exit_code)

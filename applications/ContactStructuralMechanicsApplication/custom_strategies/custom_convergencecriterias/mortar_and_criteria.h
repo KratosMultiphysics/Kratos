@@ -69,31 +69,31 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( CONDITION_NUMBER_IS_INITIALIZED );
 
     /// The base convergence criteria class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
+    using ConvergenceCriteriaBaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The base class definition
-    typedef And_Criteria< TSparseSpace, TDenseSpace >                           BaseType;
+    using BaseType = And_Criteria<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef MortarAndConvergenceCriteria< TSparseSpace, TDenseSpace >          ClassType;
+    using ClassType = MortarAndConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType                               DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// The table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    using TablePrinterPointerType = TableStreamUtility::Pointer;
 
     /// The index type definition
-    typedef std::size_t                                                        IndexType;
+    using IndexType = std::size_t;
 
     /// The condition number utility pointer definition
-    typedef ConditionNumberUtility::Pointer            ConditionNumberUtilityPointerType;
+    using ConditionNumberUtilityPointerType = ConditionNumberUtility::Pointer;
 
     ///@}
     ///@name Life Cycle

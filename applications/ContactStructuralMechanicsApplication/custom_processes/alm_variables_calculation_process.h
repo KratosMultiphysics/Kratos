@@ -57,22 +57,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ALMVariablesCalculationProcess);
 
     /// Size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// Index type definition
-    typedef std::size_t IndexType;
-
-    /// Node type definition
-    typedef Node NodeType;
+    using IndexType= std::size_t;
 
     /// Geometry type definition
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// Nodes container definition
-    typedef ModelPart::NodesContainerType NodesArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
 
     /// Conditions container definition
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -182,49 +179,10 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -243,16 +201,13 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -263,7 +218,6 @@ private:
 
     /// Copy constructor.
     //ALMVariablesCalculationProcess(ALMVariablesCalculationProcess const& rOther);
-
 
     ///@}
 

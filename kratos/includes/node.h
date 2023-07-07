@@ -39,8 +39,6 @@
 namespace Kratos
 {
 
-class Element;
-
 ///@name Kratos Globals
 ///@{
 

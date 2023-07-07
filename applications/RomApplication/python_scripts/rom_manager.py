@@ -175,7 +175,7 @@ class RomManager(object):
             raise Exception(err_msg)
         self.__LaunchRunROM(mu_run)
 
-    def RunHROM(self, mu_run=[None]):
+    def RunHROM(self, mu_run=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         #######################
         ######  Galerkin ######
@@ -192,8 +192,7 @@ class RomManager(object):
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self.__LaunchRunHROM(mu_run)
-
+        self.__LaunchRunHROM(mu_run, use_full_model_part)
 
 
     def PrintErrors(self):
@@ -460,12 +459,15 @@ class RomManager(object):
             simulation.Run()
 
 
-    def __LaunchRunHROM(self, mu_run):
+    def __LaunchRunHROM(self, mu_run, use_full_model_part):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
+        if not use_full_model_part:
+            model_part_name = parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+            parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
 
         for Id, mu in enumerate(mu_run):
             parameters = self.UpdateProjectParameters(parameters, mu)
@@ -476,7 +478,6 @@ class RomManager(object):
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
-
 
 
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
