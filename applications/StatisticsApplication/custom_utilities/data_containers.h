@@ -95,7 +95,7 @@ public:
         }
     }
 
-    int GetId(const IndexType EntityIndex) const
+    unsigned int GetId(const IndexType EntityIndex) const
     {
         if constexpr(TDataLocation == DataLocation::NodeHistorical || TDataLocation == DataLocation::NodeNonHistorical) {
             return (mrMesh.NodesBegin() + EntityIndex)->GetId();
@@ -183,7 +183,7 @@ public:
         }
     }
 
-    int GetId(const IndexType EntityIndex) const
+    unsigned int GetId(const IndexType EntityIndex) const
     {
         if constexpr(TDataLocation == DataLocation::NodeHistorical || TDataLocation == DataLocation::NodeNonHistorical) {
             return (mrMesh.NodesBegin() + EntityIndex)->GetId();
@@ -242,7 +242,7 @@ public:
         mVariableExpressionDataIO.Assign(rOutputValue, *mpExpression, EntityIndex);
     }
 
-    int GetId(const IndexType EntityIndex) const
+    unsigned int GetId(const IndexType EntityIndex) const
     {
         return EntityIndex;
     }
