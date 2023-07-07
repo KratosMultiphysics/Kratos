@@ -417,11 +417,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -460,18 +456,6 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -488,29 +472,6 @@ private:
     double mRotRatioTolerance; /// The ratio threshold for the norm of the rotation
     double mRotAbsTolerance;   /// The absolute value threshold for the norm of the rotation
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
     ///@}
 };  // Kratos DisplacementContactCriteria
 
