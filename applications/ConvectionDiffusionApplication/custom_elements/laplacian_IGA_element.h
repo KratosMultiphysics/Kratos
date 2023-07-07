@@ -46,7 +46,7 @@ namespace Kratos
 ///@{
 
 template<std::size_t TDim>
-class LaplacianIGAElement : public LaplacianElement
+class LaplacianIGAElement : public Element
 {
 public:
     ///@name Type Definitions
@@ -55,7 +55,7 @@ public:
     /// Counted pointer of LaplacianIGAElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplacianIGAElement);
 
-    typedef LaplacianElement BaseType;
+    typedef Element BaseType;
 
     static constexpr std::size_t NumNodes = TDim + 1;
 
@@ -167,7 +167,7 @@ protected:
     ///@{
 
     // Protected default constructor necessary for serialization
-    LaplacianIGAElement() : LaplacianElement()
+    LaplacianIGAElement() : Element()
     {
     }
 
@@ -191,12 +191,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LaplacianElement);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LaplacianElement);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
 
     ///@}

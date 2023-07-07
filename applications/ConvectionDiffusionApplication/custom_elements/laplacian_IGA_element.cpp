@@ -33,7 +33,7 @@ template<std::size_t TDim>
 LaplacianIGAElement<TDim>::LaplacianIGAElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry)
-    : LaplacianElement(
+    : Element(
         NewId,
         pGeometry)
 {
@@ -44,7 +44,7 @@ LaplacianIGAElement<TDim>::LaplacianIGAElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties)
-    : LaplacianElement(
+    : Element(
         NewId,
         pGeometry,
         pProperties)
