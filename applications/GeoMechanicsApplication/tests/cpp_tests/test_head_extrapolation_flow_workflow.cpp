@@ -57,10 +57,10 @@ namespace Kratos
             auto projectFile = "ProjectParameters_1.json";
 
             auto execute = Kratos::KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
-                                                       0, 0, 0,
-                                                       "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                                       &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
+                                                     0, 0, 0,
+                                                     "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
 
@@ -77,10 +77,10 @@ namespace Kratos
             auto projectFile = "ProjectParameters_2.json";
 
             auto execute = Kratos::KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
-                                                       0, 0, 0,
-                                                       "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                                       &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
+                                                     0, 0, 0,
+                                                     "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
 
@@ -97,10 +97,10 @@ namespace Kratos
             auto projectFile = "ProjectParameters_3.json";
 
             auto execute = Kratos::KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
-                                                       0, 0, 0,
-                                                       "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                                       &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
+                                                     0, 0, 0,
+                                                     "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
 
@@ -117,10 +117,10 @@ namespace Kratos
             auto projectFile = "ProjectParameters_4.json";
 
             auto execute = Kratos::KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile,
-                                                       0, 0, 0,
-                                                       "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
-                                                       &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile,
+                                                     0, 0, 0,
+                                                     "", &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
 
