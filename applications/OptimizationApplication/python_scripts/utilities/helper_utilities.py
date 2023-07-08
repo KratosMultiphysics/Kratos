@@ -11,7 +11,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 def GetClassModuleFromKratos(full_class_name: str) -> str:
     sub_module_paths = full_class_name.split(".")
 
-    if len(sub_module_paths) == 0:
+    if not sub_module_paths:
         raise RuntimeError("Empty class names are not allowed.")
 
     relative_sub_module = Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(sub_module_paths[-1])
