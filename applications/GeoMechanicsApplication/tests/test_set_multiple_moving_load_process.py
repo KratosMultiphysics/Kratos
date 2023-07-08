@@ -34,7 +34,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         Returns
         -------
         """
-        
+
         if tols is None:
             tols = [None] * len(rhs)
         
