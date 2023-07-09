@@ -138,8 +138,8 @@ void ComputeWeightForAllNeighbors(
         const double filter_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rNeighbourNodes[i]->Coordinates(), Radius);
         double damping_multiplier = 1.0;
         if(rDampingNeighbourNodes.size()>0){
-            auto dist_vector = rNeighbourNodes[i]->Coordinates() - rDampingNeighbourNodes[i]->Coordinates();
-            double dist = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
+            const array_1d<double, 3>& dist_vector = rNeighbourNodes[i]->Coordinates() - rDampingNeighbourNodes[i]->Coordinates();
+            const double dist = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
             const double limit = std::log1p(std::numeric_limits<double>::max());
             double pow_val = -2.0 * std::numeric_limits<double>::max() * (dist - Radius);
             pow_val = std::clamp(pow_val, -limit, limit);
@@ -216,7 +216,7 @@ void ExplicitFilter<TContainerType>::ExplicitFilter::Update()
     mpSearchTree =  Kratos::make_shared<ExplicitFilter::KDTree>(mEntityPointVector.begin(), mEntityPointVector.end(), mBucketSize);
 
     // now make the tree for fixed model part
-    if (mpFixedModelPart!=nullptr){
+    if (mpFixedModelPart){
         const auto& r_f_container = ExplicitFilterHelperUtilities::GetContainer<TContainerType>(*mpFixedModelPart);
         if (mFixedModelPartEntityPointVector.size() != r_f_container.size()) {
             mFixedModelPartEntityPointVector.resize(r_f_container.size());
@@ -309,11 +309,12 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilte
                                             rTLS.mResultingSquaredDistances.begin(),
                                             mMaxNumberOfNeighbors);
 
-        if (mpFixedModelPart!=nullptr){
+        if (mpFixedModelPart){
             double rPointDistance = 0;
             rTLS.mDampingNeighbourEntityPoints.resize(rTLS.mNeighbourEntityPoints.size());
-            for (IndexType i = 0; i < number_of_neighbors; ++i)
+            for (IndexType i = 0; i < number_of_neighbors; ++i){
                 rTLS.mDampingNeighbourEntityPoints[i] = mpFixedModelPartSearchTree->SearchNearestPoint(*rTLS.mNeighbourEntityPoints[i],rPointDistance);
+            }
         }
 
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
@@ -356,9 +357,6 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::FilterIntegr
 template<class TContainerType>
 void ExplicitFilter<TContainerType>::GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const
 {
-    KRATOS_ERROR_IF_NOT(rContainerExpression.HasExpression())
-        << "Uninitialized container expression given. "
-        << rContainerExpression;
 
     KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
         << "The given container expression model part and filter model part mismatch.";
@@ -369,8 +367,8 @@ void ExplicitFilter<TContainerType>::GetIntegrationWeights(ContainerExpression<T
     rContainerExpression.SetExpression(p_expression);
 
     IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index){
-        EntityPoint<EntityType> entity(*(r_container.begin() + Index), Index);
-        auto integration_weight = ExplicitFilterHelperUtilities::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get());
+        const EntityPoint<EntityType> entity(*(r_container.begin() + Index), Index);
+        const auto integration_weight = ExplicitFilterHelperUtilities::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get());
         const IndexType current_data_begin = Index * stride;
         for (IndexType j = 0; j < stride; ++j) {
             double& current_index_value = *(p_expression->begin() + current_data_begin + j);
