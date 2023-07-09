@@ -41,12 +41,12 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         parameters.ValidateAndAssignDefaults(default_settings)
 
         self.model = model
-        self.model_part: Kratos.ModelPart = None
+        self.primal_model_part: Kratos.ModelPart = None
 
         evaluated_model_parts = [model[model_part_name] for model_part_name in parameters["evaluated_model_part_names"].GetStringArray()]
         if len(evaluated_model_parts) == 0:
             raise RuntimeError(f"No model parts were provided for LinearStrainEnergyResponseFunction. [ response name = \"{self.GetName()}\"]")
-        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_parts, False)
+        self.primal_model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_parts, False)
 
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
 
@@ -61,9 +61,9 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         return [Kratos.YOUNG_MODULUS]
 
     def Initialize(self) -> None:
-        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
-            KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
+        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.primal_model_part, "element_specific_properties_created"):
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements)
+            KratosOA.ModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
 
         with open(self.adjoint_analysis_file_name, 'r') as parameter_file:
             self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
@@ -71,40 +71,40 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         file = open(self.measurement_data_file)
         self.measurement_data = json.load(file)
 
-        ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
+        ModelPartUtilities.ExecuteOperationOnModelPart(self.primal_model_part)
 
-        self.sensor_positions_model_part = self.model.CreateModelPart("sensor_positions")
+        # self.sensor_positions_model_part = self.model.CreateModelPart("sensor_positions")
 
-        for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
+        # for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
 
-            point = Kratos.Point(sensor["position_of_mesh_node"])
-            search_configuration = Kratos.Configuration.Initial
-            search_tolerance = 1e-6
+        #     point = Kratos.Point(sensor["position_of_mesh_node"])
+        #     search_configuration = Kratos.Configuration.Initial
+        #     search_tolerance = 1e-6
 
-            point_locator = Kratos.BruteForcePointLocator(self.model_part)
+        #     point_locator = Kratos.BruteForcePointLocator(self.model_part)
 
-            found_node_id = point_locator.FindNode(
-                point, search_configuration, search_tolerance
-            )
+        #     found_node_id = point_locator.FindNode(
+        #         point, search_configuration, search_tolerance
+        #     )
 
-            sensor["mesh_node_id"] = found_node_id
-            # Add node to sensor_positions_model_part
-            self.sensor_positions_model_part.AddNode(self.model_part.GetNode(found_node_id))
+        #     sensor["mesh_node_id"] = found_node_id
+        #     # Add node to sensor_positions_model_part
+        #     self.sensor_positions_model_part.AddNode(self.model_part.GetNode(found_node_id))
 
         # Update measurement data file with newly added infos
-        with open(self.measurement_data_file, "w") as outfile:
-            json.dump(self.measurement_data, outfile)
+        # with open(self.measurement_data_file, "w") as outfile:
+        #     json.dump(self.measurement_data, outfile)
 
     def Check(self) -> None:
-        KratosOA.PropertiesVariableExpressionIO.Check(Kratos.Expression.ElementExpression(self.model_part), Kratos.YOUNG_MODULUS)
+        KratosOA.PropertiesVariableExpressionIO.Check(Kratos.Expression.ElementExpression(self.primal_model_part), Kratos.YOUNG_MODULUS)
 
     def Finalize(self) -> None:
         pass
 
     def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
-        if self.model_part is None:
+        if self.primal_model_part is None:
             raise RuntimeError("Please call MeasurementResidualResponseFunction::Initialize first.")
-        return self.model_part
+        return self.primal_model_part
 
     def GetAnalysisModelPart(self) -> Kratos.ModelPart:
         return self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
@@ -117,7 +117,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
             measured_displacement = sensor["measured_value"]
             measured_direction = Kratos.Array3(sensor["measurement_direction_normal"])
 
-            mesh_node = self.model_part.GetNode(sensor["mesh_node_id"])
+            mesh_node = self.primal_model_part.GetNode(sensor["mesh_node_id"])
             node_displacement = mesh_node.GetSolutionStepValue(Kratos.DISPLACEMENT)
             in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
 
@@ -132,7 +132,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 
         # now get the intersected model parts
-        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, True)
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.primal_model_part, merged_model_part_map, True)
 
         for variable, collective_expression in physical_variable_collective_expressions.items():
 
@@ -148,7 +148,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(adjoint_model_part, adjoint_model_part.Elements)
 
             # read primal E
-            primal_youngs_modulus = Kratos.Expression.ElementExpression(self.model_part)
+            primal_youngs_modulus = Kratos.Expression.ElementExpression(self.primal_model_part)
             KratosOA.PropertiesVariableExpressionIO.Read(primal_youngs_modulus, Kratos.YOUNG_MODULUS)
 
             # assign primal E to adjoint
@@ -194,12 +194,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 
         # now get the intersected model parts
-        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, True)
-
-        # with open("./primal_parameters.json", 'r') as parameter_file:
-        #     primal_parameters = Kratos.Parameters(parameter_file.read())
-
-        # primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.model, primal_parameters)
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.primal_model_part, merged_model_part_map, True)
 
         model_part = self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
 
@@ -227,99 +222,5 @@ class MeasurementResidualResponseFunction(ResponseFunction):
 
             return gradient
 
-    # def CalculateGradientWithFiniteDifferencing(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
-    #     merged_model_part_map = ModelPartUtilities.GetMergedMap(self.model_part, physical_variable_collective_expressions, False)
-    #     intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.GetAnalysisModelPart(), merged_model_part_map, True)
-
-    #     perturbation = 1e-6
-
-    #     with open("./primal_parameters_import_mdpa.json", 'r') as parameter_file:
-    #         primal_parameters = Kratos.Parameters(parameter_file.read())
-
-    #     for variable, collective_expression in physical_variable_collective_expressions.items():
-
-    #         reference_value = self.CalculateValue()
-
-    #         gradient = []
-    #         num_elements = len(self.model_part.GetElements())
-
-    #         for i in range(num_elements):
-
-    #             model_primal = Kratos.Model()
-    #             primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, primal_parameters)
-    #             model_part = model_primal.GetModelPart("Structure")
-    #             # print(model_part)
-    #             primal_analysis.Initialize()
-
-    #             element: Kratos.Element = model_part.GetElements()[i]
-
-    #             # model_part.AddProperties(Kratos.Properties.GetTable)
-
-    #             # for p in model_part.GetProperties():
-    #             #     print(p.GetValue(Kratos.YOUNG_MODULUS))
-    #             #     print(str(p))
-
-    #             print(element.Properties)
-    #             element.SetValue(Kratos.YOUNG_MODULUS, 0.0)
-
-    #             stiffness = element.Properties[Kratos.YOUNG_MODULUS]
-    #             element.Properties[Kratos.YOUNG_MODULUS] += perturbation
-    #             # element.SetValue(Kratos.YOUNG_MODULUS, stiffness + perturbation)
-    #             # print("E: ", stiffness, stiffness + perturbation)
-
-    #             primal_analysis.Run()
-    #             primal_analysis.Finalize()
-
-    #             objective_value = 0
-    #             for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
-    #                 measured_displacement = sensor["measured_value"]
-    #                 measured_direction = Kratos.Array3(sensor["measurement_direction_normal"])
-
-    #                 mesh_node = model_part.GetNode(sensor["mesh_node_id"])
-    #                 node_displacement = mesh_node.GetSolutionStepValue(Kratos.DISPLACEMENT)
-    #                 in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
-
-    #                 objective_value += (measured_displacement-in_measurement_direction_projected_vector)**2
-
-    #             objective_value *= 0.5 * 1/self.measurement_std
-
-    #             gradient.append((reference_value-objective_value)/perturbation)
-
-    #             # element.SetValue(Kratos.YOUNG_MODULUS, stiffness)
-    #             element.Properties[Kratos.YOUNG_MODULUS] = stiffness
-
-    #             # e1: Kratos.Element = element
-    #             # stiffness = e1.GetValue(Kratos.YOUNG_MODULUS)
-    #             # print("E: ", stiffness)
-    #             # e1.SetValue(Kratos.YOUNG_MODULUS, stiffness + perturbation)
-
-    #             # self.primal_analysis_execution_policy_decorator.Execute()
-
-    #             # gradient.append(self.CalculateValue()/perturbation)
-
-    #             # e1.SetValue(Kratos.YOUNG_MODULUS, stiffness)
-
-    #         print(gradient)
-
-    #         # self.adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
-
-    #         # self.adjoint_model = Kratos.Model()
-
-    #         # adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
-    #         # adjoint_analysis.Run()
-
-    #         # root_model_part_name = self.adjoint_model.GetModelPartNames()[0]
-    #         # Kratos.VariableUtils().CopyModelPartElementalVar(KratosOA.YOUNG_MODULUS_SENSITIVITY, self.adjoint_model[root_model_part_name], self.model[root_model_part_name])
-
-    #         # # now fill the collective expressions
-
-    #         # for expression in collective_expression.GetContainerExpressions():
-    #         #     if isinstance(expression, KratosOA.ContainerExpression.ElementPropertiesExpression):
-    #         #         element_data_expression = Kratos.ContainerExpression.ElementNonHistoricalExpression(expression.GetModelPart())
-    #         #         element_data_expression.Read(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
-    #         #         expression.CopyFrom(element_data_expression)
-    #         #     else:
-    #         #         expression.Read(Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
-
     def __str__(self) -> str:
-        return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
+        return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.primal_model_part.FullName()}]"
