@@ -1,9 +1,11 @@
 import sys
+import typing
 import pickle
 import pathlib
 import importlib
 
 import KratosMultiphysics
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class Project:
     '''Kratos Multiphysics multistage project container.
@@ -18,40 +20,40 @@ class Project:
     __model -- Model instance
     '''
 
-    def __init__(self, settings : KratosMultiphysics.Parameters) -> None:
+    def __init__(self, settings: KratosMultiphysics.Parameters) -> None:
         '''Constructs the multistage project container instance and sets current Kratos version in the settings.'''
 
         # Declare member variables
-        self.__output_data = {}
-        self.__active_stages = {}
-        self.__settings = settings
-        self.__model = KratosMultiphysics.Model()
+        self.__output_data: dict = {}
+        self.__active_stages: dict = {}
+        self.__settings: KratosMultiphysics.Parameters = settings
+        self.__model: KratosMultiphysics.Model = KratosMultiphysics.Model()
 
         # Add Kratos version and compilation to settings
         kratos_version = f"{KratosMultiphysics.KratosGlobals.Kernel.Version()}-{KratosMultiphysics.KratosGlobals.Kernel.BuildType()}"
         self.__settings.AddString("kratos_version", kratos_version)
 
-    def GetModel(self):
+    def GetModel(self) -> KratosMultiphysics.Model:
         '''Returns the current multistage simulation model.'''
 
         return self.__model
     
-    def GetSettings(self):
+    def GetSettings(self) -> KratosMultiphysics.Parameters:
         '''Returns the current multistage simulation settings.'''
 
         return self.__settings
     
-    def GetOutputData(self):
+    def GetOutputData(self) -> dict:
         '''Returns the current multistage simulation output data container.'''
 
         return self.__output_data
     
-    def GetActiveStages(self):
+    def GetActiveStages(self) -> dict:
         '''Returns the current multistage simulation active stages dictionary.'''
 
         return self.__active_stages
     
-    def AddActiveStage(self, stage_name : str, stage_instance):
+    def AddActiveStage(self, stage_name: str, stage_instance: AnalysisStage) -> None:
         '''Adds the provided stage instance to the active stages dictionary.'''
 
         if self.__active_stages.has_key(stage_name):
@@ -59,23 +61,22 @@ class Project:
             raise Exception(err_msg)
         self.__active_stages[stage_name] = stage_instance
 
-    def RemoveActiveStage(self, stage_name : str):
+    def RemoveActiveStage(self, stage_name : str) -> None:
         '''Removes an active stage instance from the current stages dictionary.'''
 
         del self.__active_stages[stage_name]
 
-    def Save(self, save_folder_name: Path, checkpoint_file_name: Path output_settings_file_name: Optional[Path] = None) -> None:
+    def Save(self, save_folder_path: pathlib.Path, checkpoint_file_path: pathlib.Path, output_settings_file_path: typing.Optional[pathlib.Path] = None) -> None:
         '''Saves the Project current status.'''
 
         # Set the list of modules (Kratos and non-Kratos) that have been added up to current save
         required_modules = list(sys.modules.keys())
 
         # Create save folder
-        checkpoint_path = pathlib.Path(save_folder_name)
-        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(checkpoint_path)
+        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(save_folder_path)
 
         # Save current status
-        with open(checkpoint_path / checkpoint_file_name, 'wb+') as checkpoint_file:
+        with open(save_folder_path / checkpoint_file_path, 'wb+') as checkpoint_file:
             # Serialize current model and stages
             serializer = KratosMultiphysics.StreamSerializer()
             serializer.Save("Model", self.__model)
@@ -96,11 +97,11 @@ class Project:
 
         # Output current settings
         if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().Rank() == 0:
-            if output_settings_file_name:
-                with open(checkpoint_path / output_settings_file_name, 'w') as parameter_output_file:
+            if output_settings_file_path:
+                with open(save_folder_path / output_settings_file_path, 'w') as parameter_output_file:
                     parameter_output_file.write(self.__settings.PrettyPrintJsonString())
    
-    def Load(self, loading_point: Path) -> None:
+    def Load(self, loading_path: pathlib.Path) -> None:
         '''Loads a saved Project status into current one.'''
 
         # Load save path file
