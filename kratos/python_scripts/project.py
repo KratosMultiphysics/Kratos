@@ -104,7 +104,6 @@ class Project:
         '''Loads a saved Project status into current one.'''
 
         # Load save path file
-        loading_path = pathlib.Path(loading_point)
         with open(loading_path, 'rb') as loading_file:
             loaded_data = pickle.load(loading_file)
 
