@@ -1114,10 +1114,14 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatr
     rRotationMatrix(0,0) = Vx[0];
     rRotationMatrix(0,1) = Vx[1];
 
-    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are
-    // ordered clockwise (GiD does so), the rotation matrix is build like follows:
-    rRotationMatrix(1,0) = Vx[1];
-    rRotationMatrix(1,1) = -Vx[0];
+    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are 
+    // ordered counter-clockwise (GiD does so now), the rotation matrix is build like follows:
+    rRotationMatrix(1,0) = -Vx[1];
+    rRotationMatrix(1,1) = Vx[0];
+    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are 
+    // ordered clockwise, the rotation matrix is build like follows:
+    // rRotationMatrix(1,0) = Vx[1];
+    // rRotationMatrix(1,1) = -Vx[0];
 
     // NOTE. In zero-thickness quadrilateral_interface_2d_4 elements we are not able to know
     // whether the nodes are ordered clockwise or counter-clockwise.

@@ -56,7 +56,7 @@ public:
 
     typedef class SteadyStatePwPipingElement<2, 4>               SteadyStatePwPipingElementType;
     typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
 	
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -348,7 +348,7 @@ private:
         //this->Clear();
 
         // Reset displacements to the initial (Assumes Water Pressure is the convergence criteria)
-       /* block_for_each(CurrentModelPart.Nodes(), [&](Node<3>& rNode) {
+       /* block_for_each(CurrentModelPart.Nodes(), [&](Node& rNode) {
             auto dold = rNode.GetSolutionStepValue(WATER_PRESSURE, 1);
             rNode.GetSolutionStepValue(WATER_PRESSURE, 0) = dold;
             });*/

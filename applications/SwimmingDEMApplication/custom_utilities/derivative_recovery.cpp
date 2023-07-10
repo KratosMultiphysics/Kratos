@@ -12,7 +12,7 @@ void DerivativeRecovery<TDim>::RecoverGradientOfAScalar(const VariableData& orig
 {
     for (int i = 0; i < (int)mModelPart.Nodes().size(); ++i){
         NodeIteratorType i_particle = mModelPart.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         array_1d<double, 3>& gradient = p_node->FastGetSolutionStepValue(TORQUE);
         gradient[0] = 0.0;
         gradient[1] = 0.0;
@@ -69,7 +69,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
         // for each element, constructing the gradient contribution (to its nodes) of the component v_j and storing it in material_derivative_container
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
             // computing the shape function derivatives
-            Geometry<Node<3> >& geom = ielem->GetGeometry();
+            Geometry<Node >& geom = ielem->GetGeometry();
             double Volume;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
             for (unsigned int i = 0; i < TDim + 1; ++i){
@@ -143,7 +143,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivativeFromGradient(Mod
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         NodeIteratorType i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         const array_1d <double, 3>& velocity = p_node->FastGetSolutionStepValue(VELOCITY);
         array_1d <double, 3>& material_derivative = p_node->FastGetSolutionStepValue(material_derivative_container);
         material_derivative[0] = DEM_INNER_PRODUCT_3(velocity, p_node->FastGetSolutionStepValue(vector_gradient_container_x));
@@ -188,7 +188,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model
     std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the corresponding values of the polynomial coefficients relevant for the calculation of the material derivative
     polynomial_coefficients.resize(n_relevant_terms);
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        GlobalPointersVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
         if (!n_neigh){ // then we keep the defualt value
             continue;
@@ -223,7 +223,7 @@ void DerivativeRecovery<TDim>::CalculateVorticityFromGradient(ModelPart& r_model
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         NodeIteratorType i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         array_1d<double, 3>& vorticity = p_node->FastGetSolutionStepValue(vorticity_container);
         const array_1d<double, 3>& gradient_x = p_node->FastGetSolutionStepValue(vector_gradient_container_x);
         const array_1d<double, 3>& gradient_y = p_node->FastGetSolutionStepValue(vector_gradient_container_y);
@@ -273,7 +273,7 @@ void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, TScala
     BoundedMatrix<double, TDim + 1, TDim> DN_DX;
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
         double Volume;
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
         // getting the gradients;
@@ -306,7 +306,7 @@ void DerivativeRecovery<TDim>::SmoothVectorField(ModelPart& r_model_part, Variab
     BoundedMatrix<double, TDim + 1, TDim> DN_DX;
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
         double Volume;
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
         array_1d <double, 3> average = ZeroVector(3); // its dimension is always 3
@@ -341,7 +341,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
     }
     // Solving least squares problem (Zhang, 2006)
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        GlobalPointersVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
         if (!n_neigh){ // we keep the defualt value
             continue;
@@ -378,7 +378,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
     std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the corresponding values of the polynomial coefficients relevant for the calculation of the laplacian
     polynomial_coefficients.resize(n_relevant_terms);
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        GlobalPointersVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
         if (!n_neigh){ // then we keep the defualt value
             continue;
@@ -427,7 +427,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradie
     polynomial_coefficients.resize(n_relevant_terms);
     array_1d< array_1d<double, 3>, 3> gradient;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        GlobalPointersVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
         if (!n_neigh){ // then we keep the defualt value
             continue;
@@ -476,7 +476,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
     std::vector<array_1d <double, 3> > polynomial_coefficients; // vector to store, for each node, the corresponding values of the polynomial coefficients relevant for the calculation of the laplacian and the material derivative
     polynomial_coefficients.resize(n_relevant_terms);
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
-        GlobalPointersVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
         if (!n_neigh){ // then we keep the defualt value
             continue;
@@ -532,7 +532,7 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
         // for each element, constructing the gradient contribution (to its nodes) of the component v_j and storing it in laplacian_container
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
             // computing the shape function derivatives
-            Geometry<Node<3> >& geom = ielem->GetGeometry();
+            Geometry<Node >& geom = ielem->GetGeometry();
             double Volume;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
             for (unsigned int i = 0; i < TDim + 1; ++i){
@@ -554,7 +554,7 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
         }
         // for each element, constructing the divergence contribution (to its nodes) of the gradient of component v_j
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
-            Geometry<Node<3> >& geom = ielem->GetGeometry();
+            Geometry<Node >& geom = ielem->GetGeometry();
             double Volume;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
             for (unsigned int i = 0; i < TDim + 1; ++i){
@@ -623,7 +623,7 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part)
     unsigned int i = 0;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
-        GlobalPointersVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int iteration = 0;
         while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
             the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()));
@@ -651,7 +651,7 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
     unsigned int i = 0;
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         bool the_cloud_of_neighbours_is_successful = SetInitialNeighboursAndWeights(r_model_part, *(inode.base()));
-        GlobalPointersVector<Node<3> >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int iteration = 0;
         while (!the_cloud_of_neighbours_is_successful && iteration < n_max_iterations){
             the_cloud_of_neighbours_is_successful = SetNeighboursAndWeights(r_model_part, *(inode.base()));
@@ -670,7 +670,7 @@ void DerivativeRecovery<TDim>::SetNeighboursAndWeightsForTheLaplacian(ModelPart&
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::OrderByDistance(Node<3>::Pointer &p_node, GlobalPointersVector<Node<3> >& neigh_nodes)
+void DerivativeRecovery<TDim>::OrderByDistance(Node::Pointer &p_node, GlobalPointersVector<Node >& neigh_nodes)
 {
     const unsigned int n_nodes = neigh_nodes.size();
     std::vector<double> distances_squared;
@@ -686,9 +686,9 @@ void DerivativeRecovery<TDim>::OrderByDistance(Node<3>::Pointer &p_node, GlobalP
         ordering[i] = std::make_pair(i, distances_squared[i]);
     }
     std::sort(ordering.begin(), ordering.end(), IsCloser());
-    GlobalPointersVector<Node<3> > ordered_neighbours;
+    GlobalPointersVector<Node > ordered_neighbours;
     for (unsigned int i = 0; i < n_nodes; ++i){
-        Node<3>::WeakPointer& p_neigh = neigh_nodes(ordering[i].first);
+        Node::WeakPointer& p_neigh = neigh_nodes(ordering[i].first);
         ordered_neighbours.push_back(p_neigh);
     }
     ordered_neighbours.swap(neigh_nodes);
@@ -696,20 +696,20 @@ void DerivativeRecovery<TDim>::OrderByDistance(Node<3>::Pointer &p_node, GlobalP
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer &p_node)
+bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer &p_node)
 {
     GlobalPointersVector<Element>& neigh_elems = p_node->GetValue(NEIGHBOUR_ELEMENTS);
-    GlobalPointersVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector<Node >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     std::map<std::size_t, std::size_t> ids; // map to keep track of all different ids corresponding to already added neighbours to avoid repetition
     ids[p_node->Id()] = p_node->Id();
     for (unsigned int i_el = 0; i_el < neigh_elems.size(); ++i_el){
-        Geometry<Node<3> >& geom = neigh_elems[i_el].GetGeometry();
+        Geometry<Node >& geom = neigh_elems[i_el].GetGeometry();
         unsigned int jj = 0; // index of the node in geom corresponding to neighbour neigh_elems[i_el]
         if (geom[jj].Id() == p_node->Id()){ // skipping itself
             ++jj;
         }
         for (unsigned int j = 0; j < TDim; ++j){
-            Node<3>::Pointer p_neigh = geom(jj);
+            Node::Pointer p_neigh = geom(jj);
             if (ids.find(p_neigh->Id()) == ids.end()){
                 neigh_nodes.push_back(p_neigh);
                 ids[p_neigh->Id()] = p_neigh->Id();
@@ -727,9 +727,9 @@ bool DerivativeRecovery<TDim>::SetInitialNeighboursAndWeights(ModelPart& r_model
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, Node<3>::Pointer& p_node)
+bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, Node::Pointer& p_node)
 {
-    GlobalPointersVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector<Node >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     const unsigned int node_increase_per_neighbour = 1;
     const unsigned int node_increase_overall = 1;
     std::map<std::size_t, std::size_t> ids;
@@ -741,7 +741,7 @@ bool DerivativeRecovery<TDim>::SetNeighboursAndWeights(ModelPart& r_model_part, 
     const unsigned int n_neigh = neigh_nodes.size();
     for (unsigned int i = 0; i < n_neigh; ++i){
         auto p_neigh = neigh_nodes(i);
-        GlobalPointersVector<Node<3> >& neigh_neigh_nodes = p_neigh->GetValue(NEIGHBOUR_NODES);
+        GlobalPointersVector<Node >& neigh_neigh_nodes = p_neigh->GetValue(NEIGHBOUR_NODES);
         unsigned int n_new_nodes = 0;
         for (unsigned int j = 0; j < (unsigned int)neigh_neigh_nodes.size(); ++j){
             auto p_neigh_neigh = neigh_neigh_nodes(j);
@@ -801,11 +801,11 @@ inline int DerivativeRecovery<TDim>:: Factorial(const unsigned int n){
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node<3>::Pointer& p_node)
+bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_model_part, Node::Pointer& p_node)
 {
     unsigned int n_poly_terms = Factorial(TDim + 2) / (2 * Factorial(TDim)); // 2 is the polynomial order
     KRATOS_ERROR_IF(TDim == 2) << "Gradient recovery not implemented yet in 2D!)" << std::endl;
-    GlobalPointersVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector<Node >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     unsigned int n_nodal_neighs = (unsigned int)neigh_nodes.size();
     const double h_inv = 1.0 / CalculateTheMaximumDistanceToNeighbours(p_node); // we use it as a scaling parameter to improve stability
     const array_1d <double, 3> origin = p_node->Coordinates();
@@ -814,7 +814,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     for (unsigned int i = 0; i < n_nodal_neighs; ++i){
         A(i, 0) = 1.0;
         if constexpr (TDim == 3){
-            Node<3>& neigh = neigh_nodes[i];
+            Node& neigh = neigh_nodes[i];
             const array_1d <double, 3> rel_coordinates = (neigh.Coordinates() - origin) * h_inv;
             TestNodalValues(i, 0) = SecondDegreeTestPolynomial(rel_coordinates);
             for (unsigned int d = 1; d < 10; ++d){
@@ -923,7 +923,7 @@ unsigned int DerivativeRecovery<TDim>::GetNumberOfUniqueNeighbours(const int my_
     std::vector<int> ids;
     ids.push_back(my_id);
     for (unsigned int i_el = 0; i_el < my_neighbour_elements.size(); ++i_el){
-        const Geometry<Node<3> >& geom = my_neighbour_elements[i_el].GetGeometry();
+        const Geometry<Node >& geom = my_neighbour_elements[i_el].GetGeometry();
         for (unsigned int jj = 0; jj < TDim + 1; ++jj){
             int id = (int)geom[jj].Id();
             std::vector<int>::iterator it;
@@ -938,11 +938,11 @@ unsigned int DerivativeRecovery<TDim>::GetNumberOfUniqueNeighbours(const int my_
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
-double DerivativeRecovery<TDim>::CalculateTheMaximumDistanceToNeighbours(Node<3>::Pointer& p_node)
+double DerivativeRecovery<TDim>::CalculateTheMaximumDistanceToNeighbours(Node::Pointer& p_node)
 {
     double max_distance_yet = 0.0;
     const array_1d <double, 3>& coors = p_node->Coordinates();
-    GlobalPointersVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
+    GlobalPointersVector<Node >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
     for (unsigned int i = 0; i < (unsigned int)neigh_nodes.size(); ++i){
         array_1d <double, 3> delta = neigh_nodes[i].Coordinates() - coors;
         double distance_2 = DEM_INNER_PRODUCT_3(delta, delta);
@@ -957,7 +957,7 @@ double DerivativeRecovery<TDim>::CalculateTheMaximumEdgeLength(ModelPart& r_mode
 {
     double max_distance_yet = 0.0;
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
         unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
         for (unsigned int k = 1; k < n_nodes - 1; ++k){
             for (unsigned int i = k; i < n_nodes; ++i){
@@ -977,7 +977,7 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
     double min_distance_yet = 0.0;
     bool first_node = true;
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
         if (first_node){ // assign the distance (squared) between any two nodes to min_distance_yet
             array_1d <double, 3> delta = geom[0] - geom[1];
             double distance_2 = DEM_INNER_PRODUCT_3(delta, delta);

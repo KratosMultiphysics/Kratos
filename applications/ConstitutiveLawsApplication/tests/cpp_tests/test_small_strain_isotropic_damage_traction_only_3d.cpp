@@ -35,7 +35,7 @@ namespace Kratos
 {
 namespace Testing
 {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnly3D, KratosConstitutiveLawsFastSuite)
 {

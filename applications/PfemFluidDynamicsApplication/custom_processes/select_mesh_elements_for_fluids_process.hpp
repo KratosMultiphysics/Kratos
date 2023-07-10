@@ -58,7 +58,7 @@ namespace Kratos
         typedef ModelPart::ConditionType ConditionType;
         typedef ModelPart::PropertiesType PropertiesType;
         typedef ConditionType::GeometryType GeometryType;
-        typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+        typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 		typedef std::size_t SizeType;
         ///@}
         ///@name Life Cycle
@@ -157,7 +157,7 @@ namespace Kratos
                 // #pragma omp parallel for reduction(+:number) private(el)
                 for (el = 0; el < OutNumberOfElements; el++)
                 {
-                    Geometry<Node<3>> vertices;
+                    Geometry<Node> vertices;
                     double meanMeshSize = mrRemesh.Refine->CriticalRadius; // this must be inside because if there is a refined zone, each element has a different critical radius
                     SizeType numfreesurf = 0;
                     SizeType numboundary = 0;
@@ -424,7 +424,7 @@ namespace Kratos
                                     }
                                 }
                             }
-                            Geometry<Node<3>> *triangle = new Triangle2D3<Node<3>>(vertices);
+                            Geometry<Node> *triangle = new Triangle2D3<Node>(vertices);
                             double elementArea = triangle->Area();
                             if (elementArea < CriticalVolume)
                             {
@@ -486,7 +486,7 @@ namespace Kratos
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
                     {
-                        Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
+                        Geometry<Node> *tetrahedron = new Tetrahedra3D4<Node>(vertices);
                         double Volume = tetrahedron->Volume();
 
                         // a1 slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)

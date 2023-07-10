@@ -26,6 +26,8 @@
 
 namespace Kratos::Testing {
 
+using DataLocation = Globals::DataLocation;
+
 /******************************************************************************************/
 /* Helper Functions */
 /******************************************************************************************/
@@ -269,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModeParts
 
     KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
     KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1); 
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
 
     utilities.RemoveOrphanNodesFromSubModelParts();
 
@@ -312,7 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     Properties::Pointer p_prop = r_origin_model_part.CreateNewProperties(0);
     p_prop->SetValue(DENSITY, 1.0);
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     // First we create the nodes
     auto p_node_1 = r_origin_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.00);

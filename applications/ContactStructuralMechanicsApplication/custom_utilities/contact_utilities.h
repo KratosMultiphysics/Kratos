@@ -54,21 +54,20 @@ public:
     ///@{
 
     // Some geometrical definitions
-    typedef Node<3>                                              NodeType;
-    typedef Point::CoordinatesArrayType              CoordinatesArrayType;
+    using CoordinatesArrayType = Point::CoordinatesArrayType;
 
     /// Definition of geometries
-    typedef Geometry<NodeType>                               GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// The containers of the components of the model parts
-    typedef ModelPart::NodesContainerType                  NodesArrayType;
-    typedef ModelPart::ConditionsContainerType        ConditionsArrayType;
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     /// Index type definition
-    typedef std::size_t                                         IndexType;
+    using IndexType = std::size_t;
 
     /// Size type definition
-    typedef std::size_t                                          SizeType;
+    using SizeType = std::size_t;
 
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(ContactUtilities);

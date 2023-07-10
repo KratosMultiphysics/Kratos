@@ -36,9 +36,9 @@ namespace Kratos {
 
             // Generate a tetrahedron
             Properties::Pointer p_properties(new Properties(0));
-            Node<3>::Pointer p_point_1 = rNewModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-            Node<3>::Pointer p_point_2 = rNewModelPart.CreateNewNode(2, 10.0, 0.0, 0.0);
-            Node<3>::Pointer p_point_3 = rNewModelPart.CreateNewNode(3, 0.0, 10.0, 0.0);
+            Node::Pointer p_point_1 = rNewModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            Node::Pointer p_point_2 = rNewModelPart.CreateNewNode(2, 10.0, 0.0, 0.0);
+            Node::Pointer p_point_3 = rNewModelPart.CreateNewNode(3, 0.0, 10.0, 0.0);
             rNewModelPart.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties);
 
             // Set the nodal values
@@ -100,10 +100,10 @@ namespace Kratos {
 
             // Generate a tetrahedron
             Properties::Pointer p_properties(new Properties(0));
-            Node<3>::Pointer p_point_1 = rNewModelPart.CreateNewNode(1,  0.0,  0.0,  0.0);
-            Node<3>::Pointer p_point_2 = rNewModelPart.CreateNewNode(2, 10.0,  0.0,  0.0);
-            Node<3>::Pointer p_point_3 = rNewModelPart.CreateNewNode(3,  0.0, 10.0,  0.0);
-            Node<3>::Pointer p_point_4 = rNewModelPart.CreateNewNode(4,  0.0,  0.0, 10.0);
+            Node::Pointer p_point_1 = rNewModelPart.CreateNewNode(1,  0.0,  0.0,  0.0);
+            Node::Pointer p_point_2 = rNewModelPart.CreateNewNode(2, 10.0,  0.0,  0.0);
+            Node::Pointer p_point_3 = rNewModelPart.CreateNewNode(3,  0.0, 10.0,  0.0);
+            Node::Pointer p_point_4 = rNewModelPart.CreateNewNode(4,  0.0,  0.0, 10.0);
             rNewModelPart.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
 
             // Set the nodal values

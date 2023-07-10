@@ -32,11 +32,11 @@ void AddGlobalPointersToPython(pybind11::module& m)
     namespace py = pybind11;
 
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
-    py::class_< GlobalPointer<Node<3>>  >(m,"GlobalNodePointer");
+    py::class_< GlobalPointer<Node>  >(m,"GlobalNodePointer");
     py::class_< GlobalPointer<Element>  >(m,"GlobalElementPointer");
     py::class_< GlobalPointer<Condition>  >(m,"GlobalConditionPointer");
 
-    py::class_< GlobalPointersVector<Node<3>> >(m,"GlobalNodePointersVector");
+    py::class_< GlobalPointersVector<Node> >(m,"GlobalNodePointersVector");
 
 }
 

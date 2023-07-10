@@ -21,11 +21,10 @@
 #include "geometries/prism_3d_6.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
-    typedef Node<3>                                PointType;
-    typedef Node<3>::Pointer                    PointPtrType;
+    typedef Node                                PointType;
+    typedef Node::Pointer                    PointPtrType;
     typedef Prism3D6<PointType>            PrismGeometryType;
     typedef PrismGeometryType::Pointer  PrismGeometryPtrType;
 
@@ -281,5 +280,20 @@ namespace Testing {
         KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5), expected_vol, TOLERANCE);
         VerifyStrainExactness(*geom, GeometryData::IntegrationMethod::GI_GAUSS_5);
     }
-}
-}  // namespace Kratos.
+
+    /** Checks if CalculateDistance is correct.
+     * Checks if CalculateDistance is correct.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Prism3D6CalculateDistance, KratosCoreGeometriesFastSuite)
+    {
+        auto geom = GenerateRegularPrism3D6();
+
+        Point point1(0.25, 0.25, 0.5);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
+
+        Point point2(0.25, 0.25, 1.5);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
+    }
+}  // namespace Kratos::Python.

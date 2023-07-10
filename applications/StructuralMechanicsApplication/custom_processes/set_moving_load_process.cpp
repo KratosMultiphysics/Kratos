@@ -39,7 +39,8 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
             "load"            : [0.0, 1.0, 0.0],
             "direction"       : [1,1,1],
             "velocity"        : 1,
-            "origin"          : [0.0, 0.0, 0.0]
+            "origin"          : [0.0, 0.0, 0.0],
+            "offset"          : 0.0
         }  )"
     );
     
@@ -73,7 +74,6 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
     KRATOS_ERROR_IF(!is_all_string && !is_all_number) << "'load' has to be a vector of numbers, or an array with strings" << std::endl;
 
 }
-
 
 std::vector<IndexType> SetMovingLoadProcess::FindNonRepeatingIndices(const std::vector<IndexType> IndicesVector)
 {
@@ -276,12 +276,13 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
         // if origin point is within the current condition, set the global distance of the load, else continue the loop
         if (r_geom.IsInside(origin_point, local_point)){
             const double local_to_global_distance = (local_point[0] + 1) / 2 * element_length;
-
             if (mIsCondReversedVector[i]){
                 mCurrentDistance = global_distance + element_length - local_to_global_distance;
             } else {
                 mCurrentDistance = global_distance + local_to_global_distance;
             }
+            mCurrentDistance += mParameters["offset"].GetDouble();
+            return;
         }
 
         // add element length of current condition to the global distance
@@ -371,7 +372,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
         const double element_length = r_geom.Length();
 
         // if moving load is located at current condition element, apply moving load, else apply a zero load
-        if ((distance_cond + element_length >= mCurrentDistance) && (distance_cond <= mCurrentDistance) && !is_moving_load_added){
+        if (distance_cond + element_length >= mCurrentDistance && distance_cond <= mCurrentDistance && !is_moving_load_added){
             double local_distance;
             if (mIsCondReversedVector[i]){
                 local_distance = distance_cond + element_length - mCurrentDistance;
@@ -389,7 +390,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
             r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, 0);
         }
         distance_cond += element_length;
-    }
+    }    
 }
 
 

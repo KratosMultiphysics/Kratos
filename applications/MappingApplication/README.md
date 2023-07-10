@@ -243,7 +243,7 @@ Internally it constructs the mapping matrix, hence it offers the usage of the tr
 
 The _NearestElementMapper_ projects nodes to the elements( or conditions) on other side of the inteface. Mapping is then done by interpolating the values of the nodes of the elements by using the shape functions at the projected position.
 
-This mapper is best suited for problems where the _NearestNeighborMapper_ cannot be used, i.e. for cases where the discretization on the interfaces is different. Note that it is less robust than the _NearestNeighborMapper_ due to the projections it performs. In case a projection fails it uses an approximation that is similar to the approach of the _NearestNeighborMapper_.
+This mapper is best suited for problems where the _NearestNeighborMapper_ cannot be used, i.e. for cases where the discretization on the interfaces is different. Note that it is less robust than the _NearestNeighborMapper_ due to the projections it performs. In case a projection fails, it uses an approximation that is similar to the approach of the _NearestNeighborMapper_. This can be disabled by setting `use_approximation` to `false` in the mapper-settings.
 
 Internally it constructs the mapping matrix, hence it offers the usage of the transposed mapping matrix. When using this, for very inhomogenous interface discretizations it can come to oscillations in the mapped quantities.
 

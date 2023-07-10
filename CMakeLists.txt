@@ -55,10 +55,18 @@ else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 # Setting the libs folder for the shared objects built in kratos
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+if (APPLE)
+  cmake_policy(SET CMP0042 NEW)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
+else()
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+endif()
 
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
+
+# If no pch policy disable by default
+option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
 
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
@@ -185,6 +193,11 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
   message(STATUS "Additional default options were set for GCC")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
+
+# Check for correct clang version
+if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12.0)
+    message( FATAL_ERROR "Please use Version 12.0 or greater")
+endif()
 
 message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message(STATUS "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
@@ -532,21 +545,11 @@ if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   set( ZLIB_LIBRARIES zlib )
 endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 
-# including the AMatrix
-if( AMATRIX_DIR )
-    message(STATUS "AMATRIX_DIR : ${AMATRIX_DIR}")
-    include_directories("${AMATRIX_DIR}/include")
-    add_definitions(-DAMATRIX_NO_IO_OPERATOR)
-    add_definitions(-DKRATOS_USE_AMATRIX)
-else()
-    message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
-endif()
-
 ## Echo user options
 message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
-include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
+include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )

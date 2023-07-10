@@ -132,10 +132,10 @@ public:
 
     void ResetFatherNodes(ModelPart &rModelPart) override
     {
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode)
+        block_for_each(mModelPart.Nodes(), [&](Node& rNode)
         {
             if(!rNode.Has(FATHER_NODES)){
-                GlobalPointersVector<Node<3>> empty_father_vector;
+                GlobalPointersVector<Node> empty_father_vector;
                 rNode.SetValue(FATHER_NODES, empty_father_vector);
             }
         });
@@ -201,7 +201,7 @@ public:
 
         for(auto i = it_begin; i!=it_end; i++) {
             int index_i = i->Id() - 1; // WARNING: MESH MUST BE IN ORDER
-            GlobalPointersVector< Node < 3 > >& neighb_nodes = i->GetValue(NEIGHBOUR_CONDITION_NODES);
+            GlobalPointersVector< Node >& neighb_nodes = i->GetValue(NEIGHBOUR_CONDITION_NODES);
 
             std::vector<unsigned int> aux(neighb_nodes.size());
             unsigned int active = 0;

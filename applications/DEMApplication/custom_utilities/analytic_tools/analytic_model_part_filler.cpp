@@ -55,7 +55,7 @@ void AnalyticModelPartFiller::FillAnalyticModelPartGivenFractionOfParticlesToTra
     // Producing replacements with the same Ids
     for (int i = 0; i < n_analytic_particles_needed; ++i){
         i_elem = i_begin + random_positions[i];
-        Geometry<Node<3> >::PointsArrayType nodelist;
+        Geometry<Node >::PointsArrayType nodelist;
         nodelist.push_back(i_elem->GetGeometry().pGetPoint(0));
         Element::Pointer p_elem = particle_creator_destructor.GetAnalyticReplacement(sample_element,
                                                                                      nodelist,

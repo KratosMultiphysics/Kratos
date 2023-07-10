@@ -57,10 +57,10 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    std::function<void(Node<3>&, const double)> ApplyRayCastingInterfaceRecognitionProcess<TDim>::CreateApplyNodalFunction() const
+    std::function<void(Node&, const double)> ApplyRayCastingInterfaceRecognitionProcess<TDim>::CreateApplyNodalFunction() const
     {
         const double interface_tol = this->mSettings["interface_max_distance"].GetDouble();
-        return [this,interface_tol](Node<3>& rNode, const double RayDistance) {
+        return [this,interface_tol](Node& rNode, const double RayDistance) {
             double& r_node_distance = this->mDistanceGetterFunctor(rNode, *(this->mpDistanceVariable));
             if (std::abs(RayDistance) < interface_tol) {
                 r_node_distance = 0.0;

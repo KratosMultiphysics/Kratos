@@ -158,11 +158,11 @@ namespace Kratos::Testing
         const double max_x = 1.0;
         const double min_y = 0.0;
         const double max_y = 1.0;
-		auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, min_x, min_y, 0.0);
-		auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, min_x, max_y, 0.0);
-		auto p_point_3 = Kratos::make_intrusive<Node<3>>(3, max_x, max_y, 0.0);
-		auto p_point_4 = Kratos::make_intrusive<Node<3>>(4, max_x, min_y, 0.0);
-		Quadrilateral2D4<Node<3>> square_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+		auto p_point_1 = Kratos::make_intrusive<Node>(1, min_x, min_y, 0.0);
+		auto p_point_2 = Kratos::make_intrusive<Node>(2, min_x, max_y, 0.0);
+		auto p_point_3 = Kratos::make_intrusive<Node>(3, max_x, max_y, 0.0);
+		auto p_point_4 = Kratos::make_intrusive<Node>(4, max_x, min_y, 0.0);
+		Quadrilateral2D4<Node> square_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 		Parameters mesher_parameters(R"(
 		{
 			"number_of_divisions" : 2,
@@ -245,7 +245,7 @@ namespace Kratos::Testing
         const double disp_x = 1.0;
         const double disp_y = 1.0/4.0;
         array_1d<double,3> aux_disp;
-        auto node_bc_func = [&](Node<3>& rNode, double DisplacementFactor){
+        auto node_bc_func = [&](Node& rNode, double DisplacementFactor){
             // Reset auxiliary displacement vector
             aux_disp = ZeroVector(3);
 

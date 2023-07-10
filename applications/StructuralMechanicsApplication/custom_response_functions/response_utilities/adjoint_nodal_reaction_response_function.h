@@ -54,7 +54,7 @@ public:
     ///@{
 
     typedef Element::DofsVectorType DofsVectorType;
-    typedef Node<3>::Pointer PointTypePointer;
+    typedef Node::Pointer PointTypePointer;
     typedef matrix_column< Matrix > MatrixColumnType;
     typedef matrix_row< Matrix > MatrixRowType;
 

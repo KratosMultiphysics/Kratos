@@ -478,7 +478,7 @@ private:
      * @return calculated relative positions of the intersection point along the edge from node zero
      */
     double ConvertIntersectionPointToEdgeRatio(
-        const Geometry<Node<3> >& rEdge,
+        const Geometry<Node >& rEdge,
         const array_1d<double,3>& rIntersectionPoint);
 
     /**
@@ -488,7 +488,7 @@ private:
      * @return rIntersectionPoint calculated average intersection point at the edge
      */
     array_1d<double,3> ConvertEdgeRatioToIntersectionPoint(
-        const Geometry<Node<3> >& rEdge,
+        const Geometry<Node >& rEdge,
         const double& rEdgeRatio);
 
     /**

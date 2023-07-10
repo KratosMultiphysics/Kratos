@@ -96,7 +96,7 @@ public:
         if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
                 if (mIsFixed) rNode.Fix(var);
                 else if (mIsFixedProvided) rNode.Free(var);
 
@@ -117,7 +117,7 @@ public:
             const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
             const double value = mpTable->GetValue(Time);
 
-            block_for_each(mrModelPart.Nodes(), [&var, &value](Node<3>& rNode) {
+            block_for_each(mrModelPart.Nodes(), [&var, &value](Node& rNode) {
                 rNode.FastGetSolutionStepValue(var) = value;
             });
         }

@@ -9,9 +9,10 @@ def GetFilePath(fileName):
 # The expected definitions are here to make the handling of the
 # multiline-strings easier (no need to deal with indentation)
 prop_str = '''Properties
+Id : 5
     VISCOSITY : 5.3
     DENSITY : -95.3
-This properties contains 0 tables'''
+'''
 
 model_part_str = '''-Main- model part
     AMBIENT_TEMPERATURE : 250
@@ -98,7 +99,7 @@ class TestObjectPrinting(KratosUnittest.TestCase):
 
         self.assertMultiLineEqual(str(model_part), model_part_str)
 
-
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
 
