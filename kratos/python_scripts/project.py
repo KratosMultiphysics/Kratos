@@ -76,7 +76,7 @@ class Project:
         KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(checkpoint_path)
 
         # Save current status
-        with open(os.path.join(checkpoint_path, checkpoint_file_name), 'wb+') as checkpoint_file:
+        with open(checkpoint_path / checkpoint_file_name, 'wb+') as checkpoint_file:
             # Serialize current model and stages
             serializer = KratosMultiphysics.StreamSerializer()
             serializer.Save("Model", self.__model)
