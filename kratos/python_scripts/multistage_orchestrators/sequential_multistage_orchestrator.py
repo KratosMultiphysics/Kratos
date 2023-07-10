@@ -1,3 +1,5 @@
+import pathlib
+
 import KratosMultiphysics
 from KratosMultiphysics.multistage_orchestrators.multistage_orchestrator import MultistageOrchestrator
 
@@ -18,7 +20,7 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
 
         super().__init__(settings)
 
-    def Run(self):
+    def Run(self) -> None:
         '''Main function that runs a sequential multistage simulation.'''
 
         # Set the stages to be saved first
@@ -33,7 +35,7 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
                     raise TypeError(err_msg)
                 else:
                     loading_point = self.GetProject().GetSettings()["orchestrator"]["settings"]["load_from_checkpoint"].GetString()
-                    self.GetProject().Load(loading_point)
+                    self.GetProject().Load(pathlib.Path(loading_point))
 
         # Run the stages list
         for stage_name in self.__GetExecutionList():
@@ -64,15 +66,15 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
             # Check the current stage is to be checkpointed and save it if so
             if stage_name in self.__GetStagesToCheckpointList():
                 save_folder_name = self.__GetStagesCheckpointFolder()
-                self.GetProject().Save(save_folder_name, stage_name, output_settings_name)
+                self.GetProject().Save(pathlib.Path(save_folder_name), pathlib.Path(stage_name), output_settings_name)
 
 
-    def GetNumberOfStages(self):
+    def GetNumberOfStages(self) -> int:
         '''Returns the number of stages.'''
 
         return len(self.__GetExecutionList())
 
-    def __GetExecutionList(self):
+    def __GetExecutionList(self) -> list:
         '''Creates and returns the execution list.
         This method creates the execution list, either from a user-defined execution list or,
         if this is not provided, from the stages declaration order.
@@ -90,7 +92,7 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
 
         return self._execution_list
 
-    def __GetStagesToCheckpointList(self):
+    def __GetStagesToCheckpointList(self) -> list:
         '''Creates and returns the stages checkpoint list.
 
         This method creates the stages checkpoint list, either from a user-defined checkpoint list or,
@@ -122,7 +124,7 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
         
         return self._stages_to_checkpoint_list
     
-    def __GetStagesCheckpointFolder(self):
+    def __GetStagesCheckpointFolder(self) -> str:
         '''Gets the folder to store the checkpoint files from the settings.'''
 
         if self.GetProject().GetSettings()["orchestrator"]["settings"].Has("stage_checkpoints_folder"):
@@ -132,7 +134,7 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
             KratosMultiphysics.Logger.PrintInfo("SequentialMultistageOrchestrator", info_msg)
             return 'checkpoints'
         
-    def __PrepareOutputSettings(self, stage_name : str):
+    def __PrepareOutputSettings(self, stage_name: str) -> str:
         '''Prepares the settings to be output.
         
         This function modifies current settings in order to prepare them to be output.

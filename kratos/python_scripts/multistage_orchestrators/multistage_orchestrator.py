@@ -1,11 +1,14 @@
+import abc
 import sys
+import typing
 import importlib
 
 import KratosMultiphysics
 from KratosMultiphysics.project import Project
+from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
-class MultistageOrchestrator:
+class MultistageOrchestrator(abc.ABC):
     """Base class for multistage orchestrators.
     
     This class is intended to serve as base for al the Kratos multistage orchestrators.
@@ -17,20 +20,21 @@ class MultistageOrchestrator:
     __project -- Current multistage simulation project container
     """
 
-    def __init__(self, project : Project) -> None:
+    def __init__(self, project: Project) -> None:
         """Constructs a multistage orchestrator instance"""
 
         # Store pointer to current project
         # Note that the project already contains the multistage simulation settings
-        self.__project = project
+        self.__project: Project = project
 
-    def Run(self):
+    @abc.abstractmethod
+    def Run(self) -> None:
         """Main function that runs the complete multistage simulation."""
 
-        err_msg = "Calling base MultistageOrchestrator Run() method. This must be implemented in derived orchestrators."
-        raise NotImplementedError (err_msg)
+        # err_msg = "Calling base MultistageOrchestrator Run() method. This must be implemented in derived orchestrators."
+        # raise NotImplementedError (err_msg)
 
-    def CheckStageSettings(self, stage_name : str):
+    def CheckStageSettings(self, stage_name : str) -> None:
         """Check the settings for the given stage name
         
         This methods performs the check of the given stage name settings.
@@ -44,7 +48,7 @@ class MultistageOrchestrator:
                 err_msg += " Place the 'modelers' section in the next stage 'stage_preprocess'."
                 raise Exception(err_msg)
 
-    def CreateStage(self, stage_name : str):
+    def CreateStage(self, stage_name : str) -> AnalysisStage:
         """This method creates a stage instance
 
         Given a stage name, this method creates the corresponding stage instance from the "analysis_stage" registry entry in the settings.
@@ -102,20 +106,21 @@ class MultistageOrchestrator:
             analysis_stage_module = sys.modules["__main__"]
         
         # Create the analysis stage instance
+        stage_settings = KratosMultiphysics.Parameters(self.__project.GetSettings()["stages"][stage_name]["stage_settings"])
         if hasattr(analysis_stage_module, analysis_stage_class_name):
             # First we check for the expected class name
             analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
-            stage_instance = analysis_stage_class(self.__project.GetModel(),  KratosMultiphysics.Parameters(self.__project.GetSettings()["stages"][stage_name]))
+            stage_instance = analysis_stage_class(self.__project.GetModel(),  stage_settings)
         elif hasattr(analysis_stage_module, "Create"):
             # If Kratos convention is not fulfilled we search for a Create method
-            stage_instance = analysis_stage_module.Create(self.__project.GetModel(),  KratosMultiphysics.Parameters(self.__project.GetSettings()["stages"][stage_name]))
+            stage_instance = analysis_stage_module.Create(self.__project.GetModel(), stage_settings)
         else:
             err_msg = f"Analysis stage in '{analysis_stage_module_name}' Python module cannot be created. Please check class name or provide a 'Create' method."
             raise Exception(err_msg)
         
         return stage_instance
 
-    def RunCurrentStagePreprocess(self, stage_name : str, data=None):
+    def RunCurrentStagePreprocess(self, stage_name: str, data: typing.Optional[dict] = None):
         """This function executes the preprocess of current stage.
 
         Note that the stage preprocess involves the execution of modelers and operations.
@@ -141,7 +146,7 @@ class MultistageOrchestrator:
                     operation.Execute()
                 del operations_list
 
-    def RunCurrentStagePostprocess(self, stage_name : str, data=None):
+    def RunCurrentStagePostprocess(self, stage_name: str, data: typing.Optional[dict] = None):
         """This function executes the postprocessing of current stage.
         
         Note that the stage postprocess deliberately involves operations only.
@@ -157,12 +162,12 @@ class MultistageOrchestrator:
                     operation.Execute()
                 del operations_list
 
-    def GetProject(self):
+    def GetProject(self) -> Project:
         """Returns the project."""
 
         return self.__project
    
-    def __CreateListOfModelers(self, stage_name : str):
+    def __CreateListOfModelers(self, stage_name: str) -> list:
         """This method creates the modelers at the preprocess execution point."""
 
         execution_point_settings = self.__project.GetSettings()["stages"][stage_name]["stage_preprocess"]
@@ -170,7 +175,7 @@ class MultistageOrchestrator:
         factory = KratosModelParametersFactory(self.__project.GetModel())
         return factory.ConstructListOfItems(execution_point_settings["modelers"])
 
-    def __CreateListOfOperations(self, execution_point : str, stage_name : str):
+    def __CreateListOfOperations(self, execution_point: str, stage_name: str) -> list:
         """This method creates the operations at any execution point."""
 
         if execution_point not in ["stage_preprocess","stage_postprocess"]:
