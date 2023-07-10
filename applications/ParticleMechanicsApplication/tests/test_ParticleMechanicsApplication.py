@@ -51,6 +51,8 @@ from particle_mechanics_test_factory import PQMPMExplicitQuadTest as TPQMPMExpli
 from particle_mechanics_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
 from particle_mechanics_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 
+from manufactured_solution_test_mpm import ManufacturedSolutionTestMPM
+
 ##### RESTART TESTS #####
 from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
 from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
@@ -152,6 +154,7 @@ def AssembleTestSuites():
     ### Adding Validation Tests
     ## For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTest(ManufacturedSolutionTestMPM('testManufacturedSolutionMPM'))
 
     ### Create a test suit that contains all the tests:
     allSuite = suites['all']
