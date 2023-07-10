@@ -1,0 +1,138 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+    "model_parts": [
+        {
+            "settings": {
+                "model_part_name": "Structure",
+                "domain_size": 3,
+                "input_filename": "Structure"
+            }
+        }
+    ],
+    "analyses": [
+        {
+            "name": "Structure_static",
+            "type": "kratos_analysis_execution_policy",
+            "settings": {
+                "model_part_names": [
+                    "Structure"
+                ],
+                "analysis_module": "KratosMultiphysics.StructuralMechanicsApplication",
+                "analysis_type": "StructuralMechanicsAnalysis",
+                "analysis_settings": {
+                    "@include_json": "primal_parameters.json"
+                },
+                "analysis_output_settings": {
+                    "nodal_solution_step_data_variables": ["DISPLACEMENT"]
+                }
+            }
+        }
+    ],
+    "responses": [
+        {
+            "name": "mass_Structure",
+            "type": "mass_response_function",
+            "settings": {
+                "evaluated_model_part_names": [
+                    "Structure"
+                ]
+            }
+        },
+        {
+            "name": "strain_energy_Structure",
+            "type": "linear_strain_energy_response_function",
+            "settings": {
+                "evaluated_model_part_names": [
+                    "Structure"
+                ],
+                "primal_analysis_name": "Structure_static"
+            }
+        }
+    ],
+    "controls": [
+        {
+            "name": "shape_control",
+            "type": "shape.vertex_morphing_shape_control",
+            "settings": {
+                "controlled_model_part_names": [
+                    "Structure.design"
+                ],
+                "filter_settings": {
+                    "type": "surface_explicit_with_mesh_motion",
+                    "radius": 0.025,
+                    "linear_solver_settings": {
+                        "solver_type": "LinearSolversApplication.pardiso_lu"
+                    }
+                },
+                "output_all_fields": true,
+                    "fixed_model_parts" : {
+                    "Structure.side_supports" : [true,true,true],
+                    "Structure.surface_load" : [true,true,true],
+                    "Structure.bot_supports" : [true,true,true]
+                    }
+            }
+        }
+    ],
+    "algorithm_settings": {
+        "type": "algorithm_steepest_descent",
+        "settings": {
+            "echo_level": 0,
+            "line_search": {
+                "type": "const_step",
+                "init_step": 1.0,
+                "gradient_scaling": "l2_norm"
+            },
+            "conv_settings": {
+                "type": "max_iter",
+                "max_iter": 3
+            }
+        },
+        "controls": [
+            "shape_control"
+        ],
+        "objective": {
+            "response_name": "strain_energy_Structure",
+            "type": "minimization",
+            "scaling": 1.0
+        }
+    },
+    "processes": {
+        "kratos_processes": {},
+        "optimization_data_processes": {
+            "output_processes": [
+                {
+                    "type": "optimization_problem_ascii_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings": {
+                        "output_file_name": "summary.csv",
+                        "write_kratos_version"     : false,
+                        "write_time_stamp"         : false,
+                        "list_of_output_components": ["all"],
+                        "format_info": {
+                            "int_length"     : 7,
+                            "float_precision": 9,
+                            "bool_values"    : ["no", "yes"],
+                            "string_length"  : 14
+                        }
+                    }
+                },
+                {
+                    "type": "optimization_problem_vtu_output_process",
+                    "module": "KratosMultiphysics.OptimizationApplication.processes",
+                    "settings":
+                    {
+                        "file_format"                 : "binary",
+                        "output_path"                 : "Optimization_Results",
+                        "list_of_output_components"   : ["control.shape_control"],
+                        "output_precision"            : 7,
+                        "output_interval"             : 1,
+                        "echo_level"                  : 0
+                    }
+                }
+            ]
+        }
+    }
+}
