@@ -129,21 +129,22 @@ void ComputeWeightForAllNeighbors(
     const double Radius,
     const EntityPoint<TEntityType>& rDesignPoint,
     const std::vector<typename EntityPoint<TEntityType>::Pointer>& rNeighbourNodes,
-    const Point::Pointer rDampingNearestPoint,
+    const std::vector<typename EntityPoint<TEntityType>::Pointer>& rDampingNeighbourNodes,
     const IndexType NumberOfNeighbours,
     Expression const * const pExpression)
 {
-
-    double damping_multiplier = 1.0;
-    if(rDampingNearestPoint!=nullptr){
-        double max_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rDesignPoint.Coordinates(), Radius);
-        damping_multiplier = 1.0 - rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rDampingNearestPoint->Coordinates(), Radius) / max_weight;
-    }
-
     for (IndexType i = 0; i < NumberOfNeighbours; ++i) {
         const double domain_size = GetDomainSize(*rNeighbourNodes[i], pExpression);
         const double filter_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rNeighbourNodes[i]->Coordinates(), Radius);
-
+        double damping_multiplier = 1.0;
+        if(rDampingNeighbourNodes.size()>0){
+            const array_1d<double, 3>& dist_vector = rNeighbourNodes[i]->Coordinates() - rDampingNeighbourNodes[i]->Coordinates();
+            const double dist = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
+            const double limit = std::log1p(std::numeric_limits<double>::max());
+            double pow_val = -2.0 * std::numeric_limits<double>::max() * (dist - Radius);
+            pow_val = std::clamp(pow_val, -limit, limit);
+            damping_multiplier = 1.0 / (1.0 + std::exp(pow_val));
+        }
         rListOfWeights[i] = damping_multiplier *  TWeightComputationType::Compute(filter_weight, domain_size);
         rSumOfWeights += filter_weight * domain_size;
     }
@@ -215,7 +216,7 @@ void ExplicitFilter<TContainerType>::ExplicitFilter::Update()
     mpSearchTree =  Kratos::make_shared<ExplicitFilter::KDTree>(mEntityPointVector.begin(), mEntityPointVector.end(), mBucketSize);
 
     // now make the tree for fixed model part
-    if (mpFixedModelPart!=nullptr){
+    if (mpFixedModelPart){
         const auto& r_f_container = ExplicitFilterHelperUtilities::GetContainer<TContainerType>(*mpFixedModelPart);
         if (mFixedModelPartEntityPointVector.size() != r_f_container.size()) {
             mFixedModelPartEntityPointVector.resize(r_f_container.size());
@@ -294,8 +295,7 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilte
 
         EntityPointVector mNeighbourEntityPoints;
         std::vector<double> mResultingSquaredDistances;
-        Point::Pointer mpDampingNearestPoint = nullptr;
-        
+        EntityPointVector mDampingNeighbourEntityPoints;
     };
 
     IndexPartition<IndexType>(r_container.size()).for_each(TLS(mMaxNumberOfNeighbors), [&](const IndexType Index, TLS& rTLS){
@@ -309,23 +309,25 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilte
                                             rTLS.mResultingSquaredDistances.begin(),
                                             mMaxNumberOfNeighbors);
 
-        if (mpFixedModelPart!=nullptr){
+        if (mpFixedModelPart){
             double rPointDistance = 0;
-            rTLS.mpDampingNearestPoint = mpFixedModelPartSearchTree->SearchNearestPoint(entity_point,rPointDistance);
+            rTLS.mDampingNeighbourEntityPoints.resize(rTLS.mNeighbourEntityPoints.size());
+            for (IndexType i = 0; i < number_of_neighbors; ++i){
+                rTLS.mDampingNeighbourEntityPoints[i] = mpFixedModelPartSearchTree->SearchNearestPoint(*rTLS.mNeighbourEntityPoints[i],rPointDistance);
+            }
         }
 
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
         double sum_of_weights = 0.0;
         ExplicitFilterHelperUtilities::ComputeWeightForAllNeighbors<EntityType, TWeightIntegrationType>(
             sum_of_weights, list_of_weights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mpDampingNearestPoint, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mDampingNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         const IndexType current_data_begin = Index * stride;
 
         for (IndexType j = 0; j < stride; ++j) {
             double& current_index_value = *(p_expression->begin() + current_data_begin + j);
             current_index_value = 0.0;
-
             for(IndexType neighbour_index = 0 ; neighbour_index < number_of_neighbors; ++neighbour_index) {
                 const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
                 const double weight = list_of_weights[neighbour_index] / sum_of_weights;
@@ -355,9 +357,6 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::FilterIntegr
 template<class TContainerType>
 void ExplicitFilter<TContainerType>::GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const
 {
-    KRATOS_ERROR_IF_NOT(rContainerExpression.HasExpression())
-        << "Uninitialized container expression given. "
-        << rContainerExpression;
 
     KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
         << "The given container expression model part and filter model part mismatch.";
@@ -368,8 +367,8 @@ void ExplicitFilter<TContainerType>::GetIntegrationWeights(ContainerExpression<T
     rContainerExpression.SetExpression(p_expression);
 
     IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index){
-        EntityPoint<EntityType> entity(*(r_container.begin() + Index), Index);
-        auto integration_weight = ExplicitFilterHelperUtilities::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get());
+        const EntityPoint<EntityType> entity(*(r_container.begin() + Index), Index);
+        const auto integration_weight = ExplicitFilterHelperUtilities::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get());
         const IndexType current_data_begin = Index * stride;
         for (IndexType j = 0; j < stride; ++j) {
             double& current_index_value = *(p_expression->begin() + current_data_begin + j);
