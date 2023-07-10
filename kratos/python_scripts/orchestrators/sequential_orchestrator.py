@@ -76,8 +76,11 @@ class SequentialOrchestrator(Orchestrator):
 
     def __GetExecutionList(self) -> list:
         '''Creates and returns the execution list.
-        This method creates the execution list, either from a user-defined execution list or,
-        if this is not provided, from the stages declaration order.
+
+        The first time it is called, this method creates the execution list,
+        either from a user-defined execution list or, if this is not provided,
+        from the stages declaration order.
+        The subsequent calls directly return the already existent '_execution_list'.
         '''
 
         # Check if the execution list has been already created
@@ -95,8 +98,10 @@ class SequentialOrchestrator(Orchestrator):
     def __GetStagesToCheckpointList(self) -> list:
         '''Creates and returns the stages checkpoint list.
 
-        This method creates the stages checkpoint list, either from a user-defined checkpoint list or,
-        if a bool is provided, it creates a list with all the stages in the execution list.
+        The first time it is called, this method creates the stages checkpoint list, 
+        either from a user-defined checkpoint list or, if a bool is provided, it creates 
+        a list with all the stages in the execution list.
+        The subsequent calls directly return the already existent '_stages_to_checkpoint_list'.
         '''
 
         # Check if the checkpoint stages list has been already created
