@@ -32,11 +32,15 @@ namespace Kratos
 ///@{
 
 /**
+ * @class CreateEntitiesFromGeometriesModeler
+ * @ingroup KratosCore
  * @brief Modeler to create element/condition entities from geometries
- * Given a list of pairs of the type submodelpart name and entity (element/condition) name,
+ * @details Given a list of pairs of the type submodelpart name and entity (element/condition) name,
  * this modeler creates the corresponding entities from the submodelpart geometries.
+ * @author Ruben Zorrilla
  */
-class CreateEntitiesFromGeometriesModeler : public Modeler
+class KRATOS_API(KRATOS_CORE) CreateEntitiesFromGeometriesModeler 
+    : public Modeler
 {
 public:
     ///@name Type Definitions
@@ -44,9 +48,6 @@ public:
 
     /// Pointer definition of Modeler
     KRATOS_CLASS_POINTER_DEFINITION(CreateEntitiesFromGeometriesModeler);
-
-    // typedef std::size_t SizeType;
-    // typedef std::size_t IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -122,25 +123,41 @@ private:
     ///@name Private members
     ///@{
 
-    Model* mpModel = nullptr;
+    Model* mpModel = nullptr; /// The model considered in the geometry replacement
 
     ///@}
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Loops through a list of entities.
+     * @tparam TEntityType The type of entity.
+     * @param EntitiesList The list of entities.
+     */
     template <class TEntityType>
     void LoopEntitiesList(Parameters EntitiesList);
 
+    /**
+     * @brief Removes entities from a model part.
+     * @tparam TEntityType The type of entity.
+     * @param rModelPart The model part from which entities will be removed.
+     */
     template <class TEntityType>
     void RemoveModelPartEntities(ModelPart& rModelPart);
 
+    /**
+     * @brief Create entities from geometries.
+     * @param EntityName the name of the entity
+     * @param rModelPart the model part
+     */
     template <class TEntityType, class TEntitiesContainerType>
     void CreateEntitiesFromGeometries(
         const std::string EntityName,
-        ModelPart& rModelPart)
+        ModelPart& rModelPart
+        )
     {
         // Get entity prototype from KratosComponents
-        const auto &r_ref_entity = KratosComponents<TEntityType>::Get(EntityName);
+        const auto& r_ref_entity = KratosComponents<TEntityType>::Get(EntityName);
 
         // Create the entities container and allocate space
         TEntitiesContainerType entities_to_add;
@@ -160,7 +177,7 @@ private:
         }
 
         // Loop geometries to create the corresponding entities from them
-        for (auto &r_geom : rModelPart.Geometries()) {
+        for (auto& r_geom : rModelPart.Geometries()) {
             auto p_entity = r_ref_entity.Create(++max_id, r_geom, nullptr);
             entities_to_add.push_back(p_entity);
         }
