@@ -111,7 +111,7 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
                 # Check that the stages asked to be checkpointed are in the execution list
                 stages_asked_to_checkpoint = self.GetProject().GetSettings()["orchestrator"]["settings"]["stage_checkpoints"].GetStringArray()
                 aux_diff = set(stages_asked_to_checkpoint) - set(self.__GetExecutionList())
-                if len(aux_diff) == 0:
+                if not aux_diff:
                     self._stages_to_checkpoint_list = stages_asked_to_checkpoint
                 else:
                     err_msg = f"User asked to checkpoint stages that are not present in 'execution_list'. Please remove these {list(aux_diff)}."
