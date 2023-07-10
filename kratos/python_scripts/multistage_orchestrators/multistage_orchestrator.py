@@ -5,7 +5,7 @@ import KratosMultiphysics
 from KratosMultiphysics.project import Project
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
-class MultistageOrchestrator():
+class MultistageOrchestrator:
     """Base class for multistage orchestrators.
     
     This class is intended to serve as base for al the Kratos multistage orchestrators.
