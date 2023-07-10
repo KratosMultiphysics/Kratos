@@ -169,7 +169,7 @@ public:
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
 
-         p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+        p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
         is_converged = this->mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
 
         KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "PreCriteria:"

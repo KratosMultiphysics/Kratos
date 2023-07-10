@@ -406,6 +406,9 @@ void MPMUpdatedLagrangianUP::InitializeSolutionStep(const ProcessInfo& rCurrentP
         r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
         r_geometry[i].UnSetLock();
     }
+
+
+
 }
 //************************************************************************************
 //************************************************************************************
@@ -488,12 +491,14 @@ void MPMUpdatedLagrangianUP::CalculateAndAddInternalForces(VectorType& rRightHan
 
 //******************************************************************************************************************
 //******************************************************************************************************************
-double& UpdatedLagrangianUP::CalculateVolumetricStrainFunction(double& rVolumetricStrainFunction, GeneralVariables & rVariables)
+
+
+double& MPMUpdatedLagrangianUP::CalculateVolumetricStrainFunction(double& rVolumetricStrainFunction, GeneralVariables & rVariables)
+
 {
     KRATOS_TRY
 
-    rVolumetricStrainFunction = 1-(1/rVariables.detF);
-
+    rVolumetricStrainFunction = rVariables.detF0*rVariables.detF - 1;
     return rVolumetricStrainFunction;
 
     KRATOS_CATCH( "" )
@@ -502,7 +507,8 @@ double& UpdatedLagrangianUP::CalculateVolumetricStrainFunction(double& rVolumetr
 //************************************************************************************
 //************************************************************************************
 
-double& UpdatedLagrangianUP::CalculateFunctionFromLinearizarionOfVolumetricStrain(double &rFunction, GeneralVariables & rVariables)
+
+double& MPMUpdatedLagrangianUP::CalculateFunctionFromLinearizarionOfVolumetricStrain(double &rFunction, GeneralVariables & rVariables)
 
 {
 

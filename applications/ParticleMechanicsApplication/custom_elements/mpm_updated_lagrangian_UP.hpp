@@ -343,6 +343,7 @@ protected:
             GeneralVariables & rVariables,
             const double& rIntegrationWeight);
 
+
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
      */
@@ -365,16 +366,16 @@ protected:
 
     void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
-
     /**
      * Calculation of the constitutive coefficient for pressure of the Element
      */
-    virtual double& CalculateVolumetricStrainFunction(double& rVolumetricStrainFunction, GeneralVariables & rVariables);
+    virtual double& CalculateVolumetricStrainFunction(double& rCoefficient, GeneralVariables & rVariables);
 
     /**
      * Calculation of the constitutive coefficient derivative for pressure  of the Element
      */
-    virtual double& CalculateFunctionFromLinearizarionOfVolumetricStrain(double& rFunction, GeneralVariables & rVariables);
+    virtual double& CalculateFunctionFromLinearizarionOfVolumetricStrain(double& rCoefficient, GeneralVariables & rVariables);
+
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step

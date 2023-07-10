@@ -205,6 +205,9 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
         ConstitutiveLaw::Parameters& rValues, const Vector& rN)
 {
     GeometryType& r_geometry = GetGeometry();
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     // Variables.detF is the determinant of the incremental total deformation gradient
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
@@ -215,7 +218,7 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
         KRATOS_INFO("MPMUpdatedLagrangian")<<" Element: "<<this->Id()<<std::endl;
         KRATOS_INFO("MPMUpdatedLagrangian")<<" Element position: "<< mMP.xg <<std::endl;
         KRATOS_INFO("MPMUpdatedLagrangian")<<" Element velocity: "<< mMP.velocity <<std::endl;
-        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
         KRATOS_INFO("MPMUpdatedLagrangian") << " Shape functions: " << r_geometry.ShapeFunctionsValues() << std::endl;
         KRATOS_INFO("MPMUpdatedLagrangian") << " Quadrature points: " << r_geometry.IntegrationPointsNumber() << std::endl;
         KRATOS_INFO("MPMUpdatedLagrangian") << " Parent geometry ID: " << r_geometry.GetGeometryParent(0).Id() << std::endl;
@@ -258,6 +261,26 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rN);
+
+/* #BODYFORCES
+    // Body forces
+    rVariables.BodyForceMP = ZeroVector(3);
+    array_1d<double, 3 > nodal_body_force = ZeroVector(3);
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+        if (r_geometry[j].SolutionStepsDataHas(BODY_FORCE))
+        {
+
+            nodal_body_force = r_geometry[j].FastGetSolutionStepValue(BODY_FORCE,0);
+            for (unsigned int k = 0; k < dimension; k++)
+            {
+                rVariables.BodyForceMP[k] += r_N(0, j) * nodal_body_force[k];
+
+            }
+        }
+
+    }*/
+
 }
 
 //************************************************************************************
@@ -327,7 +350,8 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-        Vector volume_force = mMP.volume_acceleration * mMP.mass;
+	// #BODY_FORCE
+        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) ; //+  (Variables.BodyForceMP * mMP.mass)
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,

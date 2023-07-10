@@ -32,7 +32,6 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
             "model_part_name"      : "",
             "interval"             : [0.0, 1e30],
             "position"             : [0, 0, 0],
-            "search_tolerance"     : 1e-4, 
             "print_format"         : ".8f",
             "write_tracking_output_file" : true,
             "output_pressure"      : false,
@@ -61,7 +60,7 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+self.params["interval"].PrettyPrintJsonString())
 
         self.params.ValidateAndAssignDefaults(default_settings)
-        
+
         # variables for search of given position in model part
         #self.search_done = False
 
@@ -74,9 +73,7 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
         else:
             self.model_part = model[self.params["model_part_name"].GetString()]
 
-        self.search_tolerance = self.params["search_tolerance"].GetDouble()   
-
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
 
         self.interval = KratosMultiphysics.Vector(2)
         self.interval[0] = self.params["interval"][0].GetDouble()
@@ -103,38 +100,80 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
                     file_handler_params, file_header).file
 
+
+        self.particle_id = 0
+        minor_distance = 0
+        for  mp in self.model_part.Elements:
+            mp_coord = mp.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
+            distance=ComputeEucledianDistance(mp_coord, self.initial_point)
+            if (minor_distance ==0 or minor_distance > distance):
+                minor_distance = distance
+                self.particle_id = mp.Id
+                mp_coord_minor_distance = mp_coord
+        if (minor_distance !=0) :
+            print("----------------------------------------------")
+            print("----Tracking of a material particle in time---")
+            print("----------------------------------------------")
+            print("Coordinates introduced: " + str(self.initial_point))
+            print("Particle found!")
+            print("Particle_id: " + str(self.particle_id))
+            print("Coordinates of the particle: " + str(mp_coord_minor_distance))
+            print("Please see the _tracking.dat file to see the data.")
+            print("-----------------------------------------------")
+        if (minor_distance==0):
+            raise Exception("No particle found to do the tracking of time.")
+        self.output_file.write("#Tracking of a material particle in time" + "\n")
+        self.output_file.write("#Particle id: " + str(self.particle_id) + " with coordinates: " + str(mp_coord_minor_distance)+ " is the closest to the selected point: " + str(self.initial_point) + "\n")
+        self.output_file.write("#The tracking time (s) for the mp is from " + str(self.interval[0]) + " to " + str(self.interval[1]) + " seconds." + "\n")
+        self.output_file.write("#TIME" + " " + "COORD_X" + " " + "COORD_Y"+ " " + "COORD_Z" + " "  + "VELOC_X"+ " " + "VELOC_Y" + "" + " " + "VELOC_Z"+ " "+ "DISPL_X"+ " " + "DISPL_Y" + " " + "DISPL_Z")
+        if (self.output_press==True):
+            self.output_file.write(" " + "PRESSURE"+ "\n")
+        else:
+            self.output_file.write("\n")
+
+
     def ExecuteFinalizeSolutionStep(self):
         current_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        #self.initial_point = KratosMultiphysics.Point(4.8, 6,0)
+        #self.initial_point = KratosMultiphysics.Point(4.8, 6, 0)
         variable_disp = KratosMultiphysics.KratosGlobals.GetVariable( "MP_DISPLACEMENT" )
         variable_vel = KratosMultiphysics.KratosGlobals.GetVariable( "MP_VELOCITY" )
         if (self.output_press==True):
             variable_press = KratosMultiphysics.KratosGlobals.GetVariable( "MP_PRESSURE" )
-        
-        
-        if (current_step==1):
-            self.particle_id = 0
-            for  mp in self.model_part.Elements:
-                mp_coord = mp.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
-                is_close_enough = ParticleIsCloseEnough(mp_coord, self.initial_point, self.search_tolerance)
-                if (is_close_enough) : 
-                    self.particle_id = mp.Id
-                    print("Point: " + str(self.initial_point))
-                    print("Particle: " + str(mp_coord))
-                    break
-            if (self.particle_id==0):
-                raise Exception("No particle found with that tolerance. Try a bigger tolerance.")    
-            self.output_file.write("#Tracking of particles" + "\n")
-            self.output_file.write("#Particle " + str(self.particle_id) +" found for the introduced location: " + str(self.initial_point) + "\n")
-            self.output_file.write("#TIME" + " " + "COORD_X" + " " + "COORD_Y"+ " " + "COORD_Z" + " "  + "VELOC_X"+ " " + "VELOC_Y" + "" + " " + "VELOC_Z"+ " "+ "DISPL_X"+ " " + "DISPL_Y" + " " + "DISPL_Z")
-            if (self.output_press==True):
-                self.output_file.write(" " + "PRESSURE"+ "\n")
-            else: 
-                self.output_file.write("\n")
 
-        
+    #if (current_step==1):
+        #self.particle_id = 0
+        #minor_distance = 0
+        #for  mp in self.model_part.Elements:
+            #mp_coord = mp.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
+            #distance=ComputeEucledianDistance(mp_coord, self.initial_point)
+            #if (minor_distance ==0 or minor_distance > distance):
+                #minor_distance = distance
+                #self.particle_id = mp.Id
+                #mp_coord_minor_distance = mp_coord
+        #if (minor_distance !=0) :
+            #print("----------------------------------------------")
+            #print("----Tracking of a material particle in time---")
+            #print("----------------------------------------------")
+            #print("Coordinates introduced: " + str(self.initial_point))
+            #print("Particle found!")
+            #print("Particle_id: " + str(self.particle_id))
+            #print("Coordinates of the particle: " + str(mp_coord_minor_distance))
+            #print("Please see the _tracking.dat file to see the data.")
+            #print("-----------------------------------------------")
+        #if (minor_distance==0):
+            #raise Exception("No particle found to do the tracking of time.")
+        #self.output_file.write("#Tracking of a material particle in time" + "\n")
+        #self.output_file.write("#Particle id: " + str(self.particle_id) + " with coordinates: " + str(mp_coord_minor_distance)+ " is the closest to the selected point: " + str(self.initial_point) + "\n")
+        #self.output_file.write("#The tracking time (s) for the mp is from " + str(self.interval[0]) + " to " + str(self.interval[1]) + " seconds." + "\n")
+        #self.output_file.write("#TIME" + " " + "COORD_X" + " " + "COORD_Y"+ " " + "COORD_Z" + " "  + "VELOC_X"+ " " + "VELOC_Y" + "" + " " + "VELOC_Z"+ " "+ "DISPL_X"+ " " + "DISPL_Y" + " " + "DISPL_Z")
+        #if (self.output_press==True):
+            #self.output_file.write(" " + "PRESSURE"+ "\n")
+        #else:
+            #self.output_file.write("\n")
+
+
         mp=self.model_part.Elements[self.particle_id]
         mp_coord = mp.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
         displacement = mp.CalculateOnIntegrationPoints(variable_disp,self.model_part.ProcessInfo)[0]
@@ -144,20 +183,19 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
 
         # Write the tracking of points values
         #if (self.model_part.GetCommunicator().MyPID() == 0):
-        self.output_file.write(str(current_time)+" "+format(mp_coord[0],self.format)+" "+format(mp_coord[1],self.format)+" "+format(mp_coord[2],self.format)+" "+format(velocity[0],self.format)+" "+format(velocity[1],self.format)+" "+format(velocity[2],self.format)+" "+format(displacement[0],self.format)+" "+format(displacement[1],self.format)+" "+format(displacement[2],self.format)+" ")
-        if (self.output_press==True):
-            self.output_file.write(format(pressure,self.format)+"\n")
-        else: 
-            self.output_file.write("\n")
+        if (current_time >= self.interval[0] and current_time <=self.interval[1]):
+            self.output_file.write(str(current_time)+" "+format(mp_coord[0],self.format)+" "+format(mp_coord[1],self.format)+" "+format(mp_coord[2],self.format)+" "+format(velocity[0],self.format)+" "+format(velocity[1],self.format)+" "+format(velocity[2],self.format)+" "+format(displacement[0],self.format)+" "+format(displacement[1],self.format)+" "+format(displacement[2],self.format)+" ")
+            if (self.output_press==True):
+                self.output_file.write(format(pressure,self.format)+"\n")
+            else:
+                self.output_file.write("\n")
 
     def ExecuteFinalize(self):
         #if (self.write_tracking_output_file):
             #if (self.model_part.GetCommunicator().MyPID() == 0):
         self.output_file.close()
- 
-    #def NodeIsCloseEnough(self):
 
-def ParticleIsCloseEnough(particle, point, tolerance):
-    distance = math.sqrt(math.pow(particle[0] - point[0],2)+ math.pow(particle[1] - point[1],2)+ math.pow(particle[2] - point[2],2))
-    if (distance <= tolerance):  
-        return True
+def ComputeEucledianDistance(particle, point):
+    distance = math.sqrt(math.pow(particle[0] - point[0],2) + math.pow(particle[1] - point[1],2) + math.pow(particle[2] - point[2],2))
+    return distance
+

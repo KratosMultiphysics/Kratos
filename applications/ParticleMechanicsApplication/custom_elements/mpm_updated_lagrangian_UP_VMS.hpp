@@ -10,12 +10,12 @@
 //  Main authors:    Laura Moreno Martínez
 //
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_UP_VMS_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_UP_VMS_H_INCLUDED
+#if !defined(KRATOS_mpm_updated_lagrangian_UP_VMS_H_INCLUDED )
+#define  KRATOS_mpm_updated_lagrangian_UP_VMS_H_INCLUDED
 
 
 #include "includes/element.h"
-#include "custom_elements/updated_lagrangian_UP.hpp"
+#include "custom_elements/mpm_updated_lagrangian_UP.hpp"
 
 namespace Kratos
 {
@@ -41,8 +41,8 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class UpdatedLagrangianUPVMS
-    : public UpdatedLagrangianUP
+class MPMUpdatedLagrangianUPVMS
+    : public MPMUpdatedLagrangianUP
 {
 public:
 
@@ -60,7 +60,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UpdatedLagrangianUPVMS );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMUpdatedLagrangianUPVMS );
     ///@}
 
 
@@ -71,26 +71,26 @@ public:
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangianUPVMS();
+    MPMUpdatedLagrangianUPVMS();
 
 
     /// Default constructors
-    UpdatedLagrangianUPVMS(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMUpdatedLagrangianUPVMS(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangianUPVMS(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMUpdatedLagrangianUPVMS(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    UpdatedLagrangianUPVMS(UpdatedLagrangianUPVMS const& rOther);
+    MPMUpdatedLagrangianUPVMS(MPMUpdatedLagrangianUPVMS const& rOther);
 
     /// Destructor.
-    ~UpdatedLagrangianUPVMS() override;
+    ~MPMUpdatedLagrangianUPVMS() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    UpdatedLagrangianUPVMS& operator=(UpdatedLagrangianUPVMS const& rOther);
+    MPMUpdatedLagrangianUPVMS& operator=(MPMUpdatedLagrangianUPVMS const& rOther);
 
     ///@}
     ///@name Operations
@@ -263,6 +263,8 @@ protected:
                                         const double& rIntegrationWeight
                                        ) override;
 
+
+
     /**
      * Calculation of stabilization terms for the continuity equation
      */
@@ -270,7 +272,6 @@ protected:
             GeneralVariables & rVariables,
             Vector& rVolumeForce,
             const double& rIntegrationWeight);
-
 
     /**
      * Calculation stabilization terms for the momentum equation
