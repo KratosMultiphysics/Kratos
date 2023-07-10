@@ -56,7 +56,8 @@ class MultistageOrchestrator(abc.ABC):
         """
 
         # Get the current analysis stage class and module names
-        input_analysis_stage = self.__project.GetSettings()["stages"][stage_name]["analysis_stage"].GetString()
+        current_stage_settings = self.__project.GetSettings()["stages"][stage_name]["stage_settings"]
+        input_analysis_stage = current_stage_settings["analysis_stage"].GetString()
 
         # Check if the current stage is to be obtained from the Kratos registry
         if input_analysis_stage.split(".")[0] == "Stages":
@@ -106,14 +107,14 @@ class MultistageOrchestrator(abc.ABC):
             analysis_stage_module = sys.modules["__main__"]
         
         # Create the analysis stage instance
-        stage_settings = KratosMultiphysics.Parameters(self.__project.GetSettings()["stages"][stage_name]["stage_settings"])
+        input_stage_settings = KratosMultiphysics.Parameters(current_stage_settings)
         if hasattr(analysis_stage_module, analysis_stage_class_name):
             # First we check for the expected class name
             analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
-            stage_instance = analysis_stage_class(self.__project.GetModel(),  stage_settings)
+            stage_instance = analysis_stage_class(self.__project.GetModel(),  input_stage_settings)
         elif hasattr(analysis_stage_module, "Create"):
             # If Kratos convention is not fulfilled we search for a Create method
-            stage_instance = analysis_stage_module.Create(self.__project.GetModel(), stage_settings)
+            stage_instance = analysis_stage_module.Create(self.__project.GetModel(), input_stage_settings)
         else:
             err_msg = f"Analysis stage in '{analysis_stage_module_name}' Python module cannot be created. Please check class name or provide a 'Create' method."
             raise Exception(err_msg)
