@@ -6,4 +6,4 @@ python_processes_to_be_registered = []
 
 python_stages_to_be_registered = []
 
-python_multistage_orchestrators_to_be_registered = []
+python_orchestrators_to_be_registered = []

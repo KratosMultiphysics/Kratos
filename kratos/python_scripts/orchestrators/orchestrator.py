@@ -8,13 +8,13 @@ from KratosMultiphysics.project import Project
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
-class MultistageOrchestrator(abc.ABC):
+class Orchestrator(abc.ABC):
     """Base class for multistage orchestrators.
     
     This class is intended to serve as base for al the Kratos multistage orchestrators.
     The purpose of orchestrators is to define the workflow of the multistage simulations.
     This includes deciding when and how to save and load (aka restart) the simulation.
-    Run() method must be implemented in derived classes (see SequentialMultistageOrchestrator).
+    Run() method must be implemented in derived classes (see SequentialOrchestrator).
 
     Member variables:
     __project -- Current multistage simulation project container
@@ -30,9 +30,6 @@ class MultistageOrchestrator(abc.ABC):
     @abc.abstractmethod
     def Run(self) -> None:
         """Main function that runs the complete multistage simulation."""
-
-        # err_msg = "Calling base MultistageOrchestrator Run() method. This must be implemented in derived orchestrators."
-        # raise NotImplementedError (err_msg)
 
     def CheckStageSettings(self, stage_name : str) -> None:
         """Check the settings for the given stage name

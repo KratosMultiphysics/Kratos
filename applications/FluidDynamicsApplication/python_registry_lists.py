@@ -11,4 +11,4 @@ python_stages_to_be_registered = [
     "fluid_dynamics_analysis.FluidDynamicsAnalysis"
 ]
 
-python_multistage_orchestrators_to_be_registered = []
+python_orchestrators_to_be_registered = []

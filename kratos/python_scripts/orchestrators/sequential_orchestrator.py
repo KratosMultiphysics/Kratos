@@ -1,10 +1,10 @@
 import pathlib
 
 import KratosMultiphysics
-from KratosMultiphysics.multistage_orchestrators.multistage_orchestrator import MultistageOrchestrator
+from KratosMultiphysics.orchestrators.orchestrator import Orchestrator
 
-class SequentialMultistageOrchestrator(MultistageOrchestrator):
-    '''Multistage orquestrator to sequentially execute a collection of stages.
+class SequentialOrchestrator(Orchestrator):
+    '''Multistage orchestrator to sequentially execute a collection of stages.
 
     This multistage orchestrator executes the different stages sequentially (i.e. one after the other).
     The execution order is specified by the 'execution_list' in the input settings.
@@ -131,7 +131,7 @@ class SequentialMultistageOrchestrator(MultistageOrchestrator):
             return self.GetProject().GetSettings()["orchestrator"]["settings"]["stage_checkpoints_folder"].GetString()
         else:
             info_msg = "'stage_checkpoints_folder' is not provided. Creating a default 'checkpoints' one."
-            KratosMultiphysics.Logger.PrintInfo("SequentialMultistageOrchestrator", info_msg)
+            KratosMultiphysics.Logger.PrintInfo("SequentialOrchestrator", info_msg)
             return 'checkpoints'
         
     def __PrepareOutputSettings(self, stage_name: str) -> str:

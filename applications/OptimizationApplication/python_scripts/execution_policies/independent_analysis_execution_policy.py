@@ -4,7 +4,7 @@ from importlib import import_module
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.project import Project
-from KratosMultiphysics.multistage_orchestrators.multistage_orchestrator import MultistageOrchestrator
+from KratosMultiphysics.orchestrators.orchestrator import Orchestrator
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
 
@@ -56,10 +56,10 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
         if AnalysisStage in analysis_type.mro():
             # the analysis type is derrived from AnalysisStage
             self.current_analysis: AnalysisStage = getattr(import_module(self.analysis_full_module), self.analysis_type)(self.model, self.analysis_settings.Clone())
-        elif MultistageOrchestrator in analysis_type.mro():
-            # the analysis type is derrive from the MultistageOrchestrator
+        elif Orchestrator in analysis_type.mro():
+            # the analysis type is derrive from the Orchestrator
             project = Project(self.analysis_settings.Clone())
-            self.current_analysis: MultistageOrchestrator = getattr(import_module(self.analysis_full_module), self.analysis_type)(project)
+            self.current_analysis: Orchestrator = getattr(import_module(self.analysis_full_module), self.analysis_type)(project)
 
         self.current_analysis.Run()
 
@@ -70,7 +70,7 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
                     return self.current_analysis._GetSolver().GetComputingModelPart()
                 else:
                     raise RuntimeError(f"The specified analysis model part name mismatch [ specified analysis model part name = {self.analysis_model_part_name}, used analysis model part name = {self.current_analysis._GetSolver().GetComputingModelPart().FullName()} ].")
-            elif isinstance(self.current_analysis, MultistageOrchestrator):
+            elif isinstance(self.current_analysis, Orchestrator):
                 return self.current_analysis.GetProject().GetModel()[self.analysis_model_part_name]
             else:
                 raise RuntimeError(f"Unsupported analysis type = {self.current_analysis}.")

@@ -5,7 +5,7 @@ def RegisterAll(PythonModuleName, PythonRegistryListModule):
     RegisterOperationsList(PythonModuleName, PythonRegistryListModule)
     RegisterProcessesList(PythonModuleName, PythonRegistryListModule)
     RegisterStagesList(PythonModuleName, PythonRegistryListModule)
-    RegisterMultistageOrchestratorsList(PythonModuleName, PythonRegistryListModule)
+    RegisterOrchestratorsList(PythonModuleName, PythonRegistryListModule)
 
 def RegisterModelersList(PythonModuleName, PythonRegistryListModule):
     __CheckRegistryListIsInModule(PythonRegistryListModule, "modelers")
@@ -23,9 +23,9 @@ def RegisterStagesList(PythonModuleName, PythonRegistryListModule):
     __CheckRegistryListIsInModule(PythonRegistryListModule, "stages")
     __RegisterItemList(PythonModuleName, PythonRegistryListModule.python_stages_to_be_registered, "Stages")
 
-def RegisterMultistageOrchestratorsList(PythonModuleName, PythonRegistryListModule):
-    __CheckRegistryListIsInModule(PythonRegistryListModule, "multistage_orchestrators")
-    __RegisterItemList(PythonModuleName, PythonRegistryListModule.python_multistage_orchestrators_to_be_registered, "MultistageOrchestrators")
+def RegisterOrchestratorsList(PythonModuleName, PythonRegistryListModule):
+    __CheckRegistryListIsInModule(PythonRegistryListModule, "orchestrators")
+    __RegisterItemList(PythonModuleName, PythonRegistryListModule.python_orchestrators_to_be_registered, "Orchestrators")
 
 def __CheckRegistryListIsInModule(PythonRegistryListModule, ListKeyword):
     list_variable_name = f"python_{ListKeyword}_to_be_registered"
