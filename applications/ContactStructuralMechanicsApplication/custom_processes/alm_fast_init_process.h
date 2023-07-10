@@ -84,8 +84,7 @@ public:
     }
 
     /// Destructor.
-    ~ALMFastInit() override
-    = default;
+    ~ALMFastInit() override = default;
 
     ///@}
     ///@name Access
@@ -148,10 +147,6 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 private:
     ///@name Static Member Variables
     ///@{
@@ -203,18 +198,18 @@ private:
 ///@{
 
 /// input stream function
-// inline std::istream& operator >> (std::istream& rIStream,
-//                                   ALMFastInit& rThis);
-//
-// /// output stream function
-// inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const ALMFastInit& rThis)
-// {
-//     rThis.PrintInfo(rOStream);
-//     rOStream << std::endl;
-//     rThis.PrintData(rOStream);
-//
-//     return rOStream;
-// }
+inline std::istream& operator >> (std::istream& rIStream,
+                                  ALMFastInit& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const ALMFastInit& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 
 }
