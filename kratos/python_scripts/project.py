@@ -98,7 +98,7 @@ class Project:
         # Output current settings
         if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().Rank() == 0:
             if output_settings_file_name:
-                with open(os.path.join(checkpoint_path, output_settings_file_name), 'w') as parameter_output_file:
+                with open(checkpoint_path / output_settings_file_name, 'w') as parameter_output_file:
                     parameter_output_file.write(self.__settings.PrettyPrintJsonString())
    
     def Load(self, loading_point : str):
