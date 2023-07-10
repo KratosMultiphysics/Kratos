@@ -64,7 +64,7 @@ class Project:
 
         del self.__active_stages[stage_name]
 
-    def Save(self, save_folder_name : str, checkpoint_file_name : str, output_settings_file_name : str = None):
+    def Save(self, save_folder_name: Path, checkpoint_file_name: Path output_settings_file_name: Optional[Path] = None) -> None:
         '''Saves the Project current status.'''
 
         # Set the list of modules (Kratos and non-Kratos) that have been added up to current save
