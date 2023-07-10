@@ -45,6 +45,7 @@ class Orchestrator(abc.ABC):
                 err_msg += " Place the 'modelers' section in the next stage 'stage_preprocess'."
                 raise Exception(err_msg)
 
+    #TODO: Move this method to a separate factory module
     def CreateStage(self, stage_name : str) -> AnalysisStage:
         """This method creates a stage instance
 
