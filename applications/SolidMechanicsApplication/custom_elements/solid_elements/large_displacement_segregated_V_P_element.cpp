@@ -675,7 +675,7 @@ int  LargeDisplacementSegregatedVPElement::Check( const ProcessInfo& rCurrentPro
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	const Node<3> &rNode = this->GetGeometry()[i];
+	const Node &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
         //KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_VELOCITY,rNode);
         //KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_ACCELERATION,rNode);

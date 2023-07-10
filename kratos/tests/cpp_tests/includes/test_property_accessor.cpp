@@ -24,7 +24,6 @@
 
 namespace Kratos::Testing 
 {
-using NodeType = Node<3>;
 
 /**
 * Checks the correct work of the Has methods
@@ -70,20 +69,25 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
     auto p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
     auto p_node_4 = this_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
 
-    std::vector<NodeType::Pointer> geom(4);
+    std::vector<Node::Pointer> geom(4);
     geom[0] = p_node_1;
     geom[1] = p_node_2;
     geom[2] = p_node_3;
     geom[3] = p_node_4;
-    auto pgeom = Kratos::make_shared<Quadrilateral2D4<NodeType>>(PointerVector<NodeType>{geom});
+    auto pgeom = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
 
     auto p_elem = Kratos::make_intrusive<TestElement>(0, pgeom, p_prop, TestElement::ResidualType::LINEAR);
 
     p_prop->SetAccessor(YOUNG_MODULUS, std::make_unique<CustomAccessor>());
+    KRATOS_CHECK(p_prop->HasAccessor(YOUNG_MODULUS))
 
     Vector N;
     const double modified_E = p_prop->GetValue(YOUNG_MODULUS, *pgeom, N, r_process_info);
     KRATOS_CHECK_NEAR(2.1e11 * 2.0,  modified_E, 1.0e-8);
+
+    const auto& r_accessor = p_prop->GetAccessor(YOUNG_MODULUS);
+    const double modified_E_from_acc = r_accessor.GetValue(YOUNG_MODULUS, *p_prop, *pgeom, N, r_process_info);
+    KRATOS_CHECK_NEAR(2.1e11 * 2.0, modified_E_from_acc, 1.0e-8);
 }
 
 

@@ -90,7 +90,7 @@ protected:
 
     IntegrationMethod mThisIntegrationMethod;
 
-    Geometry< Node<3> >::Pointer mpPressureGeometry;
+    Geometry< Node >::Pointer mpPressureGeometry;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -62,8 +62,8 @@ public:
     /// Pointer definition of SymbolicStokes
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SymbolicStokes);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;

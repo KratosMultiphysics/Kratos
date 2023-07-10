@@ -190,7 +190,7 @@ void StlIO::PrintData(std::ostream& rOStream) const{
 
 
 bool StlIO::IsValidGeometry(
-    const Geometry<Node<3>>& rGeometry,
+    const Geometry<Node>& rGeometry,
     std::size_t& rNumDegenerateGeos) const 
 {
     // restrict to triangles only for now
@@ -217,7 +217,20 @@ void StlIO::ReadSolid(
     KRATOS_ERROR_IF(word != "solid") << "Invalid stl file. Solid block should begin with \"solid\" keyword but \"" << word << "\" was found" << std::endl;
     std::getline(*mpInputStream, word); // Reading solid name to be the model part name
 
-    word.erase(word.begin(), std::find_if(word.begin(), word.end(), [](int ch) {return !std::isspace(ch);})); // Triming the leading spaces
+    // Remove Comments
+    for (const auto& symbol : {"COMMENT:", ";"}) {
+        const auto position = word.find(symbol);
+        if (position != word.npos) {
+            word.erase(position);
+        }
+    }
+    word.erase(std::remove_if(
+        word.begin(),
+        word.end(),
+        [](auto character) -> bool {
+            return character == '\r' || character == '\n' || character == ' '; //remove eol's and white spaces
+        }
+    ), word.end());
 
     if(word == "") // empty solid name is valid in STL format
         word = "main";

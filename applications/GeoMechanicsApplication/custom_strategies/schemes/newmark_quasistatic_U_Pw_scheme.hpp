@@ -292,7 +292,7 @@ public:
             if (Dim == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D; 
 
             // Clear nodal variables
-            block_for_each(rModelPart.Nodes(), [&StressTensorSize](Node<3>& rNode) {
+            block_for_each(rModelPart.Nodes(), [&StressTensorSize](Node& rNode) {
                 rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 Matrix& rNodalStress = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
                 if (rNodalStress.size1() != StressTensorSize)
@@ -307,7 +307,7 @@ public:
             FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
 
             // Compute smoothed nodal variables
-            block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+            block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
                 const double& NodalArea = rNode.FastGetSolutionStepValue(NODAL_AREA);
                 if (NodalArea > 1.0e-20) {
                     const double InvNodalArea = 1.0/NodalArea;
@@ -535,7 +535,7 @@ protected:
         KRATOS_TRY
 
         //Update Acceleration, Velocity and DtPressure
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
             noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =  ((  rNode.FastGetSolutionStepValue(DISPLACEMENT)
                                                                       - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1))
                                                                    - mDeltaTime * rNode.FastGetSolutionStepValue(VELOCITY, 1) 

@@ -23,8 +23,8 @@
 
 namespace Kratos::Testing
 {
-using PointType = Node<3>;
-using PointPtrType = Node<3>::Pointer;
+using PointType = Node;
+using PointPtrType = Node::Pointer;
 using Hexa20GeometryType = Hexahedra3D20<PointType>;
 using Hexa20GeometryPtrType = Hexa20GeometryType::Pointer;
 

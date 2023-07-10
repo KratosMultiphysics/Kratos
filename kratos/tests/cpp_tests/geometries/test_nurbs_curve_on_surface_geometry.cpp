@@ -30,7 +30,7 @@
 namespace Kratos {
 namespace Testing {
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /// Factory functions
 // namespace {
@@ -476,7 +476,7 @@ typedef Node<3> NodeType;
         auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = curve_on_surface.GetDefaultIntegrationInfo();
         curve_on_surface.CreateIntegrationPoints(integration_points, integration_info);
 
@@ -495,7 +495,7 @@ typedef Node<3> NodeType;
         auto curve_on_surface = GenerateReferenceNurbsCOS3dforKnotIntersections();
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = curve_on_surface.GetDefaultIntegrationInfo();
         curve_on_surface.CreateIntegrationPoints(integration_points, integration_info);
 

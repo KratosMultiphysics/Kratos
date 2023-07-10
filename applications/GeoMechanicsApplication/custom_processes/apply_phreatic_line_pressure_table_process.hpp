@@ -92,7 +92,7 @@ public:
                     /(mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
 
             if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node& rNode) {
                     const double pressure = CalculatePressure(rNode, y);
 
                     if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
@@ -103,7 +103,7 @@ public:
                     }
                 });
             } else {
-                block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node& rNode) {
                     const double pressure = CalculatePressure(rNode, y);
 
                     if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
@@ -144,7 +144,7 @@ protected:
     array_1d<TableType::Pointer,2> mpTable;
     double mTimeUnitConverter;
 
-    double CalculatePressure(const Node<3> &rNode, const array_1d<double, 2> &y) const
+    double CalculatePressure(const Node &rNode, const array_1d<double, 2> &y) const
     {
         double height = 0.0;
         if (rNode.Coordinates()[mHorizontalDirection] >= mMinHorizontalCoordinate && rNode.Coordinates()[mHorizontalDirection] <= mMaxHorizontalCoordinate) {

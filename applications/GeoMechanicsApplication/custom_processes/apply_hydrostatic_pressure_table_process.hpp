@@ -71,7 +71,7 @@ public:
             const double deltaH = mpTable->GetValue(Time);
 
             if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
                     const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
                     const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
 
@@ -83,7 +83,7 @@ public:
                     }
                 });
             } else {
-                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
                     const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
                     const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
 

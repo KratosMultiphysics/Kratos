@@ -6,7 +6,7 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
     return SetParameterFieldProcess(Model, settings["Parameters"])
 

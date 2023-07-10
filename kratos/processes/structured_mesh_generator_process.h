@@ -53,7 +53,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using GeometryType = Geometry<Node<3> >;
+    using GeometryType = Geometry<Node >;
 
     /// Pointer definition of StructuredMeshGeneratorProcess
     KRATOS_CLASS_POINTER_DEFINITION(StructuredMeshGeneratorProcess);

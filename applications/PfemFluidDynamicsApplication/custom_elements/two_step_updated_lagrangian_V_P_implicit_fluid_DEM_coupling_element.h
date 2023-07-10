@@ -67,8 +67,8 @@ namespace Kratos
     ///base type:
     typedef TwoStepUpdatedLagrangianVPImplicitFluidFicElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -107,7 +107,7 @@ namespace Kratos
 
     typedef typename BaseType::ElementalVariables ElementalVariables;
 
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{

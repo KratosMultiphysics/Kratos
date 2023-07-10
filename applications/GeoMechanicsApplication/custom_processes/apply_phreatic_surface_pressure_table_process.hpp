@@ -73,7 +73,7 @@ public:
             direction[mGravityDirection] = 1.0;
 
             if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node& rNode) {
                     double distance = 0.0;
                     double d = 0.0;
                     for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
@@ -92,7 +92,7 @@ public:
                     }
                 });
             } else {
-                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node& rNode) {
                     double distance = 0.0;
                     double d = 0.0;
                     for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {

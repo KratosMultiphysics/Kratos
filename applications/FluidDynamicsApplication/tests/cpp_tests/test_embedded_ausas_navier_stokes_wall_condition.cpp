@@ -93,7 +93,7 @@ namespace Kratos
             vel_original(2, 0) = 0.2;
             vel_original(2, 1) = 0.3;
 
-            Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
+            Geometry<Node> &r_geometry = pElement->GetGeometry();
 
             for (unsigned int i = 0; i < 3; i++)
             {
@@ -211,7 +211,7 @@ namespace Kratos
             vel_original(3, 1) = 0.4;
             vel_original(3, 2) = 0.5;
 
-            Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
+            Geometry<Node> &r_geometry = pElement->GetGeometry();
 
             for (unsigned int i = 0; i < 4; i++)
             {

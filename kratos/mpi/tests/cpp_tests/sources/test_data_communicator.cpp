@@ -1571,6 +1571,102 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGatherDouble, KratosMPICoreFastSuit
     #endif
 }
 
+// AllGatherv ////////////////////////////////////////////////////////////////////
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervInt, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    // the serial version of scatterv only works for the trivial case (from 0 to 0)
+    std::vector<int> send_buffer = {1, 1};
+
+    std::vector<int> recv_offsets = {0};
+    std::vector<int> recv_counts = {2};
+
+    std::vector<int> recv_buffer = {-1, -1};
+
+    // two-buffer version
+    serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, recv_offsets);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+    }
+
+    // return version
+    std::vector<std::vector<int>> return_buffer = serial_communicator.AllGatherv(send_buffer);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
+    KRATOS_CHECK_EQUAL(return_buffer[0].size(), send_buffer.size());
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
+    }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<int> wrong_size_recv = {-1, -1, -1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, wrong_size_recv, recv_counts, recv_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    std::vector<int> wrong_counts = {2, 3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, recv_buffer, wrong_counts, recv_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    std::vector<int> wrong_offsets = {0, 1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, wrong_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    #endif
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorAllGathervDouble, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    // the serial version of scatterv only works for the trivial case (from 0 to 0)
+    std::vector<double> send_buffer = {2.0, 2.0};
+
+    std::vector<int> recv_offsets = {0};
+    std::vector<int> recv_counts = {2};
+
+    std::vector<double> recv_buffer = {-1.0, -1.0};
+
+    // two-buffer version
+    serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, recv_offsets);
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(recv_buffer[i], send_buffer[i]);
+    }
+
+    // return version
+    std::vector<std::vector<double>> return_buffer = serial_communicator.AllGatherv(send_buffer);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 1);
+    KRATOS_CHECK_EQUAL(return_buffer[0].size(), send_buffer.size());
+    for (int i = 0; i < 2; i++)
+    {
+        KRATOS_CHECK_EQUAL(return_buffer[0][i], send_buffer[i]);
+    }
+
+    #ifdef KRATOS_DEBUG
+    std::vector<double> wrong_size_recv = {-1.0, -1.0, -1.0};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, wrong_size_recv, recv_counts, recv_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    std::vector<int> wrong_counts = {2, 3};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, recv_buffer, wrong_counts, recv_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    std::vector<int> wrong_offsets = {0, 1};
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        serial_communicator.AllGatherv(send_buffer, recv_buffer, recv_counts, wrong_offsets),
+        "Input error in call to DataCommunicator::AllGatherv"
+    );
+    #endif
+}
+
 // Error broadcasting methods /////////////////////////////////////////////////
 
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorErrorBroadcasting, KratosMPICoreFastSuite)

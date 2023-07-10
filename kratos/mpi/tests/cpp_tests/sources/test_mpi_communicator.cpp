@@ -114,7 +114,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICor
 
     const int rank = world_comm.Rank();
     const int size = world_comm.Size();
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
 
     // Single flag
     r_center.Set(STRUCTURE, (rank == size-1));
@@ -153,7 +153,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeAnd, KratosMPICo
 
     const int rank = world_comm.Rank();
     const int size = world_comm.Size();
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
 
     // Single flag
     r_center.Set(STRUCTURE, (rank == size-1));
@@ -249,12 +249,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableAs
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks
     const unsigned int local_id = rank + 2;
+
     unsigned int ghost_id = rank + 3;
-    Node<3>& r_local = r_model_part.Nodes()[local_id];
-    Node<3>& r_ghost = r_model_part.Nodes()[ghost_id];
+    Node& r_local = r_model_part.Nodes()[local_id];
+    Node& r_ghost = r_model_part.Nodes()[ghost_id];
 
     r_comm.AssembleCurrentData(DOMAIN_SIZE);
     int expected_int_local = (size > 1) && (rank > 0) ? 2 : 1;
@@ -438,12 +439,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataAssembly, KratosMP
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks
     const unsigned int local_id = rank + 2;
     unsigned int ghost_id = rank + 3;
-    Node<3>& r_local = r_model_part.Nodes()[local_id];
-    Node<3>& r_ghost = r_model_part.Nodes()[ghost_id];
+    Node& r_local = r_model_part.Nodes()[local_id];
+    Node& r_ghost = r_model_part.Nodes()[ghost_id];
 
     r_comm.AssembleNonHistoricalData(DOMAIN_SIZE);
     int expected_int_local = (size > 1) && rank != 0 ? 2 : 1;
@@ -609,7 +610,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks (except for first and last rank)
     const unsigned int local_id = rank + 2;
     const unsigned int ghost_id = rank + 3;
@@ -643,7 +644,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMax,
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks (except on first and last rank)
     const unsigned int local_id = rank + 2;
     const unsigned int ghost_id = rank + 3;
@@ -678,7 +679,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks
     const unsigned int local_id = rank + 2;
     const unsigned int ghost_id = rank + 3;
@@ -712,7 +713,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToAbsM
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks (except on first and last rank)
     const unsigned int local_id = rank + 2;
     const unsigned int ghost_id = rank + 3;
@@ -746,12 +747,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks (except on first and last rank)
     const unsigned int local_id = rank + 2;
     unsigned int ghost_id = rank + 3;
-    Node<3>& r_local = r_model_part.Nodes()[local_id];
-    Node<3>& r_ghost = r_model_part.Nodes()[ghost_id];
+    Node& r_local = r_model_part.Nodes()[local_id];
+    Node& r_ghost = r_model_part.Nodes()[ghost_id];
 
     int expected_local = (rank > 0) ? 10.0*(rank-1) : 0.0;
     int expected_ghost = 10.0*rank;
@@ -779,12 +780,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToMin,
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks (except on first and last rank)
     const unsigned int local_id = rank + 2;
     unsigned int ghost_id = rank + 3;
-    Node<3>& r_local = r_model_part.Nodes()[local_id];
-    Node<3>& r_ghost = r_model_part.Nodes()[ghost_id];
+    Node& r_local = r_model_part.Nodes()[local_id];
+    Node& r_ghost = r_model_part.Nodes()[ghost_id];
 
     int expected_local = (rank > 0) ? 10.0*(rank-1) : 0.0;
     int expected_ghost = 10.0*rank;
@@ -813,12 +814,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalSolutionStepVariableSy
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks (except on first and last rank)
     const unsigned int local_id = rank + 2;
     unsigned int ghost_id = rank + 3;
-    Node<3>& r_local = r_model_part.Nodes()[local_id];
-    Node<3>& r_ghost = r_model_part.Nodes()[ghost_id];
+    Node& r_local = r_model_part.Nodes()[local_id];
+    Node& r_ghost = r_model_part.Nodes()[ghost_id];
 
     int expected_local = (rank > 0) ? - 10.0*(rank-1) : 0.0;
     int expected_ghost = - 10.0*rank;
@@ -846,12 +847,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommunicatorNodalDataVariableSyncToAbsM
     Communicator& r_comm = r_model_part.GetCommunicator();
 
     // center is local to rank 0 and ghost in all other ranks
-    Node<3>& r_center = r_model_part.Nodes()[1];
+    Node& r_center = r_model_part.Nodes()[1];
     // local and ghost nodes are each known in two ranks (except on first and last rank)
     const unsigned int local_id = rank + 2;
     unsigned int ghost_id = rank + 3;
-    Node<3>& r_local = r_model_part.Nodes()[local_id];
-    Node<3>& r_ghost = r_model_part.Nodes()[ghost_id];
+    Node& r_local = r_model_part.Nodes()[local_id];
+    Node& r_ghost = r_model_part.Nodes()[ghost_id];
 
     int expected_local = (rank > 0) ? - 10.0*(rank-1) : 0.0;
     int expected_ghost = - 10.0*rank;

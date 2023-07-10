@@ -54,7 +54,7 @@ public:
     typedef std::size_t IndexType;
 
     /// Definition of the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     // Definition of the geometry
     typedef Geometry<NodeType> GeometryType;
