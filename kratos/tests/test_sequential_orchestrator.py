@@ -34,10 +34,10 @@ class EmptyAnalysisStage(AnalysisStage):
 
     def _CreateSolver(self):
         return EmptySolver(self.model, self.project_parameters["solver_settings"])
-    
+
     def KeepAdvancingSolutionLoop(self):
         return False
-    
+
 # Fake do-nothing operation to test the orchestrator
 class EmptyOperation(KratosMultiphysics.Operation):
     def __init__(self, model, project_parameters):
@@ -58,7 +58,7 @@ class TestSequentialOrchestrator(KratosMultiphysics.KratosUnittest.TestCase):
 
     def test_sequential_orchestrator(self):
         # Parse sequential orchestrator settings
-        project_parameters_filename = pathlib.Path("auxiliar_files_for_python_unittest/orchestrators_files/test_sequential_orchestrator.json")        
+        project_parameters_filename = pathlib.Path("auxiliar_files_for_python_unittest/orchestrators_files/test_sequential_orchestrator.json")
         with open(project_parameters_filename, 'r') as parameter_file:
             project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 

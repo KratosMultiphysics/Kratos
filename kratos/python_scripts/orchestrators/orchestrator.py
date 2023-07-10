@@ -10,7 +10,7 @@ from KratosMultiphysics.model_parameters_factory import KratosModelParametersFac
 
 class Orchestrator(abc.ABC):
     """Base class for multistage orchestrators.
-    
+
     This class is intended to serve as base for al the Kratos multistage orchestrators.
     The purpose of orchestrators is to define the workflow of the multistage simulations.
     This includes deciding when and how to save and load (aka restart) the simulation.
@@ -33,7 +33,7 @@ class Orchestrator(abc.ABC):
 
     def CheckStageSettings(self, stage_name : str) -> None:
         """Check the settings for the given stage name
-        
+
         This methods performs the check of the given stage name settings.
         Note that the Check() method of the stage instance is intentionally not called in here.
         This is due to the fact that the Check() of the stage instance is to be called within its Initialize() method.
@@ -103,7 +103,7 @@ class Orchestrator(abc.ABC):
             analysis_stage_module = importlib.import_module(analysis_stage_module_name)
         else:
             analysis_stage_module = sys.modules["__main__"]
-        
+
         # Create the analysis stage instance
         input_stage_settings = KratosMultiphysics.Parameters(current_stage_settings)
         if hasattr(analysis_stage_module, analysis_stage_class_name):
@@ -116,7 +116,7 @@ class Orchestrator(abc.ABC):
         else:
             err_msg = f"Analysis stage in '{analysis_stage_module_name}' Python module cannot be created. Please check class name or provide a 'Create' method."
             raise Exception(err_msg)
-        
+
         return stage_instance
 
     def RunCurrentStagePreprocess(self, stage_name: str, data: typing.Optional[dict] = None):
@@ -147,7 +147,7 @@ class Orchestrator(abc.ABC):
 
     def RunCurrentStagePostprocess(self, stage_name: str, data: typing.Optional[dict] = None):
         """This function executes the postprocessing of current stage.
-        
+
         Note that the stage postprocess deliberately involves operations only.
 
         Keyword arguments:
@@ -165,7 +165,7 @@ class Orchestrator(abc.ABC):
         """Returns the project."""
 
         return self.__project
-   
+
     def __CreateListOfModelers(self, stage_name: str) -> list:
         """This method creates the modelers at the preprocess execution point."""
 

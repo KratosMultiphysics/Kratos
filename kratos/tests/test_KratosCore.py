@@ -87,6 +87,9 @@ import test_model_part_operation_utilities
 import test_spatial_search
 import test_sequential_orchestrator
 
+# Import modules required for sequential orchestrator test
+from test_sequential_orchestrator import EmptyAnalysisStage
+
 if sympy_available:
     import test_sympy_fe_utilities
 

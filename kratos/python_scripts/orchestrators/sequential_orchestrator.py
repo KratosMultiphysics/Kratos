@@ -98,8 +98,8 @@ class SequentialOrchestrator(Orchestrator):
     def __GetStagesToCheckpointList(self) -> list:
         '''Creates and returns the stages checkpoint list.
 
-        The first time it is called, this method creates the stages checkpoint list, 
-        either from a user-defined checkpoint list or, if a bool is provided, it creates 
+        The first time it is called, this method creates the stages checkpoint list,
+        either from a user-defined checkpoint list or, if a bool is provided, it creates
         a list with all the stages in the execution list.
         The subsequent calls directly return the already existent '_stages_to_checkpoint_list'.
         '''
@@ -126,9 +126,9 @@ class SequentialOrchestrator(Orchestrator):
             else:
                 err_msg = "'stage_checkpoints' value must be bool or a list with the stages to be checkpointed."
                 raise TypeError(err_msg)
-        
+
         return self._stages_to_checkpoint_list
-    
+
     def __GetStagesCheckpointFolder(self) -> str:
         '''Gets the folder to store the checkpoint files from the settings.'''
 
@@ -138,10 +138,10 @@ class SequentialOrchestrator(Orchestrator):
             info_msg = "'stage_checkpoints_folder' is not provided. Creating a default 'checkpoints' one."
             KratosMultiphysics.Logger.PrintInfo("SequentialOrchestrator", info_msg)
             return 'checkpoints'
-        
+
     def __PrepareOutputSettings(self, stage_name: str) -> str:
         '''Prepares the settings to be output.
-        
+
         This function modifies current settings in order to prepare them to be output.
         This includes setting the loading checkpoint as the one to be saved and modifying the execution list accordingly.
         '''
