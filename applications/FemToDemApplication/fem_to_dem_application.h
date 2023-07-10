@@ -42,7 +42,7 @@
 
 namespace Kratos {
 
-class KratosFemToDemApplication : public KratosApplication 
+class KRATOS_API(FEM_TO_DEM_APPLICATION) KratosFemToDemApplication : public KratosApplication 
 
 {
 

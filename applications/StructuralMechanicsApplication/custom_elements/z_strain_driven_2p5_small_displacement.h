@@ -3,16 +3,15 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Miguel Angel Celigueta
 //                   Ignasi de Pouplana
 //
 
 
-#if !defined(KRATOS_Z_DRIVEN_2p5D_SMALL_DISPLACEMENT_H_INCLUDED )
-#define  KRATOS_Z_DRIVEN_2p5D_SMALL_DISPLACEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/checks.h"
@@ -295,4 +294,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_Z_DRIVEN_2p5D_SMALL_DISPLACEMENT_H_INCLUDED  defined

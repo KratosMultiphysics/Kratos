@@ -5,7 +5,7 @@ class DeleteModelPartsModeler(KratosMultiphysics.Modeler):
     def __init__(self, model, settings):
         super().__init__(model, settings)
 
-        # Cannot validate as settings may differ ammong input types
+        # Cannot validate as settings may differ among input types
         settings.AddMissingParameters(self.__GetDefaultSettings())
 
         # Declare required member variables

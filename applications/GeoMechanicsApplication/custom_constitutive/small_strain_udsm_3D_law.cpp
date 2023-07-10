@@ -78,9 +78,7 @@ typedef void(*f_UserMod) (int    *, int     *, int    *,
 //************************************************************************************
 
 SmallStrainUDSM3DLaw::SmallStrainUDSM3DLaw()
-   : ConstitutiveLaw(),
-     mIsModelInitialized(false),
-     mIsUDSMLoaded(false)
+   : ConstitutiveLaw()
    {
     KRATOS_TRY
 

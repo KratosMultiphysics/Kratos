@@ -129,6 +129,8 @@ bool GeometryTesterUtility::StreamTestTetrahedra3D4N(
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
 
+    array_1d<double,3> point_in(3,1.0/3.0);
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
     rErrorMessage << std::endl;
 
     return successful;
@@ -515,6 +517,9 @@ bool GeometryTesterUtility::StreamTestHexahedra3D27N(
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5, rErrorMessage);
+
+    array_1d<double,3> point_in(3,1.0/3.0);
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     rErrorMessage << std::endl;
 

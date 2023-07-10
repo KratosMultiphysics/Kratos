@@ -77,54 +77,76 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("test"));
     KRATOS_CHECK(registry_item.HasItem("sub_item"));
 
-    std::cout << registry_item << std::endl;
-
     auto& sub_item = registry_item.GetItem("sub_item");
     KRATOS_CHECK_STRING_EQUAL(sub_item.Name(),"sub_item");
-    std::string item_json = R"("items" : {
-    "sub_item" : {
-}
-}
-)";
-    KRATOS_CHECK_STRING_EQUAL(registry_item.ToJson(), item_json);
+    KRATOS_CHECK_STRING_EQUAL(registry_item.ToJson(), "{\n\"items\": {\n\"sub_item\": {}\n}\n}");
 
     registry_item.RemoveItem("sub_item");
     KRATOS_CHECK_IS_FALSE(registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_item"));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RegistryValue, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RegistryEmptyValue, KratosCoreFastSuite)
+{
+    RegistryItem empty_value_item("empty_value_item");
+    KRATOS_CHECK_STRING_EQUAL(empty_value_item.Name(),"empty_value_item");
+    KRATOS_CHECK_IS_FALSE(empty_value_item.HasValue());
+    KRATOS_CHECK_IS_FALSE(empty_value_item.HasItems());
+    KRATOS_CHECK_IS_FALSE(empty_value_item.HasItem("test"));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RegistryDataValue, KratosCoreFastSuite)
 {
     double value = 3.14;
-    RegistryValueItem<double> value_registry_item("value_item", value);
+    RegistryItem value_registry_item("value_item", value);
+    
     KRATOS_CHECK_STRING_EQUAL(value_registry_item.Name(),"value_item");
     KRATOS_CHECK(value_registry_item.HasValue());
     KRATOS_CHECK_IS_FALSE(value_registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(value_registry_item.HasItem("test"));
-
     KRATOS_CHECK_DOUBLE_EQUAL(value_registry_item.GetValue<double>(), 3.14);
+}
 
-    std::string value_item_json = R"("value_item" : "3.14"
-)";
+KRATOS_TEST_CASE_IN_SUITE(RegistryJsonValue, KratosCoreFastSuite)
+{
+    double value = 3.14;
+    RegistryItem value_registry_item("value_item", value);
+
+    std::string value_item_json = R"({
+"value_item": "3.14"
+})";
+    
     KRATOS_CHECK_STRING_EQUAL(value_registry_item.ToJson(), value_item_json);
+}
 
+KRATOS_TEST_CASE_IN_SUITE(RegistryJsonSubValue, KratosCoreFastSuite)
+{
+    double value = 3.14;
     RegistryItem registry_item("items");
-    registry_item.AddItem<RegistryValueItem<double>>("sub_value_item", value);
+
+    registry_item.AddItem<double>("sub_value_item", value);
+    
     KRATOS_CHECK_IS_FALSE(registry_item.HasValue());
     KRATOS_CHECK(registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("test"));
     KRATOS_CHECK(registry_item.HasItem("sub_value_item"));
 
-    std::string item_json = R"("items" : {
-    "sub_value_item" : "3.14"
+    KRATOS_CHECK_STRING_EQUAL(registry_item.ToJson(), "{\n\"items\": {\n\"sub_value_item\": \"3.14\"\n}\n}");
 }
-)";
-    KRATOS_CHECK_STRING_EQUAL(registry_item.ToJson(), item_json);
 
+KRATOS_TEST_CASE_IN_SUITE(RegistrySubValue, KratosCoreFastSuite)
+{
+    double value = 3.14;
+    RegistryItem registry_item("items");
+    
+    registry_item.AddItem<double>("sub_value_item", value);
     auto& sub_item = registry_item.GetItem("sub_value_item");
+    
     KRATOS_CHECK_STRING_EQUAL(sub_item.Name(),"sub_value_item");
     KRATOS_CHECK(sub_item.HasValue());
+    
     registry_item.RemoveItem("sub_value_item");
+    
     KRATOS_CHECK_IS_FALSE(registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_value_item"));
 }
@@ -280,7 +302,16 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)
             }
         );
 
+        
+
 }
+
+KRATOS_TEST_CASE_IN_SUITE(RegistrySomeRegisteredVariables, KratosCoreFastSuite){
+     KRATOS_CHECK(Registry::HasItem("variables.all.TEMPERATURE"));
+     KRATOS_CHECK(Registry::HasItem("variables.all.VELOCITY"));
+     KRATOS_CHECK(Registry::HasItem("variables.all.DISPLACEMENT_Z"));
+}
+
 
 }
 }  // namespace Kratos.

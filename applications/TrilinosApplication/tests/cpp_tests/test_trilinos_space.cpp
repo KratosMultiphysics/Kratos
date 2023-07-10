@@ -19,7 +19,7 @@
 #include "trilinos_space.h"
 #include "containers/model.h"
 #include "mpi/includes/mpi_data_communicator.h"
-#include "custom_utilities/trilinos_cpp_test_utilities.h"
+#include "trilinos_cpp_test_utilities.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos::Testing
@@ -296,6 +296,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBtDBProductOperation, KratosTrilin
     TrilinosLocalMatrixType multiply_reference;
     MathUtils<double>::BtDBProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+
+    // Non zero matrix
+    auto second_mult = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+
+    // Solution
+    TrilinosSparseSpaceType::BtDBProductOperation(second_mult, matrix_1, matrix_2);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(second_mult, multiply_reference);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilinosApplicationMPITestSuite)
@@ -328,6 +335,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBDBtProductOperation, KratosTrilin
     TrilinosLocalMatrixType multiply_reference;
     MathUtils<double>::BDBtProductOperation(multiply_reference, local_matrix_1, local_matrix_2);
     TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(mult, multiply_reference);
+
+    // Non zero matrix
+    auto second_mult = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+
+    // Solution
+    TrilinosSparseSpaceType::BDBtProductOperation(second_mult, matrix_1, matrix_2);
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(second_mult, multiply_reference);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosInplaceMult, KratosTrilinosApplicationMPITestSuite)
@@ -502,6 +516,46 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosSetToZeroVector, KratosTrilinosApp
     TrilinosCPPTestUtilities::CheckSparseVectorFromLocalVector(vector, local_vector);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCopyMatrixValues, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto matrix_1 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+    auto matrix_2 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0);
+    auto local_matrix = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 0.0);
+
+    // Solution
+    TrilinosSparseSpaceType::CopyMatrixValues(matrix_1, matrix_2);
+
+    // Check
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(matrix_1, local_matrix);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCombineMatricesGraphs, KratosTrilinosApplicationMPITestSuite)
+{
+    // The data communicator
+    const auto& r_comm = Testing::GetDefaultDataCommunicator();
+
+    // The dummy vector
+    const int size = 2 * r_comm.Size();
+    auto matrix_1 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0);
+    auto matrix_2 = TrilinosCPPTestUtilities::GenerateDummySparseMatrix(r_comm, size, 0.0, true);
+    auto local_matrix = TrilinosCPPTestUtilities::GenerateDummyLocalMatrix(size, 0.0, true);
+
+    // Creating new matrix
+    const auto combined_graph = TrilinosSparseSpaceType::CombineMatricesGraphs(matrix_1, matrix_2);
+    TrilinosSparseMatrixType copied_matrix(::Copy, combined_graph);
+
+    // Solution
+    TrilinosSparseSpaceType::CopyMatrixValues(copied_matrix, matrix_2);
+
+    // Check
+    TrilinosCPPTestUtilities::CheckSparseMatrixFromLocalMatrix(copied_matrix, local_matrix);
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues, KratosTrilinosApplicationMPITestSuite)
 {
     Model current_model;
@@ -527,7 +581,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosCheckAndCorrectZeroDiagonalValues,
 
     // Test the norm of the matrix
     double norm = 0.0;
-    norm = TrilinosSparseSpaceType::CheckAndCorrectZeroDiagonalValues(r_process_info, matrix12x12, vector12, r_comm, SCALING_DIAGONAL::NO_SCALING);
+    norm = TrilinosSparseSpaceType::CheckAndCorrectZeroDiagonalValues(r_process_info, matrix12x12, vector12, SCALING_DIAGONAL::NO_SCALING);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
     if (r_comm.Rank() == 0) {
         const auto& raw_values = matrix12x12.ExpertExtractValues();
@@ -556,17 +610,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosGetScaleNorm, KratosTrilinosApplic
 
     // Test the norm of the matrix
     double norm = 0.0;
-    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, r_comm, SCALING_DIAGONAL::NO_SCALING);
+    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::NO_SCALING);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
-    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, r_comm, SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL);
+    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 3.0);
-    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, r_comm, SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL);
+    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL);
     KRATOS_CHECK_NEAR(norm, 2.124591464, 1.0e-6);
-    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, r_comm, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
+    norm = TrilinosSparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 12.0);
-    norm = TrilinosSparseSpaceType::GetAveragevalueDiagonal(matrix12x12, r_comm);
+    norm = TrilinosSparseSpaceType::GetAveragevalueDiagonal(matrix12x12);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 6.5);
-    norm = TrilinosSparseSpaceType::GetMinDiagonal(matrix12x12, r_comm);
+    norm = TrilinosSparseSpaceType::GetMinDiagonal(matrix12x12);
     KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
 }
 

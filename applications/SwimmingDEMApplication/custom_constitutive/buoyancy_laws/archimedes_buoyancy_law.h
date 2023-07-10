@@ -11,7 +11,7 @@ namespace Kratos {
     class KRATOS_API(SWIMMING_DEM_APPLICATION) ArchimedesBuoyancyLaw : public BuoyancyLaw {
 
     public:
-        typedef Node <3> NodeType;
+        typedef Node NodeType;
         KRATOS_CLASS_POINTER_DEFINITION(ArchimedesBuoyancyLaw);
 
         // TODO: make mDoApplyFaxenCorrections an option
@@ -27,7 +27,7 @@ namespace Kratos {
 
         std::string GetTypeOfLaw() override;
 
-        void ComputeForce(Geometry<Node<3> >& r_geometry,
+        void ComputeForce(Geometry<Node >& r_geometry,
                           const double fluid_density,
                           const double displaced_volume,
                           const array_1d<double, 3>& body_force,

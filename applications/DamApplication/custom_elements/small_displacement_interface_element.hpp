@@ -94,7 +94,9 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+                                      const std::vector<double>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                       std::vector<array_1d<double,3>>& rOutput,
@@ -168,18 +170,15 @@ protected:
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& weight, const double& detJ);
 
-
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
-
 
     void CalculateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues );
 

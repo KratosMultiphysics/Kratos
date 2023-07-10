@@ -4,8 +4,8 @@
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//  License:		 BSD License
-//                       license: MeshingApplication/license.txt
+//  License:         BSD License
+//                   license: MeshingApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -29,7 +29,7 @@
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 #include "custom_utilities/linear_to_quadratic_tetrahedra_mesh_converter_utility.h"
 #include "custom_utilities/local_refine_tetrahedra_mesh_parallel_to_boundaries.hpp"
-
+#include "custom_utilities/local_refine_tetrahedra_mesh_only_on_boundaries.hpp"
 
 #ifdef  USE_TETGEN_NONFREE_TPL
     #include "custom_utilities/tetgen_volume_mesher.h"
@@ -44,10 +44,7 @@
     #include "external_includes/pragmatic_adapt_3d.h"
 #endif
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -136,6 +133,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("LocalRefineMesh", &LocalRefineTetrahedraMeshParallelToBoundaries::LocalRefineMesh)
     ;
 
+    py::class_<LocalRefineTetrahedraMeshOnlyOnBoundaries >
+    (m,"LocalRefineTetrahedraMeshOnlyOnBoundaries")
+    .def(py::init<ModelPart&>())
+    .def("LocalRefineMesh", &LocalRefineTetrahedraMeshOnlyOnBoundaries::LocalRefineMesh)
+    ;
+
 #ifdef USE_TETGEN_NONFREE_TPL
     py::class_<TetgenVolumeMesher >
     (m,"TetgenVolumeMesher")
@@ -174,8 +177,5 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("DeleteCutData", &Cutting_Isosurface_Application::DeleteCutData)
     ;
 
-
 }
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

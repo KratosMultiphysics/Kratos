@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -29038,7 +29038,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
-        const NodeType& r_master_node = r_current_master[i_master];
+        const Node& r_master_node = r_current_master[i_master];
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if constexpr (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -29046,7 +29046,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        const NodeType& r_slave_node = r_current_slave[ i_slave ];
+        const Node& r_slave_node = r_current_slave[ i_slave ];
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -29054,7 +29054,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
 
     // Slave Nodes  Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        const NodeType& r_slave_node = r_current_slave[ i_slave ];
+        const Node& r_slave_node = r_current_slave[ i_slave ];
         rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
         rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
         if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
@@ -29085,7 +29085,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
-        const NodeType& r_master_node = r_current_master[i_master];
+        const Node& r_master_node = r_current_master[i_master];
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Y );
         if constexpr (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
@@ -29093,7 +29093,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        const NodeType& r_slave_node = r_current_slave[ i_slave ];
+        const Node& r_slave_node = r_current_slave[ i_slave ];
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Y );
         if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
@@ -29101,7 +29101,7 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
 
     // Slave Nodes Lambda Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        const NodeType& r_slave_node = r_current_slave[ i_slave ];
+        const Node& r_slave_node = r_current_slave[ i_slave ];
         rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
         rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
         if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
@@ -29125,7 +29125,7 @@ int AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,T
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     const GeometryType& r_current_slave = this->GetParentGeometry();
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
-        const NodeType &r_node = r_current_slave[i];
+        const Node &r_node = r_current_slave[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VECTOR_LAGRANGE_MULTIPLIER,r_node)
 
         KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_X, r_node)

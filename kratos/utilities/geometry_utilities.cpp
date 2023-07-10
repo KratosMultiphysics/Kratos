@@ -123,6 +123,272 @@ std::string GeometryUtils::GetGeometryName(const GeometryData::KratosGeometryTyp
     KRATOS_CATCH("");
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GeometryUtils::PointDistanceToLineSegment3D(
+    const Point& rLinePoint1,
+    const Point& rLinePoint2,
+    const Point& rToPoint
+    )
+{
+    const double epsilon = 1e-15; //1.0e-9;
+
+    const array_1d<double,3> v1 = rLinePoint2 - rLinePoint1;
+    const array_1d<double,3> v2 = rLinePoint1 - rToPoint;
+    array_1d<double,3> v3;
+
+    const double square_distance = inner_prod(v1,v1);
+
+    if(square_distance < epsilon) // near zero length line
+        return norm_2(v2); // we return the distance to the first point of line
+
+    const double t = - inner_prod(v1,v2) / square_distance;
+
+    if(t < 0.0) { // it is before point 1
+        // We return the distance to point 1
+        noalias(v3) = rLinePoint1 - rToPoint;
+
+        return norm_2(v3);
+    }
+
+    if(t > 1.0) { // it is after point 2
+        // We return the distance to point 2
+        noalias(v3) = rLinePoint2 - rToPoint;
+
+        return norm_2(v3);
+    }
+
+    // The projection point is between point 1 and 2 of the line segment
+    noalias(v3) = rLinePoint1 * (1.0 - t) + rLinePoint2 * t;
+
+    return norm_2(v3 - rToPoint);
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GeometryUtils::PointDistanceToTriangle3D(
+    const Point& rTrianglePoint1,
+    const Point& rTrianglePoint2,
+    const Point& rTrianglePoint3,
+    const Point& rPoint
+    )
+{
+    const array_1d<double, 3> e0 = rTrianglePoint2 - rTrianglePoint1;
+    const array_1d<double, 3> e1 = rTrianglePoint3 - rTrianglePoint1;
+    const array_1d<double, 3> dd = rTrianglePoint1 - rPoint;
+
+    const double a = inner_prod(e0, e0);
+    const double b = inner_prod(e0, e1);
+    const double c = inner_prod(e1, e1);
+    const double d = inner_prod(e0, dd);
+    const double e = inner_prod(e1, dd);
+    const double f = inner_prod(dd, dd);
+
+    const double det = a*c-b*b;
+    double s = b*e-c*d;
+    double t = b*d-a*e;
+
+    double square_distance = 0.0;
+
+    if ( s + t <= det ) {
+        if ( s < 0.0 ) {
+            if ( t < 0.0 ) { // region 4
+                if (d < 0) {
+                    t = 0;
+                    if (-d >= a) {
+                        s = 1;
+                        square_distance = a + 2*d + f;
+                    } else {
+                        s = -d/a;
+                        square_distance = d*s + f;
+                    }
+                } else {
+                    s = 0;
+                    if (e >= 0) {
+                        t = 0;
+                        square_distance = f;
+                    } else {
+                        if (-e >= c) {
+                            t = 1;
+                            square_distance = c + 2*e + f;
+                        } else {
+                            t = -e/c;
+                            square_distance = e*t + f;
+                        }
+                    }
+                }
+            } else { // region 3
+                s = 0.0;
+                if(e >= 0.0) {
+                    t = 0.0;
+                    square_distance = f;
+                } else {
+                    if (-e >= c) {
+                        t = 1.00;
+                        square_distance = c + 2*e +f;
+                    } else {
+                        t = -e/c;
+                        square_distance = e*t + f;
+                    }
+                }
+
+            }
+        } else if ( t < 0.00 ) { // region 5
+            t = 0;
+            if (d >= 0) {
+                s = 0;
+                square_distance = f;
+            } else {
+                if (-d >= a) {
+                    s = 1;
+                    square_distance = a + 2.0 * d + f;
+                } else {
+                    s = -d / a;
+                    square_distance = d * s + f;
+                }
+            }
+        } else { // region 0
+            const double inv_det = 1.0 / det;
+            s *= inv_det;
+            t *= inv_det;
+            square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
+        }
+    } else {
+        if ( s < 0.00 ) {
+            // Region 2
+            const double temp0 = b + d;
+            const double temp1 = c + e;
+            if (temp1 > temp0)  { // Minimum on edge s+t=1
+                const double numer = temp1 - temp0;
+                const double denom = a - 2*b + c;
+                if(numer >= denom) {
+                    s = 1.0;
+                    t = 0.0;
+                    square_distance = a + 2*d + f;
+                } else {
+                    s = numer/denom;
+                    t = 1.0 - s;
+                    square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
+                }
+            } else { // Minimum on edge s=0
+                s = 0.0;
+                if(temp1 <= 0.0) {
+                    t = 1;
+                    square_distance = c + 2*e + f;
+                } else {
+                    if(e >= 0.0) {
+                        t = 0.0;
+                        square_distance = f;
+                    } else {
+                        t = -e/c;
+                        square_distance = e*t + f;
+                    }
+                }
+            }
+        } else if ( t < 0.0 ) {
+            // Region 6
+            const double temp0 = b + e;
+            const double temp1 = a + d;
+            if (temp1 > temp0) {
+                const double numer = temp1 - temp0;
+                const double denom = a - 2*b + c;
+                if (numer >= denom) {
+                    s = 0.0;
+                    t = 1.0;
+                    square_distance = c + 2*e + f;
+                } else {
+                    t = numer/denom;
+                    s = 1.0 - t;
+                    square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
+                }
+            } else {
+                t = 0.0;
+                if (temp1 <= 0.0) {
+                    s = 1;
+                    square_distance = a + 2*d + f;
+                } else {
+                    if(d >= 0.0) {
+                        s = 0.0;
+                        square_distance = f;
+                    } else {
+                        s = -d/a;
+                        square_distance = d*s + f;
+                    }
+                }
+            }
+        } else {
+            // Region 1
+            const double numer = c + e - b - d;
+
+            if (numer <= 0.0) {
+                s = 0.0;
+                t = 1.0;
+                square_distance = c + 2.0 * e + f;
+            } else {
+                const double denom = a - 2.0 * b + c;
+                if (numer >= denom) {
+                    s = 1.0;
+                    t = 0.0;
+                    square_distance = a + 2.0 * d + f;
+                } else {
+                    s = numer / denom;
+                    t = 1.0 - s;
+                    square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
+                }
+            }
+        }
+    }
+
+    if(square_distance < 0.0)
+        return 0.0; // avoiding -0 case!!
+
+    return std::sqrt(square_distance);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GeometryUtils::PointDistanceToTriangle3D(
+    const Point& rTrianglePoint1,
+    const Point& rTrianglePoint2,
+    const Point& rTrianglePoint3,
+    const Point& rTrianglePoint4,
+    const Point& rTrianglePoint5,
+    const Point& rTrianglePoint6,
+    const Point& rPoint
+    )
+{
+    std::array<double, 4> distances;
+    distances[0] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint1, rTrianglePoint4, rTrianglePoint6, rPoint);
+    distances[1] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint4, rTrianglePoint2, rTrianglePoint5, rPoint);
+    distances[2] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint6, rTrianglePoint5, rTrianglePoint3, rPoint);
+    distances[3] = GeometryUtils::PointDistanceToTriangle3D(rTrianglePoint4, rTrianglePoint5, rTrianglePoint6, rPoint);
+    const auto min = std::min_element(distances.begin(), distances.end());
+    return *min;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GeometryUtils::PointDistanceToQuadrilateral3D(
+    const Point& rQuadrilateralPoint1,
+    const Point& rQuadrilateralPoint2,
+    const Point& rQuadrilateralPoint3,
+    const Point& rQuadrilateralPoint4,
+    const Point& rPoint
+    )
+{
+    const double distance_1 = GeometryUtils::PointDistanceToTriangle3D(rQuadrilateralPoint1, rQuadrilateralPoint2, rQuadrilateralPoint3, rPoint);
+    const double distance_2 = GeometryUtils::PointDistanceToTriangle3D(rQuadrilateralPoint3, rQuadrilateralPoint4, rQuadrilateralPoint1, rPoint);
+    return std::min(distance_1, distance_2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <class TDataType>
 void GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint(
     TDataType& rOutput,
@@ -170,6 +436,9 @@ void KRATOS_API(KRATOS_CORE) GeometryUtils::EvaluateHistoricalVariableValueAtGau
     KRATOS_CATCH("");
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(
     array_1d<double, 3>& rOutput,
     const GeometryType& rGeometry,
@@ -188,6 +457,9 @@ void GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(
             rOutput[i] += rGaussPointShapeFunctionDerivativeValues(a, i) * value;
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(
     BoundedMatrix<double, 3, 3>& rOutput,
@@ -214,6 +486,9 @@ void GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(
         }
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 bool GeometryUtils::ProjectedIsInside(
     const GeometryType& rGeometry,
@@ -246,8 +521,7 @@ bool GeometryUtils::ProjectedIsInside(
     return rGeometry.IsInside(rPointGlobalCoordinates, rResult, Tolerance);
 }
 
-// template instantiations
-
+// Template instantiations
 template void KRATOS_API(KRATOS_CORE) GeometryUtils::EvaluateHistoricalVariableValueAtGaussPoint<array_1d<double, 3>>(
     array_1d<double, 3>& rOutput,
     const GeometryType&,

@@ -34,7 +34,7 @@ typedef std::size_t IndexType;
 
 public:
 
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -664,6 +664,38 @@ public:
             KRATOS_ERROR << "Extrapolation matrix for hexahedral is only defined for IntegrationMethod GI_GAUSS_1 and GI_GAUSS_2" << std::endl;
         }
      }
+
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    template< unsigned int TNumNodes >
+    static array_1d<double, TNumNodes> CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom, const Properties& rProp)
+    {
+        const auto NumericalLimit = std::numeric_limits<double>::epsilon();
+    	//Defining necessary variables
+        array_1d<double, TNumNodes> nodal_hydraulic_heads;
+        for (unsigned int node = 0; node < TNumNodes; ++node) {
+            array_1d<double, 3> node_volume_acceleration;
+            noalias(node_volume_acceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
+            const double g = norm_2(node_volume_acceleration);
+            if (g > NumericalLimit) {
+                const double FluidWeight = g * rProp[DENSITY_WATER];
+
+                array_1d<double, 3> NodeCoordinates;
+                noalias(NodeCoordinates) = rGeom[node].Coordinates();
+                array_1d<double, 3> NodeVolumeAccelerationUnitVector;
+                noalias(NodeVolumeAccelerationUnitVector) = node_volume_acceleration / g;
+
+                const double WaterPressure = rGeom[node].FastGetSolutionStepValue(WATER_PRESSURE);
+                nodal_hydraulic_heads[node] = -inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector)
+                    - PORE_PRESSURE_SIGN_FACTOR * WaterPressure / FluidWeight;
+            }
+            else {
+                nodal_hydraulic_heads[node] = 0.0;
+            }
+        }
+        return nodal_hydraulic_heads;
+    }
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/

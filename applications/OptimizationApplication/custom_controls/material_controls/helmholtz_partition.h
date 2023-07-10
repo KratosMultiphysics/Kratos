@@ -1,12 +1,14 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: OptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
-// ==============================================================================
 
 #ifndef HELMHOLTZ_PARTITION_H
 #define HELMHOLTZ_PARTITION_H
@@ -73,7 +75,7 @@ public:
     /// Default constructor.
     HelmholtzPartition( std::string ControlName, Model& rModel, std::vector<LinearSolverType::Pointer>& rLinearSolvers, Parameters ControlSettings )
         :  MaterialControl(ControlName,rModel,ControlSettings){
-            for(int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
+            for(long unsigned int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
                 rLinearSystemSolvers.push_back(rLinearSolvers[lin_i]);
             mTechniqueSettings = ControlSettings["technique_settings"];
         }
@@ -102,7 +104,7 @@ public:
 
         CalculateNodeNeighbourCount();
         
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             StrategyType* mpStrategy = new StrategyType (*mpVMModelParts[model_i],rLinearSystemSolvers[model_i]);            
             mpStrategy->Initialize();
             mpStrategies.push_back(mpStrategy);
@@ -115,14 +117,14 @@ public:
         double initial_filtered_density = ProjectBackward(initial_density,beta);
         double initial_control_density = initial_filtered_density;
 
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){    
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){    
             SetVariable(mpVMModelParts[model_i],CD,initial_control_density); 
             SetVariable(mpVMModelParts[model_i],FD,initial_filtered_density); 
             SetVariable(mpVMModelParts[model_i],PD,initial_density);
         }  
 
 
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             ProcessInfo &rCurrentProcessInfo = (mpVMModePart)->GetProcessInfo();
@@ -158,7 +160,7 @@ public:
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("HelmholtzPartition:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
 
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             SetVariable1ToVarible2(mpVMModePart,rDerivativeVariable,HELMHOLTZ_SOURCE_DENSITY);
@@ -284,7 +286,7 @@ private:
 
     void CalculateNodeNeighbourCount()
     {
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             auto& r_nodes = mpVMModePart->Nodes();
@@ -338,7 +340,7 @@ private:
 
             if (root_model_part.HasSubModelPart(vm_model_part_name)){
                 p_vm_model_part = &(root_model_part.GetSubModelPart(vm_model_part_name));
-                for(int i =0; i<mpVMModelParts.size(); i++)
+                for(long unsigned int i =0; i<mpVMModelParts.size(); i++)
                     if(mpVMModelParts[i]->Name()==p_vm_model_part->Name())
                         p_vm_model_part_property = mpVMModelPartsProperties[i];
             }
@@ -358,7 +360,7 @@ private:
             ModelPart::ElementsContainerType &rmesh_elements = p_vm_model_part->Elements();   
 
             //check if the controlling model part has elements which have desnity value
-            if(!r_controlling_object.Elements().size()>0)
+            if(!(r_controlling_object.Elements().size()>0))
                 KRATOS_ERROR << "HelmholtzPartition:CreateModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
 
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
@@ -373,7 +375,7 @@ private:
         }
 
         // now add dofs
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             for(auto& node_i : mpVMModePart->Nodes())
@@ -386,7 +388,7 @@ private:
 
     void ComputeFilteredDensity(){   
 
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
 
             //first update control density
             AddVariable1ToVarible2(mpVMModelParts[model_i],D_CD,CD);
@@ -413,7 +415,7 @@ private:
 
     void ComputePhyiscalDensity(){
 
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             //now do the projection and then set the PD
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
@@ -466,7 +468,9 @@ private:
         else if(y>y_c)
             return y_c;
         else if(y<y_f)
-            return y_f;            
+            return y_f;
+        else
+            return 0.0;            
     }
 
     double FirstFilterDerivative(double x, double beta){

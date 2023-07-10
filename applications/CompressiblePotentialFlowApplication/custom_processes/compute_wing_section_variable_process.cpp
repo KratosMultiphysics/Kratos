@@ -160,7 +160,7 @@ void ComputeWingSectionVariableProcess<TRunType>::ExecuteInitialize()
     }
 
     // Compute distance to section defined by the plane
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode)
     {
         auto direction = rNode.Coordinates() - mrOrigin;
         double distance = inner_prod(direction, mrVersor);

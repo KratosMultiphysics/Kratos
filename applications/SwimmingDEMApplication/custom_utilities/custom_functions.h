@@ -70,7 +70,7 @@ void CalculatePressureGradient(ModelPart& r_model_part)
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
         double Volume;
 
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
@@ -212,7 +212,7 @@ void CalculateTotalHydrodynamicForceOnParticles(ModelPart& r_dem_model_part, arr
     for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_dem_model_part, k); it != GetElementPartitionEnd(r_dem_model_part, k); ++it){
-            Geometry< Node<3> >& geom = it->GetGeometry();
+            Geometry< Node >& geom = it->GetGeometry();
             array_1d <double, 3> element_force;
 
             if (geom[0].SolutionStepsDataHas(HYDRODYNAMIC_FORCE)){
@@ -256,7 +256,7 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
     for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
-            Geometry< Node<3> >& geom = it->GetGeometry();
+            Geometry< Node >& geom = it->GetGeometry();
             double element_volume;
             array_1d <double, 3> element_force;
             array_1d <double, 3> element_mean_force;
@@ -305,7 +305,7 @@ double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
     for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
-            Geometry< Node<3> >& geom = it->GetGeometry();
+            Geometry< Node >& geom = it->GetGeometry();
             double element_volume;
             double element_fluid_volume;
 
@@ -488,7 +488,7 @@ void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<double>
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
         const double& origin_value = p_node->FastGetSolutionStepValue(origin_variable);
         destination_value = origin_value;
@@ -501,7 +501,7 @@ void CopyValuesFromFirstToSecond(ModelPart& r_model_part, const Variable<array_1
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         array_1d<double, 3>& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
         const array_1d<double, 3>& origin_value = p_node->FastGetSolutionStepValue(origin_variable);
         noalias(destination_value) = origin_value;
@@ -514,7 +514,7 @@ void SetValueOfAllNotes(ModelPart& r_model_part, const double& value, const Vari
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         double& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
         destination_value = value;
     }
@@ -526,7 +526,7 @@ void SetValueOfAllNotes(ModelPart& r_model_part, const array_1d<double, 3>& valu
     #pragma omp parallel for
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         array_1d<double, 3>& destination_value = p_node->FastGetSolutionStepValue(destination_variable);
         noalias(destination_value) = value;
     }
@@ -595,7 +595,7 @@ inline double CalculateVol(const double x0, const double y0, const double z0,
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-double CalculateElementalVolume(const Geometry<Node <3> >& geom)
+double CalculateElementalVolume(const Geometry<Node >& geom)
 {
     double vol;
     double h;
@@ -711,7 +711,7 @@ double CalculateDiameter(const double x0, const double y0, const double z0,
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >& geom, const Variable<double>& r_var, double& vol)
+double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node >& geom, const Variable<double>& r_var, double& vol)
 {
 
     vol = geom.DomainSize();
@@ -741,7 +741,7 @@ double CalculateScalarIntegralOfLinearInterpolation(const Geometry<Node < 3 > >&
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry<Node < 3 > >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
+array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry<Node >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
 {
 
     vol = geom.DomainSize();
@@ -771,7 +771,7 @@ array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolation(const Geometry
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 
-array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(const Geometry<Node < 3 > >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
+array_1d <double, 3> CalculateVectorIntegralOfLinearInterpolationPerUnitFluidMass(const Geometry<Node >& geom, const Variable<array_1d <double, 3> >& r_var, double& vol)
 {
 
     vol = geom.DomainSize();
@@ -861,7 +861,7 @@ double CalculateTheMaximumEdgeLength(ModelPart& r_model_part)
     double max_distance_yet = 0.0;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
         unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
 
         for (unsigned int k = 1; k < n_nodes - 1; ++k){
@@ -886,7 +886,7 @@ double CalculateTheMinumumEdgeLength(ModelPart& r_model_part)
     bool first_node = true;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
-        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        Geometry<Node >& geom = ielem->GetGeometry();
 
         if (first_node){ // assign the distance (squared) between any two nodes to min_distance_yet
             array_1d <double, 3> delta = geom[0] - geom[1];

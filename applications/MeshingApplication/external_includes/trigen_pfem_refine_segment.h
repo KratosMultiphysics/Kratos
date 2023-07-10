@@ -101,7 +101,7 @@ public:
         ModelPart& ThisModelPart ,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition,
-        EntitiesEraseProcess<Node<3>>& node_erase, bool rem_nodes = true, bool add_nodes=true,
+        EntitiesEraseProcess<Node>& node_erase, bool rem_nodes = true, bool add_nodes=true,
         double my_alpha = 1.4, double h_factor=0.5)
     {
 
@@ -139,8 +139,8 @@ public:
         ThisModelPart.Conditions().clear();
 
         ////////////////////////////////////////////////////////////
-        typedef Node<3> PointType;
-        typedef Node<3>::Pointer PointPointerType;
+        typedef Node PointType;
+        typedef Node::Pointer PointPointerType;
         typedef std::vector<PointType::Pointer>           PointVector;
         typedef PointVector::iterator PointIterator;
         typedef std::vector<double>               DistanceVector;
@@ -167,7 +167,7 @@ public:
         //NodeIterator res(max_results);
         PointVector res(max_results);
         DistanceVector res_distances(max_results);
-        Node<3> work_point(0,0.0,0.0,0.0);
+        Node work_point(0,0.0,0.0,0.0);
 
         //****************************************************
         //filling the interface list before removing the nodes
@@ -189,17 +189,17 @@ public:
         	if(in->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
         		  {
 
-        		 GlobalPointersVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+        		 GlobalPointersVector< Node >& neighb = in->GetValue(NEIGHBOUR_NODES);
         		 int num_of_intr_neigh = 0;
         			//KRATOS_WATCH(neighb.size());
-        	         for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+        	         for( GlobalPointersVector< Node >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
         		    {
         			if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0) num_of_intr_neigh++;
         		    }
 
         	  if(num_of_intr_neigh <= 2)
         		{
-        	         for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+        	         for( GlobalPointersVector< Node >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
         		    {
 
         		if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
@@ -234,8 +234,8 @@ public:
         		   {
         		     if(in->FastGetSolutionStepValue(AUX_INDEX) < 2.0)
         		       {
-        		        GlobalPointersVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
-        	                  for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+        		        GlobalPointersVector< Node >& neighb = in->GetValue(NEIGHBOUR_NODES);
+        	                  for( GlobalPointersVector< Node >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
         		             {
         			       if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 && ngh_ind->FastGetSolutionStepValue(IS_VISITED) != 10.0 && ngh_ind->FastGetSolutionStepValue(AUX_INDEX) < 2.0)
         			         {
@@ -520,7 +520,7 @@ public:
             x3[1] = out_mid.pointlist[point_base+1];
 
             //here we shall temporarily save the elements and pass them afterwards to the alpha shape
-            Geometry<Node<3> > temp;
+            Geometry<Node > temp;
 
             temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base]).base()	) );
             temp.push_back( *((ThisModelPart.Nodes()).find( out_mid.trianglelist[base+1]).base()	) );
@@ -660,9 +660,9 @@ public:
         	  {
         		//KRATOS_WATCH("@@@@@@@@@@@@@@@@2 an interface is detected@@@@@@@@@@@@@@@");
 
-        	 GlobalPointersVector< Node<3> >& neighb = in->GetValue(NEIGHBOUR_NODES);
+        	 GlobalPointersVector< Node >& neighb = in->GetValue(NEIGHBOUR_NODES);
 
-                 for( GlobalPointersVector< Node<3> >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
+                 for( GlobalPointersVector< Node >::iterator ngh_ind = neighb.begin(); ngh_ind!=neighb.end(); ngh_ind++)
         	    {
 
         	    if(ngh_ind->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 && ngh_ind->FastGetSolutionStepValue(IS_VISITED) != 10.0)
@@ -750,8 +750,8 @@ public:
 
         //and now we shall find out where the new nodes belong to
         //defintions for spatial search
-        typedef Node<3> PointType;
-        typedef Node<3>::Pointer PointPointerType;
+        typedef Node PointType;
+        typedef Node::Pointer PointPointerType;
         typedef std::vector<PointType::Pointer>           PointVector;
         //typedef std::vector<PointType::Pointer>::iterator PointIterator;
         typedef PointVector::iterator PointIterator;
@@ -769,7 +769,7 @@ public:
         PointVector list_of_new_nodes;
 
         //node to get the DOFs from
-        Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+        Node::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 
         double z = 0.0;
         int n_points_before_refinement = in2.numberofpoints;
@@ -783,7 +783,7 @@ public:
                 double& x= out2.pointlist[base];
                 double& y= out2.pointlist[base+1];
 
-                Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
+                Node::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
 
                 pnode->SetBufferSize(ThisModelPart.NodesBegin()->GetBufferSize() );
 
@@ -803,10 +803,10 @@ public:
                 //KRATOS_WATCH(pnode->FastGetSolutionStepValue(IS_INTERFACE));
                 //std::cout << "new node id = " << pnode->Id() << std::endl;
                 //generating the dofs
-                for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
+                for(Node::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
                 {
-                    Node<3>::DofType& rDof = **iii;
-                    Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+                    Node::DofType& rDof = **iii;
+                    Node::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
                     (p_new_dof)->FreeDof();
 //                                                (p_new_dof)->EquationId() = -1;
@@ -825,7 +825,7 @@ public:
         array_1d<double,3> N;
 
         //WHAT ARE THOSE????
-// 			Node<3> work_point(0,0.0,0.0,0.0);
+// 			Node work_point(0,0.0,0.0,0.0);
         unsigned int MaximumNumberOfResults = list_of_new_nodes.size();
         PointVector Results(MaximumNumberOfResults);
         DistanceVector ResultsDistances(MaximumNumberOfResults);
@@ -872,7 +872,7 @@ public:
                 number_of_points_in_radius = nodes_tree2.SearchInRadius(work_point, radius, Results.begin(),
                                              ResultsDistances.begin(),  MaximumNumberOfResults);
 
-                Triangle2D3<Node<3> > geom(
+                Triangle2D3<Node > geom(
                     *( (nodes_begin +  in2.trianglelist[base]-1).base() 	),
                     *( (nodes_begin +  in2.trianglelist[base+1]-1).base() 	),
                     *( (nodes_begin +  in2.trianglelist[base+2]-1).base() 	)
@@ -923,7 +923,7 @@ public:
         {
             int id = iii + 1;
             int base = iii * 3;
-            Triangle2D3<Node<3> > geom(
+            Triangle2D3<Node > geom(
                 *( (nodes_begin +  out2.trianglelist[base]-1).base() 	),
                 *( (nodes_begin +  out2.trianglelist[base+1]-1).base() 	),
                 *( (nodes_begin +  out2.trianglelist[base+2]-1).base() 	)
@@ -952,7 +952,7 @@ public:
         for(ModelPart::ElementsContainerType::const_iterator iii = ThisModelPart.ElementsBegin();
                 iii != ThisModelPart.ElementsEnd(); iii++)
         {
-            //Geometry< Node<3> >& geom = iii->GetGeometry();
+            //Geometry< Node >& geom = iii->GetGeometry();
             int base = ( iii->Id() - 1 )*3;
 
             (iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
@@ -1007,8 +1007,8 @@ public:
                 temp.push_back(iii->GetGeometry()(2));
                 temp.push_back(iii->GetGeometry()(1));
 
-                Geometry< Node<3> >::Pointer cond =
-                    Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
+                Geometry< Node >::Pointer cond =
+                    Geometry< Node >::Pointer(new Geometry< Node >(temp) );
                 int id = (iii->Id()-1)*3;
 
                 //Condition::Pointer p_cond =
@@ -1036,8 +1036,8 @@ public:
                 temp.push_back(iii->GetGeometry()(0));
                 temp.push_back(iii->GetGeometry()(2));
 
-                Geometry< Node<3> >::Pointer cond =
-                    Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
+                Geometry< Node >::Pointer cond =
+                    Geometry< Node >::Pointer(new Geometry< Node >(temp) );
                 int id = (iii->Id()-1)*3+1;
                 //
                 //Condition::Pointer p_cond =
@@ -1063,8 +1063,8 @@ public:
                 temp.reserve(2);
                 temp.push_back(iii->GetGeometry()(1));
                 temp.push_back(iii->GetGeometry()(0));
-                Geometry< Node<3> >::Pointer cond =
-                    Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp) );
+                Geometry< Node >::Pointer cond =
+                    Geometry< Node >::Pointer(new Geometry< Node >(temp) );
                 int id = (iii->Id()-1)*3+2;
 
                 //Condition::Pointer p_cond =
@@ -1176,15 +1176,15 @@ private:
     boost::numeric::ublas::bounded_matrix<double,2,2> mJinv; //inverse jacobian
     array_1d<double,2> mC; //center pos
     array_1d<double,2> mRhs; //center pos
-    //EntitiesEraseProcess<Node<3>>* mpNodeEraseProcess;
+    //EntitiesEraseProcess<Node>* mpNodeEraseProcess;
 
 
     ///@}
     ///@name Private Operators
     ///@{
     //returns false if it should be removed
-    bool AlphaShape(double alpha_param, Geometry<Node<3> >& pgeom)
-    //bool AlphaShape(double alpha_param, Triangle2D<Node<3> >& pgeom)
+    bool AlphaShape(double alpha_param, Geometry<Node >& pgeom)
+    //bool AlphaShape(double alpha_param, Triangle2D<Node >& pgeom)
     {
         KRATOS_TRY
 
@@ -1327,9 +1327,9 @@ private:
     }
     //**********************************************************************************************
     //**********************************************************************************************
-    void Interpolate( Triangle2D3<Node<3> >& geom, const array_1d<double,3>& N,
+    void Interpolate( Triangle2D3<Node >& geom, const array_1d<double,3>& N,
                       unsigned int step_data_size,
-                      Node<3>::Pointer pnode, double region_flag)
+                      Node::Pointer pnode, double region_flag)
     {
         unsigned int buffer_size = pnode->GetBufferSize();
         //KRATOS_WATCH("Buffer size")
@@ -1460,7 +1460,7 @@ private:
             {
 
                 GlobalPointersVector< Element >& neighbor_els = elem->GetValue(NEIGHBOUR_ELEMENTS);
-                Geometry< Node<3> >& geom = elem->GetGeometry();
+                Geometry< Node >& geom = elem->GetGeometry();
 
                 for(int ii=0; ii<(Tdim+1); ++ii)
                 {

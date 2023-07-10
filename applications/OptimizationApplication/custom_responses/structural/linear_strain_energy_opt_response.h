@@ -1,12 +1,14 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: OptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
-// ==============================================================================
 
 #ifndef LINEAR_STRAIN_ENERGY_OPT_RESPONSE_H
 #define LINEAR_STRAIN_ENERGY_OPT_RESPONSE_H
@@ -65,7 +67,7 @@ public:
     /// Default constructor.
     LinearStrainEnergyOptResponse(std::string ResponseName, Model& rModel, Parameters& ResponseSettings )
         : Response(ResponseName,"linear_strain_energy",rModel, ResponseSettings){
-            for(int i=0;i<mrResponseSettings["control_types"].size();i++){
+            for(long unsigned int i=0;i<mrResponseSettings["control_types"].size();i++){
                 auto control_type = mrResponseSettings["control_types"][i].GetString();
                 if(control_type=="shape"){
                     std::string gradient_mode = mrResponseSettings["gradient_settings"]["gradient_mode"].GetString();
@@ -96,7 +98,7 @@ public:
 
     // --------------------------------------------------------------------------
     void Initialize() override {
-        for(int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
             auto eval_obj = mrResponseSettings["evaluated_objects"][i].GetString();
             ModelPart& eval_model_part = mrModel.GetModelPart(eval_obj);
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
@@ -117,7 +119,6 @@ public:
         for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             const ProcessInfo &CurrentProcessInfo = r_eval_object.GetProcessInfo();
-            const std::size_t domain_size = r_eval_object.GetProcessInfo()[DOMAIN_SIZE];
             // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
             #pragma omp parallel for reduction(+:total_strain_energy)
             for (auto& elem_i : r_eval_object.Elements())
@@ -149,7 +150,7 @@ public:
 
 		KRATOS_TRY;
 
-        for(int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
             const ProcessInfo &CurrentProcessInfo = controlled_model_part.GetProcessInfo();
@@ -191,12 +192,6 @@ public:
     };  
 
     void CalculateElementShapeGradients(Element& elem_i, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
-
-        // We get the element geometry
-        auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
-        const std::size_t number_of_nodes = r_this_geometry.size();
-
 
         Element::NodesArrayType node_array;
         for (auto& node_i : elem_i.GetGeometry()){
@@ -271,11 +266,6 @@ public:
     };
 
     void CalculateConditionShapeGradients(Condition& cond_i, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
-
-        // We get the element geometry
-        auto& r_this_geometry = cond_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
-        const std::size_t number_of_nodes = r_this_geometry.size();
 
         Element::NodesArrayType node_array;
         for (auto& node_i : cond_i.GetGeometry()){
@@ -353,7 +343,6 @@ public:
 
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
         Vector u;
@@ -385,7 +374,6 @@ public:
     void CalculateElementThicknessGradients(Element& elem_i, std::string thickness_gradien_name, const ProcessInfo &rCurrentProcessInfo){
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
         Vector u;

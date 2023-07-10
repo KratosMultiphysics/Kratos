@@ -34,7 +34,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the d+ d- damage Constitutive Law (for masonry) 2D...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /**
 * Check the correct calculation of the integrated stress with the CL's

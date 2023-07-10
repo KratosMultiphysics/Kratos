@@ -52,9 +52,7 @@ typedef void(*f_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doubl
 //************************************************************************************
 
 SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw()
-   : ConstitutiveLaw(),
-     mIsModelInitialized(false),
-     mIsUMATLoaded(false)
+   : ConstitutiveLaw()
    {
     KRATOS_TRY
 

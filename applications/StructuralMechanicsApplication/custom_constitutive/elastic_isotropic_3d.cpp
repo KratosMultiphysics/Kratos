@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -327,6 +327,22 @@ int ElasticIsotropic3D::Check(
     KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is negative." << std::endl;
 
     return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::string ElasticIsotropic3D::Info() const
+{
+    return "ElasticIsotropic3D ConstitutiveLaw instance";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info() << std::endl;
 }
 
 /***********************************************************************************/

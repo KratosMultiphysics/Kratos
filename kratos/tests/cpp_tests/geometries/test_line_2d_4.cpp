@@ -348,11 +348,11 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Line2D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsParabolaLine2D4();
         auto& r_geom = *p_geometry;
-        auto p_p_geom_nodes = Kratos::make_shared<Line2D4<Node<3>>>(
-        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
-        Kratos::make_intrusive<Node<3>>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z()),
-        Kratos::make_intrusive<Node<3>>(4, r_geom[3].X(), r_geom[3].Y(), r_geom[3].Z())
+        auto p_p_geom_nodes = Kratos::make_shared<Line2D4<Node>>(
+        Kratos::make_intrusive<Node>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
+        Kratos::make_intrusive<Node>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z()),
+        Kratos::make_intrusive<Node>(4, r_geom[3].X(), r_geom[3].Y(), r_geom[3].Z())
         );
         CrossCheckShapeFunctionsValues(*p_p_geom_nodes);
     }
@@ -376,11 +376,11 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(Line2D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsParabolaLine2D4();
         auto& r_geom = *p_geometry;
-        auto p_p_geom_nodes = Kratos::make_shared<Line2D4<Node<3>>>(
-        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
-        Kratos::make_intrusive<Node<3>>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z()),
-        Kratos::make_intrusive<Node<3>>(4, r_geom[3].X(), r_geom[3].Y(), r_geom[3].Z())
+        auto p_p_geom_nodes = Kratos::make_shared<Line2D4<Node>>(
+        Kratos::make_intrusive<Node>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
+        Kratos::make_intrusive<Node>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z()),
+        Kratos::make_intrusive<Node>(4, r_geom[3].X(), r_geom[3].Y(), r_geom[3].Z())
         );
         TestAllShapeFunctionsLocalGradients(*p_p_geom_nodes);
     }

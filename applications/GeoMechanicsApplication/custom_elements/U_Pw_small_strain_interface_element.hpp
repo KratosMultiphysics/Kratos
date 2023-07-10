@@ -34,13 +34,13 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;

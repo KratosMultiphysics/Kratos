@@ -49,11 +49,8 @@ public:
 
     ///Constructor
     BackwardEulerQuasistaticUPwScheme() :
-        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>()
+        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(1.0, 1.0, 1.0)
     {
-        mBeta = 1.0;
-        mGamma = 1.0;
-        mTheta = 1.0;
     }
 
     //------------------------------------------------------------------------------------
@@ -83,7 +80,7 @@ protected:
 
         //Update Acceleration, Velocity and DtPressure
 
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
 
             noalias(rNode.FastGetSolutionStepValue(VELOCITY))     = (  rNode.FastGetSolutionStepValue(DISPLACEMENT)
                                                                      - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / mDeltaTime;
