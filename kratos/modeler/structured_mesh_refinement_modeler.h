@@ -66,7 +66,7 @@ public:
 
     typedef Modeler BaseType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef PointerVector<NodeType> NodesVectorType;
 
@@ -374,10 +374,10 @@ public:
     				ModelPart::ElementsContainerType::iterator el_it,
     				const array_1d<double,3>& N,
     				int step_data_size,
-          				Node<3>::Pointer pnode)
+          				Node::Pointer pnode)
     		{
     			//Geometry element of the rOrigin_ModelPart
-    			Geometry< Node<3> >& geom = el_it->GetGeometry();
+    			Geometry< Node >& geom = el_it->GetGeometry();
 
     			unsigned int buffer_size = pnode->GetBufferSize();
 

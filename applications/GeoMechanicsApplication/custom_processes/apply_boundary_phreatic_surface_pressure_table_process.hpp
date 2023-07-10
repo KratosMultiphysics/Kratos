@@ -72,7 +72,7 @@ public:
             Vector3 direction=ZeroVector(3);
             direction[mGravityDirection] = 1.0;
 
-            block_for_each(mrModelPart.Nodes(), [&deltaH, &var, &direction, this](Node<3>& rNode){
+            block_for_each(mrModelPart.Nodes(), [&deltaH, &var, &direction, this](Node& rNode){
                 double distance = 0.0;
                 double d = 0.0;
                 for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {

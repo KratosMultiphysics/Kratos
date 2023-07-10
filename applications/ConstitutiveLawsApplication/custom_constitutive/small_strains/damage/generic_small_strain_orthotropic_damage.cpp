@@ -506,7 +506,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateSeca
         rSecantTensor.resize(VoigtSize, VoigtSize);
     noalias(rSecantTensor) = ZeroMatrix(VoigtSize, VoigtSize);
 
-    if (Dimension == 3) { // 3D version
+    if constexpr (Dimension == 3) { // 3D version
         const double c1 = E / ((1.0 + nu) * (1 - 2.0 * nu));
         const double c2 = c1 * (1.0 - nu); // Cii
         const double c3 = c1 * nu;  // Cij
@@ -550,7 +550,7 @@ void GenericSmallStrainOrthotropicDamage<TConstLawIntegratorType>::CalculateRota
         rRotationTensor.resize(VoigtSize,VoigtSize);
     noalias(rRotationTensor) = ZeroMatrix(VoigtSize,VoigtSize);
 
-    if (Dimension == 3) {
+    if constexpr (Dimension == 3) {
         // Reorder the principal stresses
         double a = rEigenValuesMatrix(0,0);
         double b = rEigenValuesMatrix(1,1);

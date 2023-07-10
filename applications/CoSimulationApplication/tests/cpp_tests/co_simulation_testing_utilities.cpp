@@ -24,7 +24,7 @@ namespace Testing {
 namespace { // helpers namespace
 
 void CheckEntitiesAreEqual(
-    const Kratos::Node<3>& rKratosNode,
+    const Kratos::Node& rKratosNode,
     const CoSimIO::Node& rCoSimIONode)
 {
     KRATOS_TRY
@@ -111,7 +111,7 @@ void CheckNumberOfGhostNodes(
 } // helpers namespace
 
 void CheckNodesAreEqual(
-    const Kratos::Node<3>& rKratosNode,
+    const Kratos::Node& rKratosNode,
     const CoSimIO::Node& rCoSimIONode)
 {
     KRATOS_TRY

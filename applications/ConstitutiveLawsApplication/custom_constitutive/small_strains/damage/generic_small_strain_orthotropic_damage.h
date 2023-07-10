@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ORTHOTROPIC_DAMAGE_3D_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_ORTHOTROPIC_DAMAGE_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -75,7 +74,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainOrthotropicDamage);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -453,4 +452,3 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

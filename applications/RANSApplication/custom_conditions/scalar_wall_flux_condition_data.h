@@ -36,7 +36,7 @@ namespace Kratos
 class ScalarWallFluxConditionData
 {
 public:
-    using GeometryType = Geometry<Node<3>>;
+    using GeometryType = Geometry<Node>;
 
     ScalarWallFluxConditionData(
         const GeometryType& rGeometry,

@@ -44,7 +44,7 @@ public:
         mpTable = model_part.pGetTable(TableId);
         mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ public:
             direction[mGravityDirection] = 1.0;
 
             if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node& rNode) {
                     double distance = 0.0;
                     double d = 0.0;
                     for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
@@ -88,11 +88,11 @@ public:
                         rNode.FastGetSolutionStepValue(var) = pressure;
                         if (mIsFixed) rNode.Fix(var);
                     } else {
-                        rNode.Free(var);
+                        if (mIsFixedProvided) rNode.Free(var);
                     }
                 });
             } else {
-                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, &deltaH, this](Node& rNode) {
                     double distance = 0.0;
                     double d = 0.0;
                     for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
@@ -112,7 +112,7 @@ public:
             }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.

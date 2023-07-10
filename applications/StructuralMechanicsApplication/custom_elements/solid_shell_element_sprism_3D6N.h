@@ -3,14 +3,13 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SOLID_SHELL_ELEMENT_SPRISM_3D6N_H_INCLUDED )
-#define  KRATOS_SOLID_SHELL_ELEMENT_SPRISM_3D6N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -87,7 +86,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// This is the definition of the node.
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The base element type
     typedef BaseSolidElement BaseType;
@@ -1558,5 +1557,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_SOLID_SHELL_ELEMENT_SPRISM_3D6N_H_INCLUDED  defined

@@ -30,23 +30,38 @@ namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(HDF5NodalFlagValueIO_WriteNodalFlags1, KratosHDF5TestSuite)
 {
-    Parameters settings(R"({
-        "prefix": "/Results",
-        "list_of_variables": ["SLIP",
-                              "ACTIVE",
-                              "STRUCTURE"]
-        })");
     Model this_model;
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
+    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     TestModelPartFactory::CreateModelPart(r_write_model_part);
+
+    std::vector<std::string> variables_list {
+        "SLIP",
+        "ACTIVE",
+        "STRUCTURE"
+    };
+
+    // "shuffle" the list of variables to check whether it's handled
+    // without deadlocks.
+    std::rotate(
+        variables_list.begin(),
+        variables_list.begin() + (r_read_model_part.GetCommunicator().GetDataCommunicator().Rank() % variables_list.size()),
+        variables_list.end()
+    );
+
+    Parameters settings(R"({
+        "prefix": "/Results",
+        "list_of_variables": []
+    })");
+    settings["list_of_variables"].SetStringArray(variables_list);
+
     TestModelPartFactory::AssignNonHistoricalNodalTestData(
-        r_write_model_part, {{"SLIP"}, {"ACTIVE"}, {"STRUCTURE"}});
+        r_write_model_part, variables_list);
     auto p_file = pGetTestSerialFile();
     HDF5::ModelPartIO model_part_io(p_file, "/ModelData");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     HDF5::NodalFlagValueIO nodal_value_io(settings, p_file);
     nodal_value_io.WriteNodalFlags(r_write_model_part.Nodes());
-    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     model_part_io.ReadNodes(r_read_model_part.Nodes());
     nodal_value_io.ReadNodalFlags(r_read_model_part.Nodes(),
                                   r_read_model_part.GetCommunicator());

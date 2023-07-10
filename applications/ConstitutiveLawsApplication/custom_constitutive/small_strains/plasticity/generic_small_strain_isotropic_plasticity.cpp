@@ -105,7 +105,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
     } else { // We check for plasticity
         // Integrate Stress plasticity
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
@@ -195,6 +195,8 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateTa
     } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbationV2) {
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
+    }  else if (tangent_operator_estimation == TangentOperatorEstimation::InitialStiffness) {
+        BaseType::CalculateElasticMatrix( rValues.GetConstitutiveMatrix(), rValues);
     }
 }
 
@@ -302,7 +304,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
     // Integrate Stress plasticity
-    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
@@ -471,7 +473,8 @@ Vector& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::GetValue
         return rValue;
     }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
-        rValue = mPlasticStrain;
+        rValue.resize(VoigtSize, false);
+        noalias(rValue) = mPlasticStrain;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
@@ -583,12 +586,9 @@ Matrix& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
     Matrix& rValue
     )
 {
-    if (this->Has(rThisVariable)) {
-        return this->GetValue(rThisVariable, rValue);
-    } else {
-        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    }
-    return rValue;
+
+    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+
 }
 
 /***********************************************************************************/

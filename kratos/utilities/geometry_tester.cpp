@@ -129,6 +129,8 @@ bool GeometryTesterUtility::StreamTestTetrahedra3D4N(
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_4, rErrorMessage);
     VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_GAUSS_5, rErrorMessage);
 
+    array_1d<double,3> point_in(3,1.0/3.0);
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
     rErrorMessage << std::endl;
 
     return successful;
@@ -515,6 +517,9 @@ bool GeometryTesterUtility::StreamTestHexahedra3D27N(
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4, rErrorMessage);
 //         VerifyStrainExactness( geometry, GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5, rErrorMessage);
+
+    array_1d<double,3> point_in(3,1.0/3.0);
+    if( !VerifyShapeFunctionsSecondDerivativesValues(geometry,point_in,rErrorMessage) ) successful = false;
 
     rErrorMessage << std::endl;
 
@@ -1066,92 +1071,7 @@ std::string GeometryTesterUtility::GetIntegrationName(
 
 std::string GeometryTesterUtility::GetGeometryName(GeometryType& rGeometry)
 {
-    GeometryData::KratosGeometryType rGeometry_type = rGeometry.GetGeometryType();
-    switch(rGeometry_type)
-    {
-    case GeometryData::KratosGeometryType::Kratos_generic_type :
-        return std::string("Kratos_generic_type");
-    case GeometryData::KratosGeometryType::Kratos_Hexahedra3D20 :
-        return std::string("Kratos_Hexahedra3D20");
-    case GeometryData::KratosGeometryType::Kratos_Hexahedra3D27 :
-        return std::string("Kratos_Hexahedra3D27");
-    case GeometryData::KratosGeometryType::Kratos_Hexahedra3D8 :
-        return std::string("Kratos_Hexahedra3D8");
-    case GeometryData::KratosGeometryType::Kratos_Prism3D15 :
-        return std::string("Kratos_Prism3D15");
-    case GeometryData::KratosGeometryType::Kratos_Prism3D6 :
-        return std::string("Kratos_Prism3D6");
-    case GeometryData::KratosGeometryType::Kratos_Pyramid3D13 :
-        return std::string("Kratos_Pyramid3D13");
-    case GeometryData::KratosGeometryType::Kratos_Pyramid3D5 :
-        return std::string("Kratos_Pyramid3D5");
-    case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4 :
-        return std::string("Kratos_Quadrilateral2D4");
-    case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8 :
-        return std::string("Kratos_Quadrilateral2D8");
-    case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D9 :
-        return std::string("Kratos_Quadrilateral2D9");
-    case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4 :
-        return std::string("Kratos_Quadrilateral3D4");
-    case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8 :
-        return std::string("Kratos_Quadrilateral3D8");
-    case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9 :
-        return std::string("Kratos_Quadrilateral3D9");
-    case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10 :
-        return std::string("Kratos_Tetrahedra3D10");
-    case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 :
-        return std::string("Kratos_Tetrahedra3D4");
-    case GeometryData::KratosGeometryType::Kratos_Triangle2D3 :
-        return std::string("Kratos_Triangle2D3");
-    case GeometryData::KratosGeometryType::Kratos_Triangle2D6 :
-        return std::string("Kratos_Triangle2D6");
-    case GeometryData::KratosGeometryType::Kratos_Triangle3D3 :
-        return std::string("Kratos_Triangle3D3");
-    case GeometryData::KratosGeometryType::Kratos_Triangle3D6 :
-        return std::string("Kratos_Triangle3D6");
-    case GeometryData::KratosGeometryType::Kratos_Line2D2 :
-        return std::string("Kratos_Line2D2");
-    case GeometryData::KratosGeometryType::Kratos_Line2D3 :
-        return std::string("Kratos_Line2D3");
-    case GeometryData::KratosGeometryType::Kratos_Line3D2 :
-        return std::string("Kratos_Line3D2");
-    case GeometryData::KratosGeometryType::Kratos_Line3D3 :
-        return std::string("Kratos_Line3D3");
-    case GeometryData::KratosGeometryType::Kratos_Point2D :
-        return std::string("Kratos_Point2D");
-    case GeometryData::KratosGeometryType::Kratos_Point3D :
-        return std::string("Kratos_Point3D");
-    case GeometryData::KratosGeometryType::Kratos_Sphere3D1 :
-        return std::string("Kratos_Sphere3D1");
-    case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve:
-        return std::string("Kratos_Nurbs_Curve");
-    case GeometryData::KratosGeometryType::Kratos_Nurbs_Surface:
-        return std::string("Kratos_Nurbs_Surface");
-    case GeometryData::KratosGeometryType::Kratos_Nurbs_Volume:
-        return std::string("Kratos_Nurbs_Volume");
-    case GeometryData::KratosGeometryType::Kratos_Nurbs_Curve_On_Surface:
-        return std::string("Kratos_Nurbs_Curve_On_Surface");
-    case GeometryData::KratosGeometryType::Kratos_Surface_In_Nurbs_Volume:
-        return std::string("Kratos_Surface_In_Nurbs_Volume");
-    case GeometryData::KratosGeometryType::Kratos_Brep_Curve:
-        return std::string("Kratos_Brep_Curve");
-    case GeometryData::KratosGeometryType::Kratos_Brep_Surface:
-        return std::string("Kratos_Brep_Surface");
-    case GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface:
-        return std::string("Kratos_Brep_Curve_On_Surface");
-    case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry:
-        return std::string("Kratos_Quadrature_Point_Geometry");
-    case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
-        return std::string("Kratos_Quadrature_Point_Curve_On_Surface_Geometry");
-    case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:
-        return std::string("Kratos_Quadrature_Point_Surface_In_Volume_Geometry");
-    case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
-        return std::string("Kratos_Quadrature_Point_Surface_In_Volume_Geometry");
-    case GeometryData::KratosGeometryType::NumberOfGeometryTypes:
-        return std::string("UnknownGeometry");
-    };
-
-    return std::string("UnknownGeometry");
+    return GeometryUtils::GetGeometryName(rGeometry.GetGeometryType());
 }
 
 } // namespace Kratos.

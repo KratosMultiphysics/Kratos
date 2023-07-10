@@ -99,9 +99,6 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         if not self.is_slave:
             self.PrintResults()
 
-        if self.DoRemeshing:
-             self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
-
 #============================================================================================================================
     def BeforeSolveDEMOperations(self):
         self.DEM_Solution.time += self.DEM_Solution._GetSolver().dt

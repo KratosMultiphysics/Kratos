@@ -59,7 +59,7 @@ class AnalysisStage(object):
         It can be overridden by derived classes
         """
         while self.KeepAdvancingSolutionLoop():
-            self.time = self._GetSolver().AdvanceInTime(self.time)
+            self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
@@ -107,7 +107,7 @@ class AnalysisStage(object):
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
 
-        ## If the echo level is high enough, print the complete list of settings used to run the simualtion
+        ## If the echo level is high enough, print the complete list of settings used to run the simulation
         if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
@@ -124,6 +124,15 @@ class AnalysisStage(object):
         self._GetSolver().Finalize()
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
+
+    def GetFinalData(self):
+        """Returns the final data dictionary.
+        
+        The main purpose of this function is to retrieve any data (in a key-value format) from outside the stage.
+        Note that even though it can be called at any point, it is intended to be called at the end of the stage run. 
+        """
+        
+        return {}
 
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be executed
@@ -211,7 +220,13 @@ class AnalysisStage(object):
         """Create the solver
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")
-
+        
+    def _AdvanceTime(self):
+        """ Computes the following time 
+            The default method simply calls the solver
+        """
+        return self._GetSolver().AdvanceInTime(self.time)
+    
     ### Modelers
     def _ModelersSetupGeometryModel(self):
         # Import or generate geometry models from external input.
@@ -295,7 +310,7 @@ class AnalysisStage(object):
                 { proces_specific_params }
             ]
         }
-        The order of intialization can be specified by setting it in "initialization_order"
+        The order of initialization can be specified by setting it in "initialization_order"
         if e.g. the "boundary_processes" should be constructed before the "initial_processes", then
         initialization_order should be a list containing ["boundary_processes", "initial_processes"]
         see the functions _GetOrderOfProcessesInitialization and _GetOrderOfOutputProcessesInitialization

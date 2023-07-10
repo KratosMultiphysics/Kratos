@@ -20,7 +20,6 @@
 #include "includes/define_python.h"
 #include "includes/registry.h"
 #include "add_registry_to_python.h"
-#include "includes/registry_value_item.h"
 #include "operations/operation.h"
 #include "processes/process.h"
 

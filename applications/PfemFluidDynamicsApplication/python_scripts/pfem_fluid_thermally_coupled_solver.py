@@ -320,12 +320,6 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.VOLUME_ACCELERATION):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.VOLUME_ACCELERATION)
 
-        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE):
-            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
-
-        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.PREVIOUS_FREESURFACE):
-            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PREVIOUS_FREESURFACE)
-
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
 
@@ -346,5 +340,8 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
+
+        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.HEAT_FLUX):
+            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.HEAT_FLUX)
 
 

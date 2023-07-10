@@ -368,7 +368,7 @@ namespace Kratos
             this->mAuxPointsContainer(I1));
     };
 
-    template class DivideTriangle2D3<Node<3>>;
+    template class DivideTriangle2D3<Node>;
     template class DivideTriangle2D3<IndexedPoint>;
 
 };

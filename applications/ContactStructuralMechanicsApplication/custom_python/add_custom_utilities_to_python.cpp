@@ -21,16 +21,14 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-// Utilities
+/* Utilities */
 #include "custom_python/process_factory_utility.h"
 #include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/active_set_utilities.h"
 #include "custom_utilities/interface_preprocess.h"
 #include "custom_utilities/self_contact_utilities.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -87,7 +85,5 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

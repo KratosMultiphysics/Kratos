@@ -11,15 +11,13 @@
 //
 //
 
-#if !defined(KRATOS_AUXILIAR_MODEL_PART_UTILITIES)
-#define KRATOS_AUXILIAR_MODEL_PART_UTILITIES
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/serializer.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 
@@ -34,19 +32,6 @@ namespace Kratos
 
     /// The index type definition
     typedef std::size_t IndexType;
-
-///@}
-///@name  Enum's
-///@{
-
-enum class DataLocation {
-    NodeHistorical,
-    NodeNonHistorical,
-    Element,
-    Condition,
-    ModelPart,
-    ProcessInfo
-};
 
 ///@}
 ///@name  Functions
@@ -67,6 +52,8 @@ public:
 
     /// Counted pointer of AuxiliarModelPartUtilities
     KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
+
+    using DataLocation = Globals::DataLocation;
 
     ///@}
     ///@name Life Cycle
@@ -291,14 +278,20 @@ public:
      */
     void RemoveConditionsAndBelongingsFromAllLevels(const Flags IdentifierFlag = TO_ERASE);
 
+    /**
+     * @brief This method removed nodes from submodelparts not contained neither in the elements or conditions
+     */
+    void RemoveOrphanNodesFromSubModelParts();
 
     /// To Export a Scalar data (Double/int/...)
-    template<typename TDataType>
+    template<class TContainerType>
     void GetScalarData(
-        const Variable<TDataType>& rVariable,
+        const Variable<typename TContainerType::value_type>& rVariable,
         const DataLocation DataLoc,
-        std::vector<TDataType>& data) const
+        TContainerType& data) const
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -347,15 +340,19 @@ public:
             break;
         }
         }
+
+        KRATOS_CATCH("")
     }
 
     /// To Export a Vector data (std::vector/array/..)
-    template<class TDataType>
+    template<class TContainerType, class TVarType>
     void GetVectorData(
-        const Variable<TDataType>& rVariable,
+        const Variable<TVarType>& rVariable,
         const DataLocation DataLoc,
-        std::vector<double>& data) const
+        TContainerType& data) const
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
@@ -434,20 +431,22 @@ public:
             break;
         }
         }
+
+        KRATOS_CATCH("")
     }
 
     /// To Import a Scalar data (Double/int/...)
-    template<typename TDataType>
+    template<class TContainerType>
     void SetScalarData(
-        const Variable<TDataType>& rVariable,
+        const Variable<typename TContainerType::value_type>& rVariable,
         const DataLocation DataLoc,
-        const std::vector<TDataType>& rData)
+        const TContainerType& rData)
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
-
             auto inodebegin = mrModelPart.NodesBegin();
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
                 auto inode = inodebegin + Index;
@@ -459,20 +458,14 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
-
             SetScalarDataFromContainer(mrModelPart.Nodes(), rVariable, rData);
             break;
         }
         case (DataLocation::Element):{
-            ImportDataSizeCheck(mrModelPart.NumberOfElements(), rData.size());
-
             SetScalarDataFromContainer(mrModelPart.Elements(), rVariable, rData);
             break;
         }
         case (DataLocation::Condition):{
-            ImportDataSizeCheck(mrModelPart.NumberOfConditions(), rData.size());
-
             SetScalarDataFromContainer(mrModelPart.Conditions(), rVariable, rData);
             break;
         }
@@ -490,22 +483,24 @@ public:
         }
         }
 
+        KRATOS_CATCH("")
     }
 
     /// To Import a Vector data (std::vector/array/..)
-    template<class TDataType>
+    template<class TContainerType, class TVarType>
     void SetVectorData(
-        const Variable<TDataType>& rVariable,
+        const Variable<TVarType>& rVariable,
         const DataLocation DataLoc,
-        const std::vector<double>& rData)
+        const TContainerType& rData)
     {
+        KRATOS_TRY
+
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
             unsigned int size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
-            ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
 
             auto inodebegin = mrModelPart.NodesBegin();
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
@@ -526,8 +521,6 @@ public:
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
-            ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
-
             SetVectorDataFromContainer(mrModelPart.Nodes(), size, rVariable, rData);
             break;
         }
@@ -536,8 +529,6 @@ public:
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
-            ImportDataSizeCheckVector(mrModelPart.NumberOfElements()*size , rData.size());
-
             SetVectorDataFromContainer(mrModelPart.Elements(), size, rVariable, rData);
             break;
         }
@@ -545,8 +536,6 @@ public:
             unsigned int size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
-
-            ImportDataSizeCheckVector(mrModelPart.NumberOfConditions()*size , rData.size());
 
             SetVectorDataFromContainer(mrModelPart.Conditions(), size, rVariable, rData);
             break;
@@ -578,18 +567,19 @@ public:
 
         }
 
+        KRATOS_CATCH("")
     }
 
     /**
      * @brief This method deep copies a whole model part
-     * @details When a pointer to Model is provided the provided Model will be considered for the copy, otherwise the Model of the current ModelPart will be considered. The last is the default behaviour. 
+     * @details When a pointer to Model is provided the provided Model will be considered for the copy, otherwise the Model of the current ModelPart will be considered. The last is the default behaviour.
      * This is deep copy, meaning that every entity is deep copied, so created from scratch. The only thing that would be equal will be the Model if not custom Model is provided
      * @param rNewModelPartName The name of the new model part
      * @param pModel The pointer to the Model that will host the new ModelPart, if nullptr, the current Model will be used.
      * @return The deep copied model part
      */
     ModelPart& DeepCopyModelPart(
-        const std::string& rNewModelPartName, 
+        const std::string& rNewModelPartName,
         Model* pModel = nullptr
         );
 
@@ -608,9 +598,11 @@ public:
         ModelPart& rModelPart,
         TClassContainer& rEntities,
         TReferenceClassContainer& rReferenceEntities,
-        std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer>& rGeometryPointerDatabase
+        std::unordered_map<Geometry<Node>::Pointer,Geometry<Node>::Pointer>& rGeometryPointerDatabase
         )
-    {   
+    {
+        KRATOS_TRY
+
         auto& r_properties= rModelPart.rProperties();
         rEntities.SetMaxBufferSize(rReferenceEntities.GetMaxBufferSize());
         rEntities.SetSortedPartSize(rReferenceEntities.GetSortedPartSize());
@@ -627,6 +619,8 @@ public:
             p_new_ent->Set(Flags(*p_old_ent));
             r_entities_container[i] = p_new_ent;
         });
+
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.
@@ -647,36 +641,6 @@ public:
         rOStream << Info() << std::endl;
     }
 
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -694,58 +658,93 @@ private:
     ///@name Private Operations
     ///@{
 
-    template<typename TDataType, class TContainerType>
-    void GetScalarDataFromContainer(const TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data) const
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void GetScalarDataFromContainer(
+        const TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        TDataContainerType& data) const
     {
+        KRATOS_TRY
+
+        DataSizeCheck(rContainer.size(), data.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             data[index] = r_entity.GetValue(rVariable);
         });
+
+        KRATOS_CATCH("")
     }
 
-    template<typename TDataType, class TContainerType>
-    void GetVectorDataFromContainer(const TContainerType& rContainer, const std::size_t TSize, const Variable<TDataType>& rVariable, std::vector<double>& data) const
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void GetVectorDataFromContainer(
+        const TContainerType& rContainer,
+        const std::size_t VectorSize,
+        const Variable<TDataType>& rVariable,
+        TDataContainerType& data) const
     {
+        KRATOS_TRY
+
+        DataSizeCheck(rContainer.size()*VectorSize, data.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             const auto& r_entity = *(rContainer.begin() + index);
             const auto& r_val = r_entity.GetValue(rVariable);
-            for(std::size_t dim = 0 ; dim < TSize ; dim++){
-                data[(TSize*index) + dim] = r_val[dim];
+            for(std::size_t dim = 0 ; dim < VectorSize ; dim++){
+                data[(VectorSize*index) + dim] = r_val[dim];
             }
         });
+
+        KRATOS_CATCH("")
     }
 
-    template<typename TDataType, class TContainerType>
-    void SetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, const std::vector<TDataType>& rData)
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void SetScalarDataFromContainer(
+        TContainerType& rContainer,
+        const Variable<TDataType>& rVariable,
+        const TDataContainerType& rData) const
     {
+        KRATOS_TRY
+
+        DataSizeCheck(rContainer.size(), rData.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
-            r_entity.SetValue(rVariable,rData[index]);
+            r_entity.SetValue(rVariable, rData[index]);
         });
+
+        KRATOS_CATCH("")
     }
 
-    template<typename TDataType, class TContainerType>
-    void SetVectorDataFromContainer(TContainerType& rContainer, const std::size_t size, const Variable<TDataType>& rVariable, const std::vector<double>& rData)
+    template<typename TDataType, class TContainerType, class TDataContainerType>
+    void SetVectorDataFromContainer(
+        TContainerType& rContainer,
+        const std::size_t VectorSize,
+        const Variable<TDataType>& rVariable,
+        const TDataContainerType& rData) const
     {
+        KRATOS_TRY
+
+        DataSizeCheck(rContainer.size()*VectorSize, rData.size());
+
         IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t index){
             auto& r_entity = *(rContainer.begin() + index);
             TDataType aux;
-            KRATOS_DEBUG_ERROR_IF(aux.size() != size) << "mismatch in size!" << std::endl;
-            for(std::size_t dim = 0 ; dim < size ; dim++){
-                aux[dim] = rData[(size*index) + dim];
+            KRATOS_DEBUG_ERROR_IF(aux.size() != VectorSize) << "mismatch in size!" << std::endl;
+            for(std::size_t dim = 0 ; dim < VectorSize ; dim++){
+                aux[dim] = rData[(VectorSize*index) + dim];
             }
             r_entity.SetValue(rVariable, aux);
         });
+
+        KRATOS_CATCH("")
     }
 
-    // Only for SetScalarData()
-    void ImportDataSizeCheck(std::size_t rContainerSize, std::size_t rSize){
-        KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
-    }
-
-    // Only for SetVectorData()
-    void ImportDataSizeCheckVector(std::size_t rContainerSize, std::size_t rSize){
-        KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
+    void DataSizeCheck(
+        const std::size_t ContainerSize,
+        const std::size_t DataSize) const
+    {
+        KRATOS_ERROR_IF(ContainerSize != DataSize) << "Mismatch in size! Container size: " << ContainerSize << " | Data size: " << DataSize << std::endl;
     }
 
     /**
@@ -755,7 +754,7 @@ private:
      * @param rNewModelPart The new model part
      */
     void DeepCopySubModelPart(
-        const ModelPart& rOldModelPart, 
+        const ModelPart& rOldModelPart,
         ModelPart& rNewModelPart
         );
 
@@ -765,18 +764,6 @@ private:
     ///@}
 
     ///@}
-    ///@name Serialization
-    ///@{
-
-    friend class Serializer;
-
-    void save(Serializer& rSerializer) const
-    {
-    }
-
-    void load(Serializer& rSerializer)
-    {
-    }
 
     ///@name Private Inquiry
     ///@{
@@ -799,4 +786,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-#endif /* KRATOS_AUXILIAR_MODEL_PART_UTILITIES defined */

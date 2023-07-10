@@ -23,6 +23,7 @@ from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia a
 from test_axis_projection import TestAxisProjection as TTestAxisProjection
 from test_distribute_load_on_surface_process import TestDistributeLoadOnSurfaceProcess as TTestDistributeLoadOnSurfaceProcess
 from test_perturb_geometry_utility import TestPerturbGeometryUtility as TTestPerturbGeometryUtility
+from test_set_moving_load_process import TestSetMovingLoadProcess as TTestSetMovingLoadProcess
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
@@ -45,6 +46,7 @@ from test_patch_test_formfinding_trusses import TestPatchTestFormfinding as TTes
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
 from test_loading_conditions_line import TestLoadingConditionsLine as TTestLoadingConditionsLine
 from test_loading_conditions_surface import TestLoadingConditionsSurface as TTestLoadingConditionsSurface
+from test_loading_conditions_moving import TestLoadingConditionsMoving as TTestLoadingConditionsMoving
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 # RVE test
@@ -295,6 +297,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsSurface]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsMoving]))
     # Dynamic Eigenvalue Analysis
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestDynamicEigenvalueAnalysis]))
     # Buckling analysis test
@@ -323,6 +326,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TSpringDamperElementTests]))
     # Perturb geometry process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryUtility]))
+    # Set moving load process test
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSetMovingLoadProcess]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)

@@ -24,7 +24,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     NurbsVolumeGeometry<PointerVector<NodeType>> GenerateTruncatedPyramid() {
         // Construct Truncated Pyramid with: lower_base = 2x2; uper_base = 1.8x1.8; heigth = 4
@@ -169,7 +169,6 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryIntegrationPoints1, KratosCoreNurbsGeometriesFastSuite) {
             NurbsVolumeGeometry<PointerVector<NodeType>> TruncatedPyramid = GenerateTruncatedPyramid();
 
-            KRATOS_CHECK_EQUAL(TruncatedPyramid.Dimension(), 3);
             KRATOS_CHECK_EQUAL(TruncatedPyramid.WorkingSpaceDimension(), 3);
             KRATOS_CHECK_EQUAL(TruncatedPyramid.LocalSpaceDimension(), 3);
             KRATOS_CHECK_EQUAL(TruncatedPyramid.IsRational(), false);
@@ -345,7 +344,6 @@ namespace Testing {
         typename Geometry<Point>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = DistortedCube.GetDefaultIntegrationInfo();
         DistortedCube.CreateIntegrationPoints(integration_points, integration_info);
-        KRATOS_CHECK_EQUAL(DistortedCube.Dimension(), 3);
         KRATOS_CHECK_EQUAL(DistortedCube.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(DistortedCube.LocalSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(DistortedCube.IsRational(), false);
@@ -445,10 +443,9 @@ namespace Testing {
         // Check general information, input to ouput
         typename Geometry<NodeType>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = pyramid.GetDefaultIntegrationInfo();
-        pyramid.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<NodeType>::GeometriesArrayType quadrature_points;
-        pyramid.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
+        pyramid.CreateQuadraturePointGeometries(quadrature_points, 3, integration_info);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 1440);
         double sum = 0;

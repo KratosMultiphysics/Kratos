@@ -422,7 +422,7 @@ namespace Kratos {
 
             // Set Nodal Values
             const array_1d<double,3> velocity (3, 0.2);
-            Geometry<Node<3>>& geom = p_element->GetGeometry();
+            Geometry<Node>& geom = p_element->GetGeometry();
             geom[0].GetSolutionStepValue(DISTANCE) = -1.0;
             geom[1].GetSolutionStepValue(DISTANCE) = -1.0;
             geom[2].GetSolutionStepValue(DISTANCE) = -1.0;

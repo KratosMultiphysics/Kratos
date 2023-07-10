@@ -104,7 +104,7 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     /**
      * @brief Registers the communicator factory
      * This method takes the provided communicator pointer factory and saves it to be used later on
-     * @param CommunicatorFactory Factory function returning a pointer to a (parrallel or serial) communicator
+     * @param CommunicatorFactory Factory function returning a pointer to a (parallel or serial) communicator
      */
     template<class TDataCommunicatorInputType>
     static void RegisterCommunicatorFactory(std::function<Communicator::UniquePointer(ModelPart&, TDataCommunicatorInputType&)> CommunicatorFactory);

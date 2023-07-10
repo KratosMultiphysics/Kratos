@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //                   Vicente Mataix Ferrandiz
@@ -26,13 +26,11 @@
 // Utility includes
 #include "utilities/geometry_utilities.h"
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
     /// Factory functions
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /** Generates a sample Triangle3D3.
     * Generates a triangle defined by three random points in the space.
@@ -166,8 +164,11 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Volume, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateRightTriangle3D3<NodeType>();
-
+        
+        // TODO: Remove code in June 2023
         KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+        // TODO: Activate code in June 2023
+        //KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Triangle3D3:: Method not well defined. Replace with DomainSize() instead.");
     }
 
     /** Checks if the minimum edge length is calculated correctly.
@@ -821,5 +822,18 @@ namespace Testing
         KRATOS_CHECK_NEAR(unit_normal[2], normal[2], TOLERANCE);
     }
 
-} // namespace Testing.
-} // namespace Kratos.
+    /**
+     * Checks the distance from a point to a triangle
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CalculateDistance, KratosCoreGeometriesFastSuite)
+    {
+        auto geom = GenerateEquilateralTriangle3D3<Node>();
+
+        Point point1(1.0, 0.0, 0.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+
+        Point point2(0.0, 0.0, 0.5);
+        KRATOS_CHECK_RELATIVE_NEAR(geom->CalculateDistance(point2), 0.288675, 1.0e-4);
+    }
+
+} // namespace Kratos::Testing.

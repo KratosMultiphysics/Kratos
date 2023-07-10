@@ -1,5 +1,6 @@
 import os
 import types
+import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -15,9 +16,9 @@ class TestThermalRom(KratosUnittest.TestCase):
         self.relative_tolerance = 1.0e-12
 
     def testConvDiffStationaryRom2D(self):
-        self.work_folder = "thermal_static_test_files"
-        parameters_filename = "ProjectParameters.json"
-        expected_output_filename = "ExpectedOutput.npy"
+        self.work_folder = "thermal_static_test_files/ROM/"
+        parameters_filename = "../ProjectParameters.json"
+        expected_output_filename = "ExpectedOutputROM.npy"
 
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Set up simulation
@@ -38,9 +39,9 @@ class TestThermalRom(KratosUnittest.TestCase):
             self.assertLess(l2, self.relative_tolerance)
 
     def testConvDiffDynamicRom2D(self):
-        self.work_folder = "thermal_dynamic_test_files"
-        parameters_filename = "ProjectParameters.json"
-        expected_output_filename = "ExpectedOutput.npy"
+        self.work_folder = "thermal_dynamic_test_files/ROM/"
+        parameters_filename = "../ProjectParameters.json"
+        expected_output_filename = "ExpectedOutputROM.npy"
 
         time_snapshots = [500,1200,2500,3000,3600]
 

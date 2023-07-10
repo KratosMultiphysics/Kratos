@@ -10,7 +10,7 @@
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/KratosMultiphysics.svg)](https://pypi.org/project/KratosMultiphysics/)
 [![Downloads](https://pepy.tech/badge/KratosMultiphysics/month)](https://pepy.tech/project/KratosMultiphysics)
 
-[release-image]: https://img.shields.io/badge/release-9.2-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-9.3-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -156,4 +156,4 @@ In applications:
 Please, use the following references when citing Kratos in your work.
 - Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2
 - Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.
-- Mataix Ferrándiz, V., Bucher, P., Rossi, R., Cotela, J., Carbonell, J. M., Zorrilla, R., … Tosi, R. (2020, November 27). KratosMultiphysics (Version 8.1). Zenodo. https://doi.org/10.5281/zenodo.3234644
+- Vicente Mataix Ferrándiz, Philipp Bucher, Rubén Zorrilla, Riccardo Rossi, Jordi Cotela, Alejandro Cornejo Velázquez, Miguel Angel Celigueta, Josep Maria, Tobias Teschemacher, Carlos Roig, Miguel Maso, Guillermo Casas, Suneth Warnakulasuriya, Marc Núñez, Pooyan Dadvand, Salva Latorre, Ignasi de Pouplana, Joaquín Irazábal González, Ferran Arrufat, … Javi Gárate. (2022). KratosMultiphysics/Kratos: Release 9.2 (v9.2). Zenodo. https://doi.org/10.5281/zenodo.3234644

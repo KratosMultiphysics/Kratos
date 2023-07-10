@@ -12,7 +12,11 @@
 
 // Application includes
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
+#include "custom_utilities/element_utilities.hpp"
+#include "utilities/math_utils.h"
 #include <cmath>
+
+
 namespace Kratos
 {
 
@@ -262,22 +266,20 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
 }
 
 template< >
-double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
+double SteadyStatePwPipingElement<2, 4>::CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
 {
-	return abs((Geom[3].FastGetSolutionStepValue(WATER_PRESSURE) + Geom[0].FastGetSolutionStepValue(WATER_PRESSURE))/2 
-        - (Geom[2].GetSolutionStepValue(WATER_PRESSURE)+ Geom[1].GetSolutionStepValue(WATER_PRESSURE))/2) / dx;
+    auto nodalHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<4>(Geom, Prop);
+	return std::abs((nodalHead[3] + nodalHead[0]) / 2 - (nodalHead[2] + nodalHead[1])/2) / dx;
 }
 template< >
-double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
+double SteadyStatePwPipingElement<3, 6>::CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
 {
-    KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
-    return 0;
+    KRATOS_ERROR << " head gradient calculation of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
 }
 template< >
-double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
+double SteadyStatePwPipingElement<3, 8>::CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
 {
-    KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
-    return 0;
+    KRATOS_ERROR << " head gradient calculation of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
 }
 
 /// <summary>
@@ -314,8 +316,8 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     const double SolidDensity = Prop[DENSITY_SOLID];
     const double FluidDensity = Prop[DENSITY_WATER];
  
-    // calculate pressure gradient over element
-    double dpdx = CalculateWaterPressureGradient(Prop, Geom, pipe_length);
+    // calculate head gradient over element
+    double dhdx = CalculateHeadGradient(Prop, Geom, pipe_length);
 
     // calculate particle diameter
     double particle_d = CalculateParticleDiameter(Prop);
@@ -323,17 +325,13 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     // todo calculate slope of pipe, currently pipe is assumed to be horizontal
     const double pipeSlope = 0;
 
-    // return infinite when dpdx is 0
-    if (dpdx < std::numeric_limits<double>::epsilon())
+    // return infinite when dhdx is 0
+    if (dhdx < std::numeric_limits<double>::epsilon())
     { 
         return 1e10;
     }
-
-    // gravity is taken from first node
-    array_1d<double, 3> gravity_array= Geom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    const double gravity = norm_2(gravity_array);
 	
-    return modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dpdx;
+    return modelFactor * Globals::Pi / 3.0 * particle_d * (SolidDensity / FluidDensity - 1) * eta  * std::sin(MathUtils<>::DegreesToRadians(theta  + pipeSlope)) / std::cos(MathUtils<>::DegreesToRadians(theta)) / dhdx;
 
 }
 

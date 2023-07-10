@@ -61,10 +61,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ProcessFactoryUtility );
 
     /// The object type in python
-    typedef pybind11::object ObjectType;
+    using ObjectType = pybind11::object;
     
     /// The list [] of python
-    typedef pybind11::list     ListType;
+    using ListType = pybind11::list;
     
     ///@}
     ///@name Life Cycle
@@ -221,36 +221,6 @@ public:
     {
         rOStream << "ProcessFactoryUtility. Number of processes:" << mProcesses.size();
     }
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
 
 private:
     ///@name Static Member Variables

@@ -11,16 +11,13 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME )
-#define  KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME
+#pragma once
 
-// Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/parallel_utilities.h"
 
-// Application includes
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -45,11 +42,12 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta) : Scheme<TSparseSpace,TDenseSpace>()
+    NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta)
+        : Scheme<TSparseSpace,TDenseSpace>()
+        , mBeta(beta)
+        , mGamma(gamma)
+        , mTheta(theta)
     {
-        mBeta = beta;
-        mGamma = gamma;
-        mTheta = theta;
     }
 
     //------------------------------------------------------------------------------------
@@ -294,7 +292,7 @@ public:
             if (Dim == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D; 
 
             // Clear nodal variables
-            block_for_each(rModelPart.Nodes(), [&StressTensorSize](Node<3>& rNode) {
+            block_for_each(rModelPart.Nodes(), [&StressTensorSize](Node& rNode) {
                 rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 Matrix& rNodalStress = rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
                 if (rNodalStress.size1() != StressTensorSize)
@@ -309,7 +307,7 @@ public:
             FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
 
             // Compute smoothed nodal variables
-            block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+            block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
                 const double& NodalArea = rNode.FastGetSolutionStepValue(NODAL_AREA);
                 if (NodalArea > 1.0e-20) {
                     const double InvNodalArea = 1.0/NodalArea;
@@ -514,21 +512,10 @@ public:
 
 protected:
 
-    /// Member Variables
-
-    double mBeta;
-    double mGamma;
-    double mTheta;
-    double mDeltaTime;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    NewmarkQuasistaticUPwScheme() : Scheme<TSparseSpace,TDenseSpace>()
-    {
-        mBeta = 0.25;
-        mGamma = 0.5;
-        mTheta = 0.5;
-        mDeltaTime = 0.0;
-    }
+    double mBeta = 0.25;
+    double mGamma = 0.5;
+    double mTheta = 0.5;
+    double mDeltaTime = 0.0;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual inline void SetTimeFactors(ModelPart& rModelPart)
@@ -548,7 +535,7 @@ protected:
         KRATOS_TRY
 
         //Update Acceleration, Velocity and DtPressure
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
             noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =  ((  rNode.FastGetSolutionStepValue(DISPLACEMENT)
                                                                       - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1))
                                                                    - mDeltaTime * rNode.FastGetSolutionStepValue(VELOCITY, 1) 
@@ -576,5 +563,3 @@ protected:
 
 }; // Class NewmarkQuasistaticUPwScheme
 }  // namespace Kratos
-
-#endif // KRATOS_NEWMARK_QUASISTATIC_U_PW_SCHEME defined

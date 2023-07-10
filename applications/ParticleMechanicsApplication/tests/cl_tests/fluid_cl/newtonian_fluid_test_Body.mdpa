@@ -133,7 +133,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangian2D3N// GUI group identifier: Solid Auto1
+Begin Elements MPMUpdatedLagrangian2D3N// GUI group identifier: Solid Auto1
        21          0     3     6     4 
        22          0   126   130   122 
        23          0    60    47    53 
