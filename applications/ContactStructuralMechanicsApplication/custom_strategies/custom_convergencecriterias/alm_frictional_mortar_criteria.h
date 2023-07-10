@@ -344,11 +344,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -393,50 +389,6 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
-
 }; // Class ALMFrictionalMortarConvergenceCriteria
 
 ///@name Local flags creation
