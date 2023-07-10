@@ -100,7 +100,7 @@ class Project:
                 with open(checkpoint_path / output_settings_file_name, 'w') as parameter_output_file:
                     parameter_output_file.write(self.__settings.PrettyPrintJsonString())
    
-    def Load(self, loading_point : str):
+    def Load(self, loading_point: Path) -> None:
         '''Loads a saved Project status into current one.'''
 
         # Load save path file
