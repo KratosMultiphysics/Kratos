@@ -151,6 +151,20 @@ public:
         UpdatePoint();
     }
 
+    /**
+     * @brief This method checks everything is right
+     */
+    void Check()
+    {
+        KRATOS_TRY;
+
+        auto aux_coord = std::make_shared<array_1d<double, 3>>(this->Coordinates());
+        KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointObject class" << std::endl;
+        KRATOS_ERROR_IF(mpObject.get() == nullptr) << "TEntity no initialized in the PointObject class" << std::endl;
+
+        KRATOS_CATCH("Error checking the PointObject");
+    }
+
     ///@}
 private:
     ///@}
