@@ -10,10 +10,7 @@
 //
 //  Main authors:    Aron Noordam
 //
-
-
-#if !defined(KRATOS_GEO_U_PW_NORMAL_LYSMER_ABSORBING_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_NORMAL_LYSMER_ABSORBING_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -36,14 +33,13 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwLysmerAbsorbingCondition);
     
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,7 +59,42 @@ public:
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
 
-   void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
+    /**
+    * @brief Gets displacement vector at the condional nodes
+    * @param rValues displacement values
+    * @param Step buffer index, 0 is current time step; 1 is previous timestep; 2 is timestep before; etc
+    */
+    void GetValuesVector(Vector& rValues, int Step) const override;
+
+    /**
+    * @brief Gets velocity vector at the condional nodes
+    * @param rValues velocity values
+    * @param Step buffer index, 0 is current time step; 1 is previous timestep; 2 is timestep before; etc
+    */
+    void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
+
+    /**
+    * @brief Calculates the right hand side
+    * @param rRightHandSideVector global right hand side vector
+    * @param rCurrentProcessInfo Current process information
+    */
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+       const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * @brief Calculates LHS Damping part of absorbing boundary
+    * @param rDampingMatrix Global damping matrix
+    * @param rCurrentProcessInfo Current process information
+    */
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * @brief Calculates LHS and RHS stiffness part of absorbing boundary
+    * @param rLhsMatrix Global left hand side matrix
+    * @param rRightHandSideVector Global right hand side vector
+    * @param rCurrentProcessInfo Current process information
+    */
+    void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -72,11 +103,11 @@ protected:
     static constexpr SizeType N_DOF = TNumNodes * TDim;
     static constexpr SizeType CONDITION_SIZE = TNumNodes * TDim + TNumNodes;
 
+    using ElementMatrixType = BoundedMatrix<double, N_DOF, N_DOF>;
+    using DimensionMatrixType = BoundedMatrix<double, TDim, TDim>;
+
     struct NormalLysmerAbsorbingVariables
     {
-        double IntegrationCoefficient;
-        array_1d<double,TNumNodes> Np;
-        BoundedMatrix<double, N_DOF, N_DOF> UMatrix;
         double rho; // density of soil mixture
         double Ec; // p wave modulus
         double G; // shear modulus
@@ -91,41 +122,88 @@ protected:
         Vector SaturationNodes;
         Vector rhoNodes;
 
-        BoundedMatrix<double, TDim, TDim> CAbsMatrix; // damping part of absorbing matrix;
-        BoundedMatrix<double, TDim, TDim> KAbsMatrix; // stiffness part of absorbing matrix;
+        DimensionMatrixType CAbsMatrix; // damping part of absorbing matrix;
+        DimensionMatrixType KAbsMatrix; // stiffness part of absorbing matrix;
     };
 
     // Member Variables
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& CurrentProcessInfo) override;
 
-    void CalculateLocalSystem(MatrixType& rLhsMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
-    
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, NormalLysmerAbsorbingVariables& rVariables);
 
-    void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const Element::GeometryType& Geom);
+    /**
+    * @brief Adds the condition matrix to the global left hand side
+    * @param rLeftHandSideMatrix Global Left hand side
+    * @param rUMatrix LHS displacement matrix of the current condition
+    */
+    void AddLHS(MatrixType& rLeftHandSideMatrix, const ElementMatrixType& rUMatrix);
 
-    void GetNeighbourElementVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
+    /**
+    * @brief Calculates and adds terms to the RHS
+    * @param rRigtHandSideVector Global Right hand side
+    * @param rStiffnessMatrix condition stiffness matrix
+    */
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, const MatrixType& rStiffnessMatrix);
 
-    void GetVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
+    /**
+    * @brief Calculates the rotation matrix of the current condition
+    * @param rRotationMatrix rotation matrix of the current condition
+    * @param rGeom geometry of the current condition
+    */
+    void CalculateRotationMatrix(DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom);
 
-    void CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom);
+    /**
+    * @brief This method gets the average of the variables of all the neighbour elements of the condition. 
+    * @param rVariables Condition specific variables struct
+    * @param rCurrentProcessInfo Current process information
+    */
+    void GetNeighbourElementVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& CurrentProcessInfo, const Element::GeometryType& Geom);
+    /**
+    * @brief Gets condition variables.
+    * @param rVariables Condition specific variables struct
+    * @param rCurrentProcessInfo Current process information
+    */
+    void GetVariables(NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-    Matrix CalculateExtrapolationMatrixNeighbour(const Element& NeighbourElement);
+    /**
+     * @brief Calculates the damping constant in all directions
+     * @param rVariables Condition specific variables struct
+     * @param rGeom condition geometry
+     */
+    void CalculateNodalDampingMatrix(NormalLysmerAbsorbingVariables& rVariables, const Element::GeometryType& rGeom);
+
+    /**
+    * @brief Calculates the stiffness constant in all directions
+    * @param rVariables Condition specific variables struct
+    * @param rGeom condition geometry
+    */
+    void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables, const Element::GeometryType& rGeom);
+
+    /**
+    * @brief Calculates the extrapolation matrix for neighbour elements.Values from integration points are extrapolated to the nodes
+    * @param rNeighbourElement The neighbouring element of the condition
+    */
+    Matrix CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    typedef std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
+    using hashmap = std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>>>;
 
-    // Member Variables
+    /**
+    * @brief Calculates the rotation matrix of the current condition for 2D line conditions
+    * @param rRotationMatrix rotation matrix of the current condition
+    * @param rGeom geometry of the current condition
+    */
+    void CalculateRotationMatrix2DLine(DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	/**
+     * @brief Calculates the stiffness matrix for the current condition
+     * @param rStiffnessMatrix The stiffness matrix to be calculated
+     * @param rCurrentProcessInfo Current process information
+     */
+    void CalculateConditionStiffnessMatrix(ElementMatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    // Serialization
-    
     friend class Serializer;
     
     void save(Serializer& rSerializer) const override
@@ -141,5 +219,3 @@ private:
 }; // class UPwLysmerAbsorbingCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_U_PW_NORMAL_LYSMER_ABSORBING_CONDITION_H_INCLUDED defined 

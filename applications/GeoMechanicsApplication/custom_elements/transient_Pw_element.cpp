@@ -772,6 +772,8 @@ template class TransientPwElement<3,8>;
 template class TransientPwElement<2,6>;
 template class TransientPwElement<2,8>;
 template class TransientPwElement<2,9>;
+template class TransientPwElement<2,10>;
+template class TransientPwElement<2,15>;
 template class TransientPwElement<3,10>;
 template class TransientPwElement<3,20>;
 template class TransientPwElement<3,27>;

@@ -9,8 +9,6 @@ import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCoupling
 import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as PCD
 import math
 import os
-import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 
 def Wait():
     input("Press Something")
@@ -30,12 +28,6 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         self.FEM_Solution = FEM.FEM_for_PFEM_coupling_Solution(Model, path)
         self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters)
 
-        # Initialize Remeshing files
-        self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
-        if self.DoRemeshing:
-            self.mmg_parameter_file = open("MMGParameters.json",'r')
-            self.mmg_parameters = KratosMultiphysics.Parameters(self.mmg_parameter_file.read())
-            self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
         self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.InitializePlotsFiles()
         self.echo_level = 0
@@ -71,13 +63,8 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         self.ParticleCreatorDestructor = PCD.FemDemParticleCreatorDestructor(self.SpheresModelPart,
                                                                            self.DEMProperties,
                                                                            self.DEMParameters)
-
         if self.domain_size == 3:
             self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
-
-        if self.DoRemeshing:
-            self.InitializeMMGvariables()
-            self.RemeshingProcessMMG.ExecuteInitialize()
 
         if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
             self.TransferDEMContactForcesToFEM = True
@@ -150,6 +137,17 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
             self.CreateInitialSkin = False
         else:
             self.CreateInitialSkin = self.FEM_Solution.ProjectParameters["create_initial_skin"].GetBool()
+
+        if self.FEM_Solution.ProjectParameters.Has("do_stabilization_solve") == False:
+            self.do_stabilization_solve = False
+        else:
+            self.do_stabilization_solve = self.FEM_Solution.ProjectParameters["do_stabilization_solve"].GetBool()
+
+        if self.CreateInitialSkin:
+            self.ComputeSkinSubModelPart()
+            if self.DEMFEM_contact:
+                self.TransferFEMSkinToDEM()
+            KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
 
         # Initialize the coupled post process
         if not self.is_slave:

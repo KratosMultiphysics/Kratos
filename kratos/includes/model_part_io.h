@@ -74,7 +74,7 @@ public:
     typedef std::vector<std::ostream*>            OutputFilesContainerType;
     typedef std::size_t                           SizeType;
 
-    // Prevents this class from hidding IO::WriteProperties(Properties)
+    // Prevents this class from hiding IO::WriteProperties(Properties)
     using BaseType::WriteProperties;
 
     ///@}
@@ -296,50 +296,20 @@ public:
     /**
      * @brief This method divides a model part into partitions
      * @param NumberOfPartitions The number of partitions
-     * @param rDomainsColoredGraph The colors of the partition graph
-     * @param rNodesPartitions The partitions indices of the nodes
-     * @param rElementsPartitions The partitions indices of the elements
-     * @param rConditionsPartitions The partitions indices of the conditions
-     * @param rNodesAllPartitions The partitions of the nodes
-     * @param rElementsAllPartitions The partitions of the elements
-     * @param rConditionsAllPartitions The partitions of the conditions
+     * @param rPartitioningInfo Information about partitioning of entities
      */
     void DivideInputToPartitions(SizeType NumberOfPartitions,
-                                GraphType const& rDomainsColoredGraph,
-                                PartitionIndicesType const& rNodesPartitions,
-//                                 PartitionIndicesType const& rGeometriessPartitions,
-                                PartitionIndicesType const& rElementsPartitions,
-                                PartitionIndicesType const& rConditionsPartitions,
-                                PartitionIndicesContainerType const& rNodesAllPartitions,
-//                                 PartitionIndicesContainerType const& rGeometriessAllPartitions,
-                                PartitionIndicesContainerType const& rElementsAllPartitions,
-                                PartitionIndicesContainerType const& rConditionsAllPartitions
-                                ) override;
+                                 const PartitioningInfo& rPartitioningInfo) override;
 
     /**
      * @brief This method divides a model part into partitions
      * @param pStreams The stream pointer
      * @param NumberOfPartitions The number of partitions
-     * @param rDomainsColoredGraph The colors of the partition graph
-     * @param rNodesPartitions The partitions indices of the nodes
-     * @param rElementsPartitions The partitions indices of the elements
-     * @param rConditionsPartitions The partitions indices of the conditions
-     * @param rNodesAllPartitions The partitions of the nodes
-     * @param rElementsAllPartitions The partitions of the elements
-     * @param rConditionsAllPartitions The partitions of the conditions
+     * @param rPartitioningInfo Information about partitioning of entities
      */
     void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * pStreams,
                                 SizeType NumberOfPartitions,
-                                GraphType const& rDomainsColoredGraph,
-                                PartitionIndicesType const& rNodesPartitions,
-//                                 PartitionIndicesType const& rGeometriesPartitions,
-                                PartitionIndicesType const& rElementsPartitions,
-                                PartitionIndicesType const& rConditionsPartitions,
-                                PartitionIndicesContainerType const& rNodesAllPartitions,
-//                                 PartitionIndicesContainerType const& rGeometriesAllPartitions,
-                                PartitionIndicesContainerType const& rElementsAllPartitions,
-                                PartitionIndicesContainerType const& rConditionsAllPartitions
-                                ) override;
+                                const PartitioningInfo& rPartitioningInfo) override;
 
     void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
 
@@ -603,18 +573,14 @@ private:
 
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    void ReadSubModelPartGeometriesBlock(
+        ModelPart &rMainModelPart,
+        ModelPart &rSubModelPart);
+
     void DivideInputToPartitionsImpl(
         OutputFilesContainerType& rOutputFiles,
         SizeType NumberOfPartitions,
-        GraphType const& rDomainsColoredGraph,
-        PartitionIndicesType const& rNodesPartitions,
-        // PartitionIndicesType const& rGeometriesPartitions,
-        PartitionIndicesType const& rElementsPartitions,
-        PartitionIndicesType const& rConditionsPartitions,
-        PartitionIndicesContainerType const& rNodesAllPartitions,
-        // PartitionIndicesContainerType const& rGeometriesAllPartitions,
-        PartitionIndicesContainerType const& rElementsAllPartitions,
-        PartitionIndicesContainerType const& rConditionsAllPartitions);
+        const PartitioningInfo& rPartitioningInfo);
 
     void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles);
 
@@ -758,7 +724,7 @@ private:
     inline void CreatePartition(unsigned int NumberOfThreads,const int NumberOfRows, DenseVector<unsigned int>& partitions);
 
     /// Iterate over a Node block, calling ReorderedNodeId on each node.
-    /** This method allows derived implementations to initalize reordering
+    /** This method allows derived implementations to initialize reordering
      *  without storing the nodes.
      */
     void ScanNodeBlock();

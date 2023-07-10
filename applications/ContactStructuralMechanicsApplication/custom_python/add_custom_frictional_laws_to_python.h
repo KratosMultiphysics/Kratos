@@ -17,19 +17,10 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 
-
-namespace Kratos
+namespace Kratos::Python
 {
-
-namespace Python
-{
-
 void  AddCustomFrictionalLawsToPython(pybind11::module& m);
-
-}  // namespace Python.
-
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

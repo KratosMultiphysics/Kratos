@@ -2,8 +2,6 @@
 import KratosMultiphysics
 
 import os
-import sys
-
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)

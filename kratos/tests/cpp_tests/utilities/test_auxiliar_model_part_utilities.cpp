@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:   BSD License
-//      Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -24,8 +24,9 @@
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/cpp_tests_utilities.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
+
+using DataLocation = Globals::DataLocation;
 
 /******************************************************************************************/
 /* Helper Functions */
@@ -38,12 +39,13 @@ void Initialize(ModelPart& this_model_part)
     CppTestsUtilities::Create2DGeometry(this_model_part, "Element2D3N", true, true);
 }
 
-std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& this_model_part, int dim)
+template<class TContainerType=std::vector<double>>
+auto ComputationGetData(const DataLocation DataLoc, ModelPart& this_model_part, int dim)
 {
     //Assign random values to Displacement of each node and also save it in test_values for comparision
     int i=0; //To create various values
     double disp_test_value = 1.26;
-    std::vector<double> test_values;
+    TContainerType test_values;
 
     switch (DataLoc)
         {
@@ -130,9 +132,10 @@ std::vector<double> ComputationGetData(const DataLocation DataLoc, ModelPart& th
     return test_values;
 }
 
-std::vector<double> PreComputeSetData(int size, int dim)
+template<class TContainerType=std::vector<double>>
+auto PreComputeSetData(int size, int dim)
 {
-    std::vector<double> rData;
+    TContainerType rData;
     rData.resize(size * dim);
     double disp_test_value = 2.55;
     int counter = 0 ;
@@ -148,9 +151,10 @@ std::vector<double> PreComputeSetData(int size, int dim)
     return rData;
 }
 
-std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& this_model_part, int dim)
+template<class TContainerType=std::vector<double>>
+auto PostComputeSetData(const DataLocation DataLoc, ModelPart& this_model_part, int dim)
 {
-    std::vector<double> output_values;
+    TContainerType output_values;
     int counter=0;
 
     switch (DataLoc)
@@ -226,6 +230,56 @@ std::vector<double> PostComputeSetData(const DataLocation DataLoc, ModelPart& th
         return output_values;
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModePartsWithoutCorrespondingEntities, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    Initialize(r_model_part);
+    auto& r_sub = r_model_part.CreateSubModelPart("SubModelPart");
+    r_sub.CreateSubModelPart("SubSubModel");
+
+    r_sub.AddNode(r_model_part.pGetNode(1));
+    r_sub.AddNode(r_model_part.pGetNode(2));
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 2);
+
+    auto utilities = AuxiliarModelPartUtilities(r_model_part);
+    utilities.RemoveOrphanNodesFromSubModelParts();
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 0);
+
+    r_sub.AddNode(r_model_part.pGetNode(1));
+    r_sub.AddNode(r_model_part.pGetNode(2));
+    r_sub.AddNode(r_model_part.pGetNode(3));
+    r_sub.AddNode(r_model_part.pGetNode(4));
+    r_sub.AddElement(r_model_part.pGetElement(1));
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 0);
+
+    utilities.RemoveOrphanNodesFromSubModelParts();
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 0);
+
+    // Replace element by geometry
+    r_sub.AddNode(r_model_part.pGetNode(4));
+    r_sub.AddGeometry(r_model_part.pGetElement(1)->pGetGeometry());
+    r_sub.RemoveElement(1);
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
+
+    utilities.RemoveOrphanNodesFromSubModelParts();
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_CopySubModelPartStructure, KratosCoreFastSuite)
 {
     Model current_model;
@@ -260,7 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     Properties::Pointer p_prop = r_origin_model_part.CreateNewProperties(0);
     p_prop->SetValue(DENSITY, 1.0);
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     // First we create the nodes
     auto p_node_1 = r_origin_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.00);
@@ -269,8 +323,8 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     std::vector<NodeType::Pointer> nodes_0 = {p_node_3, p_node_2, p_node_1};
 
     // Set values
-    p_node_1->Set(RIGID, true); 
-    p_node_1->SetValue(PRESSURE, 15.0); 
+    p_node_1->Set(RIGID, true);
+    p_node_1->SetValue(PRESSURE, 15.0);
 
     auto p_node_4 = r_origin_model_part.CreateNewNode(4, 0.0 , 0.0 , 0.01);
     auto p_node_5 = r_origin_model_part.CreateNewNode(5, 1.0 , 0.0 , 0.01);
@@ -308,13 +362,13 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     // Check the structure of the copied model part
     KRATOS_CHECK(r_copy_model_part.HasSubModelPart("SubModel"));
     auto& r_sub_copy = r_copy_model_part.GetSubModelPart("SubModel");
-    KRATOS_CHECK(r_sub_copy.HasSubModelPart("SubSubModel")); 
-    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfNodes(), 0); 
-    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfGeometries(), 0); 
-    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfElements(), 1); 
-    KRATOS_CHECK_EQUAL(r_sub_copy.Elements().begin()->Id(), 2); 
+    KRATOS_CHECK(r_sub_copy.HasSubModelPart("SubSubModel"));
+    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfNodes(), 0);
+    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfGeometries(), 0);
+    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_sub_copy.Elements().begin()->Id(), 2);
     KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfConditions(), 0);
-    
+
     // Verify it is the same pointer
     KRATOS_CHECK_EQUAL(p_prop.get(), r_origin_model_part.pGetProperties(0).get());
     KRATOS_CHECK_EQUAL(p_node_1.get(), r_origin_model_part.pGetNode(1).get());
@@ -387,6 +441,18 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_historic
     std::vector<double> data;
 
     auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 1);
+    AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, data);
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+
+}
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_historical_ublas_vector, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& this_model_part = current_model.CreateModelPart("Main");
+    Initialize(this_model_part);
+    Vector data;
+
+    auto test_values = ComputationGetData<Vector>(DataLocation::NodeHistorical, this_model_part, 1);
     AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, data);
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
@@ -469,6 +535,18 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_historic
     KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_historical_ublas_vector, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& this_model_part = current_model.CreateModelPart("Main");
+    Initialize(this_model_part);
+    Vector data;
+
+    auto test_values = ComputationGetData<Vector>(DataLocation::NodeHistorical, this_model_part, 3);
+    AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::NodeHistorical, data);
+    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+}
+
 //8. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on Node_NonHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_Nonhistorical, KratosCoreFastSuite)
 {
@@ -542,6 +620,19 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_historic
     Initialize(this_model_part);
 
     auto rData = PreComputeSetData(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetScalarData()
+    AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 1);
+
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_historical_ublas_vector, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& this_model_part = current_model.CreateModelPart("Main");
+    Initialize(this_model_part);
+
+    Vector rData = PreComputeSetData<Vector>(this_model_part.NumberOfNodes(), 1); //To create an input Data "rData" to feed to SetScalarData()
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 1);
 
@@ -632,6 +723,19 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_historic
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_historical_ublas_vector, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& this_model_part = current_model.CreateModelPart("Main");
+    Initialize(this_model_part);
+
+    Vector rData = PreComputeSetData<Vector>(this_model_part.NumberOfNodes(), 3); //To create an input Data "rData" to feed to SetVectorData()
+    AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
+    auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 3);
+
+    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+}
+
 //20. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Node_NonHistorical Datalocation
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_Nonhistorical, KratosCoreFastSuite)
 {
@@ -702,5 +806,4 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_ProcessInfo, 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-} // namespace Testing
-} // namespace Kratos.
+} // namespace Kratos::Testing.

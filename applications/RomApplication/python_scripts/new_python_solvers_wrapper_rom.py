@@ -11,7 +11,8 @@ def _GetAvailableSolverWrapperModules():
         "KratosMultiphysics.FluidDynamicsApplication"       : "python_solvers_wrapper_fluid",
         "KratosMultiphysics.StructuralMechanicsApplication" : "python_solvers_wrapper_structural",
         "KratosMultiphysics.ConvectionDiffusionApplication" : "python_solvers_wrapper_convection_diffusion",
-        "KratosMultiphysics.CompressiblePotentialFlowApplication" : "python_solvers_wrapper_compressible_potential"
+        "KratosMultiphysics.CompressiblePotentialFlowApplication" : "python_solvers_wrapper_compressible_potential",
+        "KratosMultiphysics.GeoMechanicsApplication" : "geomechanics_solvers_wrapper"
     }
 
 
@@ -51,6 +52,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
     #TODO: We could do the same exercise as we do in the stage (module_name to ClassName equal to ModuleName if we standarize the solver names)
     aux_solver_settings = solver_settings.Clone()
     aux_solver_settings.RemoveValue("rom_settings")
+    aux_solver_settings.RemoveValue("projection_strategy")
+    aux_solver_settings.RemoveValue("assembling_strategy")
     aux_base_solver_instance = solvers_wrapper_module.CreateSolverByParameters(KratosMultiphysics.Model(), aux_solver_settings, parallelism)
 
     # Create the ROM solver from the base solver

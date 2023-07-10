@@ -53,7 +53,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 				End Elements
 
 				Begin NodalData BOUNDARY
-				    3 
+				    3
 				End NodalData
 
 				Begin NodalData DISPLACEMENT_X          //be careful, variables are case sensitive!
@@ -101,23 +101,22 @@ KRATOS_TEST_CASE_IN_SUITE(
     Kratos::shared_ptr<std::stringstream> p_output_1(new std::stringstream);
     Kratos::shared_ptr<std::iostream> streams[2] = {p_output_0, p_output_1};
 
-    std::size_t number_of_partitions = 2;
-    std::size_t number_of_colors = 1;
+    constexpr std::size_t number_of_partitions = 2;
+    constexpr std::size_t number_of_colors = 1;
     IO::GraphType domains_colored_graph(number_of_partitions, number_of_colors);
     domains_colored_graph(0, 0) = 1;
     domains_colored_graph(1, 0) = 0;
-    IO::PartitionIndicesType nodes_partitions = {0, 0, 1, 1};
-    IO::PartitionIndicesType elements_partitions = {0, 1};
-    IO::PartitionIndicesType conditions_partitions = {0, 1};
-    IO::PartitionIndicesContainerType nodes_all_partitions = {
-        {0}, {0, 1}, {1}, {0, 1}};
-    IO::PartitionIndicesContainerType elements_all_partitions = {{0}, {1}};
-    IO::PartitionIndicesContainerType conditions_all_partitions = {{0}, {1}};
 
-    model_part_io.DivideInputToPartitions(streams, number_of_partitions,
-        domains_colored_graph, nodes_partitions, elements_partitions,
-        conditions_partitions, nodes_all_partitions, elements_all_partitions,
-        conditions_all_partitions);
+    IO::PartitioningInfo part_info;
+    part_info.Graph = domains_colored_graph;
+    part_info.NodesPartitions = {0, 0, 1, 1};
+    part_info.ElementsPartitions = {0, 1};
+    part_info.ConditionsPartitions = {0, 1};
+    part_info.NodesAllPartitions = {{0}, {0, 1}, {1}, {0, 1}};
+    part_info.ElementsAllPartitions = {{0}, {1}};
+    part_info.ConditionsAllPartitions = {{0}, {1}};
+
+    model_part_io.DivideInputToPartitions(streams, number_of_partitions, part_info);
 
     ModelPart& model_part_0 = current_model.CreateModelPart("Partition 0");
     model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);

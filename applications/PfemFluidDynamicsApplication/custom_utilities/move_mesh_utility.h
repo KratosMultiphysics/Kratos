@@ -37,7 +37,7 @@ namespace  Kratos {
 class  KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PFEMMoveMeshUtility
 {
 public:
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     KRATOS_CLASS_POINTER_DEFINITION(PFEMMoveMeshUtility);
 

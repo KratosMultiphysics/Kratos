@@ -11,7 +11,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
@@ -19,13 +18,11 @@
 // Project includes
 #include "python/add_variable_utils_to_python.h"
 #include "includes/define_python.h"
-#include "processes/process.h"
 
 // Variable utilities
 #include "utilities/variable_utils.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 template<class TDataType>
 void AddCopyModelPartFlaggedInterface(pybind11::class_<VariableUtils>& rPythonVariableUtils)
@@ -230,6 +227,9 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Quaternion<double>>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Vector>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Matrix>>)
+        .def("CopyModelPartNodalVar", py::overload_cast<const Variable<int> &, const Variable<int> &, const ModelPart &, ModelPart &, const unsigned int, const unsigned int>(&VariableUtils::CopyModelPartNodalVar<Variable<int>>))
+        .def("CopyModelPartNodalVar", py::overload_cast<const Variable<double> &, const Variable<double> &, const ModelPart &, ModelPart &, const unsigned int, const unsigned int>(&VariableUtils::CopyModelPartNodalVar<Variable<double>>))
+        .def("CopyModelPartNodalVar", py::overload_cast<const Variable<array_1d<double,3>> &, const Variable<array_1d<double,3>> &, const ModelPart &, ModelPart &, const unsigned int, const unsigned int>(&VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,3>>>))
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<bool>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<double>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double, 3>>>)
@@ -534,8 +534,8 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
-        .def("GetCurrentPositionsVector", &VariableUtils::GetCurrentPositionsVector)
-        .def("GetInitialPositionsVector", &VariableUtils::GetInitialPositionsVector)
+        .def("GetCurrentPositionsVector", &VariableUtils::GetCurrentPositionsVector<>)
+        .def("GetInitialPositionsVector", &VariableUtils::GetInitialPositionsVector<>)
         .def("SetCurrentPositionsVector", &VariableUtils::SetCurrentPositionsVector)
         .def("SetInitialPositionsVector", &VariableUtils::SetInitialPositionsVector)
         ;
@@ -550,5 +550,4 @@ void AddVariableUtilsToPython(pybind11::module &m)
     AddCopyModelPartFlaggedInterface<Matrix>(python_variable_utils);
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

@@ -93,6 +93,10 @@ class MechanicalSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
+        # Some variables initialization
+        self.mpc_block_builder_initialized = False
+
+        # Printing message
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
@@ -236,12 +240,15 @@ class MechanicalSolver(PythonSolver):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Initializing ...")
+        
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
         mechanical_solution_strategy = self._GetSolutionStrategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         mechanical_solution_strategy.Initialize()
+
+        # Printing that inialization is finished
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def InitializeSolutionStep(self):
@@ -327,20 +334,21 @@ class MechanicalSolver(PythonSolver):
         return self._linear_solver
 
     def _GetBuilderAndSolver(self):
-        if (self.settings["multi_point_constraints_used"].GetBool() is False and
-            self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            self.settings["multi_point_constraints_used"].SetBool(True)
-            self._builder_and_solver = self._CreateBuilderAndSolver()
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._CreateBuilderAndSolver()
+        elif not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool(): # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+            if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
+                self.settings["multi_point_constraints_used"].SetBool(True)
+                self._builder_and_solver = self._CreateBuilderAndSolver()
+                self.mpc_block_builder_initialized = True
         return self._builder_and_solver
 
     def _GetSolutionStrategy(self):
-        if (self.settings["multi_point_constraints_used"].GetBool() is False and
-            self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         if not hasattr(self, '_mechanical_solution_strategy'):
             self._mechanical_solution_strategy = self._CreateSolutionStrategy()
+        elif not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool(): # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+            if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
+                self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         return self._mechanical_solution_strategy
 
     def import_constitutive_laws(self):
@@ -399,7 +407,7 @@ class MechanicalSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z,self.main_model_part)
-        if(self.settings["rotation_dofs"].GetBool()):
+        if self.settings["rotation_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z,self.main_model_part)

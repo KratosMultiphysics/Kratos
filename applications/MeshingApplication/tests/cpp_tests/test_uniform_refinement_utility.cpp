@@ -27,7 +27,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
         double Tolerance = 1e-6;
 

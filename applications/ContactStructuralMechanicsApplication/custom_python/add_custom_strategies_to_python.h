@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -17,19 +17,10 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 
-
-namespace Kratos
+namespace Kratos::Python
 {
-
-namespace Python
-{
-
-  void  AddCustomStrategiesToPython(pybind11::module& m);
-
-}  // namespace Python.
-
-}  // namespace Kratos.
+void  AddCustomStrategiesToPython(pybind11::module& m);
+}  // namespace Kratos::Python.

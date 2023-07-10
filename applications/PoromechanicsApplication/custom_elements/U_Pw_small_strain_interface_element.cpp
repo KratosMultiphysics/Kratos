@@ -1236,9 +1236,13 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<
     rRotationMatrix(0,1) = Vx[1];
 
     // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are 
-    // ordered clockwise (GiD does so), the rotation matrix is build like follows:
-    rRotationMatrix(1,0) = Vx[1];
-    rRotationMatrix(1,1) = -Vx[0];
+    // ordered counter-clockwise (GiD does so now), the rotation matrix is build like follows:
+    rRotationMatrix(1,0) = -Vx[1];
+    rRotationMatrix(1,1) = Vx[0];
+    // NOTE. Assuming that the nodes in quadrilateral_interface_2d_4 are 
+    // ordered clockwise, the rotation matrix is build like follows:
+    // rRotationMatrix(1,0) = Vx[1];
+    // rRotationMatrix(1,1) = -Vx[0];
 
     // NOTE. In zero-thickness quadrilateral_interface_2d_4 elements we are not able to know
     // whether the nodes are ordered clockwise or counter-clockwise.
@@ -2242,6 +2246,19 @@ template void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradie
                                                     ( Matrix& rGradNpT, SFGradAuxVariables& rAuxVariables,const Matrix& Jacobian,
                                                     const BoundedMatrix<double,3,3>& RotationMatrix,
                                                     const Matrix& DN_De,const Matrix& Ncontainer, const double& JointWidth,const unsigned int& GPoint );
+
+template void UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputValues< array_1d<double,3> >
+                                                    ( std::vector<array_1d<double,3>>& rOutput, const std::vector<array_1d<double,3>>& GPValues );
+template void UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputValues< Matrix >
+                                                    ( std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues );
+template void UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputValues< array_1d<double,3> >
+                                                    ( std::vector<array_1d<double,3>>& rOutput, const std::vector<array_1d<double,3>>& GPValues );
+template void UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputValues< Matrix >
+                                                    ( std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues );
+template void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputValues< array_1d<double,3> >
+                                                    ( std::vector<array_1d<double,3>>& rOutput, const std::vector<array_1d<double,3>>& GPValues );
+template void UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputValues< Matrix >
+                                                    ( std::vector<Matrix>& rOutput, const std::vector<Matrix>& GPValues );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

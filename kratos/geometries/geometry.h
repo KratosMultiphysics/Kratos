@@ -17,8 +17,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GEOMETRY_H_INCLUDED )
-#define  KRATOS_GEOMETRY_H_INCLUDED
+#pragma once
 
 // System includes
 #include <typeinfo>
@@ -1221,7 +1220,8 @@ public:
             }
         } else if (LumpingMethod == LumpingMethods::DIAGONAL_SCALING) {
             IntegrationMethod integration_method = GetDefaultIntegrationMethod();
-            integration_method = static_cast<IntegrationMethod>(static_cast<int>(integration_method) + 1);
+            int j = std::min(static_cast<int>(integration_method) + 1, 4);
+            integration_method = static_cast<IntegrationMethod>(j);
             const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
             const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
 
@@ -1277,19 +1277,6 @@ public:
     ///@name Informations
     ///@{
 
-    /** Dimension of the geometry for example a triangle2d is a 2
-    dimensional shape
-
-    @return SizeType, dimension of this geometry.
-    @see WorkingSpaceDimension()
-    @see LocalSpaceDimension()
-    */
-    KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
-    inline SizeType Dimension() const
-    {
-        return mpGeometryData->Dimension();
-    }
-
     /** Working space dimension. for example a triangle is a 2
     dimensional shape but can be used in 3 dimensional space.
 
@@ -1343,56 +1330,54 @@ public:
      * @see DomainSize()
      */
     virtual double Length() const {
-      KRATOS_ERROR << "Calling base class 'Length' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'Length' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
-    /** This method calculate and return area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns length, for two dimensional it gives area
-     * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
-     *
+    /**
+     * @brief This method calculate and return area or surface area of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns length, for two dimensional it gives area and for three dimensional geometries it gives surface area.
+     * @return double value contains area or surface area.
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
     virtual double Area() const {
-      KRATOS_ERROR << "Calling base class 'Area' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'Area' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
-    /** This method calculate and return volume of this
-     * geometry. For one and two dimensional geometry it returns
-     * zero and for three dimensional it gives volume of geometry.
-     *
+    /**
+     * @brief This method calculate and return volume of this geometry.
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
-     *
      * @see Length()
      * @see Area()
      * @see DomainSize()
      */
     virtual double Volume() const {
-      KRATOS_ERROR << "Calling base class 'Volume' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'Volume' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
-    /** This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    /**
+     * @brief This method calculate and return length, area or volume of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
-     *
      * @see Length()
      * @see Area()
      * @see Volume()
      */
     virtual double DomainSize() const {
-      KRATOS_ERROR << "Calling base class 'DomainSize' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        const SizeType local_dimension = this->LocalSpaceDimension();
+        if (local_dimension == 1) { // 1D geometry
+            return this->Length();
+        } else if (local_dimension == 2) { // 2D geometry
+            return this->Area();
+        } else { // 3D geometry
+            return this->Volume();
+        }
+        return 0.0;
     }
 
     /** This method calculates and returns the minimum edge.
@@ -1404,8 +1389,8 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MinEdgeLength() const {
-      KRATOS_ERROR << "Calling base class 'MinEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'MinEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** This method calculates and returns the maximum edge.
@@ -2691,7 +2676,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        KRATOS_ERROR << "Calling ProjectionPoinGlobalToLocalSpace within geometry base class."
+        KRATOS_ERROR << "Calling ProjectionPointGlobalToLocalSpace within geometry base class."
             << " Please check the definition within derived class. "
             << *this << std::endl;
     }
@@ -2939,8 +2924,7 @@ public:
         if( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
             rResult.resize( this->IntegrationPointsNumber( ThisMethod ), false );
 
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) {
             this->Jacobian( rResult[pnt], pnt, ThisMethod);
         }
 
@@ -2969,8 +2953,7 @@ public:
         if( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
             rResult.resize( this->IntegrationPointsNumber( ThisMethod ), false );
 
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) {
             this->Jacobian( rResult[pnt], pnt, ThisMethod, DeltaPosition);
         }
         return rResult;
@@ -3190,9 +3173,8 @@ public:
         if( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
             rResult.resize( this->IntegrationPointsNumber( ThisMethod ), false );
 
-        Matrix J;
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
+        Matrix J( this->WorkingSpaceDimension(), this->LocalSpaceDimension());
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) {
             this->Jacobian( J, pnt, ThisMethod);
             rResult[pnt] = MathUtils<double>::GeneralizedDet(J);
         }
@@ -3240,7 +3222,7 @@ public:
     */
     virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        Matrix J;
+        Matrix J( this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         this->Jacobian( J, IntegrationPointIndex, ThisMethod);
         return MathUtils<double>::GeneralizedDet(J);
     }
@@ -3260,7 +3242,7 @@ public:
     */
     virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
-        Matrix J;
+        Matrix J( this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         this->Jacobian( J, rPoint);
         return MathUtils<double>::GeneralizedDet(J);
     }
@@ -3302,9 +3284,8 @@ public:
         Jacobian(rResult, ThisMethod); //this will be overwritten
 
         double detJ;
-        Matrix Jinv(this->WorkingSpaceDimension(), this->WorkingSpaceDimension());
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
+        Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) {
             MathUtils<double>::GeneralizedInvertMatrix(rResult[pnt], Jinv, detJ);
             noalias(rResult[pnt]) = Jinv;
         }
@@ -3749,15 +3730,11 @@ public:
         const ShapeFunctionsGradientsType& DN_De = ShapeFunctionsLocalGradients( ThisMethod );
 
         //loop over all integration points
-        Matrix J(this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
-        double DetJ;
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ ) {
             if (rResult[pnt].size1() != (*this).size() || rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
-            this->Jacobian(J,pnt, ThisMethod);
-            MathUtils<double>::InvertMatrix(J, Jinv, DetJ);
+            this->InverseOfJacobian(Jinv,pnt, ThisMethod);
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
         }
     }
@@ -3785,15 +3762,14 @@ public:
         const ShapeFunctionsGradientsType& DN_De = ShapeFunctionsLocalGradients( ThisMethod );
 
         //loop over all integration points
-        Matrix J(this->WorkingSpaceDimension(),this->LocalSpaceDimension());
+        Matrix J(this->WorkingSpaceDimension(), this->LocalSpaceDimension());
         Matrix Jinv(this->LocalSpaceDimension(), this->WorkingSpaceDimension());
         double DetJ;
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ ) {
             if (rResult[pnt].size1() != (*this).size() || rResult[pnt].size2() != this->LocalSpaceDimension())
                 rResult[pnt].resize( (*this).size(), this->LocalSpaceDimension(), false );
             this->Jacobian(J,pnt, ThisMethod);
-            MathUtils<double>::InvertMatrix( J, Jinv, DetJ );
+            MathUtils<double>::GeneralizedInvertMatrix(J, Jinv, DetJ);
             noalias(rResult[pnt]) =  prod( DN_De[pnt], Jinv );
             rDeterminantsOfJacobian[pnt] = DetJ;
         }
@@ -3907,7 +3883,6 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 
 protected:
@@ -3941,8 +3916,8 @@ protected:
      * @return The inradius to circumradius quality metric.
      */
     virtual double InradiusToCircumradiusQuality() const {
-      KRATOS_ERROR << "Calling base class 'InradiusToCircumradiusQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'InradiusToCircumradiusQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the minimum to maximum edge length quality metric.
@@ -3956,8 +3931,8 @@ protected:
      * @return The Inradius to Circumradius Quality metric.
      */
     virtual double AreaToEdgeLengthRatio() const {
-      KRATOS_ERROR << "Calling base class 'AreaToEdgeLengthRatio' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'AreaToEdgeLengthRatio' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the shortest altitude to edge length quality metric.
@@ -3971,8 +3946,8 @@ protected:
      * @return The shortest altitude to edge length quality metric.
      */
     virtual double ShortestAltitudeToEdgeLengthRatio() const {
-      KRATOS_ERROR << "Calling base class 'ShortestAltitudeToEdgeLengthRatio' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'ShortestAltitudeToEdgeLengthRatio' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the inradius to longest edge quality metric.
@@ -3986,8 +3961,8 @@ protected:
      * @return The inradius to longest edge quality metric.
      */
     virtual double InradiusToLongestEdgeQuality() const {
-      KRATOS_ERROR << "Calling base class 'InradiusToLongestEdgeQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'InradiusToLongestEdgeQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the shortest to longest edge quality metric.
@@ -4001,8 +3976,8 @@ protected:
      * @return [description]
      */
     virtual double ShortestToLongestEdgeQuality() const {
-      KRATOS_ERROR << "Calling base class 'ShortestToLongestEdgeQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'ShortestToLongestEdgeQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the Regularity quality metric.
@@ -4017,8 +3992,8 @@ protected:
      * @return regularity quality.
      */
     virtual double RegularityQuality() const {
-      KRATOS_ERROR << "Calling base class 'RegularityQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'RegularityQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the volume to surface area quality metric.
@@ -4033,8 +4008,8 @@ protected:
      * @return volume to surface quality.
      */
     virtual double VolumeToSurfaceAreaQuality() const {
-      KRATOS_ERROR << "Calling base class 'VolumeToSurfaceAreaQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'VolumeToSurfaceAreaQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the Volume to edge length quaility metric.
@@ -4049,8 +4024,8 @@ protected:
      * @return Volume to edge length quality.
      */
     virtual double VolumeToEdgeLengthQuality() const {
-      KRATOS_ERROR << "Calling base class 'VolumeToEdgeLengthQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'VolumeToEdgeLengthQuality' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the volume to average edge lenght quality metric.
@@ -4065,8 +4040,8 @@ protected:
      * @return [description]
      */
     virtual double VolumeToAverageEdgeLength() const {
-      KRATOS_ERROR << "Calling base class 'VolumeToAverageEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'VolumeToAverageEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the volume to average edge length quality metric.
@@ -4082,8 +4057,8 @@ protected:
      * @return [description]
      */
     virtual double VolumeToRMSEdgeLength() const {
-      KRATOS_ERROR << "Calling base class 'VolumeToRMSEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'VolumeToRMSEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the min dihedral angle quality metric.
@@ -4093,8 +4068,8 @@ protected:
      * @return [description]
      */
     virtual double MinDihedralAngle() const {
-      KRATOS_ERROR << "Calling base class 'MinDihedralAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'MinDihedralAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the max dihedral angle quality metric.
@@ -4115,19 +4090,17 @@ protected:
      * @return [description]
      */
     virtual double MinSolidAngle() const {
-      KRATOS_ERROR << "Calling base class 'MinSolidAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'MinSolidAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
@@ -4137,11 +4110,7 @@ protected:
     Avoids object to be created Except for derived classes
     */
 
-
     ///@}
-
-
-
 private:
     ///@name Member Variables
     ///@{
@@ -4314,9 +4283,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 ///@}
 
 template<class TPointType>
-const GeometryDimension Geometry<TPointType>::msGeometryDimension(
-    3, 3, 3);
+const GeometryDimension Geometry<TPointType>::msGeometryDimension(3, 3);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_GEOMETRY_H_INCLUDED  defined

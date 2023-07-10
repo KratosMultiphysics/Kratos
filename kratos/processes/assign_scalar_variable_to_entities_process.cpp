@@ -92,7 +92,7 @@ const Parameters AssignScalarVariableToEntitiesProcess<TEntity>::GetDefaultParam
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Node<3>, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node<3>>::GetEntitiesContainer()
+PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh(mMeshId).Nodes();
 }
@@ -127,7 +127,7 @@ PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarVariableToEn
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AssignScalarVariableToEntitiesProcess<Node<3>>;
+template class AssignScalarVariableToEntitiesProcess<Node>;
 template class AssignScalarVariableToEntitiesProcess<Condition>;
 template class AssignScalarVariableToEntitiesProcess<Element>;
 template class AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>;

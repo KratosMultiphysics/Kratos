@@ -107,9 +107,9 @@ void LinearPlaneStrainK0Law::
 
     double K0 = 0.0;
     const int &K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
-    if (K0MainDirection == VOIGT_INDEX_XX) {
+    if (K0MainDirection == INDEX_2D_PLANE_STRAIN_XX) {
         K0 = 0.5*(K0ValueYY + K0ValueZZ);
-    } else if (K0MainDirection == VOIGT_INDEX_YY) {
+    } else if (K0MainDirection == INDEX_2D_PLANE_STRAIN_YY) {
         K0 = 0.5*(K0ValueXX + K0ValueZZ);
     } else {
          KRATOS_ERROR << "undefined K0_MAIN_DIRECTION in LinearElasticPlaneStrainK02DLaw: " << K0MainDirection << std::endl;
@@ -165,10 +165,10 @@ void LinearPlaneStrainK0Law::CalculatePK2Stress(const Vector& rStrainVector,
     const double& K0ValueZZ = r_material_properties[K0_VALUE_ZZ];
 
     const int& K0MainDirection = r_material_properties[K0_MAIN_DIRECTION];
-    if (K0MainDirection == VOIGT_INDEX_XX) {
+    if (K0MainDirection == INDEX_2D_PLANE_STRAIN_XX) {
         rStressVector[INDEX_2D_PLANE_STRAIN_YY] = K0ValueYY * rStressVector[INDEX_2D_PLANE_STRAIN_XX];
         rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = K0ValueZZ * rStressVector[INDEX_2D_PLANE_STRAIN_XX];
-    } else if (K0MainDirection == VOIGT_INDEX_YY) {
+    } else if (K0MainDirection == INDEX_2D_PLANE_STRAIN_YY) {
         rStressVector[INDEX_2D_PLANE_STRAIN_XX] = K0ValueXX * rStressVector[INDEX_2D_PLANE_STRAIN_YY];
         rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = K0ValueZZ * rStressVector[INDEX_2D_PLANE_STRAIN_YY];
     } else {

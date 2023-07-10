@@ -1,6 +1,5 @@
 ﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
-import math
 
 class TestMatrixInterface(KratosUnittest.TestCase):
 

@@ -32,6 +32,9 @@ namespace Kratos
 ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Parameters NewParameters) const
 {
     const double fiber_volumetric_participation = NewParameters["combination_factors"][1].GetDouble();
+    if (fiber_volumetric_participation < 0.0 || fiber_volumetric_participation > 1.0) {
+        KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0..." << std::endl;
+    }
     const int voigt_size = 6;
     Vector parallel_directions(voigt_size);
     for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
@@ -402,6 +405,10 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
     }
 
     noalias(rStressSerialResidual) = serial_stress_matrix - serial_stress_fiber;
+    if (norm_serial_stress_matrix <= 1.0e-4 || norm_serial_stress_fiber <= 1.0e-4) {
+        rIsConverged = true;
+        return;
+    }
     const double norm_residual =  MathUtils<double>::Norm(rStressSerialResidual);
     if (norm_residual < tolerance) rIsConverged = true;
 }
@@ -539,7 +546,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
     noalias(rStrainVectorMatrix) = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
     if (mIsPrestressed) {
         Vector aux(1);
-        aux[0] = rValues.GetElementGeometry().GetValue(SERIAL_PARALLEL_PRESTRESS);
+        aux[0] = rValues.GetElementGeometry().GetValue(SERIAL_PARALLEL_IMPOSED_STRAIN);
         if (Iteration > 0)
             aux[0] += r_total_parallel_strain_vector[0];
         noalias(rStrainVectorFiber)  = prod(rParallelProjector, aux) + prod(trans(rSerialProjector), (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
@@ -886,6 +893,9 @@ bool& SerialParallelRuleOfMixturesLaw::GetValue(
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
+        if (rThisVariable == IS_PRESTRESSED) {
+            rValue = mIsPrestressed;
+        }
         return rValue;
     }
 }
@@ -923,24 +933,22 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
         double damage_fiber, damage_matrix;
         mpFiberConstitutiveLaw->GetValue(DAMAGE, damage_fiber);
         mpMatrixConstitutiveLaw->GetValue(DAMAGE, damage_matrix);
-        rValue = std::max(damage_fiber, damage_matrix);
+        rValue = mFiberVolumetricParticipation * damage_fiber + (1.0 - mFiberVolumetricParticipation) * damage_matrix;
         return rValue;
-    }
-    if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
-        return mpFiberConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
-    } else if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
-        return mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
-    } else if (rThisVariable == UNIAXIAL_STRESS) {
-        double uniaxial_stress_fiber, uniaxial_stress_matrix;
-        mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, uniaxial_stress_fiber);
-        mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, uniaxial_stress_matrix);
-        rValue = mFiberVolumetricParticipation * uniaxial_stress_fiber + (1.0 - mFiberVolumetricParticipation) * uniaxial_stress_matrix;
+    } else if (rThisVariable == PLASTIC_DISSIPATION && mpFiberConstitutiveLaw->Has(rThisVariable) && mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        double plastic_dissipation_fiber, plastic_dissipation_matrix;
+        mpFiberConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, plastic_dissipation_fiber);
+        mpMatrixConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, plastic_dissipation_matrix);
+        rValue = mFiberVolumetricParticipation * plastic_dissipation_fiber + (1.0 - mFiberVolumetricParticipation) * plastic_dissipation_matrix;
         return rValue;
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
+        if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
+            rValue = mFiberVolumetricParticipation;
+        }
         return rValue;
     }
 }
@@ -953,13 +961,22 @@ Vector& SerialParallelRuleOfMixturesLaw::GetValue(
     Vector& rValue
     )
 {
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else {
-        return rValue;
+    const bool matrix_has = mpMatrixConstitutiveLaw->Has(rThisVariable);
+    const bool fiber_has = mpFiberConstitutiveLaw->Has(rThisVariable);
+    const SizeType voigt_size = GetStrainSize();
+    rValue.resize(GetStrainSize(), false);
+    rValue.clear();
+    if (matrix_has && fiber_has) {
+        Vector r_vector_matrix(voigt_size), r_vector_fiber(voigt_size);
+        mpMatrixConstitutiveLaw->GetValue(rThisVariable, r_vector_matrix);
+        mpFiberConstitutiveLaw->GetValue(rThisVariable, r_vector_fiber);
+        noalias(rValue) = mFiberVolumetricParticipation * r_vector_fiber + (1.0 - mFiberVolumetricParticipation) * r_vector_matrix;
+    } else if (matrix_has && !fiber_has) {
+        mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (!matrix_has && fiber_has) {
+        mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     }
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -993,6 +1010,10 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
         mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else {
+        if (rThisVariable == IS_PRESTRESSED) {
+            mIsPrestressed = rValue;
+        }
     }
 }
 
@@ -1027,7 +1048,10 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
         mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
+        mFiberVolumetricParticipation = rValue;
     }
+    
 }
 
 /***********************************************************************************/
@@ -1040,6 +1064,9 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return true;
     } else {
+        if (rThisVariable == IS_PRESTRESSED) {
+            return true;
+        }
         return false;
     }
 }
@@ -1068,7 +1095,13 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return true;
     } else {
-        return false;
+        if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
+            return true;
+        } else if (rThisVariable == DAMAGE_MATRIX || rThisVariable == DAMAGE_FIBER) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
@@ -1108,7 +1141,10 @@ bool& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<bool>& rThisVariable,
     bool& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    if (this->Has(rThisVariable))
+        return this->GetValue(rThisVariable, rValue);
+    else
+        return rValue;
 }
 
 /***********************************************************************************/
@@ -1119,7 +1155,10 @@ int& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<int>& rThisVariable,
     int& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    if (this->Has(rThisVariable))
+        return this->GetValue(rThisVariable, rValue);
+    else
+        return rValue;
 }
 
 /***********************************************************************************/
@@ -1130,7 +1169,46 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
+        const SizeType voigt_size = GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        const Vector strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
+
+        const auto &props = rParameterValues.GetMaterialProperties();
+        const auto it_cl_begin = props.GetSubProperties().begin();
+        const auto r_props_matrix_cl = *(it_cl_begin);
+        rParameterValues.SetMaterialProperties(r_props_matrix_cl);
+        noalias(rParameterValues.GetStrainVector()) = matrix_strain_vector;
+        mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+
+        // We reset the values
+        rParameterValues.SetMaterialProperties(props);
+        noalias(rParameterValues.GetStrainVector()) = strain_vector;
+        return rValue;
+    } else if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
+        const SizeType voigt_size = GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        const Vector strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
+
+        const auto &props = rParameterValues.GetMaterialProperties();
+        const auto it_cl_begin = props.GetSubProperties().begin();
+        const auto r_props_fiber_cl = *(it_cl_begin + 1);
+        rParameterValues.SetMaterialProperties(r_props_fiber_cl);
+        noalias(rParameterValues.GetStrainVector()) = fiber_strain_vector;
+        mpFiberConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+
+        // We reset the values
+        rParameterValues.SetMaterialProperties(props);
+        noalias(rParameterValues.GetStrainVector()) = strain_vector;
+        return rValue;
+    }
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -1317,7 +1395,7 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterial(
     mpMatrixConstitutiveLaw->InitializeMaterial(r_props_matrix_cl, rElementGeometry, rShapeFunctionsValues);
     mpFiberConstitutiveLaw ->InitializeMaterial(r_props_fiber_cl, rElementGeometry, rShapeFunctionsValues);
 
-    if (rElementGeometry.Has(SERIAL_PARALLEL_PRESTRESS))
+    if (rElementGeometry.Has(SERIAL_PARALLEL_IMPOSED_STRAIN))
         mIsPrestressed = true;
 }
 
@@ -1545,4 +1623,25 @@ void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(
 }
 /***********************************************************************************/
 /***********************************************************************************/
+
+
+int SerialParallelRuleOfMixturesLaw::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    int aux_out = 0;
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
+    const auto& r_props_matrix_cl = *(it_cl_begin);
+    const auto& r_props_fiber_cl = *(it_cl_begin + 1);
+    aux_out += mpMatrixConstitutiveLaw->Check(r_props_matrix_cl, rElementGeometry, rCurrentProcessInfo);
+    aux_out += mpFiberConstitutiveLaw->Check(r_props_fiber_cl, rElementGeometry, rCurrentProcessInfo);
+    if (mFiberVolumetricParticipation < 0.0 || mFiberVolumetricParticipation > 1.0) {
+        KRATOS_ERROR << "A wrong fiber volumetric participation has been set: Greater than 1 or lower than 0... " << std::to_string(mFiberVolumetricParticipation) << std::endl;
+        aux_out += 1;
+    }
+    return aux_out;
+}
+
 } // namespace Kratos

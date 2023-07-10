@@ -83,6 +83,8 @@ ModelPart& RansVMSMonolithicKBasedWall2D2NSetUp(Model& rModel)
     r_process_info.SetValue(TURBULENCE_RANS_C_MU, 0.09);
     r_process_info.SetValue(VON_KARMAN, 3.1);
 
+    RansApplicationTestUtilities::CheckElementsAndConditions(r_model_part);
+
     return r_model_part;
 }
 

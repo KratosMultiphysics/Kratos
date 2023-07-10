@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
@@ -20,9 +20,7 @@
 #include "mpi/includes/mpi_data_communicator.h"
 #include "testing/testing.h"
 
-namespace Kratos {
-
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite)
 {
@@ -380,9 +378,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllOperations, K
     else {
         KRATOS_CHECK_EQUAL(output, flags);
     }
-}
-
-
 }
 
 }

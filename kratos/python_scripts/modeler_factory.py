@@ -7,7 +7,7 @@ from importlib import import_module
 class KratosModelerFactory(object):
     def ConstructListOfModelers( self, model, modeler_list ):
         constructed_modelers = []
-        for modeler_item in modeler_list:
+        for modeler_item in modeler_list.values():
             if modeler_item.Has("modeler_name"):
                 modeler_name = modeler_item["modeler_name"].GetString()
                 if (KM.HasModeler(modeler_name)):

@@ -160,7 +160,7 @@ public:
             if(X <= mData[i].first)
                 return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second : mData[i].second;
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return mData[size-1].second;
     }
 
@@ -181,7 +181,7 @@ public:
             if(X <= mData[i].first)
                 return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second : mData[i].second;
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return mData[size-1].second;
     }
 
@@ -255,7 +255,7 @@ public:
     }
     
     /**
-     * @brief This method clears databse
+     * @brief This method clears database
      */
     void Clear()
     {
@@ -533,7 +533,7 @@ public:
             if(X <= mData[i].first)
                 return Interpolate(X, mData[i-1].first, mData[i-1].second[0], mData[i].first, mData[i].second[0], result);
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return Interpolate(X, mData[size-2].first, mData[size-2].second[0], mData[size-1].first, mData[size-1].second[0], result);
     }
 
@@ -554,7 +554,7 @@ public:
             if(X <= mData[i].first)
                 return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second : mData[i].second;
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return mData[size-1].second;
     }
 
@@ -575,7 +575,7 @@ public:
             if(X <= mData[i].first)
                 return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second[0] : mData[i].second[0];
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return mData[size-1].second[0];
     }
 
@@ -596,7 +596,7 @@ public:
             if(X <= mData[i].first)
                 return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second[0] : mData[i].second[0];
 
-        // now the x is outside the table and we hae to extrapolate it using last two records of table.
+        // now the x is outside the table and we have to extrapolate it using last two records of table.
         return mData[size-1].second[0];
     }
 
@@ -695,7 +695,7 @@ public:
     }
     
     /**
-     * @brief This method clears databse
+     * @brief This method clears database
      */
     void Clear()
     {

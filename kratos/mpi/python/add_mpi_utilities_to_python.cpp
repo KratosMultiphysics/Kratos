@@ -25,8 +25,7 @@
 #include "mpi/utilities/mpi_normal_calculation_utilities.h"
 #include "mpi/utilities/distributed_model_part_initializer.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 const DataCommunicator& CreateFromListOfRanks(
     const DataCommunicator& rReferenceComm,
@@ -77,6 +76,7 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
     ;
 
     py::class_<GatherModelPartUtility>(m, "GatherModelPartUtility")
+        .def(py::init<int, ModelPart&, ModelPart&>())
         .def(py::init<int, ModelPart&, int, ModelPart&>())
         .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<double>)
         .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<array_1d<double, 3>>)
@@ -99,6 +99,5 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
 
 }
 
-} // namespace Python
-} // namespace Kratos
+} // namespace Kratos::Python
 

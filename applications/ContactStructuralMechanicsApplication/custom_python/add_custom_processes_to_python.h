@@ -20,14 +20,7 @@
 // Project includes
 #include "includes/define.h"
 
-namespace Kratos
+namespace Kratos::Python
 {
-
-  namespace Python
-  {
-
-    void  AddCustomProcessesToPython(pybind11::module& m);
-
-  }  // namespace Python.
-  
-}  // namespace Kratos.
+void  AddCustomProcessesToPython(pybind11::module& m); 
+}  // namespace Kratos::Python.

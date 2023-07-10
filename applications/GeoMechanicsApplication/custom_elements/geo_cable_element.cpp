@@ -176,7 +176,7 @@ void GeoCableElement<TDim,TNumNodes>::
     if (rVariable == FORCE){
         GeoTrussElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
         if (rOutput[0][0]<0.0){
-            rOutput[0]=ZeroVector(TDim);
+            rOutput[0]=ZeroVector(3);
         }
     }
 }

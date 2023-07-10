@@ -99,14 +99,14 @@ namespace Testing
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4Area, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+        auto geom = GenerateRightQuadrilateral2D4<Node>();
         KRATOS_CHECK_NEAR(geom->Area(), 1.0, TOLERANCE);
     }
 
     /** Test a box and quadrilateral HasIntersection which should give true
      */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4NodeBoxIntersection, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+        auto geom = GenerateRightQuadrilateral2D4<Node>();
         Point point_1 (-0.3, 0.8, 0.0);
         Point point_2 ( 0.2, 1.5, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
@@ -125,7 +125,7 @@ namespace Testing
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4EdgeBoxIntersection, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateDiagQuadrilateral2D4<Node<3>>();
+        auto geom = GenerateDiagQuadrilateral2D4<Node>();
         Point point_1 ( 0.2, 0.2, 0.0 );
         Point point_2 ( 1.0, 1.0, 0.0 );
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
@@ -144,7 +144,7 @@ namespace Testing
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4BoxNoIntersection, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateDiagQuadrilateral2D4<Node<3>>();
+        auto geom = GenerateDiagQuadrilateral2D4<Node>();
         Point point_1 ( 0.7, 0.4, 0.0 );
         Point point_2 ( 1.0, 1.2, 0.0 );
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
@@ -154,7 +154,7 @@ namespace Testing
      * Tests the PointLocalCoordinates for Quadrilateral2D4.
      */
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+        auto geom = GenerateRightQuadrilateral2D4<Node>();
 
         Point TestPointA(1.0, 1.0, 0.0);
         Point TestPointB(0.5, 0.5, 0.0);
@@ -176,7 +176,7 @@ namespace Testing
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
-      auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+      auto geom = GenerateRightQuadrilateral2D4<Node>();
       array_1d<double, 3> coord(3);
       coord[0] = 1.0 / 2.0;
       coord[1] = 1.0 / 4.0;
@@ -189,29 +189,29 @@ namespace Testing
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+        auto geom = GenerateRightQuadrilateral2D4<Node>();
         TestAllShapeFunctionsLocalGradients(*geom);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4LumpingFactorsRegularShape, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateRightQuadrilateral2D4<Node<3>>();
+        auto geom = GenerateRightQuadrilateral2D4<Node>();
 
         Vector lumping_factors(4);
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::ROW_SUM);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::ROW_SUM);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.25, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.25, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[2], 0.25, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[3], 0.25, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::DIAGONAL_SCALING);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.25, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.25, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[2], 0.25, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[3], 0.25, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::QUADRATURE_ON_NODES);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::QUADRATURE_ON_NODES);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.25, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.25, TOLERANCE);
@@ -220,24 +220,24 @@ namespace Testing
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D4LumpingFactorsTrapezoidalShape, KratosCoreGeometriesFastSuite) {
-        auto geom = GenerateTrapezoidalQuadrilateral2D4<Node<3>>();
+        auto geom = GenerateTrapezoidalQuadrilateral2D4<Node>();
 
         Vector lumping_factors(4);
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::ROW_SUM);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::ROW_SUM);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.3, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.3, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[2], 0.2, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[3], 0.2, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::DIAGONAL_SCALING);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.325, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.325, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[2], 0.175, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[3], 0.175, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::QUADRATURE_ON_NODES);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::QUADRATURE_ON_NODES);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.4, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.4, TOLERANCE);

@@ -28,7 +28,7 @@ namespace Kratos {
         LocalRefineMesh(RefineOnReference, InterpolateInternalVariables);
     } 
 
-    Tetrahedra3D10<Node<3>> LinearToQuadraticTetrahedraMeshConverter::GenerateTetrahedra(
+    Tetrahedra3D10<Node> LinearToQuadraticTetrahedraMeshConverter::GenerateTetrahedra(
         ModelPart& rThisModelPart, 
         const std::vector<int>& rNodeIds) 
     {
@@ -43,7 +43,7 @@ namespace Kratos {
         unsigned int i8 = rNodeIds[8];
         unsigned int i9 = rNodeIds[9];
 
-        Tetrahedra3D10<Node < 3 > > geom(
+        Tetrahedra3D10<Node > geom(
             rThisModelPart.pGetNode(i0),
             rThisModelPart.pGetNode(i1),
             rThisModelPart.pGetNode(i2),
@@ -58,7 +58,7 @@ namespace Kratos {
         return geom;
     }
 
-    Triangle3D6<Node<3>> LinearToQuadraticTetrahedraMeshConverter::GenerateTriangle3D6(
+    Triangle3D6<Node> LinearToQuadraticTetrahedraMeshConverter::GenerateTriangle3D6(
         ModelPart& rThisModelPart, 
         const array_1d<int, 6>& rNodeIds) 
     {
@@ -69,7 +69,7 @@ namespace Kratos {
         unsigned int i4   = rNodeIds[4];
         unsigned int i5   = rNodeIds[5];
 
-        Triangle3D6<Node<3> > geom(
+        Triangle3D6<Node > geom(
             rThisModelPart.pGetNode(i0),
             rThisModelPart.pGetNode(i1),
             rThisModelPart.pGetNode(i2),
@@ -106,7 +106,7 @@ namespace Kratos {
             CalculateEdges(it->GetGeometry(), Coord, edge_ids, node_ids);
 
             // Generate the new Tetrahedra3D10 element
-            Tetrahedra3D10<Node<3>> geom = GenerateTetrahedra(rThisModelPart, node_ids);
+            Tetrahedra3D10<Node> geom = GenerateTetrahedra(rThisModelPart, node_ids);
             Element::Pointer p_element;
             p_element = r_elem.Create(it->Id(), geom, it->pGetProperties());
             p_element->Initialize(r_current_process_info);
@@ -130,7 +130,7 @@ namespace Kratos {
 
         // Now replace the elements in SubModelParts
         if ( NewElements.size() > 0 ) {
-            ReplaceElementsInSubModelPart(rThisModelPart);
+            ReplaceElementsInSubModelPart(rThisModelPart.GetRootModelPart());
         }
     }
 
@@ -180,7 +180,7 @@ namespace Kratos {
                 r_child_conditions.resize(0);
 
                 //Generate the new condition
-                Triangle3D6<Node<3> > geom = GenerateTriangle3D6 (rThisModelPart, node_ids);
+                Triangle3D6<Node > geom = GenerateTriangle3D6 (rThisModelPart, node_ids);
                 Condition::Pointer p_cond;
                 p_cond = r_cond.Create(it->Id(), geom, it->pGetProperties());
                 p_cond ->Initialize(r_current_process_info);
@@ -197,7 +197,7 @@ namespace Kratos {
 
             // Replace the conditions in SubModelParts
             if (NewConditions.size() > 0) {
-                ReplaceConditionsInSubModelPart(rThisModelPart);
+                ReplaceConditionsInSubModelPart(rThisModelPart.GetRootModelPart());
             }
         }
         KRATOS_CATCH("");

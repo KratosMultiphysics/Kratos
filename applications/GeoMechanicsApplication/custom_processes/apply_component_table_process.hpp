@@ -60,6 +60,7 @@ public:
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
+        mIsFixedProvided = rParameters.Has("is_fixed");
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
@@ -95,9 +96,9 @@ public:
         if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+            block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
                 if (mIsFixed) rNode.Fix(var);
-                else          rNode.Free(var);
+                else if (mIsFixedProvided) rNode.Free(var);
 
                 rNode.FastGetSolutionStepValue(var) = mInitialValue;
             });
@@ -116,7 +117,7 @@ public:
             const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
             const double value = mpTable->GetValue(Time);
 
-            block_for_each(mrModelPart.Nodes(), [&var, &value](Node<3>& rNode) {
+            block_for_each(mrModelPart.Nodes(), [&var, &value](Node& rNode) {
                 rNode.FastGetSolutionStepValue(var) = value;
             });
         }
@@ -150,6 +151,7 @@ protected:
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
+    bool mIsFixedProvided;
     double mInitialValue;
     TableType::Pointer mpTable;
     double mTimeUnitConverter;

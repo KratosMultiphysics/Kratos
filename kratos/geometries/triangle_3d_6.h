@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TRIANGLE_3D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_3D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -24,6 +23,7 @@
 // Project includes
 #include "geometries/line_3d_3.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -453,27 +453,38 @@ public:
         return std::sqrt(std::abs(this->DeterminantOfJacobian( PointType() ) ) );
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     * @todo Could be replaced by something more suitable
-     * @return double value contains area or surface
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
     double Area() const override
     {
-        return std::abs(this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    // TODO: Code activated in June 2023
+    // /**
+    //  * @brief This method calculates and returns the volume of this geometry.
+    //  * @return Error, the volume of a 2D geometry is not defined
+    //  * @see Length()
+    //  * @see Area()
+    //  * @see Volume()
+    //  */
+    // double Volume() const override
+    // {
+    //     KRATOS_ERROR << "Triangle3D6:: Method not well defined. Replace with DomainSize() instead" << std::endl;
+    //     return 0.0;
+    // }
+
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
@@ -559,22 +570,28 @@ public:
     }
 
     ///@}
-    ///@name Shape Function Integration Points Gradient
+    ///@name Spatial Operations
     ///@{
 
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod) const override
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), this->GetPoint(3), this->GetPoint(4), this->GetPoint(5), point);
     }
 
     ///@}
@@ -660,9 +677,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 3 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 4 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ), this->pGetPoint( 5 ) ) );
         return edges;
     }
 
@@ -1132,9 +1149,6 @@ GeometryData Triangle3D6<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(
-    2, 3, 2);
+GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined

@@ -21,16 +21,16 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
 
-// Strategies
+/* Strategies */
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/custom_strategies/line_search_contact_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_contact_strategy.h"
 #include "custom_strategies/custom_strategies/residualbased_newton_raphson_mpc_contact_strategy.h"
 
-// Schemes
+/* Schemes */
 #include "solving_strategies/schemes/scheme.h"
 
-// Convergence criterias
+/* Convergence criterias */
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mortar_and_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mesh_tying_mortar_criteria.h"
@@ -50,71 +50,69 @@
 #include "custom_strategies/custom_convergencecriterias/contact_error_mesh_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mpc_contact_criteria.h"
 
-// Builders and solvers
+/* Builders and solvers */
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_elimination_builder_and_solver_with_constraints.h"
 
-// Linear solvers
+/* Linear solvers */
 #include "linear_solvers/linear_solver.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
-    typedef ProcessFactoryUtility::Pointer ProcessesListType;
-    typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
+    using ProcessesListType = ProcessFactoryUtility::Pointer;
+    using ConditionNumberUtilityPointerType = ConditionNumberUtility::Pointer;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using BaseSchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
 
     // Base types
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-    typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
-    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+    using BaseSolvingStrategyType = ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using ConvergenceCriteriaPointer = typename ConvergenceCriteriaType::Pointer;
+    using BuilderAndSolverType = BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
     // Custom strategy types
-    typedef ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonContactStrategyType;
-    typedef LineSearchContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  LineSearchContactStrategyType;
-    typedef ResidualBasedNewtonRaphsonMPCContactStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedNewtonRaphsonMPCContactStrategyType;
+    using ResidualBasedNewtonRaphsonContactStrategyType = ResidualBasedNewtonRaphsonContactStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using LineSearchContactStrategyType = LineSearchContactStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using ResidualBasedNewtonRaphsonMPCContactStrategyType = ResidualBasedNewtonRaphsonMPCContactStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
     // Custom scheme types
 
     // Custom convergence criterion types
-    typedef MortarAndConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarAndConvergenceCriteriaType;
-    typedef MeshTyingMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MeshTyingMortarConvergenceCriteriaType;
-    typedef ALMFrictionlessMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionlessMortarConvergenceCriteriaType;
-    typedef PenaltyFrictionlessMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > PenaltyFrictionlessMortarConvergenceCriteriaType;
-    typedef ALMFrictionlessComponentsMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionlessComponentsMortarConvergenceCriteriaType;
-    typedef ALMFrictionalMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionalMortarConvergenceCriteriaType;
-    typedef PenaltyFrictionalMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > PenaltyFrictionalMortarConvergenceCriteriaType;
-    typedef DisplacementContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementContactCriteriaType;
-    typedef DisplacementLagrangeMultiplierContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierContactCriteriaType;
-    typedef DisplacementLagrangeMultiplierFrictionalContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierFrictionalContactCriteriaType;
-    typedef DisplacementLagrangeMultiplierMixedContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierMixedContactCriteriaType;
-    typedef DisplacementLagrangeMultiplierMixedFrictionalContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierMixedFrictionalContactCriteriaType;
-    typedef DisplacementResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementResidualContactCriteriaType;
-    typedef DisplacementLagrangeMultiplierResidualContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualContactCriteriaType;
-    typedef DisplacementLagrangeMultiplierResidualFrictionalContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType;
-    typedef ContactErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ContactErrorMeshCriteriaType;
-    typedef MPCContactCriteria< SparseSpaceType,  LocalSpaceType > MPCContactCriteriaType;
+    using MortarAndConvergenceCriteriaType = MortarAndConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using MeshTyingMortarConvergenceCriteriaType = MeshTyingMortarConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using ALMFrictionlessMortarConvergenceCriteriaType = ALMFrictionlessMortarConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using PenaltyFrictionlessMortarConvergenceCriteriaType = PenaltyFrictionlessMortarConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using ALMFrictionlessComponentsMortarConvergenceCriteriaType = ALMFrictionlessComponentsMortarConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using ALMFrictionalMortarConvergenceCriteriaType = ALMFrictionalMortarConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using PenaltyFrictionalMortarConvergenceCriteriaType = PenaltyFrictionalMortarConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
+    using DisplacementContactCriteriaType = DisplacementContactCriteria<SparseSpaceType, LocalSpaceType>;
+    using DisplacementLagrangeMultiplierContactCriteriaType = DisplacementLagrangeMultiplierContactCriteria<SparseSpaceType, LocalSpaceType>;
+    using DisplacementLagrangeMultiplierFrictionalContactCriteriaType = DisplacementLagrangeMultiplierFrictionalContactCriteria<SparseSpaceType, LocalSpaceType>;
+    using DisplacementLagrangeMultiplierMixedContactCriteriaType = DisplacementLagrangeMultiplierMixedContactCriteria<SparseSpaceType, LocalSpaceType>;
+    using DisplacementLagrangeMultiplierMixedFrictionalContactCriteriaType = DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<SparseSpaceType, LocalSpaceType>;
+    using DisplacementResidualContactCriteriaType = DisplacementResidualContactCriteria<SparseSpaceType, LocalSpaceType>;
+    using DisplacementLagrangeMultiplierResidualContactCriteriaType = DisplacementLagrangeMultiplierResidualContactCriteria<SparseSpaceType, LocalSpaceType>;
+    using DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType = DisplacementLagrangeMultiplierResidualFrictionalContactCriteria<SparseSpaceType, LocalSpaceType>;
+    using ContactErrorMeshCriteriaType = ContactErrorMeshCriteria<SparseSpaceType, LocalSpaceType>;
+    using MPCContactCriteriaType = MPCContactCriteria<SparseSpaceType, LocalSpaceType>;
 
     // Linear solvers
 
     // Custom builder and solvers types
-    typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
-    typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType > ContactResidualBasedBlockBuilderAndSolverType;
-    typedef ContactResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedEliminationBuilderAndSolverType;
-    typedef ContactResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType;
+    using ResidualBasedBlockBuilderAndSolverType = ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using ContactResidualBasedBlockBuilderAndSolverType = ContactResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType>;
+    using ContactResidualBasedEliminationBuilderAndSolverType = ContactResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType = ContactResidualBasedEliminationBuilderAndSolverWithConstraints<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
@@ -370,7 +368,5 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     ;
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+} // Namespace Kratos::Python.
 

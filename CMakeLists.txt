@@ -27,8 +27,8 @@ endif(POLICY CMP0057)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 2)
+set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_PATCH_VERSION 1)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -55,10 +55,18 @@ else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 # Setting the libs folder for the shared objects built in kratos
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+if (APPLE)
+  cmake_policy(SET CMP0042 NEW)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
+else()
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+endif()
 
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
+
+# If no pch policy disable by default
+option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
 
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
@@ -71,10 +79,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
 # Generate and copy configuration for language servers
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-EXECUTE_PROCESS(
-    COMMAND ${CMAKE_COMMAND} -E create_symlink
-    "${CMAKE_BINARY_DIR}/compile_commands.json"
-    "${CMAKE_SOURCE_DIR}/compile_commands.json")
 
 # Include cmake modules
 include(DownloadLib)
@@ -155,9 +159,20 @@ if(GIT_FOUND)
     message("Git did not find the SHA1 number. It will be set to 0.")
     set (KratosMultiphysics_SHA1_NUMBER 0)
   endif(SHA1_NOT_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} branch --show-current
+    OUTPUT_VARIABLE KratosMultiphysics_BRANCH_NAME
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE BRANCH_NAME_NOT_FOUND
+  )
+  if(BRANCH_NAME_NOT_FOUND)
+    message("Git did not find the branch name. It will be set to empty.")
+    set (KratosMultiphysics_BRANCH_NAME "")
+  endif(BRANCH_NAME_NOT_FOUND)
 else(GIT_FOUND)
-  message("Git was not found on your system. SHA1 number will be set to 0.")
+  message(STATUS "Git was not found on your system. SHA1 number will be set to 0. Branch name to empty.")
   set (KratosMultiphysics_SHA1_NUMBER 0)
+  set (KratosMultiphysics_BRANCH_NAME "")
 endif(GIT_FOUND)
 
 # Configure files depending on the build type
@@ -178,6 +193,11 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
   message(STATUS "Additional default options were set for GCC")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
+
+# Check for correct clang version
+if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 12.0)
+    message( FATAL_ERROR "Please use Version 12.0 or greater")
+endif()
 
 message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message(STATUS "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
@@ -293,7 +313,7 @@ else(NOT DEFINED KRATOS_ENABLE_LTO)
     endif()
 endif(NOT DEFINED KRATOS_ENABLE_LTO)
 
-message("AR VERSION: ${CMAKE_AR}")
+message(STATUS "AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 8))
@@ -312,9 +332,9 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
     set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}" CACHE PATH "Default Install path" FORCE)
-    message("-- Standard install dir ${CMAKE_INSTALL_PREFIX}")
+    message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
 else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
+    message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ## Find all dependencies
@@ -326,14 +346,14 @@ endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 # default to OpenMP
 if(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
-  message("\"KRATOS_SHARED_MEMORY_PARALLELIZATION\" not defined, defaulting to \"OpenMP\"")
+  message(STATUS "\"KRATOS_SHARED_MEMORY_PARALLELIZATION\" not defined, defaulting to \"OpenMP\"")
   SET(KRATOS_SHARED_MEMORY_PARALLELIZATION "OpenMP")
 endif(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
 
 if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
   find_package(OpenMP)
   if (OPENMP_FOUND)
-    message("Using OpenMP for shared memory parallelization")
+    message(STATUS "Using OpenMP for shared memory parallelization")
     add_definitions( -DKRATOS_SMP_OPENMP )
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -346,17 +366,22 @@ if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
   endif (OPENMP_FOUND)
 
 elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")
-  message("Using C++11 for shared memory parallelization")
+  message(STATUS "Using C++11 for shared memory parallelization")
   add_definitions( -DKRATOS_SMP_CXX11 )
-  message("WARNING: Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
+  message(WARNING "Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
 
 elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
   add_definitions( -DKRATOS_SMP_NONE )
-  message("Shared memory parallelization is disabled!")
+  message(STATUS "Shared memory parallelization is disabled!")
 
 else()
   message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
+
+OPTION(KRATOS_NO_TRY_CATCH "Disabled the use of try/catch through the code" OFF)
+if( KRATOS_NO_TRY_CATCH MATCHES ON )
+  add_definitions( -DKRATOS_NO_TRY_CATCH )
+endif( KRATOS_NO_TRY_CATCH MATCHES ON )
 
 ##*****************************
 # Finding and including BOOST library (version should not matter anymore)
@@ -484,6 +509,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
     endif(tetgen_FOUND)
 endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
+# Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
   find_package(TRILINOS QUIET)
@@ -519,23 +545,11 @@ if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   set( ZLIB_LIBRARIES zlib )
 endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 
-# including the AMatrix
-if( AMATRIX_DIR )
-    message(STATUS "AMATRIX_DIR : ${AMATRIX_DIR}")
-    include_directories("${AMATRIX_DIR}/include")
-    add_definitions(-DAMATRIX_NO_IO_OPERATOR)
-    add_definitions(-DKRATOS_USE_AMATRIX)
-else()
-    message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
-endif()
-
-##echo user options
-message( " ")
-message("CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}")
-message( " ")
+## Echo user options
+message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
-include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
+include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
@@ -547,12 +561,17 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 set(${KRATOS_KERNEL} "")
 set(${KRATOS_PYTHON_INTERFACE} "")
 
+# Enable profiling if requested
+if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
+    add_compile_definitions(KRATOS_ENABLE_PROFILING)
+endif()
+
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 
 # Configure kratos applications
-message("-- Configuring applications (ENV):")
+message(STATUS "Configuring applications (ENV):")
 set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
 if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
@@ -565,10 +584,10 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
     foreach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
         get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
         if(NOT TARGET Kratos${APPLICATION_NAME})
-            message("Adding application '${APPLICATION_PATH}'")
+            message("\tAdding application '${APPLICATION_PATH}'")
             add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
         else(NOT TARGET Kratos${APPLICATION_NAME})
-            message("[Warning] Application '${APPLICATION_PATH}' was already added")
+            message(WARNING "[Warning] Application '${APPLICATION_PATH}' was already added")
         endif(NOT TARGET Kratos${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
@@ -577,35 +596,30 @@ endif(DEFINED ENV{KRATOS_APPLICATIONS})
 add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
 add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
 
-message("")
-message("***********************************************************************")
-message("")
-message("        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:")
-message("")
+message("\n***********************************************************************\n")
+message("        LIST OF APPLICATIONS THAT ARE GOING TO BE COMPILED:\n")
 foreach(individual_app_name ${LIST_OF_APPLICATIONS_TO_BE_COMPILED})
   message("        ${individual_app_name}")
 endforeach()
-message("")
-message("        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:")
-message("")
+message("\n        APPLICATIONS ADDED TO COMPILATION THROUGH DEPENDENCIES:\n")
 get_property(local_list GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES)
 foreach(individual_app_name ${local_list})
     if(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
         message("        ${individual_app_name}")
     endif(NOT ";${LIST_OF_APPLICATIONS_TO_BE_COMPILED};" MATCHES ${individual_app_name})
 endforeach()
-message("")
-message("***********************************************************************")
-message("")
+message("\n***********************************************************************\n")
 
-message("List of upcoming API-breaking and behavior changes:")
-message("\t Geometry 'Dimension' deprecation: https://github.com/KratosMultiphysics/Kratos/pull/10445")
+message("\nList of upcoming API-breaking and behavior changes:")
+message("\t Geometry 'Dimension' removed: https://github.com/KratosMultiphysics/Kratos/pull/10977")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 
+# Compiling the clipper library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
@@ -629,6 +643,8 @@ install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" "KratosMultiphysics/kratos_globals.py" )
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry.py" "KratosMultiphysics/python_registry.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry_lists.py" "KratosMultiphysics/python_registry_lists.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/python_registry_utilities.py" "KratosMultiphysics/python_registry_utilities.py" )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)

@@ -327,7 +327,7 @@ public:
         if( pElemIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
             mMeshElements.push_back( *(pElemIt.base() ) );
-            Geometry<Node<3> >&geom = pElemIt->GetGeometry();
+            Geometry<Node >&geom = pElemIt->GetGeometry();
             for( Element::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
             {
                 mMeshNodes.push_back( *(it.base() ) );
@@ -345,7 +345,7 @@ public:
         if( pCondIt->GetGeometry().GetGeometryType() == mGeometryType )
         {
             mMeshConditions.push_back( *(pCondIt.base() ) );
-            Geometry<Node<3> >&geom = pCondIt->GetGeometry();
+            Geometry<Node >&geom = pCondIt->GetGeometry();
             for( Condition::GeometryType::iterator it = geom.begin(); it != geom.end(); it++)
             {
                 mMeshNodes.push_back( *(it.base() ) );

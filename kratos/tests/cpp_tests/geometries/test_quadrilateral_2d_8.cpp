@@ -24,7 +24,7 @@
 
 namespace Kratos {
 namespace Testing {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 // /// Factory functions
 namespace {
@@ -61,7 +61,10 @@ namespace {
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D8Volume, KratosCoreGeometriesFastSuite) {
         auto geom = GenerateReferenceQuadrilateral2D8();
+        // TODO: Remove code in June 2023
         KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+        // TODO: Activate code in June 2023
+        //KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Quadrilateral2D8:: Method not well defined. Replace with DomainSize() instead.");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Quadrilateral2D8MinEdgeLength, KratosCoreGeometriesFastSuite) {
@@ -148,7 +151,7 @@ namespace {
         auto geom = GenerateReferenceQuadrilateral2D8();
 
         Vector lumping_factors(8);
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::ROW_SUM);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::ROW_SUM);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], -1/12.0, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], -1/12.0, TOLERANCE);
@@ -159,7 +162,7 @@ namespace {
         KRATOS_CHECK_NEAR(lumping_factors[6], 1.0/3.0, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[7], 1.0/3.0, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::DIAGONAL_SCALING);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.0394737, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.0394737, TOLERANCE);
@@ -170,7 +173,7 @@ namespace {
         KRATOS_CHECK_NEAR(lumping_factors[6], 0.210526, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[7], 0.210526, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::QUADRATURE_ON_NODES);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::QUADRATURE_ON_NODES);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 1.0/8.0, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 1.0/8.0, TOLERANCE);

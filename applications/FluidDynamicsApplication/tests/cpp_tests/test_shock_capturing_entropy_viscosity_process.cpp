@@ -46,11 +46,11 @@ namespace ShockCapturingEntropyViscosityTesting{
         rNewModelPart.SetBufferSize(2);
 
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, -1.0, -1.0,  0.0);
-        auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, -1.0,  1.00,  0.0);
-        auto p_point_3 = Kratos::make_intrusive<Node<3>>(3,  1.0,  1.00,  0.0);
-        auto p_point_4 = Kratos::make_intrusive<Node<3>>(4,  1.0, -1.0,  0.0);
-        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+        auto p_point_1 = Kratos::make_intrusive<Node>(1, -1.0, -1.0,  0.0);
+        auto p_point_2 = Kratos::make_intrusive<Node>(2, -1.0,  1.00,  0.0);
+        auto p_point_3 = Kratos::make_intrusive<Node>(3,  1.0,  1.00,  0.0);
+        auto p_point_4 = Kratos::make_intrusive<Node>(4,  1.0, -1.0,  0.0);
+        Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
         Parameters mesher_parameters(R"(
         {

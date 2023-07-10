@@ -81,7 +81,7 @@ public:
         std::vector< bool > found( rModelPart.Nodes().size());
 
         // Allocate non-historical variables
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             rNode.SetValue(rVar, 0.0);
         });
 
@@ -116,7 +116,7 @@ public:
                 elem_backward(i) = pelement;
                 Ns[i] = N;
 
-                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                Geometry< Node >& geom = pelement->GetGeometry();
                 double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
@@ -130,7 +130,7 @@ public:
                 elem_backward(i) = pelement_valid;
                 Ns[i] = N_valid;
 
-                Geometry< Node < 3 > >& geom = pelement_valid->GetGeometry();
+                Geometry< Node >& geom = pelement_valid->GetGeometry();
                 double phi1 = N[0] * ( geom[0].FastGetSolutionStepValue(rVar,1));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N_valid[k] * ( geom[k].FastGetSolutionStepValue(rVar,1) );
@@ -157,7 +157,7 @@ public:
             bool is_found = ConvectBySubstepping(dt,fwdPos,vel, N, N_valid, pelement, pelement_valid, result_begin, max_results, 1.0, substeps, conv_var,has_valid_elem_pointer);
 
             if(is_found) {
-                Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                Geometry< Node >& geom = pelement->GetGeometry();
                 double phi_old = N[0] * ( geom[0].FastGetSolutionStepValue(rVar));
 
                 for (unsigned int k = 1; k < geom.size(); k++) {
@@ -182,7 +182,7 @@ public:
             bool is_found = found[i];
             if(is_found) {
                 Vector N = Ns[i];
-                Geometry< Node < 3 > >& geom = elem_backward[i].GetGeometry();
+                Geometry< Node >& geom = elem_backward[i].GetGeometry();
                 double phi1 = N[0] * ( geom[0].GetValue(rVar));
                 for (unsigned int k = 1; k < geom.size(); k++) {
                     phi1 += N[k] * ( geom[k].GetValue(rVar) );
@@ -226,7 +226,7 @@ public:
 
                 if (is_found == true)
                 {
-                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                    Geometry< Node >& geom = pelement->GetGeometry();
 
                     const double new_step_factor = static_cast<double>(substep)/subdivisions;
                     const double old_step_factor = (1.0 - new_step_factor);
@@ -256,7 +256,7 @@ public:
 
                 if (is_found == true)
                 {
-                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                    Geometry< Node >& geom = pelement->GetGeometry();
 
                     //this factors get inverted from the other case
                    const double old_step_factor = static_cast<double>(substep)/subdivisions;
@@ -301,11 +301,11 @@ public:
         }
 
         auto& r_default_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-        GlobalPointersVector< Node<3 > > gp_list;
+        GlobalPointersVector< Node > gp_list;
 
         for (int i_node = 0; i_node < static_cast<int>(rModelPart.NumberOfNodes()); ++i_node){
             auto it_node = rModelPart.NodesBegin() + i_node;
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -314,17 +314,17 @@ public:
             }
         }
 
-        GlobalPointerCommunicator< Node<3 > > pointer_comm(r_default_comm, gp_list);
+        GlobalPointerCommunicator< Node > pointer_comm(r_default_comm, gp_list);
 
         auto coordinate_proxy = pointer_comm.Apply(
-            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
+            [](GlobalPointer<Node >& global_pointer) -> Point::CoordinatesArrayType
             {
                 return global_pointer->Coordinates();
             }
         );
 
         auto distance_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3> >& global_pointer) -> double
+            [&](GlobalPointer<Node >& global_pointer) -> double
             {
                 return global_pointer->FastGetSolutionStepValue(rVar);
             }
@@ -339,7 +339,7 @@ public:
             double S_plus = 0.0;
             double S_minus = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
@@ -369,7 +369,7 @@ public:
             double numerator = 0.0;
             double denominator = 0.0;
 
-            GlobalPointersVector< Node<3 > >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector< Node >& global_pointer_list = it_node->GetValue(NEIGHBOUR_NODES);
 
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {

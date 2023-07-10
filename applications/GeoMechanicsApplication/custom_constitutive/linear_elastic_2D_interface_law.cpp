@@ -93,7 +93,7 @@ void LinearElastic2DInterfaceLaw::GetLawFeatures(Features& rFeatures)
 void LinearElastic2DInterfaceLaw::
     CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -106,7 +106,7 @@ void LinearElastic2DInterfaceLaw::
     C(INDEX_2D_INTERFACE_ZZ, INDEX_2D_INTERFACE_ZZ) = (1.00 - NU)*c0;
     C(INDEX_2D_INTERFACE_XZ, INDEX_2D_INTERFACE_XZ) = (0.5 - NU)*c0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -117,7 +117,7 @@ void LinearElastic2DInterfaceLaw::
                        Vector& rStressVector,
                        ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -130,7 +130,7 @@ void LinearElastic2DInterfaceLaw::
     rStressVector[INDEX_2D_INTERFACE_XZ] = c3 * rStrainVector[INDEX_2D_INTERFACE_XZ];
     rStressVector[INDEX_2D_INTERFACE_ZZ] = c1 * rStrainVector[INDEX_2D_INTERFACE_ZZ];
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 

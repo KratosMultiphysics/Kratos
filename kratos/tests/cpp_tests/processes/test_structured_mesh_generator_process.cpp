@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -22,30 +22,32 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 
-namespace Kratos {
-    namespace Testing {
+namespace Kratos::Testing {
 
         KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessHexahedra, KratosCoreFastSuite)
         {
             Model current_model;
 
-            Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-            Node<3>::Pointer p_point2(new Node<3>(2, 10.00, 0.00, 0.00));
-            Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-            Node<3>::Pointer p_point4(new Node<3>(4, 0.00, 10.00, 0.00));
-            Node<3>::Pointer p_point5(new Node<3>(5, 0.00, 0.00, 10.00));
-            Node<3>::Pointer p_point6(new Node<3>(6, 10.00, 0.00, 10.00));
-            Node<3>::Pointer p_point7(new Node<3>(7, 10.00, 10.00, 10.00));
-            Node<3>::Pointer p_point8(new Node<3>(8, 0.00, 10.00, 10.00));
+            Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+            Node::Pointer p_point2(new Node(2, 10.00, 0.00, 0.00));
+            Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+            Node::Pointer p_point4(new Node(4, 0.00, 10.00, 0.00));
+            Node::Pointer p_point5(new Node(5, 0.00, 0.00, 10.00));
+            Node::Pointer p_point6(new Node(6, 10.00, 0.00, 10.00));
+            Node::Pointer p_point7(new Node(7, 10.00, 10.00, 10.00));
+            Node::Pointer p_point8(new Node(8, 0.00, 10.00, 10.00));
 
-            Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+            Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
             ModelPart& model_part = current_model.CreateModelPart("Generated");
 
             Parameters mesher_parameters(R"(
             {
                 "number_of_divisions":10,
-                "element_name": "Element3D4N"
+                "create_skin_sub_model_part": true,
+                "skin_sub_model_part_name": "Skin",
+                "element_name": "Element3D4N",
+                "condition_name": "SurfaceCondition"
             }  )");
 
             std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
@@ -79,12 +81,12 @@ namespace Kratos {
         {
             Model current_model;
 
-            Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-            Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-            Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-            Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
+            Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+            Node::Pointer p_point2(new Node(2, 0.00, 10.00, 0.00));
+            Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+            Node::Pointer p_point4(new Node(4, 10.00, 0.00, 0.00));
 
-            Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+            Quadrilateral2D4<Node > geometry(p_point1, p_point2, p_point3, p_point4);
 
             ModelPart& model_part = current_model.CreateModelPart("Generated");
 
@@ -92,7 +94,9 @@ namespace Kratos {
             {
                 "number_of_divisions":10,
                 "element_name": "Element2D3N",
-                "create_skin_sub_model_part": false
+                "create_skin_sub_model_part": false,
+                "create_body_sub_model_part": true,
+                "body_sub_model_part_name": "DomainModelPart"
             }  )");
 
             std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
@@ -114,8 +118,12 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(total_area, 100., 1.E-6) << "with total_area = " << total_area;
 
             KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("Skin"));
+            KRATOS_CHECK(model_part.HasSubModelPart("DomainModelPart"))
+            const auto& r_domain_model_part = model_part.GetSubModelPart("DomainModelPart");
+            KRATOS_CHECK_EQUAL(r_domain_model_part.NumberOfNodes(), number_of_nodes);
+            KRATOS_CHECK_EQUAL(r_domain_model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
         }
-    }
-}  // namespace Kratos.
+
+}  // namespace Kratos::Testing.
 
 

@@ -262,10 +262,10 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 
     const unsigned int ndim = mrModelPart.ElementsBegin()->GetGeometry().LocalSpaceDimension();
     
-    const auto geometry_size = [&ndim]() -> std::function<double(Geometry<Node<3>>*)>
+    const auto geometry_size = [&ndim]() -> std::function<double(Geometry<Node>*)>
     {
-        if(ndim == 2) return [](const Geometry<Node<3>> * const p_geom) { return p_geom->Area(); };
-        if(ndim == 3) return [](const Geometry<Node<3>> * const p_geom) { return p_geom->Volume(); };
+        if(ndim == 2) return [](const Geometry<Node> * const p_geom) { return p_geom->Area(); };
+        if(ndim == 3) return [](const Geometry<Node> * const p_geom) { return p_geom->Volume(); };
         KRATOS_ERROR << "Invalid number of dimensions (" << ndim <<"). Only 2D and 3D are supported" << std::endl;
     }(); // The simpler "const auto var = condition ? lambda1 : lambda2;" does not compile with MSVC
 
@@ -302,7 +302,7 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
     const double ArtificialDynamicViscosity,
     const double ArtificialMassDiffusivity,
     const double ArtificialConductivity,
-    const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const
+    const std::function<double(Geometry<Node>*)>& rGeometrySize) const
 {
     auto& r_geometry = rElement.GetGeometry();
     const double element_volume = rGeometrySize(&r_geometry);
