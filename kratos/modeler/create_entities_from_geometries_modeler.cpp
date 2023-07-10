@@ -22,6 +22,54 @@
 namespace Kratos
 {
 
+namespace {
+/**
+ * @brief Create entities from geometries.
+ * @param EntityName the name of the entity
+ * @param rModelPart the model part
+ */
+template <class TEntitiesContainerType>
+void CreateEntitiesFromGeometries(
+    const std::string EntityName,
+    ModelPart& rModelPart
+    )
+{
+    // Get entity prototype from KratosComponents
+    const auto& r_ref_entity = KratosComponents<typename TEntitiesContainerType::value_type>::Get(EntityName);
+
+    // Create the entities container and allocate space
+    TEntitiesContainerType entities_to_add;
+    entities_to_add.reserve(rModelPart.NumberOfGeometries());
+
+    // Get current max element id
+    using SizeType = std::size_t;
+    SizeType max_id;
+    const auto& r_root_model_part = rModelPart.GetRootModelPart();
+    if constexpr (std::is_same<typename TEntitiesContainerType::value_type, Element>::value) {
+        max_id = block_for_each<MaxReduction<SizeType>>(r_root_model_part.Elements(), [](auto& rElement){
+            return rElement.Id();
+        });
+    } else {
+        max_id = block_for_each<MaxReduction<SizeType>>(r_root_model_part.Conditions(), [](auto& rCondition){
+            return rCondition.Id();
+        });
+    }
+
+    // Loop geometries to create the corresponding entities from them
+    for (auto& r_geom : rModelPart.Geometries()) {
+        auto p_entity = r_ref_entity.Create(++max_id, r_geom, nullptr);
+        entities_to_add.push_back(p_entity);
+    }
+
+    // Add the created entities to current submodelpart
+    if constexpr (std::is_same<typename TEntitiesContainerType::value_type, Element>::value) {
+        rModelPart.AddElements(entities_to_add.begin(), entities_to_add.end());
+    } else {
+        rModelPart.AddConditions(entities_to_add.begin(), entities_to_add.end());
+    }
+}
+}
+
 template <>
 void CreateEntitiesFromGeometriesModeler::RemoveModelPartEntities<Element>(ModelPart &rModelPart)
 {
@@ -55,7 +103,7 @@ void CreateEntitiesFromGeometriesModeler::LoopEntitiesList<Element>(Parameters E
         RemoveModelPartEntities<Element>(r_model_part);
 
         // Create submodelpart elements from geometries
-        CreateEntitiesFromGeometries<Element, ModelPart::ElementsContainerType>(r_entity_name, r_model_part);
+        CreateEntitiesFromGeometries<ModelPart::ElementsContainerType>(r_entity_name, r_model_part);
     }
 }
 
@@ -72,7 +120,7 @@ void CreateEntitiesFromGeometriesModeler::LoopEntitiesList<Condition>(Parameters
         RemoveModelPartEntities<Condition>(r_model_part);
 
         // Create submodelpart conditions from geometries
-        CreateEntitiesFromGeometries<Condition, ModelPart::ConditionsContainerType>(r_entity_name, r_model_part);
+        CreateEntitiesFromGeometries<ModelPart::ConditionsContainerType>(r_entity_name, r_model_part);
     }
 }
 
