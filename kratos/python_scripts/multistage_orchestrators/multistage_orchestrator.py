@@ -22,7 +22,7 @@ class MultistageOrchestrator:
 
         # Store pointer to current project
         # Note that the project already contains the multistage simulation settings
-        self.__project = project
+        self.__project: Project = project
 
     def Run(self):
         """Main function that runs the complete multistage simulation."""
