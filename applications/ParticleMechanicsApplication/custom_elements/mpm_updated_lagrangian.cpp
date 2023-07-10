@@ -197,6 +197,8 @@ void MPMUpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariab
 
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
+
+    rVariables.BodyForceMP = ZeroVector(3);
 }
 //************************************************************************************
 //************************************************************************************
@@ -262,7 +264,6 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rN);
 
-/* #BODYFORCES
     // Body forces
     rVariables.BodyForceMP = ZeroVector(3);
     array_1d<double, 3 > nodal_body_force = ZeroVector(3);
@@ -275,11 +276,9 @@ void MPMUpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
             for (unsigned int k = 0; k < dimension; k++)
             {
                 rVariables.BodyForceMP[k] += r_N(0, j) * nodal_body_force[k];
-
             }
         }
-
-    }*/
+    }
 
 }
 
@@ -350,8 +349,7 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
-	// #BODY_FORCE
-        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) ; //+  (Variables.BodyForceMP * mMP.mass)
+        Vector volume_force = (mMP.volume_acceleration * mMP.mass ) +  (Variables.BodyForceMP * mMP.mass);
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,

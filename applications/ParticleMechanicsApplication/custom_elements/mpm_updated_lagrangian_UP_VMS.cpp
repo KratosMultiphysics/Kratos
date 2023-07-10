@@ -280,8 +280,8 @@ void MPMUpdatedLagrangianUPVMS::CalculateElementalSystem(
     if (CalculateResidualVectorFlag) // if calculation of the vector is required
     {
         // Contribution to forces (in residual term) are calculated
+        //#BODYFORCE
         Vector volume_force = (mMP.volume_acceleration * mMP.mass ) + (Variables.BodyForceMP * mMP.mass);
-//         std::cout << "mass Elem System:  " << mMP.mass << "\n";
         this->CalculateAndAddRHS(
             rRightHandSideVector,
             Variables,
@@ -366,22 +366,6 @@ void MPMUpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariable
         rVariables.BulkModulus = 1e16;
     }
 
-    // Body forces
-    rVariables.BodyForceMP = ZeroVector(3);
-    array_1d<double, 3 > nodal_body_force = ZeroVector(3);
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    {
-        if (r_geometry[j].SolutionStepsDataHas(BODY_FORCE))
-        {
-
-            nodal_body_force = r_geometry[j].FastGetSolutionStepValue(BODY_FORCE,0);
-            for (unsigned int k = 0; k < dimension; k++)
-            {
-                rVariables.BodyForceMP[k] += r_N(0, j) * nodal_body_force[k];
-            }
-        }
-
-    }
 
     KRATOS_CATCH("")
 }
@@ -957,8 +941,6 @@ void MPMUpdatedLagrangianUPVMS::CalculateProjections(const ProcessInfo &rCurrent
 
         Vector volume_force = ZeroVector(3);
         volume_force =  Variables.BodyForceMP * mp_mass;
-         //std::cout << "volume_force" << volume_force << "\n";
-        //for(unsigned int k = 0; k<3; k++) volume_force[k] = mp_mass * mp_volume_acceleration[k];
 
         Vector MomentumRes = ZeroVector(3);
         double ConservRes = 0.0;
