@@ -234,7 +234,8 @@ if __name__ == "__main__":
     error_and_warning_outut_file = f"{sys.argv[1]}/stub_generation_errors_and_warnings.txt"
     if "--quiet" in sys.argv: # suppress output from Kratos imports
         args = [arg for arg in sys.argv if arg != "--quiet"]
-        exit(subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = sys.stderr).returncode)
+        subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = sys.stderr, check=True)
+
     else:
         Main()
         PostProcessGeneratedStubFiles()
