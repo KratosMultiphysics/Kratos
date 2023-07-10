@@ -10,6 +10,12 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_analysis import HelmholtzAnalysis
 
+try:
+    from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
+    mesh_motion_solver_available = True
+except ImportError:
+    mesh_motion_solver_available = False
+
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
         raise RuntimeError(f"VertexMorphingShapeControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
@@ -18,8 +24,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
     return VertexMorphingShapeControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
-def GetImplicitFilterParameters(model_part: Kratos.ModelPart, parameters: Kratos.Parameters):
-    model_part_name = model_part.FullName()
+def GetImplicitFilterParameters(filter_model_part_name: str, parameters: Kratos.Parameters):
     filter_radius = parameters["filter_settings"]["radius"].GetDouble()
     filter_type = parameters["filter_settings"]["type"].GetString()
     linear_solver_settings = parameters["filter_settings"]["linear_solver_settings"]
@@ -45,7 +50,7 @@ def GetImplicitFilterParameters(model_part: Kratos.ModelPart, parameters: Kratos
      }""")
 
     if filter_type == "bulk_surface_implicit":
-        implicit_vector_filter_parameters["solver_settings"]["filter_type"] = "bulk_surface_shape"
+        implicit_vector_filter_parameters["solver_settings"]["filter_type"].SetString("bulk_surface_shape")
 
     implicit_vector_filter_parameters["solver_settings"].AddDouble("filter_radius",filter_radius)
     implicit_vector_filter_parameters["solver_settings"].AddString("model_part_name",model_part_name)
@@ -60,7 +65,7 @@ def GetImplicitFilterParameters(model_part: Kratos.ModelPart, parameters: Kratos
                 "help"          : "This process fixes the selected components of a given vector variable without modifying the value of the variable.",
                 "process_name"  : "FixVectorVariableProcess",
                 "Parameters"    : {
-                    "model_part_name" : \""""+model_part_name+"""\",
+                    "model_part_name" : \""""+filter_model_part_name+"""\",
                     "variable_name"   : "HELMHOLTZ_VECTOR",
                     "constrained"          : [false,false,false]
                 }
@@ -70,6 +75,85 @@ def GetImplicitFilterParameters(model_part: Kratos.ModelPart, parameters: Kratos
         implicit_vector_filter_parameters["processes"]["boundary_conditions_process_list"].Append(auto_process_settings)
 
     return implicit_vector_filter_parameters
+
+def GetMeshMotionParameters(parameters: Kratos.Parameters, main_model_part_name, moving_sub_model_part_name):
+    default_mesh_motion_settings = Kratos.Parameters("""
+    {
+        "apply_mesh_solver" : true,
+        "solver_settings" : {
+            "domain_size"     : 3,
+            "echo_level"      : 0,
+            "solver_type"     : "structural_similarity",
+            "model_part_name" : "NONE",
+            "model_import_settings"              : {
+                "input_type"     : "use_input_model_part"
+            },
+            "time_stepping" : {
+                "time_step"       : 1.0
+            },
+            "linear_solver_settings" : {
+                "solver_type" : "amgcl",
+                "smoother_type":"ilu0",
+                "krylov_type": "gmres",
+                "coarsening_type": "aggregation",
+                "max_iteration": 200,
+                "verbosity" : 0,
+                "tolerance": 1e-7
+            },
+            "compute_reactions"                : false,
+            "calculate_mesh_velocity"          : false
+        },
+        "processes" : {
+            "boundary_conditions_process_list" : []
+        },
+        "use_automatic_remeshing"     : false,
+        "automatic_remeshing_settings": {
+            "strategy"        : "optimization",
+            "step_frequency"  : 1,
+            "automatic_remesh": true,
+            "automatic_remesh_parameters": {
+                "automatic_remesh_type": "Ratio",
+                "min_size_ratio": 1.0,
+                "max_size_ratio": 5.0,
+                "refer_type"    : "Mean"
+            },
+            "echo_level": 0,
+            "force_min" : true,
+            "force_max" : true
+        }
+    }""")
+
+    parameters.ValidateAndAssignDefaults(default_mesh_motion_settings)
+
+    parameters["solver_settings"].AddString("model_part_name",main_model_part_name)
+
+    auto_process_settings = Kratos.Parameters(
+    """
+    {
+        "python_module" : "fix_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable without modifying the value of the variable.",
+        "process_name"  : "FixVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name"      : \""""+str(moving_sub_model_part_name)+"""\",
+            "variable_name"        : "MESH_DISPLACEMENT",
+            "constrained"          : [true,true,true]
+        }
+    }
+    """)
+
+    parameters["processes"]["boundary_conditions_process_list"].Append(auto_process_settings)
+
+    problem_data = Kratos.Parameters("""{
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0,
+        "parallel_type" : "OpenMP"
+    }""")
+
+    parameters.AddValue("problem_data", problem_data)
+
+    return parameters
 
 class VertexMorphingShapeControl(Control):
     """Node-based shape control using implicit and explicit Vertex Morphing techniques
@@ -92,6 +176,7 @@ class VertexMorphingShapeControl(Control):
                 "radius": 0.000000000001,
                 "linear_solver_settings" : {}
             },
+            "mesh_motion_settings" : {},
             "output_all_fields": false,
             "fixed_model_parts": {},
             "utilities": []
@@ -103,56 +188,93 @@ class VertexMorphingShapeControl(Control):
         self.output_all_fields = self.parameters["output_all_fields"].GetBool()
         self.filter_type = self.parameters["filter_settings"]["type"].GetString()
 
-        self.supported_filter_types = ["surface_implicit","bulk_surface_implicit","explicit"]
+        self.supported_filter_types = ["surface_implicit","surface_implicit_with_mesh_motion","bulk_surface_implicit","surface_explicit","surface_explicit_with_mesh_motion"]
         if not self.filter_type in self.supported_filter_types:
             raise RuntimeError(f"The specified filter type \"{self.filter_type}\" is not supported. Followings are the variables:\n\t" + "\n\t".join([k for k in self.supported_filter_types]))
 
+        if len(parameters["controlled_model_part_names"].GetStringArray())>1:
+            self.filter_model_part_name = f"control_{self.GetName()}"
+        else:
+            self.filter_model_part_name = parameters["controlled_model_part_names"].GetStringArray()[0]
+
         self.filter = None
-        self.filter_model_part = None
         self.is_filter_implicit = False
         if "implicit" in self.filter_type:
             self.is_filter_implicit = True
-            self.controlled_model_parts = [model[model_part_name] for model_part_name in parameters["controlled_model_part_names"].GetStringArray()]
-            if len(self.controlled_model_parts) == 0:
-                raise RuntimeError(f"No model parts were provided for VertexMorphingShapeControl. [ control name = \"{self.GetName()}\"]")
-            self.filter_model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", self.controlled_model_parts, False)
-            helmholtz_settings = GetImplicitFilterParameters(self.filter_model_part, self.parameters)
+            implicit_filter_model_part_name = str()
+            for model_part_name in parameters["controlled_model_part_names"].GetStringArray():
+                if not model.HasModelPart(model_part_name) and '.' in model_part_name:
+                    implicit_filter_model_part_name = model_part_name.split('.')[0]
+                    break
+                else:
+                    implicit_filter_model_part_name = model_part_name
+                    break
+            helmholtz_settings = GetImplicitFilterParameters(implicit_filter_model_part_name, self.parameters)
             self.filter = HelmholtzAnalysis(self.model, helmholtz_settings)
+
+        # now setup mesh motion
+        self.SetupMeshMotion()
 
         self.is_initialized = False
 
     def Initialize(self) -> None:
 
+        self.controlled_model_parts = [self.model[model_part_name] for model_part_name in self.parameters["controlled_model_part_names"].GetStringArray()]
+        if len(self.controlled_model_parts) == 0:
+            raise RuntimeError(f"No model parts were provided for VertexMorphingShapeControl. [ control name = \"{self.GetName()}\"]")
+        self.filter_model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", self.controlled_model_parts, False)
+        ModelPartUtilities.ExecuteOperationOnModelPart(self.filter_model_part)
+
+        # initialize filters
         if not self.is_filter_implicit:
-            self.controlled_model_parts = [self.model[model_part_name] for model_part_name in self.parameters["controlled_model_part_names"].GetStringArray()]
-            if len(self.controlled_model_parts) == 0:
-                raise RuntimeError(f"No model parts were provided for VertexMorphingShapeControl. [ control name = \"{self.GetName()}\"]")
-            self.filter_model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", self.controlled_model_parts, False)
-            ModelPartUtilities.ExecuteOperationOnModelPart(self.filter_model_part)
-            self.filter = KratosOA.NodalExplicitVertexMorphingFilter(self.filter_model_part, "linear", 1000)
+            # make sure that explicit filter model part only has conditions
+            if len(self.filter_model_part.Elements) > 0:
+                raise RuntimeError(f"VertexMorphingShapeControl with explicit filtering only allows model parts with conditions")
+            # now damping and creating the filter
+            self.fixed_model_parts = [self.model[model_part_name] for model_part_name in self.parameters["fixed_model_parts"].keys()]
+            if len(self.fixed_model_parts)>0:
+                self.fixed_model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"damping_{self.GetName()}", self.fixed_model_parts, False)
+                ModelPartUtilities.ExecuteOperationOnModelPart(self.fixed_model_part)
+                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.fixed_model_part, "linear", 1000)
+            else:
+                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, "linear", 1000)
+
             filter_radius_field =  Kratos.Expression.NodalExpression(self.filter_model_part)
             Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
             self.filter.SetFilterRadius(filter_radius_field)
-
-            # self.fixed_model_parts_dict: 'dict[Kratos.ModelPart, list]' = {}
-            # for model_part_name, direction_params in self.parameters["fixed_model_parts"].items():
-            #     bool_list = []
-            #     for i in range(3):
-            #         bool_list.append(direction_params[i].GetBool())
-            #     self.fixed_model_parts_dict[self.model[model_part_name]] = bool_list
             self.control_field = Kratos.Expression.NodalExpression(self.filter_model_part)
             Kratos.Expression.LiteralExpressionIO.SetData(self.control_field,[0,0,0])
-
         else:
-            ModelPartUtilities.ExecuteOperationOnModelPart(self.filter_model_part)
             self.filter.Initialize()
             self._SetFixedModelPartValues(False)
             self.control_field = self.filter.UnFilterField(self.GePhysicalField())
             self._SetFixedModelPartValues(True)
 
+        # initialize_mesh_motion
+        if self.has_mesh_motion:
+            self._mesh_moving_analysis.Initialize()
+
         # now update
         self._UpdateAndOutputFields(self.GetEmptyField())
         self.is_initialized = True
+
+    def SetupMeshMotion(self):
+        self.has_mesh_motion = True
+        if "mesh_motion" in self.filter_type:
+
+            mm_root_model_part_name = str()
+            for model_part_name in self.parameters["controlled_model_part_names"].GetStringArray():
+                if not self.model.HasModelPart(model_part_name) and '.' in model_part_name:
+                    mm_root_model_part_name = model_part_name.split('.')[0]
+                    break
+                else:
+                    mm_root_model_part_name = model_part_name
+                    break
+
+            self.mesh_motion_params = GetMeshMotionParameters(self.parameters["mesh_motion_settings"],mm_root_model_part_name,self.filter_model_part_name)
+            self._mesh_moving_analysis = MeshMovingAnalysis(self.model, self.mesh_motion_params)
+        else:
+            self.has_mesh_motion = False
 
     def Check(self) -> None:
         if self.is_filter_implicit:
@@ -160,7 +282,9 @@ class VertexMorphingShapeControl(Control):
 
     def Finalize(self) -> None:
         if self.is_filter_implicit:
-            return self.filter.Finalize()
+            self.filter.Finalize()
+        if self.has_mesh_motion:
+            self._mesh_moving_analysis.Finalize()
 
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosOA.SHAPE]
@@ -205,14 +329,45 @@ class VertexMorphingShapeControl(Control):
                 self.control_field = new_control_field
                 # now update the physical field
                 self._UpdateAndOutputFields(control_update)
+                # update explicit filter
+                if not self.is_filter_implicit:
+                    self.filter.Update()
                 return True
         return False
+
+    def _UpdateMesh(self, shape_update) -> None:
+        if self.has_mesh_motion:
+            mm_computing_model_part = self._mesh_moving_analysis._GetSolver().GetComputingModelPart()
+            time_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.TIME)
+            step_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.STEP)
+            delta_time_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
+
+            # Reset step/time iterators such that they match the current iteration after calling RunSolutionLoop (which internally calls CloneTimeStep)
+            mm_computing_model_part.ProcessInfo.SetValue(Kratos.STEP, step_before_update-1)
+            mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update-1)
+            mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0)
+
+            # assign the boundary_displacements
+            Kratos.Expression.VariableExpressionIO.Write(shape_update, Kratos.MESH_DISPLACEMENT, True)
+
+            if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
+                self._mesh_moving_analysis.end_time += 1
+            self._mesh_moving_analysis.RunSolutionLoop()
+
+            mm_computing_model_part.ProcessInfo.SetValue(Kratos.STEP, step_before_update)
+            mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update)
+            mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_update)
+        else:
+            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GePhysicalField(), Kratos.Configuration.Initial)
+            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GePhysicalField(), Kratos.Configuration.Current)
 
     def _UpdateAndOutputFields(self, control_update) -> None:
         # compute the shape update
         shape_update = self.filter.FilterField(control_update)
-        Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GePhysicalField(), Kratos.Configuration.Initial)
-        Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GePhysicalField(), Kratos.Configuration.Current)
+
+        # now update the shape
+        self._UpdateMesh(shape_update)
+
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         un_buffered_data.SetValue("shape_update", shape_update.Clone(),overwrite=self.is_initialized)
