@@ -23,6 +23,7 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "geometries/geometry_data.h"
+#include "utilities/entities_utilities.h"
 
 namespace Kratos
 {
@@ -43,9 +44,6 @@ class KRATOS_API(KRATOS_CORE) ReplaceElementsAndConditionsProcess
 public:
     ///@name Type Definitions
     ///@{
-
-    /// Enum for the type of definition
-    enum class DefinitionType {Single, Multiple, Templated};
 
     /// Pointer definition of ReplaceElementsAndConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(ReplaceElementsAndConditionsProcess);
@@ -170,10 +168,11 @@ protected:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                         /// The main model part where the elements and conditions will be replaced
-    Parameters mSettings;                           /// The settings of the problem (names of the conditions and elements)
-    std::array<DefinitionType, 2> mDefinitionElementCondition; /// This array stores the type of definition of the elements and conditions
-    
+    ModelPart& mrModelPart;                                                /// The main model part where the elements and conditions will be replaced
+    Parameters mSettings;                                                  /// The settings of the problem (names of the conditions and elements)
+    EntitiesUtilities::EntitityIdentifier<Element> mElementIdentifier;     /// This variable stores the identifier of the elements
+    EntitiesUtilities::EntitityIdentifier<Condition> mConditionIdentifier; /// This variable stores the identifier of the conditions
+
     ///@}
 private:
     ///@name Member Variables
