@@ -1,6 +1,7 @@
 import pathlib
 
 import KratosMultiphysics
+from KratosMultiphysics.project import Project
 from KratosMultiphysics.orchestrators.orchestrator import Orchestrator
 
 class SequentialOrchestrator(Orchestrator):
@@ -15,10 +16,10 @@ class SequentialOrchestrator(Orchestrator):
     _stages_to_checkpoint_list -- list containing the names of the stages to be checkpointed (saved)
     '''
 
-    def __init__(self, settings : KratosMultiphysics.Parameters) -> None:
+    def __init__(self, project : Project) -> None:
         '''Constructs the sequential multistage orchestrator instance.'''
 
-        super().__init__(settings)
+        super().__init__(project)
 
     def Run(self) -> None:
         '''Main function that runs a sequential multistage simulation.'''
