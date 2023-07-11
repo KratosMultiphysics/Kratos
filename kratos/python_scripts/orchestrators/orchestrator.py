@@ -145,7 +145,7 @@ class Orchestrator(abc.ABC):
                     operation.Execute()
                 del operations_list
 
-    def RunCurrentStagePostprocess(self, stage_name: str, data: typing.Optional[dict] = None):
+    def RunCurrentStagePostprocess(self, stage_name: str, data: typing.Optional[typing.Dict] = None):
         """This function executes the postprocessing of current stage.
 
         Note that the stage postprocess deliberately involves operations only.
