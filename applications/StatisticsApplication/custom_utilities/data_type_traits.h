@@ -92,14 +92,31 @@ struct DataTypeTraits
         if (rOutput.size() != 1) {
             rOutput.resize(1);
         }
-        rOutput[0] = rValue;
+        FillToVector(rOutput.begin(), rValue);
+    }
+
+    template<class TIteratorType>
+    static void FillToVector(
+        TIteratorType Begin,
+        const DataType& rValue)
+    {
+        *Begin = rValue;
     }
 
     static void FillFromVector(
         DataType& rValue,
         const VectorType& rOriginValues)
     {
-        rValue = rOriginValues[0];
+        FillFromVector(rValue, rOriginValues.begin(), rOriginValues.end());
+    }
+
+    template<class TIteratorType>
+    static void FillFromVector(
+        DataType& rValue,
+        TIteratorType Begin,
+        TIteratorType End)
+    {
+        rValue = *Begin;
     }
 };
 
@@ -159,14 +176,31 @@ struct DataTypeTraits<array_1d<TDataType, TSize>>
         if (rOutput.size() != TSize) {
             rOutput.resize(TSize);
         }
-        std::copy(rValue.begin(), rValue.end(), rOutput.begin());
+        FillToVector(rOutput.begin(), rValue);
+    }
+
+    template<class TIteratorType>
+    static void FillToVector(
+        TIteratorType Begin,
+        const DataType& rValue)
+    {
+        std::copy(rValue.begin(), rValue.end(), Begin);
     }
 
     static void FillFromVector(
         DataType& rValue,
         const VectorType& rOriginValues)
     {
-        std::copy(rOriginValues.begin(), rOriginValues.end(), rValue.begin());
+        FillFromVector(rValue, rOriginValues.begin(), rOriginValues.end());
+    }
+
+    template<class TIteratorType>
+    static void FillFromVector(
+        DataType& rValue,
+        TIteratorType Begin,
+        TIteratorType End)
+    {
+        std::copy(Begin, End, rValue.begin());
     }
 };
 
@@ -258,14 +292,31 @@ struct DataTypeTraits<Vector>
         if (rOutput.size() != Size(rValue)) {
             rOutput.resize(Size(rValue));
         }
-        std::copy(rValue.begin(), rValue.end(), rOutput.begin());
+        FillToVector(rOutput.begin(), rValue);
+    }
+
+    template<class TIteratorType>
+    static void FillToVector(
+        TIteratorType Begin,
+        const DataType& rValue)
+    {
+        std::copy(rValue.begin(), rValue.end(), Begin);
     }
 
     static void FillFromVector(
         DataType& rValue,
         const VectorType& rOriginValues)
     {
-        std::copy(rOriginValues.begin(), rOriginValues.end(), rValue.begin());
+        FillFromVector(rValue, rOriginValues.begin(), rOriginValues.end());
+    }
+
+    template<class TIteratorType>
+    static void FillFromVector(
+        DataType& rValue,
+        TIteratorType Begin,
+        TIteratorType End)
+    {
+        std::copy(Begin, End, rValue.begin());
     }
 };
 
@@ -356,14 +407,31 @@ struct DataTypeTraits<Matrix>
         if (rOutput.size() != Size(rValue)) {
             rOutput.resize(Size(rValue));
         }
-        std::copy(rValue.data().begin(), rValue.data().end(), rOutput.begin());
+        FillToVector(rOutput.begin(), rValue);
+    }
+
+    template<class TIteratorType>
+    static void FillToVector(
+        TIteratorType Begin,
+        const DataType& rValue)
+    {
+        std::copy(rValue.data().begin(), rValue.data().end(), Begin);
     }
 
     static void FillFromVector(
         DataType& rValue,
         const VectorType& rOriginValues)
     {
-        std::copy(rOriginValues.begin(), rOriginValues.end(), rValue.data().begin());
+        FillFromVector(rValue, rOriginValues.begin(), rOriginValues.end());
+    }
+
+    template<class TIteratorType>
+    static void FillFromVector(
+        DataType& rValue,
+        TIteratorType Begin,
+        TIteratorType End)
+    {
+        std::copy(Begin, End, rValue.data().begin());
     }
 };
 
@@ -455,14 +523,31 @@ struct DataTypeTraits<std::vector<TDataType>>
         if (rOutput.size() != Size(rValue)) {
             rOutput.resize(Size(rValue));
         }
-        std::copy(rValue.begin(), rValue.end(), rOutput.begin());
+        FillToVector(rOutput.begin(), rValue);
+    }
+
+    template<class TIteratorType>
+    static void FillToVector(
+        TIteratorType Begin,
+        const DataType& rValue)
+    {
+        std::copy(rValue.begin(), rValue.end(), Begin);
     }
 
     static void FillFromVector(
         DataType& rValue,
         const VectorType& rOriginValues)
     {
-        std::copy(rOriginValues.begin(), rOriginValues.end(), rValue.begin());
+        FillFromVector(rValue, rOriginValues.begin(), rOriginValues.end());
+    }
+
+    template<class TIteratorType>
+    static void FillFromVector(
+        DataType& rValue,
+        TIteratorType Begin,
+        TIteratorType End)
+    {
+        std::copy(Begin, End, rValue.begin());
     }
 };
 
