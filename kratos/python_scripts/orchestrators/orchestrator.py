@@ -119,7 +119,7 @@ class Orchestrator(abc.ABC):
 
         return stage_instance
 
-    def RunCurrentStagePreprocess(self, stage_name: str, data: typing.Optional[dict] = None):
+    def RunCurrentStagePreprocess(self, stage_name: str, data: typing.Optional[typing.Dict] = None):
         """This function executes the preprocess of current stage.
 
         Note that the stage preprocess involves the execution of modelers and operations.
