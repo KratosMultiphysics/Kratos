@@ -127,11 +127,11 @@ class AnalysisStage(object):
 
     def GetFinalData(self):
         """Returns the final data dictionary.
-        
+
         The main purpose of this function is to retrieve any data (in a key-value format) from outside the stage.
-        Note that even though it can be called at any point, it is intended to be called at the end of the stage run. 
+        Note that even though it can be called at any point, it is intended to be called at the end of the stage run.
         """
-        
+
         return {}
 
     def InitializeSolutionStep(self):
@@ -214,13 +214,15 @@ class AnalysisStage(object):
     def Save(self, serializer: KratosMultiphysics.StreamSerializer) -> None:
         """Serializes current analysis stage instance
 
-        This method is intended to make the class pure Python (pickable). This means serialize all the Kratos objects with the given serializer to then destroy them.
+        This method is intended to make the class pure Python (pickable). This means serialize all the Kratos objects,
+        that is to say all the objects coming from Pybind, with the provided serializer. After the serialization, it is
+        required to assign None value to all the objects in order to make the class pickable.
         """
         pass
 
     def Load(self, serializer: KratosMultiphysics.StreamSerializer) -> None:
         """Loads current analysis stage instance
-        
+
         From the given serializer, this method restores current class from a pure Python status (pickable) to the one in the serializer.
         """
         pass
@@ -234,13 +236,13 @@ class AnalysisStage(object):
         """Create the solver
         """
         raise Exception("Creation of the solver must be implemented in the derived class.")
-        
+
     def _AdvanceTime(self):
-        """ Computes the following time 
+        """ Computes the following time
             The default method simply calls the solver
         """
         return self._GetSolver().AdvanceInTime(self.time)
-    
+
     ### Modelers
     def _ModelersSetupGeometryModel(self):
         # Import or generate geometry models from external input.
