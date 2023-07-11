@@ -1,8 +1,8 @@
 import sys
-import typing
 import pickle
 import pathlib
 import importlib
+from typing import Optional
 
 import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -12,7 +12,7 @@ class Project:
 
     This class has two main purposes. First one is to hold the multistage components (output data, active stages and model)
     Second one is to perform the checkpoint save and load operations.
-    
+
     Member variables:
     __settings -- Kratos parameters object with the multistage simulation settings
     __output_data -- Dictionary containing the stages data retrieved from GetFinalData
@@ -37,22 +37,22 @@ class Project:
         '''Returns the current multistage simulation model.'''
 
         return self.__model
-    
+
     def GetSettings(self) -> KratosMultiphysics.Parameters:
         '''Returns the current multistage simulation settings.'''
 
         return self.__settings
-    
+
     def GetOutputData(self) -> dict:
         '''Returns the current multistage simulation output data container.'''
 
         return self.__output_data
-    
+
     def GetActiveStages(self) -> dict:
         '''Returns the current multistage simulation active stages dictionary.'''
 
         return self.__active_stages
-    
+
     def AddActiveStage(self, stage_name: str, stage_instance: AnalysisStage) -> None:
         '''Adds the provided stage instance to the active stages dictionary.'''
 
@@ -66,7 +66,7 @@ class Project:
 
         del self.__active_stages[stage_name]
 
-    def Save(self, save_folder_path: pathlib.Path, checkpoint_file_path: pathlib.Path, output_settings_file_path: typing.Optional[pathlib.Path] = None) -> None:
+    def Save(self, save_folder_path: pathlib.Path, checkpoint_file_path: pathlib.Path, output_settings_file_path: Optional[pathlib.Path] = None) -> None:
         '''Saves the Project current status.'''
 
         # Set the list of modules (Kratos and non-Kratos) that have been added up to current save
@@ -86,7 +86,7 @@ class Project:
                 stage_instance.Save(serializer) # Make stage instance pickable by serializing and deleting all Kratos objects
                 stage_names_list.append(stage_name) # Append current stage name
                 stage_instances_list.append(stage_instance) # Append current stage pickable instance
-            
+
             pickle.dump({
                 "serializer" : serializer,
                 "output_data" : self.__output_data,
@@ -100,7 +100,7 @@ class Project:
             if output_settings_file_path:
                 with open(save_folder_path / output_settings_file_path, 'w') as parameter_output_file:
                     parameter_output_file.write(self.__settings.PrettyPrintJsonString())
-   
+
     def Load(self, loading_path: pathlib.Path) -> None:
         '''Loads a saved Project status into current one.'''
 
@@ -123,4 +123,3 @@ class Project:
 
             # Load output data dictionary
             self.__output_data = loaded_data["output_data"]
- 

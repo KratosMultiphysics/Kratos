@@ -1,7 +1,7 @@
 import abc
 import sys
-import typing
 import importlib
+from typing import Dict, Optional
 
 import KratosMultiphysics
 from KratosMultiphysics.project import Project
@@ -119,7 +119,7 @@ class Orchestrator(abc.ABC):
 
         return stage_instance
 
-    def RunCurrentStagePreprocess(self, stage_name: str, data: typing.Optional[typing.Dict] = None):
+    def RunCurrentStagePreprocess(self, stage_name: str, data: Optional[Dict] = None):
         """This function executes the preprocess of current stage.
 
         Note that the stage preprocess involves the execution of modelers and operations.
@@ -145,7 +145,7 @@ class Orchestrator(abc.ABC):
                     operation.Execute()
                 del operations_list
 
-    def RunCurrentStagePostprocess(self, stage_name: str, data: typing.Optional[typing.Dict] = None):
+    def RunCurrentStagePostprocess(self, stage_name: str, data: Optional[Dict] = None):
         """This function executes the postprocessing of current stage.
 
         Note that the stage postprocess deliberately involves operations only.
