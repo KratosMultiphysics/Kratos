@@ -150,8 +150,8 @@ void EntitityIdentifier<TEntity>::PrintData(std::ostream& rOStream) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template struct EntitityIdentifier<Condition>;
-template struct EntitityIdentifier<Element>;
+template class EntitityIdentifier<Condition>;
+template class EntitityIdentifier<Element>;
 
 /***********************************************************************************/
 /***********************************************************************************/
