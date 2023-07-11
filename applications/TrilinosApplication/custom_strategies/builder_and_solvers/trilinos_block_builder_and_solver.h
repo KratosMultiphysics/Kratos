@@ -825,7 +825,7 @@ public:
         // defining a temporary vector to gather all of the values needed
         Epetra_IntVector fixed(rA.ColMap());
 
-        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
         const auto& r_process_info = rModelPart.GetProcessInfo();
         mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(r_process_info, rA, rb, mScalingDiagonal);
 
@@ -933,14 +933,15 @@ public:
             const TSystemVectorType copy_b(rb);
             TSparseSpace::TransposeMult(r_T, copy_b, rb);
 
-            /// NOTE: We may consider the scale factor instead
-            const double max_diag = TSparseSpace::GetMaxDiagonal(rA);
+            // Compute the scale factor value
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+            mScaleFactor = TSparseSpace::GetScaleNorm(r_process_info, rA, mScalingDiagonal);
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, max_diag);
+                    TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(rA, slave_equation_id, slave_equation_id, mScaleFactor);
                     TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(rb, slave_equation_id, 0.0);
                 }
             });
@@ -1034,6 +1035,26 @@ public:
     {
         auto& r_constant_vector = *mpConstantVector;
         return r_constant_vector;
+    }
+
+    /**
+    * @brief Retrieves the current scale factor.
+    * This function returns the current scale factor value.
+    * @return Returns the current scale factor.
+    */
+    double GetScaleFactor()
+    {
+        return mScaleFactor;
+    }
+
+    /**
+    * @brief Sets the scale factor.
+    * This function sets a new value for the scale factor.
+    * @param ScaleFactor The new value for the scale factor.
+    */
+    void SetScaleFactor(const double ScaleFactor)
+    {
+        mScaleFactor = ScaleFactor;
     }
 
     ///@}
