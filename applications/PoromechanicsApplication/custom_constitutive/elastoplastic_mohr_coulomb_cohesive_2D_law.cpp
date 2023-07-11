@@ -58,6 +58,20 @@ double ElastoPlasticMohrCoulombCohesive2DLaw::GetShearResultantStressVector(Vect
 
 //----------------------------------------------------------------------------------------
 
+void ElastoPlasticMohrCoulombCohesive2DLaw::StressVectorInstersectionYieldSurfaces(Vector& rStressVector, const double ts, 
+                                                        const double ts_intersection, const double ft)
+{
+    // Get auxiliary variables
+    const double sign = (ts < 0.0) ? -1.0 : 1.0;
+
+    // Update the stress vector 
+    rStressVector[0] = ts_intersection * sign;
+    rStressVector[1] = ft;
+
+}
+
+//----------------------------------------------------------------------------------------
+
 void ElastoPlasticMohrCoulombCohesive2DLaw::ConstitutiveMatrixInstersectionYieldSurfaces(Vector& StressVector,
                                                         Matrix& rConstitutiveMatrix, ConstitutiveLawVariables& rVariables)
 {

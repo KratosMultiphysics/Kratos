@@ -129,6 +129,8 @@ protected:
 
     virtual void DerivativesYieldSurface(Vector& StressVector, ConstitutiveLawVariables& rVariables, ElastoPlasticConstitutiveLawVariables& rEPlasticVariables, Parameters& rValues);
 
+    virtual void StressVectorInstersectionYieldSurfaces(Vector& rStressVector, const double ts, const double ts_intersection, const double ft);
+
     virtual void ConstitutiveMatrixInstersectionYieldSurfaces(Vector& StressVector, Matrix& rConstitutiveMatrix, ConstitutiveLawVariables& rVariables);
 
     virtual void GetElasticConstitutiveMatrix(Matrix& rElasticConstitutiveMatrix, ConstitutiveLawVariables& rVariables, Parameters& rValues);

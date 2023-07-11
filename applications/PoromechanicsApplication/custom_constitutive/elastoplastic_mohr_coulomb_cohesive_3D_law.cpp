@@ -243,7 +243,7 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ComputeYieldFunction(Vector& StressV
     double tn = StressVector[VoigtSize-1];
 
     // Evaluate the yield function
-    rEPlasticVariables.YieldFunction_MC     = ts - (c - tn*tanPhi);
+    rEPlasticVariables.YieldFunction_MC     = std::abs(ts) - (c - tn*tanPhi);
     rEPlasticVariables.YieldFunction_CutOff = tn - ft;
 }
 
@@ -298,7 +298,7 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
     this->DerivativesYieldSurface(rStressVector, rVariables, rEPlasticVariables, rValues);
 
     // Compute the value of the normal traction at the intersection between the two surfaces
-    double ts_intersection = c - ft*tanPhi;
+    double ts_intersection = std::abs(c - ft*tanPhi);
 
     // Return mapping    
     if((std::abs(ts) < ts_intersection) && (rEPlasticVariables.YieldFunction_CutOff > 0.0)){ // -------------- Return to the cut-off surface
@@ -353,8 +353,7 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
         dep = PlasticMultiplier_MC * rEPlasticVariables.np_MC + PlasticMultiplier_TC * rEPlasticVariables.np_TC;
 
         // Update the normal component of the traction vector
-        noalias(Tel_np) = prod(ElasticConstitutiveMatrix, dep);
-        rStressVector -= Tel_np;
+        this->StressVectorInstersectionYieldSurfaces(rStressVector, ts, ts_intersection, ft);
         KRATOS_WATCH(rStressVector)
 
         // Update the current plastic displacement jumps
@@ -388,8 +387,11 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::DerivativesPlasticPotentialSurface(V
     // Get the shear resultant
     double ts = this->GetShearResultantStressVector(StressVector);
 
+    // Get the sign of the shear resultant. The sign is important for 2D analysis, in 3D problems it will be always 1.
+    const double sign = (ts < 0.0) ? -1.0 : 1.0;
+
     // Vector normal to the plastic potential surface (np = diff(g,td))
-    noalias(rEPlasticVariables.np_MC) = StressVector / ts;
+    noalias(rEPlasticVariables.np_MC) = sign * StressVector / ts;
 
     // Fix the component associated with the normal traction
     rEPlasticVariables.np_MC[VoigtSize-1] = tanPsi;
@@ -414,11 +416,30 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::DerivativesYieldSurface(Vector& Stre
     // Get the shear resultant
     double ts = this->GetShearResultantStressVector(StressVector);
 
-    // Vector normal to the plastic potential surface (np = diff(g,td))
-    noalias(rEPlasticVariables.np_MC) = StressVector / ts;
+    // Get the sign of the shear resultant. The sign is important for 2D analysis, in 3D problems it will be always 1.
+    const double sign = (ts < 0.0) ? -1.0 : 1.0;
+
+    // Vector normal to the yield surface (n = diff(f,td))
+    noalias(rEPlasticVariables.n_MC) = sign * StressVector / ts;
 
     // Fix the component associated with the normal traction
-    rEPlasticVariables.np_MC[VoigtSize-1] = tanPhi;
+    rEPlasticVariables.n_MC[VoigtSize-1] = tanPhi;
+}
+
+//----------------------------------------------------------------------------------------
+
+void ElastoPlasticMohrCoulombCohesive3DLaw::StressVectorInstersectionYieldSurfaces(Vector& rStressVector, const double ts, 
+                                                        const double ts_intersection, const double ft)
+{
+    // Get auxiliary variables
+    double cos_alpha  = rStressVector[0] / ts;
+    double sin_alpha  = rStressVector[1] / ts;
+
+    // Update the stress vector 
+    rStressVector[0] = ts_intersection * cos_alpha;
+    rStressVector[1] = ts_intersection * sin_alpha;
+    rStressVector[2] = ft;
+
 }
 
 //----------------------------------------------------------------------------------------

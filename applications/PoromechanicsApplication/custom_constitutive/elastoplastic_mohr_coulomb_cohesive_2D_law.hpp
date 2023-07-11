@@ -68,6 +68,8 @@ protected:
 
     double GetShearResultantStressVector(Vector& StressVector) override;
 
+    void StressVectorInstersectionYieldSurfaces(Vector& rStressVector, const double ts, const double ts_intersection, const double ft) override;
+
     void ConstitutiveMatrixInstersectionYieldSurfaces(Vector& StressVector, Matrix& rConstitutiveMatrix, ConstitutiveLawVariables& rVariables) override;
     
     void GetElasticConstitutiveMatrix(Matrix& rElasticConstitutiveMatrix, ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
