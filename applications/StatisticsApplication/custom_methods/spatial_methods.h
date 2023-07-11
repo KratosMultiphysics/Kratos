@@ -500,8 +500,25 @@ public:
         }
 
         ///@}
+        ///@name Public operations
+        ///@{
 
-    private:
+        TDataType GetMin() const { return mMin; }
+
+        TDataType GetMax() const { return mMax; }
+
+        std::vector<TDataType> GetGroupUpperValues() const { return mGroupUpperValues; }
+
+        std::vector<std::vector<IndexType>> GetGroupNumberOfValues() const { return mGroupNumberOfValues; }
+
+        std::vector<TDataType> GetGroupValueDistributionPercentage() const { return mGroupValueDistributionPercentage; }
+
+        std::vector<TDataType> GetGroupMeans() const { return mGroupMean; }
+
+        std::vector<TDataType> GetGroupVariances() const { return mGroupVariance; }
+
+        ///@}
+
         ///@name Private member variables
         ///@{
 
@@ -518,6 +535,11 @@ public:
         std::vector<TDataType> mGroupMean;
 
         std::vector<TDataType> mGroupVariance;
+
+        ///@}
+        ///@name Friends
+        ///@{
+
 
         ///@}
     };
@@ -551,8 +573,6 @@ public:
     {
         KRATOS_TRY
 
-        using data_type_traits = DataTypeTraits<TDataType>;
-
         const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
 
         const auto r_norm_type = Norms::GetNorm<TDataType>(rNormType);
@@ -560,7 +580,8 @@ public:
         return std::visit([&](auto& rDataContainer, auto& rNorm) -> DistributionInfoType {
             using data_container_type = std::decay_t<decltype(rDataContainer)>;
             using norm_type = std::decay_t<decltype(rNorm)>;
-            using norm_return_type = typename norm_type::ResultantValueType;
+            using norm_return_type = typename norm_type::ResultantValueType<TDataType>;
+            using data_type_traits = DataTypeTraits<norm_return_type>;
 
             Parameters default_parameters = Parameters(R"(
             {
@@ -584,7 +605,7 @@ public:
             if (Params["min_value"].IsDouble()) {
                 data_type_traits::Initialize(min_value, Params["min_value"].GetDouble());
             } else if (Params["min_value"].IsString() && Params["min_value"].GetString() == "min") {
-                min_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, norm_type, MinReduction, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
+                min_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, norm_type, MinOperation, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
             } else {
                 KRATOS_ERROR << "Unknown min_value. Allowed only double or \"min\" "
                                 "string as a value. [ min_value = "
@@ -596,7 +617,7 @@ public:
             if (Params["max_value"].IsDouble()) {
                 data_type_traits::Initialize(max_value, Params["max_value"].GetDouble());
             } else if (Params["max_value"].IsString() && Params["max_value"].GetString() == "max") {
-                max_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, norm_type, MaxReduction, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
+                max_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, norm_type, MaxOperation, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
             } else {
                 KRATOS_ERROR << "Unknown max_value. Allowed only double or \"max\" "
                                 "string as a value. [ max_value = "
@@ -622,9 +643,7 @@ public:
             norm_return_type additional_max_value;
             DataTypeTraits<norm_return_type>::Resize(additional_max_value, max_value);
             DataTypeTraits<norm_return_type>::Initialize(additional_max_value, std::numeric_limits<typename DataTypeTraits<norm_return_type>::RawDataType>::max());
-            *(group_limits.back()) = additional_max_value;
-
-            const IndexType number_of_limits = group_limits.size();
+            group_limits.back() = additional_max_value;
 
             /// reduction class
             class DistributionReduction
@@ -655,11 +674,10 @@ public:
                 {
                     ResizeAndInitialize(rValue);
 
-                    const auto& r_current_group_counts = std::get<0>(mValue);
-                    const auto& r_current_group_means = std::get<1>(mValue);
-                    const auto& r_current_group_variances = std::get<2>(mValue);
+                    auto& r_current_group_counts = std::get<0>(mValue);
+                    auto& r_current_group_means = std::get<1>(mValue);
+                    auto& r_current_group_variances = std::get<2>(mValue);
 
-                    const auto number_of_groups = std::get<0>(rValue);
                     const auto& r_group_indices = std::get<1>(rValue);
                     const auto& r_value = std::get<2>(rValue);
                     const IndexType number_of_components = DataTypeTraits<norm_return_type>::Size(r_value);
@@ -696,9 +714,9 @@ public:
                     }
 
                     for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
-                        const auto& r_group_count = r_group_counts[i_group];
-                        const auto& r_group_mean = r_group_means[i_group];
-                        const auto& r_group_variance = r_group_variances[i_group];
+                        auto& r_group_count = r_group_counts[i_group];
+                        auto& r_group_mean = r_group_means[i_group];
+                        auto& r_group_variance = r_group_variances[i_group];
 
                         const auto& r_other_group_count = r_other_group_counts[i_group];
                         const auto& r_other_group_mean = r_other_group_means[i_group];
@@ -726,13 +744,12 @@ public:
                 void ResizeAndInitialize(const data_type& rValue)
                 {
                     const auto number_of_groups = std::get<0>(rValue);
-                    const auto& r_group_indices = std::get<1>(rValue);
                     const auto& r_value = std::get<2>(rValue);
                     const auto number_of_components = DataTypeTraits<norm_return_type>::Size(r_value);
 
-                    const auto& r_current_group_counts = std::get<0>(mValue);
-                    const auto& r_current_group_means = std::get<1>(mValue);
-                    const auto& r_current_group_variances = std::get<2>(mValue);
+                    auto& r_current_group_counts = std::get<0>(mValue);
+                    auto& r_current_group_means = std::get<1>(mValue);
+                    auto& r_current_group_variances = std::get<2>(mValue);
 
                     if (r_current_group_counts.size() != number_of_groups) {
                         // resize
@@ -780,9 +797,9 @@ public:
             local_distribution.resize(number_of_components * number_of_groups);
             auto indices_begin = local_distribution.begin();
             for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
-                DataTypeTraits<norm_return_type>::FillToVector(indices_begin, std::get<0>(reuduced_values)); // get the group counts
-                DataTypeTraits<norm_return_type>::FillToVector(values_begin, std::get<1>(reuduced_values)); // put the means
-                DataTypeTraits<norm_return_type>::FillToVector(values_begin + number_of_components, std::get<2>(reuduced_values)); // put the variances
+                DataTypeTraits<IndicesType>::FillToVector(indices_begin, std::get<0>(reuduced_values)[i_group]); // get the group counts
+                DataTypeTraits<norm_return_type>::FillToVector(values_begin, std::get<1>(reuduced_values)[i_group]); // put the means
+                DataTypeTraits<norm_return_type>::FillToVector(values_begin + number_of_components, std::get<2>(reuduced_values)[i_group]); // put the variances
                 values_begin += 2 * number_of_components;
                 indices_begin += number_of_components;
             }
@@ -792,7 +809,7 @@ public:
             const auto& global_values = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_values);
 
             const double number_of_items = static_cast<double>(std::max(
-                std::accumulate(global_distribution.begin(), global_distribution.end(), 0, [](const auto& V1, const auto& V2) { return V1 + V2[0]; }), 1));
+                std::accumulate(global_distribution.begin(), global_distribution.end(), 0), 1)) / number_of_components;
 
             // now revert back to the group values
             distribution_info.mGroupNumberOfValues.resize(number_of_groups);
@@ -1117,7 +1134,7 @@ public:
         }
 
         template <class TDataType>
-        std::tuple<double, double, std::vector<double>, std::vector<int>, std::vector<double>, std::vector<double>, std::vector<double>> static GetNormDistribution(
+        std::tuple<double, double, std::vector<double>, std::vector<IndexType>, std::vector<double>, std::vector<double>, std::vector<double>> static GetNormDistribution(
             const ModelPart& rModelPart,
             const Variable<TDataType>& rVariable,
             const std::string& rNormType,
@@ -1125,180 +1142,17 @@ public:
         {
             KRATOS_TRY
 
-            Parameters default_parameters = Parameters(R"(
-            {
-                "number_of_value_groups" : 10,
-                "min_value"              : "min",
-                "max_value"              : "max"
-            })");
+            const auto& distribution_info = Distribution(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Params);
+            const auto& values = std::get<DistributionInfo<double>>(distribution_info);
 
-            if (Params.Has("min_value") && Params["min_value"].IsDouble())
-            {
-                default_parameters["min_value"].SetDouble(0.0);
-            }
-            if (Params.Has("max_value") && Params["max_value"].IsDouble())
-            {
-                default_parameters["max_value"].SetDouble(0.0);
-            }
-            Params.RecursivelyValidateAndAssignDefaults(default_parameters);
+            const auto& r_group_number_of_values = values.GetGroupNumberOfValues();
+            std::vector<IndexType> number_of_values(r_group_number_of_values.size());
+            std::transform(r_group_number_of_values.begin(), r_group_number_of_values.end(), number_of_values.begin(), [](const auto& V1) { return V1[0]; });
 
-            double min_value{0.0};
-            if (Params["min_value"].IsDouble())
-            {
-                min_value = Params["min_value"].GetDouble();
-            }
-            else if (
-                Params["min_value"].IsString() &&
-                Params["min_value"].GetString() == "min")
-            {
-                const auto& min_data =
-                    GetNormMin<TDataType>(rModelPart, rVariable, rNormType, Params);
-                min_value = std::get<0>(min_data);
-            }
-            else
-            {
-                KRATOS_ERROR << "Unknown min_value. Allowed only double or \"min\" "
-                                "string as a value. [ min_value = "
-                             << Params["min_value"] << " ]\n.";
-            }
-
-            double max_value{0.0};
-            if (Params["max_value"].IsDouble())
-            {
-                max_value = Params["max_value"].GetDouble();
-            }
-            else if (
-                Params["max_value"].IsString() &&
-                Params["max_value"].GetString() == "max")
-            {
-                const auto& max_data =
-                    GetNormMax<TDataType>(rModelPart, rVariable, rNormType, Params);
-                max_value = std::get<0>(max_data);
-            }
-            else
-            {
-                KRATOS_ERROR << "Unknown max_value. Allowed only double or \"max\" "
-                                "string as a value. [ max_value = "
-                             << Params["max_value"] << " ]\n.";
-            }
-
-            const int number_of_groups = Params["number_of_value_groups"].GetInt();
-
-            const TContainerType& r_container =
-                MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
-
-            const auto& norm_method =
-                MethodUtilities::GetNormMethod<TDataType>(rVariable, rNormType);
-
-            std::vector<double> group_limits;
-            for (int i = 0; i < number_of_groups + 1; ++i)
-            {
-                group_limits.push_back(
-                    min_value + (max_value - min_value) * static_cast<double>(i) /
-                                    static_cast<double>(number_of_groups));
-            }
-
-            // final group limit is extended by a small amount. epsilon in numeric
-            // limits cannot be used since testing also need to have the same
-            // extending value in python. Therefore hard coded value is used
-            group_limits[group_limits.size() - 1] += 1e-16;
-            group_limits.push_back(std::numeric_limits<double>::max());
-
-            group_limits.shrink_to_fit();
-            const int number_of_limits = group_limits.size();
-
-            std::vector<int> distribution;
-            std::vector<double> group_means, group_variances;
-            for (int i = 0; i < number_of_limits; ++i)
-            {
-                distribution.push_back(0);
-                group_means.push_back(0.0);
-                group_variances.push_back(0.0);
-            }
-            distribution.shrink_to_fit();
-            group_means.shrink_to_fit();
-            group_variances.shrink_to_fit();
-
-    #pragma omp parallel
-            {
-                std::vector<int> local_distribution;
-                std::vector<double> local_means, local_variances;
-                for (int i = 0; i < number_of_limits; ++i)
-                {
-                    local_distribution.push_back(0);
-                    local_means.push_back(0.0);
-                    local_variances.push_back(0.0);
-                }
-                local_distribution.shrink_to_fit();
-                local_means.shrink_to_fit();
-                local_variances.shrink_to_fit();
-
-    #pragma omp for
-                for (int i = 0; i < static_cast<int>(r_container.size()); ++i)
-                {
-                    const TContainerItemType& r_item = *(r_container.begin() + i);
-                    const TDataType& current_value =
-                        TDataRetrievalFunctor<TContainerItemType>()(r_item, rVariable);
-                    const double value_norm = norm_method(current_value);
-                    for (int i = 0; i < number_of_limits; ++i)
-                    {
-                        if (value_norm < group_limits[i])
-                        {
-                            ++local_distribution[i];
-                            local_means[i] += value_norm;
-                            local_variances[i] += std::pow(value_norm, 2);
-                            break;
-                        }
-                    }
-                }
-    #pragma omp critical
-                {
-                    for (int i = 0; i < number_of_limits; ++i)
-                    {
-                        distribution[i] += local_distribution[i];
-                        group_means[i] += local_means[i];
-                        group_variances[i] += local_variances[i];
-                    }
-                }
-            }
-
-            std::vector<int> global_distribution =
-                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(distribution);
-            std::vector<double> global_mean_distribution =
-                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(group_means);
-            std::vector<double> global_variance_distribution =
-                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(group_variances);
-
-            const double number_of_items = static_cast<double>(std::max(
-                std::accumulate(global_distribution.begin(), global_distribution.end(), 0), 1));
-            std::vector<double> global_percentage_distributions;
-            for (int i = 0; i < number_of_limits; ++i)
-            {
-                const double number_of_values_in_group =
-                    static_cast<double>(global_distribution[i]);
-                global_percentage_distributions.push_back(number_of_values_in_group / number_of_items);
-                if (number_of_values_in_group > 0.0)
-                {
-                    global_mean_distribution[i] /= number_of_values_in_group;
-                    global_variance_distribution[i] /= number_of_values_in_group;
-                    global_variance_distribution[i] -=
-                        std::pow(global_mean_distribution[i], 2);
-                }
-            }
-
-            // reversing group limit is extention
-            group_limits[group_limits.size() - 2] -= 1e-16;
-            group_limits[group_limits.size() - 1] = max_value;
-
-            return std::make_tuple<
-                double, double, std::vector<double>, std::vector<int>,
-                std::vector<double>, std::vector<double>, std::vector<double>>(
-                std::forward<double>(min_value), std::forward<double>(max_value),
-                std::forward<std::vector<double>>(group_limits),
-                std::forward<std::vector<int>>(global_distribution),
-                std::forward<std::vector<double>>(global_percentage_distributions),
-                std::forward<std::vector<double>>(global_mean_distribution),
-                std::forward<std::vector<double>>(global_variance_distribution));
+            return std::make_tuple(values.GetMin(), values.GetMax(), values.GetGroupUpperValues(),
+                                   number_of_values,
+                                   values.GetGroupValueDistributionPercentage(),
+                                   values.GetGroupMeans(), values.GetGroupVariances());
 
             KRATOS_CATCH("");
         }
