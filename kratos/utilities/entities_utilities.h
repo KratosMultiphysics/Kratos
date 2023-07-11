@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/string_utilities.h"
 
 namespace Kratos
 {
@@ -32,6 +33,148 @@ namespace Kratos
  */
 namespace EntitiesUtilities
 {
+    // Enum class representing different types of definitions
+    enum class DefinitionType {
+        Single,     // Single definition
+        Multiple,   // Multiple definitions
+        Templated   // Templated definition
+    };
+
+    /**
+     * @brief Template struct for entity identifier.
+     * @brief This struct is used to identify and retrieve entity types based on their names and definitions.
+     * @tparam TEntity The entity type.
+     */
+    template<class TEntity>
+    class KRATOS_API(KRATOS_CORE) EntitityIdentifier
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+
+        /// Geometry type definition
+        using GeometryType = typename TEntity::GeometryType;
+
+        /// Pointer definition of ReplaceElementsAndConditionsProcess
+        KRATOS_CLASS_POINTER_DEFINITION(EntitityIdentifier);
+
+        ///@}
+        ///@name Life Cycle
+        ///@{
+            
+        /** 
+         * @brief Default constructor 
+         */
+        EntitityIdentifier() :
+            mName("")
+        {
+        }
+
+        /**
+         * @brief Constructor
+         * @param rName The name of the entity.
+         */
+        EntitityIdentifier(const std::string& rName);
+
+        /**
+         * @brief Copy constructor
+         */
+        EntitityIdentifier(const EntitityIdentifier& rOther)
+            : mpPrototypeEntity(rOther.mpPrototypeEntity),
+              mDefinitionType(rOther.mDefinitionType),
+              mName(rOther.mName),
+              mTypes(rOther.mTypes)
+        {
+        }
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+        /**
+         * @brief Assignment operator.
+         */
+        EntitityIdentifier& operator=(const EntitityIdentifier& rOther)
+        {
+            mpPrototypeEntity = rOther.mpPrototypeEntity;
+            mDefinitionType = rOther.mDefinitionType;
+            mName = rOther.mName;
+            mTypes = rOther.mTypes;
+
+            return *this;
+        }
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+        /**
+         * @brief Checks if the object is initialized.
+         * @return true if the object is initialized, false otherwise.
+         */
+        bool IsInitialized();
+
+        /**
+         * @brief Get the prototype entity.
+         * @param pGeometry The pointer to the geometry.
+         * @return const TEntity& The prototype entity.
+         */
+        const TEntity& GetPrototypeEntity(typename GeometryType::Pointer pGeometry);
+
+        ///@}
+        ///@name Input and output
+        ///@{
+
+        /// Turn back information as a string.
+        std::string Info() const
+        {
+            return "EntitityIdentifier";
+        }
+
+        /// Print information about this object.
+        void PrintInfo(std::ostream& rOStream) const
+        {
+            rOStream << "EntitityIdentifier";
+        }
+
+        /// Print object's data.
+        void PrintData(std::ostream& rOStream) const;
+
+        ///@}
+    private:
+        ///@name Member Variables
+        ///@{
+
+        typename TEntity::Pointer mpPrototypeEntity = nullptr;                    /// The prototype entity
+        DefinitionType mDefinitionType = DefinitionType::Single;                  /// The type of definition
+        std::string mName;                                                        /// The name of the entity
+        std::unordered_map<GeometryData::KratosGeometryType, std::string> mTypes; /// The settings of the entities
+
+        ///@}
+    }; ///  Class EntitityIdentifier
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// input stream function
+    template<class TEntity>
+    inline std::istream& operator >> (std::istream& rIStream,
+                                    EntitityIdentifier<TEntity>& rThis);
+
+    /// output stream function
+    template<class TEntity>
+    inline std::ostream& operator << (std::ostream& rOStream,
+                                    const EntitityIdentifier<TEntity>& rThis)
+    {
+        rThis.PrintInfo(rOStream);
+        rOStream << std::endl;
+        rThis.PrintData(rOStream);
+
+        return rOStream;
+    }
+    ///@}
+
     /**
      * @brief This method initializes all the active entities (conditions, elements, constraints)
      * @param rModelPart The model part of the problem to solve
