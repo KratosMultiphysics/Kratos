@@ -765,7 +765,7 @@ private:
             double Cp_mixed = (c_v + R)*(r_rho - r_rho_solid) + c_s*r_rho_solid;
             double sol_conc = r_rho_solid/rho_s;
             
-            const double temp = (r_tot_ener - 0.5 * inner_prod(rVelocity, rVelocity)) / c_mixed;   // Modify for biphase flow
+            const double temp = (r_tot_ener - 0.5 * r_rho * inner_prod(rVelocity, rVelocity)) / c_mixed;   // Modify for biphase flow
             const double pressure = (r_rho - r_rho_solid) * R * temp;
             const double sound_velocity = std::sqrt(r_rho - r_rho_solid)*R*Cp_mixed*(2*r_tot_ener - r_rho*inner_prod(rVelocity, rVelocity))/(2*r_rho*c_mixed*c_mixed); 
             rNode.FastGetSolutionStepValue(VELOCITY) = rVelocity;
