@@ -78,9 +78,7 @@ private:
         Vector& rPerturbedRHS,
         typename TEntityType::Pointer& pThreadLocalEntity,
         ModelPart& rModelPart,
-        std::vector<std::string>& rModelPartNames,
         const double Delta,
-        const IndexType MaxNodeId,
         const Variable<array_1d<double, 3>>& rOutputGradientVariable);
 
     static void CalculateStrainEnergySemiAnalyticShapeGradient(
