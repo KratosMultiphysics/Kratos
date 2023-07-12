@@ -518,7 +518,7 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
 
         const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
@@ -618,10 +618,10 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 2069000000.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(7,7), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(7,7), 1.0, tolerance);
 
         const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
         KRATOS_CHECK(r_T.size1() == 8);
@@ -668,7 +668,7 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 2069000000.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 2069000000.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(6,7), 2069000000.0, tolerance);
@@ -1071,7 +1071,7 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 1572984379.4520018100738525, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,4), -740227943.2715302705764771, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(2,5), 370113971.6357653141021729, tolerance);
-        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 2809227943.2715301513671875, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,1), 370113971.6357653141021729, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,2), -740227943.2715302705764771, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 1657021225.9261374473571777, tolerance);

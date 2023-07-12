@@ -498,7 +498,7 @@ void SimpleCreateNewProblem3D(
     // We set the mapper parameters
     Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
     mapping_parameters["distance_threshold"].SetDouble(rModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
-    typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>> MapperType;
+    using MapperType = SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>>;
     MapperType mapper = MapperType(r_master_model_part, r_slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
     mapper.Execute();
 
@@ -687,7 +687,7 @@ void CreateNewProblem3D(
     // We set the mapper parameters
     Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
     mapping_parameters["distance_threshold"].SetDouble(rModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
-    typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>> MapperType;
+    using MapperType = SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>>;
     MapperType mapper = MapperType(r_master_model_part, r_slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
     mapper.Execute();
 
