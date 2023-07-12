@@ -144,7 +144,7 @@ public:
      * @brief Get the echo level
      * @return The echo level
      */
-    FillCommunicatorEchoLevel& GetEchoLevel()
+    FillCommunicatorEchoLevel GetEchoLevel() const
     {
         return mEchoLevel;
     }

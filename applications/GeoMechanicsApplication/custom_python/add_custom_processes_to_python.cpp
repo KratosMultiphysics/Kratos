@@ -41,6 +41,7 @@
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 #include "custom_processes/set_parameter_field_process.hpp"
+#include "custom_processes/apply_vector_constraints_table_process.hpp"
 
 namespace Kratos {
 namespace Python {
@@ -136,6 +137,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<SetParameterFieldProcess, SetParameterFieldProcess::Pointer, Process>
         (m, "SetParameterFieldProcess")
         .def(py::init < ModelPart&, Parameters>());
+
+    py::class_<ApplyVectorConstraintsTableProcess, ApplyVectorConstraintsTableProcess::Pointer, Process>
+        (m, "ApplyVectorConstraintsTableProcess")
+        .def(py::init<ModelPart&, const Parameters&>());
 }
 
 } // Namespace Python.

@@ -72,9 +72,11 @@ public:
     template<typename TIteratorType>
     GeometricalObjectsBins(
         TIteratorType GeometricalObjectsBegin,
-        TIteratorType GeometricalObjectsEnd
+        TIteratorType GeometricalObjectsEnd,
+        const double Tolerance = 1e-12
         )
     {
+        mTolerance = Tolerance;
         const std::size_t number_of_objects = std::distance(GeometricalObjectsBegin, GeometricalObjectsEnd);
         if (number_of_objects > 0){
             mBoundingBox.Set(GeometricalObjectsBegin->GetGeometry().begin(), GeometricalObjectsBegin->GetGeometry().end());
@@ -94,8 +96,10 @@ public:
      * @tparam TContainer The container type
      */
     template<typename TContainer>
-    GeometricalObjectsBins(TContainer& rGeometricalObjectsVector)
-        : GeometricalObjectsBins(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end())
+    GeometricalObjectsBins(
+        TContainer& rGeometricalObjectsVector,
+        const double Tolerance = 1e-12)
+        : GeometricalObjectsBins(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end(), Tolerance)
     {
     }
 
@@ -564,7 +568,6 @@ protected:
     ///@{
 
     static constexpr unsigned int Dimension = 3;    /// The dimension of the problem
-    static constexpr double Tolerance = 1e-12;      /// The tolerance considered
 
     ///@}
     ///@name Protected Member Variables
@@ -575,6 +578,7 @@ protected:
     array_1d<double, 3>  mCellSizes;                 /// The size of each cell in each direction
     array_1d<double, 3>  mInverseOfCellSize;         /// The inverse of the size of each cell in each direction
     std::vector<CellType> mCells;                    /// The cells of the domain
+    double mTolerance;                               /// The tolerance considered
 
     ///@}
     ///@name Protected Operations
@@ -615,7 +619,7 @@ protected:
                 for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                     for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
                         auto cell_bounding_box = GetCellBoundingBox(i,j,k);
-                        if(IsIntersected(i_geometrical_object->GetGeometry(), cell_bounding_box, Tolerance)){
+                        if(IsIntersected(i_geometrical_object->GetGeometry(), cell_bounding_box, mTolerance)){
                             GetCell(i,j,k).push_back(&(*i_geometrical_object));
                         }
                     }

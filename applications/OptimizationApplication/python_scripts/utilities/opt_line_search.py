@@ -3,7 +3,8 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
+
 import math
 
 def CreateLineSearch(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -28,27 +29,27 @@ class ConstStep(object):
         self.__optimization_problem = optimization_problem
         self.__gradient_scaling = parameters["gradient_scaling"].GetString()
 
+    @time_decorator()
     def ComputeStep(self) -> float:
-        with TimeLogger("ConstStep::ComputeStep", None, "Finished"):
-            algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
+        algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
 
-            if not algorithm_buffered_data.HasValue("search_direction"):
-                raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
+        if not algorithm_buffered_data.HasValue("search_direction"):
+            raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
 
-            if self.__gradient_scaling == "inf_norm":
-                norm = KratosOA.ExpressionUtils.NormInf(algorithm_buffered_data["search_direction"])
-            elif self.__gradient_scaling == "l2_norm":
-                norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
-            elif self.__gradient_scaling == "none":
-                norm = 1.0
-            else:
-                raise RuntimeError("\"gradient_scaling\" has unknown type.")
-            if not math.isclose(norm, 0.0, abs_tol=1e-16):
-                self.step = self.init_step / norm
-            else:
-                self.step =  self.init_step
+        if self.__gradient_scaling == "inf_norm":
+            norm = KratosOA.ExpressionUtils.NormInf(algorithm_buffered_data["search_direction"])
+        elif self.__gradient_scaling == "l2_norm":
+            norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
+        elif self.__gradient_scaling == "none":
+            norm = 1.0
+        else:
+            raise RuntimeError("\"gradient_scaling\" has unknown type.")
+        if not math.isclose(norm, 0.0, abs_tol=1e-16):
+            self.step = self.init_step / norm
+        else:
+            self.step =  self.init_step
 
-            DictLogger("Line Search info",self.GetInfo())
+        DictLogger("Line Search info",self.GetInfo())
 
         return self.step
 
