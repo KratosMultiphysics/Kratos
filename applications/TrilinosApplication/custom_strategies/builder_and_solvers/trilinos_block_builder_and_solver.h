@@ -1125,6 +1125,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief Constructs the master-slave constraints structure for the given model part.
+     * @param rModelPart the model part
+     * @throws ErrorType describes an Epetra failure in Graph.InsertGlobalIndices
+     */
     virtual void ConstructMasterSlaveConstraintsStructure(ModelPart& rModelPart)
     {
         if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
@@ -1259,6 +1264,10 @@ protected:
         }
     }
 
+    /**
+     * @brief Builds the master-slave constraints for the given model part.
+     * @param rModelPart the model part to build the constraints for
+     */
     virtual void BuildMasterSlaveConstraints(ModelPart& rModelPart)
     {
         KRATOS_TRY
@@ -1351,6 +1360,15 @@ protected:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief Constructs the matrix structure for the given problem.
+     * @param pScheme pointer to the scheme object
+     * @param rpA reference to the system matrix pointer
+     * @param rpDx reference to the system vector pointer for the solution vector
+     * @param rpb reference to the system vector pointer for the right-hand side vector
+     * @param rModelPart reference to the model part object
+     * @throws Runtime error if there is an error in constructing the matrix structure
+     */
     virtual void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& rpA,
