@@ -34,14 +34,14 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         Returns
         -------
         """
-        
+
         if tols is None:
             tols = [None] * len(rhs)
-        
+
         for rhs_val, expected_val, tols in zip(rhs, expected_res, tols):
             self.assertAlmostEqual(rhs_val, expected_val, tols)
-        
-            
+
+
     def _TestSetMultipleMovingLoads(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
@@ -107,7 +107,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [0.25])
-        
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
@@ -155,7 +155,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25])
-                                                         
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
@@ -203,7 +203,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25, 0, 0.25])
-                  
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
@@ -264,7 +264,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [2, 1], self.mp.GetProperties()[1])
 
         parameters = self.base_parameters
-                                                   
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
                                 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
@@ -315,7 +315,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [0.25])
-        
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
                                 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
@@ -365,7 +365,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25])
-        
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
                                 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
@@ -415,19 +415,19 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25, 0, 0.25])
-        
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
                                 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
                                 0.25)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
-        
+
         conditions = []
         conditions.append(self.cmp.GetCondition(2))
         conditions.append(self.cmp.GetCondition(3))
         conditions.append(self.cmp.GetCondition(4))
-        
+
         # initialize and set load
         process.ExecuteInitialize()
         process.ExecuteInitializeSolutionStep()
@@ -458,9 +458,9 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
         self.checkRHS(all_rhs[1], [0.0, -0.5, 0.0, -1.5])
         self.checkRHS(all_rhs[2], [0.0, -1.0, 0.0, -1.0])
-        
 
-    
+
+
     def _TestSetMultipleMovingLoadsMultipleConditions(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -659,7 +659,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.5])
-                                                         
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
                                                   0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
@@ -759,7 +759,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
 
         parameters = self.base_parameters
-        
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
@@ -848,7 +848,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [0.5])
-        
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
@@ -938,7 +938,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         # set parameters and process info
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.5])
-        
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
@@ -1076,7 +1076,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
         parameters.AddVector("configuration", [0.75])
-        
+
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
 
         # get conditions
@@ -1125,7 +1125,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
         parameters.AddVector("configuration", [-0.25])
-        
+
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
 
         # get conditions
@@ -1270,7 +1270,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
         parameters.AddVector("configuration", [-1.25])
-        
+
         process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
 
         # get conditions
@@ -1310,11 +1310,11 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         # create condition
         self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
-        
+
         parameters = self.base_parameters
         parameters.AddVector("origin", [0.5, 0, 0])
         parameters["load"]=KratosMultiphysics.Parameters(self.time_dependent_load)
-        
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
@@ -1581,7 +1581,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         parameters = self.base_parameters
         parameters["velocity"]=KratosMultiphysics.Parameters(self.time_dependent_velocity)
         parameters.AddVector("configuration", [-0.25])
-        
+
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
@@ -1641,7 +1641,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
     def test_SetMultipleMovingLoadsReverseGeomConfigurationNegative(self):
         self._TestSetMultipleMovingLoadsReverseGeomConfigurationNegative()
-        
+
     def test_SetMultipleMovingLoadsReverseGeomConfigurationCombined(self):
         self._TestSetMultipleMovingLoadsReverseGeomConfigurationCombined()
 
