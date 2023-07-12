@@ -40,6 +40,82 @@ namespace Kratos::Python
 {
 namespace py = pybind11;
 
+/**
+ * @brief RegisterContactSearchProcess is a function that registers a contact search process
+ * in the given py::module object.
+ * @param m the py::module object where the contact search process will be registered
+ * @param rName the name of the contact search process
+ */
+template<class TClass>
+void RegisterContactSearchProcess(py::module& m, const std::string& rName)
+{
+    py::class_<TClass, typename TClass::Pointer, Process>(m, rName.c_str())
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
+    .def("InitializeMortarConditions", &TClass::InitializeMortarConditions)
+    .def("ClearMortarConditions", &TClass::ClearMortarConditions)
+    .def("CheckContactModelParts", &TClass::CheckContactModelParts)
+    .def("CreatePointListMortar", &TClass::CreatePointListMortar)
+    .def("UpdatePointListMortar", &TClass::UpdatePointListMortar)
+    .def("UpdateMortarConditions", &TClass::UpdateMortarConditions)
+    .def("ResetContactOperators", &TClass::ResetContactOperators)
+    .def("CheckMortarConditions", &TClass::CheckMortarConditions)
+    .def("InvertSearch", &TClass::InvertSearch)
+    ;
+}
+
+/**
+ * @brief Registers simple contact search process.
+ * @param m the module to register the laws in
+ * @param rEndName the name to append to the law names
+ */
+template<std::size_t TDim, std::size_t TNumNodes, std::size_t TNumNodesMaster>
+void RegisterSimpleContactSearchProcess(py::module& m, const std::string& rEndName)
+{
+    const std::string name = "SimpleContactSearchProcess" + rEndName;
+    RegisterContactSearchProcess<SimpleContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>>(m, name);
+}
+
+/**
+ * @brief Registers advanced contact search process.
+ * @param m the module to register the laws in
+ * @param rEndName the name to append to the law names
+ */
+template<std::size_t TDim, std::size_t TNumNodes, std::size_t TNumNodesMaster>
+void RegisterAdvancedContactSearchProcess(py::module& m, const std::string& rEndName)
+{
+    const std::string name = "AdvancedContactSearchProcess" + rEndName;
+    RegisterContactSearchProcess<AdvancedContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>>(m, name);
+}
+
+/**
+ * @brief Registers the normal gap process
+ * @param m the module to register the laws in
+ * @param rEndName the name to append to the law names
+ */
+template<std::size_t TDim, std::size_t TNumNodes, std::size_t TNumNodesMaster>
+void RegisterNormalGapProcess(py::module& m, const std::string& rEndName)
+{
+    const std::string name = "NormalGapProcess" + rEndName;
+    py::class_<NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>, typename NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>::Pointer, Process>(m, name.c_str())
+    .def(py::init<ModelPart&, ModelPart&>())
+    .def(py::init<ModelPart&, ModelPart&, const bool>())
+    ;
+}
+
+/**
+ * @brief Registers MPC contact search process.
+ * @param m the module to register the laws in
+ * @param rEndName the name to append to the law names
+ */
+template<std::size_t TDim, std::size_t TNumNodes, std::size_t TNumNodesMaster>
+void RegisterMPCContactSearchProcess(py::module& m, const std::string& rEndName)
+{
+    const std::string name = "MPCContactSearchProcess" + rEndName;
+    RegisterContactSearchProcess<MPCContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>>(m, name);
+}
+
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
     py::class_<ALMFastInit, ALMFastInit::Pointer, Process >
@@ -83,148 +159,18 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     // Simple contact search
-    py::class_<SimpleContactSearchProcess<2, 2>, typename SimpleContactSearchProcess<2, 2>::Pointer, Process>(m, "SimpleContactSearchProcess2D2N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&SimpleContactSearchProcess<2, 2>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&SimpleContactSearchProcess<2, 2>::ClearMortarConditions)
-    .def("CheckContactModelParts",&SimpleContactSearchProcess<2, 2>::CheckContactModelParts)
-    .def("CreatePointListMortar",&SimpleContactSearchProcess<2, 2>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&SimpleContactSearchProcess<2, 2>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&SimpleContactSearchProcess<2, 2>::UpdateMortarConditions)
-    .def("ResetContactOperators",&SimpleContactSearchProcess<2, 2>::ResetContactOperators)
-    .def("CheckMortarConditions",&SimpleContactSearchProcess<2, 2>::CheckMortarConditions)
-    .def("InvertSearch",&SimpleContactSearchProcess<2, 2>::InvertSearch)
-    ;
-    py::class_<SimpleContactSearchProcess<3, 3>, typename SimpleContactSearchProcess<3, 3>::Pointer, Process>(m, "SimpleContactSearchProcess3D3N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&SimpleContactSearchProcess<3, 3>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&SimpleContactSearchProcess<3, 3>::ClearMortarConditions)
-    .def("CheckContactModelParts",&SimpleContactSearchProcess<3, 3>::CheckContactModelParts)
-    .def("CreatePointListMortar",&SimpleContactSearchProcess<3, 3>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&SimpleContactSearchProcess<3, 3>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&SimpleContactSearchProcess<3, 3>::UpdateMortarConditions)
-    .def("ResetContactOperators",&SimpleContactSearchProcess<3, 3>::ResetContactOperators)
-    .def("CheckMortarConditions",&SimpleContactSearchProcess<3, 3>::CheckMortarConditions)
-    .def("InvertSearch",&SimpleContactSearchProcess<3, 3>::InvertSearch)
-    ;
-    py::class_<SimpleContactSearchProcess<3, 4>, typename SimpleContactSearchProcess<3, 4>::Pointer, Process>(m, "SimpleContactSearchProcess3D4N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&SimpleContactSearchProcess<3, 4>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&SimpleContactSearchProcess<3, 4>::ClearMortarConditions)
-    .def("CheckContactModelParts",&SimpleContactSearchProcess<3, 4>::CheckContactModelParts)
-    .def("CreatePointListMortar",&SimpleContactSearchProcess<3, 4>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&SimpleContactSearchProcess<3, 4>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&SimpleContactSearchProcess<3, 4>::UpdateMortarConditions)
-    .def("ResetContactOperators",&SimpleContactSearchProcess<3, 4>::ResetContactOperators)
-    .def("CheckMortarConditions",&SimpleContactSearchProcess<3, 4>::CheckMortarConditions)
-    .def("InvertSearch",&SimpleContactSearchProcess<3, 4>::InvertSearch)
-    ;
-    py::class_<SimpleContactSearchProcess<3, 3, 4>, typename SimpleContactSearchProcess<3, 3, 4>::Pointer, Process>(m, "SimpleContactSearchProcess3D3N4N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&SimpleContactSearchProcess<3, 3, 4>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&SimpleContactSearchProcess<3, 3, 4>::ClearMortarConditions)
-    .def("CheckContactModelParts",&SimpleContactSearchProcess<3, 3, 4>::CheckContactModelParts)
-    .def("CreatePointListMortar",&SimpleContactSearchProcess<3, 3, 4>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&SimpleContactSearchProcess<3, 3, 4>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&SimpleContactSearchProcess<3, 3, 4>::UpdateMortarConditions)
-    .def("ResetContactOperators",&SimpleContactSearchProcess<3, 3, 4>::ResetContactOperators)
-    .def("CheckMortarConditions",&SimpleContactSearchProcess<3, 3, 4>::CheckMortarConditions)
-    .def("InvertSearch",&SimpleContactSearchProcess<3, 3, 4>::InvertSearch)
-    ;
-    py::class_<SimpleContactSearchProcess<3, 4, 3>, typename SimpleContactSearchProcess<3, 4, 3>::Pointer, Process>(m, "SimpleContactSearchProcess3D4N3N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&SimpleContactSearchProcess<3, 4, 3>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&SimpleContactSearchProcess<3, 4, 3>::ClearMortarConditions)
-    .def("CheckContactModelParts",&SimpleContactSearchProcess<3, 4, 3>::CheckContactModelParts)
-    .def("CreatePointListMortar",&SimpleContactSearchProcess<3, 4, 3>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&SimpleContactSearchProcess<3, 4, 3>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&SimpleContactSearchProcess<3, 4, 3>::UpdateMortarConditions)
-    .def("ResetContactOperators",&SimpleContactSearchProcess<3, 4, 3>::ResetContactOperators)
-    .def("CheckMortarConditions",&SimpleContactSearchProcess<3, 4, 3>::CheckMortarConditions)
-    .def("InvertSearch",&SimpleContactSearchProcess<3, 4, 3>::InvertSearch)
-    ;
+    RegisterSimpleContactSearchProcess<2, 2, 2>(m, "2D2N");
+    RegisterSimpleContactSearchProcess<3, 3, 3>(m, "3D3N");
+    RegisterSimpleContactSearchProcess<3, 4, 4>(m, "3D4N");
+    RegisterSimpleContactSearchProcess<3, 3, 4>(m, "3D3N4N");
+    RegisterSimpleContactSearchProcess<3, 4, 3>(m, "3D4N3N");
 
     // Advanced contact search
-    py::class_<AdvancedContactSearchProcess<2, 2>, typename AdvancedContactSearchProcess<2, 2>::Pointer, Process>(m, "AdvancedContactSearchProcess2D2N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&AdvancedContactSearchProcess<2, 2>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&AdvancedContactSearchProcess<2, 2>::ClearMortarConditions)
-    .def("CheckContactModelParts",&AdvancedContactSearchProcess<2, 2>::CheckContactModelParts)
-    .def("CreatePointListMortar",&AdvancedContactSearchProcess<2, 2>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&AdvancedContactSearchProcess<2, 2>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&AdvancedContactSearchProcess<2, 2>::UpdateMortarConditions)
-    .def("ResetContactOperators",&AdvancedContactSearchProcess<2, 2>::ResetContactOperators)
-    .def("CheckMortarConditions",&AdvancedContactSearchProcess<2, 2>::CheckMortarConditions)
-    .def("InvertSearch",&AdvancedContactSearchProcess<2, 2>::InvertSearch)
-    ;
-    py::class_<AdvancedContactSearchProcess<3, 3>, typename AdvancedContactSearchProcess<3, 3>::Pointer, Process>(m, "AdvancedContactSearchProcess3D3N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&AdvancedContactSearchProcess<3, 3>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&AdvancedContactSearchProcess<3, 3>::ClearMortarConditions)
-    .def("CheckContactModelParts",&AdvancedContactSearchProcess<3, 3>::CheckContactModelParts)
-    .def("CreatePointListMortar",&AdvancedContactSearchProcess<3, 3>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&AdvancedContactSearchProcess<3, 3>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&AdvancedContactSearchProcess<3, 3>::UpdateMortarConditions)
-    .def("ResetContactOperators",&AdvancedContactSearchProcess<3, 3>::ResetContactOperators)
-    .def("CheckMortarConditions",&AdvancedContactSearchProcess<3, 3>::CheckMortarConditions)
-    .def("InvertSearch",&AdvancedContactSearchProcess<3, 3>::InvertSearch)
-    ;
-    py::class_<AdvancedContactSearchProcess<3, 4>, typename AdvancedContactSearchProcess<3, 4>::Pointer, Process>(m, "AdvancedContactSearchProcess3D4N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&AdvancedContactSearchProcess<3, 4>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&AdvancedContactSearchProcess<3, 4>::ClearMortarConditions)
-    .def("CheckContactModelParts",&AdvancedContactSearchProcess<3, 4>::CheckContactModelParts)
-    .def("CreatePointListMortar",&AdvancedContactSearchProcess<3, 4>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&AdvancedContactSearchProcess<3, 4>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&AdvancedContactSearchProcess<3, 4>::UpdateMortarConditions)
-    .def("ResetContactOperators",&AdvancedContactSearchProcess<3, 4>::ResetContactOperators)
-    .def("CheckMortarConditions",&AdvancedContactSearchProcess<3, 4>::CheckMortarConditions)
-    .def("InvertSearch",&AdvancedContactSearchProcess<3, 4>::InvertSearch)
-    ;
-    py::class_<AdvancedContactSearchProcess<3, 3, 4>, typename AdvancedContactSearchProcess<3, 3, 4>::Pointer, Process>(m, "AdvancedContactSearchProcess3D3N4N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&AdvancedContactSearchProcess<3, 3, 4>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&AdvancedContactSearchProcess<3, 3, 4>::ClearMortarConditions)
-    .def("CheckContactModelParts",&AdvancedContactSearchProcess<3, 3, 4>::CheckContactModelParts)
-    .def("CreatePointListMortar",&AdvancedContactSearchProcess<3, 3, 4>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&AdvancedContactSearchProcess<3, 3, 4>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&AdvancedContactSearchProcess<3, 3, 4>::UpdateMortarConditions)
-    .def("ResetContactOperators",&AdvancedContactSearchProcess<3, 3, 4>::ResetContactOperators)
-    .def("CheckMortarConditions",&AdvancedContactSearchProcess<3, 3, 4>::CheckMortarConditions)
-    .def("InvertSearch",&AdvancedContactSearchProcess<3, 3, 4>::InvertSearch)
-    ;
-    py::class_<AdvancedContactSearchProcess<3, 4, 3>, typename AdvancedContactSearchProcess<3, 4, 3>::Pointer, Process>(m, "AdvancedContactSearchProcess3D4N3N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&AdvancedContactSearchProcess<3, 4, 3>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&AdvancedContactSearchProcess<3, 4, 3>::ClearMortarConditions)
-    .def("CheckContactModelParts",&AdvancedContactSearchProcess<3, 4, 3>::CheckContactModelParts)
-    .def("CreatePointListMortar",&AdvancedContactSearchProcess<3, 4, 3>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&AdvancedContactSearchProcess<3, 4, 3>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&AdvancedContactSearchProcess<3, 4, 3>::UpdateMortarConditions)
-    .def("ResetContactOperators",&AdvancedContactSearchProcess<3, 4, 3>::ResetContactOperators)
-    .def("CheckMortarConditions",&AdvancedContactSearchProcess<3, 4, 3>::CheckMortarConditions)
-    .def("InvertSearch",&AdvancedContactSearchProcess<3, 4, 3>::InvertSearch)
-    ;
+    RegisterAdvancedContactSearchProcess<2, 2, 2>(m, "2D2N");
+    RegisterAdvancedContactSearchProcess<3, 3, 3>(m, "3D3N");
+    RegisterAdvancedContactSearchProcess<3, 4, 4>(m, "3D4N");
+    RegisterAdvancedContactSearchProcess<3, 3, 4>(m, "3D3N4N");
+    RegisterAdvancedContactSearchProcess<3, 4, 3>(m, "3D4N3N");
 
     // Wrapper contact search
     py::class_<MPCContactSearchWrapperProcess, typename MPCContactSearchWrapperProcess::Pointer, Process>(m, "MPCContactSearchProcess")
@@ -234,98 +180,18 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     // MPC contact search
-    py::class_<MPCContactSearchProcess<2, 2>, typename MPCContactSearchProcess<2, 2>::Pointer, Process>(m, "MPCContactSearchProcess2D2N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&MPCContactSearchProcess<2, 2>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&MPCContactSearchProcess<2, 2>::ClearMortarConditions)
-    .def("CheckContactModelParts",&MPCContactSearchProcess<2, 2>::CheckContactModelParts)
-    .def("CreatePointListMortar",&MPCContactSearchProcess<2, 2>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&MPCContactSearchProcess<2, 2>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&MPCContactSearchProcess<2, 2>::UpdateMortarConditions)
-    .def("ResetContactOperators",&MPCContactSearchProcess<2, 2>::ResetContactOperators)
-    .def("CheckMortarConditions",&MPCContactSearchProcess<2, 2>::CheckMortarConditions)
-    .def("InvertSearch",&MPCContactSearchProcess<2, 2>::InvertSearch)
-    ;
-    py::class_<MPCContactSearchProcess<3, 3>, typename MPCContactSearchProcess<3, 3>::Pointer, Process>(m, "MPCContactSearchProcess3D3N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&MPCContactSearchProcess<3, 3>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&MPCContactSearchProcess<3, 3>::ClearMortarConditions)
-    .def("CheckContactModelParts",&MPCContactSearchProcess<3, 3>::CheckContactModelParts)
-    .def("CreatePointListMortar",&MPCContactSearchProcess<3, 3>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&MPCContactSearchProcess<3, 3>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&MPCContactSearchProcess<3, 3>::UpdateMortarConditions)
-    .def("ResetContactOperators",&MPCContactSearchProcess<3, 3>::ResetContactOperators)
-    .def("CheckMortarConditions",&MPCContactSearchProcess<3, 3>::CheckMortarConditions)
-    .def("InvertSearch",&MPCContactSearchProcess<3, 3>::InvertSearch)
-    ;
-    py::class_<MPCContactSearchProcess<3, 4>, typename MPCContactSearchProcess<3, 4>::Pointer, Process>(m, "MPCContactSearchProcess3D4N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&MPCContactSearchProcess<3, 4>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&MPCContactSearchProcess<3, 4>::ClearMortarConditions)
-    .def("CheckContactModelParts",&MPCContactSearchProcess<3, 4>::CheckContactModelParts)
-    .def("CreatePointListMortar",&MPCContactSearchProcess<3, 4>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&MPCContactSearchProcess<3, 4>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&MPCContactSearchProcess<3, 4>::UpdateMortarConditions)
-    .def("ResetContactOperators",&MPCContactSearchProcess<3, 4>::ResetContactOperators)
-    .def("CheckMortarConditions",&MPCContactSearchProcess<3, 4>::CheckMortarConditions)
-    .def("InvertSearch",&MPCContactSearchProcess<3, 4>::InvertSearch)
-    ;
-    py::class_<MPCContactSearchProcess<3, 3, 4>, typename MPCContactSearchProcess<3, 3, 4>::Pointer, Process>(m, "MPCContactSearchProcess3D3N4N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&MPCContactSearchProcess<3, 3, 4>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&MPCContactSearchProcess<3, 3, 4>::ClearMortarConditions)
-    .def("CheckContactModelParts",&MPCContactSearchProcess<3, 3, 4>::CheckContactModelParts)
-    .def("CreatePointListMortar",&MPCContactSearchProcess<3, 3, 4>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&MPCContactSearchProcess<3, 3, 4>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&MPCContactSearchProcess<3, 3, 4>::UpdateMortarConditions)
-    .def("ResetContactOperators",&MPCContactSearchProcess<3, 3, 4>::ResetContactOperators)
-    .def("CheckMortarConditions",&MPCContactSearchProcess<3, 3, 4>::CheckMortarConditions)
-    .def("InvertSearch",&MPCContactSearchProcess<3, 3, 4>::InvertSearch)
-    ;
-    py::class_<MPCContactSearchProcess<3, 4, 3>, typename MPCContactSearchProcess<3, 4, 3>::Pointer, Process>(m, "MPCContactSearchProcess3D4N3N")
-    .def(py::init<ModelPart&>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, Parameters, Properties::Pointer>())
-    .def("InitializeMortarConditions",&MPCContactSearchProcess<3, 4, 3>::InitializeMortarConditions)
-    .def("ClearMortarConditions",&MPCContactSearchProcess<3, 4, 3>::ClearMortarConditions)
-    .def("CheckContactModelParts",&MPCContactSearchProcess<3, 4, 3>::CheckContactModelParts)
-    .def("CreatePointListMortar",&MPCContactSearchProcess<3, 4, 3>::CreatePointListMortar)
-    .def("UpdatePointListMortar",&MPCContactSearchProcess<3, 4, 3>::UpdatePointListMortar)
-    .def("UpdateMortarConditions",&MPCContactSearchProcess<3, 4, 3>::UpdateMortarConditions)
-    .def("ResetContactOperators",&MPCContactSearchProcess<3, 4, 3>::ResetContactOperators)
-    .def("CheckMortarConditions",&MPCContactSearchProcess<3, 4, 3>::CheckMortarConditions)
-    .def("InvertSearch",&MPCContactSearchProcess<3, 4, 3>::InvertSearch)
-    ;
+    RegisterMPCContactSearchProcess<2, 2, 2>(m, "2D2N");
+    RegisterMPCContactSearchProcess<3, 3, 3>(m, "3D3N");
+    RegisterMPCContactSearchProcess<3, 4, 4>(m, "3D4N");
+    RegisterMPCContactSearchProcess<3, 3, 4>(m, "3D3N4N");
+    RegisterMPCContactSearchProcess<3, 4, 3>(m, "3D4N3N");
 
     // Normal gap process
-    py::class_<NormalGapProcess<2, 2>, typename NormalGapProcess<2, 2>::Pointer, Process>(m, "NormalGapProcess2D2N")
-    .def(py::init<ModelPart&, ModelPart&>())
-    .def(py::init<ModelPart&, ModelPart&, const bool>())
-    ;
-    py::class_<NormalGapProcess<3, 3>, typename NormalGapProcess<3, 3>::Pointer, Process>(m, "NormalGapProcess3D3N")
-    .def(py::init<ModelPart&, ModelPart&>())
-    .def(py::init<ModelPart&, ModelPart&, const bool>())
-    ;
-    py::class_<NormalGapProcess<3, 4>, typename NormalGapProcess<3, 4>::Pointer, Process>(m, "NormalGapProcess3D4N")
-    .def(py::init<ModelPart&, ModelPart&>())
-    .def(py::init<ModelPart&, ModelPart&, const bool>())
-    ;
-    py::class_<NormalGapProcess<3, 3, 4>, typename NormalGapProcess<3, 3, 4>::Pointer, Process>(m, "NormalGapProcess3D3N4N")
-    .def(py::init<ModelPart&, ModelPart&>())
-    .def(py::init<ModelPart&, ModelPart&, const bool>())
-    ;
-    py::class_<NormalGapProcess<3, 4, 3>, typename NormalGapProcess<3, 4, 3>::Pointer, Process>(m, "NormalGapProcess3D4N3N")
-    .def(py::init<ModelPart&, ModelPart&>())
-    .def(py::init<ModelPart&, ModelPart&, const bool>())
-    ;
+    RegisterNormalGapProcess<2, 2, 2>(m, "2D2N");
+    RegisterNormalGapProcess<3, 3, 3>(m, "3D3N");
+    RegisterNormalGapProcess<3, 4, 4>(m, "3D4N");
+    RegisterNormalGapProcess<3, 3, 4>(m, "3D3N4N");
+    RegisterNormalGapProcess<3, 4, 3>(m, "3D4N3N");
 
     // Normal check process
     py::class_<NormalCheckProcess, NormalCheckProcess::Pointer, Process>(m, "NormalCheckProcess")

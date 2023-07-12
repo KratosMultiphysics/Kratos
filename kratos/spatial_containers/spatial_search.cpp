@@ -1442,5 +1442,28 @@ void SpatialSearch::SearchConditionsOverPointNearestPoint (
     KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::InitializeBoundingBox(const NodesContainerType& rStructureNodes)
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::InitializeBoundingBox(const ElementsContainerType& rStructureElements)
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SpatialSearch::InitializeBoundingBox(const ConditionsContainerType& rStructureConditions)
+{
+    KRATOS_ERROR << "Direct call of an abstract method" << std::endl;
+}
+
+}

@@ -1639,6 +1639,28 @@ public:
         return results;
     }
 
+    //************************************************************************
+    // Bounding box methods
+    //************************************************************************
+
+   /**
+     * @brief This method allows to initialize the local bounding box (for nodes)
+     * @param rStructureNodes The container of nodes
+     */
+    virtual void InitializeBoundingBox(const NodesContainerType& rStructureNodes);
+
+    /**
+     * @param rStructureElements The container of elements
+     * @brief This method allows to initialize the local bounding box (for elements)
+     */
+    virtual void InitializeBoundingBox(const ElementsContainerType& rStructureElements);
+
+    /**
+     * @brief This method allows to initialize the local bounding box (for conditions)
+     * @param rStructureConditions The container of conditions
+     */
+    virtual void InitializeBoundingBox(const ConditionsContainerType& rStructureConditions);
+
     ///@}
     ///@name Access
     ///@{

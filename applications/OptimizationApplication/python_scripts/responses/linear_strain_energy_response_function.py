@@ -55,10 +55,10 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         return self.model_part
 
     def GetAnalysisModelPart(self) -> Kratos.ModelPart:
-        return self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().GetAnalysisModelPart()
+        return self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
 
     def CalculateValue(self) -> float:
-        self.primal_analysis_execution_policy_decorator.GetExecutionPolicy().Execute()
+        self.primal_analysis_execution_policy_decorator.Execute()
         return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_part)
 
     def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
