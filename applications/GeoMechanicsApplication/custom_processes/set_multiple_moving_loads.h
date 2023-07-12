@@ -41,6 +41,7 @@ namespace Kratos {
         /// Pointer definition of SetMultipleMovingLoadsProcess
         KRATOS_CLASS_POINTER_DEFINITION(SetMultipleMovingLoadsProcess);
 
+
         using SizeType = std::size_t;
 
         ///@}
@@ -85,7 +86,7 @@ namespace Kratos {
 
             ModelPart& mrModelPart;
             Parameters mParameters;
-            unique_ptr<std::vector<SetMovingLoadProcess>> mMovingPointLoadsProcesses;
+            std::vector<kratos::unique_ptr<SetMovingLoadProcess>> mMovingPointLoadsProcesses;
         ///@}
         ///
         ///@name Operations
