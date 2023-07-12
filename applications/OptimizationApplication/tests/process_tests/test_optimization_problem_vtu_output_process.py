@@ -150,6 +150,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
         )
 
         process = OptimizationProblemVtuOutputProcess(parameters, self.optimization_problem)
+        process.ExecuteInitialize()
 
         # initialize unbuffered data
         for component in self.components_list:
@@ -170,7 +171,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_1_orig.vtu",
-                "output_file_name"      : "test_1.vtu",
+                "output_file_name"      : "Optimization_Results/test_1.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
@@ -178,7 +179,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_2_orig.vtu",
-                "output_file_name"      : "test_2.vtu",
+                "output_file_name"      : "Optimization_Results/test_2.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
