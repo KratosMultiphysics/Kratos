@@ -104,15 +104,6 @@ public:
     }
 
     /**
-     * @brief Constructor that takes the coordinates of the point.
-     * @param Coords The coordinates of the point.
-     */
-    PointObject(const array_1d<double, 3>& Coords)
-        :BaseType(Coords)
-    {}
-
-
-    /**
      * @brief Constructor with object
      * @param pObject The pointer to the object
      */
