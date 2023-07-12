@@ -15,6 +15,9 @@
 // System includes
 
 // External includes
+#ifdef KRATOS_USE_AMATRIX
+#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
+#endif // KRATOS_USE_AMATRIX
 
 // Project includes
 #include "containers/model.h"
@@ -41,7 +44,7 @@
 #include "custom_processes/spalart_allmaras_turbulence_model.h"
 #include "custom_processes/stokes_initialization_process.h"
 #include "custom_processes/compute_y_plus_process.h"
-
+#include "custom_processes/energy_splitelements_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -183,6 +186,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ComputeYPlusProcess, ComputeYPlusProcess::Pointer, Process>(m, "ComputeYPlusProcess")
     .def(py::init<Model&, Parameters>())
     ;
+    py::class_<EnergyCheckProcess, EnergyCheckProcess::Pointer, Process>(m, "EnergyCheckProcess")
+        .def(py::init<ModelPart &, unsigned int>())
+        .def("WritingFile", &EnergyCheckProcess::WritingFile);
 }
 
 } // namespace Python.
