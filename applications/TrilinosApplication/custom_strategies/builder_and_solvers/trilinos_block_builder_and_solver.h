@@ -638,21 +638,10 @@ public:
         mFirstMyId = free_offset - mLocalSystemSize;
 
         // For MPC we fill mFirstMyIds
-        if (rModelPart.GetCommunicator().GlobalNumberOfMasterSlaveConstraints() > 0) {
+        if (r_comm.GlobalNumberOfMasterSlaveConstraints() > 0) {
             mFirstMyIds.resize(world_size);
-            mFirstMyIds[current_rank] = mFirstMyId;
-            const int tag_id_send = 0;
-            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-                if (i_rank != current_rank) {
-                    r_data_comm.Recv(mFirstMyIds[i_rank], i_rank, tag_id_send);
-                } else {
-                    for (int j_rank = 0; j_rank < world_size; ++j_rank) {
-                        if (j_rank != current_rank) {
-                            r_data_comm.Send(mFirstMyId, j_rank, tag_id_send);
-                        }
-                    }
-                }
-            }
+            std::vector<int> send_first_ids(1, mFirstMyId);
+            r_data_comm.AllGather(send_first_ids, mFirstMyIds);
         }
 
         // Synchronize DoFs
