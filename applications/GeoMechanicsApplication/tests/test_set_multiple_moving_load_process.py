@@ -38,8 +38,8 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         if tols is None:
             tols = [None] * len(rhs)
 
-        for rhs_val, expected_val, tols in zip(rhs, expected_res, tols):
-            self.assertAlmostEqual(rhs_val, expected_val, tols)
+        for rhs_val, expected_val, tol in zip(rhs, expected_res, tols):
+            self.assertAlmostEqual(rhs_val, expected_val, tol)
 
 
     def _TestSetMultipleMovingLoads(self):
