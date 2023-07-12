@@ -62,11 +62,14 @@ public:
     /// Pointer definition of ALMFastInit
     KRATOS_CLASS_POINTER_DEFINITION(ALMFastInit);
 
-    // General type definitions
-    typedef Node                                          NodeType;
-    typedef Geometry<NodeType>                           GeometryType;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    /// Geometry type definition
+    using GeometryType = Geometry<Node>;
+
+    /// Nodes array type definition
+    using NodesArrayType = ModelPart::NodesContainerType;
+
+    /// Conditions array type definition
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -119,11 +122,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -150,46 +151,7 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -209,16 +171,13 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -230,7 +189,6 @@ private:
     /// Copy constructor.
     //ALMFastInit(ALMFastInit const& rOther);
 
-
     ///@}
 
 }; // Class ALMFastInit
@@ -239,7 +197,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output

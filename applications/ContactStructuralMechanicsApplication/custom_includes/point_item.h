@@ -57,7 +57,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Point BaseType;
+    using BaseType = Point;
 
     /// Counted pointer of PointItem
     KRATOS_CLASS_POINTER_DEFINITION( PointItem );
@@ -189,7 +189,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
