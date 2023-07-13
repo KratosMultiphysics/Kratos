@@ -92,7 +92,7 @@ namespace Kratos::Testing
         p_prop->SetValue(NODAL_AREA, 0.01);
 
         // MPI data
-        const int rank =  rDataCommunicator.Rank();
+        const int rank = rDataCommunicator.Rank();
         const int world_size = rDataCommunicator.Size();
 
         // Initially everything in one partition
@@ -233,7 +233,7 @@ namespace Kratos::Testing
         p_prop->SetValue(NODAL_AREA, 0.01);
 
         // MPI data
-        const int rank =  rDataCommunicator.Rank();
+        const int rank = rDataCommunicator.Rank();
         const int world_size = rDataCommunicator.Size();
 
         // Initially everything in one partition
@@ -312,9 +312,11 @@ namespace Kratos::Testing
         for (auto& r_node : rModelPart.Nodes()) {
             if (r_node.Id() != 4) {
                 const auto i = r_node.Id() - 1;
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 1, *pnode4, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 2, *pnode4, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 3, *pnode4, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
+                if (rank == r_node.FastGetSolutionStepValue(PARTITION_INDEX)) {
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 1, *pnode4, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 2, *pnode4, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 3, *pnode4, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
+                }
             }
         }
 
