@@ -139,25 +139,25 @@ namespace Kratos
             for ( const auto p_var : mDoubleVariableGauss) {
                 std::vector<double> aux_result(1);
                 p_element->CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                node_itr->GetValue(*p_var) = aux_result[0];
+                node_itr->SetValue(*p_var, aux_result[0]);
             }
             // Array
             for ( const auto p_var : mArrayVariableGauss) {
                 std::vector<array_1d<double, 3>> aux_result(1);
                 p_element->CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                node_itr->GetValue(*p_var) = aux_result[0];
+                node_itr->SetValue(*p_var, aux_result[0]);
             }
             // Vector
             for ( const auto p_var : mVectorVariableGauss) {
                 std::vector<Vector> aux_result(1);
                 p_element->CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                node_itr->GetValue(*p_var) = aux_result[0];
+                node_itr->SetValue(*p_var, aux_result[0]);
             }
             // Matrix
             for ( const auto p_var : mMatrixVariableGauss) {
                 std::vector<Matrix> aux_result(1);
                 p_element->CalculateOnIntegrationPoints(*p_var, aux_result, r_process_info);
-                node_itr->GetValue(*p_var) = aux_result[0];
+                node_itr->SetValue(*p_var, aux_result[0]);
             }
         });
     }
