@@ -795,7 +795,7 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(rA(10,10), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(rA(11,11), 1.0, tolerance);
 
-        // Check the constraints matrix
+        // Now checking relation T matrix
         const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
 
         // // To create the solution of reference
