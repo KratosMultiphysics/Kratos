@@ -15,6 +15,7 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_shifted_boundary_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_IGA_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_shifted_boundary_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/mixed_laplacian_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_laplacian_element.cpp

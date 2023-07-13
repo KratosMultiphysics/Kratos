@@ -19,9 +19,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/ublas_interface.h"
+#include "includes/variables.h"
 
-// Application includes
-#include "laplacian_element.h"
 
 namespace Kratos
 {
@@ -95,20 +95,90 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+
+    // New functions NICO
+
+
+
+    // void CalculateRightHandSide(
+    //     VectorType& rRightHandSideVector,
+    //     const ProcessInfo& rCurrentProcessInfo) override
+    // {
+    //     const SizeType number_of_nodes = GetGeometry().size();
+    //     const SizeType mat_size = number_of_nodes * 3;
+
+    //     if (rRightHandSideVector.size() != mat_size)
+    //         rRightHandSideVector.resize(mat_size);
+    //     noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
+    //     MatrixType left_hand_side_matrix;
+
+    //     KRATOS_WATCH('RHS1')
+        
+    //     // CalculateAll(left_hand_side_matrix, rRightHandSideVector,
+    //     //     rCurrentProcessInfo, false, true);
+    //     MatrixType temp(0,0);
+    //     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
+    // }
+
+
+    // void CalculateLeftHandSide(
+    //     MatrixType& rLeftHandSideMatrix,
+    //     const ProcessInfo& rCurrentProcessInfo) override
+    // {
+    //     KRATOS_WATCH('LHS0')
+    //     const SizeType number_of_nodes = GetGeometry().size();
+    //     const SizeType mat_size = number_of_nodes * 3;
+
+    //     VectorType right_hand_side_vector;
+
+    //     if (rLeftHandSideMatrix.size1() != mat_size)
+    //         rLeftHandSideMatrix.resize(mat_size, mat_size);
+    //     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+    //     // CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
+    //     //     rCurrentProcessInfo, true, false);
+        
+    //     KRATOS_WATCH('LHS1')
+
+    //     VectorType temp(0);
+    //     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
+    // }
+
+
+    // void CalculateLocalSystem(
+    //     MatrixType& rLeftHandSideMatrix,
+    //     VectorType& rRightHandSideVector,
+    //     const ProcessInfo& rCurrentProcessInfo) override
+    // {
+    //     const SizeType number_of_nodes = GetGeometry().size();
+    //     const SizeType mat_size = number_of_nodes * 3;
+
+    //     if (rRightHandSideVector.size() != mat_size)
+    //         rRightHandSideVector.resize(mat_size);
+    //     noalias(rRightHandSideVector) = ZeroVector(mat_size);
+
+    //     if (rLeftHandSideMatrix.size1() != mat_size)
+    //         rLeftHandSideMatrix.resize(mat_size, mat_size);
+    //     noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
+
+    //     CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
+    //         rCurrentProcessInfo, true, true);
+    // }
 
     ///@}
     ///@name Access
@@ -118,7 +188,8 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-
+    
+    IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Input and output
@@ -176,6 +247,16 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+    
+    // /// Calculates LHS and RHS dependent on flags
+    // void CalculateAll(
+    //     MatrixType& rLeftHandSideMatrix,
+    //     VectorType& rRightHandSideVector,
+    //     const ProcessInfo& rCurrentProcessInfo,
+    //     const bool CalculateStiffnessMatrixFlag,
+    //     const bool CalculateResidualVectorFlag
+    // ) const;
 
 
     ///@}
