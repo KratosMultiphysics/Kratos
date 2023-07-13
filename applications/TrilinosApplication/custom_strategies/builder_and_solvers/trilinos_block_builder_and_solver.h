@@ -871,7 +871,7 @@ public:
             BuildMasterSlaveConstraints(rModelPart);
 
             // Reference to T
-            const TSystemMatrixType& r_T = *mpT;
+            const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
 
             // Compute T' b
             const TSystemVectorType copy_b(rb);
@@ -912,7 +912,7 @@ public:
             BuildMasterSlaveConstraints(rModelPart);
 
             // Reference to T
-            const TSystemMatrixType& r_T = *mpT;
+            const TSystemMatrixType& r_T = GetConstraintRelationMatrix();
 
             // Compute T' A T
             const TSystemMatrixType copy_A(rA);
@@ -1262,8 +1262,8 @@ protected:
         KRATOS_TRY
 
         // Reference of the matrix and vectpr
-        auto& r_T = *mpT;
-        auto& r_constant_vector = *mpConstantVector;
+        auto& r_T = GetConstraintRelationMatrix();
+        auto& r_constant_vector = GetConstraintConstantVector();
 
         TSparseSpace::SetToZero(r_T);
         TSparseSpace::SetToZero(r_constant_vector);
