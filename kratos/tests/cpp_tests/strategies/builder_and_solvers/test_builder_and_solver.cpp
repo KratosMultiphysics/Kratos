@@ -204,10 +204,10 @@ namespace Kratos::Testing
         pnode4->Fix(DISPLACEMENT_Z);
         for (auto& r_node : rModelPart.Nodes()) {
             if (r_node.Id() != 4) {
-                const auto id = r_node.Id();
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * id + 0, *pnode4, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * id + 1, *pnode4, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * id + 2, *pnode4, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
+                const auto i = r_node.Id() - 1;
+                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 1, *pnode4, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
+                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 2, *pnode4, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
+                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 3, *pnode4, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
             }
         }
     }
