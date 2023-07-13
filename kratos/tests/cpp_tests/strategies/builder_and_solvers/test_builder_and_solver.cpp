@@ -157,19 +157,24 @@ namespace Kratos::Testing
         rModelPart.AddNodalSolutionStepVariable(REACTION);
         rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
+        // Define the nodes
         Node::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
         Node::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
         Node::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
-        Node::Pointer pnode4 = rModelPart.CreateNewNode(4, 3.0, 0.0, 0.0);
 
+        // Define the properties
         auto p_prop = rModelPart.CreateNewProperties(1, 0);
         p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
         p_prop->SetValue(NODAL_AREA, 0.01);
 
+        // Define the elements  
         GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
         GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
+
+        //  Adding fourth node
+        Node::Pointer pnode4 = rModelPart.CreateNewNode(4, 3.0, 0.0, 0.0);
 
         /// Add dof
         for (auto& node : rModelPart.Nodes()) {
