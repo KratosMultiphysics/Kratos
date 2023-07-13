@@ -5,10 +5,10 @@ from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return VtkEmbeddedMeshOutputProcess(model, settings["Parameters"])
+    return VtkEmbeddeGeometryOutputProcess(model, settings["Parameters"])
 
 
-class VtkEmbeddedMeshOutputProcess(KratosMultiphysics.OutputProcess):
+class VtkEmbeddeGeometryOutputProcess(KratosMultiphysics.OutputProcess):
     def __init__(self, model, settings):
         super().__init__()
 
