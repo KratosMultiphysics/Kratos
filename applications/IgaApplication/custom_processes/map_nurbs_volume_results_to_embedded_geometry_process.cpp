@@ -64,6 +64,10 @@ namespace Kratos
 
         IntegrationInfo integration_info = p_geometry->GetDefaultIntegrationInfo();
         GeometriesArrayType geometry_list;
+        // Make sure one qudrature point geometry is created for each integration point.
+        integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
+        integration_info.SetQuadratureMethod(1, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
+        integration_info.SetQuadratureMethod(2, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
         p_geometry->CreateQuadraturePointGeometries(geometry_list, 1, integration_points, integration_info);
 
         IndexPartition<IndexType>(embedded_model_part.NumberOfNodes()).for_each([&](IndexType i) {

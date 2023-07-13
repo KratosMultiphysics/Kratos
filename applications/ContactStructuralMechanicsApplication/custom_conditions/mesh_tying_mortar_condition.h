@@ -585,11 +585,13 @@ protected:
      * @param rLocalLHS The local LHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDofData The class containing all the information needed in order to compute the jacobian
+     * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLocalLHS(
         Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const DofData& rDofData
+        const DofData& rDofData,
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     /**
@@ -597,11 +599,13 @@ protected:
      * @param rLocalRHS The local RHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDofData The class containing all the information needed in order to compute the jacobian
+     * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateLocalRHS(
         Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const DofData& rDofData
+        const DofData& rDofData,
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     /***********************************************************************************/
