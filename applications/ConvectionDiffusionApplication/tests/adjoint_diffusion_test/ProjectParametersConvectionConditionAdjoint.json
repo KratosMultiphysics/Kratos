@@ -34,7 +34,8 @@
         "echo_level": 0,
         "time_stepping": {
             "time_step": 1.0
-        }
+        },
+        "time_integration_method": "implicit"
     },
     "processes"        : {
         "initial_conditions_process_list" : [],

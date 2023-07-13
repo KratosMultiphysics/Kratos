@@ -51,7 +51,8 @@
         "element_replace_settings":{
             "element_name" : "LaplacianElement",
             "condition_name" : "ThermalFace"
-        }
+        },
+        "time_integration_method": "implicit"
     },
     "processes" : {
         "constraints_process_list" : [{

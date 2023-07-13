@@ -36,7 +36,8 @@
         "processes_sub_model_part_list"      : ["HeatFlux2D_right","ImposedTemperature2D_left"],
         "time_stepping"                      : {
             "time_step" : 1.0
-        }
+        },
+        "time_integration_method": "implicit"
     },
     "processes"        : {
         "initial_conditions_process_list" : [],
