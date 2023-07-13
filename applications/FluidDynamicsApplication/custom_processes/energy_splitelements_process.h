@@ -165,7 +165,7 @@ public:
                 {
                     // Generate the splitting pattern
 
-                    DivideTriangle2D3<Node<3>>::Pointer p_divide_util = Kratos::make_shared<DivideTriangle2D3<Node<3>>>(r_geom, elem_dist);
+                    DivideTriangle2D3<Node>::Pointer p_divide_util = Kratos::make_shared<DivideTriangle2D3<Node>>(r_geom, elem_dist);
                     p_divide_util->GenerateDivision();
 
                     // Generate the modified shape functions util
@@ -177,8 +177,8 @@ public:
                     Matrix N_neg_side_interface;
                     Vector w_gauss_interface;
 
-                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side;
-                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side_interface;
+                    Geometry<Node>::ShapeFunctionsGradientsType DN_DX_neg_side;
+                    Geometry<Node>::ShapeFunctionsGradientsType DN_DX_neg_side_interface;
                     p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
                     p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(N_neg_side_interface, DN_DX_neg_side_interface, w_gauss_interface, GeometryData::IntegrationMethod::GI_GAUSS_2);
                     // Save the coordinates of all the subdivision Gauss pts.nl
@@ -209,7 +209,7 @@ public:
                     }
                     Matrix N_pos_side;
                     Vector w_gauss_pos_side;
-                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_pos_side;
+                    Geometry<Node>::ShapeFunctionsGradientsType DN_DX_pos_side;
                     p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
                     // Save the coordinates of all the subdivision Gauss pts.
@@ -307,7 +307,7 @@ public:
                 if (this->IsCut(elem_dist))
                 {
                     // Generate the splitting pattern
-                    DivideTetrahedra3D4<Node<3>>::Pointer p_divide_util = Kratos::make_shared<DivideTetrahedra3D4<Node<3>>>(r_geom, elem_dist);
+                    DivideTetrahedra3D4<Node>::Pointer p_divide_util = Kratos::make_shared<DivideTetrahedra3D4<Node>>(r_geom, elem_dist);
                     p_divide_util->GenerateDivision();
 
                     // Generate the modified shape functions util
@@ -319,8 +319,8 @@ public:
                     Matrix N_neg_side_interface;
                     Vector w_gauss_interface;
 
-                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side;
-                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_neg_side_interface;
+                    Geometry<Node>::ShapeFunctionsGradientsType DN_DX_neg_side;
+                    Geometry<Node>::ShapeFunctionsGradientsType DN_DX_neg_side_interface;
                     p_ausas_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(N_neg_side, DN_DX_neg_side, w_gauss_neg_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
                     p_ausas_modified_sh_func->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(N_neg_side_interface, DN_DX_neg_side_interface, w_gauss_interface, GeometryData::IntegrationMethod::GI_GAUSS_2);
                     // Save the coordinates of all the subdivision Gauss pts.
@@ -351,7 +351,7 @@ public:
                     }
                     Matrix N_pos_side;
                     Vector w_gauss_pos_side;
-                    Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX_pos_side;
+                    Geometry<Node>::ShapeFunctionsGradientsType DN_DX_pos_side;
                     p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
                     // Save the coordinates of all the subdivision Gauss pts.
@@ -625,7 +625,7 @@ protected:
     }
 
     double CalculateGaussPointKinematicEnergy(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const Vector& rN,
         const double Weight,
         const double Density)
@@ -643,7 +643,7 @@ protected:
     }
 
     double CalculateGaussPointPotentialEnergy(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const Vector& rN,
         const double Weight,
         const double Density)
@@ -661,7 +661,7 @@ protected:
     }
 
         double CalculateGaussPointPotentialEnergyGravityCenter(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const Vector& rN,
         const double Weight)
     {
