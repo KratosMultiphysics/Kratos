@@ -24,7 +24,7 @@
 #include "custom_elements/fluid_element.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "utilities/geometry_utilities.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+#include "custom_utilities/custom_tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos
@@ -173,6 +173,16 @@ public:
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo) override;
 
+
+    /**
+     * @brief MassMatrix Calculate the local mass matrix.
+     * @param rFluidStress Viscous stress in the fluid given in Voigt notation
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    // void Calculate( const Variable<Vector>& rVariable,
+    //                 Vector& rOutput,
+    //                 const ProcessInfo& rCurrentProcessInfo) override;
+
     /// Auxiliar element check function
     /**
      * This function calls the base element check method and adds the
@@ -212,12 +222,24 @@ public:
     /// Function to visualize the divergence field
 
     /**
+     * @brief Get the Value On Integration Points object (used to visualize the divergence field and the contact angle)
+     *
+     * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE and CONTACT_ANGLE)
+     * @param rValues Vector for the values at the Gauss integration points
+     * @param rCurrentProcessInfo ProcessInfo object
+     */
+    void GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
+                                        std::vector<double> &rValues,
+                                        const ProcessInfo &rCurrentProcessInfo );// override;
+
+    /**
      * @brief Get the Value On Integration Points object (used to visualize the divergence field)
      *
      * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE)
      * @param rValues Vector for the values at the Gauss integration points
      * @param rCurrentProcessInfo ProcessInfo object
      */
+
     void CalculateOnIntegrationPoints(
         const Variable<double> &rVariable,
         std::vector<double> &rValues,
@@ -313,6 +335,49 @@ protected:
 		MatrixType& rH,
 		MatrixType& rKee,
 		VectorType& rRHS_ee);
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @brief Computes the LHS Gauss pt. contribution
+     * This method computes the contribution to the LHS of a Gauss pt.
+     * @param rData Reference to the element data container
+     * @param rLHS Reference to the Left Hand Side matrix to be filled
+     */
+    void ComputeGaussPointLHSContributionCut(
+        TElementData& rData,
+        MatrixType& rLHS);
+
+    /**
+     * @brief Computes the RHS Gaus  pt. contribution
+     * This method computes the contribution to the RHS of a Gauss pt.
+     * @param rData Reference to the element data container
+     * @param rRHS Reference to the Right Hand Side vector to be filled
+     */
+    void ComputeGaussPointRHSContributionCut(
+        TElementData& rData,
+        VectorType& rRHS);
+
+    /**
+     * @brief Computes the pressure enrichment contributions
+     * This method computes the pressure enrichment contributions for
+     * a Gauss pt. in both the left hand side and righ hand side of the equations.
+     * @param rData Reference to the element data container
+     * @param rV Contribution related to the pressure enrichment DOFs in the N-S standard equations
+     * @param rH Contribution related to the standard velocity and pressure DOFs in the enrichment equations
+     * @param rKee Contribution related to the pressure enrichment DOFs in the enrichment equations
+     * @param rRHS_ee Right Hand Side of the enrichment equations
+     */
+	void ComputeGaussPointEnrichmentContributionsCut(
+		TElementData& rData,
+		MatrixType& rV,
+		MatrixType& rH,
+		MatrixType& rKee,
+		VectorType& rRHS_ee);
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     /// Set up the element's data and constitutive law for the current integration point.
     /** @param[in/out] rData Container for the current element's data.
@@ -428,7 +493,7 @@ private:
         GeometryType::ShapeFunctionsGradientsType& rShapeDerivativesNeg,
         GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesPos,
         GeometryType::ShapeFunctionsGradientsType& rEnrichedShapeDerivativesNeg,
-        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions);
+        CustomModifiedShapeFunctions::Pointer pModifiedShapeFunctions);
 
     /**
      * @brief This method computes the standard and enrichment shape functions for the interfaces
@@ -449,14 +514,18 @@ private:
         GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
         Vector& rInterfaceWeightsNeg,
         std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
-        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions);
+        CustomModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+        std::vector<MatrixType>& rContactShapeFunctionNeg,
+        std::vector<GeometryType::ShapeFunctionsGradientsType>& rContactShapeDerivativesNeg,
+        std::vector<Kratos::Vector>& rContactWeightsNeg,
+        std::vector<Vector>& rContactTangentialsNeg);
 
     /**
      * @brief This function returns the ModifiedShapeFunctions object according to TDim
      * @param pGeometry Pointer to the element geometry
      * @param rDistances Distance at the nodes
      */
-    ModifiedShapeFunctions::UniquePointer pGetModifiedShapeFunctionsUtility(
+    CustomModifiedShapeFunctions::UniquePointer pGetModifiedShapeFunctionsUtility(
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances);
 
@@ -484,6 +553,41 @@ private:
         const Vector& rInterfaceWeights,
         const Matrix& rInterfaceShapeFunctions,
         const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
+        VectorType& rRHS);
+
+    /**
+     * @brief Computes the surface tension on the interface and implement its effect on the RHS vector
+     * Added the effect of contact line for an open interface. Considering the sub-element hydrodynamics and hysteresis.
+     * @param rData Element data container
+     * @param coefficient surface tension coefficient
+     * @param coefficientS solid surface contact net coefficient
+     * @param zeta dissipative coefficient at the contact line
+     * @param micro_length_scale characteristic micro length-scale
+     * @param rCurvature curvature calculated at the interface gauss points
+     * @param rIntWeights Weights associated with interface gauss points
+     * @param rIntShapeFunctions Shape functions calculated at the interface gauss points
+     * @param rIntNormalsNeg Normal vectors (negative side) associated with interface gauss points
+     * @param rCLWeights Weights associated with contact line gauss points
+     * @param rCLShapeFunctions Shape functions calculated at the contact line gauss points
+     * @param rTangential Tangential vectors (according to negative side interfaces) associated with contact line gauss points
+     * @param rLHS The contribution of contact line dissipative force to LHS
+     * @param rRHS The effect of pressure discontinuity is implemented as an interfacial integral on the RHS
+     */
+    void SurfaceTension(
+        const TElementData& rData,
+        const double coefficient,
+        const double theta_advancing,
+        const double theta_receding,
+        const double zeta,
+        const double micro_length_scale,
+        const Kratos::Vector& rCurvature,
+        const Kratos::Vector& rIntWeights,
+        const Matrix& rIntShapeFunctions,
+        const std::vector< array_1d<double, 3> >& rIntNormalsNeg,//std::vector<Vector>&
+        const std::vector<Kratos::Vector>& rCLWeights,
+        const std::vector<Matrix>& rCLShapeFunctions,
+        const std::vector<Vector>& rTangential,
+        MatrixType& rLHS,
         VectorType& rRHS);
 
     /**
@@ -520,7 +624,14 @@ private:
         const MatrixType &rHtot,
         const MatrixType &rVtot,
         MatrixType &rKeeTot,
-        VectorType &rRHSeeTot);
+        VectorType &rRHSeeTot,
+        const double theta_advancing,
+        const double theta_receding,
+        const double zeta,
+        const double micro_length_scale,
+        const std::vector<Vector>& rCLWeights,
+        const std::vector<Matrix>& rCLShapeFunctions,
+        const std::vector<Vector>& rTangential);
 
     ///@}
     ///@name Private  Access

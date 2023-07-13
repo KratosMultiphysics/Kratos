@@ -17,6 +17,7 @@ file(GLOB_RECURSE KRATOS_DROPLET_DYNAMICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_shape_functions/*.cpp
 )
 
 ## DropletDynamics testing sources

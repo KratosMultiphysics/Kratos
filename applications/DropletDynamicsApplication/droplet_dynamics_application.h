@@ -26,7 +26,11 @@
 
 // Application includes
 #include "custom_elements/droplet_dynamics_element.h"
-#include "../FluidDynamicsApplication/custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_elements/elliptic_distance_reinitialization_element.h"
+#include "custom_utilities/custom_tetrahedra_3d_4_modified_shape_functions.h"
+#include "custom_utilities/contact_line_divide_tetrahedra_3d_4.h"
+#include "custom_processes/ed_reinitialization_process.h"
+#include "custom_utilities/two_fluid_navier_stokes_data.h"
 
 
 namespace Kratos {
@@ -181,6 +185,8 @@ private:
 
     const DropletDynamicsElement< TwoFluidNavierStokesData<2, 3> > mDropletDynamics2D3N;
     const DropletDynamicsElement< TwoFluidNavierStokesData<3, 4> > mDropletDynamics3D4N;
+
+    const EDReinitializationElement mEDReinitializationElement;
 
     ///@}
     ///@name Private Operators
