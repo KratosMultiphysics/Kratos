@@ -37,7 +37,8 @@ class MaterialPropertiesControlSystemIdentification(Control):
             "mapping_options":{
                 "use_smoothing": false,
                 "smoothing_technique":"element_node_element",
-                "num_smoothing_iterations" : 3
+                "num_smoothing_iterations" : 3,
+                "set_sensitivity_to_zero_for_nodes": []
             }
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -56,6 +57,8 @@ class MaterialPropertiesControlSystemIdentification(Control):
             raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
 
         self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
+
+        self.excluded_nodes = Kratos.Vector()# self.mapping_options["set_sensitivity_to_zero_for_nodes"].GetVector()
 
     def Initialize(self) -> None:
         ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
@@ -103,52 +106,36 @@ class MaterialPropertiesControlSystemIdentification(Control):
         if self.mapping_options["use_smoothing"].GetBool():
             if self.mapping_options["smoothing_technique"].GetString() == "element_node_element":
                 self._ElementNodeElementSmoothingForExpressionValues(
-                    container_expression=cloned_container_expression,
-                    kratos_variable=kratos_variable)
+                    container_expression=cloned_container_expression)
             else:
-                ValueError(self.mapping_options["smoothing_technique"], "Only 'element_node_element' is allowed as a smoothing_technique.")
+                raise ValueError(self.mapping_options["smoothing_technique"], "Only 'element_node_element' is allowed as a smoothing_technique.")
 
         return cloned_container_expression
 
-    def _ElementNodeElementSmoothingForExpressionValues(self, container_expression: "ContainerExpressionTypes", kratos_variable: "SupportedSensitivityFieldVariableTypes") -> None:
+    def _SetSensitivitiesToZero(self, container_expression: "ContainerExpressionTypes", list_of_ids: Kratos.Vector):
+        if list_of_ids.Size() > 0:
+            sensitivities = container_expression.Evaluate()
 
-        # num_of_nodes = len(self.model_part.Nodes)
-        # elements_per_node_list = np.ndarray(num_of_nodes)
+            # print("Sensis: ",sensitivities)
+
+            for ID in list_of_ids:
+                sensitivities[int(ID)] = 0
+
+            Kratos.Expression.CArrayExpressionIO.Read(container_expression, sensitivities)
+
+            # print("Sensis2: ",container_expression.Evaluate())
+
+    def _ElementNodeElementSmoothingForExpressionValues(self, container_expression: "ContainerExpressionTypes") -> None:
 
         neighbors_per_node = Kratos.Expression.NodalExpression(self.model_part)
         KratosOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbors_per_node)
 
-        nodal_sensitivity_expression = Kratos.Expression.NodalExpression(self.model_part)
-
-        # Kratos.Expression.VariableExpressionIO.Write(container_expression, KratosOA.YOUNG_MODULUS_SENSITIVITY)
-
-        # for i, element in enumerate(container_expression.GetModelPart().Elements):
-        #     for node in element.GetNodes():
-        #         if not hasattr(node, str(kratos_variable)):
-        #             node.AddDof(kratos_variable)
+        node_sensitivity_expression = Kratos.Expression.NodalExpression(self.model_part)
 
         for i in range(self.mapping_options["num_smoothing_iterations"].GetInt()):
-            KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(nodal_sensitivity_expression, container_expression, neighbors_per_node)
-            KratosOA.ExpressionUtils.MapNodalVariableToContainerVariable(container_expression, nodal_sensitivity_expression)
-            # elements_per_node_list *= 0.0
-
-            # for i, element in enumerate(container_expression.GetModelPart().Elements):
-            #     for node in element.GetNodes():
-            #         if elements_per_node_list[node.Id-1] == 0:
-            #             node[kratos_variable] = 0.0
-            #         node[kratos_variable] += element.GetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY)
-            #         elements_per_node_list[node.Id-1] += 1
-
-            # for element in container_expression.GetModelPart().Elements:
-            #     new_stiffness = 0.0
-            #     for node in element.GetNodes():
-            #         new_stiffness += node[kratos_variable] / elements_per_node_list[node.Id-1]
-            #     new_stiffness /= len(element.GetNodes())
-            #     element.SetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY, new_stiffness)
-
-        # smoothed_sensitivity_expression = Kratos.Expression.ElementExpression(container_expression.GetModelPart())
-        # Kratos.Expression.VariableExpressionIO.Read(smoothed_sensitivity_expression, KratosOA.YOUNG_MODULUS_SENSITIVITY)
-        # container_expression.SetExpression(smoothed_sensitivity_expression.GetExpression())
+            KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(node_sensitivity_expression, container_expression, neighbors_per_node)
+            self._SetSensitivitiesToZero(node_sensitivity_expression, self.excluded_nodes)
+            KratosOA.ExpressionUtils.MapNodalVariableToContainerVariable(container_expression, node_sensitivity_expression)
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(control_field, self.GetEmptyField()):

@@ -45,7 +45,7 @@ namespace Kratos
 
         mMeasurementData = Parameters(json_string);
         // std::cout << "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Measurements:" << std::endl
-        //   << mMeasurementData << std::endl;
+        //           << mMeasurementData << std::endl;
 
         KRATOS_ERROR_IF_NOT(mMeasurementData["load_cases"].size() == 1) << "AdjointNodalDisplacementMeasurementResidualResponseFunction: More then one load case in measurement data available. Currently only one load is supported.\nSize is: " << mMeasurementData["load_cases"].size() << std::endl;
 
@@ -55,7 +55,7 @@ namespace Kratos
         }
         else
         {
-            KRATOS_ERROR << "AdjointNodalDisplacementMeasurementResidualResponseFunction: 'response_direction' must not have a norm of 0.0." << std::endl;
+            KRATOS_ERROR << "AdjointNodalDisplacementMeasurementResidualResponseFunction: 'response_direction' must not have a norm of 1.0." << std::endl;
         }
 
         // Check if variable for traced dof is valid
@@ -74,7 +74,9 @@ namespace Kratos
                 << "AdjointNodalDisplacementMeasurementResidualResponseFunction: Specified DOF is not available at traced node." << std::endl;
         }
 
+        // std::cout << "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Start computing neighboring list..." << std::endl;
         this->ComputeNeighboringElementNodeMap();
+        std::cout << "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Finished computing neighboring list." << std::endl;
     }
 
     AdjointNodalDisplacementMeasurementResidualResponseFunction::~AdjointNodalDisplacementMeasurementResidualResponseFunction() {}

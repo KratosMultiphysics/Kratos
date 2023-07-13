@@ -176,33 +176,46 @@ class AlgorithmSystemIdentification(Algorithm):
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSystemIdentification", self._optimization_problem.GetStep()):
 
+                print("AlgorithmSystemIdentification:: Starting next Iteration")
+
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 CallOnAll(self._optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Execute)
+                print("AlgorithmSystemIdentification:: Finished execution of primals")
 
                 obj_info = self.__objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
                 self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
+                print("AlgorithmSystemIdentification:: Finished writing obj value to buffer")
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
+                print("AlgorithmSystemIdentification:: Finished sensitivity calculation")
 
                 self.ComputeSearchDirection(obj_grad)
+                print("AlgorithmSystemIdentification:: Finished search direction computation")
 
                 alpha = self.__line_search_method.ComputeStep()
                 # alpha = 0.01
+                print("AlgorithmSystemIdentification:: Finished line search")
 
                 self.ComputeControlUpdate(alpha)
+                print("AlgorithmSystemIdentification:: Finished control update computation")
 
                 self.UpdateControl()
+                print("AlgorithmSystemIdentification:: Finished update of parameters")
 
                 self.Output()
+                print("AlgorithmSystemIdentification:: Finished writing the output")
 
                 self.converged = self.__convergence_criteria.IsConverged()
+                print("AlgorithmSystemIdentification:: Finished checking for convergence")
 
                 self._optimization_problem.AdvanceStep()
+                print("AlgorithmSystemIdentification:: Finished advancing step")
 
                 self.Finalize()
+                print("AlgorithmSystemIdentification:: Finished finalize")
 
         return self.converged
 
