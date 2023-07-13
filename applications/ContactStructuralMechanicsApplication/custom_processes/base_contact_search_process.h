@@ -20,13 +20,8 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "custom_processes/normal_gap_process.h"
-
-/* Custom includes*/
-#include "custom_includes/point_item.h"
+#include "spatial_containers/specialized_spatial_search.h"
 #include "custom_conditions/paired_condition.h"
-
-/* Tree structures */
-// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
@@ -83,7 +78,7 @@ public:
     using IndexType = std::size_t;
 
     /// Type definitions for the tree
-    using PointType = PointItem<Condition>; /// Point type definition
+    using PointType = PointObject<Condition>; /// Point type definition
     using PointTypePointer = typename PointType::Pointer; /// Point type pointer definition
     using PointVector = std::vector<PointTypePointer>; /// Point vector definition
 
