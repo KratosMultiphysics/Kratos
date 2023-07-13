@@ -24,6 +24,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "utilities/geometrical_sensitivity_utility.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "StructuralMechanicsApplication/custom_elements/small_displacement.h"
 
 namespace Kratos
 {

@@ -433,7 +433,9 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         ####################################################################################################################
-        model_part.AddNodalSolutionStepVariable(LINEAR_MOMENTUM)        # to be programmed for volume coupling 
+        model_part.AddNodalSolutionStepVariable(LINEAR_MOMENTUM)        #  programmed for volume coupling 
+        model_part.AddNodalSolutionStepVariable(DEMFEM_VOLUME_COUPLING_FORCE)
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT_MULTIPLIED_MASS)
         #################################################################################################################
 
     def AddSpheresVariables(self, model_part, DEM_parameters):
