@@ -304,6 +304,8 @@ public:
         const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
         const double MonotonicReductionFactorSmoothness = r_fatigue_coefficients[8];
 
+        // KRATOS_WATCH(MonotonicReductionFactorSmoothness)
+
         if (std::abs(ReversionFactor) < 1.0) {
             // if (Se_ref > Se){
             //     KRATOS_WATCH(ReversionFactor)
@@ -342,10 +344,10 @@ public:
                 //     rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / ultimate_stress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));           
                 // }      
             } 
-            //  else {
-            //     rN_f = 1.0e15;
-            //     // rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
-            // }
+        }
+         else {
+            rN_f = 1.0e15;
+            // rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
         }
     }
     

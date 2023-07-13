@@ -199,7 +199,7 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
 
     double acumulated_max_stress_rel_error = 0.0;
     double acumulated_rev_factor_rel_error = 0.0;
-    bool fatigue_in_course = false;
+    // bool fatigue_in_course = false;
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
@@ -213,15 +213,15 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
 
         for (unsigned int i = 0; i < number_of_ip; i++) {
-            if (max_stress[i] > s_th[i]) {
-                fatigue_in_course = true;
-                acumulated_max_stress_rel_error += max_stress_rel_error[i];
-                acumulated_rev_factor_rel_error += rev_factor_rel_error[i];
-            }
+            // if (max_stress[i] > s_th[i]) {
+            //     fatigue_in_course = true;
+            // }
+            acumulated_max_stress_rel_error += max_stress_rel_error[i];
+            acumulated_rev_factor_rel_error += rev_factor_rel_error[i];
         }
     }
 
-    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 3e-3 && acumulated_rev_factor_rel_error < 3e-3 && fatigue_in_course)) {
+    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4) || (DamageIndicator && acumulated_max_stress_rel_error < 3e-3 && acumulated_rev_factor_rel_error < 3e-3)) {
         rAdvancingStrategy = true;
     }
 }
@@ -281,19 +281,19 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
                 r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
                 for (unsigned int i = 0; i < number_of_ip; i++)
                 {
-                    if (max_stress[i] > s_th[i])
-                    { // This is used to guarantee that only IP in fatigue conditions are taken into account
-                        double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
-                        double user_advancing_cycles_conversion_to_time = user_advancing_cycles * period[i];
-                        if (Nf_conversion_to_time < min_time_increment)
-                        {
-                            min_time_increment = Nf_conversion_to_time;
-                        }
-                        if (user_advancing_cycles_conversion_to_time < min_time_increment)
-                        {
-                            min_time_increment = user_advancing_cycles_conversion_to_time;
-                        }
+                    // if (max_stress[i] > s_th[i])
+                    // { // This is used to guarantee that only IP in fatigue conditions are taken into account
+                    double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
+                    double user_advancing_cycles_conversion_to_time = user_advancing_cycles * period[i];
+                    if (Nf_conversion_to_time < min_time_increment)
+                    {
+                        min_time_increment = Nf_conversion_to_time;
                     }
+                    if (user_advancing_cycles_conversion_to_time < min_time_increment)
+                    {
+                        min_time_increment = user_advancing_cycles_conversion_to_time;
+                    }
+                    // }
                 }
             }
         }else{
@@ -304,14 +304,14 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
                 r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
                 for (unsigned int i = 0; i < number_of_ip; i++)
                 {
-                    if (max_stress[i] > s_th[i])
-                    { // This is used to guarantee that only IP in fatigue conditions are taken into account
-                        double user_advancing_cycles_conversion_to_time = user_advancing_cycles_damage * period[i];
-                        if (user_advancing_cycles_conversion_to_time < min_time_increment)
-                        {
-                            min_time_increment = user_advancing_cycles_conversion_to_time;
-                        }
+                    // if (max_stress[i] > s_th[i])
+                    // { // This is used to guarantee that only IP in fatigue conditions are taken into account
+                    double user_advancing_cycles_conversion_to_time = user_advancing_cycles_damage * period[i];
+                    if (user_advancing_cycles_conversion_to_time < min_time_increment)
+                    {
+                        min_time_increment = user_advancing_cycles_conversion_to_time;
                     }
+                    // }
                 }
             }
         }
