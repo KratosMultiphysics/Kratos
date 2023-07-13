@@ -276,8 +276,11 @@ void IsotropicDamageCohesive3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariab
     rVariables.OldEquivalentStrain = mOldStateVariable[1] + rVariables.BetaEqStrainShearFactor * mOldStateVariable[0];
 
     // Compute the vector with the derivatives of the equivalent strain wrt to the components of the strain vector
-    rVariables.DerivativeEquivalentStrain[0] = rVariables.BetaEqStrainShearFactor * StrainVector[0] / resShear;
-    rVariables.DerivativeEquivalentStrain[1] = rVariables.BetaEqStrainShearFactor * StrainVector[1] / resShear;
+    rVariables.DerivativeEquivalentStrain = ZeroVector(3);
+    if (resShear > 0.0) {
+        rVariables.DerivativeEquivalentStrain[0] = rVariables.BetaEqStrainShearFactor * StrainVector[0] / resShear;
+        rVariables.DerivativeEquivalentStrain[1] = rVariables.BetaEqStrainShearFactor * StrainVector[1] / resShear;
+    }
     rVariables.DerivativeEquivalentStrain[2] = 1.0;
 }
 
