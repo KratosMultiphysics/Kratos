@@ -83,10 +83,9 @@ namespace Kratos {
     private:
         ///@name Member Variables
         ///@{
-
             ModelPart& mrModelPart;
             Parameters mParameters;
-            std::vector<kratos::unique_ptr<SetMovingLoadProcess>> mMovingPointLoadsProcesses;
+            std::vector<Kratos::unique_ptr<SetMovingLoadProcess>> mMovingPointLoadsProcesses;
         ///@}
         ///
         ///@name Operations

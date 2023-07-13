@@ -76,9 +76,9 @@ namespace Kratos
             parameters_moving_load.AddDouble("offset", offset);
 
             // auto r_moving_point_process = Kratos::unique_ptr<SetMovingLoadProcess>( new SetMovingLoadProcess(new_cloned_model_part, parameters_moving_load));
-            auto r_moving_point_process = Kratos::make_unique< SetMovingLoadProcess>(new_cloned_model_part, parameters_moving_load);
+            auto moving_point_process = Kratos::make_unique< SetMovingLoadProcess>(new_cloned_model_part, parameters_moving_load);
 
-            mMovingPointLoadsProcesses.push_back(std::move(r_moving_point_process));
+            mMovingPointLoadsProcesses.push_back(std::move(moving_point_process));
            
         }
 
@@ -129,7 +129,7 @@ namespace Kratos
     {
         for (auto& rMovingPointLoad : mMovingPointLoadsProcesses)
         {
-            rMovingPointLoad.ExecuteInitialize();
+            rMovingPointLoad->ExecuteInitialize();
         }
     }
 
@@ -137,7 +137,7 @@ namespace Kratos
     {
         for (auto& rMovingPointLoad: mMovingPointLoadsProcesses)
         {
-            rMovingPointLoad.ExecuteInitializeSolutionStep();
+            rMovingPointLoad->ExecuteInitializeSolutionStep();
         }
     };
 
@@ -145,7 +145,7 @@ namespace Kratos
     {
         for (auto& rMovingPointLoad : mMovingPointLoadsProcesses)
         {
-            rMovingPointLoad.ExecuteFinalizeSolutionStep();
+            rMovingPointLoad->ExecuteFinalizeSolutionStep();
         }
 
     };
