@@ -45,7 +45,7 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void BoussinesqBassetHistoryForceLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void BoussinesqBassetHistoryForceLaw::ComputeForce(Geometry<Node >& r_geometry,
                                                        const double reynolds_number,
                                                        double particle_radius,
                                                        double fluid_density,
@@ -58,7 +58,7 @@ namespace Kratos {
         const double delta_time = r_current_process_info[DELTA_TIME];
         int n_steps_per_quad_step = r_current_process_info[TIME_STEPS_PER_QUADRATURE_STEP];
         const double quadrature_delta_time = n_steps_per_quad_step * delta_time;
-        Node<3>& node = r_geometry[0];
+        Node& node = r_geometry[0];
 
         if (r_current_process_info[TIME_STEPS] >= r_current_process_info[NUMBER_OF_INIT_BASSET_STEPS]){
             DenseVector<double>& historic_integrands = node.GetValue(BASSET_HISTORIC_INTEGRANDS);

@@ -40,7 +40,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(VorticityUtilities);
 
     /// Type for an array of shape function gradient matrices
-    typedef Geometry< Node<3> >::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    typedef Geometry< Node >::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -67,17 +67,17 @@ public:
     ///@{
 
     static void CalculateQValue(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
         std::vector<double>& rQValues);
 
     static void CalculateVorticityMagnitude(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
         std::vector<double>& rVorticityMagnitudes);
 
     static void CalculateVorticityVector(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
         std::vector<array_1d<double,3>>& rVorticities);
 

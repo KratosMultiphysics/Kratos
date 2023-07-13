@@ -87,7 +87,11 @@ class HRomTrainingUtility(object):
         model_part_name = self.solver.settings["model_part_name"].GetString()
         model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
         # computing_model_part = self.solver.GetComputingModelPart()
-        computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
+        #computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
+        aux_model = KratosMultiphysics.Model()
+        computing_model_part = aux_model.CreateModelPart("main")
+        model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
+        model_part_io.ReadModelPart(computing_model_part)
 
         # Create a new model with the HROM main model part
         # This is intentionally done in order to completely emulate the origin model part
@@ -244,12 +248,12 @@ class HRomTrainingUtility(object):
 
     def __CreateDictionaryWithRomElementsAndWeights(self, weights = None, indexes=None, number_of_elements = None):
 
+        if number_of_elements is None:
+            number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
         if weights is None:
             weights = np.r_[np.load('HROM_ElementWeights.npy'),np.load('HROM_ConditionWeights.npy')]
         if indexes is None:
-            indexes = np.r_[np.load('HROM_ElementIds.npy'),np.load('HROM_ConditionIds.npy')]
-        if number_of_elements is None:
-            number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+            indexes = np.r_[np.load('HROM_ElementIds.npy'),np.load('HROM_ConditionIds.npy')+number_of_elements]
 
         hrom_weights = {}
         hrom_weights["Elements"] = {}

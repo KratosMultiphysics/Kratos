@@ -159,10 +159,10 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
     std::vector<Vector> NodalStressVector(NumNodes); //List with stresses at each node
     std::vector<Matrix> NodalStressTensor(NumNodes);
 
-    for(unsigned int Node = 0; Node < NumNodes; Node ++)
+    for(unsigned int iNode = 0; iNode < NumNodes; iNode ++)
     {
-        NodalStressVector[Node].resize(VoigtSize);
-        NodalStressTensor[Node].resize(Dim,Dim);
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(Dim,Dim);
     }
 
     if (Dim == 2)

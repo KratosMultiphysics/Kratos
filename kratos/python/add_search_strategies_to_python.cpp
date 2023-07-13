@@ -20,6 +20,10 @@
 #include "python/add_search_strategies_to_python.h"
 #include "utilities/parallel_utilities.h"
 #include "spatial_containers/spatial_search.h"
+#include "spatial_containers/specialized_spatial_search.h"
+#include "spatial_containers/specialized_spatial_search_factory.h"
+#include "spatial_containers/geometrical_objects_bins.h"
+#include "spatial_containers/spatial_search_result.h"
 
 namespace Kratos::Python
 {
@@ -70,12 +74,61 @@ void CopyRadiusArrayToPython(
     });
 }
 
+/**
+ * @brief Copies a Python list of radius to a C++ radius array.
+ * @param rListOfRadius list of radius to copy
+ * @return Radius array with copied radius
+ */
+SpatialSearch::RadiusArrayType CopyRadiusArrayToPython(const pybind11::list& rListOfRadius)
+{
+    // Create the radius array
+    SpatialSearch::RadiusArrayType radius_array(rListOfRadius.size());
+    CopyRadiusArrayToPython(rListOfRadius, radius_array);
+    return radius_array;
+}
+
+/**
+ * @brief Generates a tuple of two python lists containing the elements and distances of a spatial search result.
+ * @param rResults a reference to a vector containing the result elements to be copied to the python list
+ * @param rDistances a reference to a vector containing the distances to be copied to the python list
+ * @return A tuple containing two python lists, the first one containing the result elements and the second one containing the distances
+ * @tparam TClass The type of the class.
+ */
+template<class TClass>
+std::tuple<pybind11::list, pybind11::list> GenerateSpatialSearchSolutionTuple(
+    const TClass& rResults, 
+    SpatialSearch::VectorDistanceType& rDistances
+    )
+{
+    std::tuple<pybind11::list, pybind11::list> results_tuple;
+    GenerateListFromVectorOfVector(std::get<0>(results_tuple), rResults);
+    GenerateListFromVectorOfVector(std::get<1>(results_tuple), rDistances);
+    return results_tuple;
+}
+
+/**
+ * @brief Defines a specialized spatial search module in Pybind11.
+ * @param m The Pybind11 module to define the specialized spatial search in.
+ * @param rClassName The name of the specialized spatial search class.
+ */
+template <SpatialContainer TSearchBackend>
+void DefineSpecializedSpatialSearch(pybind11::module& m, const std::string& rClassName)
+{
+    using SpatialSearchType = SpecializedSpatialSearch<TSearchBackend>;
+    using SpatialSearchPointerType = typename SpecializedSpatialSearch<TSearchBackend>::Pointer;
+    using BaseSpatialSearchType = SpatialSearch;
+
+    pybind11::class_<SpatialSearchType, SpatialSearchPointerType, BaseSpatialSearchType>(m, rClassName.c_str())
+    .def(pybind11::init<>())
+    .def(pybind11::init<Parameters>())
+    ;
+}
+
 void AddSearchStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
     /// The variables of the spatial search
-    using RadiusArrayType = SpatialSearch::RadiusArrayType;
     using VectorResultElementsContainerType = SpatialSearch::VectorResultElementsContainerType;
     using VectorResultNodesContainerType = SpatialSearch::VectorResultNodesContainerType;
     using VectorResultConditionsContainerType = SpatialSearch::VectorResultConditionsContainerType;
@@ -89,533 +142,454 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultElementsContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rModelPart.NumberOfElements()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
 
         // Perform the search
-        self.SearchElementsInRadiusExclusive(rModelPart, radius_array, results, distances);
+        VectorResultElementsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchElementsInRadiusExclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
     const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultElementsContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
 
         // Perform the search
-        self.SearchElementsInRadiusExclusive(rModelPart, rInputElements, radius_array, results, distances);
+        VectorResultElementsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchElementsInRadiusExclusive(rModelPart, rInputElements, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self,
     const ElementsContainerType& rStructureElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultElementsContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rStructureElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
 
         // Perform the search
-        self.SearchElementsInRadiusExclusive(rStructureElements, radius_array, results, distances);
+        VectorResultElementsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchElementsInRadiusExclusive(rStructureElements, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchElementsInRadiusExclusive", [&](SpatialSearch& self,
     const ElementsContainerType& rStructureElements,
     const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultElementsContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
 
         // Perform the search
-        self.SearchElementsInRadiusExclusive(rStructureElements, rInputElements, radius_array, results, distances);
+        VectorResultElementsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchElementsInRadiusExclusive(rStructureElements, rInputElements, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rModelPart.NumberOfElements()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
 
         // Perform the search
-        self.SearchElementsInRadiusInclusive(rModelPart, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchElementsInRadiusInclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
     const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
 
         // Perform the search
-        self.SearchElementsInRadiusInclusive(rModelPart, rInputElements, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchElementsInRadiusInclusive(rModelPart, rInputElements, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self,
     const ElementsContainerType& rStructureElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rStructureElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
 
         // Perform the search
-        self.SearchElementsInRadiusInclusive(rStructureElements, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchElementsInRadiusInclusive(rStructureElements, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchElementsInRadiusInclusive", [&](SpatialSearch& self,
     const ElementsContainerType& rStructureElements,
     const ElementsContainerType& rInputElements, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputElements.size()) << "The size of the radius array must be equal to the size of the input elements array" << std::endl;
 
         // Perform the search
-        self.SearchElementsInRadiusInclusive(rStructureElements, rInputElements, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchElementsInRadiusInclusive(rStructureElements, rInputElements, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rModelPart.NumberOfNodes()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
 
         // Perform the search
-        self.SearchNodesInRadiusExclusive(rModelPart, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchNodesInRadiusExclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
     const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
 
         // Perform the search
-        self.SearchNodesInRadiusExclusive(rModelPart, rInputNodes, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchNodesInRadiusExclusive(rModelPart, rInputNodes, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self,
     const NodesContainerType& rStructureNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rStructureNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
 
         // Perform the search
-        self.SearchNodesInRadiusExclusive(rStructureNodes, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchNodesInRadiusExclusive(rStructureNodes, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchNodesInRadiusExclusive", [&](SpatialSearch& self,
     const NodesContainerType& rStructureNodes,
     const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
 
         // Perform the search
-        self.SearchNodesInRadiusExclusive(rStructureNodes, rInputNodes, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchNodesInRadiusExclusive(rStructureNodes, rInputNodes, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rModelPart.NumberOfNodes()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
 
         // Perform the search
-        self.SearchNodesInRadiusInclusive(rModelPart, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchNodesInRadiusInclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
     const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
 
         // Perform the search
-        self.SearchNodesInRadiusInclusive(rModelPart, rInputNodes, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchNodesInRadiusInclusive(rModelPart, rInputNodes, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self,
     const NodesContainerType& rStructureNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rStructureNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
 
         // Perform the search
-        self.SearchNodesInRadiusInclusive(rStructureNodes, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchNodesInRadiusInclusive(rStructureNodes, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchNodesInRadiusInclusive", [&](SpatialSearch& self,
     const NodesContainerType& rStructureNodes,
     const NodesContainerType& rInputNodes, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputNodes.size()) << "The size of the radius array must be equal to the size of the input nodes array" << std::endl;
 
         // Perform the search
-        self.SearchNodesInRadiusInclusive(rStructureNodes, rInputNodes, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchNodesInRadiusInclusive(rStructureNodes, rInputNodes, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultConditionsContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rModelPart.NumberOfConditions()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
 
         // Perform the search
-        self.SearchConditionsInRadiusExclusive(rModelPart, radius_array, results, distances);
+        VectorResultConditionsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchConditionsInRadiusExclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
     const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultConditionsContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
 
         // Perform the search
-        self.SearchConditionsInRadiusExclusive(rModelPart, rInputConditions, radius_array, results, distances);
+        VectorResultConditionsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchConditionsInRadiusExclusive(rModelPart, rInputConditions, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self,
     const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultConditionsContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rStructureConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
 
         // Perform the search
-        self.SearchConditionsInRadiusExclusive(rStructureConditions, radius_array, results, distances);
+        VectorResultConditionsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchConditionsInRadiusExclusive(rStructureConditions, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchConditionsInRadiusExclusive", [&](SpatialSearch& self,
     const ConditionsContainerType& rStructureConditions,
     const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultConditionsContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
 
         // Perform the search
-        self.SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, radius_array, results, distances);
+        VectorResultConditionsContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchConditionsInRadiusExclusive(rStructureConditions, rInputConditions, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rModelPart.NumberOfConditions()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
 
         // Perform the search
-        self.SearchConditionsInRadiusInclusive(rModelPart, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchConditionsInRadiusInclusive(rModelPart, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self, ModelPart& rModelPart,
     const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
 
         // Perform the search
-        self.SearchConditionsInRadiusInclusive(rModelPart, rInputConditions, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchConditionsInRadiusInclusive(rModelPart, rInputConditions, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self,
     const ConditionsContainerType& rStructureConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rStructureConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
 
         // Perform the search
-        self.SearchConditionsInRadiusInclusive(rStructureConditions, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchConditionsInRadiusInclusive(rStructureConditions, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
     })
     .def("SearchConditionsInRadiusInclusive", [&](SpatialSearch& self,
     const ConditionsContainerType& rStructureConditions,
     const ConditionsContainerType& rInputConditions, py::list& rListOfRadius) {
         // Get the size of the radius array
         const std::size_t size_array = rListOfRadius.size();
-
-        // Create the radius array
-        RadiusArrayType radius_array(size_array);
-        CopyRadiusArrayToPython(rListOfRadius, radius_array);
-
-        // Create the results and distances arrays
-        VectorResultNodesContainerType results(size_array);
-        VectorDistanceType distances(size_array);
+        KRATOS_DEBUG_ERROR_IF(size_array != rInputConditions.size()) << "The size of the radius array must be equal to the size of the input conditions array" << std::endl;
 
         // Perform the search
-        self.SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, radius_array, results, distances);
+        VectorResultNodesContainerType results(size_array);
+        VectorDistanceType distances(size_array);
+        self.SearchConditionsInRadiusInclusive(rStructureConditions, rInputConditions, CopyRadiusArrayToPython(rListOfRadius), results, distances);
 
         // Copy the results to the python list
-        std::tuple<py::list, py::list> results_tuple;
-        GenerateListFromVectorOfVector(std::get<0>(results_tuple), results);
-        GenerateListFromVectorOfVector(std::get<1>(results_tuple), distances);
-        return results_tuple;
+        return GenerateSpatialSearchSolutionTuple(results, distances);
+    })
+    ;
+
+    // The factory of the search strategies
+    py::class_<SpecializedSpatialSearchFactory, SpecializedSpatialSearchFactory::Pointer, SpatialSearch>(m, "SpecializedSpatialSearch")
+    .def(py::init< >())
+    .def(py::init<Parameters>())
+    ;
+
+    // Register the specializations
+    DefineSpecializedSpatialSearch<SpatialContainer::KDTree>(m, "SpatialSearchKDTree");
+    DefineSpecializedSpatialSearch<SpatialContainer::Octree>(m, "SpatialSearchOctree");
+    DefineSpecializedSpatialSearch<SpatialContainer::BinsStatic>(m, "SpatialSearchBinsStatic");
+    DefineSpecializedSpatialSearch<SpatialContainer::BinsDynamic>(m, "SpatialSearchBinsDynamic");
+
+    using ResultType = SpatialSearchResult<GeometricalObject>;
+
+    py::class_<ResultType, ResultType::Pointer>(m, "ResultType")
+    .def(py::init< >())
+    .def(py::init<GeometricalObject*>())
+    .def("Reset", &ResultType::Reset)
+    .def("Get", [&](ResultType& self) {return self.Get().get();})
+    .def("Set", &ResultType::Set)
+    .def("GetDistance", &ResultType::GetDistance)
+    .def("SetDistance", &ResultType::SetDistance)
+    .def("IsObjectFound", &ResultType::IsObjectFound)
+    .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
+    ;
+
+    using NodesContainerType = ModelPart::NodesContainerType;
+    using ElementsContainerType = ModelPart::ElementsContainerType;
+    using ConditionsContainerType = ModelPart::ConditionsContainerType;
+
+    py::class_<GeometricalObjectsBins, GeometricalObjectsBins::Pointer>(m, "GeometricalObjectsBins")
+    .def(py::init<ElementsContainerType&>())
+    .def(py::init<ConditionsContainerType&>())
+    .def(py::init<ElementsContainerType&, double>())
+    .def(py::init<ConditionsContainerType&, double>())
+    .def("GetBoundingBox", &GeometricalObjectsBins::GetBoundingBox)
+    .def("GetCellSizes", &GeometricalObjectsBins::GetCellSizes)
+    .def("GetNumberOfCells", &GeometricalObjectsBins::GetNumberOfCells)
+    .def("GetTotalNumberOfCells", &GeometricalObjectsBins::GetTotalNumberOfCells)
+    .def("SearchInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        std::vector<ResultType> results;
+        self.SearchInRadius(rPoint, Radius, results);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("SearchInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        std::vector<std::vector<ResultType>> results;
+        self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            py::list sub_list_results;
+            for (auto& r_sub_result : r_result) {
+                sub_list_results.append(r_sub_result);
+            }
+            list_results.append(sub_list_results);
+        }
+        return list_results;
+    })
+    .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        return self.SearchNearestInRadius(rPoint, Radius);
+    })
+    .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        std::vector<ResultType> results = self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("SearchNearest", [&](GeometricalObjectsBins& self, const Point& rPoint) {
+        // Perform the search
+        return self.SearchNearest(rPoint);
+    })
+    .def("SearchNearest", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
+        // Perform the search
+        std::vector<ResultType> results = self.SearchNearest(rNodes.begin(), rNodes.end());
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
+    })
+    .def("SearchIsInside", [&](GeometricalObjectsBins& self, const Point& rPoint) {
+        // Perform the search
+        return self.SearchIsInside(rPoint);
+    })
+    .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
+        // Perform the search
+        std::vector<ResultType> results = self.SearchIsInside(rNodes.begin(), rNodes.end());
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
     })
     ;
 }
 
 }  // namespace Kratos::Python.
-

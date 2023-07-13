@@ -28,11 +28,11 @@ namespace Testing
 KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTriangle, KratosCoreFastSuite)
 {
     // Set triangle geometry
-    Geometry<Node<3>>::PointsArrayType nodes;
-    nodes.push_back(Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(2, 1.0, 0.0, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.5, 0.866025404, 0.0)));
-    const auto p_triangle = Geometry<Node<3>>::Pointer(new Triangle2D3<Node<3>>(nodes));
+    Geometry<Node>::PointsArrayType nodes;
+    nodes.push_back(Node::Pointer(new Node(1, 0.0, 0.0, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(2, 1.0, 0.0, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(3, 0.5, 0.866025404, 0.0)));
+    const auto p_triangle = Geometry<Node>::Pointer(new Triangle2D3<Node>(nodes));
 
     // Call the triangle metric calculator utility
     double h_ref, met_inf, met_sup;
@@ -53,11 +53,11 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTriangle, KratosCoreFastSui
 KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTriangle2D3N, KratosCoreFastSuite)
 {
     // Set triangle geometry
-    Geometry<Node<3>>::PointsArrayType nodes;
-    nodes.push_back(Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(2, 1.0, 0.0, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.0, 1.0, 0.0)));
-    const auto p_triangle = Geometry<Node<3>>::Pointer(new Triangle2D3<Node<3>>(nodes));
+    Geometry<Node>::PointsArrayType nodes;
+    nodes.push_back(Node::Pointer(new Node(1, 0.0, 0.0, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(2, 1.0, 0.0, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(3, 0.0, 1.0, 0.0)));
+    const auto p_triangle = Geometry<Node>::Pointer(new Triangle2D3<Node>(nodes));
 
     // Call the triangle metric calculator utility
     double h_ref, met_inf, met_sup;
@@ -78,12 +78,12 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTriangle2D3N, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTetrahedra3D4N, KratosCoreFastSuite)
 {
     // Set triangle geometry
-    Geometry<Node<3>>::PointsArrayType nodes;
-    nodes.push_back(Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(2, 0.5*std::sqrt(3), 0.5, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.5*std::sqrt(3), -0.5, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(3, std::sqrt(3) / 3.0, 0.0, std::sqrt(6) / 3.0)));
-    const auto p_tetrahedra = Geometry<Node<3>>::Pointer(new Tetrahedra3D4<Node<3>>(nodes));
+    Geometry<Node>::PointsArrayType nodes;
+    nodes.push_back(Node::Pointer(new Node(1, 0.0, 0.0, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(2, 0.5*std::sqrt(3), 0.5, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(3, 0.5*std::sqrt(3), -0.5, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(3, std::sqrt(3) / 3.0, 0.0, std::sqrt(6) / 3.0)));
+    const auto p_tetrahedra = Geometry<Node>::Pointer(new Tetrahedra3D4<Node>(nodes));
 
     // Call the triangle metric calculator utility
     double h_ref, met_inf, met_sup;
@@ -105,12 +105,12 @@ KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataEquilateralTetrahedra3D4N, KratosCoreF
 KRATOS_TEST_CASE_IN_SUITE(MetricTensorDataUnitTetrahedra3D4N, KratosCoreFastSuite)
 {
     // Set triangle geometry
-    Geometry<Node<3>>::PointsArrayType nodes;
-    nodes.push_back(Node<3>::Pointer(new Node<3>(1, 0.0, 0.0, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(2, 1.0, 0.0, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.0, 1.0, 0.0)));
-    nodes.push_back(Node<3>::Pointer(new Node<3>(3, 0.0, 0.0, 1.0)));
-    const auto p_tetrahedra = Geometry<Node<3>>::Pointer(new Tetrahedra3D4<Node<3>>(nodes));
+    Geometry<Node>::PointsArrayType nodes;
+    nodes.push_back(Node::Pointer(new Node(1, 0.0, 0.0, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(2, 1.0, 0.0, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(3, 0.0, 1.0, 0.0)));
+    nodes.push_back(Node::Pointer(new Node(3, 0.0, 0.0, 1.0)));
+    const auto p_tetrahedra = Geometry<Node>::Pointer(new Tetrahedra3D4<Node>(nodes));
 
     // Call the triangle metric calculator utility
     double h_ref, met_inf, met_sup;

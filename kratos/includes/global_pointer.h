@@ -4,23 +4,25 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //
 
-#if !defined(KRATOS_GLOBAL_POINTER_H_INCLUDED )
-#define  KRATOS_GLOBAL_POINTER_H_INCLUDED
+#pragma once
 
+// System includes
 #include <iostream>
 
+// External includes
+
+// Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/key_hash.h"
+
 namespace Kratos {
-
-
 
 template<class TDataType>
 class GlobalPointer {
@@ -194,6 +196,21 @@ public:
     return mDataPointer;
   }
 
+  /**
+   * @brief Overloads the '==' operator to compare two GlobalPointer objects of the
+   * same template type. Returns true if the underlying pointers are equal.
+   * @param rOther The GlobalPointer object to be compared.
+   * @return true if the underlying pointers are equal, false otherwise.
+   */
+  bool operator==(const GlobalPointer& rOther)
+  {
+#ifdef KRATOS_USING_MPI
+    return this->get() == rOther.get() && this->GetRank() == rOther.GetRank();
+#else 
+    return this->get() == rOther.get();
+#endif
+  }
+
   /** Fills buffer with the GlobalPoiter data
    * Fills buffer with the GlobalPoiter data
    * @param buffer Object data buffer
@@ -225,8 +242,6 @@ public:
   private:
 
   friend class Serializer;
-
-
 
   void save(Serializer& rSerializer) const
   {
@@ -343,5 +358,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 
 } // namespace Kratos
-
-#endif // KRATOS_GLOBAL_POINTER_H_INCLUDED

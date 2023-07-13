@@ -114,7 +114,7 @@ public:
 
     typedef PointerVectorSet<DofType> DofsArrayType;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
@@ -1091,7 +1091,7 @@ public:
 
     /// Creates new element with a nodes list.
     ElementType::Pointer CreateNewElement(std::string ElementName,
-        IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
+        IndexType Id, Geometry< Node >::PointsArrayType pElementNodes,
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /// Creates new element with pointer to geometry.
@@ -1283,7 +1283,7 @@ public:
 
     /// Creates new condition with a nodes list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
-            IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
+            IndexType Id, Geometry< Node >::PointsArrayType pConditionNodes,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /// Creates new condition with pointer to geometry.

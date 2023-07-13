@@ -7,7 +7,6 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
     from KratosMultiphysics import ConstitutiveLawsApplication
 
-
 class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def setUp(self):
         pass
@@ -128,9 +127,9 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
     def _create_strategy(self, mp, builder_type, linearize_on_previous_iteration):
         # Define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        if(builder_type == "elimination_builder"):
+        if builder_type == "elimination_builder":
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
-        elif(builder_type == "block_builder"):
+        elif builder_type == "block_builder":
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
             raise Exception("builder_type unknown")
@@ -237,7 +236,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
                     self.assertLess(check, tolerance)
 
         #finally compute stress
-        if(dim == 2):
+        if dim == 2:
             #here assume plane stress
             c1 = E / (1.00 - NU*NU);
             c2 = c1 * NU;
@@ -469,7 +468,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         linearize_on_old_iteration = False
         self._TL_2D_triangle(builder_type, linearize_on_old_iteration,6 )
 
-
     def _TL_2D_triangle_10N(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 2
         current_model = KratosMultiphysics.Model()
@@ -550,7 +548,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
         self._TL_2D_triangle_10N(builder_type, linearize_on_old_iteration,8 )
-
 
     def _TL_2D_triangle_15N(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 2
@@ -635,7 +632,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         linearize_on_old_iteration = False
         self._TL_2D_triangle_15N(builder_type, linearize_on_old_iteration,8 )
 
-
     def _TL_2D_quadrilateral(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 2
         current_model = KratosMultiphysics.Model()
@@ -693,7 +689,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
         self._TL_2D_quadrilateral(builder_type, linearize_on_old_iteration,6 )
-
 
     def _TL_3D_tetra(self, builder_and_type, linearize_on_old_iteration, expected_iterations):
         dim = 3
@@ -858,7 +853,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
         bcs.AddNodes([1,6,7,8,13,14,15,16])
 
-
         #create Element
         mp.CreateNewElement("TotalLagrangianElement3D8N", 1,[10,5,2,3,13,7,1,6], mp.GetProperties()[1])
         mp.CreateNewElement("TotalLagrangianElement3D8N", 2,[12,9,5,10,16,15,7,13], mp.GetProperties()[1])
@@ -958,7 +952,6 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         builder_type = "elimination_builder"
         linearize_on_old_iteration = False
         self._UL_2D_triangle(builder_type, linearize_on_old_iteration,[5, 5] )
-
 
     def _UL_2D_triangle_10N(self, builder_and_type, linearize_on_old_iteration,expected_iterations):
         dim = 2

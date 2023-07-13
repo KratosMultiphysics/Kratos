@@ -21,7 +21,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -29,12 +28,11 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Point                                     PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
+    using PointType = Point;
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<PointType>;
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod   IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
 ///@}
 ///@name  Enum's
@@ -66,40 +64,58 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition );
 
-    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation> MortarBaseType;
+    /// The base type for the mortar contact condition
+    using MortarBaseType = MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL, TNormalVariation>;
 
-    typedef AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
+    /// The base type for the augmented Lagrangian method with frictional mortar contact condition
+    using BaseType = AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>;
 
-    typedef typename MortarBaseType::MortarConditionMatrices                                                   MortarConditionMatrices;
+    /// Type for the matrices used in the mortar contact condition
+    using MortarConditionMatrices = typename MortarBaseType::MortarConditionMatrices;
 
-    typedef typename MortarBaseType::GeneralVariables                                                                 GeneralVariables;
+    /// Type for the general variables used in the mortar contact condition
+    using GeneralVariables = typename MortarBaseType::GeneralVariables;
 
-    typedef typename MortarBaseType::AeData                                                                                     AeData;
+    /// Type for the augmented Lagrangian data used in the mortar contact condition
+    using AeData = typename MortarBaseType::AeData;
 
-    typedef Condition                                                                                                ConditionBaseType;
+    /// The base type for the condition
+    using ConditionBaseType = Condition;
 
-    typedef typename ConditionBaseType::VectorType                                                                          VectorType;
+    /// The vector type used in the condition
+    using VectorType = typename ConditionBaseType::VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                                                          MatrixType;
+    /// The matrix type used in the condition
+    using MatrixType = typename ConditionBaseType::MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                                                            IndexType;
+    /// The index type used in the condition
+    using IndexType = typename ConditionBaseType::IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                                                      GeometryPointerType;
+    /// Pointer type for the geometry of the condition
+    using GeometryPointerType = typename ConditionBaseType::GeometryType::Pointer;
 
-    typedef typename ConditionBaseType::NodesArrayType                                                                  NodesArrayType;
+    /// The array type for the nodes of the condition
+    using NodesArrayType = typename ConditionBaseType::NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer                                                  PropertiesPointerType;
+    /// Pointer type for the properties of the condition
+    using PropertiesPointerType = typename ConditionBaseType::PropertiesType::Pointer;
 
-    typedef typename ConditionBaseType::EquationIdVectorType                                                      EquationIdVectorType;
+    /// Type for the vector of equation IDs of the condition
+    using EquationIdVectorType = typename ConditionBaseType::EquationIdVectorType;
 
-    typedef typename ConditionBaseType::DofsVectorType                                                                  DofsVectorType;
+    /// Type for the vector of DOFs of the condition
+    using DofsVectorType = typename ConditionBaseType::DofsVectorType;
 
-    typedef typename std::vector<array_1d<PointType,2>>                                                         ConditionArrayListType;
+    /// Type for the array of conditions with points
+    using ConditionArrayListType = std::vector<array_1d<PointType, 2>>;
 
-    typedef Line2D2<Point>                                                                                           DecompositionType;
+    /// The decomposition type for the condition
+    using DecompositionType = Line2D2<Point>;
 
-    typedef DerivativeDataFrictional<2, TNumNodes>                                                                  DerivativeDataType;
+    /// Type for the derivative data used in frictional mortar contact condition
+    using DerivativeDataType = DerivativeDataFrictional<2, TNumNodes>;
 
+    /// Matrix size definition
     static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
 
     ///@}

@@ -87,8 +87,8 @@ const Parameters AssignScalarFieldToEntitiesProcess<TEntity>::GetDefaultParamete
 /***********************************************************************************/
 
 template<>
-void AssignScalarFieldToEntitiesProcess<Node<3>>::CallFunction(
-    const typename Node<3>::Pointer& pEntity,
+void AssignScalarFieldToEntitiesProcess<Node>::CallFunction(
+    const typename Node::Pointer& pEntity,
     const double Time,
     Vector& rValue
     )
@@ -152,8 +152,8 @@ void AssignScalarFieldToEntitiesProcess<Element>::CallFunction(
 /***********************************************************************************/
 
 template<>
-void AssignScalarFieldToEntitiesProcess<Node<3>>::CallFunctionComponents(
-    const typename Node<3>::Pointer& pEntity,
+void AssignScalarFieldToEntitiesProcess<Node>::CallFunctionComponents(
+    const typename Node::Pointer& pEntity,
     const double Time,
     double& rValue
     )
@@ -197,8 +197,8 @@ void AssignScalarFieldToEntitiesProcess<Element>::CallFunctionComponents(
 /***********************************************************************************/
 
 template<>
-void AssignScalarFieldToEntitiesProcess<Node<3>>::CallFunctionLocalSystem(
-    const typename Node<3>::Pointer& pEntity,
+void AssignScalarFieldToEntitiesProcess<Node>::CallFunctionLocalSystem(
+    const typename Node::Pointer& pEntity,
     const double Time,
     Vector& rValue
     )
@@ -264,8 +264,8 @@ void AssignScalarFieldToEntitiesProcess<Element>::CallFunctionLocalSystem(
 /***********************************************************************************/
 
 template<>
-void AssignScalarFieldToEntitiesProcess<Node<3>>::CallFunctionLocalSystemComponents(
-    const typename Node<3>::Pointer& pEntity,
+void AssignScalarFieldToEntitiesProcess<Node>::CallFunctionLocalSystemComponents(
+    const typename Node::Pointer& pEntity,
     const double Time,
     double& rValue
     )
@@ -311,8 +311,8 @@ void AssignScalarFieldToEntitiesProcess<Element>::CallFunctionLocalSystemCompone
 /***********************************************************************************/
 
 template<>
-void AssignScalarFieldToEntitiesProcess<Node<3>>::AssignTimeDependentValue(
-    const typename Node<3>::Pointer& pEntity,
+void AssignScalarFieldToEntitiesProcess<Node>::AssignTimeDependentValue(
+    const typename Node::Pointer& pEntity,
     const double Time,
     Vector& rValue,
     const double Value
@@ -379,7 +379,7 @@ void AssignScalarFieldToEntitiesProcess<Element>::AssignTimeDependentValue(
 /***********************************************************************************/
 
 template<>
-PointerVectorSet<Node<3>, IndexedObject>& AssignScalarFieldToEntitiesProcess<Node<3>>::GetEntitiesContainer()
+PointerVectorSet<Node, IndexedObject>& AssignScalarFieldToEntitiesProcess<Node>::GetEntitiesContainer()
 {
     return mrModelPart.GetMesh(mMeshId).Nodes();
 }
@@ -405,7 +405,7 @@ PointerVectorSet<Element, IndexedObject>& AssignScalarFieldToEntitiesProcess<Ele
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AssignScalarFieldToEntitiesProcess<Node<3>>;
+template class AssignScalarFieldToEntitiesProcess<Node>;
 template class AssignScalarFieldToEntitiesProcess<Condition>;
 template class AssignScalarFieldToEntitiesProcess<Element>;
 

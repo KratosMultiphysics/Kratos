@@ -667,6 +667,8 @@ public:
         return CalculateShapeFunctionValue(ShapeFunctionIndex, rPoint);
     }
 
+    using Geometry<TPointType>::ShapeFunctionsValues;
+
     /** This method gives gradient of all shape functions evaluated
      * in given point.
      * There is no calculation and it just give it from

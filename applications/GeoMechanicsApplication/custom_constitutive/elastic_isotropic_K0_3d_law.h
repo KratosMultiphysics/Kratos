@@ -352,12 +352,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
     }
-
-    // stress vector indices
-    const int VOIGT_INDEX_XX = 0;
-    const int VOIGT_INDEX_YY = 1;
-    const int VOIGT_INDEX_ZZ = 2;
-
 }; // Class ElasticIsotropicK03DLaw
 }  // namespace Kratos.
 #endif // KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED  defined

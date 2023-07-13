@@ -92,9 +92,15 @@ void OptimizationUtils::CreateEntitySpecificPropertiesForContainer(
 {
     KRATOS_TRY
 
+    auto element_properties_id = block_for_each<MaxReduction<IndexType>>(rContainer, [](const auto& rEntity) {
+        return rEntity.GetProperties().Id();
+    });
+
     auto properties_id = block_for_each<MaxReduction<IndexType>>(rModelPart.PropertiesArray(), [](const auto pProperties) {
         return pProperties->Id();
     });
+
+    properties_id = std::max(element_properties_id, properties_id);
 
     // creation of properties is done in serial
     for (auto& r_entity : rContainer) {

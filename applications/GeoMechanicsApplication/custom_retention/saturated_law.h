@@ -43,7 +43,7 @@ public:
     /// The base class RetentionLaw type definition
     using BaseType = RetentionLaw;
 
-    using GeometryType = Geometry<Node<3>>;
+    using GeometryType = Geometry<Node>;
 
     /// The size type definition
     using SizeType = std::size_t;

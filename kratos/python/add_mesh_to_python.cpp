@@ -49,10 +49,10 @@ typename TVariableType::Type GetValueHelperFunction(TContainerType& el, const TV
     return el.GetValue(rVar);
 }
 
-typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+typedef Mesh<Node, Properties, Element, Condition> MeshType;
 typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
-typedef Geometry<Node<3> > GeometryType;
+typedef Geometry<Node > GeometryType;
 typedef GeometryType::PointsArrayType NodesArrayType;
 typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
@@ -382,7 +382,7 @@ void EntityGetSecondDerivativesVector2(
 
 void  AddMeshToPython(pybind11::module& m)
 {
-//             typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+//             typedef Mesh<Node, Properties, Element, Condition> MeshType;
 //             typedef MeshType::NodeType NodeType;
 
     //     py::class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())

@@ -453,7 +453,7 @@ void RomAuxiliaryUtilities::GetPhiElemental(
             else
             {
                 const auto it_node = std::find_if(rGeom.begin(), rGeom.end(),
-                    [&](const Node<3>& rNode)
+                    [&](const Node& rNode)
                     {
                         return rNode.Id() == r_dof.Id();
                     });
@@ -485,7 +485,7 @@ void RomAuxiliaryUtilities::GetPsiElemental(
             else
             {
                 const auto it_node = std::find_if(rGeom.begin(), rGeom.end(),
-                    [&](const Node<3>& rNode)
+                    [&](const Node& rNode)
                     {
                         return rNode.Id() == r_dof.Id();
                     });

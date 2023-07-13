@@ -105,7 +105,7 @@ array_1d<double, 3> mDomainMin;
 array_1d<double, 3> mDomainMax;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
-Node<3>* mpOtherParticleNode;
+Node* mpOtherParticleNode;
 DEMWall* mpOtherRigidFace;
 double mLocalCoordSystem[3][3];
 double mOldLocalCoordSystem[3][3];

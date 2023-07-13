@@ -438,9 +438,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::
 
     array_1d<double, TNumNodes> DamageContainer;
 
-    for ( unsigned int Node = 0;  Node < TNumNodes; ++Node ) {
-        DamageContainer[Node] = 0.0;
-        DamageContainer[Node] = mConstitutiveLawVector[Node]->GetValue( DAMAGE_VARIABLE, DamageContainer[Node] );
+    for ( unsigned int iNode = 0;  iNode < TNumNodes; ++iNode ) {
+        DamageContainer[iNode] = 0.0;
+        DamageContainer[iNode] = mConstitutiveLawVector[iNode]->GetValue( DAMAGE_VARIABLE, DamageContainer[iNode] );
     }
 
     GeometryType& rGeom = this->GetGeometry();
@@ -448,9 +448,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::
     array_1d<Vector, TNumNodes> NodalStressVector; //List with stresses at each node
     array_1d<Matrix, TNumNodes> NodalStressTensor;
 
-    for (unsigned int Node = 0; Node < TNumNodes; ++Node) {
-        NodalStressVector[Node].resize(VoigtSize);
-        NodalStressTensor[Node].resize(StressTensorSize, StressTensorSize);
+    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode) {
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(StressTensorSize, StressTensorSize);
     }
 
     BoundedMatrix<double, TNumNodes, TNumNodes> ExtrapolationMatrix;

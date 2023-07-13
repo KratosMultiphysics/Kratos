@@ -30,8 +30,8 @@ namespace Kratos {
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
 
-        typedef Node<3> NodeType;
-        typedef Geometry<Node<3>> GeometryType;
+        typedef Node NodeType;
+        typedef Geometry<Node> GeometryType;
         typedef typename GeometryType::Pointer GeometryPointerType;
 
         typedef QuadraturePointGeometry<NodeType, 2, 2> QPGeometryType;
@@ -78,7 +78,7 @@ namespace Kratos {
                 DN_De);
 
             GeometryPointerType p_this_quadrature_point(
-                Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
+                Kratos::make_shared<QuadraturePointGeometry<Node, 2, 2>>(
                     triangle->Points(),
                     data_container,
                     triangle.get()));
@@ -101,7 +101,7 @@ namespace Kratos {
             DenseVector<Matrix> derivatives(1);
             derivatives[0] = DN_De;
 
-            return Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2, 2>>(
+            return Kratos::make_shared<QuadraturePointGeometry<Node, 2, 2>>(
                 triangle->Points(),
                 integration_points[0],
                 N_i,
