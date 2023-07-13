@@ -202,15 +202,14 @@ namespace Kratos::Testing
         pnode4->Fix(DISPLACEMENT_X);
         pnode4->Fix(DISPLACEMENT_Y);
         pnode4->Fix(DISPLACEMENT_Z);
-        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *pnode4, DISPLACEMENT_X, *pnode1, DISPLACEMENT_X, 1.0, 0.0);
-        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, *pnode4, DISPLACEMENT_Y, *pnode1, DISPLACEMENT_Y, 1.0, 0.0);
-        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3, *pnode4, DISPLACEMENT_Z, *pnode1, DISPLACEMENT_Z, 1.0, 0.0);
-        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 4, *pnode4, DISPLACEMENT_X, *pnode2, DISPLACEMENT_X, 1.0, 0.0);
-        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 5, *pnode4, DISPLACEMENT_Y, *pnode2, DISPLACEMENT_Y, 1.0, 0.0);
-        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 6, *pnode4, DISPLACEMENT_Z, *pnode2, DISPLACEMENT_Z, 1.0, 0.0);
-        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 7, *pnode4, DISPLACEMENT_X, *pnode3, DISPLACEMENT_X, 1.0, 0.0);
-        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 8, *pnode4, DISPLACEMENT_Y, *pnode3, DISPLACEMENT_Y, 1.0, 0.0);
-        rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 9, *pnode4, DISPLACEMENT_Z, *pnode3, DISPLACEMENT_Z, 1.0, 0.0);
+        for (auto& r_node : rModelPart.Nodes()) {
+            if (r_node.Id() != 4) {
+                const auto id = r_node.Id();
+                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * id + 0, *pnode4, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
+                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * id + 1, *pnode4, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
+                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * id + 2, *pnode4, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
+            }
+        }
     }
 
     /**
