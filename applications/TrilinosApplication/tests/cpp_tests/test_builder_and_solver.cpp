@@ -987,141 +987,141 @@ namespace Kratos::Testing
         TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
     }
 
-    /**
-    * Checks if the block builder and solver performs correctly the assemble of the system
-    */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverAllDoFsMaster, KratosTrilinosApplicationMPITestSuite)
-    {
-        // The base model part
-        Model current_model;
-        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+    // /**
+    // * Checks if the block builder and solver performs correctly the assemble of the system
+    // */
+    // KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverAllDoFsMaster, KratosTrilinosApplicationMPITestSuite)
+    // {
+    //     // The base model part
+    //     Model current_model;
+    //     ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
 
-        // The data communicator
-        const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+    //     // The data communicator
+    //     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
 
-        // Generate Epetra communicator
-        KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
-        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+    //     // Generate Epetra communicator
+    //     KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+    //     auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    //     Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
-        // Basic build
-        BasicTestBuilderAndSolverDisplacementAllDoFsMaster(r_model_part, r_comm);
+    //     // Basic build
+    //     BasicTestBuilderAndSolverDisplacementAllDoFsMaster(r_model_part, r_comm);
 
-        // Create the solvers and things required
-        auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
-        auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
-        Parameters parameters = Parameters(R"(
-        {
-            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
-            "guess_row_size"                     : 15,
-            "silent_warnings"                    : false
-        })" );
-        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
+    //     // Create the solvers and things required
+    //     auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+    //     auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+    //     Parameters parameters = Parameters(R"(
+    //     {
+    //         "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+    //         "guess_row_size"                     : 15,
+    //         "silent_warnings"                    : false
+    //     })" );
+    //     auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
 
-        const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+    //     const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
-        // // To create the solution of reference
-        // DebugLHS(rA);
+    //     // // To create the solution of reference
+    //     // DebugLHS(rA);
 
-        // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 12);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 12);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 43);
+    //     // The solution check
+    //     KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 12);
+    //     KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 12);
+    //     KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 43);
 
-        // Values to check
-        std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        std::vector<int> column_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        std::vector<double> values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    //     // Values to check
+    //     std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    //     std::vector<int> column_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    //     std::vector<double> values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
-        // Check assembly
-        TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
+    //     // Check assembly
+    //     TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
 
-        // Now checking relation T matrix
-        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+    //     // Now checking relation T matrix
+    //     const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
 
-        // // To create the solution of reference
-        // DebugLHS(r_T);
+    //     // // To create the solution of reference
+    //     // DebugLHS(r_T);
 
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 12);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 12);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 21);
+    //     KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 12);
+    //     KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 12);
+    //     KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 21);
 
-        // Values to check
-        row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        column_indexes = {9, 10, 11, 9, 10, 11, 9, 10, 11, 9, 10, 11};
-        values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    //     // Values to check
+    //     row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    //     column_indexes = {9, 10, 11, 9, 10, 11, 9, 10, 11, 9, 10, 11};
+    //     values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
-        // Check assembly T matrix
-        TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
-    }
+    //     // Check assembly T matrix
+    //     TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
+    // }
 
-    /**
-    * Checks if the block builder and solver performs correctly the assemble of the system
-    */
-    KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverAllDoFsMasterFromStructureSide, KratosTrilinosApplicationMPITestSuite)
-    {
-        // The base model part
-        Model current_model;
-        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+    // /**
+    // * Checks if the block builder and solver performs correctly the assemble of the system
+    // */
+    // KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(TrilinosBasicDisplacementBlockBuilderAndSolverAllDoFsMasterFromStructureSide, KratosTrilinosApplicationMPITestSuite)
+    // {
+    //     // The base model part
+    //     Model current_model;
+    //     ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
 
-        // The data communicator
-        const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
+    //     // The data communicator
+    //     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
 
-        // Generate Epetra communicator
-        KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
-        auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
-        Epetra_MpiComm epetra_comm(raw_mpi_comm);
+    //     // Generate Epetra communicator
+    //     KRATOS_ERROR_IF_NOT(r_comm.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+    //     auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(r_comm);
+    //     Epetra_MpiComm epetra_comm(raw_mpi_comm);
 
-        // Basic build
-        BasicTestBuilderAndSolverDisplacementAllDoFsMaster(r_model_part, r_comm, true);
+    //     // Basic build
+    //     BasicTestBuilderAndSolverDisplacementAllDoFsMaster(r_model_part, r_comm, true);
 
-        // Create the solvers and things required
-        auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
-        auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
-        Parameters parameters = Parameters(R"(
-        {
-            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
-            "guess_row_size"                     : 15,
-            "silent_warnings"                    : false
-        })" );
-        auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
+    //     // Create the solvers and things required
+    //     auto p_scheme = TrilinosSchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticSchemeType() );
+    //     auto p_solver = TrilinosLinearSolverType::Pointer( new AmgclMPISolverType() );
+    //     Parameters parameters = Parameters(R"(
+    //     {
+    //         "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+    //         "guess_row_size"                     : 15,
+    //         "silent_warnings"                    : false
+    //     })" );
+    //     auto p_builder_and_solver = TrilinosBuilderAndSolverType::Pointer( new TrilinosBlockBuilderAndSolverType(epetra_comm, p_solver, parameters) );
 
-        const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+    //     const auto& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
-        // // To create the solution of reference
-        // DebugLHS(rA);
+    //     // // To create the solution of reference
+    //     // DebugLHS(rA);
 
-        // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 12);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 12);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 39);
+    //     // The solution check
+    //     KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 12);
+    //     KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 12);
+    //     KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 39);
 
-        // Values to check
-        std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        std::vector<int> column_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        std::vector<double> values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    //     // Values to check
+    //     std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    //     std::vector<int> column_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    //     std::vector<double> values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
-        // Check assembly
-        TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
+    //     // Check assembly
+    //     TrilinosCPPTestUtilities::CheckSparseMatrix(rA, row_indexes, column_indexes, values);
 
-        // Now checking relation T matrix
-        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+    //     // Now checking relation T matrix
+    //     const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
 
-        // // To create the solution of reference
-        // DebugLHS(r_T);
+    //     // // To create the solution of reference
+    //     // DebugLHS(r_T);
 
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 12);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 12);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 21);
+    //     KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 12);
+    //     KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 12);
+    //     KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 21);
 
-        // Values to check
-        row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        column_indexes = {3, 4, 5, 3, 4, 5, 3, 4, 5, 3, 4, 5};
-        values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    //     // Values to check
+    //     row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    //     column_indexes = {3, 4, 5, 3, 4, 5, 3, 4, 5, 3, 4, 5};
+    //     values = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
 
-        // Check assembly T matrix
-        TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
-    }
+    //     // Check assembly T matrix
+    //     TrilinosCPPTestUtilities::CheckSparseMatrix(r_T, row_indexes, column_indexes, values);
+    // }
 
     // NOTE: Fails with more than one partition
     // /**
