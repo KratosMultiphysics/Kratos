@@ -105,10 +105,13 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             # Transfer pressure forces
             self.RegenerateAndUpdatePFEMPressureConditions()
 
-            KratosPrintInfo("================================================" + "\n" +
-                           " ==== SOLVING FEM-DEM PART OF THE CALCULATION ====" + "\n" +
-                           " ================================================")
-            self.SolveSolutionStepFEMDEM()
+            if solid_model_part.GetSubModelPart("fsi_interface_model_part").NumberOfNodes() >= 2 or self.FEMDEM_Solution.FEM_Solution.time < 33.0:
+                KratosPrintInfo("================================================" + "\n" +
+                            " ==== SOLVING FEM-DEM PART OF THE CALCULATION ====" + "\n" +
+                            " ================================================")
+                self.SolveSolutionStepFEMDEM()
+            else:
+                KratosPrintInfo("FEM-DEM not solved in this time step...")
 
             # If there are no interface nodes yet
             if (solid_model_part.GetSubModelPart("fsi_interface_model_part").NumberOfNodes() < 2):
