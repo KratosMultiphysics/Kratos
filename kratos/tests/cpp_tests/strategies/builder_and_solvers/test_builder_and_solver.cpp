@@ -151,6 +151,7 @@ namespace Kratos::Testing
     */
     static inline void BasicTestBuilderAndSolverDisplacementAllDoFsMaster(ModelPart& rModelPart)
     {
+        // Add variables
         rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
@@ -173,7 +174,7 @@ namespace Kratos::Testing
         GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
 
-        //  Adding fourth node
+        // Adding fourth node
         Node::Pointer pnode4 = rModelPart.CreateNewNode(4, 3.0, 0.0, 0.0);
 
         /// Add dof
