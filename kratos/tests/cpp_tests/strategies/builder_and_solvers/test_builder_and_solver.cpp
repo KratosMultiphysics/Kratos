@@ -149,7 +149,10 @@ namespace Kratos::Testing
     /**
     * @brief It generates a truss structure with an expected solution
     */
-    static inline void BasicTestBuilderAndSolverDisplacementAllDoFsMaster(ModelPart& rModelPart)
+    static inline void BasicTestBuilderAndSolverDisplacementAllDoFsMaster(
+        ModelPart& rModelPart,
+        const bool MasterElementBelongsToStructure = false
+        )
     {
         // Add variables
         rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -199,15 +202,31 @@ namespace Kratos::Testing
         }
 
         // Fix dofs
-        pnode4->Fix(DISPLACEMENT_X);
-        pnode4->Fix(DISPLACEMENT_Y);
-        pnode4->Fix(DISPLACEMENT_Z);
-        for (auto& r_node : rModelPart.Nodes()) {
-            if (r_node.Id() != 4) {
-                const auto i = r_node.Id() - 1;
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 1, *pnode4, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 2, *pnode4, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
-                rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 3, *pnode4, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
+        if (MasterElementBelongsToStructure) {
+            auto pnode2 = rModelPart.pGetNode(2);
+            pnode2->Fix(DISPLACEMENT_X);
+            pnode2->Fix(DISPLACEMENT_Y);
+            pnode2->Fix(DISPLACEMENT_Z);
+            for (auto& r_node : rModelPart.Nodes()) {
+                if (r_node.Id() != 2) {
+                    const auto i = r_node.Id() - 1;
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 1, *pnode2, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 2, *pnode2, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 3, *pnode2, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
+                }
+            }
+
+        } else {
+            pnode4->Fix(DISPLACEMENT_X);
+            pnode4->Fix(DISPLACEMENT_Y);
+            pnode4->Fix(DISPLACEMENT_Z);
+            for (auto& r_node : rModelPart.Nodes()) {
+                if (r_node.Id() != 4) {
+                    const auto i = r_node.Id() - 1;
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 1, *pnode4, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 2, *pnode4, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 3, *pnode4, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
+                }
             }
         }
     }
@@ -815,6 +834,69 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(r_T(9,9), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(r_T(10,10), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(r_T(11,11), 1.0, tolerance);
+    }
+
+    /**
+    * Checks if the block builder and solver with constraints performs correctly the assemble of the system
+    */
+    KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverAllDoFsMasterFromStructureSide, KratosCoreFastSuite)
+    {
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        BasicTestBuilderAndSolverDisplacementAllDoFsMaster(r_model_part, true);
+
+        SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+        LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
+
+        const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA);
+
+        // The solution check
+        constexpr double tolerance = 1e-8;
+        KRATOS_CHECK(rA.size1() == 12);
+        KRATOS_CHECK(rA.size2() == 12);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(7,7), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(8,8), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(9,9), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(10,10), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(11,11), 1.0, tolerance);
+
+        // Now checking relation T matrix
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+
+        // // To create the solution of reference
+        // DebugLHS(r_T);
+
+        KRATOS_CHECK(r_T.size1() == 12);
+        KRATOS_CHECK(r_T.size2() == 12);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(0,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(1,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(2,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(4,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(5,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(6,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(7,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(8,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(9,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(10,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(11,5), 1.0, tolerance);
     }
 
     /**
