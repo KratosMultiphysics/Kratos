@@ -270,7 +270,7 @@ public:
 		{
 			this->ApplySlipCondition(rLocalMatrix, rLocalVector, rGeometry);
 		}
-		// Otherwise, do the following modification
+		// Otherwise, do the following modification [ONLY applied to penalty conditions]
 		else
 		{
 			const unsigned int LocalSize = rLocalVector.size();
@@ -278,6 +278,7 @@ public:
 			if (LocalSize > 0)
 			{
 				const unsigned int block_size = this->GetBlockSize();
+                const unsigned int domain_size = this->GetDomainSize();
 				TLocalMatrixType temp_matrix = ZeroMatrix(rLocalMatrix.size1(),rLocalMatrix.size2());
 				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 				{
@@ -294,41 +295,51 @@ public:
 							temp_matrix(j,i) = rLocalMatrix(j,i);
 						}
 
-						// Remove all other value in RHS than the normal component
-						for(unsigned int i = j; i < (j + block_size); ++i)
-						{
-							if (i!=j) rLocalVector[i] = 0.0;
-						}
+                        //// AUGMENTATION FOR FRICTION ////
+                        if (this->IsFriction(rGeometry)){
+                            // obtain normal and tangential forces
+                            double normal_force_norm = abs(rLocalVector[j]);
+                            double tangent_force1 = rLocalVector[j + 1];
 
-                        // Add 'friction' force //
+                            double tangent_force_norm = 0;
+                            double tangent_force2 = 0;
 
-                        // Only apply to nodes currently containing material points
-                        if (rGeometry[itNode].FastGetSolutionStepValue(NODAL_MASS) >= std::numeric_limits<double>::epsilon()) {
-                            // obtain nodal velocity and rotate it to the same frame of reference as the local geometry
-                            // [ since mpc contributions are accumulated at nodes, friction force is directed against
-                            //    nodal velocity value                                                                ]
 
-//                            KRATOS_WATCH(rGeometry[itNode].GetInitialPosition());
+                            if(domain_size > 2){ // 3D
+                                tangent_force2 = rLocalVector[j + 2];
+                                tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
+                            } else {
+                                tangent_force_norm = abs(tangent_force1);
+                            }
 
-                            array_1d<double, 3> nodal_velocity = ZeroVector(3);
+                            double max_tangential_force_norm = normal_force_norm * MU;
 
-                            nodal_velocity = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+                            // constraint maximum friction force in the tangential direction
+                            if (tangent_force_norm > max_tangential_force_norm) {
+                                double tangent_direction1 = tangent_force1 / tangent_force_norm;
+                                rLocalVector[j + 1] = tangent_direction1 * max_tangential_force_norm;
 
-                            this->RotateAndNormalizeVector(nodal_velocity, rGeometry[itNode], VELOCITY_THRESHOLD);
+                                if(domain_size > 2){ // 3D
+                                    double tangent_direction2 = tangent_force2 / tangent_force_norm;
+                                    rLocalVector[j + 2] = tangent_direction2 * max_tangential_force_norm;
+                                }
+                            } else {
+                                // force not exceeded, apply constraint as usual -- copy all tangential terms of DoF into matrix
+                                for (unsigned int k = 1; k < block_size; k++){
+                                    for (unsigned int i = k; i < rLocalMatrix.size1(); i+= block_size)
+                                    {
+                                        temp_matrix(i,j + k) = rLocalMatrix(i,j + k);
+                                        temp_matrix(j + k,i) = rLocalMatrix(j + k,i);
+                                    }
+                                }
 
-                            // TODO: do this in a condition object (makes more sense since later you'll need the nodal force)
-                            // obtain friction contribution of at boundary particle [currently fixed FRICTION_FORCE] and extrapolate to nodes
-                            Vector shape_fn = row(rGeometry.ShapeFunctionsValues(), 0);
-                            double nodal_friction_contribution = shape_fn[itNode] * FRICTION_FORCE;
+                            }
 
-//                                                    KRATOS_WATCH(j);
-//                                                    KRATOS_WATCH(nodal_velocity);
-
-                            // apply friction force in opposite direction of tangential velocity components
-                            for (unsigned dim = 1; dim < this->GetDomainSize(); dim++) {
-                                rLocalVector[j + dim] -= nodal_friction_contribution * nodal_velocity[dim];
-
-                                //                            KRATOS_WATCH(rLocalVector[j+dim]);
+                        } else {
+                            // Friction off -- remove all other value in RHS than the normal component
+                            for(unsigned int i = j; i < (j + block_size); ++i)
+                            {
+                                if (i!=j) rLocalVector[i] = 0.0;
                             }
                         }
                     }
@@ -349,6 +360,11 @@ public:
         TLocalMatrixType dummyMatrix;
         this->ConditionApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
+
+    // Checking if friction is active [currently stub]
+    bool IsFriction(GeometryType& rGeometry) const {
+        return true;
+    }
 
 	// Checking whether it is normal element or penalty element
 	bool IsPenalty(GeometryType& rGeometry) const
@@ -549,6 +565,7 @@ private:
 
     const double FRICTION_FORCE = 0000;
     const double VELOCITY_THRESHOLD = 1e-10;
+    const double MU = 0; // Friction coefficient
 
 	///@}
 	///@name Member Variables
