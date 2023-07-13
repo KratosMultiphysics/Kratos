@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala, Philipp Bucher
+//  Main authors:    Aditya Ghantasala
+//                   Philipp Bucher (https://github.com/philbucher)
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 //
@@ -107,6 +108,19 @@ public:
     };
 
 protected:
+    ///@name  Enum's
+    ///@{
+
+    enum class EntityType {
+        ELEMENT,
+        CONDITION,
+        AUTOMATIC,
+        NONE
+        // GEOMETRY // TODO PBucher
+    };
+
+    ///@}
+
     ///@name Member Variables
     ///@{
 
@@ -116,7 +130,7 @@ protected:
     Parameters mOutputSettings;                    /// The configuration parameters
     unsigned int mDefaultPrecision;                /// The default precision
     std::unordered_map<int, int> mKratosIdToVtkId; /// The map storing the relationship between the Kratos ID and VTK ID
-    bool mShouldSwap = false;                      /// If it should swap
+    bool mShouldSwap = false;                      /// If the bytes need to be swapped (endianness)
 
     // pointer to object of the extrapolation from gauss point to nodes process
     IntegrationValuesExtrapolationToNodesProcess::UniquePointer mpGaussToNodesProcess;
@@ -124,6 +138,12 @@ protected:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Helper to determine which entities to write
+     * @param rModelPart The ModelPart that is currently outputted (can be a SubModelPart)
+     */
+    EntityType GetEntityType(const ModelPart& rModelPart) const;
 
     /**
      * @brief Interpolates the gauss point results on to the node using IntegrationValuesExtrapolationToNodesProcess
@@ -175,7 +195,7 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
+    virtual void WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the elements and conditions in rModelPart.
@@ -456,6 +476,10 @@ protected:
     ///@}
 
 private:
+    ///@name Member Variables
+    ///@{
+    VtkOutput::EntityType mEntityType;             /// The entities to be written
+
     ///@name Operations
     ///@{
 

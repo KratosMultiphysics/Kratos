@@ -50,6 +50,8 @@
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/elastic_cohesive_3D_law.hpp"
 #include "custom_constitutive/elastic_cohesive_2D_law.hpp"
+#include "custom_constitutive/isotropic_damage_cohesive_3D_law.hpp"
+#include "custom_constitutive/isotropic_damage_cohesive_2D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_3D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_2D_law.hpp"
 
@@ -158,7 +160,6 @@ const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D10N;
 const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D20N;
 const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D27N;
 
-
 const UPwForceCondition<2,1> mUPwForceCondition2D1N;
 const UPwForceCondition<3,1> mUPwForceCondition3D1N;
 const UPwFaceLoadCondition<2,2> mUPwFaceLoadCondition2D2N;
@@ -193,6 +194,8 @@ const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrde
 const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D8N;
 const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N;
 
+const IsotropicDamageCohesive3DLaw mIsotropicDamageCohesive3DLaw;
+const IsotropicDamageCohesive2DLaw mIsotropicDamageCohesive2DLaw;
 const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
 const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
 const ElasticCohesive3DLaw mElasticCohesive3DLaw;

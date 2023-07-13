@@ -38,20 +38,20 @@
 namespace Kratos::Testing
 {
 /// Tests
-typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
 // The direct solver
-typedef Reorderer<SparseSpaceType,  LocalSpaceType > ReordererType;
-typedef DirectSolver<SparseSpaceType,  LocalSpaceType, ReordererType > DirectSolverType;
-typedef LinearSolver<SparseSpaceType,LocalSpaceType> LinearSolverType;
-typedef AMGCLSolver<SparseSpaceType,  LocalSpaceType, ReordererType > AMGCLSolverType;
-typedef SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
-typedef Preconditioner<SparseSpaceType, LocalSpaceType> PreconditionerType;
-typedef MixedULMLinearSolver<SparseSpaceType,  LocalSpaceType, PreconditionerType, ReordererType> MixedULMLinearSolverType;
+using ReordererType = Reorderer<SparseSpaceType, LocalSpaceType>;
+using DirectSolverType = DirectSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
+using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+using AMGCLSolverType = AMGCLSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
+using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
+using PreconditionerType = Preconditioner<SparseSpaceType, LocalSpaceType>;
+using MixedULMLinearSolverType = MixedULMLinearSolver<SparseSpaceType, LocalSpaceType, PreconditionerType, ReordererType>;
 
 // Dof arrays
-typedef ModelPart::DofsArrayType DofsArrayType;
+using DofsArrayType = ModelPart::DofsArrayType;
 
 /**
 * @brief This creates the auxiliary files
@@ -93,12 +93,12 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestSystem, KratosContactStruc
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
 
-    NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+    Node::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
     pnode2->Set(INTERFACE, true);
     pnode2->Set(MASTER, true);
     pnode2->Set(SLAVE, false);
-    NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    Node::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
     pnode3->Set(INTERFACE, true);
     pnode3->Set(ACTIVE, true);
     pnode3->Set(MASTER, false);
@@ -182,18 +182,18 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestWithInactiveSystem, Kratos
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
 
-    NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+    Node::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
 
     pnode2->Set(INTERFACE, true);
     pnode2->Set(MASTER, true);
     pnode2->Set(SLAVE, false);
-    NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    Node::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
     pnode3->Set(INTERFACE, true);
     pnode3->Set(ACTIVE, false);
     pnode3->Set(MASTER, false);
     pnode3->Set(SLAVE, true);
-    NodeType::Pointer pnode4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+    Node::Pointer pnode4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
     pnode4->Set(INTERFACE, true);
     pnode4->Set(ACTIVE, true);
     pnode4->Set(MASTER, false);
@@ -279,13 +279,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestUnorderedSystem, KratosCon
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
 
-    NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    Node::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
     pnode3->Set(INTERFACE, true);
     pnode3->Set(ACTIVE, true);
     pnode3->Set(MASTER, false);
     pnode3->Set(SLAVE, true);
-    NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+    Node::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
     pnode2->Set(INTERFACE, true);
     pnode2->Set(MASTER, true);
     pnode2->Set(SLAVE, false);
@@ -395,12 +395,12 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFSystem, KratosContactStructu
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
 
-    NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+    Node::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
     pnode2->Set(INTERFACE, true);
     pnode2->Set(MASTER, true);
     pnode2->Set(SLAVE, false);
-    NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    Node::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
     pnode3->Set(INTERFACE, true);
     pnode3->Set(ACTIVE, true);
     pnode3->Set(MASTER, false);
@@ -492,13 +492,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFUnorderedSystem, KratosConta
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
 
-    NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    Node::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
     pnode3->Set(INTERFACE, true);
     pnode3->Set(ACTIVE, true);
     pnode3->Set(MASTER, false);
     pnode3->Set(SLAVE, true);
-    NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+    Node::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
     pnode2->Set(INTERFACE, true);
     pnode2->Set(MASTER, true);
     pnode2->Set(SLAVE, false);
@@ -632,13 +632,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFSystem, KratosContactStruc
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
 
-    NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+    Node::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
 
     pnode2->Set(INTERFACE, true);
     pnode2->Set(MASTER, true);
     pnode2->Set(SLAVE, false);
-    NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    Node::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
     pnode3->Set(INTERFACE, true);
     pnode3->Set(ACTIVE, true);
     pnode3->Set(MASTER, false);
@@ -738,13 +738,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFUnorderedSystem, KratosCon
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
 
-    NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    Node::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
     pnode3->Set(INTERFACE, true);
     pnode3->Set(ACTIVE, true);
     pnode3->Set(MASTER, false);
     pnode3->Set(SLAVE, true);
-    NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+    Node::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
     pnode2->Set(INTERFACE, true);
     pnode2->Set(MASTER, true);
     pnode2->Set(SLAVE, false);
@@ -902,26 +902,26 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverRealSystem, KratosContactStructura
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
 
-    NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+    Node::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    Node::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
     pnode2->Set(INTERFACE, true);
     pnode2->Set(ACTIVE, true);
     pnode2->Set(MASTER, false);
     pnode2->Set(SLAVE, true);
-    NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+    Node::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
     pnode3->Set(INTERFACE, true);
     pnode3->Set(ACTIVE, true);
     pnode3->Set(MASTER, false);
     pnode3->Set(SLAVE, true);
-    NodeType::Pointer pnode4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+    Node::Pointer pnode4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
     pnode4->Set(INTERFACE, true);
     pnode4->Set(MASTER, true);
     pnode4->Set(SLAVE, false);
-    NodeType::Pointer pnode5 = r_model_part.CreateNewNode(5, 0.0, 0.0, 0.0);
+    Node::Pointer pnode5 = r_model_part.CreateNewNode(5, 0.0, 0.0, 0.0);
     pnode5->Set(INTERFACE, true);
     pnode5->Set(MASTER, true);
     pnode5->Set(SLAVE, false);
-    NodeType::Pointer pnode6 = r_model_part.CreateNewNode(6, 0.0, 0.0, 0.0);
+    Node::Pointer pnode6 = r_model_part.CreateNewNode(6, 0.0, 0.0, 0.0);
 
     pnode1->AddDof(DISPLACEMENT_X);
     pnode1->AddDof(DISPLACEMENT_Y);

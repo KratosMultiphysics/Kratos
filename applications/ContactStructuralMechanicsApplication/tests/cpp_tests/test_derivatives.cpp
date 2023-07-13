@@ -29,13 +29,30 @@
 
 namespace Kratos::Testing
 {
-typedef std::size_t                                              IndexType;
+using IndexType = std::size_t;
 
 ///Type definition for integration methods
-typedef GeometryData::IntegrationMethod                   IntegrationMethod;
+using IntegrationMethod = GeometryData::IntegrationMethod;
 
-enum class CheckLevel {LEVEL_EXACT = 0, LEVEL_QUADRATIC_CONVERGENCE = 1, LEVEL_DEBUG = 2, LEVEL_FULL_DEBUG = 3};
-enum class DerivateToCheck {CHECK_SHAPE_FUNCTION = 0, CHECK_JACOBIAN = 1, CHECK_PHI = 2, CHECK_NORMAL = 3};
+/**
+ * @brief An enumeration of the different levels of checks that can be performed on derivatives.
+ */
+enum class CheckLevel {
+    LEVEL_EXACT = 0, ///< An exact check.
+    LEVEL_QUADRATIC_CONVERGENCE = 1, ///< A check with quadratic convergence.
+    LEVEL_DEBUG = 2, ///< A debug-level check.
+    LEVEL_FULL_DEBUG = 3 ///< A full debug-level check.
+};
+
+/**
+ * @brief An enumeration of the different types of derivatives that can be checked.
+ */
+enum class DerivateToCheck {
+    CHECK_SHAPE_FUNCTION = 0, ///< A check of the shape function.
+    CHECK_JACOBIAN = 1, ///< A check of the Jacobian.
+    CHECK_PHI = 2, ///< A check of the phi function.
+    CHECK_NORMAL = 3 ///< A check of the normal.
+};
 
 /**
 * @brief This method is used to check the quadratic convergence of the derivatives
@@ -66,15 +83,17 @@ static inline void TestDerivatives(
     )
 {
     // Type definitions
-    typedef PointBelong<TNumNodes> PointBelongType;
-    typedef array_1d<PointBelongType, TDim> ConditionArrayType;
-    typedef typename std::vector<ConditionArrayType> ConditionArrayListType;
-    typedef Line2D2<Point> LineType;
-    typedef Triangle3D3<Point> TriangleType;
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
-    typedef DerivativesUtilities<TDim, TNumNodes, false, true> DerivativesUtilitiesType;
-    typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true> IntegrationUtility;
+    using PointBelongType = PointBelong<TNumNodes>;
+    using ConditionArrayType = array_1d<PointBelongType, TDim>;
+    using ConditionArrayListType = typename std::vector<ConditionArrayType>;
+    using LineType = Line2D2<Point>;
+    using TriangleType = Triangle3D3<Point>;
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
+    using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type;
+    using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, false, true>;
+    using IntegrationUtility = ExactMortarIntegrationUtility<TDim, TNumNodes, true>;
+
+    static constexpr double CheckThresholdCoefficient = 1.0e-12;
 
     // Some definitions
     const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION]);
@@ -118,7 +137,7 @@ static inline void TestDerivatives(
             noalias(node_to_move->Coordinates()) = node_to_move->GetInitialPosition().Coordinates() + node_to_move->FastGetSolutionStepValue(DISPLACEMENT);
         }
 
-        if (consider_normal_variation != NO_DERIVATIVES_COMPUTATION) {
+        if (consider_normal_variation != NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION) {
             Point aux_point;
             aux_point.Coordinates() = ZeroVector(3);
             const array_1d<double, 3>& r_normal_slave = r_slave_geometry_1.UnitNormal(aux_point);
@@ -149,7 +168,7 @@ static inline void TestDerivatives(
         rDerivativeData.Initialize(r_slave_geometry_1, rModelPart.GetProcessInfo());
 
         // We compute the normal derivatives
-        if (consider_normal_variation == NODAL_ELEMENTAL_DERIVATIVES) {
+        if (consider_normal_variation == NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES) {
             // Compute the normal derivatives of the slave
             DerivativesUtilitiesType::CalculateDeltaNormalSlave(rDerivativeData.DeltaNormalSlave, r_slave_geometry_1);
             // Compute the normal derivatives of the master
@@ -197,8 +216,8 @@ static inline void TestDerivatives(
                     DecompositionType decomp_geom( points_array );
                     DecompositionType decomp_geom0( points_array0 );
 
-                    const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry_0.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom);
-                    const bool bad_shape0 = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom0, r_slave_geometry_0.Length() * 1.0e-6) : MortarUtilities::HeronCheck(decomp_geom0);
+                    const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, r_slave_geometry_0.Length() * CheckThresholdCoefficient) : MortarUtilities::HeronCheck(decomp_geom);
+                    const bool bad_shape0 = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom0, r_slave_geometry_0.Length() * CheckThresholdCoefficient) : MortarUtilities::HeronCheck(decomp_geom0);
 
                     if ((bad_shape == false) && (bad_shape0 == false)) {
                         const GeometryType::IntegrationPointsArrayType& integration_points_slave = decomp_geom.IntegrationPoints( this_integration_method );
@@ -729,7 +748,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine1, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -752,7 +771,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine2, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -775,7 +794,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesLine3, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -799,7 +818,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine1, KratosContactStructuralMecha
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -822,7 +841,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine2, KratosContactStructuralMecha
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -845,7 +864,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesLine3, KratosContactStructuralMecha
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -869,7 +888,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine1, KratosContactStructuralMechani
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -893,7 +912,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine2, KratosContactStructuralMechani
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -917,7 +936,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesLine3, KratosContactStructuralMechani
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -941,7 +960,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine1, KratosContactStructural
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -964,7 +983,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine2, KratosContactStructural
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -987,7 +1006,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine3, KratosContactStructural
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1010,7 +1029,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesLine4, KratosContactStructural
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1033,7 +1052,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle1, KratosContactStructuralM
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1056,7 +1075,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle2, KratosContactStructuralM
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1079,7 +1098,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle3, KratosContactStructuralM
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1104,7 +1123,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle4, KratosContactStructuralM
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1131,7 +1150,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle5, KratosContactStructuralM
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1154,7 +1173,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesTriangle6, KratosContactStructuralM
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1177,7 +1196,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle1, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1200,7 +1219,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle2, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1223,7 +1242,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle3, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1246,7 +1265,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle4, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1273,7 +1292,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle5, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1296,7 +1315,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesTriangle6, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1319,7 +1338,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle1, KratosContactSt
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1342,7 +1361,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle2, KratosContactSt
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1365,7 +1384,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle3, KratosContactSt
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1390,7 +1409,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle4, KratosContactSt
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1417,7 +1436,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle5, KratosContactSt
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1440,7 +1459,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesTriangle6, KratosContactSt
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1463,7 +1482,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle1, KratosContactStructuralMec
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1486,7 +1505,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle2, KratosContactStructuralMec
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1509,7 +1528,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle3, KratosContactStructuralMec
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1534,7 +1553,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle4, KratosContactStructuralMec
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1561,7 +1580,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle5, KratosContactStructuralMec
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1584,7 +1603,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesTriangle6, KratosContactStructuralMec
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1607,7 +1626,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral1, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1630,7 +1649,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral2, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1653,7 +1672,7 @@ KRATOS_TEST_CASE_IN_SUITE(JacobianDerivativesQuadrilateral3, KratosContactStruct
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1676,7 +1695,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral1, KratosContactS
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1699,7 +1718,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral2, KratosContactS
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1722,7 +1741,7 @@ KRATOS_TEST_CASE_IN_SUITE(ShapeFunctionDerivativesQuadrilateral3, KratosContactS
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1745,7 +1764,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral1, KratosCont
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1768,7 +1787,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral2, KratosCont
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1791,7 +1810,7 @@ KRATOS_TEST_CASE_IN_SUITE(DualShapeFunctionDerivativesQuadrilateral3, KratosCont
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NO_DERIVATIVES_COMPUTATION);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1814,7 +1833,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesQuadrilateral1, KratosContactStructur
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1837,7 +1856,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesQuadrilateral2, KratosContactStructur
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -1860,7 +1879,7 @@ KRATOS_TEST_CASE_IN_SUITE(NormalDerivativesQuadrilateral3, KratosContactStructur
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
-    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NODAL_ELEMENTAL_DERIVATIVES);
+    r_model_part.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] = static_cast<int>(NormalDerivativesComputation::NODAL_ELEMENTAL_DERIVATIVES);
 
     // Variables addition
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

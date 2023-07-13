@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors: Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -22,8 +22,7 @@
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 typedef Node NodeType;
 
 // /// Factory functions
@@ -148,5 +147,18 @@ namespace {
         KRATOS_CHECK_NEAR(lumping_factors[5], 1.0/6.0, TOLERANCE);
     }
 
-} // namespace Testing.
-} // namespace Kratos.
+    /**
+     * Checks the distance from a point to a triangle
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6CalculateDistance, KratosCoreGeometriesFastSuite)
+    {
+        auto geom = GenerateReferenceTriangle3D6();
+
+        Point point1(0.0, 0.0, 0.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+
+        Point point2(0.0, 0.0, 0.5);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
+    }
+
+} // namespace Kratos::Testing.

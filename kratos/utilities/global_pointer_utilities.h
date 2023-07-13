@@ -286,7 +286,7 @@ public:
         const int world_size = rDataCommunicator.Size();
 
         // Getting number of entities
-        const int number_of_entities = rContainer.size();
+        const std::size_t number_of_entities = rContainer.size();
 
         // Getting global number of points
         std::vector<int> number_of_entities_per_partition(world_size);
@@ -295,7 +295,7 @@ public:
 
         // Retrieve the ids
         std::vector<int> global_id_list, local_id_list;
-        local_id_list.reserve(rContainer.size());
+        local_id_list.reserve(number_of_entities);
         for (const auto& r_entity : rContainer) {
             local_id_list.push_back(r_entity.Id());
         }

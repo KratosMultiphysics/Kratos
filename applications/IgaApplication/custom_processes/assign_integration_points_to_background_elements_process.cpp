@@ -73,10 +73,14 @@ namespace Kratos
             }
             IntegrationInfo integration_info = p_geometry->GetDefaultIntegrationInfo();
             GeometriesArrayType geometry_list;
+            // Make sure one qudrature point geometry is created for each integration point.
+            integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
+            integration_info.SetQuadratureMethod(1, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
+            integration_info.SetQuadratureMethod(2, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
             p_geometry->CreateQuadraturePointGeometries(geometry_list, 2, integration_points, integration_info);
 
             // Get properties from main model part
-            auto p_properties = main_model_part.pGetProperties(0);
+            auto p_properties = main_model_part.pGetProperties(1);
 
             const auto p_background_element = main_model_part.ElementsBegin();
             const auto& r_proces_info = main_model_part.GetProcessInfo();
