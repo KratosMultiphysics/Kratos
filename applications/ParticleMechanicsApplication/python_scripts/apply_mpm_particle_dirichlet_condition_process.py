@@ -17,6 +17,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "particles_per_condition"   : 0,
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
+                "friction_coefficient"      : 0,
                 "variable_name"             : "DISPLACEMENT",
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
@@ -78,6 +79,9 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             err_msg += "Available options are: \"fixed\", \"contact\" and \"slip\"."
             raise Exception(err_msg)
 
+        # get friction parameters
+        self.friction_coefficient = settings["friction_coefficient"].GetDouble()
+
         # get variable imposed and check
         variable_name = settings["variable_name"].GetString()
         variable_name_list = ["DISPLACEMENT","VELOCITY","ACCELERATION"]
@@ -119,6 +123,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.SLIP, self.is_slip_boundary)
                 condition.Set(KratosMultiphysics.CONTACT, self.is_contact_boundary)
                 condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
+                condition.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT, self.friction_coefficient)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.IS_EQUAL_DISTRIBUTED, self.is_equal_distributed)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)

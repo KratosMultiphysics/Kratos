@@ -296,7 +296,9 @@ public:
 						}
 
                         //// AUGMENTATION FOR FRICTION ////
-                        if (this->IsFriction(rGeometry)){
+                        double mu = rGeometry[itNode].GetValue(FRICTION_COEFFICIENT);
+
+                        if (mu > 0){ // Positive friction coefficient -- friction active
                             // obtain normal and tangential forces
                             double normal_force_norm = abs(rLocalVector[j]);
                             double tangent_force1 = rLocalVector[j + 1];
@@ -312,7 +314,7 @@ public:
                                 tangent_force_norm = abs(tangent_force1);
                             }
 
-                            double max_tangential_force_norm = normal_force_norm * MU;
+                            double max_tangential_force_norm = normal_force_norm * mu;
 
                             // constraint maximum friction force in the tangential direction
                             if (tangent_force_norm > max_tangential_force_norm) {
@@ -360,11 +362,6 @@ public:
         TLocalMatrixType dummyMatrix;
         this->ConditionApplySlipCondition(dummyMatrix, rLocalVector, rGeometry);
 	}
-
-    // Checking if friction is active [currently stub]
-    bool IsFriction(GeometryType& rGeometry) const {
-        return true;
-    }
 
 	// Checking whether it is normal element or penalty element
 	bool IsPenalty(GeometryType& rGeometry) const
@@ -565,7 +562,6 @@ private:
 
     const double FRICTION_FORCE = 0000;
     const double VELOCITY_THRESHOLD = 1e-10;
-    const double MU = 0; // Friction coefficient
 
 	///@}
 	///@name Member Variables

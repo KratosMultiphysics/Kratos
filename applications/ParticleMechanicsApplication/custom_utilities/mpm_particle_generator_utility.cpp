@@ -357,6 +357,9 @@ namespace MPMParticleGeneratorUtility
                         const bool is_interface = i->Is(INTERFACE);
                         const bool flip_normal_direction = i->Is(MODIFIED);
 
+                        // rely on GetValue to assign this a value of zero if not defined
+                        const double friction_coefficient = i->GetValue(FRICTION_COEFFICIENT);
+
                         std::string condition_type_name;
 
                         // If dirichlet boundary or coupling interface
@@ -522,6 +525,9 @@ namespace MPMParticleGeneratorUtility
                                     {
                                         p_condition->Set(INTERFACE);
                                     }
+
+                                    // Set friction parameter
+                                    p_condition->SetValue(FRICTION_COEFFICIENT, friction_coefficient);
 
                                     // Add the MP Condition to the model part
                                     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
