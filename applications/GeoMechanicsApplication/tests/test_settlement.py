@@ -23,7 +23,7 @@ class KratosGeoMechanicsSettlementTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
         test_helper.run_stages(file_path, 2)
         node = 1
-        currentWorking = os.getcwd()
+        cwd = os.getcwd()
         os.chdir(file_path)
         kratos_res = getTimesDisplacement(node)
         self.assertEqual(128, len(kratos_res))
@@ -35,7 +35,7 @@ class KratosGeoMechanicsSettlementTests(KratosUnittest.TestCase):
         self.assertLess(analytical_error, 7.5,
                         "Analytical Comparison Failed (Av Diff >7.5%): {0:.2f}%".format(analytical_error))
 
-        os.chdir(currentWorking)
+        os.chdir(cwd)
 
 def getComparisonResult(file):
     with open(os.path.join('.', file), 'r') as fo:

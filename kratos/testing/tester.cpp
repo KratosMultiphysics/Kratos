@@ -42,9 +42,10 @@ Tester::~Tester()
 
 void Tester::ResetAllTestCasesResults()
 {
-    for (auto i_test = GetInstance().mTestCases.begin();
-    i_test != GetInstance().mTestCases.end(); i_test++)
+    const auto& r_test_cases = GetInstance().mTestCases;
+    for (auto i_test = r_test_cases.begin();i_test != r_test_cases.end(); i_test++) {
         i_test->second->ResetResult();
+    }
 }
 
 int Tester::RunAllTestCases()
@@ -55,10 +56,25 @@ int Tester::RunAllTestCases()
     return RunSelectedTestCases();
 }
 
+int Tester::RunAllDistributedTestCases()
+{
+    // TODO: Including the initialization time in the timing.
+    ResetAllTestCasesResults();
+    SelectOnlyDistributedTestCases();
+    return RunSelectedTestCases();
+}
+
 int Tester::ProfileAllTestCases()
 {
     ResetAllTestCasesResults();
     SelectOnlyEnabledTestCases();
+    return ProfileSelectedTestCases();
+}
+
+int Tester::ProfileAllDistributedTestCases()
+{
+    ResetAllTestCasesResults();
+    SelectOnlyDistributedTestCases();
     return ProfileSelectedTestCases();
 }
 
@@ -79,7 +95,6 @@ int Tester::RunTestCases(std::string const& rTestCasesNamePattern)
     return RunSelectedTestCases();
 
     //KRATOS_CHECK(std::regex_match(s, std::regex(buffer.str())));
-
 }
 
 int Tester::ProfileTestSuite(std::string const& TestSuiteName)
@@ -228,12 +243,26 @@ void Tester::UnSelectAllTestCases()
 
 void Tester::SelectOnlyEnabledTestCases()
 {
-    for (auto i_test = GetInstance().mTestCases.begin();
-    i_test != GetInstance().mTestCases.end(); i_test++)
-        if (i_test->second->IsEnabled())
+    const auto& r_test_cases = GetInstance().mTestCases;
+    for (auto i_test = r_test_cases.begin(); i_test != r_test_cases.end(); i_test++) {
+        if (i_test->second->IsEnabled()) {
             i_test->second->Select();
-        else
+        } else {
             i_test->second->UnSelect();
+        }
+    }
+}
+
+void Tester::SelectOnlyDistributedTestCases()
+{
+    const auto& r_test_cases = GetInstance().mTestCases;
+    for (auto i_test = r_test_cases.begin(); i_test != r_test_cases.end(); i_test++) {
+        if (i_test->second->IsDistributedTest()) {
+            i_test->second->Select();
+        } else {
+            i_test->second->UnSelect();
+        }
+    }
 }
 
 void Tester::SelectTestCasesByPattern(std::string const& rTestCasesNamePattern)

@@ -75,31 +75,34 @@ class OptimizationProblem:
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"Added \"{component.GetName()}\" to \"{added_component_type}\".")
 
     def GetResponse(self, name: str) -> ResponseFunction:
-        return self.__GetComponent(name, ResponseFunction)
+        return self.GetComponent(name, ResponseFunction)
 
     def GetListOfResponses(self) -> 'list[ResponseFunction]':
         return self.__components[ResponseFunction].values()
 
     def RemoveResponse(self, name: str) -> None:
-        self.__RemoveComponent(name, ResponseFunction)
+        self.RemoveComponent(name, ResponseFunction)
 
     def GetExecutionPolicy(self, name: str) -> ExecutionPolicy:
-        return self.__GetComponent(name, ExecutionPolicy)
+        return self.GetComponent(name, ExecutionPolicy)
 
     def GetListOfExecutionPolicies(self) -> 'list[ExecutionPolicy]':
         return self.__components[ExecutionPolicy].values()
 
     def RemoveExecutionPolicy(self, name: str) -> None:
-        self.__RemoveComponent(name, ExecutionPolicy)
+        self.RemoveComponent(name, ExecutionPolicy)
 
     def GetControl(self, name: str) -> Control:
-        return self.__GetComponent(name, Control)
+        return self.GetComponent(name, Control)
 
     def GetListOfControls(self) -> 'list[Control]':
         return self.__components[Control].values()
 
     def RemoveControl(self, name: str) -> None:
-        self.__RemoveComponent(name, Control)
+        self.RemoveComponent(name, Control)
+
+    def AddProcessType(self, process_type: str) -> None:
+        self.__proceses[process_type] = []
 
     def AddProcess(self, process_type: str, process: Kratos.Process) -> None:
         if process_type not in self.__proceses.keys():
@@ -117,7 +120,7 @@ class OptimizationProblem:
 
     def GetListOfProcesses(self, process_type: str) -> 'list[Kratos.Process]':
         if process_type not in self.__proceses.keys():
-            raise RuntimeError(f"The process type not found. Followings are available process types:\n\t" + "\n\t".join([k for k in self.__proceses.keys()]))
+            raise RuntimeError(f"The process type = \"{process_type}\" not found. Followings are available process types:\n\t" + "\n\t".join([k for k in self.__proceses.keys()]))
 
         return self.__proceses[process_type]
 
@@ -148,14 +151,23 @@ class OptimizationProblem:
         """
         return self.__problem_data
 
-    def __GetComponent(self, name: str, component_type: Any) -> Any:
+    def GetComponentContainer(self) -> 'dict[Any, dict[str, Any]]':
+        return self.__components
+
+    def GetComponent(self, name: str, component_type: Any) -> Any:
+        if component_type not in self.__components.keys():
+            raise RuntimeError(f"Unsupported component type requested from GetComponent. [ requested component type = \"{component_type}\" ]. Followings are supported component types:\n\t" + "\n\t".join([component_type.__name__ for component_type in list(self.__components.keys())]))
+
         components = self.__components[component_type]
         if name in components.keys():
             return components[name]
         else:
             raise RuntimeError(f"No {component_type.__name__} with name = \"{name}\" exists. Followings are the available {component_type.__name__}:\n" + "\n\t".join(components.keys()))
 
-    def __RemoveComponent(self, name: str, component_type: Any) -> None:
+    def RemoveComponent(self, name: str, component_type: Any) -> None:
+        if component_type not in self.__components.keys():
+            raise RuntimeError(f"Unsupported component type requested from RemoveComponent. [ requested component type = \"{str(component_type)}\" ]. Followings are supported component types:\n\t" + "\n\t".join([component_type.__name__ for component_type in list(self.__components.keys())]))
+
         components = self.__components[component_type]
         if name in components.keys():
             del components[name]

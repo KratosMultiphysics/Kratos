@@ -233,6 +233,12 @@ class BufferedDict:
             else:
                 raise RuntimeError(f"\"{key}\" is not found. BufferedDict:\n{self}")
 
+    def GetValueItems(self, step_index: int = 0) -> 'dict[str, Any]':
+        return self.__buffered_data[self.__GetBufferIndex(step_index)]
+
+    def GetSubItems(self) -> 'dict[str, BufferedDict]':
+        return self.__sub_items
+
     def GetMap(self, step_index: int = 0) -> 'dict[str, Any]':
         """Generates (str, Any) pair map with recursively collecting all items in the BufferedDict
 

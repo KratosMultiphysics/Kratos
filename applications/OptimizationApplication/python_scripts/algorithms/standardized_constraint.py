@@ -4,6 +4,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 
 class StandardizedConstraint(ResponseRoutine):
     """Standardized constraint response function
@@ -80,41 +82,45 @@ class StandardizedConstraint(ResponseRoutine):
             else:
                 raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
-    def CalculateStandardizedValue(self, control_field: KratosOA.ContainerExpression.CollectiveExpressions, save_value: bool = True) -> float:
-        response_value = self.CalculateValue(control_field)
-        standardized_response_value = response_value * self.__scaling
+    def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
+        with TimeLogger(f"StandardizedConstraint::Calculate {self.GetReponse().GetName()} value", None, "Finished"):
+            response_value = self.CalculateValue(control_field)
+            standardized_response_value = response_value * self.__scaling
 
-        if not self.__unbuffered_data.HasValue("initial_value"):
-            self.__unbuffered_data["initial_value"] = response_value
+            if not self.__unbuffered_data.HasValue("initial_value"):
+                self.__unbuffered_data["initial_value"] = response_value
 
-        standardized_response_value -= self.GetStandardizedReferenceValue()
+            standardized_response_value -= self.GetStandardizedReferenceValue()
 
-        if save_value:
-            if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
-            self.__buffered_data["value"] = response_value
+            if save_value:
+                if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+                self.__buffered_data["value"] = response_value
+
+            DictLogger("Constraint info",self.GetInfo())
 
         return standardized_response_value
 
-    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.ContainerExpression.CollectiveExpressions:
-        gradient_collective_expression = self.CalculateGradient()
+    def CalculateStandardizedGradient(self, save_field: bool = True) -> KratosOA.CollectiveExpression:
 
-        if save_field:
-            # save the physical gradients for post processing in unbuffered data container.
-            for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
-                for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+        with TimeLogger(f"StandardizedConstraint::Calculate {self.GetReponse().GetName()} gradients", None, "Finished"):
+            gradient_collective_expression = self.CalculateGradient()
+            if save_field:
+                # save the physical gradients for post processing in unbuffered data container.
+                for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
+                    variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
+                    for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+                        if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+                        # cloning is a cheap operation, it only moves underlying pointers
+                        # does not create additional memory.
+                        self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
+
+                # save the filtered gradients for post processing in unbuffered data container.
+                for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
+                    variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
                     if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
                     # cloning is a cheap operation, it only moves underlying pointers
                     # does not create additional memory.
-                    self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
-
-            # save the filtered gradients for post processing in unbuffered data container.
-            for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
-                if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                # cloning is a cheap operation, it only moves underlying pointers
-                # does not create additional memory.
-                self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
+                    self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
 
         return gradient_collective_expression * self.__scaling
 
@@ -140,14 +146,15 @@ class StandardizedConstraint(ResponseRoutine):
     def GetAbsoluteChange(self) -> float:
         return self.GetStandardizedValue() / self.GetStandardizedReferenceValue() - 1.0 if abs(self.GetStandardizedReferenceValue()) > 1e-12 else self.GetStandardizedValue()
 
-    def GetInfo(self) -> str:
-        msg = "\tConstraint info:"
-        msg += f"\n\t\t name             : {self.GetReponse().GetName()}"
-        msg += f"\n\t\t value            : {self.GetValue():0.6e}"
-        msg += f"\n\t\t type             : {self.__constraint_type}"
-        msg += f"\n\t\t ref_value        : {self.GetStandardizedReferenceValue():0.6e}"
-        msg += f"\n\t\t abs_change       : {self.GetAbsoluteChange():0.6e}"
-        msg += f"\n\t\t rel_change [%]   : {self.GetRelativeChange() * 100.0:0.6e}"
-        msg += f"\n\t\t abs_violation    : {self.GetAbsoluteViolation():0.6e}"
-        msg += f"\n\t\t rel_violation [%]: {self.GetRelativeViolation() * 100.0:0.6e}"
-        return msg
+    def GetInfo(self) -> dict:
+        info = {
+            "name": self.GetReponse().GetName(),
+            "value": self.GetValue(),
+            "type": self.__constraint_type,
+            "ref_value": self.GetStandardizedReferenceValue(),
+            "abs_change": self.GetAbsoluteChange(),
+            "rel_change [%]": self.GetRelativeChange() * 100.0,
+            "abs_violation [%]": self.GetAbsoluteViolation() * 100,
+            "rel_violation [%]": self.GetRelativeViolation() * 100.0
+        }
+        return info

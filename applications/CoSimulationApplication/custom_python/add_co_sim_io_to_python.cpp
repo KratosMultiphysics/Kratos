@@ -36,6 +36,8 @@ namespace Kratos::Python {
 // TODO use elements or conditions?? => how to switch?
 // TODO using initial or current coordinates?? => how to switch?
 
+using DataLocation = Globals::DataLocation;
+
 namespace CoSimIO_Wrappers { // helpers namespace
 
 // creating static buffers such that memory does not constantly have to be reallocated during the data-exchange
@@ -203,14 +205,6 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
 
     m_co_sim_io.def("InfoFromParameters", CoSimIOConversionUtilities::InfoFromParameters);
-
-    py::enum_<DataLocation>(m_co_sim_io,"DataLocation")
-        .value("NodeHistorical",    DataLocation::NodeHistorical)
-        .value("NodeNonHistorical", DataLocation::NodeNonHistorical)
-        .value("Element",           DataLocation::Element)
-        .value("Condition",         DataLocation::Condition)
-        .value("ModelPart",         DataLocation::ModelPart)
-        ;
 }
 
 }  // namespace Kratos::Python
