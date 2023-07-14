@@ -448,10 +448,8 @@ protected:
                 r_condition.CalculateRightHandSide(r_rhs_cond, r_current_process_info);
                 r_condition.GetDofList(dofs, r_current_process_info);
                 for (IndexType i = 0; i < dofs.size(); ++i){
-                    if (dofs[i]->IsFixed()){
-                        double& r_bi = rb[dofs[i]->EquationId()];
-                        AtomicAdd(r_bi, r_rhs_cond[i]); // Building RHS.
-                    }
+                    double& r_bi = rb[dofs[i]->EquationId()];
+                    AtomicAdd(r_bi, r_rhs_cond[i]); // Building RHS.
                 }
             });
         }   
