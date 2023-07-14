@@ -226,6 +226,25 @@ public:
     {
     }
 
+    typename Node::Pointer Clone(IndexType NewId)
+    {
+        Node::Pointer p_new_node = Kratos::make_intrusive<Node >( NewId, (*this)[0], (*this)[1], (*this)[2]);
+        p_new_node->mNodalData = this->mNodalData;
+
+        Node::DofsContainerType& my_dofs = (this)->GetDofs();
+        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
+        {
+            p_new_node->pAddDof(**it_dof);
+        }
+
+        p_new_node->mData = this->mData;
+        p_new_node->mInitialPosition = this->mInitialPosition;
+
+        p_new_node->Set(Flags(*this));
+
+        return p_new_node;
+    }
+
     /// Destructor.
     ~Node() override
     {
