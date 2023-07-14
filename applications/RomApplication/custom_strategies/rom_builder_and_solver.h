@@ -428,7 +428,8 @@ protected:
         {
             block_for_each(r_elements, Kratos::Vector(), [&](Element& r_element, Kratos::Vector& rhs_elem)
             {
-                DofsVectorType dofs = {};
+                DofsVectorType dofs;
+
                 r_element.CalculateRightHandSide(rhs_elem, r_current_process_info);
                 r_element.GetDofList(dofs, r_current_process_info);
                 for (IndexType i = 0; i < dofs.size(); ++i){
