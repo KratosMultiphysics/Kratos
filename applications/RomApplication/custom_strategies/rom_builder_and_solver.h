@@ -426,16 +426,16 @@ protected:
         auto& r_elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
         if(!r_elements.empty())
         {
-            block_for_each(r_elements, Kratos::Vector(), [&](Element& r_element, Kratos::Vector& rhs_elem)
+            block_for_each(r_elements, Kratos::Vector(), [&](Element& r_element, Kratos::Vector& r_rhs_elem)
             {
                 DofsVectorType dofs;
 
-                r_element.CalculateRightHandSide(rhs_elem, r_current_process_info);
+                r_element.CalculateRightHandSide(r_rhs_elem, r_current_process_info);
                 r_element.GetDofList(dofs, r_current_process_info);
                 for (IndexType i = 0; i < dofs.size(); ++i){
                     if (dofs[i]->IsFixed()){
                         double& r_bi = rb[dofs[i]->EquationId()];
-                        AtomicAdd(r_bi, rhs_elem[i]); // Building RHS.
+                        AtomicAdd(r_bi, r_rhs_elem[i]); // Building RHS.
                     }
                 }
             });
@@ -444,15 +444,15 @@ protected:
         auto& r_conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
         if(!r_conditions.empty())
         {
-            block_for_each(r_conditions, Kratos::Vector(), [&](Condition& r_condition, Kratos::Vector& rhs_cond)
+            block_for_each(r_conditions, Kratos::Vector(), [&](Condition& r_condition, Kratos::Vector& r_rhs_cond)
             {
                 DofsVectorType dofs = {};
-                r_condition.CalculateRightHandSide(rhs_cond, r_current_process_info);
+                r_condition.CalculateRightHandSide(r_rhs_cond, r_current_process_info);
                 r_condition.GetDofList(dofs, r_current_process_info);
                 for (IndexType i = 0; i < dofs.size(); ++i){
                     if (dofs[i]->IsFixed()){
                         double& r_bi = rb[dofs[i]->EquationId()];
-                        AtomicAdd(r_bi, rhs_cond[i]); // Building RHS.
+                        AtomicAdd(r_bi, r_rhs_cond[i]); // Building RHS.
                     }
                 }
             });
