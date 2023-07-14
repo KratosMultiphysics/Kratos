@@ -82,7 +82,7 @@ class InterpolateVelocityProcess(KratosMultiphysics.Process):
         #Set velocity field to origin model part
         self.alpha = 1e-3
         self.expected_alpha = 1.0
-        velocity = self.alpha*np.load("velocity_field.npy")
+        velocity = self.alpha*np.load("average_velocity.npy")
         
         counter = 0
         for node in self.origin_model_part.Nodes:
