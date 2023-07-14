@@ -42,7 +42,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
             self.assertAlmostEqual(rhs_val, expected_val, tol)
 
 
-    def _TestSetMultipleMovingLoads(self):
+    def test_SetMultipleMovingLoads(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
         moving load - a single load
@@ -88,7 +88,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
 
-    def _TestSetMultipleMovingLoadsConfigurationPositive(self):
+    def test_SetMultipleMovingLoadsConfigurationPositive(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
         moving load, including a positive configuration along line condition direction in velocity direction.
@@ -136,7 +136,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
 
-    def _TestSetMultipleMovingLoadsConfigurationNegative(self):
+    def test_SetMultipleMovingLoadsConfigurationNegative(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
         moving load, , including a negative configuration along line condition direction in velocity direction.
@@ -184,7 +184,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
 
-    def _TestSetMultipleMovingLoadsConfigurationCombined(self):
+    def test_SetMultipleMovingLoadsConfigurationCombined(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
         moving load, , including a combined configuration along line condition direction in velocity direction.
@@ -246,7 +246,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, -1.5, 0.0, -0.5])
         self.checkRHS(all_rhs[2], [0.0, -1.0, 0.0, -1.0])
 
-    def _TestSetMultipleMovingLoadsReverseGeom(self):
+    def test_SetMultipleMovingLoadsReverseGeom(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are reversed compared to the
         direction of the moving load
@@ -296,7 +296,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
 
-    def _TestSetMultipleMovingLoadsReverseGeomConfigurationPositive(self):
+    def test_SetMultipleMovingLoadsReverseGeomConfigurationPositive(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are reversed compared to the
         direction of the moving load, including a positive configuration along line condition direction in velocity direction.
@@ -346,7 +346,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
 
-    def _TestSetMultipleMovingLoadsReverseGeomConfigurationNegative(self):
+    def test_SetMultipleMovingLoadsReverseGeomConfigurationNegative(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are reversed compared to the
         direction of the moving load, including a negative configuration along line condition direction in velocity direction.
@@ -396,7 +396,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, 0.0, 0.0, -2.0])
 
-    def _TestSetMultipleMovingLoadsReverseGeomConfigurationCombined(self):
+    def test_SetMultipleMovingLoadsReverseGeomConfigurationCombined(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are reversed compared to the
         direction of the moving load, including a negative configuration along line condition direction in velocity direction.
@@ -461,7 +461,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
 
 
-    def _TestSetMultipleMovingLoadsMultipleConditions(self):
+    def test_SetMultipleMovingLoadsMultipleConditions(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
         moving load
@@ -548,7 +548,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsOffSetPositive(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsConfigurationPositive(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
         moving load
@@ -637,7 +637,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsOffSetNegative(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsConfigurationNegative(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
         moving load
@@ -738,7 +738,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsReversed(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsReversed(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is reversed compared to the moving
         direction of the load
@@ -826,7 +826,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, -1.5, 0.0, -0.5])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsReversedConfigurationPositive(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsReversedConfigurationPositive(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is reversed compared to the moving
         direction of the load, including a positive configuration along line condition direction in velocity direction.
@@ -915,7 +915,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsReversedConfigurationNegative(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsReversedConfigurationNegative(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is reversed compared to the moving
         direction of the load, including a negative configuration along line condition direction in velocity direction.
@@ -1005,7 +1005,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, -0.5, 0.0, -1.5])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsDifferentOrigin(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOrigin(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
         moving load
@@ -1053,7 +1053,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, -1.5, 0.0, -0.5])
 
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationPositive(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationPositive(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
         moving load, including a positive configuration along line condition direction in velocity direction.
@@ -1102,7 +1102,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationNegative(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationNegative(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
         moving load, including a negative configuration along line condition direction in velocity direction.
@@ -1151,7 +1151,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginReversed(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversed(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
         moving load
@@ -1199,7 +1199,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationPositive(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationPositive(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
         moving load, including a positive configuration along line condition direction in velocity direction.
@@ -1247,7 +1247,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, -1.0, 0.0, -1.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
-    def _TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationNegative(self):
+    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationNegative(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
         moving load, including a negative configuration along line condition direction in velocity direction.
@@ -1295,7 +1295,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
-    def _TestSetMultipleMovingLoadsWithLoadFunction(self):
+    def test_SetMultipleMovingLoadsWithLoadFunction(self):
         """
        Tests a moving load on a condition element, where the load is a function of time
        Returns
@@ -1346,7 +1346,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -0.5, 0.0, -0.5])
 
-    def _TestSetMultipleMovingLoadsWithLoadFunctionConfigurationPositive(self):
+    def test_SetMultipleMovingLoadsWithLoadFunctionConfigurationPositive(self):
         """
        Tests a moving load on a condition element, where the load is a function of time, including a positive configuration along line condition direction in velocity direction.
        Returns
@@ -1395,7 +1395,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -0.25, 0.0, -0.75])
 
-    def _TestSetMultipleMovingLoadsWithLoadFunctionConfigurationNegative(self):
+    def test_SetMultipleMovingLoadsWithLoadFunctionConfigurationNegative(self):
         """
        Tests a moving load on a condition element, where the load is a function of time, including a negative configuration along line condition direction in velocity direction.
        Returns
@@ -1444,7 +1444,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -0.75, 0.0, -0.25])
 
-    def _TestSetMultipleMovingLoadsWithVelocityFunction(self):
+    def test_SetMultipleMovingLoadsWithVelocityFunction(self):
         """
         Tests a moving load on a condition element, where the load velocity is a function of time.
 
@@ -1502,7 +1502,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
 
-    def _TestSetMultipleMovingLoadsWithVelocityFunctionConfigurationPositive(self):
+    def test_SetMultipleMovingLoadsWithVelocityFunctionConfigurationPositive(self):
         """
        Tests a moving load on a condition element, where the load velocity is a function of time, including a positive configuration along line condition direction in velocity direction.
 
@@ -1561,7 +1561,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
 
-    def _TestSetMultipleMovingLoadsWithVelocityFunctionConfigurationNegative(self):
+    def test_SetMultipleMovingLoadsWithVelocityFunctionConfigurationNegative(self):
         """
        Tests a moving load on a condition element, where the load velocity is a function of time, including a negative configuration along line condition direction in velocity direction.
 
@@ -1619,85 +1619,6 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
 
         self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
-
-
-    def test_SetMultipleMovingLoads(self):
-        self._TestSetMultipleMovingLoads()
-
-    def test_SetMultipleMovingLoadsConfigurationPositive(self):
-        self._TestSetMultipleMovingLoadsConfigurationPositive()
-
-    def test_SetMultipleMovingLoadsConfigurationNegative(self):
-        self._TestSetMultipleMovingLoadsConfigurationNegative()
-
-    def test_SetMultipleMovingLoadsConfigurationCombined(self):
-        self._TestSetMultipleMovingLoadsConfigurationCombined()
-
-    def test_SetMultipleMovingLoadsReverseGeom(self):
-        self._TestSetMultipleMovingLoadsReverseGeom()
-
-    def test_SetMultipleMovingLoadsReverseGeomConfigurationPositive(self):
-        self._TestSetMultipleMovingLoadsReverseGeomConfigurationPositive()
-
-    def test_SetMultipleMovingLoadsReverseGeomConfigurationNegative(self):
-        self._TestSetMultipleMovingLoadsReverseGeomConfigurationNegative()
-
-    def test_SetMultipleMovingLoadsReverseGeomConfigurationCombined(self):
-        self._TestSetMultipleMovingLoadsReverseGeomConfigurationCombined()
-
-    def test_SetMultipleMovingLoadsMultipleConditions(self):
-        self._TestSetMultipleMovingLoadsMultipleConditions()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsConfigurationPositive(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsOffSetPositive()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsConfigurationNegative(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsOffSetNegative()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsReversed(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsReversed()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsReversedConfigurationPositive(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsReversedConfigurationPositive()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsReversedConfigurationNegative(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsReversedConfigurationNegative()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOrigin(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsDifferentOrigin()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationPositive(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationPositive()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationNegative(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationNegative()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversed(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginReversed()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationPositive(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationPositive()
-
-    def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationNegative(self):
-        self._TestSetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationNegative()
-
-    def test_SetMultipleMovingLoadsWithLoadFunction(self):
-        self._TestSetMultipleMovingLoadsWithLoadFunction()
-
-    def test_SetMultipleMovingLoadsWithLoadFunctionConfigurationPositive(self):
-        self._TestSetMultipleMovingLoadsWithLoadFunctionConfigurationPositive()
-
-    def test_SetMultipleMovingLoadsWithLoadFunctionConfigurationNegative(self):
-        self._TestSetMultipleMovingLoadsWithLoadFunctionConfigurationNegative()
-
-    def test_SetMultipleMovingLoadsWithVelocityFunction(self):
-        self._TestSetMultipleMovingLoadsWithVelocityFunction()
-
-    def test_SetMultipleMovingLoadsWithVelocityFunctionConfigurationPositive(self):
-        self._TestSetMultipleMovingLoadsWithVelocityFunctionConfigurationPositive()
-
-    def test_SetMultipleMovingLoadsWithVelocityFunctionConfigurationNegative(self):
-        self._TestSetMultipleMovingLoadsWithVelocityFunctionConfigurationNegative()
 
 
 if __name__ == '__main__':

@@ -14,7 +14,6 @@
 
 namespace Kratos
 {
-
     SetMultipleMovingLoadsProcess::SetMultipleMovingLoadsProcess(ModelPart& rModelPart,
         const Parameters& rSettings)
         : mrModelPart(rModelPart),
@@ -60,11 +59,9 @@ namespace Kratos
 
         KRATOS_ERROR_IF(!is_all_string && !is_all_number) << "'load' has to be a vector of numbers, or an array with strings" << std::endl;
 
-
         int count = 0;
         for (double offset : mParameters["configuration"].GetVector())
         {
-
             auto parameters_moving_load = mParameters.Clone();
 
             count++;
@@ -75,15 +72,12 @@ namespace Kratos
             parameters_moving_load.RemoveValue("compute_model_part_name");
             parameters_moving_load.AddDouble("offset", offset);
 
-            // auto r_moving_point_process = Kratos::unique_ptr<SetMovingLoadProcess>( new SetMovingLoadProcess(new_cloned_model_part, parameters_moving_load));
             auto moving_point_process = Kratos::make_unique< SetMovingLoadProcess>(new_cloned_model_part, parameters_moving_load);
 
             mMovingPointLoadsProcesses.push_back(std::move(moving_point_process));
-           
         }
 
         RemoveClonedConditions();
-
     }
 
     ModelPart& SetMultipleMovingLoadsProcess::CloneMovingConditionInComputeModelPart(const std::string& NewBodyPartName)
@@ -102,11 +96,10 @@ namespace Kratos
         return new_model_part;
     }
 
-    int SetMultipleMovingLoadsProcess::GetMaxConditionsIndex()
+    int SetMultipleMovingLoadsProcess::GetMaxConditionsIndex() const
     {
-        auto& root_model_part = mrModelPart.GetRootModelPart();
         int max_index = 0;
-        for(const auto& condition: root_model_part.Conditions())
+        for (const auto& condition: mrModelPart.GetRootModelPart().Conditions())
         {
             max_index = std::max(max_index, static_cast<int>(condition.Id()));
         }
@@ -127,7 +120,7 @@ namespace Kratos
 
     void SetMultipleMovingLoadsProcess::ExecuteInitialize()
     {
-        for (auto& rMovingPointLoad : mMovingPointLoadsProcesses)
+        for (const auto& rMovingPointLoad : mMovingPointLoadsProcesses)
         {
             rMovingPointLoad->ExecuteInitialize();
         }
@@ -135,19 +128,17 @@ namespace Kratos
 
     void SetMultipleMovingLoadsProcess::ExecuteInitializeSolutionStep()
     {
-        for (auto& rMovingPointLoad: mMovingPointLoadsProcesses)
+        for (const auto& rMovingPointLoad: mMovingPointLoadsProcesses)
         {
             rMovingPointLoad->ExecuteInitializeSolutionStep();
         }
-    };
+    }
 
     void SetMultipleMovingLoadsProcess::ExecuteFinalizeSolutionStep()
     {
-        for (auto& rMovingPointLoad : mMovingPointLoadsProcesses)
+        for (const auto& rMovingPointLoad : mMovingPointLoadsProcesses)
         {
             rMovingPointLoad->ExecuteFinalizeSolutionStep();
         }
-
-    };
-
+    }
 }

@@ -25,8 +25,8 @@ namespace Kratos {
     /**
      * @class SetMultipleMovingLoadsProcess
      * @ingroup GeoMechanicsApplication
-     * @brief Process to set and manage multiple moving loads offset accordsing to a configuration variable
-     * @details This process applies mutliple moving loads at intervals according to a set configuration pattern.
+     * @brief Process to set and manage multiple moving loads offset according to a configuration variable
+     * @details This process applies multiple moving loads at intervals according to a set configuration pattern.
      * @author Jonathan Nuttall
     */
 
@@ -102,7 +102,7 @@ namespace Kratos {
         /**
         * \brief Get maximum index of current conditions in root
         */
-            int GetMaxConditionsIndex();
+            [[nodiscard]] int GetMaxConditionsIndex() const;
 
         /**
         * \brief Remove cloned conditions as they are not executed
