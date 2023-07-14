@@ -173,7 +173,7 @@ class HRomTrainingUtility(object):
 
 
     def AppendHRomWeightsToRomParameters(self):
-        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+        number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         weights = np.squeeze(self.hyper_reduction_element_selector.w)
         indexes = self.hyper_reduction_element_selector.z
 
@@ -195,10 +195,35 @@ class HRomTrainingUtility(object):
                 hrom_weights["Conditions"][cond_id] = 0.0
             weights, indexes = self.__AddSelectedConditionsWithZeroWeights(weights, indexes, minimum_conditions, number_of_elements)
 
+        # If required, add the conditions from the provided ModelPart to the HROM weights
+        include_additional_conditions = True
+        if include_additional_conditions:
+            # Get the root model part
+            root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+
+            # Check if the sub model part exists
+            if root_model_part.HasSubModelPart("GENERIC_Interface_fluid"):
+                conditions_to_include_model_part = root_model_part.GetSubModelPart("GENERIC_Interface_fluid")
+            elif root_model_part.HasSubModelPart("GENERIC_Interface_solid"):
+                conditions_to_include_model_part = root_model_part.GetSubModelPart("GENERIC_Interface_solid")
+
+            # Call the AddAndCheckConditionIds function
+            new_conditions = KratosROM.RomAuxiliaryUtilities.AddAndCheckConditionIds(
+                root_model_part, # The complete model part
+                conditions_to_include_model_part, # The model part containing the conditions to be included
+                hrom_weights)
+
+            # Add the new conditions to the conditions dict with a null weight
+            for condition_id in new_conditions:
+                hrom_weights["Conditions"][condition_id] = 0.0
+
+            # If needed, update your weights and indexes using __AddSelectedElementsWithZeroWeights function with the new_conditions
+            weights, indexes = self.__AddSelectedConditionsWithZeroWeights(weights, indexes, new_conditions, number_of_elements)
+
         #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
-        include_condition_parents = False
+        include_condition_parents = True
         if include_condition_parents:
             # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
@@ -209,7 +234,7 @@ class HRomTrainingUtility(object):
             for parent_id in missing_condition_parents:
                 hrom_weights["Elements"][parent_id] = 0.0
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
-
+        
         if self.hrom_output_format=="numpy":
             element_indexes = np.where( indexes < number_of_elements )[0]
             condition_indexes = np.where( indexes >= number_of_elements )[0]
@@ -245,12 +270,12 @@ class HRomTrainingUtility(object):
 
     def __CreateDictionaryWithRomElementsAndWeights(self, weights = None, indexes=None, number_of_elements = None):
 
+        if number_of_elements is None:
+            number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         if weights is None:
             weights = np.r_[np.load(f'numpy_rom_data_{self.rom_basis_output_name}/HROM_ElementWeights.npy'),np.load(f'numpy_rom_data_{self.rom_basis_output_name}/HROM_ConditionWeights.npy')]
         if indexes is None:
-            indexes = np.r_[np.load(f'numpy_rom_data_{self.rom_basis_output_name}/HROM_ElementIds.npy'),np.load(f'numpy_rom_data_{self.rom_basis_output_name}/HROM_ConditionIds.npy')]
-        if number_of_elements is None:
-            number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+            indexes = np.r_[np.load(f'numpy_rom_data_{self.rom_basis_output_name}/HROM_ElementIds.npy'),np.load(f'numpy_rom_data_{self.rom_basis_output_name}/HROM_ConditionIds.npy')+number_of_elements]
 
         hrom_weights = {}
         hrom_weights["Elements"] = {}

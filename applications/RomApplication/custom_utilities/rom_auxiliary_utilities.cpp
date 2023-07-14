@@ -335,6 +335,29 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     return parent_ids;
 }
 
+std::vector<IndexType> RomAuxiliaryUtilities::AddAndCheckConditionIds(
+    const ModelPart& rModelPart,
+    const ModelPart& rModelPartWithConditionsToInclude,
+    std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    std::vector<IndexType> new_condition_ids;
+    auto& r_cond_weights = rHRomWeights["Conditions"];
+
+    for (const auto& r_cond : rModelPartWithConditionsToInclude.Conditions()) {
+        IndexType condition_id = r_cond.Id();
+        
+        // Check if the condition is already added
+        if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) {
+            // If it's not added, we add it to the HROM weights and the new_condition_ids list
+            r_cond_weights[condition_id - 1] = 0; // Adjust the value 0 based on your needs.
+            new_condition_ids.push_back(condition_id - 1);
+        }
+    }
+
+    return new_condition_ids;
+}
+
+
 std::vector<IndexType> RomAuxiliaryUtilities::GetHRomMinimumConditionsIds(
     const ModelPart& rModelPart,
     const std::map<IndexType, double>& rHRomConditionWeights)
