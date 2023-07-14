@@ -192,7 +192,6 @@ public:
         ModelPart& r_model_part
     ) override
     {
-        KRATOS_WATCH("-----HERE------")
         Vector dofs_values = ZeroVector(rdof_set.size());
 
         block_for_each(rdof_set, [&](Dof<double>& rDof){
