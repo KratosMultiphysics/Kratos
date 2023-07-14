@@ -433,10 +433,8 @@ protected:
                 r_element.CalculateRightHandSide(r_rhs_elem, r_current_process_info);
                 r_element.GetDofList(dofs, r_current_process_info);
                 for (IndexType i = 0; i < dofs.size(); ++i){
-                    if (dofs[i]->IsFixed()){
-                        double& r_bi = rb[dofs[i]->EquationId()];
-                        AtomicAdd(r_bi, r_rhs_elem[i]); // Building RHS.
-                    }
+                    double& r_bi = rb[dofs[i]->EquationId()];
+                    AtomicAdd(r_bi, r_rhs_elem[i]); // Building RHS.
                 }
             });
         }
