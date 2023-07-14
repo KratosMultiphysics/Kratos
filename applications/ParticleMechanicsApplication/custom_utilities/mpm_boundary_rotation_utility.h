@@ -284,21 +284,14 @@ public:
 				{
 					if(this->IsSlip(rGeometry[itNode]) )
 					{
-						// We fix the first displacement dof (normal component) for each rotated block
+						// First displacement dof (normal component) for each rotated block is always constrained
 						unsigned int j = itNode * block_size;
 
-						// Copy all normal value in LHS to the temp_matrix
-                        // [ does nothing for dummy rLocalMatrix (size1() == 0) -- RHS only case ]
-						for (unsigned int i = j; i < rLocalMatrix.size1(); i+= block_size)
-						{
-							temp_matrix(i,j) = rLocalMatrix(i,j);
-							temp_matrix(j,i) = rLocalMatrix(j,i);
-						}
-
-                        //// AUGMENTATION FOR FRICTION ////
                         double mu = rGeometry[itNode].GetValue(FRICTION_COEFFICIENT);
 
-                        if (mu > 0){ // Positive friction coefficient -- friction active
+                        if (mu > 0){
+                            // Positive friction coefficient -- friction active
+
                             // obtain normal and tangential forces
                             double normal_force_norm = abs(rLocalVector[j]);
                             double tangent_force1 = rLocalVector[j + 1];
@@ -325,30 +318,30 @@ public:
                                     double tangent_direction2 = tangent_force2 / tangent_force_norm;
                                     rLocalVector[j + 2] = tangent_direction2 * max_tangential_force_norm;
                                 }
-                            } else {
-                                // force not exceeded, apply constraint as usual -- copy all tangential terms of DoF into matrix
-                                for (unsigned int k = 1; k < block_size; k++){
-                                    for (unsigned int i = k; i < rLocalMatrix.size1(); i+= block_size)
-                                    {
-                                        temp_matrix(i,j + k) = rLocalMatrix(i,j + k);
-                                        temp_matrix(j + k,i) = rLocalMatrix(j + k,i);
+
+                                // allow slip along tangential direction -- zero out tangential penalty terms on LHS
+                                for (unsigned int k = j + 1; k < j + block_size; ++k) {
+                                    for (unsigned int i = 0; i < rLocalMatrix.size1(); ++i) {
+                                        rLocalMatrix(i, k) = 0.0;
+                                        rLocalMatrix(k, i) = 0.0;
                                     }
                                 }
-
                             }
 
                         } else {
-                            // Friction off -- remove all other value in RHS than the normal component
+                            // Friction off -- remove all other value in RHS & LHS than the normal component
                             for(unsigned int i = j; i < (j + block_size); ++i)
                             {
                                 if (i!=j) rLocalVector[i] = 0.0;
+
+                                for (unsigned int k = 0; k < rLocalMatrix.size1(); ++k) {
+                                    rLocalMatrix(i, k) = 0.0;
+                                    rLocalMatrix(k, i) = 0.0;
+                                }
                             }
                         }
                     }
 				}
-                // All entries in penalty matrix zeroed out except for normal component
-                // [ no effect in case of empty dummy rLocalMatrix ]
-				rLocalMatrix = temp_matrix;
 			}
 		}
 	}
