@@ -243,35 +243,51 @@ public:
         while (is_converged == false &&
             iteration_number++ < this->mMaxIterationNumber)
         {
-            // Setting the number of iteration
-            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-            p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
-            is_converged = this->mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+            SolveSolutionStepIteration(p_scheme, p_builder_and_solver, rA, rDx, rb,
+                                                                       r_dof_set, iteration_number, is_converged);
+        }
 
-            // Call the linear system solver to find the correction rDx. It is not called if there is no system to solve
-            if (SparseSpaceType::Size(rDx) != 0)
+        // Plot a warning if the maximum number of iterations is exceeded
+        if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+        {
+            if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
+        }
+
+        return is_converged;
+    }
+
+private:
+    /**
+     * @brief Auxilliary function to perform a single Newton-Rhapson iteration. For use in the SolveSolutionStep
+     */
+    void inline SolveSolutionStepIteration(typename TSchemeType::Pointer p_scheme,
+                                    typename TBuilderAndSolverType::Pointer p_builder_and_solver,
+                                    TSystemMatrixType& rA,
+                                    TSystemVectorType& rDx,
+                                    TSystemVectorType& rb,
+                                    DofsArrayType& r_dof_set,
+                                    const unsigned int iteration_number,
+                                    bool& is_converged)
+    { // Setting the number of iteration
+        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+        p_scheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+        is_converged = this->mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+
+        // Call the linear system solver to find the correction rDx. It is not called if there is no system to solve
+        if (SparseSpaceType::Size(rDx) != 0)
+        {
+            if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
             {
-                if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
+                KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Iteration Number: " << iteration_number << std::endl;
+
+                if (this->GetKeepSystemConstantDuringIterations() == false)
                 {
-                    KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Iteration Number: " << iteration_number << std::endl;
+                    TSparseSpace::SetToZero(rA);
+                    TSparseSpace::SetToZero(rDx);
+                    TSparseSpace::SetToZero(rb);
 
-                    if (this->GetKeepSystemConstantDuringIterations() == false)
-                    {
-                        TSparseSpace::SetToZero(rA);
-                        TSparseSpace::SetToZero(rDx);
-                        TSparseSpace::SetToZero(rb);
-
-                        KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build and Solve" << std::endl;
-                        p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
-                    }
-                    else
-                    {
-                        TSparseSpace::SetToZero(rDx);
-                        TSparseSpace::SetToZero(rb);
-
-                        KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build RHS and Solve" << std::endl;
-                        p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
-                    }
+                    KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build and Solve" << std::endl;
+                    p_builder_and_solver->BuildAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
                 }
                 else
                 {
@@ -284,16 +300,25 @@ public:
             }
             else
             {
-                KRATOS_WARNING("MPMNewtonRaphsonStrategy") << "ATTENTION: no free DOFs!! " << std::endl;
-            }
+                TSparseSpace::SetToZero(rDx);
+                TSparseSpace::SetToZero(rb);
 
-            // Updating the results stored in the database
+                KRATOS_INFO_IF("MPMNewtonRaphsonStrategy", this->GetEchoLevel() >= 3) << "Build RHS and Solve" << std::endl;
+                p_builder_and_solver->BuildRHSAndSolve(p_scheme, BaseType::GetModelPart(), rA, rDx, rb);
+            }
+        }
+        else
+        {
+            KRATOS_WARNING("MPMNewtonRaphsonStrategy") << "ATTENTION: no free DOFs!! " << std::endl;
+        }
+
+        // Updating the results stored in the database
             r_dof_set = p_builder_and_solver->GetDofSet();
 
-            p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+        p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
             p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
-            // Move the mesh if needed
+        // Move the mesh if needed
             if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
             // If converged
@@ -309,15 +334,6 @@ public:
 
                 is_converged = this->mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
             }
-        }
-
-        // Plot a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
-        {
-            if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
-        }
-
-        return is_converged;
     }
 
 }; /* Class MPMResidualBasedNewtonRaphsonStrategy */
