@@ -126,6 +126,7 @@ void ComputeWeightForAllNeighbors(
     double& rSumOfWeights,
     std::vector<double>& rListOfWeights,
     const FilterFunction& rFilterFunction,
+    const DampingFunction& rDampingFunction,
     const double Radius,
     const EntityPoint<TEntityType>& rDesignPoint,
     const std::vector<typename EntityPoint<TEntityType>::Pointer>& rNeighbourNodes,
@@ -137,14 +138,8 @@ void ComputeWeightForAllNeighbors(
         const double domain_size = GetDomainSize(*rNeighbourNodes[i], pExpression);
         const double filter_weight = rFilterFunction.ComputeWeight(rDesignPoint.Coordinates(), rNeighbourNodes[i]->Coordinates(), Radius);
         double damping_multiplier = 1.0;
-        if(rDampingNeighbourNodes.size()>0){
-            const array_1d<double, 3>& dist_vector = rNeighbourNodes[i]->Coordinates() - rDampingNeighbourNodes[i]->Coordinates();
-            const double dist = sqrt(dist_vector[0] * dist_vector[0] + dist_vector[1] * dist_vector[1] + dist_vector[2] * dist_vector[2]);
-            const double limit = std::log1p(std::numeric_limits<double>::max());
-            double pow_val = -2.0 * std::numeric_limits<double>::max() * (dist - Radius);
-            pow_val = std::clamp(pow_val, -limit, limit);
-            damping_multiplier = 1.0 / (1.0 + std::exp(pow_val));
-        }
+        if(rDampingNeighbourNodes.size()>0)
+            damping_multiplier = rDampingFunction.ComputeWeight(rDampingNeighbourNodes[i]->Coordinates(), rNeighbourNodes[i]->Coordinates(), Radius);
         rListOfWeights[i] = damping_multiplier *  TWeightComputationType::Compute(filter_weight, domain_size);
         rSumOfWeights += filter_weight * domain_size;
     }
@@ -169,11 +164,13 @@ ExplicitFilter<TContainerType>::ExplicitFilter(
     const ModelPart& rModelPart,
     const ModelPart& rFixedModelPart,
     const std::string& rKernelFunctionType,
+    const std::string& rDampingFunctionType,
     const IndexType MaxNumberOfNeighbours)
     : mrModelPart(rModelPart),
       mMaxNumberOfNeighbors(MaxNumberOfNeighbours)
 {
     mpKernelFunction = Kratos::make_unique<FilterFunction>(rKernelFunctionType);
+    mpDampingFunction = Kratos::make_unique<DampingFunction>(rDampingFunctionType);
     mpFixedModelPart = &rFixedModelPart;
     Update();
 }
@@ -320,7 +317,7 @@ ContainerExpression<TContainerType> ExplicitFilter<TContainerType>::GenericFilte
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
         double sum_of_weights = 0.0;
         ExplicitFilterHelperUtilities::ComputeWeightForAllNeighbors<EntityType, TWeightIntegrationType>(
-            sum_of_weights, list_of_weights, *mpKernelFunction, radius,
+            sum_of_weights, list_of_weights, *mpKernelFunction, *mpDampingFunction, radius,
             entity_point, rTLS.mNeighbourEntityPoints, rTLS.mDampingNeighbourEntityPoints, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         const IndexType current_data_begin = Index * stride;

@@ -7,9 +7,7 @@
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main authors:    Baumgaertner Daniel
-//                   Aditya Ghantasala
-//                   Suneth Warnakulasuriya
+//  Main authors:    Reza Najian Asl
 //
 
 #pragma once
@@ -30,10 +28,10 @@ namespace Kratos
 
 /// Short class definition.
 /**
- * FilterFunction implementations.
+ * DampingFunction implementations.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) FilterFunction
+class KRATOS_API(OPTIMIZATION_APPLICATION) DampingFunction
 {
   public:
     ///@name Type Definitions
@@ -41,15 +39,15 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) FilterFunction
 
     using Array3DType = array_1d<double, 3>;
 
-    /// Pointer definition of FilterFunction
-    KRATOS_CLASS_POINTER_DEFINITION(FilterFunction);
+    /// Pointer definition of DampingFunction
+    KRATOS_CLASS_POINTER_DEFINITION(DampingFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    FilterFunction(const std::string& rKernelFunctionType);
+    DampingFunction(const std::string& rKernelFunctionType);
 
     ///@}
     ///@name Operations
@@ -67,6 +65,7 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) FilterFunction
     ///@{
 
     std::function<double (const double, const double)> mFilterFunctional;
+    std::string mKernelFunctionType;
 
     ///@}
     ///@name Private Operations
@@ -78,7 +77,7 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) FilterFunction
 
     ///@}
 
-}; // Class FilterFunction
+}; // Class DampingFunction
 
 ///@}
 

@@ -27,7 +27,7 @@ class TestExplicitFilter(kratos_unittest.TestCase):
     def test_NodalExplicitFilterElementConsistencyWithDamping(self):
         model_part = self.model_part.GetSubModelPart("structure")
         fixed_model_part = self.model_part.GetSubModelPart("fixed")
-        vm_filter = KratosOA.NodalExplicitFilter(model_part, fixed_model_part, "linear", 1000)
+        vm_filter = KratosOA.NodalExplicitFilter(model_part, fixed_model_part, "linear", "sigmoidal", 1000)
         filter_radius =  Kratos.Expression.NodalExpression(model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(filter_radius, 2.0)
         vm_filter.SetFilterRadius(filter_radius)
