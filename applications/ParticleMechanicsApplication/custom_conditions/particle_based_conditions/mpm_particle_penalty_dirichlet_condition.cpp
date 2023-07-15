@@ -87,7 +87,6 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
         {
             r_geometry[i].SetLock();
             r_geometry[i].Set(SLIP);
-            r_geometry[i].SetValue(FRICTION_COEFFICIENT, this->GetValue(FRICTION_COEFFICIENT));
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0; // flag for penalty-based slip cond
             r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
             r_geometry[i].UnSetLock();
@@ -279,7 +278,6 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
         {
             r_geometry[i].SetLock();
             r_geometry[i].Reset(SLIP);
-            r_geometry[i].SetValue(FRICTION_COEFFICIENT, 0.0);
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
             r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
             r_geometry[i].UnSetLock();

@@ -113,6 +113,11 @@ public:
         std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access Set Values
     ///@{
@@ -120,6 +125,11 @@ public:
     void SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         const std::vector<array_1d<double, 3 > >& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -132,6 +142,8 @@ protected:
     array_1d<double, 3> m_imposed_displacement;
     array_1d<double, 3> m_imposed_velocity;
     array_1d<double, 3> m_imposed_acceleration;
+
+    double m_friction_coefficient = 0.0;
 
     ///@}
     ///@name Protected Operations
@@ -154,7 +166,7 @@ private:
         rSerializer.save("imposed_displacement",m_imposed_displacement);
         rSerializer.save("imposed_velocity",m_imposed_velocity);
         rSerializer.save("imposed_acceleration",m_imposed_acceleration);
-
+        rSerializer.save("friction_coefficient", m_friction_coefficient);
     }
 
     void load( Serializer& rSerializer ) override
@@ -163,6 +175,7 @@ private:
         rSerializer.load("imposed_displacement",m_imposed_displacement);
         rSerializer.load("imposed_velocity",m_imposed_velocity);
         rSerializer.load("imposed_acceleration",m_imposed_acceleration);
+        rSerializer.load("friction_coefficient", m_friction_coefficient);
     }
 
     ///@}

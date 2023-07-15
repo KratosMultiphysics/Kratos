@@ -47,6 +47,7 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( const ProcessInf
         {
             r_geometry[i].SetLock();
             r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * r_mpc_area;
+            r_geometry[i].SetValue(FRICTION_COEFFICIENT, m_friction_coefficient);
             r_geometry[i].UnSetLock();
         }
         else break;
@@ -63,6 +64,22 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( const ProcessInfo&
     m_displacement += m_imposed_displacement;
 
     m_imposed_displacement = ZeroVector(3);
+
+
+    // Additional treatment for slip conditions
+    if (Is(SLIP))
+    {
+        GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = r_geometry.PointsNumber();
+
+        // Clear FRICTION_COEFFICIENT on background grid nodes as material points can move to a different grid cell
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].SetValue(FRICTION_COEFFICIENT, 0.0);
+            r_geometry[i].UnSetLock();
+        }
+    }
 }
 
 void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
@@ -88,6 +105,22 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
     }
 }
 
+void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                                            std::vector<double>& rValues,
+                                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == FRICTION_COEFFICIENT) {
+        rValues[0] = m_friction_coefficient;
+    }
+    else {
+        MPMParticleBaseCondition::SetValuesOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
 void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
     const std::vector<array_1d<double, 3 > >& rValues,
@@ -105,6 +138,24 @@ void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     }
     else if (rVariable == MPC_IMPOSED_ACCELERATION) {
         m_imposed_acceleration = rValues[0];
+    }
+    else {
+        MPMParticleBaseCondition::SetValuesOnIntegrationPoints(
+            rVariable, rValues, rCurrentProcessInfo);
+    }
+}
+
+void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    const std::vector<double>& rValues,
+    const Kratos::ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == FRICTION_COEFFICIENT) {
+        m_friction_coefficient = rValues[0];
     }
     else {
         MPMParticleBaseCondition::SetValuesOnIntegrationPoints(

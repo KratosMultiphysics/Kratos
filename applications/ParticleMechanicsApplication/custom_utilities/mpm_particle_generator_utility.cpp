@@ -527,7 +527,7 @@ namespace MPMParticleGeneratorUtility
                                     }
 
                                     // Set friction parameter
-                                    p_condition->SetValue(FRICTION_COEFFICIENT, friction_coefficient);
+                                    p_condition->SetValuesOnIntegrationPoints(FRICTION_COEFFICIENT, {friction_coefficient}, process_info);
 
                                     // Add the MP Condition to the model part
                                     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
