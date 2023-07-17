@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <regex>
 
 // External includes
 
@@ -176,24 +177,16 @@ void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rNam
     // Check the type of entity considered
     const std::string entity_type_name = GetEntityTypeName();
 
-    // Geometry combinations
-    const std::vector<std::string> two_d_number_of_nodes = {"1", "2", "3", "4", "6", "8", "9"};
-    const std::vector<std::string> three_d_number_of_nodes = {"1", "2", "3", "4", "5", "6", "8", "9", "10", "13", "15", "20", "27"};
+    // Prepare regex 
+    const std::string replace_dimension = StringUtilities::ReplaceAllSubstrings(rName, "#D", "(2D|3D)");
+    const std::string replace_number_of_nodes = StringUtilities::ReplaceAllSubstrings(replace_dimension, "#N", "[0-9]+N");
+    std::regex pattern(replace_number_of_nodes);
 
-    // Generate templated types
-    for (auto& r_nodes_number : two_d_number_of_nodes) { 
-        const std::string replace_dimension = StringUtilities::ReplaceAllSubstrings(rName, "#D", "2D");
-        const std::string replace_number_of_nodes = StringUtilities::ReplaceAllSubstrings(replace_dimension, "#N", r_nodes_number + "N");
-        if (KratosComponents<TEntity>::Has(replace_number_of_nodes)) {
-            const auto& r_entity = KratosComponents<TEntity>::Get(replace_number_of_nodes);
-            mTypes.insert({r_entity.GetGeometry().GetGeometryType(), &r_entity});
-        }
-    }
-    for (auto& r_nodes_number : three_d_number_of_nodes) { 
-        const std::string replace_dimension = StringUtilities::ReplaceAllSubstrings(rName, "#D", "2D");
-        const std::string replace_number_of_nodes = StringUtilities::ReplaceAllSubstrings(replace_dimension, "#N", r_nodes_number + "N");
-        if (KratosComponents<TEntity>::Has(replace_number_of_nodes)) {
-            const auto& r_entity = KratosComponents<TEntity>::Get(replace_number_of_nodes);
+    // Geometry combinations
+    for (const auto& r_pair : KratosComponents<TEntity>::GetComponents()) {
+        const std::string& r_key = r_pair.first;
+        if (std::regex_match(r_key, pattern)) {
+            const auto& r_entity = KratosComponents<TEntity>::Get(r_key);
             mTypes.insert({r_entity.GetGeometry().GetGeometryType(), &r_entity});
         }
     }
