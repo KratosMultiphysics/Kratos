@@ -30,32 +30,25 @@ EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
     // Check if the name is empty
     if (rName != "") {
         // Check the type of entity considered
-        std::string entity_name;
-        if constexpr (std::is_same<TEntity, Element>::value) {
-            entity_name = "Element";
-        } else if constexpr (std::is_same<TEntity, Condition>::value) {
-            entity_name = "Condition";
-        } else {
-            static_assert(std::is_same<TEntity, Element>::value || std::is_same<TEntity, Condition>::value, "Unsupported entity type. Only element and condition are supported.");
-        }
+        const std::string entity_type_name = GetEntityTypeName();
 
         // Identify type of definition
         if (rName.find(";") == std::string::npos) { // Single or templated definition
             // Identified if simple or templated
             if (rName.find("#") == std::string::npos) {
                 // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
-                KRATOS_ERROR_IF(rName != "" && !KratosComponents<TEntity>::Has(rName)) << entity_name << " name not found in KratosComponents<" << entity_name << "> -- name is " << rName << std::endl;
+                KRATOS_ERROR_IF(rName != "" && !KratosComponents<TEntity>::Has(rName)) << entity_type_name << " name not found in KratosComponents<" << entity_type_name << "> -- name is " << rName << std::endl;
                 mpPrototypeEntity = KratosComponents<TEntity>::Get(rName).Create(0, nullptr, nullptr);
             } else {
                 mDefinitionType = DefinitionType::Templated;
                 typename GeometryType::Pointer p_geometry_type = Kratos::make_shared<GeometryType>();
-                mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_name + "2D2N").Create(0, p_geometry_type, nullptr);
+                mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_type_name + "2D2N").Create(0, p_geometry_type, nullptr);
             }
         } else { // Multiple definition
             const auto splitted_names = StringUtilities::SplitStringByDelimiter(rName, ';');
             for (auto& r_entity_name : splitted_names) {
                 // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
-                KRATOS_ERROR_IF(r_entity_name != "" && !KratosComponents<TEntity>::Has(r_entity_name)) << entity_name << " name not found in KratosComponents<" << entity_name << "> -- name is " << r_entity_name << std::endl;
+                KRATOS_ERROR_IF(r_entity_name != "" && !KratosComponents<TEntity>::Has(r_entity_name)) << entity_type_name << " name not found in KratosComponents<" << entity_type_name << "> -- name is " << r_entity_name << std::endl;
                 const auto& r_ref_entity = KratosComponents<TEntity>::Get(r_entity_name);
                 const auto& r_reference_geometry = r_ref_entity.GetGeometry();
                 const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
@@ -63,7 +56,7 @@ EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
             }
             mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
             typename GeometryType::Pointer p_geometry_type = Kratos::make_shared<GeometryType>();
-            mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_name + "2D2N").Create(0, p_geometry_type, nullptr);
+            mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_type_name + "2D2N").Create(0, p_geometry_type, nullptr);
         }
     }
 }
@@ -140,6 +133,23 @@ void EntitityIdentifier<TEntity>::PrintData(std::ostream& rOStream) const
         }
     }
     rOStream << "Current prototype: " << *mpPrototypeEntity << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+std::string EntitityIdentifier<TEntity>::GetEntityTypeName() const
+{
+    std::string entity_type_name;
+    if constexpr (std::is_same<TEntity, Element>::value) {
+        entity_type_name = "Element";
+    } else if constexpr (std::is_same<TEntity, Condition>::value) {
+        entity_type_name = "Condition";
+    } else {
+        static_assert(std::is_same<TEntity, Element>::value || std::is_same<TEntity, Condition>::value, "Unsupported entity type. Only element and condition are supported.");
+    }
+    return entity_type_name;
 }
 
 /***********************************************************************************/
