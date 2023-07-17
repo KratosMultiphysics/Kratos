@@ -163,9 +163,9 @@ void EntitityIdentifier<TEntity>::GenerateMultipleTypes(const std::string& rName
     // Set the definition type
     mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
 
-    // Assign dumy prototype
-    typename GeometryType::Pointer p_geometry_type = Kratos::make_shared<GeometryType>();
-    mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_type_name + "2D2N").Create(0, p_geometry_type, nullptr);
+    // Assign default prototype
+    const auto* p_entity = mTypes.begin()->second;
+    mpPrototypeEntity = p_entity->Create(0, p_entity->pGetGeometry(), nullptr);
 }
 
 /***********************************************************************************/
@@ -174,9 +174,6 @@ void EntitityIdentifier<TEntity>::GenerateMultipleTypes(const std::string& rName
 template<class TEntity>
 void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rName)
 {
-    // Check the type of entity considered
-    const std::string entity_type_name = GetEntityTypeName();
-
     // Prepare regex 
     const std::string replace_dimension = StringUtilities::ReplaceAllSubstrings(rName, "#D", "(2D|3D)");
     const std::string replace_number_of_nodes = StringUtilities::ReplaceAllSubstrings(replace_dimension, "#N", "[0-9]+N");
@@ -194,9 +191,9 @@ void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rNam
     // Set the definition type
     mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
 
-    // Assign dumy prototype
-    typename GeometryType::Pointer p_geometry_type = Kratos::make_shared<GeometryType>();
-    mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_type_name + "2D2N").Create(0, p_geometry_type, nullptr);
+    // Assign default prototype
+    const auto* p_entity = mTypes.begin()->second;
+    mpPrototypeEntity = p_entity->Create(0, p_entity->pGetGeometry(), nullptr);
 }
 
 /***********************************************************************************/
