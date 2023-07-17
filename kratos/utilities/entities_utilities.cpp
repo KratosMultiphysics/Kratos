@@ -77,7 +77,6 @@ const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename Geometry
 {
     switch (mDefinitionType) {
         case DefinitionType::Single:
-            KRATOS_DEBUG_ERROR_IF_NOT(pGeometry->GetGeometryType() == mpPrototypeEntity->GetGeometry().GetGeometryType()) << "Trying to replace an entity with a different geometry type. Reference entity " << mpPrototypeEntity->GetGeometry().Info() << " vs  " << pGeometry->Info() << "\n Entity info: " << mpPrototypeEntity->Info() << std::endl;
             return *mpPrototypeEntity;
         case DefinitionType::Multiple:
             // We check if the current type is correct or retrieving is required
