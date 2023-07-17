@@ -142,7 +142,7 @@ namespace EntitiesUtilities
 
         ///@}
     private:
-        ///@name Member Variables
+        ///@name Private Member Variables
         ///@{
 
         typename TEntity::Pointer mpPrototypeEntity = nullptr;                    /// The prototype entity
@@ -150,6 +150,17 @@ namespace EntitiesUtilities
         std::string mName;                                                        /// The name of the entity
         std::unordered_map<GeometryData::KratosGeometryType, const TEntity*> mTypes; /// The settings of the entities
 
+        ///@}
+        ///@name Private Operations
+        ///@{
+
+        /**
+         * @brief Returns the name of the entity type for the given entity.
+         * @return the name of the entity type as a string
+         * @throws std::logic_error if the entity type is not supported
+         */
+        std::string GetEntityTypeName() const;
+            
         ///@}
     }; ///  Class EntitityIdentifier
 
