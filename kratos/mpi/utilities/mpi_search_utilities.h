@@ -80,7 +80,7 @@ public:
             std::size_t counter = 0;
             array_1d<double, 3> coordinates;
             unsigned int i_coord;
-            for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+            for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
                 noalias(coordinates) = it_point->Coordinates();
                 for (i_coord = 0; i_coord < 3; ++i_coord) {
                     rAllPointsCoordinates[3 * counter + i_coord] = coordinates[i_coord];
