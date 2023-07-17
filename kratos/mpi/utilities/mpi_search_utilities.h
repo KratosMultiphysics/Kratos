@@ -74,19 +74,21 @@ public:
         KRATOS_DEBUG_ERROR_IF(NumberOfPoints < 0) << "The number of points is negative" << std::endl;
         KRATOS_DEBUG_ERROR_IF(TotalNumberOfPoints < 0) << "The total number of points is negative" << std::endl;
 
+        std::size_t counter = 0;
+        array_1d<double, 3> coordinates;
+        unsigned int i_coord;
+        std::vector<double> send_points_coordinates(NumberOfPoints * 3);
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
+            noalias(coordinates) = it_point->Coordinates();
+            for (i_coord = 0; i_coord < 3; ++i_coord) {
+                send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
+            }
+            ++counter;
+        }
+
         // If all points are the same
         if (AllPointsAreTheSame) {
-            rAllPointsCoordinates.resize(NumberOfPoints * 3);
-            std::size_t counter = 0;
-            array_1d<double, 3> coordinates;
-            unsigned int i_coord;
-            for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
-                noalias(coordinates) = it_point->Coordinates();
-                for (i_coord = 0; i_coord < 3; ++i_coord) {
-                    rAllPointsCoordinates[3 * counter + i_coord] = coordinates[i_coord];
-                }
-                ++counter;
-            }
+            rAllPointsCoordinates = send_points_coordinates;
         } else { // If not
             // MPI information
             const int world_size = rDataCommunicator.Size();
@@ -98,17 +100,6 @@ public:
 
             // Getting global coordinates
             rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
-            std::vector<double> send_points_coordinates(NumberOfPoints * 3);
-            std::size_t counter = 0;
-            array_1d<double, 3> coordinates;
-            unsigned int i_coord;
-            for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
-                noalias(coordinates) = it_point->Coordinates();
-                for (i_coord = 0; i_coord < 3; ++i_coord) {
-                    send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
-                }
-                ++counter;
-            }
 
             // Generate vectors with sizes for AllGatherv
             std::vector<int> recv_sizes(world_size, 0);
