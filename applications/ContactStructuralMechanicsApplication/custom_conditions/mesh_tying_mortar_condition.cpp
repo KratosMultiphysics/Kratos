@@ -541,7 +541,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
     const SizeType dof_size = mpDoFVariables.size();
 
     // Get the scale factor
-    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0;
+    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : rCurrentProcessInfo.Has(BUILD_SCALE_FACTOR) ? rCurrentProcessInfo[BUILD_SCALE_FACTOR] : 1.0;
 
     // Initial index 
     IndexType initial_row_index = 0;
@@ -600,7 +600,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRH
     const SizeType dof_size = mpDoFVariables.size();
 
     // Get the scale factor
-    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0;
+    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : rCurrentProcessInfo.Has(BUILD_SCALE_FACTOR) ? rCurrentProcessInfo[BUILD_SCALE_FACTOR] : 1.0;
 
     // Initial index 
     IndexType initial_index = 0;

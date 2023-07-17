@@ -10,6 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //                   Michael Andre, https://github.com/msandre
 //                   Jordi Cotela Dalmau
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -181,6 +182,256 @@ template void GatherModelPartUtility::GatherOnMaster(const Variable<double>&);
 template void GatherModelPartUtility::GatherOnMaster(const Variable<array_1d<double, 3>>&);
 template void GatherModelPartUtility::ScatterFromMaster(const Variable<double>&);
 template void GatherModelPartUtility::ScatterFromMaster(const Variable<array_1d<double, 3>>&);
+
+void GatherModelPartUtility::GatherEntitiesFromOtherPartitions(
+    ModelPart& rModelPart,
+    const std::map<int, std::vector<std::size_t>>& rNodesToBring,
+    const std::map<int, std::vector<std::size_t>>& rElementsToBring,
+    const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
+    const bool CallExecuteAfterBringingEntities,
+    const int EchoLevel
+    )
+{
+    KRATOS_TRY
+
+    // Retrieving the model part and the communicator
+    const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+    // Call auxiliary methods
+    const std::size_t nodes_to_bring = r_data_communicator.SumAll(rNodesToBring.size());
+    if (nodes_to_bring > 0) {
+        GatherEntityFromOtherPartitions<Node>(rModelPart, rNodesToBring, EchoLevel);
+    }
+    const std::size_t elements_to_bring = r_data_communicator.SumAll(rElementsToBring.size());
+    if (elements_to_bring > 0) {
+        GatherEntityFromOtherPartitions<Element>(rModelPart, rElementsToBring, EchoLevel);
+    }
+    const std::size_t conditions_to_bring = r_data_communicator.SumAll(rConditionsToBring.size());
+    if (conditions_to_bring > 0) {
+        GatherEntityFromOtherPartitions<Condition>(rModelPart, rConditionsToBring, EchoLevel);
+    }
+
+    // Execute after bringing entities
+    if (CallExecuteAfterBringingEntities) {
+        ParallelFillCommunicator(rModelPart, r_data_communicator).Execute();
+    }
+
+    KRATOS_CATCH("");
+}
+
+void GatherModelPartUtility::GatherNodesFromOtherPartitions(
+    ModelPart& rModelPart,
+    const std::map<int, std::vector<std::size_t>>& rNodesToBring,
+    const bool CallExecuteAfterBringingEntities,
+    const int EchoLevel
+    )
+{
+    KRATOS_TRY
+
+    // Retrieving the model part and the communicator
+    const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+    // Call auxiliary methods
+    const std::size_t nodes_to_bring = r_data_communicator.SumAll(rNodesToBring.size());
+    if (nodes_to_bring > 0) {
+        GatherEntityFromOtherPartitions<Node>(rModelPart, rNodesToBring, EchoLevel);
+    }
+
+    // Execute after bringing entities
+    if (CallExecuteAfterBringingEntities) {
+        ParallelFillCommunicator(rModelPart, r_data_communicator).Execute();
+    }
+
+    KRATOS_CATCH("");
+}
+
+void GatherModelPartUtility::GatherElementsFromOtherPartitions(
+    ModelPart& rModelPart,
+    const std::map<int, std::vector<std::size_t>>& rElementsToBring,
+    const bool CallExecuteAfterBringingEntities,
+    const int EchoLevel
+    )
+{
+    KRATOS_TRY
+
+    // Retrieving the model part and the communicator
+    const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+    // Call auxiliary methods
+    const std::size_t elements_to_bring = r_data_communicator.SumAll(rElementsToBring.size());
+    if (elements_to_bring > 0) {
+        GatherEntityFromOtherPartitions<Element>(rModelPart, rElementsToBring, EchoLevel);
+    }
+
+    // Execute after bringing entities
+    if (CallExecuteAfterBringingEntities) {
+        ParallelFillCommunicator(rModelPart, r_data_communicator).Execute();
+    }
+
+    KRATOS_CATCH("");
+}
+
+void GatherModelPartUtility::GatherConditionsFromOtherPartitions(
+    ModelPart& rModelPart,
+    const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
+    const bool CallExecuteAfterBringingEntities,
+    const int EchoLevel
+    )
+{
+    KRATOS_TRY
+
+    // Retrieving the model part and the communicator
+    const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+
+    // Call auxiliary methods
+    const std::size_t conditions_to_bring = r_data_communicator.SumAll(rConditionsToBring.size());
+    if (conditions_to_bring > 0) {
+        GatherEntityFromOtherPartitions<Condition>(rModelPart, rConditionsToBring, EchoLevel);
+    }
+
+    // Execute after bringing entities
+    if (CallExecuteAfterBringingEntities) {
+        ParallelFillCommunicator(rModelPart, r_data_communicator).Execute();
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class TObjectType>
+void GatherModelPartUtility::GatherEntityFromOtherPartitions(
+    ModelPart& rModelPart,
+    const std::map<int, std::vector<std::size_t>>& rEntitiesToBring,
+    const int EchoLevel
+    )
+{
+    /* First make all partitions aware of which communications are needed (with the current information we only know the entities of we want to bring in current partition) */
+
+    // Entity name
+    std::string entity_name;
+    if constexpr (std::is_same<TObjectType, Node>::value) {
+        entity_name = "Node";
+    } else if constexpr (std::is_same<TObjectType, Element>::value) {
+        entity_name = "Element";
+    } else if constexpr (std::is_same<TObjectType, Condition>::value) {
+        entity_name = "Condition";
+    } else {
+        KRATOS_ERROR << "Entity type not supported" << std::endl;
+    }
+
+    // Retrieve MPI data
+    const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+    const int rank = r_data_communicator.Rank();
+    const int world_size = r_data_communicator.Size();
+
+    // First counting how many entities transfer for partition
+    int tag_send = 1;
+    std::vector<int> other_partition_indices;
+    other_partition_indices.reserve(world_size - 1);
+    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+        if (i_rank != rank) other_partition_indices.push_back(i_rank);
+    }
+    std::map<int, std::vector<std::size_t>> send_entities;
+    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+        if (i_rank == rank) {
+            for (auto index : other_partition_indices) {
+                std::vector<std::size_t> send_vector;
+                r_data_communicator.Recv(send_vector, index, tag_send);
+                // Just adding in case not empty
+                if (send_vector.size() > 0) {
+                    send_entities[index] = send_vector;
+                }
+            }
+        } else {
+            auto it_find = rEntitiesToBring.find(i_rank);
+            // Sending in case defined
+            if (it_find != rEntitiesToBring.end()) {
+                r_data_communicator.Send(it_find->second, i_rank, tag_send);
+            } else { // Sending empty vector in case not defined
+                std::vector<std::size_t> empty_vector;
+                r_data_communicator.Send(empty_vector, i_rank, tag_send);
+            }
+        }
+    }
+
+    // Depending of the echo level, print info
+    if (EchoLevel > 0) {
+        std::stringstream buffer;
+        buffer << "\nRank " << rank << " has to bring " << entity_name << "s from other partitions:" << std::endl;
+        for (auto bring : rEntitiesToBring) {
+            buffer << "\tFrom rank " << bring.first << ": " << bring.second.size() << " " << entity_name << "s\n\t" << bring.second << std::endl;
+        }
+        buffer << "\nRank " << rank << " has to send " << entity_name << "s from other partitions:" << std::endl;
+        for (auto send : send_entities) {
+            buffer << "\tTo rank " << send.first << ": " << send.second.size() << " " << entity_name << "s\n\t" << send.second << std::endl;
+        }
+        buffer << std::endl;
+        KRATOS_INFO("GatherModelPartUtility") << buffer.str();
+    }
+
+    // Use serializer
+    for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+        // Receiving
+        if (i_rank == rank) {
+            for (auto& r_bring : rEntitiesToBring) {
+                const int origin_rank = r_bring.first;
+                for (auto index : r_bring.second) {
+                    std::string recv_buffer;
+                    r_data_communicator.Recv(recv_buffer, origin_rank, static_cast<int>(index));
+                    StreamSerializer serializer;
+                    const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());     
+                    p_serializer_buffer->write(recv_buffer.data(), recv_buffer.size());
+                    if constexpr (std::is_same<TObjectType, Node>::value) {
+                        Node::Pointer p_new_node;
+                        serializer.load("bring_node_" + std::to_string(index), p_new_node);
+                        KRATOS_DEBUG_ERROR_IF(rModelPart.HasNode(p_new_node->Id())) << "The node " << p_new_node->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
+                        rModelPart.AddNode(p_new_node);
+                    } else if constexpr (std::is_same<TObjectType, Element>::value) {
+                        Element::Pointer p_new_element;
+                        serializer.load("bring_element_" + std::to_string(index), p_new_element);
+                        KRATOS_DEBUG_ERROR_IF(rModelPart.HasElement(p_new_element->Id())) << "The element " << p_new_element->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
+                        rModelPart.AddElement(p_new_element);
+                    } else if constexpr (std::is_same<TObjectType, Condition>::value) {
+                        Condition::Pointer p_new_condition;
+                        serializer.load("bring_condition_" + std::to_string(index), p_new_condition);
+                        KRATOS_DEBUG_ERROR_IF(rModelPart.HasCondition(p_new_condition->Id())) << "The condition " << p_new_condition->Id() << " from rank: " << origin_rank << " already exists in rank: " << rank << std::endl;
+                        rModelPart.AddCondition(p_new_condition);
+                    } else {
+                        KRATOS_ERROR << "Entity type not supported" << std::endl;
+                    }
+                }
+            }
+        } else { // Sending
+            auto it_find = send_entities.find(i_rank);
+            if (it_find != send_entities.end()) {
+                for (auto index : it_find->second) {
+                    StreamSerializer serializer;
+                    if constexpr (std::is_same<TObjectType, Node>::value) {
+                        KRATOS_DEBUG_ERROR_IF_NOT(rModelPart.HasNode(index)) << "Node with index " << index << " not found in model part" << std::endl;
+                        auto p_send_node = rModelPart.pGetNode(index);
+                        serializer.save("bring_node_" + std::to_string(index), p_send_node);
+                    } else if constexpr (std::is_same<TObjectType, Element>::value) {
+                        KRATOS_DEBUG_ERROR_IF_NOT(rModelPart.HasElement(index)) << "Element with index " << index << " not found in model part" << std::endl;
+                        auto p_send_element = rModelPart.pGetElement(index);
+                        serializer.save("bring_element_" + std::to_string(index), p_send_element);
+                    } else if constexpr (std::is_same<TObjectType, Condition>::value) {
+                        KRATOS_DEBUG_ERROR_IF_NOT(rModelPart.HasCondition(index)) << "Condition with index " << index << " not found in model part" << std::endl;
+                        auto p_send_condition = rModelPart.pGetCondition(index);
+                        serializer.save("bring_condition_" + std::to_string(index), p_send_condition);
+                    } else {
+                        KRATOS_ERROR << "Entity type not supported" << std::endl;
+                    }
+                    const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
+                    const std::string& r_send_buffer = p_serializer_buffer->str();
+                    r_data_communicator.Send(r_send_buffer, i_rank, static_cast<int>(index));
+                }
+            }
+        }
+    }
+}
+
+template void GatherModelPartUtility::GatherEntityFromOtherPartitions<Node>(ModelPart& rModelPart, const std::map<int, std::vector<std::size_t>>& rEntitiesToBring, const int EchoLevel);
+template void GatherModelPartUtility::GatherEntityFromOtherPartitions<Element>(ModelPart& rModelPart, const std::map<int, std::vector<std::size_t>>& rEntitiesToBring, const int EchoLevel);
+template void GatherModelPartUtility::GatherEntityFromOtherPartitions<Condition>(ModelPart& rModelPart, const std::map<int, std::vector<std::size_t>>& rEntitiesToBring, const int EchoLevel);
 
 std::string GatherModelPartUtility::Info() const
 {
