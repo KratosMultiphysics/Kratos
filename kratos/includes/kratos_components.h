@@ -85,7 +85,7 @@ public:
      * @param rComponent the component to add
      * @throws std::runtime_error if a different object was already registered with the same name
      */
-    static void Add(const std::string& rName, TComponentType& rComponent)
+    static void Add(const std::string& rName, const TComponentType& rComponent)
     {
         // Check if a different object was already registered with this name, since this is undefined behavior
         auto it_comp =  msComponents.find(rName);
