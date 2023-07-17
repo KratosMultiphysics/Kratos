@@ -45,29 +45,27 @@
 
 namespace Kratos::Testing
 {
-    /// Tests
-    // TODO: Create test for the other components
-    typedef Node NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    /// Initial definitons
+    using GeometryType = Geometry<Node>;
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-    // The direct solver
-    typedef Reorderer<SparseSpaceType,  LocalSpaceType > ReordererType;
-    typedef DirectSolver<SparseSpaceType,  LocalSpaceType, ReordererType > DirectSolverType;
-    typedef LinearSolver<SparseSpaceType,LocalSpaceType> LinearSolverType;
-    typedef SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
+    /// The direct solver
+    using ReordererType = Reorderer<SparseSpaceType,  LocalSpaceType>;
+    using DirectSolverType = DirectSolver<SparseSpaceType,  LocalSpaceType, ReordererType>;
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+    using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType, ReordererType>;
 
-    // The builder ans solver type
-    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-    typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
-    typedef ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType;
-    typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
-    typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
+    /// The builder and solver type
+    using BuilderAndSolverType = BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using ResidualBasedBlockBuilderAndSolverType = ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplierType = ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using ResidualBasedEliminationBuilderAndSolverType = ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+    using ResidualBasedEliminationBuilderAndSolverWithConstraintsType = ResidualBasedEliminationBuilderAndSolverWithConstraints<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
-    // The time scheme
-    typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
-    typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
+    /// The time scheme
+    using SchemeType = Scheme<SparseSpaceType, LocalSpaceType>;
+    using ResidualBasedIncrementalUpdateStaticSchemeType = ResidualBasedIncrementalUpdateStaticScheme<SparseSpaceType, LocalSpaceType>;
 
     /**
     * @brief It generates a truss structure with an expected solution
@@ -85,9 +83,9 @@ namespace Kratos::Testing
         rModelPart.AddNodalSolutionStepVariable(REACTION);
         rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
-        NodeType::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-        NodeType::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-        NodeType::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+        Node::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+        Node::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+        Node::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
 
         if (AdditionalNode) {
             rModelPart.CreateNewNode(4, 3.0, 0.0, 0.0);
@@ -98,9 +96,9 @@ namespace Kratos::Testing
         p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
         p_prop->SetValue(NODAL_AREA, 0.01);
 
-        GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
+        GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
-        GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
+        GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
 
         /// Add dof
@@ -149,6 +147,91 @@ namespace Kratos::Testing
     }
 
     /**
+    * @brief It generates a truss structure with an expected solution
+    */
+    static inline void BasicTestBuilderAndSolverDisplacementAllDoFsMaster(
+        ModelPart& rModelPart,
+        const bool MasterElementBelongsToStructure = false
+        )
+    {
+        // Add variables
+        rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+        rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
+        rModelPart.AddNodalSolutionStepVariable(REACTION);
+        rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+        // Define the nodes
+        Node::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+        Node::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+        Node::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+
+        // Define the properties
+        auto p_prop = rModelPart.CreateNewProperties(1, 0);
+        p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
+        p_prop->SetValue(NODAL_AREA, 0.01);
+
+        // Define the elements  
+        GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2})});
+        rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
+        GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3})});
+        rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
+
+        // Adding fourth node
+        Node::Pointer pnode4 = rModelPart.CreateNewNode(4, 3.0, 0.0, 0.0);
+
+        /// Add dof
+        for (auto& node : rModelPart.Nodes()) {
+            node.AddDof(DISPLACEMENT_X, REACTION_X);
+            node.AddDof(DISPLACEMENT_Y, REACTION_Y);
+            node.AddDof(DISPLACEMENT_Z, REACTION_Z);
+        }
+
+        /// Initialize elements
+        const auto& r_process_info = rModelPart.GetProcessInfo();
+        for (auto& elem : rModelPart.Elements()) {
+            elem.Initialize(r_process_info);
+            elem.InitializeSolutionStep(r_process_info);
+        }
+
+        // Set initial solution
+        for (auto& node : rModelPart.Nodes()) {
+            (node.FastGetSolutionStepValue(DISPLACEMENT)).clear();
+            (node.FastGetSolutionStepValue(DISPLACEMENT, 1)).clear();
+            (node.FastGetSolutionStepValue(DISPLACEMENT, 2)).clear();
+        }
+
+        // Fix dofs
+        if (MasterElementBelongsToStructure) {
+            auto pnode2 = rModelPart.pGetNode(2);
+            pnode2->Fix(DISPLACEMENT_X);
+            pnode2->Fix(DISPLACEMENT_Y);
+            pnode2->Fix(DISPLACEMENT_Z);
+            for (auto& r_node : rModelPart.Nodes()) {
+                if (r_node.Id() != 2) {
+                    const auto i = r_node.Id() - 1;
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 1, *pnode2, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 2, *pnode2, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 3, *pnode2, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
+                }
+            }
+
+        } else {
+            pnode4->Fix(DISPLACEMENT_X);
+            pnode4->Fix(DISPLACEMENT_Y);
+            pnode4->Fix(DISPLACEMENT_Z);
+            for (auto& r_node : rModelPart.Nodes()) {
+                if (r_node.Id() != 4) {
+                    const auto i = r_node.Id() - 1;
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 1, *pnode4, DISPLACEMENT_X, r_node, DISPLACEMENT_X, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 2, *pnode4, DISPLACEMENT_Y, r_node, DISPLACEMENT_Y, 1.0, 0.0);
+                    rModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 3 * i + 3, *pnode4, DISPLACEMENT_Z, r_node, DISPLACEMENT_Z, 1.0, 0.0);
+                }
+            }
+        }
+    }
+
+    /**
     * @brief It generates a truss structure with an expected solution with an element with null contribution
     */
     static inline void BasicTestBuilderAndSolverDisplacementWithZeroContribution(ModelPart& rModelPart)
@@ -159,9 +242,9 @@ namespace Kratos::Testing
         rModelPart.AddNodalSolutionStepVariable(REACTION);
         rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
-        NodeType::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-        NodeType::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-        NodeType::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
+        Node::Pointer pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+        Node::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+        Node::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
 
         auto p_prop_1 = rModelPart.CreateNewProperties(1, 0);
         p_prop_1->SetValue(YOUNG_MODULUS, 206900000000.0);
@@ -171,9 +254,9 @@ namespace Kratos::Testing
         p_prop_2->SetValue(YOUNG_MODULUS, 0.0);
         p_prop_2->SetValue(NODAL_AREA, 0.0);
 
-        GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
+        GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop_1));
-        GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
+        GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop_2));
 
         /// Add dof
@@ -216,59 +299,59 @@ namespace Kratos::Testing
         rModelPart.AddNodalSolutionStepVariable(REACTION);
         rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
-        NodeType::Pointer pnode1 = rModelPart.CreateNewNode(1, 10.0, -5.0, 0.0);
-        NodeType::Pointer pnode2 = rModelPart.CreateNewNode(2, 8.0, -4.0, 0.0);
-        NodeType::Pointer pnode3 = rModelPart.CreateNewNode(3, 6.0, -3.0, 0.0);
-        NodeType::Pointer pnode4 = rModelPart.CreateNewNode(4,10.0, 0.0, 0.0);
-        NodeType::Pointer pnode5 = rModelPart.CreateNewNode(5, 8.0, 0.0, 0.0);
-        NodeType::Pointer pnode6 = rModelPart.CreateNewNode(6, 6.0, 0.0, 0.0);
-        NodeType::Pointer pnode7 = rModelPart.CreateNewNode(7, 4.0, -2.0, 0.0);
-        NodeType::Pointer pnode8 = rModelPart.CreateNewNode(8, 4.0, 0.0, 0.0);
-        NodeType::Pointer pnode9 = rModelPart.CreateNewNode(9, 2.0, -1.0, 0.0);
-        NodeType::Pointer pnode10 = rModelPart.CreateNewNode(10, 2.0, 0.0, 0.0);
-        NodeType::Pointer pnode11 = rModelPart.CreateNewNode(11, 0.0, 0.0, 0.0);
+        Node::Pointer pnode1 = rModelPart.CreateNewNode(1, 10.0, -5.0, 0.0);
+        Node::Pointer pnode2 = rModelPart.CreateNewNode(2, 8.0, -4.0, 0.0);
+        Node::Pointer pnode3 = rModelPart.CreateNewNode(3, 6.0, -3.0, 0.0);
+        Node::Pointer pnode4 = rModelPart.CreateNewNode(4,10.0, 0.0, 0.0);
+        Node::Pointer pnode5 = rModelPart.CreateNewNode(5, 8.0, 0.0, 0.0);
+        Node::Pointer pnode6 = rModelPart.CreateNewNode(6, 6.0, 0.0, 0.0);
+        Node::Pointer pnode7 = rModelPart.CreateNewNode(7, 4.0, -2.0, 0.0);
+        Node::Pointer pnode8 = rModelPart.CreateNewNode(8, 4.0, 0.0, 0.0);
+        Node::Pointer pnode9 = rModelPart.CreateNewNode(9, 2.0, -1.0, 0.0);
+        Node::Pointer pnode10 = rModelPart.CreateNewNode(10, 2.0, 0.0, 0.0);
+        Node::Pointer pnode11 = rModelPart.CreateNewNode(11, 0.0, 0.0, 0.0);
 
         auto p_prop = rModelPart.CreateNewProperties(1, 0);
         p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
         p_prop->SetValue(NODAL_AREA, 0.01);
 
-        GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode11, pnode10})});
+        GeometryType::Pointer pgeom1 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode11, pnode10})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 1, pgeom1, p_prop));
-        GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode10, pnode8})});
+        GeometryType::Pointer pgeom2 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode10, pnode8})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 2, pgeom2, p_prop));
-        GeometryType::Pointer pgeom3 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode8, pnode6})});
+        GeometryType::Pointer pgeom3 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode8, pnode6})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 3, pgeom3, p_prop));
-        GeometryType::Pointer pgeom4 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode6, pnode5})});
+        GeometryType::Pointer pgeom4 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode6, pnode5})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 4, pgeom4, p_prop));
-        GeometryType::Pointer pgeom5 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode5, pnode4})});
+        GeometryType::Pointer pgeom5 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode5, pnode4})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 5, pgeom5, p_prop));
-        GeometryType::Pointer pgeom6 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode4, pnode1})});
+        GeometryType::Pointer pgeom6 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode4, pnode1})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 6, pgeom6, p_prop));
-        GeometryType::Pointer pgeom7 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode1, pnode2})});
+        GeometryType::Pointer pgeom7 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 7, pgeom7, p_prop));
-        GeometryType::Pointer pgeom8 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode3})});
+        GeometryType::Pointer pgeom8 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 8, pgeom8, p_prop));
-        GeometryType::Pointer pgeom9 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode3, pnode7})});
+        GeometryType::Pointer pgeom9 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode3, pnode7})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 9, pgeom9, p_prop));
-        GeometryType::Pointer pgeom10 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode7, pnode9})});
+        GeometryType::Pointer pgeom10 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode7, pnode9})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 10, pgeom10, p_prop));
-        GeometryType::Pointer pgeom11 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode9, pnode11})});
+        GeometryType::Pointer pgeom11 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode9, pnode11})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 11, pgeom11, p_prop));
-        GeometryType::Pointer pgeom12 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode10, pnode9})});
+        GeometryType::Pointer pgeom12 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode10, pnode9})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 12, pgeom12, p_prop));
-        GeometryType::Pointer pgeom13 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode9, pnode8})});
+        GeometryType::Pointer pgeom13 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode9, pnode8})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 13, pgeom13, p_prop));
-        GeometryType::Pointer pgeom14 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode8, pnode7})});
+        GeometryType::Pointer pgeom14 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode8, pnode7})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 14, pgeom14, p_prop));
-        GeometryType::Pointer pgeom15 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode7, pnode6})});
+        GeometryType::Pointer pgeom15 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode7, pnode6})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 15, pgeom15, p_prop));
-        GeometryType::Pointer pgeom16 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode6, pnode3})});
+        GeometryType::Pointer pgeom16 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode6, pnode3})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 16, pgeom16, p_prop));
-        GeometryType::Pointer pgeom17 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode3, pnode5})});
+        GeometryType::Pointer pgeom17 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode3, pnode5})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 17, pgeom17, p_prop));
-        GeometryType::Pointer pgeom18 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode5, pnode2})});
+        GeometryType::Pointer pgeom18 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode5, pnode2})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 18, pgeom18, p_prop));
-        GeometryType::Pointer pgeom19 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode4})});
+        GeometryType::Pointer pgeom19 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode4})});
         rModelPart.AddElement(Kratos::make_intrusive<TestBarElement>( 19, pgeom19, p_prop));
 
         /// Add dof
@@ -688,6 +771,132 @@ namespace Kratos::Testing
         KRATOS_CHECK_RELATIVE_NEAR(r_T(5,5), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(r_T(6,6), 1.0, tolerance);
         KRATOS_CHECK_RELATIVE_NEAR(r_T(7,7), 1.0, tolerance);
+    }
+
+    /**
+    * Checks if the block builder and solver with constraints performs correctly the assemble of the system
+    */
+    KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverAllDoFsMaster, KratosCoreFastSuite)
+    {
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        BasicTestBuilderAndSolverDisplacementAllDoFsMaster(r_model_part);
+
+        SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+        LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
+
+        const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA);
+
+        // The solution check
+        constexpr double tolerance = 1e-8;
+        KRATOS_CHECK(rA.size1() == 12);
+        KRATOS_CHECK(rA.size2() == 12);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(7,7), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(8,8), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(9,9), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(10,10), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(11,11), 1.0, tolerance);
+
+        // Now checking relation T matrix
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+
+        // // To create the solution of reference
+        // DebugLHS(r_T);
+
+        KRATOS_CHECK(r_T.size1() == 12);
+        KRATOS_CHECK(r_T.size2() == 12);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(0,9), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(1,10), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(2,11), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(3,9), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(4,10), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(5,11), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(6,9), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(7,10), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(8,11), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(9,9), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(10,10), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(11,11), 1.0, tolerance);
+    }
+
+    /**
+    * Checks if the block builder and solver with constraints performs correctly the assemble of the system
+    */
+    KRATOS_TEST_CASE_IN_SUITE(BasicDisplacementBlockBuilderAndSolverAllDoFsMasterFromStructureSide, KratosCoreFastSuite)
+    {
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main", 3);
+
+        BasicTestBuilderAndSolverDisplacementAllDoFsMaster(r_model_part, true);
+
+        SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+        LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+        Parameters parameters = Parameters(R"(
+        {
+            "diagonal_values_for_dirichlet_dofs" : "no_scaling",
+            "silent_warnings"                    : false
+        })" );
+        BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(p_solver, parameters) );
+
+        const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
+
+        // // To create the solution of reference
+        // DebugLHS(rA);
+
+        // The solution check
+        constexpr double tolerance = 1e-8;
+        KRATOS_CHECK(rA.size1() == 12);
+        KRATOS_CHECK(rA.size2() == 12);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(0,0), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(1,1), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(2,2), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(4,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(5,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(6,6), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(7,7), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(8,8), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(9,9), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(10,10), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(rA(11,11), 1.0, tolerance);
+
+        // Now checking relation T matrix
+        const auto& r_T = p_builder_and_solver->GetConstraintRelationMatrix();
+
+        // // To create the solution of reference
+        // DebugLHS(r_T);
+
+        KRATOS_CHECK(r_T.size1() == 12);
+        KRATOS_CHECK(r_T.size2() == 12);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(0,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(1,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(2,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(3,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(4,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(5,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(6,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(7,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(8,5), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(9,3), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(10,4), 1.0, tolerance);
+        KRATOS_CHECK_RELATIVE_NEAR(r_T(11,5), 1.0, tolerance);
     }
 
     /**

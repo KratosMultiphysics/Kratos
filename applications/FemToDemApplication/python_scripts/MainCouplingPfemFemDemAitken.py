@@ -47,8 +47,8 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
                 initial_relaxation = 0.825
         else:
             max_relaxation = 0.9
-            min_relaxation = 0.1
-            initial_relaxation = 0.825
+            min_relaxation = 0.01
+            initial_relaxation = 0.5
             self.aitken_max_iterations = 10
             self.aitken_residual_dof_tolerance = 1e-5
 
@@ -106,17 +106,15 @@ class MainCouplingPfemFemDemAitken_Solution(MainCouplingPfemFemDem.MainCouplingP
             self.RegenerateAndUpdatePFEMPressureConditions()
 
             KratosPrintInfo("================================================" + "\n" +
-                           " ==== SOLVING FEMDEM PART OF THE CALCULATION ====" + "\n" +
+                           " ==== SOLVING FEM-DEM PART OF THE CALCULATION ====" + "\n" +
                            " ================================================")
-            if (solid_model_part.GetSubModelPart("fsi_interface_model_part").NumberOfNodes() > 2 or self.FEMDEM_Solution.FEM_Solution.step <= 4):
-                self.SolveSolutionStepFEMDEM()
-            else:
-                KratosPrintInfo("FEM-DEM not solved -> ¡No interface!")
+            self.SolveSolutionStepFEMDEM()
 
             # If there are no interface nodes yet
             if (solid_model_part.GetSubModelPart("fsi_interface_model_part").NumberOfNodes() < 2):
                 is_converged = True
                 self.FSI_aitken_utility.FinalizeNonLinearIteration()
+                KratosPrintInfo(" Aitken converged -> No interface!")
                 break
 
             # We relax the obtained solid velocities "v" and give them to the fluid
