@@ -100,7 +100,7 @@ void RegeneratePfemPressureConditionsProcess<TDim>::GenerateLineLoads2Nodes(
 
     // We check some things...
     auto& r_elem_neigb = (itElem)->GetValue(NEIGHBOUR_ELEMENTS);
-    if (r_elem_neigb(NonWetLocalIdNode).get()!=nullptr && r_elem_neigb[NonWetLocalIdNode].Id() == (itElem)->Id()) {
+    if (r_elem_neigb(NonWetLocalIdNode).get() == nullptr) {
         const IndexType id_2 = (NonWetLocalIdNode == 0) ? 1 : (NonWetLocalIdNode == 1) ? 2 : 0;
         const IndexType id_3 = (NonWetLocalIdNode == 0) ? 2 : (NonWetLocalIdNode == 1) ? 0 : 1;
         this->CreateLineLoads(id_2, id_3, itElem, r_sub_model_part, p_properties, rMaximumConditionId);

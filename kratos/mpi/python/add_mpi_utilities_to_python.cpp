@@ -16,6 +16,7 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
+#include "includes/define_python.h"
 #include "includes/parallel_environment.h"
 #include "add_mpi_utilities_to_python.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
@@ -65,6 +66,7 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
         return Kratos::make_shared<ParallelFillCommunicator>(rModelPart, ParallelEnvironment::GetDefaultDataCommunicator());
     }) )
     .def(py::init<ModelPart&, const DataCommunicator& >() )
+    .def("__str__", PrintObject<ParallelFillCommunicator>)
     ;
 
     m.def_submodule("DataCommunicatorFactory")
@@ -81,8 +83,13 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
         .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<double>)
         .def("GatherOnMaster", &GatherModelPartUtility::GatherOnMaster<array_1d<double, 3>>)
         .def("ScatterFromMaster", &GatherModelPartUtility::ScatterFromMaster<double>)
-        .def("ScatterFromMaster",
-             &GatherModelPartUtility::ScatterFromMaster<array_1d<double, 3>>);
+        .def("ScatterFromMaster", &GatherModelPartUtility::ScatterFromMaster<array_1d<double, 3>>)
+        .def_static("GatherEntitiesFromOtherPartitions", &GatherModelPartUtility::GatherEntitiesFromOtherPartitions)
+        .def_static("GatherNodesFromOtherPartitions", &GatherModelPartUtility::GatherNodesFromOtherPartitions)
+        .def_static("GatherElementsFromOtherPartitions", &GatherModelPartUtility::GatherElementsFromOtherPartitions)
+        .def_static("GatherConditionsFromOtherPartitions", &GatherModelPartUtility::GatherConditionsFromOtherPartitions)
+        .def("__str__", PrintObject<GatherModelPartUtility>)
+        ;
 
     py::class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils")
         .def(py::init<>())
