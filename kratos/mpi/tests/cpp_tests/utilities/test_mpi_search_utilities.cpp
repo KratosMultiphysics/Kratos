@@ -34,10 +34,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPoint
 
     // Call the function
     std::vector<double> all_points_coordinates;
-    const int number_of_points = MPISearchUtilities::MPISynchronousPointSynchronization(points.begin(), points.end(), all_points_coordinates, r_data_comm);
+    MPISearchUtilities::MPISynchronousPointSynchronization(points.begin(), points.end(), all_points_coordinates, r_data_comm);
 
     // Check the results
-    KRATOS_CHECK_EQUAL(number_of_points, 3);
+    KRATOS_CHECK_EQUAL(all_points_coordinates.size(), 9);
     KRATOS_CHECK_EQUAL(all_points_coordinates, expected_coordinates);
 }
 
