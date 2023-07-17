@@ -85,7 +85,7 @@ public:
      * @param rComponent the component to add
      * @throws std::runtime_error if a different object was already registered with the same name
      */
-    static void Add(const std::string& rName, TComponentType const& rComponent)
+    static void Add(const std::string& rName, TComponentType& rComponent)
     {
         // Check if a different object was already registered with this name, since this is undefined behavior
         auto it_comp =  msComponents.find(rName);
@@ -237,10 +237,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    KratosComponents& operator=(KratosComponents const& rOther);
+    KratosComponents& operator=(KratosComponents& rOther);
 
     /// Copy constructor.
-    KratosComponents(KratosComponents const& rOther);
+    KratosComponents(KratosComponents& rOther);
 
     ///@}
 
@@ -458,10 +458,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    KratosComponents& operator=(KratosComponents const& rOther);
+    KratosComponents& operator=(KratosComponents& rOther);
 
     /// Copy constructor.
-    KratosComponents(KratosComponents const& rOther);
+    KratosComponents(KratosComponents& rOther);
 
     ///@}
 
@@ -470,19 +470,19 @@ private:
 template<class TComponentType>
 typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 4> > >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 6> > >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 9> > >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 4>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 6>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 9>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double>>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string>>;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags>>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<DataCommunicator>;
 
@@ -502,22 +502,22 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<bool> const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<int> const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<unsigned int> const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<double> const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<array_1d<double, 3> > const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<array_1d<double, 4> > const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<array_1d<double, 6> > const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<array_1d<double, 9> > const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<Quaternion<double> > const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<Vector> const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<Matrix> const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<std::string> const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Flags const& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, Variable<Flags> const& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<bool>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<int>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<unsigned int>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<double>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 3>>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 4>>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 6>>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 9>>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<Quaternion<double>>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<Vector>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<Matrix>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<std::string>& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Flags& rComponent);
+void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<Flags>& rComponent);
 
-template<class TComponentType> void AddKratosComponent(const std::string& rName, TComponentType const& rComponent)
+template<class TComponentType> void AddKratosComponent(const std::string& rName, TComponentType& rComponent)
 {
 }
 
