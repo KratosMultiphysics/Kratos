@@ -97,7 +97,6 @@ const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename Geometry
 template<class TEntity>
 void EntitityIdentifier<TEntity>::PrintData(std::ostream& rOStream) const
 {
-    rOStream << "Name: " << mpPrototypeEntity->Info() << "\n";
     std::string definition_type = mDefinitionType == DefinitionType::Single ? "Single" : "Multiple";
     rOStream << "Definition type: " << definition_type << "\n";
     if (mDefinitionType == DefinitionType::Multiple) {
@@ -105,8 +104,9 @@ void EntitityIdentifier<TEntity>::PrintData(std::ostream& rOStream) const
         for (const auto& r_type : mTypes) {
             rOStream << "\t" << GeometryUtils::GetGeometryName(r_type.first) << " : " << r_type.second->Info() << "\n";
         }
+    } else {
+        rOStream << "Name: " << mpPrototypeEntity->Info() << "\n";
     }
-    rOStream << "Current prototype: " << *mpPrototypeEntity << std::endl;
 }
 
 /***********************************************************************************/
