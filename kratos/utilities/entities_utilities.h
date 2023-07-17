@@ -36,8 +36,7 @@ namespace EntitiesUtilities
     // Enum class representing different types of definitions
     enum class DefinitionType {
         Single,     // Single definition
-        Multiple,   // Multiple definitions
-        Templated   // Templated definition
+        Multiple    // Multiple definitions
     };
 
     /**
@@ -65,10 +64,7 @@ namespace EntitiesUtilities
         /** 
          * @brief Default constructor 
          */
-        EntitityIdentifier() :
-            mName("")
-        {
-        }
+        EntitityIdentifier() = default;
 
         /**
          * @brief Constructor
@@ -82,7 +78,6 @@ namespace EntitiesUtilities
         EntitityIdentifier(const EntitityIdentifier& rOther)
             : mpPrototypeEntity(rOther.mpPrototypeEntity),
               mDefinitionType(rOther.mDefinitionType),
-              mName(rOther.mName),
               mTypes(rOther.mTypes)
         {
         }
@@ -98,7 +93,6 @@ namespace EntitiesUtilities
         {
             mpPrototypeEntity = rOther.mpPrototypeEntity;
             mDefinitionType = rOther.mDefinitionType;
-            mName = rOther.mName;
             mTypes = rOther.mTypes;
 
             return *this;
@@ -147,7 +141,6 @@ namespace EntitiesUtilities
 
         typename TEntity::Pointer mpPrototypeEntity = nullptr;                    /// The prototype entity
         DefinitionType mDefinitionType = DefinitionType::Single;                  /// The type of definition
-        std::string mName;                                                        /// The name of the entity
         std::unordered_map<GeometryData::KratosGeometryType, const TEntity*> mTypes; /// The settings of the entities
 
         ///@}
@@ -160,7 +153,28 @@ namespace EntitiesUtilities
          * @throws std::logic_error if the entity type is not supported
          */
         std::string GetEntityTypeName() const;
+
+        /**
+         * @brief Generate single type prototype entity.
+         * @param rName The name to generate single type from
+         * @throws std::runtime_error if entity name is not found in KratosComponents
+         */
+        void GenerateSingleType(const std::string& rName);
+
+        /**
+         * @brief Generate multiple types entities map.
+         * @param rName The name to generate multiple types from
+         * @throws std::runtime_error if entity name is not found in KratosComponents
+         */
+        void GenerateMultipleTypes(const std::string& rName);
             
+        /**
+         * @brief Generate templated types entities map.
+         * @param rName The name to generate templated types from
+         * @throws std::runtime_error if entity name is not found in KratosComponents
+         */
+        void GenerateTemplatedTypes(const std::string& rName);
+
         ///@}
     }; ///  Class EntitityIdentifier
 

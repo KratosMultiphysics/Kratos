@@ -25,38 +25,22 @@ namespace Kratos::EntitiesUtilities
 
 template<class TEntity>
 EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
-    : mName(rName)
 {
-    // Check if the name is empty
+    // Check if the name is empty (could be empty due to default values in settings)
     if (rName != "") {
-        // Check the type of entity considered
-        const std::string entity_type_name = GetEntityTypeName();
-
         // Identify type of definition
-        if (rName.find(";") == std::string::npos) { // Single or templated definition
-            // Identified if simple or templated
-            if (rName.find("#") == std::string::npos) {
-                // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
-                KRATOS_ERROR_IF(rName != "" && !KratosComponents<TEntity>::Has(rName)) << entity_type_name << " name not found in KratosComponents<" << entity_type_name << "> -- name is " << rName << std::endl;
-                mpPrototypeEntity = KratosComponents<TEntity>::Get(rName).Create(0, nullptr, nullptr);
+        if (rName.find("#") != std::string::npos) { // Templated definition
+            if (rName.find(";") == std::string::npos) { // Must be single definition
+                GenerateTemplatedTypes(rName);
             } else {
-                mDefinitionType = DefinitionType::Templated;
-                typename GeometryType::Pointer p_geometry_type = Kratos::make_shared<GeometryType>();
-                mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_type_name + "2D2N").Create(0, p_geometry_type, nullptr);
+                KRATOS_ERROR << "Unsupported definition type. Cannot use # and ; together" << std::endl;
             }
-        } else { // Multiple definition
-            const auto splitted_names = StringUtilities::SplitStringByDelimiter(rName, ';');
-            for (auto& r_entity_name : splitted_names) {
-                // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
-                KRATOS_ERROR_IF(r_entity_name != "" && !KratosComponents<TEntity>::Has(r_entity_name)) << entity_type_name << " name not found in KratosComponents<" << entity_type_name << "> -- name is " << r_entity_name << std::endl;
-                const auto& r_ref_entity = KratosComponents<TEntity>::Get(r_entity_name);
-                const auto& r_reference_geometry = r_ref_entity.GetGeometry();
-                const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-                mTypes.insert({r_reference_geometry_type, &KratosComponents<TEntity>::Get(r_entity_name)});
+        } else { // Multiple definition or single definition
+            if (rName.find(";") == std::string::npos) { // Must be single definition
+                GenerateSingleType(rName);
+            } else {
+                GenerateMultipleTypes(rName);
             }
-            mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
-            typename GeometryType::Pointer p_geometry_type = Kratos::make_shared<GeometryType>();
-            mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_type_name + "2D2N").Create(0, p_geometry_type, nullptr);
         }
     }
 }
@@ -67,7 +51,7 @@ EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
 template<class TEntity>
 bool EntitityIdentifier<TEntity>::IsInitialized()
 {
-    if (mName == "") {
+    if (mpPrototypeEntity == nullptr) {
         return false;
     } else {
         // Check if the class is initialized
@@ -92,18 +76,7 @@ const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename Geometry
 {
     switch (mDefinitionType) {
         case DefinitionType::Single:
-            KRATOS_DEBUG_ERROR_IF_NOT(pGeometry->GetGeometryType() == KratosComponents<TEntity>::Get(mName).GetGeometry().GetGeometryType()) << "Trying to replace an entity with a different geometry type. Reference entity " << KratosComponents<TEntity>::Get(mName).GetGeometry().Info() << " vs  " << pGeometry->Info() << "\n Entity info: " << KratosComponents<TEntity>::Get(mName).Info() << std::endl;
-            return *mpPrototypeEntity;
-        case DefinitionType::Templated:
-            // We check if the current type is correct or retrieving is required
-            if (pGeometry->GetGeometryType() != mpPrototypeEntity->GetGeometry().GetGeometryType()) {
-                const std::size_t dimension = pGeometry->WorkingSpaceDimension();
-                const std::size_t number_of_nodes = pGeometry->size();
-                const std::string replace_dimension = StringUtilities::ReplaceAllSubstrings(mName, "#D", std::to_string(dimension) + "D");
-                const std::string replace_number_of_nodes = StringUtilities::ReplaceAllSubstrings(replace_dimension, "#N", std::to_string(number_of_nodes) + "N");
-                KRATOS_ERROR_IF_NOT(KratosComponents<TEntity>::Has(replace_number_of_nodes)) << "Entity not registered: " << replace_number_of_nodes << std::endl;
-                mpPrototypeEntity = KratosComponents<TEntity>::Get(replace_number_of_nodes).Create(0, pGeometry, nullptr);
-            }
+            KRATOS_DEBUG_ERROR_IF_NOT(pGeometry->GetGeometryType() == mpPrototypeEntity->GetGeometry().GetGeometryType()) << "Trying to replace an entity with a different geometry type. Reference entity " << mpPrototypeEntity->GetGeometry().Info() << " vs  " << pGeometry->Info() << "\n Entity info: " << mpPrototypeEntity->Info() << std::endl;
             return *mpPrototypeEntity;
         case DefinitionType::Multiple:
             // We check if the current type is correct or retrieving is required
@@ -123,8 +96,8 @@ const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename Geometry
 template<class TEntity>
 void EntitityIdentifier<TEntity>::PrintData(std::ostream& rOStream) const
 {
-    rOStream << "Name: " << mName << "\n";
-    std::string definition_type = mDefinitionType == DefinitionType::Single ? "Single" : mDefinitionType == DefinitionType::Multiple ? "Multiple" : "Templated";
+    rOStream << "Name: " << mpPrototypeEntity->Info() << "\n";
+    std::string definition_type = mDefinitionType == DefinitionType::Single ? "Single" : "Multiple";
     rOStream << "Definition type: " << definition_type << "\n";
     if (mDefinitionType == DefinitionType::Multiple) {
         rOStream << "Types: " << "\n";
@@ -150,6 +123,87 @@ std::string EntitityIdentifier<TEntity>::GetEntityTypeName() const
         static_assert(std::is_same<TEntity, Element>::value || std::is_same<TEntity, Condition>::value, "Unsupported entity type. Only element and condition are supported.");
     }
     return entity_type_name;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void EntitityIdentifier<TEntity>::GenerateSingleType(const std::string& rName)
+{
+    // Check the type of entity considered
+    const std::string entity_type_name = GetEntityTypeName();
+
+    // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
+    KRATOS_ERROR_IF(rName != "" && !KratosComponents<TEntity>::Has(rName)) << entity_type_name << " name not found in KratosComponents<" << entity_type_name << "> -- name is " << rName << std::endl;
+    mpPrototypeEntity = KratosComponents<TEntity>::Get(rName).Create(0, nullptr, nullptr);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void EntitityIdentifier<TEntity>::GenerateMultipleTypes(const std::string& rName)
+{
+    // Check the type of entity considered
+    const std::string entity_type_name = GetEntityTypeName();
+
+    // Split the name
+    const auto splitted_names = StringUtilities::SplitStringByDelimiter(rName, ';');
+    for (auto& r_entity_name : splitted_names) {
+        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
+        KRATOS_ERROR_IF(r_entity_name != "" && !KratosComponents<TEntity>::Has(r_entity_name)) << entity_type_name << " name not found in KratosComponents<" << entity_type_name << "> -- name is " << r_entity_name << std::endl;
+        const auto& r_ref_entity = KratosComponents<TEntity>::Get(r_entity_name);
+        const auto& r_reference_geometry = r_ref_entity.GetGeometry();
+        const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
+        mTypes.insert({r_reference_geometry_type, &KratosComponents<TEntity>::Get(r_entity_name)});
+    }
+
+    // Set the definition type
+    mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
+
+    // Assign dumy prototype
+    typename GeometryType::Pointer p_geometry_type = Kratos::make_shared<GeometryType>();
+    mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_type_name + "2D2N").Create(0, p_geometry_type, nullptr);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rName)
+{
+    // Check the type of entity considered
+    const std::string entity_type_name = GetEntityTypeName();
+
+    // Geometry combinations
+    const std::vector<std::string> two_d_number_of_nodes = {"1", "2", "3", "4", "6", "8", "9"};
+    const std::vector<std::string> three_d_number_of_nodes = {"1", "2", "3", "4", "5", "6", "8", "9", "10", "13", "15", "20", "27"};
+
+    // Generate templated types
+    for (auto& r_nodes_number : two_d_number_of_nodes) { 
+        const std::string replace_dimension = StringUtilities::ReplaceAllSubstrings(rName, "#D", "2D");
+        const std::string replace_number_of_nodes = StringUtilities::ReplaceAllSubstrings(replace_dimension, "#N", r_nodes_number + "N");
+        if (KratosComponents<TEntity>::Has(replace_number_of_nodes)) {
+            const auto& r_entity = KratosComponents<TEntity>::Get(replace_number_of_nodes);
+            mTypes.insert({r_entity.GetGeometry().GetGeometryType(), &r_entity});
+        }
+    }
+    for (auto& r_nodes_number : three_d_number_of_nodes) { 
+        const std::string replace_dimension = StringUtilities::ReplaceAllSubstrings(rName, "#D", "2D");
+        const std::string replace_number_of_nodes = StringUtilities::ReplaceAllSubstrings(replace_dimension, "#N", r_nodes_number + "N");
+        if (KratosComponents<TEntity>::Has(replace_number_of_nodes)) {
+            const auto& r_entity = KratosComponents<TEntity>::Get(replace_number_of_nodes);
+            mTypes.insert({r_entity.GetGeometry().GetGeometryType(), &r_entity});
+        }
+    }
+
+    // Set the definition type
+    mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
+
+    // Assign dumy prototype
+    typename GeometryType::Pointer p_geometry_type = Kratos::make_shared<GeometryType>();
+    mpPrototypeEntity = KratosComponents<TEntity>::Get(entity_type_name + "2D2N").Create(0, p_geometry_type, nullptr);
 }
 
 /***********************************************************************************/
