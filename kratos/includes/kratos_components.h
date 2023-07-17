@@ -517,7 +517,7 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Flags& rComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<Flags>& rComponent);
 
-template<class TComponentType> void AddKratosComponent(const std::string& rName, TComponentType& rComponent)
+template<class TComponentType> void AddKratosComponent(const std::string& rName, const TComponentType& rComponent)
 {
 }
 
