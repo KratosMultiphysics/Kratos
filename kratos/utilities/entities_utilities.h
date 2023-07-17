@@ -139,8 +139,8 @@ namespace EntitiesUtilities
         ///@name Private Member Variables
         ///@{
 
-        typename TEntity::Pointer mpPrototypeEntity = nullptr;                    /// The prototype entity
-        DefinitionType mDefinitionType = DefinitionType::Single;                  /// The type of definition
+        TEntity const* mpPrototypeEntity = nullptr;                                  /// The prototype entity
+        DefinitionType mDefinitionType = DefinitionType::Single;                     /// The type of definition
         std::unordered_map<GeometryData::KratosGeometryType, const TEntity*> mTypes; /// The settings of the entities
 
         ///@}

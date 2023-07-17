@@ -52,18 +52,18 @@ EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
 template<class TEntity>
 bool EntitityIdentifier<TEntity>::IsInitialized()
 {
-    if (mpPrototypeEntity == nullptr) {
-        return false;
-    } else {
-        // Check if the class is initialized
-        if (mDefinitionType == DefinitionType::Multiple) {
-            // Check size 
-            if (mTypes.size() > 0) {
-                return true;
-            } else {
-                return false;
-            }
-        } else { // Directly check the name
+    // Check if the class is initialized
+    if (mDefinitionType == DefinitionType::Multiple) { // Multiple definition
+        // Check size 
+        if (mTypes.size() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    } else { // Single definition
+        if (mpPrototypeEntity == nullptr) {
+            return false;
+        } else {
             return true;
         }
     }
@@ -80,11 +80,7 @@ const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename Geometry
             KRATOS_DEBUG_ERROR_IF_NOT(pGeometry->GetGeometryType() == mpPrototypeEntity->GetGeometry().GetGeometryType()) << "Trying to replace an entity with a different geometry type. Reference entity " << mpPrototypeEntity->GetGeometry().Info() << " vs  " << pGeometry->Info() << "\n Entity info: " << mpPrototypeEntity->Info() << std::endl;
             return *mpPrototypeEntity;
         case DefinitionType::Multiple:
-            // We check if the current type is correct or retrieving is required
-            if (pGeometry->GetGeometryType() != mpPrototypeEntity->GetGeometry().GetGeometryType()) {
-                mpPrototypeEntity = (mTypes[pGeometry->GetGeometryType()])->Create(0, pGeometry, nullptr);
-            }
-            return *mpPrototypeEntity;
+            return *mTypes[pGeometry->GetGeometryType()];
         default:
             KRATOS_ERROR << "Unsupported definition type" << std::endl;
             break;
@@ -137,8 +133,7 @@ void EntitityIdentifier<TEntity>::GenerateSingleType(const std::string& rName)
 
     // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
     KRATOS_ERROR_IF(rName != "" && !KratosComponents<TEntity>::Has(rName)) << entity_type_name << " name not found in KratosComponents<" << entity_type_name << "> -- name is " << rName << std::endl;
-    const auto& r_entity = KratosComponents<TEntity>::Get(rName);
-    mpPrototypeEntity = r_entity.Create(0, r_entity.pGetGeometry(), nullptr);
+    mpPrototypeEntity = &KratosComponents<TEntity>::Get(rName);
 }
 
 /***********************************************************************************/
@@ -163,10 +158,6 @@ void EntitityIdentifier<TEntity>::GenerateMultipleTypes(const std::string& rName
 
     // Set the definition type
     mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
-
-    // Assign default prototype
-    const auto* p_entity = mTypes.begin()->second;
-    mpPrototypeEntity = p_entity->Create(0, p_entity->pGetGeometry(), nullptr);
 }
 
 /***********************************************************************************/
@@ -191,10 +182,6 @@ void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rNam
 
     // Set the definition type
     mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
-
-    // Assign default prototype
-    const auto* p_entity = mTypes.begin()->second;
-    mpPrototypeEntity = p_entity->Create(0, p_entity->pGetGeometry(), nullptr);
 }
 
 /***********************************************************************************/
