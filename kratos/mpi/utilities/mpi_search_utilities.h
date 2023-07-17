@@ -143,25 +143,8 @@ public:
         // Synchronize points
         MPISynchronousPointSynchronization(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, static_cast<int>(all_points_are_the_same), number_of_points, total_number_of_points);
 
-        // MPI information
-        const int world_size = rDataCommunicator.Size();
-
-        // Define recv_sizes
-        std::vector<int> recv_sizes(world_size, 0);
-        if (!all_points_are_the_same) { // If not all points are the same
-            // Getting global number of points
-            std::vector<int> points_per_partition(world_size);
-            std::vector<int> send_points_per_partition(1, number_of_points);
-            rDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
-
-            // Generate vectors with sizes for AllGatherv
-            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-                recv_sizes[i_rank] = points_per_partition[i_rank];
-            }
-        } else if (world_size == 1) { // In case only one process is used
-            recv_sizes[0] = number_of_points;
-        }
-
+        // Get recv_sizes
+        const auto recv_sizes = SyncRecvSizes(number_of_points, all_points_are_the_same, rDataCommunicator);
         return recv_sizes;
     }
 
@@ -185,9 +168,76 @@ public:
         const DataCommunicator& rDataCommunicator
         )
     {
-        // First get recv_sizes
-        std::vector<int> recv_sizes = MPISynchronousPointSynchronizationWithRecvSizes(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator);
-        const int total_number_of_points = std::accumulate(recv_sizes.begin(), recv_sizes.end(), 0);
+        // First check that the points are the same in all processes
+        int number_of_points, total_number_of_points;
+        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
+
+        // Synchronize points
+        MPISynchronousPointSynchronization(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, static_cast<int>(all_points_are_the_same), number_of_points, total_number_of_points);
+
+        // Get recv_sizes
+        const auto recv_sizes = SyncRecvSizes(number_of_points, all_points_are_the_same, rDataCommunicator);
+
+        // Get radius
+        const auto radius = SyncRadius(recv_sizes, rRadius, rDataCommunicator);
+        return radius;
+    }
+
+    ///@}
+private:
+    ///@name Private Operations
+    ///@{  
+
+    /**
+     * @brief Synchronizes the sizes of data among multiple processes using MPI.
+     * @param NumberOfPoints The number of local points in the data
+     * @param AllPointsAreTheSame Flag indicating if all points are the same
+     * @param rDataCommunicator The data communicator for MPI communication
+     * @return A vector containing the sizes of data for each process
+     */
+    static std::vector<int> SyncRecvSizes(
+        const int NumberOfPoints,
+        const bool AllPointsAreTheSame,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        // MPI information
+        const int world_size = rDataCommunicator.Size();
+
+        // Define recv_sizes
+        std::vector<int> recv_sizes(world_size, 0);
+        if (!AllPointsAreTheSame) { // If not all points are the same
+            // Getting global number of points
+            std::vector<int> points_per_partition(world_size);
+            std::vector<int> send_points_per_partition(1, NumberOfPoints);
+            rDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
+
+            // Generate vectors with sizes for AllGatherv
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                recv_sizes[i_rank] = points_per_partition[i_rank];
+            }
+        } else if (world_size == 1) { // In case only one process is used
+            recv_sizes[0] = NumberOfPoints;
+        }
+
+        return recv_sizes;
+    }
+
+    /**
+     * @brief Synchronizes the radius of all points in a distributed system.
+     * @param rRecvSizes a vector containing the number of points to be received from each rank
+     * @param rRadius a vector containing the radius of each point
+     * @param rDataCommunicator the communication object used for data exchange
+     * @return A vector containing the synchronized radius of all points
+     */
+    static std::vector<double> SyncRadius(
+        const std::vector<int>& rRecvSizes,
+        const std::vector<double>& rRadius,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        // First we calculate the total number of points to communicate
+        const int total_number_of_points = std::accumulate(rRecvSizes.begin(), rRecvSizes.end(), 0);
 
         // Synchonize radius
         if (total_number_of_points == 0) { // If all points are the same
@@ -202,20 +252,16 @@ public:
             // Generate vectors with sizes for AllGatherv
             std::vector<int> recv_offsets(world_size, 0);
             for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-                recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
+                recv_offsets[i_rank] = recv_offsets[i_rank - 1] + rRecvSizes[i_rank - 1];
             }
 
             // Invoque AllGatherv
-            rDataCommunicator.AllGatherv(rRadius, all_points_radius, recv_sizes, recv_offsets);
+            rDataCommunicator.AllGatherv(rRadius, all_points_radius, rRecvSizes, recv_offsets);
 
             return all_points_radius;
         }
     }
 
-    ///@}
-private:
-    ///@name Private Operations
-    ///@{  
 
     /**
      * @brief This method checks if all nodes are the same across all partitions
