@@ -434,7 +434,7 @@ namespace Kratos
             * rVariables.WaterDensity * rVariables.WaterHeatCapacity;
         const double cSolid = (1.0 - rVariables.Porosity) * rVariables.SolidDensity
             * rVariables.SolidHeatCapacity;
-        TMatrix = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
+        noalias(TMatrix) = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
             * rVariables.IntegrationCoefficient
             * rVariables.DtTemperatureCoefficient;
 
@@ -455,7 +455,7 @@ namespace Kratos
         GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(rVariables.ConstitutiveMatrix, rProp);
 
         BoundedMatrix<double, TDim, TNumNodes> Temp = prod(rVariables.ConstitutiveMatrix, trans(rVariables.GradNT));
-        TMatrix = prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
+        noalias(TMatrix) = prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
 
         KRATOS_CATCH("");
     }
@@ -491,10 +491,10 @@ namespace Kratos
             * rVariables.WaterDensity * rVariables.WaterHeatCapacity;
         const double cSolid = (1.0 - rVariables.Porosity) * rVariables.SolidDensity
             * rVariables.SolidHeatCapacity;
-        TMatrix = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
+        noalias(TMatrix) = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
             * rVariables.IntegrationCoefficient;
 
-        TVector = - prod(TMatrix, rVariables.DtTemperatureVector);
+        noalias(TVector) = - prod(TMatrix, rVariables.DtTemperatureVector);
 
         KRATOS_CATCH("")
     }
@@ -527,9 +527,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        TDimMatrix = prod(rVariables.GradNT, rVariables.ConstitutiveMatrix);
+        noalias(TDimMatrix) = prod(rVariables.GradNT, rVariables.ConstitutiveMatrix);
 
-        TMatrix = prod(TDimMatrix, trans(rVariables.GradNT))
+        noalias(TMatrix) = prod(TDimMatrix, trans(rVariables.GradNT))
             * rVariables.IntegrationCoefficient;
 
         noalias(TVector) = - prod(TMatrix, rVariables.TemperatureVector);

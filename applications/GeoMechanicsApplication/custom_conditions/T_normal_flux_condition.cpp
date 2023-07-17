@@ -72,10 +72,10 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateRHS(
     Geom.Jacobian( JContainer, this->GetIntegrationMethod());
     
     //Condition variables
-    array_1d<double,TNumNodes> NormalFluxVector;
+    array_1d<double,TNumNodes> normal_flux_vector;
     for(unsigned int i = 0; i < TNumNodes; ++i)
     {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_HEAT_FLUX);
+        normal_flux_vector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_HEAT_FLUX);
     }
     NormalFluxVariables Variables;
     
@@ -84,7 +84,7 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateRHS(
         //Compute normal flux 
         Variables.NormalFlux = 0.0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Variables.NormalFlux += NContainer(GPoint,i) * NormalFluxVector[i];
+            Variables.NormalFlux += NContainer(GPoint,i) * normal_flux_vector[i];
         }
         
         //Obtain Np
@@ -123,11 +123,11 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
 {
     Vector NormalVector = ZeroVector(TDim);
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
         NormalVector = column(Jacobian, 0);
     }
-    else if (TDim == 3)
+    else if constexpr (TDim == 3)
     {
         MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
     }
