@@ -51,7 +51,7 @@ public:
      * @param rDataCommunicator The data communicator
      * @param AllPointsAreTheSame If all points are the same (-1 to be computed, 0 if not, 1 if yes)
      * @param NumberOfPoints The number of points in the range
-     * @param TotalNumberOfPoints The total number of points in all the ranges
+     * @param SumNumberOfPointsInAllPartitions The total number of points in all the ranges
      * @return The number of points in the range
      * @tparam TPointIteratorType The type of the point iterator
      */
@@ -63,16 +63,16 @@ public:
         const DataCommunicator& rDataCommunicator,
         int AllPointsAreTheSame = -1,
         int NumberOfPoints = -1,
-        int TotalNumberOfPoints = -1
+        int SumNumberOfPointsInAllPartitions = -1
         )
     {
         // First check that the points are the same in all processes
         if (AllPointsAreTheSame < 0) {
-            AllPointsAreTheSame = static_cast<int>(CheckAllPointsAreTheSame(itPointBegin, itPointEnd, NumberOfPoints, TotalNumberOfPoints, rDataCommunicator));
+            AllPointsAreTheSame = static_cast<int>(CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, NumberOfPoints, SumNumberOfPointsInAllPartitions, rDataCommunicator));
         }
 
         KRATOS_DEBUG_ERROR_IF(NumberOfPoints < 0) << "The number of points is negative" << std::endl;
-        KRATOS_DEBUG_ERROR_IF(TotalNumberOfPoints < 0) << "The total number of points is negative" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(SumNumberOfPointsInAllPartitions < 0) << "The total number of points is negative" << std::endl;
 
         std::size_t counter = 0;
         array_1d<double, 3> coordinates;
@@ -99,7 +99,7 @@ public:
             rDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
 
             // Getting global coordinates
-            rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
+            rAllPointsCoordinates.resize(SumNumberOfPointsInAllPartitions * 3);
 
             // Generate vectors with sizes for AllGatherv
             std::vector<int> recv_sizes(world_size, 0);
@@ -138,7 +138,7 @@ public:
     {
         // First check that the points are the same in all processes
         int number_of_points, total_number_of_points;
-        const bool all_points_are_the_same = CheckAllPointsAreTheSame(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
+        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
 
         // Synchronize points
         MPISynchronousPointSynchronization(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, static_cast<int>(all_points_are_the_same), number_of_points, total_number_of_points);
@@ -227,7 +227,7 @@ private:
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    static bool CheckAllPointsAreTheSame(
+    static bool CheckAllPointsAreTheSameAndCalculateNumberOfPoints(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         int& rNumberOfPoints,
