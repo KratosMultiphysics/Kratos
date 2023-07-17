@@ -237,10 +237,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    KratosComponents& operator=(KratosComponents& rOther);
+    KratosComponents& operator=(const KratosComponents& rOther);
 
     /// Copy constructor.
-    KratosComponents(KratosComponents& rOther);
+    KratosComponents(const KratosComponents& rOther);
 
     ///@}
 
@@ -458,10 +458,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    KratosComponents& operator=(KratosComponents& rOther);
+    KratosComponents& operator=(const KratosComponents& rOther);
 
     /// Copy constructor.
-    KratosComponents(KratosComponents& rOther);
+    KratosComponents(const KratosComponents& rOther);
 
     ///@}
 
