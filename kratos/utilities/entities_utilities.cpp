@@ -29,6 +29,9 @@ EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
 {
     // Check if the name is empty (could be empty due to default values in settings)
     if (rName != "") {
+        // Initialize the definition types
+        mTypes.fill(nullptr);
+
         // Identify type of definition
         if (rName.find("#") != std::string::npos) { // Templated definition
             if (rName.find(";") == std::string::npos) { // Must be single definition
@@ -43,6 +46,7 @@ EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
                 GenerateMultipleTypes(rName);
             }
         }
+        mIsInitialized = true;
     }
 }
 
@@ -52,21 +56,7 @@ EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
 template<class TEntity>
 bool EntitityIdentifier<TEntity>::IsInitialized()
 {
-    // Check if the class is initialized
-    if (mDefinitionType == DefinitionType::Multiple) { // Multiple definition
-        // Check size 
-        if (mTypes.size() > 0) {
-            return true;
-        } else {
-            return false;
-        }
-    } else { // Single definition
-        if (mpPrototypeEntity == nullptr) {
-            return false;
-        } else {
-            return true;
-        }
-    }
+    return mIsInitialized;
 }
 
 /***********************************************************************************/
@@ -80,7 +70,7 @@ const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename Geometry
             KRATOS_DEBUG_ERROR_IF_NOT(pGeometry->GetGeometryType() == mpPrototypeEntity->GetGeometry().GetGeometryType()) << "Trying to replace an entity with a different geometry type. Reference entity " << mpPrototypeEntity->GetGeometry().Info() << " vs  " << pGeometry->Info() << "\n Entity info: " << mpPrototypeEntity->Info() << std::endl;
             return *mpPrototypeEntity;
         case DefinitionType::Multiple:
-            return *mTypes[pGeometry->GetGeometryType()];
+            return *mTypes[static_cast<std::size_t>(pGeometry->GetGeometryType()) - 1];
         default:
             KRATOS_ERROR << "Unsupported definition type" << std::endl;
             break;
@@ -97,8 +87,12 @@ void EntitityIdentifier<TEntity>::PrintData(std::ostream& rOStream) const
     rOStream << "Definition type: " << definition_type << "\n";
     if (mDefinitionType == DefinitionType::Multiple) {
         rOStream << "Types: " << "\n";
+        std::size_t counter = 1;
         for (const auto& r_type : mTypes) {
-            rOStream << "\t" << GeometryUtils::GetGeometryName(r_type.first) << " : " << r_type.second->Info() << "\n";
+            if (r_type != nullptr) {
+                rOStream << "\t" << GeometryUtils::GetGeometryName(static_cast<GeometryData::KratosGeometryType>(counter)) << " : " << r_type->Info() << "\n";
+            }
+            ++counter;
         }
     } else {
         rOStream << "Name: " << mpPrototypeEntity->Info() << "\n";
@@ -153,7 +147,8 @@ void EntitityIdentifier<TEntity>::GenerateMultipleTypes(const std::string& rName
         const auto& r_ref_entity = KratosComponents<TEntity>::Get(r_entity_name);
         const auto& r_reference_geometry = r_ref_entity.GetGeometry();
         const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-        mTypes.insert({r_reference_geometry_type, &KratosComponents<TEntity>::Get(r_entity_name)});
+        const std::size_t index = static_cast<std::size_t>(r_reference_geometry_type) - 1;
+        mTypes[index] = &KratosComponents<TEntity>::Get(r_entity_name);
     }
 
     // Set the definition type
@@ -166,7 +161,7 @@ void EntitityIdentifier<TEntity>::GenerateMultipleTypes(const std::string& rName
 template<class TEntity>
 void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rName)
 {
-    // Prepare regex 
+    // Prepare regex
     const std::string replace_dimension = StringUtilities::ReplaceAllSubstrings(rName, "#D", "(2D|3D)");
     const std::string replace_number_of_nodes = StringUtilities::ReplaceAllSubstrings(replace_dimension, "#N", "[0-9]+N");
     std::regex pattern(replace_number_of_nodes);
@@ -176,7 +171,8 @@ void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rNam
         const std::string& r_key = r_pair.first;
         if (std::regex_match(r_key, pattern)) {
             const auto& r_entity = KratosComponents<TEntity>::Get(r_key);
-            mTypes.insert({r_entity.GetGeometry().GetGeometryType(), &r_entity});
+            const std::size_t index = static_cast<std::size_t>(r_entity.GetGeometry().GetGeometryType()) - 1;
+            mTypes[index] = &r_entity;
         }
     }
 

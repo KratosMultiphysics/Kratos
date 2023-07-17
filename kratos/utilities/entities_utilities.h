@@ -54,14 +54,17 @@ namespace EntitiesUtilities
         /// Geometry type definition
         using GeometryType = typename TEntity::GeometryType;
 
+        /// Length of array definition
+        constexpr static std::size_t LengthArray = static_cast<int>(GeometryData::KratosGeometryType::NumberOfGeometryTypes) - 2;
+
         /// Pointer definition of ReplaceElementsAndConditionsProcess
         KRATOS_CLASS_POINTER_DEFINITION(EntitityIdentifier);
 
         ///@}
         ///@name Life Cycle
         ///@{
-            
-        /** 
+
+        /**
          * @brief Default constructor 
          */
         EntitityIdentifier() = default;
@@ -78,7 +81,8 @@ namespace EntitiesUtilities
         EntitityIdentifier(const EntitityIdentifier& rOther)
             : mpPrototypeEntity(rOther.mpPrototypeEntity),
               mDefinitionType(rOther.mDefinitionType),
-              mTypes(rOther.mTypes)
+              mTypes(rOther.mTypes),
+              mIsInitialized(rOther.mIsInitialized)
         {
         }
 
@@ -94,6 +98,7 @@ namespace EntitiesUtilities
             mpPrototypeEntity = rOther.mpPrototypeEntity;
             mDefinitionType = rOther.mDefinitionType;
             mTypes = rOther.mTypes;
+            mIsInitialized = rOther.mIsInitialized;
 
             return *this;
         }
@@ -139,9 +144,10 @@ namespace EntitiesUtilities
         ///@name Private Member Variables
         ///@{
 
-        TEntity const* mpPrototypeEntity = nullptr;                                  /// The prototype entity
-        DefinitionType mDefinitionType = DefinitionType::Single;                     /// The type of definition
-        std::unordered_map<GeometryData::KratosGeometryType, const TEntity*> mTypes; /// The settings of the entities
+        TEntity const* mpPrototypeEntity = nullptr;              /// The prototype entity
+        DefinitionType mDefinitionType = DefinitionType::Single; /// The type of definition
+        std::array<const TEntity*, LengthArray> mTypes;          /// The settings of the entities
+        bool mIsInitialized = false;                             /// If the object is initialized
 
         ///@}
         ///@name Private Operations
@@ -167,7 +173,7 @@ namespace EntitiesUtilities
          * @throws std::runtime_error if entity name is not found in KratosComponents
          */
         void GenerateMultipleTypes(const std::string& rName);
-            
+
         /**
          * @brief Generate templated types entities map.
          * @param rName The name to generate templated types from
