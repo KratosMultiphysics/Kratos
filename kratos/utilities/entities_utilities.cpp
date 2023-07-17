@@ -137,7 +137,8 @@ void EntitityIdentifier<TEntity>::GenerateSingleType(const std::string& rName)
 
     // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
     KRATOS_ERROR_IF(rName != "" && !KratosComponents<TEntity>::Has(rName)) << entity_type_name << " name not found in KratosComponents<" << entity_type_name << "> -- name is " << rName << std::endl;
-    mpPrototypeEntity = KratosComponents<TEntity>::Get(rName).Create(0, nullptr, nullptr);
+    const auto& r_entity = KratosComponents<TEntity>::Get(rName);
+    mpPrototypeEntity = r_entity.Create(0, r_entity.pGetGeometry(), nullptr);
 }
 
 /***********************************************************************************/
