@@ -59,7 +59,7 @@ EntitityIdentifier<TEntity>::EntitityIdentifier(const std::string& rName)
                 const auto& r_ref_entity = KratosComponents<TEntity>::Get(r_entity_name);
                 const auto& r_reference_geometry = r_ref_entity.GetGeometry();
                 const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-                mTypes.insert({r_reference_geometry_type, r_entity_name});
+                mTypes.insert({r_reference_geometry_type, &KratosComponents<TEntity>::Get(r_entity_name)});
             }
             mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
             typename GeometryType::Pointer p_geometry_type = Kratos::make_shared<GeometryType>();
@@ -79,13 +79,8 @@ bool EntitityIdentifier<TEntity>::IsInitialized()
     } else {
         // Check if the class is initialized
         if (mDefinitionType == DefinitionType::Multiple) {
-            // Count the number of non-empty types
-            std::size_t counter = 0;
-            for (auto& r_sub_replacement : mTypes) {
-                if (r_sub_replacement.second != "") counter += 1;
-            }
-            // Check counter
-            if (counter > 0) {
+            // Check size 
+            if (mTypes.size() > 0) {
                 return true;
             } else {
                 return false;
@@ -120,7 +115,7 @@ const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename Geometry
         case DefinitionType::Multiple:
             // We check if the current type is correct or retrieving is required
             if (pGeometry->GetGeometryType() != mpPrototypeEntity->GetGeometry().GetGeometryType()) {
-                mpPrototypeEntity = KratosComponents<TEntity>::Get(mTypes[pGeometry->GetGeometryType()]).Create(0, pGeometry, nullptr);
+                mpPrototypeEntity = (mTypes[pGeometry->GetGeometryType()])->Create(0, pGeometry, nullptr);
             }
             return *mpPrototypeEntity;
         default:
@@ -141,7 +136,7 @@ void EntitityIdentifier<TEntity>::PrintData(std::ostream& rOStream) const
     if (mDefinitionType == DefinitionType::Multiple) {
         rOStream << "Types: " << "\n";
         for (const auto& r_type : mTypes) {
-            rOStream << "\t" << GeometryUtils::GetGeometryName(r_type.first) << " : " << r_type.second << "\n";
+            rOStream << "\t" << GeometryUtils::GetGeometryName(r_type.first) << " : " << r_type.second->Info() << "\n";
         }
     }
     rOStream << "Current prototype: " << *mpPrototypeEntity << std::endl;

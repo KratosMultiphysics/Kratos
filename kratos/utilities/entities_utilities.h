@@ -148,7 +148,7 @@ namespace EntitiesUtilities
         typename TEntity::Pointer mpPrototypeEntity = nullptr;                    /// The prototype entity
         DefinitionType mDefinitionType = DefinitionType::Single;                  /// The type of definition
         std::string mName;                                                        /// The name of the entity
-        std::unordered_map<GeometryData::KratosGeometryType, std::string> mTypes; /// The settings of the entities
+        std::unordered_map<GeometryData::KratosGeometryType, const TEntity*> mTypes; /// The settings of the entities
 
         ///@}
     }; ///  Class EntitityIdentifier
