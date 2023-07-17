@@ -49,31 +49,127 @@ public:
      * @param itPointEnd Iterator to the end of the points range
      * @param rAllPointsCoordinates vector where the computed coordinates will be stored
      * @param rDataCommunicator The data communicator
-     * @param AllPointsAreTheSame If all points are the same (-1 to be computed, 0 if not, 1 if yes)
-     * @param NumberOfPoints The number of points in the range
-     * @param SumNumberOfPointsInAllPartitions The total number of points in all the ranges
-     * @return The number of points in the range
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    static int MPISynchronousPointSynchronization(
+    static void MPISynchronousPointSynchronization(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        std::vector<double>& rAllPointsCoordinates,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        // First check that the points are the same in all processes
+        int number_of_points, total_number_of_points;
+        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
+
+        KRATOS_DEBUG_ERROR_IF(number_of_points < 0) << "The number of points is negative" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
+
+        // We synchronize the points
+        SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, all_points_are_the_same, number_of_points, total_number_of_points);
+    }
+
+    /**
+     * @brief MPISynchronousPointSynchronizationWithRecvSizes prepares synchronously the coordinates of the points for MPI search including the recv sizes
+     * @details With recv sizes
+     * @param itPointBegin Iterator to the beginning of the points range
+     * @param itPointEnd Iterator to the end of the points range
+     * @param rAllPointsCoordinates vector where the computed coordinates will be stored
+     * @param rDataCommunicator The data communicator
+     * @return The resulting whole radius vector
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    static std::vector<int> MPISynchronousPointSynchronizationWithRecvSizes(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        std::vector<double>& rAllPointsCoordinates,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        // First check that the points are the same in all processes
+        int number_of_points, total_number_of_points;
+        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
+
+        KRATOS_DEBUG_ERROR_IF(number_of_points < 0) << "The number of points is negative" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
+
+        // We synchronize the points
+        SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, all_points_are_the_same, number_of_points, total_number_of_points);
+
+        // Get recv_sizes
+        const auto recv_sizes = SynchronizeRecvSizes(number_of_points, all_points_are_the_same, rDataCommunicator);
+        return recv_sizes;
+    }
+
+    /**
+     * @brief MPISynchronousPointSynchronizationWithRadius prepares synchronously the coordinates of the points for MPI search including radius
+     * @details With radius
+     * @param itPointBegin Iterator to the beginning of the points range
+     * @param itPointEnd Iterator to the end of the points range
+     * @param rAllPointsCoordinates vector where the computed coordinates will be stored
+     * @param rRadius The radius of the points
+     * @param rDataCommunicator The data communicator
+     * @return The resulting whole radius vector
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    static std::vector<double> MPISynchronousPointSynchronizationWithRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        std::vector<double>& rAllPointsCoordinates,
+        const std::vector<double>& rRadius,
+        const DataCommunicator& rDataCommunicator
+        )
+    {
+        // First check that the points are the same in all processes
+        int number_of_points, total_number_of_points;
+        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
+
+        KRATOS_DEBUG_ERROR_IF(number_of_points < 0) << "The number of points is negative" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
+
+        // We synchronize the points
+        SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, all_points_are_the_same, number_of_points, total_number_of_points);
+
+        // Get recv_sizes
+        const auto recv_sizes = SynchronizeRecvSizes(number_of_points, all_points_are_the_same, rDataCommunicator);
+
+        // Get radius
+        const auto radius = SynchronizeRadius(recv_sizes, rRadius, rDataCommunicator);
+        return radius;
+    }
+
+    ///@}
+private:
+    ///@name Private Operations
+    ///@{  
+
+    /**
+     * @details Synchronizes points between different processes. 
+     * @details Synchonously
+     * @param itPointBegin Iterator pointing to the beginning of the range of points
+     * @param itPointEnd Iterator pointing to the end of the range of points
+     * @param rAllPointsCoordinates Vector to store the synchronized points' coordinates
+     * @param rDataCommunicator Object for data communication between processes
+     * @param AllPointsAreTheSame Flag indicating if all points are the same
+     * @param NumberOfPoints Local number of points to be synchronized
+     * @param TotalNumberOfPoints Total number of points across all processes
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    static void SynchronizePoints(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         std::vector<double>& rAllPointsCoordinates,
         const DataCommunicator& rDataCommunicator,
-        int AllPointsAreTheSame = -1,
-        int NumberOfPoints = -1,
-        int SumNumberOfPointsInAllPartitions = -1
+        const bool AllPointsAreTheSame,
+        const int NumberOfPoints,
+        const int TotalNumberOfPoints
         )
     {
-        // First check that the points are the same in all processes
-        if (AllPointsAreTheSame < 0) {
-            AllPointsAreTheSame = static_cast<int>(CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, NumberOfPoints, SumNumberOfPointsInAllPartitions, rDataCommunicator));
-        }
-
-        KRATOS_DEBUG_ERROR_IF(NumberOfPoints < 0) << "The number of points is negative" << std::endl;
-        KRATOS_DEBUG_ERROR_IF(SumNumberOfPointsInAllPartitions < 0) << "The total number of points is negative" << std::endl;
-
+        // Initialize local points coordinates
         std::size_t counter = 0;
         array_1d<double, 3> coordinates;
         unsigned int i_coord;
@@ -99,7 +195,7 @@ public:
             rDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
 
             // Getting global coordinates
-            rAllPointsCoordinates.resize(SumNumberOfPointsInAllPartitions * 3);
+            rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
 
             // Generate vectors with sizes for AllGatherv
             std::vector<int> recv_sizes(world_size, 0);
@@ -114,79 +210,7 @@ public:
             // Invoque AllGatherv
             rDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
         }
-
-        return NumberOfPoints;
     }
-
-    /**
-     * @brief MPISynchronousPointSynchronization prepares synchronously the coordinates of the points for MPI search.
-     * @details With recv sizes
-     * @param itPointBegin Iterator to the beginning of the points range
-     * @param itPointEnd Iterator to the end of the points range
-     * @param rAllPointsCoordinates vector where the computed coordinates will be stored
-     * @param rDataCommunicator The data communicator
-     * @return The resulting whole radius vector
-     * @tparam TPointIteratorType The type of the point iterator
-     */
-    template<typename TPointIteratorType>
-    static std::vector<int> MPISynchronousPointSynchronizationWithRecvSizes(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        std::vector<double>& rAllPointsCoordinates,
-        const DataCommunicator& rDataCommunicator
-        )
-    {
-        // First check that the points are the same in all processes
-        int number_of_points, total_number_of_points;
-        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
-
-        // Synchronize points
-        MPISynchronousPointSynchronization(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, static_cast<int>(all_points_are_the_same), number_of_points, total_number_of_points);
-
-        // Get recv_sizes
-        const auto recv_sizes = SyncRecvSizes(number_of_points, all_points_are_the_same, rDataCommunicator);
-        return recv_sizes;
-    }
-
-    /**
-     * @brief MPISynchronousPointSynchronization prepares synchronously the coordinates of the points for MPI search.
-     * @details With radius
-     * @param itPointBegin Iterator to the beginning of the points range
-     * @param itPointEnd Iterator to the end of the points range
-     * @param rAllPointsCoordinates vector where the computed coordinates will be stored
-     * @param rRadius The radius of the points
-     * @param rDataCommunicator The data communicator
-     * @return The resulting whole radius vector
-     * @tparam TPointIteratorType The type of the point iterator
-     */
-    template<typename TPointIteratorType>
-    static std::vector<double> MPISynchronousPointSynchronizationWithRadius(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        std::vector<double>& rAllPointsCoordinates,
-        const std::vector<double>& rRadius,
-        const DataCommunicator& rDataCommunicator
-        )
-    {
-        // First check that the points are the same in all processes
-        int number_of_points, total_number_of_points;
-        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
-
-        // Synchronize points
-        MPISynchronousPointSynchronization(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, static_cast<int>(all_points_are_the_same), number_of_points, total_number_of_points);
-
-        // Get recv_sizes
-        const auto recv_sizes = SyncRecvSizes(number_of_points, all_points_are_the_same, rDataCommunicator);
-
-        // Get radius
-        const auto radius = SyncRadius(recv_sizes, rRadius, rDataCommunicator);
-        return radius;
-    }
-
-    ///@}
-private:
-    ///@name Private Operations
-    ///@{  
 
     /**
      * @brief Synchronizes the sizes of data among multiple processes using MPI.
@@ -195,7 +219,7 @@ private:
      * @param rDataCommunicator The data communicator for MPI communication
      * @return A vector containing the sizes of data for each process
      */
-    static std::vector<int> SyncRecvSizes(
+    static std::vector<int> SynchronizeRecvSizes(
         const int NumberOfPoints,
         const bool AllPointsAreTheSame,
         const DataCommunicator& rDataCommunicator
@@ -230,7 +254,7 @@ private:
      * @param rDataCommunicator the communication object used for data exchange
      * @return A vector containing the synchronized radius of all points
      */
-    static std::vector<double> SyncRadius(
+    static std::vector<double> SynchronizeRadius(
         const std::vector<int>& rRecvSizes,
         const std::vector<double>& rRadius,
         const DataCommunicator& rDataCommunicator
