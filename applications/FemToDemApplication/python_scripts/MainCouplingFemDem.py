@@ -328,17 +328,15 @@ class MainCoupledFemDem_Solution:
         if self.FEM_Solution.ProjectParameters["problem_data"].Has("time_step"):
             return self.FEM_Solution.ProjectParameters["problem_data"]["time_step"].GetDouble()
 
-        elif self.FEM_Solution.ProjectParameters["problem_data"].Has("variable_time_steps"):
+        elif self.FEM_Solution.ProjectParameters["problem_data"].Has("time_step_table"):
 
             current_time = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-            for key in self.FEM_Solution.ProjectParameters["problem_data"]["variable_time_steps"].keys():
-                interval_settings = self.FEM_Solution.ProjectParameters["problem_data"]["variable_time_steps"][key]
-                interval = KratosMultiphysics.IntervalUtility(interval_settings)
 
-                 # Getting the time step of the interval
-                if interval.IsInInterval(current_time):
-                    return interval_settings["time_step"].GetDouble()
-            # If we arrive here we raise an error because the intervals are not well defined
+            tb = KratosMultiphysics.PiecewiseLinearTable()
+            time_step_table = self.FEM_Solution.ProjectParameters["problem_data"]["time_step_table"].GetMatrix()
+            for interval in range(time_step_table.Size1()):
+                tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+            return tb.GetValue(current_time)
             raise Exception("::[MechanicalSolver]:: Time stepping not well defined!")
         else:
             raise Exception("::[MechanicalSolver]:: Time stepping not defined!")

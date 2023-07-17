@@ -460,7 +460,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdatePointList
 
         if (mCheckGap == CheckGap::MappingCheck && dynamic) {
             NodesArrayType& r_update_r_nodes_array = r_sub_contact_model_part.Nodes();
-            block_for_each(r_update_r_nodes_array, [&](NodeType& rNode) {
+            block_for_each(r_update_r_nodes_array, [&](Node& rNode) {
                 noalias(rNode.Coordinates()) += rNode.GetValue(DELTA_COORDINATES);
             });
         }
@@ -542,7 +542,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
         if (mThisParameters["dynamic_search"].GetBool()) {
             if (mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY)) {
                 NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
-                block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                block_for_each(r_nodes_array, [&](Node& rNode) {
                     noalias(rNode.Coordinates()) -= rNode.GetValue(DELTA_COORDINATES);
                 });
             }
@@ -635,7 +635,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
                     if (mCheckGap == CheckGap::MappingCheck) {
                         for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                             // Master condition
-                            Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
+                            Condition::Pointer p_cond_master = points_found[i_point]->pGetObject();
 
                             // Checking with OBB
                             if (with_obb) {
@@ -661,7 +661,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SearchUsingKDTr
 
                         for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                             // Master condition
-                            Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
+                            Condition::Pointer p_cond_master = points_found[i_point]->pGetObject();
 
                             // Checking with OBB
                             if (with_obb) {
@@ -1108,7 +1108,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
             // If not active we check if can be potentially in contact
             for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
                 // Master condition
-                Condition::Pointer p_cond_master = points_found[i_point]->GetEntity();
+                Condition::Pointer p_cond_master = points_found[i_point]->pGetObject();
 
                 // Checking with OBB
                 if (with_obb) {
@@ -1204,7 +1204,7 @@ inline IndexType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Per
         const double length_search = SearchFactor * rGeometry.Length();
 
         // Compute max/min points
-        NodeType min_point, max_point;
+        Node min_point, max_point;
         rGeometry.BoundingBox(min_point, max_point);
 
         // Get the normal in the extrema points
@@ -1218,8 +1218,8 @@ inline IndexType BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::Per
         const array_1d<double,3> normal_min = MortarUtilities::GaussPointUnitNormal(N_min, rGeometry);
         const array_1d<double,3> normal_max = MortarUtilities::GaussPointUnitNormal(N_max, rGeometry);
 
-        ContactUtilities::ScaleNode<NodeType>(min_point, normal_min, length_search);
-        ContactUtilities::ScaleNode<NodeType>(max_point, normal_max, length_search);
+        ContactUtilities::ScaleNode<Node>(min_point, normal_min, length_search);
+        ContactUtilities::ScaleNode<Node>(max_point, normal_max, length_search);
 
         number_points_found = rTreePoints.SearchInBox(min_point, max_point, rPointsFound.begin(), AllocationSize);
     } else {
@@ -1298,7 +1298,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                     at_least_one_node_potential_contact = true;
                     r_slave_geometry[i_node].Set(ACTIVE, true);
                     if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
-                        NodeType& r_node = r_slave_geometry[i_node];
+                        Node& r_node = r_slave_geometry[i_node];
                         if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
                             if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
                                 r_node.Set(SLIP, true);
@@ -1307,7 +1307,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                             }
                         }
                     }  else if (mTypeSolution == TypeSolution::FrictionalPenaltyMethod || mTypeSolution == TypeSolution::OtherFrictional) {
-                        NodeType& r_node = r_slave_geometry[i_node];
+                        Node& r_node = r_slave_geometry[i_node];
                         if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
                             r_node.Set(SLIP, true);
                         } else if (!r_node.IsDefined(SLIP)) {
@@ -1321,7 +1321,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                     at_least_one_node_potential_contact = true;
                     r_slave_geometry[i_node].Set(ACTIVE, true);
                     if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
-                        NodeType& r_node = r_slave_geometry[i_node];
+                        Node& r_node = r_slave_geometry[i_node];
                         if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
                             if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
                                 r_node.Set(SLIP, true);
@@ -1330,7 +1330,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                             }
                         }
                     } else if (mTypeSolution == TypeSolution::FrictionalPenaltyMethod || mTypeSolution == TypeSolution::OtherFrictional) {
-                        NodeType& r_node = r_slave_geometry[i_node];
+                        Node& r_node = r_slave_geometry[i_node];
                         if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
                             r_node.Set(SLIP, true);
                         } else if (!r_node.IsDefined(SLIP)) {
@@ -1347,7 +1347,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             r_slave_geometry[i_node].Set(ACTIVE, true);
             if (mTypeSolution == TypeSolution::VectorLagrangeMultiplier && FrictionalProblem) {
-                NodeType& r_node = r_slave_geometry[i_node];
+                Node& r_node = r_slave_geometry[i_node];
                 if (norm_2(r_node.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) < ZeroTolerance) {
                     if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
                         r_node.Set(SLIP, true);
@@ -1356,7 +1356,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::AddPoten
                     }
                 }
             } else if (mTypeSolution == TypeSolution::FrictionalPenaltyMethod || mTypeSolution == TypeSolution::OtherFrictional) {
-                NodeType& r_node = r_slave_geometry[i_node];
+                Node& r_node = r_slave_geometry[i_node];
                 if (r_node.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
                     r_node.Set(SLIP, true);
                 } else if (!r_node.IsDefined(SLIP)) {
@@ -1413,7 +1413,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
     if (mThisParameters["dynamic_search"].GetBool()) {
         if (mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY)) {
-            block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            block_for_each(r_nodes_array, [&](Node& rNode) {
                 noalias(rNode.Coordinates()) -= rNode.GetValue(DELTA_COORDINATES);
             });
         }
@@ -1475,7 +1475,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveIn
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     // We compute now the normal gap and set the nodes under certain threshold as active
-    block_for_each(r_nodes_array, [this, &common_epsilon, &scale_factor](NodeType& rNode) {
+    block_for_each(r_nodes_array, [this, &common_epsilon, &scale_factor](Node& rNode) {
         if (rNode.Is(SLAVE) == !this->Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
 //             if (rNode.GetValue(NORMAL_GAP) < ZeroTolerance) {
             if (rNode.GetValue(NORMAL_GAP) < GapThreshold * rNode.FastGetSolutionStepValue(NODAL_H)) {
@@ -1497,7 +1497,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveIn
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
-    NodeType& rNode,
+    Node& rNode,
     const double CommonEpsilon,
     const double ScaleFactor
     )

@@ -88,6 +88,22 @@ KRATOS_TEST_CASE_IN_SUITE(ModelDeleteModelPart, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main.Inlet1.SubSub"));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ModelDeleteSubModelPart, KratosCoreFastSuite)
+{
+    Model model;
+
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.CreateSubModelPart("Inlet1");
+
+    KRATOS_CHECK(model.HasModelPart("Main"));
+    KRATOS_CHECK(model.HasModelPart("Main.Inlet1"));
+
+    model.DeleteModelPart("Main.Inlet1");
+
+    KRATOS_CHECK(model.HasModelPart("Main"));
+    KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main.Inlet1"));
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ModelRenameModelPart, KratosCoreFastSuite)
 {
     Model model;
