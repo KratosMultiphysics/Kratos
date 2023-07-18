@@ -18,6 +18,8 @@
 #include "includes/define.h"
 #include "includes/checks.h"
 #include "includes/variables.h"
+#include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_laplacian_element.h"
 
 namespace Kratos::Testing
@@ -173,40 +175,48 @@ void TestLaplacianElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix
 
     // Geometry definition
     auto& r_geometry = this->GetGeometry();
-    const unsigned int number_of_points = r_geometry.size();
+    const unsigned int number_of_nodes = r_geometry.size();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     // Some definitions
-    MatrixType DN_DX = ZeroMatrix(dimension, dimension);  // Gradients matrix
-    MatrixType D = ZeroMatrix(dimension, dimension);      // Conductivity matrix
-    VectorType N = ZeroVector(number_of_points);          //size = number of nodes . Position of the gauss point
-    VectorType temp = ZeroVector(number_of_points);       //dimension = number of nodes . . since we are using a residualbased approach
+    MatrixType DN_DX = ZeroMatrix(number_of_nodes, dimension);  // Gradients matrix
+    MatrixType D = ZeroMatrix(dimension, dimension);            // Conductivity matrix
+    VectorType N = ZeroVector(number_of_nodes);                 // Size = number of nodes . Position of the gauss point
+    VectorType temp = ZeroVector(number_of_nodes);              // Dimension = number of nodes . . since we are using a residualbased approach
 
-    if(rLeftHandSideMatrix.size1() != number_of_points)
-        rLeftHandSideMatrix.resize(number_of_points,number_of_points,false); //resizing the system in case it does not have the right size
+    if(rLeftHandSideMatrix.size1() != number_of_nodes)
+        rLeftHandSideMatrix.resize(number_of_nodes,number_of_nodes,false); //resizing the system in case it does not have the right size
+    rLeftHandSideMatrix.clear();
 
-    if(rRightHandSideVector.size() != number_of_points)
-        rRightHandSideVector.resize(number_of_points,false);
-
-    // Getting data for the given geometry
-    const double domain_size = r_geometry.DomainSize();
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
+    if(rRightHandSideVector.size() != number_of_nodes)
+        rRightHandSideVector.resize(number_of_nodes,false);
 
     // Reading properties and conditions
-    const double integrated_permittivity = domain_size * GetProperties()[CONDUCTIVITY];
-    for (unsigned int i = 0; i < number_of_points; ++i) {
-        D(i,i) = integrated_permittivity;
+    const double conductivity = GetProperties()[CONDUCTIVITY];
+    for (unsigned int i_point = 0; i_point < number_of_nodes; ++i_point) {
+        D(i_point, i_point) = conductivity;
     }
 
-    // Main loop (one Gauss point)
-    //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-    noalias(rLeftHandSideMatrix) = prod(DN_DX, Matrix(prod(D, trans(DN_DX))));  // Bt D B
+    // Gauss point loop
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
+    double detJ = 0.0;
+    MatrixType J, invJ, DN_De;
+    for (unsigned int i_gp = 0; i_gp < r_integration_points; ++i_gp) {
+        auto& r_gp = r_integration_points[i_gp];
+        GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_gp, J);
+        MathUtils<double>::InvertMatrix(J, invJ, detJ);
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, r_gp);
+        GeometryUtils::ShapeFunctionsGradients(DN_De, invJ, DN_DX);
+        N = r_geometry.ShapeFunctionsValues(N, r_gp.Coordinates());
+        noalias(rLeftHandSideMatrix) += r_gp.Weight() * detJ * prod(DN_DX, Matrix(prod(D, trans(DN_DX))));  // w detJ Bt D B
+    }
 
     // Subtracting the dirichlet term
     // RHS -= LHS*DUMMY_UNKNOWNs
-    for(unsigned int iii = 0; iii<number_of_points; iii++)
-        temp[iii] = GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,temp);
+    for(unsigned int i_point = 0; i_point < number_of_nodes; ++i_point) {
+        temp[i_point] = r_geometry[i_point].FastGetSolutionStepValue(TEMPERATURE);
+    }
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, temp);
 
     KRATOS_CATCH( "" );
 }
