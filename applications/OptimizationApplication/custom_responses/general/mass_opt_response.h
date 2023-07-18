@@ -153,7 +153,7 @@ public:
         else if (local_space_dimension == 3 && DomainSize == 3)
             element_mass = volume_area * elem_i.GetProperties().GetValue(DENSITY);
         else
-            KRATOS_ERROR << "MassOptResponse::CalculateElementMass: the element is neither shell nor solid element !" << std::endl;
+            element_mass = volume_area * elem_i.GetProperties().GetValue(DENSITY);
 
         return element_mass;
     }
@@ -166,13 +166,15 @@ public:
         for(long unsigned int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
+            const ProcessInfo &CurrentProcessInfo = controlled_model_part.GetProcessInfo();
             const std::size_t domain_size = controlled_model_part.GetProcessInfo()[DOMAIN_SIZE];
             auto control_type = mrResponseSettings["control_types"][i].GetString();
             if(control_type=="shape"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_X, controlled_model_part.Nodes());
+                #pragma omp parallel for
                 for (auto& elem_i : controlled_model_part.Elements())
                     if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
-                        CalculateElementShapeGradients(elem_i,domain_size);
+                        CalculateElementShapeGradients(elem_i,domain_size,CurrentProcessInfo);
             }
             else if(control_type=="material"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FD, controlled_model_part.Nodes());
@@ -195,10 +197,21 @@ public:
  
     };  
 
-    void CalculateElementShapeGradients(Element& elem_i, const std::size_t DomainSize){
+    void CalculateElementShapeGradients(Element& elem_ii, const std::size_t DomainSize, const ProcessInfo &rCurrentProcessInfo){
+
+        Element::NodesArrayType node_array;
+        for (auto& node_i : elem_ii.GetGeometry()){
+            Element::NodeType::Pointer node_p = node_i.Clone();
+            node_array.push_back(node_p);
+        }
+
+        Element::Pointer p_elem = elem_ii.Create(elem_ii.Id(),elem_ii.pGetGeometry(), elem_ii.pGetProperties());
+        p_elem->SetData(elem_ii.GetData());
+        p_elem->Set(Flags(elem_ii));
+        p_elem->Initialize(rCurrentProcessInfo); 
 
         // We get the element geometry
-        auto& r_this_geometry = elem_i.GetGeometry();
+        auto& r_this_geometry = p_elem->GetGeometry();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
         // We copy the current coordinates and move the coordinates to the initial configuration
@@ -207,31 +220,42 @@ public:
             noalias(current_coordinates[i_node]) = r_this_geometry[i_node].Coordinates();
             noalias(r_this_geometry[i_node].Coordinates()) = r_this_geometry[i_node].GetInitialPosition().Coordinates();
         }
-        double mass_before_fd = CalculateElementMass(elem_i,DomainSize);
+        double mass_before_fd = CalculateElementMass(*p_elem,DomainSize);
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
-            auto& node_grads = r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_X);	
+
+            array_3d gradient_contribution(3, 0.0);	
 
 			r_this_geometry[i_node].X() += mDelta;
 			r_this_geometry[i_node].X0() += mDelta;
-            double mass_after_fd = CalculateElementMass(elem_i,DomainSize);
-			node_grads[0] += (mass_after_fd - mass_before_fd) / mDelta;
+            double mass_after_fd = CalculateElementMass(*p_elem,DomainSize);
+			gradient_contribution[0] = (mass_after_fd - mass_before_fd) / mDelta;
 			r_this_geometry[i_node].X() -= mDelta;
 			r_this_geometry[i_node].X0() -= mDelta;
 
 			r_this_geometry[i_node].Y() += mDelta;
 			r_this_geometry[i_node].Y0() += mDelta;
-            mass_after_fd = CalculateElementMass(elem_i,DomainSize);
-			node_grads[1] += (mass_after_fd - mass_before_fd) / mDelta;
+            mass_after_fd = CalculateElementMass(*p_elem,DomainSize);
+			gradient_contribution[1] = (mass_after_fd - mass_before_fd) / mDelta;
 			r_this_geometry[i_node].Y() -= mDelta;
 			r_this_geometry[i_node].Y0() -= mDelta;   
 
 			r_this_geometry[i_node].Z() += mDelta;
 			r_this_geometry[i_node].Z0() += mDelta;
-            mass_after_fd = CalculateElementMass(elem_i,DomainSize);
-			node_grads[2] += (mass_after_fd - mass_before_fd) / mDelta;
+            mass_after_fd = CalculateElementMass(*p_elem,DomainSize);
+			gradient_contribution[2] = (mass_after_fd - mass_before_fd) / mDelta;
 			r_this_geometry[i_node].Z() -= mDelta;
 			r_this_geometry[i_node].Z0() -= mDelta;                                  
+
+            // Assemble sensitivity to node
+            array_3d& r_nodal_variable = elem_ii.GetGeometry()[i_node].FastGetSolutionStepValue(D_MASS_D_X);
+            #pragma omp atomic
+            r_nodal_variable[0] += gradient_contribution[0];
+            #pragma omp atomic
+            r_nodal_variable[1] += gradient_contribution[1];
+            #pragma omp atomic
+            r_nodal_variable[2] += gradient_contribution[2]; 
+
         }
 
         // We restore the current configuration

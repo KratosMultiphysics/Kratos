@@ -164,9 +164,9 @@ public:
                     if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
                         CalculateElementShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
 
-                for (auto& cond_i : controlled_model_part.Conditions())
-                    if(cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true)
-                        CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);
+                // for (auto& cond_i : controlled_model_part.Conditions())
+                //     if(cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true)
+                //         CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);
             }                
             else if(control_type=="material"){
                 grad_field_name = mrResponseSettings["gradient_settings"]["material_gradient_field_name"].GetString();
@@ -199,7 +199,7 @@ public:
             node_array.push_back(node_p);
         }
 
-        Element::Pointer p_elem = elem_i.Create(elem_i.Id(),node_array, elem_i.pGetProperties());
+        Element::Pointer p_elem = elem_i.Create(elem_i.Id(),elem_i.pGetGeometry(), elem_i.pGetProperties());
         p_elem->SetData(elem_i.GetData());
         p_elem->Set(Flags(elem_i));
         p_elem->Initialize(rCurrentProcessInfo); 
