@@ -251,7 +251,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
@@ -277,7 +277,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             PetrovGalerkinTrainMatrix.append(simulation.GetPetrovGalerkinTrainUtility()._GetSnapshotsMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
@@ -298,7 +298,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             RedidualsSnapshotsMatrix.append(simulation.GetHROM_utility()._GetResidualsProjectedMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
@@ -328,7 +328,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
@@ -383,7 +383,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
@@ -411,7 +411,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
@@ -454,7 +454,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
 
@@ -475,7 +475,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
 
@@ -487,7 +487,9 @@ class RomManager(object):
         """
         #other options: "trainHROM", "runHROM"
         #taken from code by Philipa & Catharina
-        parameters_file_name = './RomParameters.json'
+        parameters_file_folder = self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder") else "rom_data"
+        parameters_file_name = self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name") else "RomParameters"
+        parameters_file_name = f"{parameters_file_folder}/{parameters_file_name}.json"
         with open(parameters_file_name, 'r+') as parameter_file:
             f=json.load(parameter_file)
             f['assembling_strategy'] = self.general_rom_manager_parameters['assembling_strategy'].GetString() if self.general_rom_manager_parameters.Has('assembling_strategy') else 'global'
@@ -587,6 +589,8 @@ class RomManager(object):
             defaults["Parameters"]["rom_basis_output_format"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_format"].GetString())
         if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name"):
             defaults["Parameters"]["rom_basis_output_name"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString())
+        if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder"):
+            defaults["Parameters"]["rom_basis_output_folder"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
         if self.general_rom_manager_parameters["ROM"].Has("nodal_unknowns"):
             defaults["Parameters"]["nodal_unknowns"].SetStringArray(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
         if self.general_rom_manager_parameters["ROM"].Has("snapshots_interval"):
@@ -631,6 +635,7 @@ class RomManager(object):
                     "nodal_unknowns":  [],
                     "rom_basis_output_format": "json",
                     "rom_basis_output_name": "RomParameters",
+                    "rom_basis_output_folder": "rom_data",
                     "svd_truncation_tolerance": 1e-3
                 }
             }""")
