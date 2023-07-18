@@ -67,7 +67,6 @@ TestLaplacianElement::TestLaplacianElement( TestLaplacianElement const& rOther)
 TestLaplacianElement&  TestLaplacianElement::operator=(TestLaplacianElement const& rOther)
 {
     //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
-
     Element::operator=(rOther);
 
     return *this;
@@ -85,7 +84,6 @@ Element::Pointer TestLaplacianElement::Create(
     //NEEDED TO CREATE AN ELEMENT
     return Kratos::make_intrusive<TestLaplacianElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mResidualType );
 }
-
 
 //************************************CLONE*******************************************//
 //************************************************************************************//
@@ -120,10 +118,13 @@ void TestLaplacianElement::GetDofList(
 {
     // NEEDED TO DEFINE THE DOFS OF THE ELEMENT
     const auto& r_geometry = this->GetGeometry();
-    rElementalDofList.resize(0);
-    rElementalDofList.reserve(r_geometry.size());
+    if (rElementalDofList.size() != r_geometry.size()) {
+        rElementalDofList.resize( r_geometry.size());
+    }
+    unsigned int counter = 0;
     for (auto& r_node : r_geometry) {
         rElementalDofList.push_back(r_node.pGetDof(TEMPERATURE));
+        ++counter;
     }
 }
 
@@ -140,7 +141,6 @@ void TestLaplacianElement::EquationIdVector(
     if (rResult.size() != r_geometry.size()) {
         rResult.resize( r_geometry.size());
     }
-
     unsigned int counter = 0;
     for (auto& r_node : r_geometry) {
         rResult[counter] = r_node.GetDof(TEMPERATURE).EquationId();
