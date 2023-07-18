@@ -2,6 +2,8 @@
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
+import KratosMultiphysics.ConstitutiveLawsApplication as CLA
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -157,6 +159,26 @@ class AnalysisStage(object):
 
         for process in self._GetListOfProcesses():
             process.ExecuteFinalizeSolutionStep()
+
+        # torque = 0.0
+        # for condition in self._GetSolver().GetComputingModelPart().GetSubModelPart("SurfaceLoad3D_Load_on_surfaces_Auto1").Conditions:
+        #     cond_area = condition.GetGeometry().Area()
+        #     center_coord = condition.GetGeometry().Center()
+        #     surface_load = condition.GetValue(SMA.SURFACE_LOAD)
+        #     torque += abs(cond_area * surface_load[1] * center_coord[0]) # q*A*x
+        # print("\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+        # print("&&&&&&&&&&& Applied torque: ", str(torque), "&&&&&&&&&&&&&&" )
+        # print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
+
+        max_nf = 0
+        for elem in self._GetSolver().GetComputingModelPart().GetSubModelPart("Parts_Solid_hcf_disc").Elements:
+            nf_elem = elem.CalculateOnIntegrationPoints(CLA.LOCAL_NUMBER_OF_CYCLES, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            for entry in nf_elem:
+                if entry > max_nf:
+                    max_nf = entry
+        print("\n&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+        print("&&&&&&&&&&& Max Nf: ", str(max_nf), "&&&&&&&&&&&&&&")
+        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n")
 
     def OutputSolutionStep(self):
         """This function printed / writes output files after the solution of a step
