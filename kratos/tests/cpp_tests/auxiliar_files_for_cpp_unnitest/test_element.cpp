@@ -84,7 +84,6 @@ Element::Pointer TestElement::Create(
     return Kratos::make_intrusive<TestElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mResidualType );
 }
 
-
 //************************************CLONE*******************************************//
 //************************************************************************************//
 
@@ -164,7 +163,6 @@ void TestElement::GetValuesVector( Vector& rValues, int Step ) const
     if ( dimension == 3 )
         rValues[2] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_Z, Step );
 }
-
 
 //************************************VELOCITY****************************************//
 //************************************************************************************//
