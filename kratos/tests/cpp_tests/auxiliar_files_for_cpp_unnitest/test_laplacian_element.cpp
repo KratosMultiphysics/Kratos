@@ -196,7 +196,7 @@ void TestLaplacianElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix
     const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
     double detJ = 0.0;
     MatrixType J, invJ, DN_De;
-    for (unsigned int i_gp = 0; i_gp < r_integration_points; ++i_gp) {
+    for (unsigned int i_gp = 0; i_gp < r_integration_points.size(); ++i_gp) {
         auto& r_gp = r_integration_points[i_gp];
         GeometryUtils::JacobianOnInitialConfiguration(r_geometry, r_gp, J);
         MathUtils<double>::InvertMatrix(J, invJ, detJ);
