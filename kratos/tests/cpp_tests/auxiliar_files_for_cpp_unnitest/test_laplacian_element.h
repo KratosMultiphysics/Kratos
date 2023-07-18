@@ -194,17 +194,10 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
-     * @brief Get on rVariable Constitutive Law from the element
-     * @param rVariable The variable we want to get
-     * @param rValues The results in the integration points
-     * @param rCurrentProcessInfo the current process info instance
+     * @brief It is called to initialize the element
+     * @details If the element needs to perform any operation before any calculation is done the elemental variables will be initialized and set using this method
+     * @param rCurrentProcessInfo The current process info instance
      */
-    void CalculateOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
