@@ -49,7 +49,7 @@ class HRomTrainingUtility(object):
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
-        computing_model_part = self.solver.GetComputingModelPart()
+        computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
 
         # If not created yet, create the ROM residuals utility
         # Note that this ensures that the residuals utility is created in the first residuals append call
@@ -78,7 +78,7 @@ class HRomTrainingUtility(object):
     def CalculateAndSaveHRomWeights(self):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
-        n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
+        n_conditions = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
         self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
         self.hyper_reduction_element_selector.Run()
 
@@ -180,7 +180,7 @@ class HRomTrainingUtility(object):
 
 
     def AppendHRomWeightsToRomParameters(self):
-        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+        number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         weights = np.squeeze(self.hyper_reduction_element_selector.w)
         indexes = self.hyper_reduction_element_selector.z
 
@@ -205,7 +205,7 @@ class HRomTrainingUtility(object):
         #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
-        include_condition_parents = False
+        include_condition_parents = True
         if include_condition_parents:
             # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
@@ -253,7 +253,7 @@ class HRomTrainingUtility(object):
     def __CreateDictionaryWithRomElementsAndWeights(self, weights = None, indexes=None, number_of_elements = None):
 
         if number_of_elements is None:
-            number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+            number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         if weights is None:
             weights = np.r_[np.load(f'{self.rom_basis_output_folder}/HROM_ElementWeights.npy'),np.load(f'{self.rom_basis_output_folder}/HROM_ConditionWeights.npy')]
         if indexes is None:
