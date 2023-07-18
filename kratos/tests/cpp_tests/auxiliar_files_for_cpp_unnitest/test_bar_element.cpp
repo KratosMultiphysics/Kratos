@@ -187,8 +187,7 @@ void TestBarElement::GetSecondDerivativesVector( Vector& rValues, int Step ) con
     rValues[3] = GetGeometry()[1].GetSolutionStepValue( ACCELERATION_Y, Step );
 }
 
-//************* COMPUTING  METHODS
-//************************************************************************************//
+//*******************************COMPUTING  METHODS***********************************//
 //************************************************************************************//
 
 void TestBarElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )

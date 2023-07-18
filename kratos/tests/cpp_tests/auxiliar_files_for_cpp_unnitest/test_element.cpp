@@ -200,8 +200,7 @@ void TestElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
         rValues[2] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Z, Step );
 }
 
-//************* COMPUTING  METHODS
-//************************************************************************************//
+//*******************************COMPUTING  METHODS***********************************//
 //************************************************************************************//
 
 void TestElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
@@ -349,7 +348,6 @@ int TestElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
     KRATOS_CATCH( "Problem in the Check in the TestElement" )
 }
 
-
 //************************************************************************************//
 //************************************************************************************//
 
@@ -359,15 +357,15 @@ void TestElement::CalculateOnIntegrationPoints(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-if (rVariable == CONSTITUTIVE_LAW) {
-    const SizeType integration_points_number = mConstitutiveLawVector.size();
-    if (rValues.size() != integration_points_number) {
-        rValues.resize(integration_points_number);
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const SizeType integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
     }
-    for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
-        rValues[point_number] = mConstitutiveLawVector[point_number];
-    }
-}
 }
 
 //************************************************************************************//

@@ -224,6 +224,11 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief It is called to initialize the element
+     * @details If the element needs to perform any operation before any calculation is done the elemental variables will be initialized and set using this method
+     * @param rCurrentProcessInfo The current process info instance
+     */
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
