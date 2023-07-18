@@ -11,24 +11,30 @@ import numpy as np
 from glob import glob
 from os import remove
 
-def CreateRomAnalysisInstance(cls, global_model, parameters):
+def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parameters):
     class RomAnalysis(cls):
 
         def __init__(self,global_model, parameters):
+            # Enables loading the corresponding folder and file (defined on the rom manager).
+            self.rom_training_parameters = rom_training_parameters
             super().__init__(global_model, parameters)
 
         def _CreateSolver(self):
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
             # Assign rom basis output folder and file name
-            self.rom_basis_output_name = 'RomParameters' #Default
-            self.rom_basis_output_folder = 'rom_data' #Default
-            if self.project_parameters.Has("output_processes"):
-                for name, _ in self.project_parameters["output_processes"].items():
-                    if name=="rom_output":
-                        rom_output_paramaters = self.project_parameters["output_processes"]["rom_output"]
-                        self.rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
-                        self.rom_basis_output_folder = rom_output_paramaters[0]["Parameters"]["rom_basis_output_folder"].GetString()
+            if rom_training_parameters == None:
+                self.rom_basis_output_name = 'RomParameters' #Default
+                self.rom_basis_output_folder = 'rom_data' #Default
+                if self.project_parameters.Has("output_processes"):
+                    for name, _ in self.project_parameters["output_processes"].items():
+                        if name=="rom_output":
+                            rom_output_paramaters = self.project_parameters["output_processes"]["rom_output"]
+                            self.rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
+                            self.rom_basis_output_folder = rom_output_paramaters[0]["Parameters"]["rom_basis_output_folder"].GetString()
+            else:
+                self.rom_basis_output_name = self.rom_training_parameters["Parameters"]["rom_basis_output_name"].GetString()
+                self.rom_basis_output_folder = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
 
             # Get the ROM settings from the RomParameters.json input file
             with open(f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json") as rom_parameters:
@@ -254,8 +260,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             if self.train_hrom and not self.rom_manager:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
                 self.__hrom_training_utility.CreateHRomModelParts()
+                
             # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
-            if self.train_petrov_galerkin:
+            if self.train_petrov_galerkin and not self.rom_manager:
                 self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()
 
     return RomAnalysis(global_model, parameters)

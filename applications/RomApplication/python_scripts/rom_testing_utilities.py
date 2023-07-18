@@ -3,7 +3,7 @@ import importlib
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication.rom_analysis
 
-def SetUpSimulationInstance(model, parameters):
+def SetUpSimulationInstance(model, parameters, rom_trainning_parameters = None):
     """ Creates and returns a ROM simulation instance """
 
     # Get the parent simulation class
@@ -20,7 +20,7 @@ def SetUpSimulationInstance(model, parameters):
     simulation = instance_factory(
         analysis_stage_class,
         model,
-        parameters)
+        parameters, rom_trainning_parameters)
 
     return simulation
 
