@@ -59,41 +59,24 @@ namespace Kratos {
       mVolumeCouplingElement3D20N(0, Element::GeometryType::Pointer(new Hexahedra3D20<NodeType >(Element::GeometryType::PointsArrayType(20)))),
       mVolumeCouplingElement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<NodeType >(Element::GeometryType::PointsArrayType(27)))),
 
-    // // We define the node type
-    // typedef Node NodeType;
+     void FEMDEMVolumeCouplingApplication::Register() {
 
-    // // STRUCTURAL COUPLING
-    // KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DEM_SURFACE_LOAD)
-    // KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BACKUP_LAST_STRUCTURAL_VELOCITY)
-    // KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BACKUP_LAST_STRUCTURAL_DISPLACEMENT)
-    // KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SMOOTHED_STRUCTURAL_VELOCITY)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement2D3N", mVolumeCouplingElement2D3N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement2D4N", mVolumeCouplingElement2D4N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement2D6N", mVolumeCouplingElement2D6N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement2D8N", mVolumeCouplingElement2D8N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement2D9N", mVolumeCouplingElement2D9N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement2D10N", mVolumeCouplingElement2D10N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement2D15N", mVolumeCouplingElement2D15N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement3D4N", mVolumeCouplingElement3D4N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement3D5N", mVolumeCouplingElement3D5N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement3D6N", mVolumeCouplingElement3D6N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement3D8N", mVolumeCouplingElement3D8N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement3D10N", mVolumeCouplingElement3D10N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement3D13N", mVolumeCouplingElement3D13N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement3D15N", mVolumeCouplingElement3D15N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement3D20N", mVolumeCouplingElement3D20N)
+    KRATOS_REGISTER_ELEMENT("VolumeCouplingElementElement3D27N", mVolumeCouplingElement3D27N)
 
-    // KratosDemStructuresCouplingApplication::KratosDemStructuresCouplingApplication()
-    //     : KratosApplication("DemStructuresCouplingApplication"),
-
-    //     // Adding line load conditions
-    //     mLineLoadFromDEMCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
-
-    //     // Adding surface load conditions
-    //     mSurfaceLoadFromDEMCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))) {}
-
-    // void KratosDemStructuresCouplingApplication::Register() {
-    //     // STRUCTURAL COUPLING
-    //     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DEM_SURFACE_LOAD)
-    //     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BACKUP_LAST_STRUCTURAL_VELOCITY)
-    //     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BACKUP_LAST_STRUCTURAL_DISPLACEMENT)
-    //     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SMOOTHED_STRUCTURAL_VELOCITY)
-
-    //     // Line loads
-    //     KRATOS_REGISTER_CONDITION("LineLoadFromDEMCondition2D2N", mLineLoadFromDEMCondition2D2N)
-
-    //     // Surface loads
-    //     KRATOS_REGISTER_CONDITION("SurfaceLoadFromDEMCondition3D3N", mSurfaceLoadFromDEMCondition3D3N)
-
-    //     KRATOS_INFO("Dem-Struct") << std::endl;
-    //     KRATOS_INFO("Dem-Struct") << "     KRATOS DEM STRUCTURES COUPLING APPLICATION " << std::endl;
-    //     KRATOS_INFO("Dem-Struct") << std::endl;
-    //     KRATOS_INFO("Dem-Struct") << "Importing DemStructuresCouplingApplication... ";
-    //     KRATOS_INFO("") << " done." << std::endl;
-    // }
+     }
 }  // namespace Kratos

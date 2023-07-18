@@ -930,6 +930,12 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
     mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info, OldLocalElasticContactForce,
             LocalElasticContactForce, LocalDeltDisp, data_buffer.mLocalRelVel, indentation, previous_indentation,
             ViscoDampingLocalContactForce, cohesive_force, this, p_neighbour_element, sliding, LocalCoordSystem);
+
+p_neighbour_element->GetGeometry()[0].FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT);
+p_neighbour_element->GetRadius();
+p_neighbour_element->GetGeometry()[0][0];// x cordinate of the neighbour
+this->GetGeometry()[0][0];// x cordinate of the particle
+
 }
 
 void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,

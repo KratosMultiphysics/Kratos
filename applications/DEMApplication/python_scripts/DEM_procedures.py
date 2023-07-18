@@ -434,6 +434,7 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         ####################################################################################################################
         model_part.AddNodalSolutionStepVariable(LINEAR_MOMENTUM)        #  programmed for volume coupling 
+        model_part.AddNodalSolutionStepVariable(PARTICLE_COUPLING_WEIGHT)
         model_part.AddNodalSolutionStepVariable(DEMFEM_VOLUME_COUPLING_FORCE)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT_MULTIPLIED_MASS)
         #################################################################################################################

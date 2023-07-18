@@ -6,10 +6,7 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
-//                   Alejandro Cornejo Velazquez
-//
+//  Main authors:    
 
 #pragma once
 
@@ -19,49 +16,16 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/element.h"
-#include "utilities/integration_utilities.h"
-#include "structural_mechanics_application_variables.h"
-#include "utilities/geometrical_sensitivity_utility.h"
-#include "custom_utilities/structural_mechanics_element_utilities.h"
+// #include "includes/element.h"
+// #include "utilities/integration_utilities.h"
+// #include "structural_mechanics_application_variables.h"
+// #include "utilities/geometrical_sensitivity_utility.h"
+// #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "StructuralMechanicsApplication/custom_elements/small_displacement.h"
 
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/**
- * @class BaseSolidElement
- * @ingroup StructuralMechanicsApplication
- * @brief This is base class used to define the solid elements
- * @details The elements derived from this class are the small displacement element, the total lagrangian element and the updated lagrangian element
- * @author Riccardo Rossi
- * @author Vicente Mataix Ferrandiz
- */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCouplingElement
     : public SmallDisplacement
 {
