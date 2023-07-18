@@ -116,7 +116,7 @@ void EntitityIdentifier<TEntity>::GenerateSingleType(const std::string& rName)
     const auto& r_reference_geometry = r_ref_entity.GetGeometry();
     const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
     const std::size_t index = static_cast<std::size_t>(r_reference_geometry_type) - 1;
-    mTypes[index] = &KratosComponents<TEntity>::Get(r_entity_name);
+    mTypes[index] = &r_ref_entity;
 }
 
 /***********************************************************************************/
@@ -137,7 +137,7 @@ void EntitityIdentifier<TEntity>::GenerateMultipleTypes(const std::string& rName
         const auto& r_reference_geometry = r_ref_entity.GetGeometry();
         const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
         const std::size_t index = static_cast<std::size_t>(r_reference_geometry_type) - 1;
-        mTypes[index] = &KratosComponents<TEntity>::Get(r_entity_name);
+        mTypes[index] = &r_ref_entity;
     }
 }
 
