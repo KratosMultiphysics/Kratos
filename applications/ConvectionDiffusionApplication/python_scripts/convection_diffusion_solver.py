@@ -177,6 +177,9 @@ class ConvectionDiffusionSolver(PythonSolver):
         # Base class validation
         super().ValidateSettings()
 
+        # Validate some subparameters
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
+
         # Reassign settings
         if block_builder is not None:
             self.settings["builder_and_solver_settings"]["use_block_builder"].SetBool(block_builder)
