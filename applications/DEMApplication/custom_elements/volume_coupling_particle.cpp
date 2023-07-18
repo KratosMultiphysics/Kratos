@@ -25,14 +25,14 @@ void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(Spheric
     array_1d<double, 3> contact_point_coordinates = particle_centre_coordinates - data_buffer.mLocalCoordSystem[2] * particle_radius; // Contact point coordinates
 
     // Get the weight at the particle center
-    double particle_weight = central_node.FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT); // Coupling weight of the particle center
+    double particle_weight = central_node.FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
 
     // Check if there are neighbour elements and if yes, use the first one
     if (!data_buffer.mpThisParticle->mNeighbourElements.empty()) {
         SphericParticle& neighbor_particle = *data_buffer.mpThisParticle->mNeighbourElements[0]; // First neighbouring element
 
         // Calculate the slope using the particle center and the neighbor
-        double neighbor_weight = neighbor_particle.GetGeometry()[0].FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT); // Neighbour's coupling weight
+        double neighbor_weight = neighbor_particle.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Neighbour's coupling weight
         double neighbor_y_coordinate = neighbor_particle.GetGeometry()[0].Coordinates()[1]; // Neighbour's y-coordinate
 
         double slope = (neighbor_weight - particle_weight) / (neighbor_y_coordinate - particle_centre_coordinates[1]); // Calculating the slope
@@ -70,9 +70,9 @@ virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::P
                                                                         OldLocalCoordSystem,neighbour_elastic_contact_force);
   
     // Calculate the interpolated weight based on the current and neighboring particles, w'=w1+((3r1+r2-|y1-y2|)/2|y1-y2|)*(w2-w1) considering some indentation
-    double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)+
+    double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)+
     (( 3* this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) + p_neighbour_element->GetGeometry()[0].FastGetSolutionStepValue(RADIUS)-
-    std::abs(this->GetGeometry()[0][1]-p_neighbour_element->GetGeometry()[0][1]))/2*std::abs(this->GetGeometry()[0][1]-p_neighbour_element->GetGeometry()[0][1]))*(p_neighbour_element->GetGeometry()[0].FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)-this->GetGeometry()[0].FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT));
+    std::abs(this->GetGeometry()[0][1]-p_neighbour_element->GetGeometry()[0][1]))/2*std::abs(this->GetGeometry()[0][1]-p_neighbour_element->GetGeometry()[0][1]))*(p_neighbour_element->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)-this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT));
 
     // Scale forces by the interpolated weight
     for(int i=0; i<3; ++i)
@@ -145,14 +145,14 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
 //     array_1d<double, 3> contact_point_coordinates = particle_centre_coordinates - data_buffer.mLocalCoordSystem[2] * particle_radius;
 
 //     // Get the weight at the particle center
-//     double particle_weight = central_node.FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT);
+//     double particle_weight = central_node.FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT);
 
 //     // Check if there are neighbour elements and if yes, use the first one
 //     if (!data_buffer.mpThisParticle->mNeighbourElements.empty()) {
 //         SphericParticle& neighbor_particle = *data_buffer.mpThisParticle->mNeighbourElements[0];
 
 //         // Calculate the slope using the particle center and the neighbor
-//         double neighbor_weight = neighbor_particle.GetGeometry()[0].FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT);
+//         double neighbor_weight = neighbor_particle.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT);
 //         double neighbor_y_coordinate = neighbor_particle.GetGeometry()[0].Coordinates()[1];
 
 //         double slope = (neighbor_weight - particle_weight) / (neighbor_y_coordinate - particle_centre_coordinates[1]);
@@ -190,9 +190,9 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
 //                                                                         OldLocalCoordSystem[3][3],neighbour_elastic_contact_force);
     
   
-//     double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)+
+//     double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)+
 //     (( 3* this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) + p_neighbour_element->GetGeometry()[0].FastGetSolutionStepValue(RADIUS)-
-//     std::abs(this->GetGeometry()[0][1]-p_neighbour_element->GetGeometry()[0][1]))/2*std::abs(this->GetGeometry()[0][1]-p_neighbour_element->GetGeometry()[0][1]))*(p_neighbour_element->GetGeometry()[0].FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT)-this->GetGeometry()[0].FastGetSolutionStepValue(NODAL_COUPLING_WEIGHT));
+//     std::abs(this->GetGeometry()[0][1]-p_neighbour_element->GetGeometry()[0][1]))/2*std::abs(this->GetGeometry()[0][1]-p_neighbour_element->GetGeometry()[0][1]))*(p_neighbour_element->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)-this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT));
 
 //     for(int i=0; i<3; ++i)
 //     {
