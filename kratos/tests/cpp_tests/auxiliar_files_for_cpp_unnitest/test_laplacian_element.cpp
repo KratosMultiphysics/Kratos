@@ -29,11 +29,9 @@ namespace Kratos::Testing
 
 TestLaplacianElement::TestLaplacianElement(
     IndexType NewId,
-    GeometryType::Pointer pGeometry,
-    const ResidualType TheResidualType
+    GeometryType::Pointer pGeometry
     )
     : Element( NewId, pGeometry )
-    , mResidualType( TheResidualType )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -43,11 +41,9 @@ TestLaplacianElement::TestLaplacianElement(
 
 TestLaplacianElement::TestLaplacianElement(
     IndexType NewId, GeometryType::Pointer pGeometry,
-    PropertiesType::Pointer pProperties,
-    const ResidualType TheResidualType
+    PropertiesType::Pointer pProperties
     )
     : Element( NewId, pGeometry, pProperties )
-    , mResidualType( TheResidualType )
 {
 }
 
@@ -56,7 +52,6 @@ TestLaplacianElement::TestLaplacianElement(
 
 TestLaplacianElement::TestLaplacianElement( TestLaplacianElement const& rOther)
     :Element(rOther)
-    ,mResidualType(rOther.mResidualType)
 {
 
 }
@@ -82,7 +77,7 @@ Element::Pointer TestLaplacianElement::Create(
     ) const
 {
     //NEEDED TO CREATE AN ELEMENT
-    return Kratos::make_intrusive<TestLaplacianElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mResidualType );
+    return Kratos::make_intrusive<TestLaplacianElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 //************************************CLONE*******************************************//
@@ -96,7 +91,7 @@ Element::Pointer TestLaplacianElement::Clone(
     //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
     //ALL MEMBER VARIABLES THAT MUST BE CLONED HAVE TO BE DEFINED HERE
 
-    TestLaplacianElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mResidualType );
+    TestLaplacianElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     return Kratos::make_intrusive<TestLaplacianElement>(new_element);
 }

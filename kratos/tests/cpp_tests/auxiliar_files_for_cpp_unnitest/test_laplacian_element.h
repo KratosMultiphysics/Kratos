@@ -54,18 +54,16 @@ public:
      * @brief Default constructor
      * @param NewId the ID of the new element
      * @param pGeometry the nodes of the new element
-     * @param TheResidualType The problem to be solved (linear, non-linear, arc-length ...)
      */
-    TestLaplacianElement(IndexType NewId, GeometryType::Pointer pGeometry, const ResidualType TheResidualType = ResidualType::LINEAR);
+    TestLaplacianElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /**
      * @brief Default constructor
      * @param NewId The ID of the new element
      * @param pGeometry The nodes of the new element
      * @param pProperties The properties assigned to the new element
-     * @param TheResidualType The problem to be solved (linear, non-linear, arc-length ...)
      */
-    TestLaplacianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const ResidualType TheResidualType = ResidualType::LINEAR);
+    TestLaplacianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
     TestLaplacianElement(TestLaplacianElement const& rOther);
