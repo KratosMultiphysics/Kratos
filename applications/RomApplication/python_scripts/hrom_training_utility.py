@@ -257,7 +257,7 @@ class HRomTrainingUtility(object):
         if weights is None:
             weights = np.r_[np.load(f'{self.rom_basis_output_folder}/HROM_ElementWeights.npy'),np.load(f'{self.rom_basis_output_folder}/HROM_ConditionWeights.npy')]
         if indexes is None:
-            indexes = np.r_[np.load(f'{self.rom_basis_output_folder}/HROM_ElementIds.npy'),np.load(f'{self.rom_basis_output_folder}/HROM_ConditionIds.npy')]
+            indexes = np.r_[np.load(f'{self.rom_basis_output_folder}/HROM_ElementIds.npy'),np.load(f'{self.rom_basis_output_folder}/HROM_ConditionIds.npy')+number_of_elements]
 
         hrom_weights = {}
         hrom_weights["Elements"] = {}
