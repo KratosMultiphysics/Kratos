@@ -65,16 +65,7 @@ bool EntitityIdentifier<TEntity>::IsInitialized()
 template<class TEntity>
 const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename GeometryType::Pointer pGeometry)
 {
-    switch (mDefinitionType) {
-        case DefinitionType::Single:
-            KRATOS_DEBUG_ERROR_IF_NOT(pGeometry->GetGeometryType() == mpPrototypeEntity->GetGeometry().GetGeometryType()) << "Trying to replace an entity with a different geometry type. Reference entity " << mpPrototypeEntity->GetGeometry().Info() << " vs  " << pGeometry->Info() << "\n Entity info: " << mpPrototypeEntity->Info() << std::endl;
-            return *mpPrototypeEntity;
-        case DefinitionType::Multiple:
-            return *mTypes[static_cast<std::size_t>(pGeometry->GetGeometryType()) - 1];
-        default:
-            KRATOS_ERROR << "Unsupported definition type" << std::endl;
-            break;
-    }
+    return *mTypes[static_cast<std::size_t>(pGeometry->GetGeometryType()) - 1];
 }
 
 /***********************************************************************************/
@@ -83,19 +74,13 @@ const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename Geometry
 template<class TEntity>
 void EntitityIdentifier<TEntity>::PrintData(std::ostream& rOStream) const
 {
-    std::string definition_type = mDefinitionType == DefinitionType::Single ? "Single" : "Multiple";
-    rOStream << "Definition type: " << definition_type << "\n";
-    if (mDefinitionType == DefinitionType::Multiple) {
-        rOStream << "Types: " << "\n";
-        std::size_t counter = 1;
-        for (const auto& r_type : mTypes) {
-            if (r_type != nullptr) {
-                rOStream << "\t" << GeometryUtils::GetGeometryName(static_cast<GeometryData::KratosGeometryType>(counter)) << " : " << r_type->Info() << "\n";
-            }
-            ++counter;
+    rOStream << "Types: " << "\n";
+    std::size_t counter = 1;
+    for (const auto& r_type : mTypes) {
+        if (r_type != nullptr) {
+            rOStream << "\t" << GeometryUtils::GetGeometryName(static_cast<GeometryData::KratosGeometryType>(counter)) << " : " << r_type->Info() << "\n";
         }
-    } else {
-        rOStream << "Name: " << mpPrototypeEntity->Info() << "\n";
+        ++counter;
     }
 }
 
@@ -127,7 +112,11 @@ void EntitityIdentifier<TEntity>::GenerateSingleType(const std::string& rName)
 
     // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them so that an error is thrown if they don't exist
     KRATOS_ERROR_IF(rName != "" && !KratosComponents<TEntity>::Has(rName)) << entity_type_name << " name not found in KratosComponents<" << entity_type_name << "> -- name is " << rName << std::endl;
-    mpPrototypeEntity = &KratosComponents<TEntity>::Get(rName);
+    const auto& r_ref_entity = KratosComponents<TEntity>::Get(rName);
+    const auto& r_reference_geometry = r_ref_entity.GetGeometry();
+    const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
+    const std::size_t index = static_cast<std::size_t>(r_reference_geometry_type) - 1;
+    mTypes[index] = &KratosComponents<TEntity>::Get(r_entity_name);
 }
 
 /***********************************************************************************/
@@ -150,9 +139,6 @@ void EntitityIdentifier<TEntity>::GenerateMultipleTypes(const std::string& rName
         const std::size_t index = static_cast<std::size_t>(r_reference_geometry_type) - 1;
         mTypes[index] = &KratosComponents<TEntity>::Get(r_entity_name);
     }
-
-    // Set the definition type
-    mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
 }
 
 /***********************************************************************************/
@@ -175,9 +161,6 @@ void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rNam
             mTypes[index] = &r_entity;
         }
     }
-
-    // Set the definition type
-    mDefinitionType = EntitiesUtilities::DefinitionType::Multiple;
 }
 
 /***********************************************************************************/

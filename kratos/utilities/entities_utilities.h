@@ -33,12 +33,6 @@ namespace Kratos
  */
 namespace EntitiesUtilities
 {
-    // Enum class representing different types of definitions
-    enum class DefinitionType {
-        Single,     // Single definition
-        Multiple    // Multiple definitions
-    };
-
     /**
      * @brief Template struct for entity identifier.
      * @brief This struct is used to identify and retrieve entity types based on their names and definitions.
@@ -55,7 +49,7 @@ namespace EntitiesUtilities
         using GeometryType = typename TEntity::GeometryType;
 
         /// Length of array definition
-        constexpr static std::size_t LengthArray = static_cast<int>(GeometryData::KratosGeometryType::NumberOfGeometryTypes) - 2;
+        constexpr static std::size_t LengthArray = static_cast<std::size_t>(GeometryData::KratosGeometryType::NumberOfGeometryTypes) - 2;
 
         /// Pointer definition of ReplaceElementsAndConditionsProcess
         KRATOS_CLASS_POINTER_DEFINITION(EntitityIdentifier);
@@ -79,9 +73,7 @@ namespace EntitiesUtilities
          * @brief Copy constructor
          */
         EntitityIdentifier(const EntitityIdentifier& rOther)
-            : mpPrototypeEntity(rOther.mpPrototypeEntity),
-              mDefinitionType(rOther.mDefinitionType),
-              mTypes(rOther.mTypes),
+            : mTypes(rOther.mTypes),
               mIsInitialized(rOther.mIsInitialized)
         {
         }
@@ -95,8 +87,6 @@ namespace EntitiesUtilities
          */
         EntitityIdentifier& operator=(const EntitityIdentifier& rOther)
         {
-            mpPrototypeEntity = rOther.mpPrototypeEntity;
-            mDefinitionType = rOther.mDefinitionType;
             mTypes = rOther.mTypes;
             mIsInitialized = rOther.mIsInitialized;
 
@@ -144,8 +134,6 @@ namespace EntitiesUtilities
         ///@name Private Member Variables
         ///@{
 
-        TEntity const* mpPrototypeEntity = nullptr;              /// The prototype entity
-        DefinitionType mDefinitionType = DefinitionType::Single; /// The type of definition
         std::array<const TEntity*, LengthArray> mTypes;          /// The settings of the entities
         bool mIsInitialized = false;                             /// If the object is initialized
 
