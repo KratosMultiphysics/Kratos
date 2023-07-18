@@ -657,7 +657,8 @@ class RomManager(object):
     def _StoreSnapshotsMatrix(self, string_numpy_array_name, numpy_array):
 
         # Define the directory and file path
-        directory = './SnapshotsMatrices'
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        directory = f'{rom_output_folder_name}/SnapshotsMatrices'
         file_path = os.path.join(directory, f'{string_numpy_array_name}.npy')
 
         # Create the directory if it doesn't exist
