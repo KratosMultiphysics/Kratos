@@ -8,7 +8,9 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Main authors:    Alejandro Cornejo
+//                   Lucia Barbu
+//                   Sergio Jimenez
 //
 
 #pragma once
@@ -822,7 +824,15 @@ class GenericConstitutiveLawIntegratorPlasticity
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const Vector& equivalent_stress_vector = r_material_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE];
-        const Vector& plastic_strain_vector = r_material_properties[PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
+        const bool has_plastic_strain_vector = r_material_properties.Has(PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE);
+        const double young_modulus = r_material_properties[YOUNG_MODULUS];
+        Vector plastic_strain_vector;
+        if (has_plastic_strain_vector) { // Strain input is equivalent plastic strain
+            plastic_strain_vector = r_material_properties[PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
+        } else {
+            const Vector& total_strain_vector = r_material_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
+            plastic_strain_vector = total_strain_vector - 1.0 / young_modulus * equivalent_stress_vector;
+        }
         const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
         const double volumetric_fracture_energy = fracture_energy / CharacteristicLength;
         const SizeType points_hardening_curve = equivalent_stress_vector.size();
@@ -849,17 +859,28 @@ class GenericConstitutiveLawIntegratorPlasticity
             }
             const double plastic_dissipation_next_point = gf_point_region / volumetric_fracture_energy;
 
-            //Stress is computed using an equivalent equation to the one used for the linear softening curve, i.e. f(S) = a * (1.0 - b * kp)
+            // Stress is computed using an equivalent equation to the one used for the linear softening curve, i.e. f(S) = a * (1.0 - b * kp)
             const double b = (std::pow(equivalent_stress_vector(i), 2.0) - std::pow(equivalent_stress_vector(i - 1), 2.0)) / (plastic_dissipation_previous_point * std::pow(equivalent_stress_vector(i), 2.0) - plastic_dissipation_next_point * std::pow(equivalent_stress_vector(i - 1), 2.0));
             const double a = equivalent_stress_vector(i - 1) / std::sqrt(1.0 - b * plastic_dissipation_previous_point);
             rEquivalentStressThreshold = a * std::sqrt(1.0 - b * PlasticDissipation);
             rSlope = - 0.5 * std::pow(a, 2.0) * b / rEquivalentStressThreshold;
 
-        } else { //Exponential branch included to achieve consistent results after full plasticity scenarios
-            const double b = equivalent_stress_vector(points_hardening_curve - 1) / (1.0 - segment_threshold);
-            const double a = b;
-            rEquivalentStressThreshold =  a - b * PlasticDissipation;
-            rSlope = - b;
+        } else { // Exponential branch included to achieve consistent results after full plasticity scenarios
+            const bool has_total_or_plastic_strain_space = r_material_properties.Has(TOTAL_OR_PLASTIC_STRAIN_SPACE);
+            const bool total_or_plastic_strain_space = has_total_or_plastic_strain_space ? r_material_properties[TOTAL_OR_PLASTIC_STRAIN_SPACE] : false; // Default value = plastic strain space
+            if (total_or_plastic_strain_space) { // Curve built in the total strain space
+                const double yield_strain = equivalent_stress_vector(0) / young_modulus;
+                const double a = (0.5 * equivalent_stress_vector(points_hardening_curve - 1) * yield_strain + equivalent_stress_vector(0) / equivalent_stress_vector(points_hardening_curve - 1)
+                                    * volumetric_fracture_energy * (segment_threshold - 1.0)) / yield_strain;
+
+                rEquivalentStressThreshold = a + std::sqrt(std::pow(a, 2.0) + 2.0 * equivalent_stress_vector(0) * volumetric_fracture_energy * (1.0 - PlasticDissipation) / yield_strain);
+                rSlope = - equivalent_stress_vector(0) * volumetric_fracture_energy / (yield_strain * std::sqrt(std::pow(a, 2.0) + 2.0 * equivalent_stress_vector(0) * volumetric_fracture_energy * (1.0 - PlasticDissipation) / yield_strain));
+
+            } else { // Curve built in the plastic strain space
+                const double a = equivalent_stress_vector(points_hardening_curve - 1) / (1.0 - segment_threshold);
+                rEquivalentStressThreshold =  a * (1.0 - PlasticDissipation);
+                rSlope = - a;
+            }
         }
     }
 
