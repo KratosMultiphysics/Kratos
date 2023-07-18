@@ -35,13 +35,13 @@ class TestElement
     : public Element
 {
 public:
-
     ///@name Type Definitions
     ///@{
+
     /// Counted pointer of TestElement
     KRATOS_CLASS_POINTER_DEFINITION( TestElement);
-    ///@}
 
+    ///@}
     ///@name  Enum's
     ///@{
 
