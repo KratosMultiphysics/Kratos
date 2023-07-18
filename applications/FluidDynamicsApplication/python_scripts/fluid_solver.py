@@ -63,6 +63,15 @@ class FluidSolver(PythonSolver):
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
+    def ValidateSettings(self):
+        """This function validates the settings of the solver
+        """
+        # Base class validation
+        super().ValidateSettings()
+
+        # Validate some subparameters
+        self.settings["builder_and_solver_settings"].ValidateAndAssignDefaults(self.GetDefaultParameters()["builder_and_solver_settings"])
+
     def AddVariables(self):
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
