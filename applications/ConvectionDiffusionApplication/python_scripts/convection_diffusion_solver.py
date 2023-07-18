@@ -170,6 +170,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         # Remove legacy settings
         block_builder = None
         if self.settings.Has("block_builder"):
+            KratosMultiphysics.Logger.PrintWarning("ConvectionDiffusionSolver", "The 'block_builder' setting is deprecated, please use 'builder_and_solver_settings' -> 'use_block_builder' instead.")
             block_builder = self.settings["block_builder"].GetBool()
             self.settings.RemoveValue("block_builder")
 
