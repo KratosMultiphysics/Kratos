@@ -21,6 +21,10 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
         self.dt= self.settings["timestep"].GetDouble() 
         self.force_end_time= self.settings["force_end_time"].GetDouble() 
         self.tolerance= self.settings["velocity_tolerance"].GetDouble() 
+        self.y_fem_boundary= self.settings["y_fem_boundary"].GetDouble() 
+        self.y_dem_boundary= self.settings["y_dem_boundary"].GetDouble() 
+        self.weight_fem_boundary = 0.9
+        self.weight_dem_boundary = 0.1
         self.step=0
         self.timesteps=self.force_end_time/self.dt
         self.max_force=0.025
@@ -41,7 +45,16 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
 
                     node.SetSolutionStepValue(SMA.POINT_LOAD,[0,-pointload,0])
                     print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD))
-                     
+
+                if node.Y > self.y_fem_boundary and node.Y < self.y_dem_boundary: # assigning weights to the nodes in the hybrid region
+                    weight= self.weight_fem_boundary + (self.weight_dem_boundary-self.weight_fem_boundary)*(node.Y-self.y_fem_boundary)/(self.y_dem_boundary-self.y_fem_boundary)
+                    node.SetSolutionStepValue(SMA.NODAL_COUPLING_WEIGHT, weight)
+               
+                if  node.Y<self.y_fem_boundary and node.Y>self.y_dem_boundary: # assigning weights to the nodes in the hybrid region
+                    weight= self.weight_dem_boundary + (self.weight_fem_boundary-self.weight_dem_boundary)*(node.Y-self.y_dem_boundary)/(self.y_fem_boundary-self.y_dem_boundary)
+                    node.SetSolutionStepValue(SMA.NODAL_COUPLING_WEIGHT, weight)
+
+
                 total_mass = node.GetSolutionStepValue(KM.NODAL_MAUX)
 
                 if(total_mass!=0): # check for hybrid region
@@ -80,6 +93,8 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
             "timestep"              : 1e-5,
             "force_end_time"        : 1e-1,
             "velocity_tolerance"    : 1e-6
+            "y_fem_boundary"       : 0.16
+            "y_dem_boundary"       : 0.08
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
