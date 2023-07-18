@@ -164,22 +164,49 @@ void TestLaplacianElement::GetValuesVector( Vector& rValues, int Step ) const
     }
 }
 
-//************* COMPUTING  METHODS
-//************************************************************************************//
+//*******************************COMPUTING  METHODS***********************************//
 //************************************************************************************//
 
 void TestLaplacianElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
-
     KRATOS_TRY;
 
-    /* Calculate elemental system */
+    // Geometry definition
+    auto& r_geometry = this->GetGeometry();
+    const unsigned int number_of_points = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
-    // Compute RHS
-    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    // Some definitions
+    MatrixType DN_DX = ZeroMatrix(dimension, dimension);  // Gradients matrix
+    MatrixType D = ZeroMatrix(dimension, dimension);      // Conductivity matrix
+    VectorType N = ZeroVector(number_of_points);          //size = number of nodes . Position of the gauss point
+    VectorType temp = ZeroVector(number_of_points);       //dimension = number of nodes . . since we are using a residualbased approach
 
-    // Compute LHS
-    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    if(rLeftHandSideMatrix.size1() != number_of_points)
+        rLeftHandSideMatrix.resize(number_of_points,number_of_points,false); //resizing the system in case it does not have the right size
+
+    if(rRightHandSideVector.size() != number_of_points)
+        rRightHandSideVector.resize(number_of_points,false);
+
+    // Getting data for the given geometry
+    const double domain_size = r_geometry.DomainSize();
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
+
+    // Reading properties and conditions
+    const double integrated_permittivity = domain_size * GetProperties()[CONDUCTIVITY];
+    for (unsigned int i = 0; i < number_of_points; ++i) {
+        D(i,i) = integrated_permittivity;
+    }
+
+    // Main loop (one Gauss point)
+    //const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    noalias(rLeftHandSideMatrix) = prod(DN_DX, Matrix(prod(D, trans(DN_DX))));  // Bt D B
+
+    // Subtracting the dirichlet term
+    // RHS -= LHS*DUMMY_UNKNOWNs
+    for(unsigned int iii = 0; iii<number_of_points; iii++)
+        temp[iii] = GetGeometry()[iii].FastGetSolutionStepValue(TEMPERATURE);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,temp);
 
     KRATOS_CATCH( "" );
 }
@@ -189,31 +216,8 @@ void TestLaplacianElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix
 
 void TestLaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // Resizing as needed the RHS
-    const unsigned int system_size = dimension;
-
-    if ( rRightHandSideVector.size() != system_size )
-        rRightHandSideVector.resize( system_size, false );
-
-    rRightHandSideVector = ZeroVector( system_size ); //resetting RHS
-
-    const array_1d<double, 3 >& delta_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-    switch ( mResidualType )
-    {
-        case ResidualType::LINEAR:
-            for ( unsigned int j = 0; j < dimension; ++j )
-                rRightHandSideVector[j] -= delta_displacement[j] - 1.0;
-            break;
-        case ResidualType::NON_LINEAR:
-            for ( unsigned int j = 0; j < dimension; ++j )
-                rRightHandSideVector[j] -= std::pow(delta_displacement[j], 2) - 1.0;
-            break;
-        default:
-            KRATOS_ERROR << "NOT IMPLEMENTED" << std::endl;
-    }
+    MatrixType lhs;
+    CalculateLocalSystem(lhs, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 //***********************************************************************************
@@ -221,31 +225,8 @@ void TestLaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVect
 
 void TestLaplacianElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // Resizing as needed the LHS
-    const unsigned int system_size = dimension;
-
-    if ( rLeftHandSideMatrix.size1() != system_size )
-        rLeftHandSideMatrix.resize( system_size, system_size, false );
-
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
-
-    const array_1d<double, 3 >& delta_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-    switch ( mResidualType )
-    {
-        case ResidualType::LINEAR:
-            for ( unsigned int j = 0; j < dimension; ++j )
-                rLeftHandSideMatrix(j, j) += 1.0;
-            break;
-        case ResidualType::NON_LINEAR:
-            for ( unsigned int j = 0; j < dimension; ++j )
-                rLeftHandSideMatrix(j, j) += delta_displacement[j] * 2;
-            break;
-        default:
-            KRATOS_ERROR << "NOT IMPLEMENTED" << std::endl;
-    }
+    VectorType rhs;
+    CalculateLocalSystem(rLeftHandSideMatrix, rhs, rCurrentProcessInfo);
 }
 
 //************************************************************************************//
@@ -255,9 +236,7 @@ void TestLaplacianElement::CalculateMassMatrix( MatrixType& rMassMatrix, const P
 {
     KRATOS_TRY
 
-    //lumped
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int system_size = dimension;
+    const unsigned int system_size = GetGeometry().size();
 
     if ( rMassMatrix.size1() != system_size )
         rMassMatrix.resize( system_size, system_size, false );
@@ -277,11 +256,10 @@ void TestLaplacianElement::CalculateDampingMatrix(
 {
     KRATOS_TRY;
 
-    //0.-Initialize the DampingMatrix:
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int system_size = GetGeometry().size();
 
-    // Resizing as needed the LHS
-    const unsigned int system_size = dimension;
+    if ( rDampingMatrix.size1() != system_size )
+        rDampingMatrix.resize( system_size, system_size, false );
 
     rDampingMatrix = ZeroMatrix( system_size, system_size );
 
@@ -296,16 +274,9 @@ int TestLaplacianElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
     KRATOS_TRY
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
-        const Node& rnode = this->GetGeometry()[i];
-
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
-
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rnode)
+    for (auto& r_node : this->GetGeometry()) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE,r_node)
+        KRATOS_CHECK_DOF_IN_NODE(TEMPERATURE,r_node)
     }
 
     return 0;
@@ -313,46 +284,12 @@ int TestLaplacianElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
     KRATOS_CATCH( "Problem in the Check in the TestLaplacianElement" )
 }
 
-
-//************************************************************************************//
-//************************************************************************************//
-
-void TestLaplacianElement::CalculateOnIntegrationPoints(
-    const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-if (rVariable == CONSTITUTIVE_LAW) {
-    const SizeType integration_points_number = mConstitutiveLawVector.size();
-    if (rValues.size() != integration_points_number) {
-        rValues.resize(integration_points_number);
-    }
-    for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
-        rValues[point_number] = mConstitutiveLawVector[point_number];
-    }
-}
-}
-
 //************************************************************************************//
 //************************************************************************************//
 
 void TestLaplacianElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-
-    //Constitutive Law initialisation
-    if ( mConstitutiveLawVector.size() != integration_points.size() )
-        mConstitutiveLawVector.resize( integration_points.size() );
-
-    const GeometryType& r_geometry = GetGeometry();
-    const Properties& r_properties = GetProperties();
-    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
-    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-        mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-        mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
-    }
+    // ADD SOMETHING IF REQUIRED
 }
 
 //************************************************************************************//
