@@ -94,8 +94,8 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
     // Call the base class's function.
     SphericParticle::ComputeAdditionalForces(externally_applied_force, externally_applied_moment, r_process_info, gravity);
     
-    // Assuming 'w' is known and is of type 'double'.
-    double w = /* the value of w */;
+    
+    double w = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
     
     // Multiply each element of externally_applied_force and externally_applied_moment by w.
     for (int i = 0; i < 3; ++i)
