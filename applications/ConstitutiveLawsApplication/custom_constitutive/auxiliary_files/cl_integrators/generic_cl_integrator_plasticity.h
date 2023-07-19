@@ -182,21 +182,19 @@ class GenericConstitutiveLawIntegratorPlasticity
         array_1d<double, VoigtSize> delta_sigma;
         double plastic_consistency_factor_increment;
         double F = rUniaxialStress - rThreshold;
-        Matrix tangent_tensor = ZeroMatrix(6,6);
+        const bool analytic_tangent = (r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) && r_material_properties[TANGENT_OPERATOR_ESTIMATION] == 0) ? true : false;
 
         // Backward Euler
-        while (is_converged == false && iteration <= max_iter) {
+        while (!is_converged && iteration <= max_iter) {
             plastic_consistency_factor_increment = F * rPlasticDenominator;
-            if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
+            plastic_consistency_factor_increment = (plastic_consistency_factor_increment < 0.0) ? 0.0 : plastic_consistency_factor_increment;
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
 
             noalias(rPredictiveStressVector) -= delta_sigma;
 
-            F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
-                                        rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
-                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
+            F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold, rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement, rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
 
             if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
@@ -204,8 +202,12 @@ class GenericConstitutiveLawIntegratorPlasticity
                 iteration++;
             }
         }
-        CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
-        noalias(rConstitutiveMatrix) = tangent_tensor;
+        if (analytic_tangent) {
+            Matrix tangent_tensor;
+            tangent_tensor.resize(VoigtSize, VoigtSize, false);
+            CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
+            noalias(rConstitutiveMatrix) = tangent_tensor;
+        }
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
