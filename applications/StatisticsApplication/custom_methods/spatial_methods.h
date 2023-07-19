@@ -626,7 +626,11 @@ public:
 
             auto& group_limits = distribution_info.mGroupUpperValues;
             const IndexType number_of_groups = Params["number_of_value_groups"].GetInt();
-            group_limits.resize(number_of_groups + 2);
+
+            // we need additional two groups to store values below the specified minimum and values above the
+            // specified maximum.
+            const IndexType number_of_all_groups = number_of_groups + 2;
+            group_limits.resize(number_of_all_groups);
             for (IndexType i = 0; i < number_of_groups + 1; ++i) {
                 group_limits[i] = min_value + (max_value - min_value) * static_cast<double>(i) / static_cast<double>(number_of_groups);
             }
@@ -778,7 +782,7 @@ public:
                 IndicesType indices(number_of_components);
                 for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
                     const auto& comp_value = DataTypeTraits<norm_return_type>::GetComponent(norm_value, i_comp);
-                    for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
+                    for (IndexType i_group = 0; i_group < group_limits.size(); ++i_group) {
                         if (comp_value < DataTypeTraits<norm_return_type>::GetComponent(group_limits[i_group], i_comp)) {
                             indices[i_comp] = i_group;
                             break;
@@ -791,12 +795,12 @@ public:
 
             // now prepare data for mpi communication
             std::vector<typename DataTypeTraits<norm_return_type>::RawDataType> local_values;
-            local_values.resize(number_of_components * number_of_groups * 2);
+            local_values.resize(number_of_components * number_of_all_groups * 2);
             auto values_begin = local_values.begin();
             IndicesType local_distribution;
-            local_distribution.resize(number_of_components * number_of_groups);
+            local_distribution.resize(number_of_components * number_of_all_groups);
             auto indices_begin = local_distribution.begin();
-            for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
+            for (IndexType i_group = 0; i_group < number_of_all_groups; ++i_group) {
                 DataTypeTraits<IndicesType>::FillToVector(indices_begin, std::get<0>(reuduced_values)[i_group]); // get the group counts
                 DataTypeTraits<norm_return_type>::FillToVector(values_begin, std::get<1>(reuduced_values)[i_group]); // put the means
                 DataTypeTraits<norm_return_type>::FillToVector(values_begin + number_of_components, std::get<2>(reuduced_values)[i_group]); // put the variances
@@ -812,13 +816,13 @@ public:
                 std::accumulate(global_distribution.begin(), global_distribution.end(), 0), 1)) / number_of_components;
 
             // now revert back to the group values
-            distribution_info.mGroupNumberOfValues.resize(number_of_groups);
-            distribution_info.mGroupValueDistributionPercentage.resize(number_of_groups);
-            distribution_info.mGroupMean.resize(number_of_groups);
-            distribution_info.mGroupVariance.resize(number_of_groups);
+            distribution_info.mGroupNumberOfValues.resize(number_of_all_groups);
+            distribution_info.mGroupValueDistributionPercentage.resize(number_of_all_groups);
+            distribution_info.mGroupMean.resize(number_of_all_groups);
+            distribution_info.mGroupVariance.resize(number_of_all_groups);
             auto global_indices_begin = global_distribution.begin();
             auto global_values_begin = global_values.begin();
-            for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
+            for (IndexType i_group = 0; i_group < number_of_all_groups; ++i_group) {
                 auto& current_number_of_values = distribution_info.mGroupNumberOfValues[i_group];
                 current_number_of_values.resize(number_of_components);
                 DataTypeTraits<IndicesType>::FillFromVector(current_number_of_values, global_indices_begin, global_indices_begin + number_of_components);
@@ -841,8 +845,11 @@ public:
                 // post processing of values
                 current_distribution_percentage /= number_of_items;
                 for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                    DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp) /= current_number_of_values[i_comp];
-                    DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) /= current_number_of_values[i_comp];
+                    const auto n = current_number_of_values[i_comp];
+                    if (n > 0) {
+                        DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp) /= n;
+                        DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) /= n;
+                    }
                     DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) -= std::pow(DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp), 2);
                 }
             }
