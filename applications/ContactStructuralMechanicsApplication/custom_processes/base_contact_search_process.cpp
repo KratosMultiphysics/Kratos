@@ -98,8 +98,8 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
         std::ostringstream condition_name_buffer;
         condition_name_buffer << condition_name << "Condition" << TDim << "D" << TNumNodes << "N" << mThisParameters["final_string"].GetString();
         condition_name = condition_name_buffer.str();
+        mpReferenceCondition = &(dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get(condition_name)));
     }
-    mpReferenceCondition = &(dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get(condition_name)));
 
     // We get the contact model part
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
