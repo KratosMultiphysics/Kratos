@@ -868,7 +868,7 @@ public:
     }
 
     template<class TDataType, int TPower = 1>
-    static SupportedDataType Sum(
+    static SupportedDataType GenericSumReduction(
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const std::string& rNormType,
@@ -964,7 +964,7 @@ public:
         {
             KRATOS_TRY
 
-            const auto value = Sum<TDataType, 1>(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            const auto value = GenericSumReduction<TDataType, 1>(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
             return std::get<TDataType>(value);
 
             KRATOS_CATCH("");
@@ -979,7 +979,7 @@ public:
         {
             KRATOS_TRY
 
-            const auto value = Sum<TDataType, 1>(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            const auto value = GenericSumReduction<TDataType, 1>(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
             return std::get<double>(value);
 
             KRATOS_CATCH("");
@@ -990,7 +990,7 @@ public:
         {
             KRATOS_TRY
 
-            const auto value = Sum<TDataType, 2>(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            const auto value = GenericSumReduction<TDataType, 2>(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
             const auto square_sum = std::get<TDataType>(value);
 
             const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
@@ -1012,7 +1012,7 @@ public:
         {
             KRATOS_TRY
 
-            const auto value = Sum<TDataType, 2>(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            const auto value = GenericSumReduction<TDataType, 2>(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
             const double square_sum = std::get<double>(value);
 
             const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
