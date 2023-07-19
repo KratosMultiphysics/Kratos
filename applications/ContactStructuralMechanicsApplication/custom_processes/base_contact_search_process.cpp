@@ -101,8 +101,6 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
     }
     mpReferenceCondition = &(dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get(condition_name)));
 
-//     KRATOS_DEBUG_ERROR_IF_NOT(KratosComponents<Condition>::Has(condition_name)) << "Condition " << condition_name << " not registered" << std::endl;
-
     // We get the contact model part
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = this->IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub" + id_name);
