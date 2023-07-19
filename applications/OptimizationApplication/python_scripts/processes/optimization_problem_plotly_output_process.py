@@ -27,7 +27,8 @@ class OptimizationProblemPlotlyOutputProcess(Kratos.OutputProcess):
             {
                 "list_of_output_components": ["all"],
                 "write_html_output": false,
-                "html_file_name": "iteration_summary"
+                "html_file_name": "iteration_summary",
+                "plot_y_log_scale": false
             }
             """
         )
@@ -49,6 +50,7 @@ class OptimizationProblemPlotlyOutputProcess(Kratos.OutputProcess):
         self.output_parameters = dict()
         self.output_parameters["write_html_output"] = parameters["write_html_output"].GetBool()
         self.output_parameters["html_file_name"] = parameters["html_file_name"].GetString()
+        self.output_parameters["plot_y_log_scale"] = parameters["plot_y_log_scale"].GetBool()
 
         if self.output_parameters["html_file_name"].find(".html") == -1:
             self.output_parameters["html_file_name"] += ".html"
@@ -77,7 +79,7 @@ class OptimizationProblemPlotlyOutputProcess(Kratos.OutputProcess):
 
     def ExecuteFinalize(self):
         if self._IsWritingProcess():
-            fig = px.line(self.output_dataframe)
+            fig = px.line(self.output_dataframe, log_y=self.output_parameters["plot_y_log_scale"])
             fig.show()
 
             if self.output_parameters["write_html_output"]:
