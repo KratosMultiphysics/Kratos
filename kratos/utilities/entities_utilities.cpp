@@ -65,7 +65,7 @@ bool EntitityIdentifier<TEntity>::IsInitialized()
 template<class TEntity>
 const TEntity& EntitityIdentifier<TEntity>::GetPrototypeEntity(typename GeometryType::Pointer pGeometry)
 {
-    return *mTypes[static_cast<std::size_t>(pGeometry->GetGeometryType()) - 1];
+    return *mTypes[static_cast<std::size_t>(pGeometry->GetGeometryType())];
 }
 
 /***********************************************************************************/
@@ -115,7 +115,7 @@ void EntitityIdentifier<TEntity>::GenerateSingleType(const std::string& rName)
     const auto& r_ref_entity = KratosComponents<TEntity>::Get(rName);
     const auto& r_reference_geometry = r_ref_entity.GetGeometry();
     const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-    const std::size_t index = static_cast<std::size_t>(r_reference_geometry_type) - 1;
+    const std::size_t index = static_cast<std::size_t>(r_reference_geometry_type);
     mTypes[index] = &r_ref_entity;
 }
 
@@ -136,7 +136,7 @@ void EntitityIdentifier<TEntity>::GenerateMultipleTypes(const std::string& rName
         const auto& r_ref_entity = KratosComponents<TEntity>::Get(r_entity_name);
         const auto& r_reference_geometry = r_ref_entity.GetGeometry();
         const auto& r_reference_geometry_type = r_reference_geometry.GetGeometryType();
-        const std::size_t index = static_cast<std::size_t>(r_reference_geometry_type) - 1;
+        const std::size_t index = static_cast<std::size_t>(r_reference_geometry_type);
         mTypes[index] = &r_ref_entity;
     }
 }
@@ -157,7 +157,7 @@ void EntitityIdentifier<TEntity>::GenerateTemplatedTypes(const std::string& rNam
         const std::string& r_key = r_pair.first;
         if (std::regex_match(r_key, pattern)) {
             const auto& r_entity = KratosComponents<TEntity>::Get(r_key);
-            const std::size_t index = static_cast<std::size_t>(r_entity.GetGeometry().GetGeometryType()) - 1;
+            const std::size_t index = static_cast<std::size_t>(r_entity.GetGeometry().GetGeometryType());
             mTypes[index] = &r_entity;
         }
     }

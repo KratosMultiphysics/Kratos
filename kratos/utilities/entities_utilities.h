@@ -49,7 +49,7 @@ namespace EntitiesUtilities
         using GeometryType = typename TEntity::GeometryType;
 
         /// Length of array definition
-        constexpr static std::size_t LengthArray = static_cast<std::size_t>(GeometryData::KratosGeometryType::NumberOfGeometryTypes) - 2;
+        constexpr static std::size_t LengthArray = static_cast<std::size_t>(GeometryData::KratosGeometryType::NumberOfGeometryTypes);
 
         /// Pointer definition of ReplaceElementsAndConditionsProcess
         KRATOS_CLASS_POINTER_DEFINITION(EntitityIdentifier);
