@@ -15,32 +15,21 @@
 // External includes
 
 // Project includes
-#include "includes/key_hash.h"
 #include "utilities/parallel_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_processes/assign_parent_element_conditions_process.h"
 
 namespace Kratos
 {
-void AssignParentElementConditionsProcess::Execute()
+void AssignParentElementConditionsProcess::ExecuteInitialize()
 {
     KRATOS_TRY;
 
-    /// Definition of the vector indexes considered
-    using VectorIndexType = std::vector<std::size_t>;
-
-    /// Definition of the hasher considered
-    using VectorIndexHasherType = VectorIndexHasher<VectorIndexType>;
-
-    /// Definition of the key comparor considered
-    using VectorIndexComparorType = VectorIndexComparor<VectorIndexType>;
-
-    /// Define the map considered for face ids
-    using HashMapVectorIntType = std::unordered_map<VectorIndexType, std::size_t, VectorIndexHasherType, VectorIndexComparorType>;
+    // Clear
+    mMapFaceIds.clear();
 
     // The array of elements
     auto& r_elements_array = mrElementsModelPart.Elements();
-    HashMapVectorIntType map_face_ids;
     for (auto& r_element : r_elements_array) {
         const std::size_t id = r_element.Id();
         auto& r_element_geometry = r_element.GetGeometry();
@@ -52,9 +41,19 @@ void AssignParentElementConditionsProcess::Execute()
                 face_indexes[i_node] = r_face[i_node].Id();
             }
             std::sort(face_indexes.begin(), face_indexes.end());
-            map_face_ids.insert({face_indexes, id});
+            mMapFaceIds.insert({face_indexes, id});
         }
     }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AssignParentElementConditionsProcess::ExecuteInitializeSolutionStep() 
+{
+    KRATOS_TRY;
 
     // We iterate over the conditions
     auto& r_conditions_array = mrConditionsModelPart.Conditions();
@@ -68,13 +67,28 @@ void AssignParentElementConditionsProcess::Execute()
         std::sort(indexes.begin(), indexes.end());
         
         // Find and assign if found
-        auto it_find = map_face_ids.find(indexes);
-        if (it_find != map_face_ids.end()) {
+        auto it_find = mMapFaceIds.find(indexes);
+        if (it_find != mMapFaceIds.end()) {
             rCondition.SetValue(PARENT_ELEMENT, mrElementsModelPart.pGetElement(it_find->second));
         } else {
             KRATOS_WARNING("AssignParentElementConditionsProcess") << "Condition " << rCondition.Id() << " has not been found in the elements model part" << std::endl;
         }
     });
+
+    KRATOS_CATCH("");
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AssignParentElementConditionsProcess::Execute()
+{
+    KRATOS_TRY;
+
+    // Execute the initialize of the elements faces database
+    ExecuteInitialize();
+
+    // Execute the assign of elements to conditions
+    ExecuteInitializeSolutionStep();
     
     KRATOS_CATCH("");
 }

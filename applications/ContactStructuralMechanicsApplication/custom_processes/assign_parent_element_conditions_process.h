@@ -19,6 +19,7 @@
 // Project includes
 #include "processes/process.h"
 #include "includes/model_part.h"
+#include "includes/key_hash.h"
 
 namespace Kratos
 {
@@ -52,6 +53,18 @@ public:
 
     /// Pointer definition of AssignParentElementConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignParentElementConditionsProcess);
+
+    /// Definition of the vector indexes considered
+    using VectorIndexType = std::vector<std::size_t>;
+
+    /// Definition of the hasher considered
+    using VectorIndexHasherType = VectorIndexHasher<VectorIndexType>;
+
+    /// Definition of the key comparor considered
+    using VectorIndexComparorType = VectorIndexComparor<VectorIndexType>;
+
+    /// Define the map considered for face ids
+    using HashMapVectorIntType = std::unordered_map<VectorIndexType, std::size_t, VectorIndexHasherType, VectorIndexComparorType>;
 
     /// Geometry type definition
     using GeometryType = Geometry<Node>;
@@ -148,6 +161,16 @@ public:
     void Execute() override;
 
     /**
+     * @brief This function is designed for being called at the beginning of the computations  right after reading the model and the groups
+     */
+    void ExecuteInitialize() override;
+
+    /**
+     * @brief This function will be executed at every time step BEFORE performing the solve phase
+     */
+    void ExecuteInitializeSolutionStep() override;
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     const Parameters GetDefaultParameters() const override;
@@ -193,6 +216,7 @@ private:
     ModelPart& mrConditionsModelPart; /// The model part of conditions
     ModelPart& mrElementsModelPart;   /// The model part of elements
     int mEchoLevel;                   /// The echo level
+    HashMapVectorIntType mMapFaceIds; /// The map containing the face ids of the elements
 
     ///@}
     ///@name Private Operators
