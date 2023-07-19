@@ -269,6 +269,52 @@ public:
         });
     }
 
+    void MonotonicityPreserving(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rB
+    ) 
+    {
+        const auto& r_dof_set = BaseType::GetDofSet();
+        Vector dofs_values = ZeroVector(r_dof_set.size());
+
+        block_for_each(r_dof_set, [&](Dof<double>& rDof){
+            const std::size_t id = rDof.EquationId();
+            dofs_values[id] = rDof.GetSolutionStepValue();
+        });
+        double *values_vector = rA.value_data().begin();
+        std::size_t *index1_vector = rA.index1_data().begin();
+        std::size_t *index2_vector = rA.index2_data().begin();
+
+        std::size_t nonzero_counter = 0;
+
+        IndexPartition<std::size_t>(rA.size1()).for_each(
+            [&](std::size_t i)
+            {
+                for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
+                    const double value = values_vector[k];
+                    if (value > 0.0) {
+                        // increment the counter
+                        nonzero_counter++;
+                        const auto j = index2_vector[k];
+                        if (j > i) {
+                            rA(i,j) -= value;
+                            rA(j,i) -= value;
+                            // Values conflicting with other threads
+                            auto& r_aii = rA(i,i).ref();
+                            AtomicAdd(r_aii, value);
+                            auto& r_ajj = rA(j,j).ref();
+                            AtomicAdd(r_ajj, value);
+                            auto& r_bi = rB[i];
+                            AtomicAdd(r_bi, value*dofs_values[j] - value*dofs_values[i]);
+                            auto& r_bj = rB[j];
+                            AtomicAdd(r_bj, value*dofs_values[i] - value*dofs_values[j]);
+                        }
+                    }
+                }
+            }
+        );
+    }
+
     virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
@@ -293,7 +339,7 @@ public:
     {
         KRATOS_TRY
 
-        BuildAndProjectROM(pScheme, rModelPart, A, b);
+        BuildAndProjectROM(pScheme, rModelPart, A, b, Dx);
         
         SolveROM(rModelPart, A, b, Dx);
 
@@ -342,7 +388,8 @@ public:
         {
             "name" : "global_rom_builder_and_solver",
             "nodal_unknowns" : [],
-            "number_of_rom_dofs" : 10
+            "number_of_rom_dofs" : 10,
+            "monotonicity_preserving": false
         })");
         default_parameters.AddMissingParameters(BaseBuilderAndSolverType::GetDefaultParameters());
 
@@ -424,6 +471,7 @@ protected:
         // Set member variables
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
+        mMonotonicityPreservingFlag = ThisParameters["monotonicity_preserving"].GetBool();
 
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;
@@ -577,7 +625,8 @@ protected:
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
-        TSystemVectorType &rb)
+        TSystemVectorType &rb,
+        TSystemVectorType &rDx)
     {
         KRATOS_TRY
 
@@ -591,6 +640,11 @@ protected:
         }
 
         Build(pScheme, rModelPart, rA, rb);
+
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+
+        if (mMonotonicityPreservingFlag)
+            MonotonicityPreserving(rA, rb);
 
         ProjectROM(rModelPart, rA, rb);
 
@@ -769,6 +823,7 @@ private:
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
+    bool mMonotonicityPreservingFlag;
 
     ///@}
     ///@name Private operations 
