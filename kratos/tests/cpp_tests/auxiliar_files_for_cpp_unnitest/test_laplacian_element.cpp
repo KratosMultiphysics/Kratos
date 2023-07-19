@@ -118,7 +118,7 @@ void TestLaplacianElement::GetDofList(
     }
     unsigned int counter = 0;
     for (auto& r_node : r_geometry) {
-        rElementalDofList.push_back(r_node.pGetDof(TEMPERATURE));
+        rElementalDofList[counter] = r_node.pGetDof(TEMPERATURE);
         ++counter;
     }
 }
