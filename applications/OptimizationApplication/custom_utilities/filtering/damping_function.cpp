@@ -54,7 +54,7 @@ mKernelFunctionType(rKernelFunctionType)
                      << "\n\tlinear"
                      << "\n\tgaussian"
                      << "\n\tcosine"
-                     << "\n\tsigmpidal"
+                     << "\n\tsigmoidal"
                      << "\n\tquartic.\n";
     }
 }
