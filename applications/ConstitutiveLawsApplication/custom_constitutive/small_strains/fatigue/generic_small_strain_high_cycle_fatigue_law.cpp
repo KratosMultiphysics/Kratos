@@ -282,6 +282,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
     if (new_model_part) {
         mReferenceDamage = 0.0;
+        mCyclesToFailure = 1.0e15;
     }
 
     max_indicator = false;

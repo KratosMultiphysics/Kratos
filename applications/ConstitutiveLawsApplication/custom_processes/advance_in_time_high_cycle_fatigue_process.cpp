@@ -59,12 +59,21 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
         r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
         r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
+        
+        std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+
+        const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+
+        if (is_fatigue) {    
             for (unsigned int i = 0; i < number_of_ip; i++) {
                 if ((damage[i] - previous_cycle_damage[i] > 1.0e-6) || (cycles_to_failure_element[i] - local_number_of_cycles[i] <= 1.0)) {
                     process_info[NO_LINEARITY_ACTIVATION] = true;
                     break;
                 }
             }
+        }
+
         if (process_info[NO_LINEARITY_ACTIVATION]){
             break;
         }         
@@ -212,12 +221,19 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
 
-        for (unsigned int i = 0; i < number_of_ip; i++) {
-            // if (max_stress[i] > s_th[i]) {
-            //     fatigue_in_course = true;
-            // }
-            acumulated_max_stress_rel_error += max_stress_rel_error[i];
-            acumulated_rev_factor_rel_error += rev_factor_rel_error[i];
+        std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+                
+        const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+            
+        if (is_fatigue) {  
+            for (unsigned int i = 0; i < number_of_ip; i++) {
+                // if (max_stress[i] > s_th[i]) {
+                //     fatigue_in_course = true;
+                // }
+                acumulated_max_stress_rel_error += max_stress_rel_error[i];
+                acumulated_rev_factor_rel_error += rev_factor_rel_error[i];
+            }
         }
     }
 
@@ -279,21 +295,28 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
                 r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
                 r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
                 r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
-                for (unsigned int i = 0; i < number_of_ip; i++)
-                {
-                    // if (max_stress[i] > s_th[i])
-                    // { // This is used to guarantee that only IP in fatigue conditions are taken into account
-                    double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
-                    double user_advancing_cycles_conversion_to_time = user_advancing_cycles * period[i];
-                    if (Nf_conversion_to_time < min_time_increment)
+
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+                r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+                        
+                const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+
+                if(is_fatigue){
+                    for (unsigned int i = 0; i < number_of_ip; i++)
                     {
-                        min_time_increment = Nf_conversion_to_time;
+                        // if (max_stress[i] > s_th[i])
+                        // { // This is used to guarantee that only IP in fatigue conditions are taken into account
+                        double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
+                        double user_advancing_cycles_conversion_to_time = user_advancing_cycles * period[i];
+                        if (Nf_conversion_to_time < min_time_increment)
+                        {   
+                            min_time_increment = Nf_conversion_to_time;
+                        }
+                        if (user_advancing_cycles_conversion_to_time < min_time_increment)
+                        {   
+                            min_time_increment = user_advancing_cycles_conversion_to_time;
+                        }
                     }
-                    if (user_advancing_cycles_conversion_to_time < min_time_increment)
-                    {
-                        min_time_increment = user_advancing_cycles_conversion_to_time;
-                    }
-                    // }
                 }
             }
         }else{
@@ -302,16 +325,23 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
                 r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
                 r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
                 r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
-                for (unsigned int i = 0; i < number_of_ip; i++)
-                {
-                    // if (max_stress[i] > s_th[i])
-                    // { // This is used to guarantee that only IP in fatigue conditions are taken into account
-                    double user_advancing_cycles_conversion_to_time = user_advancing_cycles_damage * period[i];
-                    if (user_advancing_cycles_conversion_to_time < min_time_increment)
+
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+                r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+                        
+                const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+
+                if(is_fatigue){
+                    for (unsigned int i = 0; i < number_of_ip; i++)
                     {
-                        min_time_increment = user_advancing_cycles_conversion_to_time;
+                        // if (max_stress[i] > s_th[i])
+                        // { // This is used to guarantee that only IP in fatigue conditions are taken into account
+                        double user_advancing_cycles_conversion_to_time = user_advancing_cycles_damage * period[i];
+                        if (user_advancing_cycles_conversion_to_time < min_time_increment)
+                        {
+                            min_time_increment = user_advancing_cycles_conversion_to_time;
+                        }
                     }
-                    // }
                 }
             }
         }

@@ -343,11 +343,10 @@ public:
                 // if (softening_type == curve_by_points) {
                 //     rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / ultimate_stress), 1.0 / (FatigueReductionFactorSmoothness * square_betaf)));           
                 // }      
-            } 
-        }
-         else {
-            rN_f = 1.0e15;
-            // rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
+            }
+        // }else {
+        //     rN_f = 1.0e15;
+        //     // rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
         }
     }
     
