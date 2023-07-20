@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-typedef Geometry<Node> GeometryType;
+using GeometryType = Geometry<Node>;
 
 // VARIABLES
 // MPC Contact related variables

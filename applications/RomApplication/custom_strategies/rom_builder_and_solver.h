@@ -196,6 +196,26 @@ public:
         KRATOS_CATCH("");
     }
 
+    void CalculateReactions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        TSparseSpace::SetToZero(rb);
+
+        //refresh RHS to have the correct reactions (with contributions on Dirichlet BCs)
+        BuildRHSNoDirichlet(rModelPart, rb);
+
+        //NOTE: dofs are assumed to be numbered consecutively in the BuilderAndSolver
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            const std::size_t i = rDof.EquationId();
+
+            rDof.GetSolutionStepReactionValue() = -rb[i];
+        });
+    }
+
     void SetUpSystem(ModelPart &rModelPart) override
     {
         auto& r_dof_set = BaseType::GetDofSet();
@@ -393,7 +413,50 @@ protected:
     ///@}
     ///@name Protected operators
     ///@{
+    
+    void BuildRHSNoDirichlet(
+        ModelPart& rModelPart,
+        TSystemVectorType& rb)
+    {
+        KRATOS_TRY
 
+        // Get ProcessInfo from main model part
+        const auto& r_current_process_info = rModelPart.GetProcessInfo();
+
+        auto& r_elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
+        if(!r_elements.empty())
+        {
+            block_for_each(r_elements, Kratos::Vector(), [&](Element& r_element, Kratos::Vector& r_rhs_elem)
+            {
+                DofsVectorType dofs;
+
+                r_element.CalculateRightHandSide(r_rhs_elem, r_current_process_info);
+                r_element.GetDofList(dofs, r_current_process_info);
+                for (IndexType i = 0; i < dofs.size(); ++i){
+                    double& r_bi = rb[dofs[i]->EquationId()];
+                    AtomicAdd(r_bi, r_rhs_elem[i]); // Building RHS.
+                }
+            });
+        }
+
+        auto& r_conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
+        if(!r_conditions.empty())
+        {
+            block_for_each(r_conditions, Kratos::Vector(), [&](Condition& r_condition, Kratos::Vector& r_rhs_cond)
+            {
+                DofsVectorType dofs = {};
+                r_condition.CalculateRightHandSide(r_rhs_cond, r_current_process_info);
+                r_condition.GetDofList(dofs, r_current_process_info);
+                for (IndexType i = 0; i < dofs.size(); ++i){
+                    double& r_bi = rb[dofs[i]->EquationId()];
+                    AtomicAdd(r_bi, r_rhs_cond[i]); // Building RHS.
+                }
+            });
+        }   
+
+        KRATOS_CATCH("")
+
+    }
 
     ///@}
     ///@name Protected operations
