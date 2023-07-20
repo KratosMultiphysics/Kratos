@@ -285,16 +285,12 @@ public:
         std::size_t *index1_vector = rA.index1_data().begin();
         std::size_t *index2_vector = rA.index2_data().begin();
 
-        std::size_t nonzero_counter = 0;
-
         IndexPartition<std::size_t>(rA.size1()).for_each(
             [&](std::size_t i)
             {
                 for (std::size_t k = index1_vector[i]; k < index1_vector[i + 1]; k++) {
                     const double value = values_vector[k];
                     if (value > 0.0) {
-                        // increment the counter
-                        nonzero_counter++;
                         const auto j = index2_vector[k];
                         if (j > i) {
                             rA(i,j) -= value;
