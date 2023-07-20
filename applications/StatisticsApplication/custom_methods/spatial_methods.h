@@ -58,6 +58,9 @@ public:
 
     using DataLocation = Globals::DataLocation;
 
+    template<class TDataType>
+    using MethodReturnType = std::conditional_t<std::is_arithmetic_v<TDataType>, std::variant<TDataType>, std::variant<TDataType, double>>;
+
     ///@}
     ///@name Class definitions
     ///@{
@@ -146,19 +149,33 @@ public:
     ///@name Static operations
     ///@{
 
-    // template<class TDataType>
-    // static SupportedDataType Sum(
-    //     const ModelPart& rModelPart,
-    //     const Variable<TDataType>& rVariable,
-    //     const std::string& rNormType,
-    //     const DataLocation& rLocation);
+    template<class TDataType>
+    static MethodReturnType<TDataType> Sum(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        const DataLocation& rLocation);
 
-    // template<class TDataType>
-    // static SupportedDataType Mean(
-    //     const ModelPart& rModelPart,
-    //     const Variable<TDataType>& rVariable,
-    //     const std::string& rNormType,
-    //     const DataLocation& rLocation);
+    template<class TDataType>
+    static MethodReturnType<TDataType> Mean(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        const DataLocation& rLocation);
+
+    template<class TDataType>
+    static MethodReturnType<TDataType> RootMeanSquare(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        const DataLocation& rLocation);
+
+    template<class TDataType>
+    static std::tuple<MethodReturnType<TDataType>, MethodReturnType<TDataType>> Variance(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        const DataLocation& rLocation);
 
     // template<class TDataType>
     // static SupportedDataType Median(
@@ -167,26 +184,12 @@ public:
     //     const std::string& rNormType,
     //     const DataLocation& rLocation);
 
-    // template<class TDataType>
-    // static SupportedDataType RootMeanSquare(
-    //     const ModelPart& rModelPart,
-    //     const Variable<TDataType>& rVariable,
-    //     const std::string& rNormType,
-    //     const DataLocation& rLocation);
-
-    // template<class TDataType>
-    // static SupportedDataType Variance(
-    //     const ModelPart& rModelPart,
-    //     const Variable<TDataType>& rVariable,
-    //     const std::string& rNormType,
-    //     const DataLocation& rLocation);
-
-    // template<class TDataType>
-    // static SupportedDataType Min(
-    //     const ModelPart& rModelPart,
-    //     const Variable<TDataType>& rVariable,
-    //     const std::string& rNormType,
-    //     const DataLocation& rLocation);
+    template<class TDataType>
+    static std::tuple<SpatialMethods::MethodReturnType<TDataType>, SpatialMethods::IndicesType> Min(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const std::string& rNormType,
+        const DataLocation& rLocation);
 
     // template<class TDataType>
     // static SupportedDataType Max(
@@ -206,66 +209,6 @@ public:
     ///@}
     ///@name Class definitions
     ///@{
-
-    template<class TDataType>
-    class SumOperation
-    {
-    public:
-        ///@name Type definitions
-        ///@{
-
-        using OperationTraits = DataTypeTraits<TDataType>;
-
-        ///@}
-        ///@name Life cycle
-        ///@{
-
-        SumOperation() { Initialize(); }
-
-        SumOperation(const TDataType& rValue) { mValue = rValue; }
-
-        ///@}
-        ///@name Public operations
-        ///@{
-
-        TDataType GetValue() const { return mValue; }
-
-        void Execute(const SumOperation<TDataType>& rOther)
-        {
-            if (OperationTraits::Resize(mValue, rOther.mValue)) {
-                Initialize();
-            }
-            mValue += rOther.mValue;
-        }
-
-        void Synchronize(const DataCommunicator& rDataCommunicator)
-        {
-            if (OperationTraits::SynchronizeSize(mValue, rDataCommunicator)) {
-                Initialize();
-            }
-
-            typename OperationTraits::VectorType local_values, global_values;
-            OperationTraits::FillToVector(local_values, mValue);
-            rDataCommunicator.SumAll(local_values, global_values);
-            OperationTraits::FillFromVector(mValue, global_values);
-        }
-
-        ///@}
-
-    private:
-        ///@name Private member variables
-        ///@{
-
-        TDataType mValue;
-
-        ///@}
-        ///@name Private operations
-        ///@{
-
-        void Initialize() { OperationTraits::Initialize(mValue, 0.0); }
-
-        ///@}
-    };
 
     template<class TDataType>
     class MinOperation
@@ -626,30 +569,6 @@ public:
     ///@name Static operations
     ///@{
 
-    template<class TDataType, int TPower = 1>
-    static SupportedDataType GenericSumReduction(
-        const ModelPart& rModelPart,
-        const Variable<TDataType>& rVariable,
-        const std::string& rNormType,
-        const DataLocation& rLocation)
-    {
-        KRATOS_TRY
-
-        const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
-
-        const auto r_norm_type = Norms::GetNorm<TDataType>(rNormType);
-
-        return std::visit([&rModelPart](auto& rDataContainer, auto& rNorm) -> SupportedDataType {
-            using data_container_type = std::decay_t<decltype(rDataContainer)>;
-            using norm_type = std::decay_t<decltype(rNorm)>;
-            return GenericReductionUtilities::GenericReduction<data_container_type, norm_type, SumOperation, false, TPower>(
-                    rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm)
-                .GetValue();
-        }, data_container, r_norm_type);
-
-        KRATOS_CATCH("");
-    }
-
     template<class TDataType, template <class T1> class OperationType>
     static std::tuple<SupportedDataType, IndicesType> GenericReductionWithIndices(
         const ModelPart& rModelPart,
@@ -723,7 +642,7 @@ public:
         {
             KRATOS_TRY
 
-            const auto value = GenericSumReduction<TDataType, 1>(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            const auto value = Sum(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
             return std::get<TDataType>(value);
 
             KRATOS_CATCH("");
@@ -738,7 +657,7 @@ public:
         {
             KRATOS_TRY
 
-            const auto value = GenericSumReduction<TDataType, 1>(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            const auto value = Sum(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
             return std::get<double>(value);
 
             KRATOS_CATCH("");
@@ -749,15 +668,8 @@ public:
         {
             KRATOS_TRY
 
-            const auto value = GenericSumReduction<TDataType, 2>(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            const auto square_sum = std::get<TDataType>(value);
-
-            const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-
-            const int local_size = std::visit([](const auto& rDataContainer){ return rDataContainer.Size(); }, data_container);
-            const int global_size = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_size);
-
-            return MethodUtilities::RaiseToPower<TDataType>(square_sum * (1.0 / std::max(global_size, 1)), 0.5);
+            const auto value = RootMeanSquare(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            return std::get<TDataType>(value);
 
             KRATOS_CATCH("");
         }
@@ -771,14 +683,8 @@ public:
         {
             KRATOS_TRY
 
-            const auto value = GenericSumReduction<TDataType, 2>(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            const double square_sum = std::get<double>(value);
-
-            const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            const int local_size = std::visit([](const auto& rDataContainer){ return rDataContainer.Size(); }, data_container);
-            const int global_size = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_size);
-
-            return MethodUtilities::RaiseToPower<double>(square_sum * (1.0 / std::max(global_size, 1)), 0.5);
+            const auto value = RootMeanSquare(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            return std::get<double>(value);
 
             KRATOS_CATCH("");
         }
@@ -786,15 +692,8 @@ public:
         template <class TDataType>
         TDataType static CalculateMean(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
         {
-            const TDataType& sum = CalculateSum<TDataType>(rModelPart, rVariable);
-            const TContainerType& r_container =
-                MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
-
-            const double number_of_items =
-                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                    static_cast<double>(r_container.size()));
-
-            return sum * (1.0 / std::max(number_of_items, 1.0));
+            const auto value = Mean(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            return std::get<TDataType>(value);
         }
 
         template <class TDataType>
@@ -804,33 +703,18 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            const double sum =
-                CalculateNormSum<TDataType>(rModelPart, rVariable, rNormType, Params);
-            const TContainerType& r_container =
-                MethodUtilities::GetLocalDataContainer<TContainerType>(rModelPart);
-
-            const double number_of_items =
-                rModelPart.GetCommunicator().GetDataCommunicator().SumAll(
-                    static_cast<double>(r_container.size()));
-
-            if (number_of_items > 0)
-            {
-                return sum * (1.0 / number_of_items);
-            }
-
-            return 0.0;
+            const auto value = Mean(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            return std::get<double>(value);
         }
 
         template <class TDataType>
         std::tuple<TDataType, TDataType> static CalculateVariance(
             const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
         {
-            TDataType mean = CalculateMean<TDataType>(rModelPart, rVariable);
-            TDataType rms = CalculateRootMeanSquare<TDataType>(rModelPart, rVariable);
-            TDataType global_variance = MethodUtilities::RaiseToPower<TDataType>(rms, 2) - MethodUtilities::RaiseToPower<TDataType>(mean, 2);
-
-            return std::make_tuple<TDataType, TDataType>(
-                std::forward<TDataType>(mean), std::forward<TDataType>(global_variance));
+            const auto& value = Variance(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            const TDataType& mean = std::get<TDataType>(std::get<0>(value));
+            const TDataType& variance = std::get<TDataType>(std::get<1>(value));
+            return std::make_tuple(mean, variance);
         }
 
         template <class TDataType>
@@ -840,12 +724,10 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            double mean = CalculateNormMean<TDataType>(rModelPart, rVariable, rNormType, Params);
-            double rms = CalculateNormRootMeanSquare<TDataType>(rModelPart, rVariable, rNormType, Params);
-            double global_variance = MethodUtilities::RaiseToPower<double>(rms, 2) - MethodUtilities::RaiseToPower<double>(mean, 2);
-
-            return std::make_tuple<double, double>(
-                std::forward<double>(mean), std::forward<double>(global_variance));
+            const auto& value = Variance(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
+            const double mean = std::get<double>(std::get<0>(value));
+            const double variance = std::get<double>(std::get<1>(value));
+            return std::make_tuple(mean, variance);
         }
 
         template <class TDataType>
