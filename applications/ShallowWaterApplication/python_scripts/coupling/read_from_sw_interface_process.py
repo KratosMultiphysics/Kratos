@@ -140,6 +140,7 @@ class ReadFromSwInterfaceProcess(KM.Process):
             self.Moving_v()
 
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 3:
+            self.CorrectVelocity3D()
             self.interpolate_sw_to_pfem_utility.InterpolateVariables(self.interface_model_part,self.input_model_part)
             for node in self.interface_model_part.Nodes:
                 
@@ -203,15 +204,15 @@ class ReadFromSwInterfaceProcess(KM.Process):
         nElements = nNodes - 1
         self.avg_vel_x = 2*self.avg_vel_x*nElements/(2*nElements - 1)
 
-#    def CorrectVelocity3D(self):
-#        flux = 0
-#        A_moving = 0
-#        TotalArea = 0
-#        for node in self.interface_model_part.Nodes:
-#            flux = flux + self.avg_vel_x*node.NODAL_AREA
-#            if node.isfixed
-#                TotalArea = TotalArea + node.NODAL_AREA
-#        self.avg_vel_x = flux/TotalArea
+    def CorrectVelocity3D(self):
+        flux = 0
+        A_moving = 0
+        TotalArea = 0
+        for node in self.interface_model_part.Nodes:
+            flux = flux + self.avg_vel_x*node.NODAL_AREA 
+            if (node.IsNot(KM.RIGID)):
+                TotalArea = TotalArea + node.NODAL_AREA
+        self.avg_vel_x = flux/TotalArea
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
