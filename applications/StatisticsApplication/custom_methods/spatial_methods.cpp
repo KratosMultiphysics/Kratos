@@ -543,30 +543,6 @@ typename TNormType::ResultantValueType<TDataType> GenericSumReduction(
     KRATOS_CATCH("");
 }
 
-template<class TDataType, int TPower = 1>
-double GenericSumReduction(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation,
-    const std::string& rNormType)
-{
-    KRATOS_TRY
-
-    const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
-
-    const auto r_norm_type = Norms::GetNorm<TDataType>(rNormType);
-
-    return std::visit([&rModelPart](auto& rDataContainer, auto& rNorm) -> double {
-        using data_container_type = std::decay_t<decltype(rDataContainer)>;
-        using norm_type = std::decay_t<decltype(rNorm)>;
-        return GenericReductionUtilities::GenericReduction<data_container_type, norm_type, SumOperation, false, TPower>(
-                rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm)
-            .GetValue();
-    }, data_container, r_norm_type);
-
-    KRATOS_CATCH("");
-}
-
 template<class TDataType, template <class T1> class OperationType>
 std::tuple<TDataType, typename SpatialMethods::ItemPositionType<TDataType>> GenericReductionWithIndices(
     const ModelPart& rModelPart,
