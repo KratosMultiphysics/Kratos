@@ -138,7 +138,8 @@ void CheckSolution(ModelPart& rModelPart)
 //  */
 // void GenerateReferenceSimplestModelPart(ModelPart& rModelPart)
 // {
-//     // Adding variable
+//     // Adding variable 
+//     rModelPart.AddNodalSolutionStepVariable(NORMAL);
 //     rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
 
 //     // Creating properties
@@ -155,7 +156,7 @@ void CheckSolution(ModelPart& rModelPart)
 
 //     /// Add dof
 //     for (auto& r_node : rModelPart.Nodes()) {
-//         r_node.AddDof(TEMPERATURE, REACTION_FLUX);
+//         r_node.AddDof(TEMPERATURE);
 //     }
 
 //     // Creating elements
@@ -175,6 +176,7 @@ void CheckSolution(ModelPart& rModelPart)
 // void GenerateReferenceModelPart(ModelPart& rModelPart)
 // {
 //     // Adding variable
+//     rModelPart.AddNodalSolutionStepVariable(NORMAL);
 //     rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
 
 //     // Creating properties
@@ -196,7 +198,7 @@ void CheckSolution(ModelPart& rModelPart)
 
 //     /// Add dof
 //     for (auto& r_node : rModelPart.Nodes()) {
-//         r_node.AddDof(TEMPERATURE, REACTION_FLUX);
+//         r_node.AddDof(TEMPERATURE);
 //     }
 
 //     // Creating elements
@@ -220,6 +222,7 @@ void CheckSolution(ModelPart& rModelPart)
 void GenerateMeshTyingSimplestModelPart(ModelPart& rModelPart)
 {
     // Adding variable
+    rModelPart.AddNodalSolutionStepVariable(NORMAL);
     rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
     rModelPart.AddNodalSolutionStepVariable(SCALAR_LAGRANGE_MULTIPLIER);
 
@@ -243,7 +246,7 @@ void GenerateMeshTyingSimplestModelPart(ModelPart& rModelPart)
 
     /// Add dof
     for (auto& r_node : rModelPart.Nodes()) {
-        r_node.AddDof(TEMPERATURE, REACTION_FLUX);
+        r_node.AddDof(TEMPERATURE);
         r_node.AddDof(SCALAR_LAGRANGE_MULTIPLIER);
     }
 
@@ -259,6 +262,13 @@ void GenerateMeshTyingSimplestModelPart(ModelPart& rModelPart)
 
     // Calculate normal
     const array_1d<double, 3> slave_normal = p_cond_geom1->UnitNormal(p_cond_geom1->Center());
+    for (auto& r_node : p_cond_geom1->Points()) {
+        r_node.FastGetSolutionStepValue(NORMAL) = slave_normal;
+    }
+    const array_1d<double, 3> master_normal = p_cond_geom2->UnitNormal(p_cond_geom2->Center());
+    for (auto& r_node : p_cond_geom2->Points()) {
+        r_node.FastGetSolutionStepValue(NORMAL) = master_normal;
+    }
 
     // Creating conditions
     auto& r_prototype = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("MeshTyingMortarCondition2D2N"));
@@ -277,6 +287,7 @@ void GenerateMeshTyingSimplestModelPart(ModelPart& rModelPart)
 void GenerateMeshTyingModelPart(ModelPart& rModelPart)
 {
     // Adding variable
+    rModelPart.AddNodalSolutionStepVariable(NORMAL);
     rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
     rModelPart.AddNodalSolutionStepVariable(SCALAR_LAGRANGE_MULTIPLIER);
 
@@ -306,7 +317,7 @@ void GenerateMeshTyingModelPart(ModelPart& rModelPart)
 
     /// Add dof
     for (auto& r_node : rModelPart.Nodes()) {
-        r_node.AddDof(TEMPERATURE, REACTION_FLUX);
+        r_node.AddDof(TEMPERATURE);
         r_node.AddDof(SCALAR_LAGRANGE_MULTIPLIER);
     }
 
@@ -329,6 +340,19 @@ void GenerateMeshTyingModelPart(ModelPart& rModelPart)
 
     // Calculate normal
     const array_1d<double, 3> slave_normal = p_cond_geom1->UnitNormal(p_cond_geom1->Center());
+    for (auto& r_node : p_cond_geom1->Points()) {
+        r_node.FastGetSolutionStepValue(NORMAL) = slave_normal;
+    }
+    for (auto& r_node : p_cond_geom2->Points()) {
+        r_node.FastGetSolutionStepValue(NORMAL) = slave_normal;
+    }
+    const array_1d<double, 3> master_normal = p_cond_geom3->UnitNormal(p_cond_geom3->Center());
+    for (auto& r_node : p_cond_geom3->Points()) {
+        r_node.FastGetSolutionStepValue(NORMAL) = master_normal;
+    }
+    for (auto& r_node : p_cond_geom4->Points()) {
+        r_node.FastGetSolutionStepValue(NORMAL) = master_normal;
+    }
 
     // Creating conditions
     auto& r_prototype = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get("MeshTyingMortarCondition2D2N"));
