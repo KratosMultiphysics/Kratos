@@ -13,7 +13,6 @@
 // System includes
 #include <algorithm>
 #include <cmath>
-#include <functional>
 #include <numeric>
 #include <tuple>
 #include <type_traits>

@@ -58,6 +58,9 @@ public:
 
     using DataLocation = Globals::DataLocation;
 
+    template<class TDataType>
+    using ItemPositionType = std::conditional_t<std::is_arithmetic_v<TDataType>, IndexType, IndicesType>;
+
     ///@}
     ///@name Class definitions
     ///@{
@@ -120,30 +123,7 @@ public:
         std::vector<TDataType> mGroupVariance;
 
         ///@}
-        ///@name Friends
-        ///@{
-
-
-        ///@}
     };
-
-    ///@}
-    ///@name Dependent type definitions
-    ///@{
-
-    using DistributionInfoType = std::variant<
-                                        DistributionInfo<int>,
-                                        DistributionInfo<double>,
-                                        DistributionInfo<array_1d<double, 3>>,
-                                        DistributionInfo<array_1d<double, 4>>,
-                                        DistributionInfo<array_1d<double, 6>>,
-                                        DistributionInfo<array_1d<double, 9>>,
-                                        DistributionInfo<Vector>,
-                                        DistributionInfo<Matrix>
-                                    >;
-
-    template<class TDataType>
-    using ItemPositionType = std::conditional_t<std::is_arithmetic_v<TDataType>, IndexType, IndicesType>;
 
     ///@}
     ///@name Static operations
