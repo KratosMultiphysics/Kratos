@@ -142,6 +142,9 @@ public:
                                         DistributionInfo<Matrix>
                                     >;
 
+    template<class TDataType>
+    using ItemPositionType = std::conditional_t<std::is_arithmetic_v<TDataType>, IndexType, IndicesType>;
+
     ///@}
     ///@name Static operations
     ///@{
@@ -204,7 +207,7 @@ public:
         const typename Norms::NormType<TDataType>::type& rNorm);
 
     template<class TDataType>
-    static std::tuple<TDataType, SpatialMethods::IndicesType> Min(
+    static std::tuple<TDataType, ItemPositionType<TDataType>> Min(
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation);
@@ -217,7 +220,7 @@ public:
         const std::string& rNormType);
 
     template<class TDataType>
-    static std::tuple<TDataType, SpatialMethods::IndicesType> Max(
+    static std::tuple<TDataType, ItemPositionType<TDataType>> Max(
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation);
@@ -230,7 +233,7 @@ public:
         const std::string& rNormType);
 
     template<class TDataType>
-    static std::tuple<TDataType, SpatialMethods::IndicesType> Median(
+    static std::tuple<TDataType, ItemPositionType<TDataType>> Median(
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation);

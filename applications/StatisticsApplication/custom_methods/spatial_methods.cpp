@@ -158,7 +158,9 @@ public:
     ///@name Type definitions
     ///@{
 
-    using IndicesTraits = DataTypeTraits<IndicesType>;
+    using ItemPositionType = SpatialMethods::ItemPositionType<TDataType>;
+
+    using IndicesTraits = DataTypeTraits<ItemPositionType>;
 
     using OperationTraits = DataTypeTraits<TDataType>;
 
@@ -174,14 +176,14 @@ public:
     {
         mValue = rValue;
         IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
-        std::fill(mIndices.begin(), mIndices.end(), rId);
+        IndicesTraits::Initialize(mIndices, rId);
     }
 
     ///@}
     ///@name Public operations
     ///@{
 
-    std::tuple<TDataType, IndicesType> GetValue() const
+    std::tuple<TDataType, ItemPositionType> GetValue() const
     {
         return std::make_tuple(mValue, mIndices);
     }
@@ -195,7 +197,7 @@ public:
         for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
             if (OperationTraits::GetComponent(mValue, i) > OperationTraits::GetComponent(rOther.mValue, i)) {
                 OperationTraits::GetComponent(mValue, i) = OperationTraits::GetComponent(rOther.mValue, i);
-                mIndices[i] = rOther.mIndices[i];
+                IndicesTraits::GetComponent(mIndices, i) = IndicesTraits::GetComponent(rOther.mIndices, i);
             }
         }
     }
@@ -209,12 +211,15 @@ public:
         typename OperationTraits::VectorType local_values;
         OperationTraits::FillToVector(local_values, mValue);
         auto global_values = rDataCommunicator.AllGatherv(local_values);
-        auto global_indices = rDataCommunicator.AllGatherv(mIndices);
+
+        typename IndicesTraits::VectorType local_indices;
+        IndicesTraits::FillToVector(local_indices, mIndices);
+        auto global_indices = rDataCommunicator.AllGatherv(local_indices);
 
 
         for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
             auto& current_value = local_values[i];
-            auto& current_index = mIndices[i];
+            auto& current_index = local_indices[i];
             for (IndexType rank = 0; rank < global_values.size(); ++rank) {
                 if (current_value > global_values[rank][i]) {
                     current_value = global_values[rank][i];
@@ -224,6 +229,7 @@ public:
         }
 
         OperationTraits::FillFromVector(mValue, local_values);
+        IndicesTraits::FillFromVector(mIndices, local_indices);
     }
 
     ///@}
@@ -234,7 +240,7 @@ private:
 
     TDataType mValue;
 
-    IndicesType mIndices;
+    ItemPositionType mIndices;
 
     ///@}
     ///@name Private operations
@@ -257,7 +263,9 @@ public:
     ///@name Type definitions
     ///@{
 
-    using IndicesTraits = DataTypeTraits<IndicesType>;
+    using ItemPositionType = SpatialMethods::ItemPositionType<TDataType>;
+
+    using IndicesTraits = DataTypeTraits<ItemPositionType>;
 
     using OperationTraits = DataTypeTraits<TDataType>;
 
@@ -273,14 +281,14 @@ public:
     {
         mValue = rValue;
         IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
-        std::fill(mIndices.begin(), mIndices.end(), rId);
+        IndicesTraits::Initialize(mIndices, rId);
     }
 
     ///@}
     ///@name Public operations
     ///@{
 
-    std::tuple<TDataType, IndicesType> GetValue() const
+    std::tuple<TDataType, ItemPositionType> GetValue() const
     {
         return std::make_tuple(mValue, mIndices);
     }
@@ -294,7 +302,7 @@ public:
         for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
             if (OperationTraits::GetComponent(mValue, i) < OperationTraits::GetComponent(rOther.mValue, i)) {
                 OperationTraits::GetComponent(mValue, i) = OperationTraits::GetComponent(rOther.mValue, i);
-                mIndices[i] = rOther.mIndices[i];
+                IndicesTraits::GetComponent(mIndices, i) = IndicesTraits::GetComponent(rOther.mIndices, i);
             }
         }
     }
@@ -308,12 +316,15 @@ public:
         typename OperationTraits::VectorType local_values;
         OperationTraits::FillToVector(local_values, mValue);
         auto global_values = rDataCommunicator.AllGatherv(local_values);
-        auto global_indices = rDataCommunicator.AllGatherv(mIndices);
+
+        typename IndicesTraits::VectorType local_indices;
+        IndicesTraits::FillToVector(local_indices, mIndices);
+        auto global_indices = rDataCommunicator.AllGatherv(local_indices);
 
 
         for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
             auto& current_value = local_values[i];
-            auto& current_index = mIndices[i];
+            auto& current_index = local_indices[i];
             for (IndexType rank = 0; rank < global_values.size(); ++rank) {
                 if (current_value < global_values[rank][i]) {
                     current_value = global_values[rank][i];
@@ -323,6 +334,7 @@ public:
         }
 
         OperationTraits::FillFromVector(mValue, local_values);
+        IndicesTraits::FillFromVector(mIndices, local_indices);
     }
 
     ///@}
@@ -333,7 +345,7 @@ private:
 
     TDataType mValue;
 
-    IndicesType mIndices;
+    ItemPositionType mIndices;
 
     ///@}
     ///@name Private operations
@@ -356,7 +368,9 @@ public:
     ///@name Type definitions
     ///@{
 
-    using IndicesTraits = DataTypeTraits<IndicesType>;
+    using ItemPositionType = SpatialMethods::ItemPositionType<TDataType>;
+
+    using IndicesTraits = DataTypeTraits<ItemPositionType>;
 
     using OperationTraits = DataTypeTraits<TDataType>;
 
@@ -372,7 +386,7 @@ public:
     {
         const IndexType data_size = OperationTraits::Size(TDataType{});
         mValues.resize(data_size);
-        mResultantIndex.resize(data_size);
+        IndicesTraits::Resize(mResultantIndex, {data_size});
     }
 
     MedianOperation(
@@ -384,7 +398,7 @@ public:
         const IndexType data_size = OperationTraits::Size(rValue);
         if (mValues.size() != data_size) {
             mValues.resize(data_size);
-            mResultantIndex.resize(data_size);
+            IndicesTraits::Resize(mResultantIndex, {data_size});
         }
 
         for (IndexType i = 0; i < data_size; ++i) {
@@ -397,7 +411,7 @@ public:
     ///@name Public operations
     ///@{
 
-    std::tuple<TDataType, IndicesType> GetValue() const
+    std::tuple<TDataType, ItemPositionType> GetValue() const
     {
         return std::make_tuple(mResultantValue, mResultantIndex);
     }
@@ -408,7 +422,7 @@ public:
         // such as Vector and Matrices are used.
         if (mValues.size() != rOther.mValues.size()) {
             mValues.resize(rOther.mValues.size());
-            mResultantIndex.resize(rOther.mValues.size());
+            IndicesTraits::Resize(mResultantIndex, {rOther.mValues.size()});
         }
 
         // iterate through each component
@@ -437,13 +451,13 @@ public:
         if (mValues.size() != data_size) {
             mValues.resize(data_size);
             OperationTraits::SynchronizeSize(mResultantValue, rDataCommunicator);
-            mResultantIndex.resize(data_size);
+            IndicesTraits::Resize(mResultantIndex, {data_size});
             results.resize(data_size);
         }
 
         for (IndexType i_comp = 0; i_comp < data_size; ++i_comp) {
             auto& current_median_value = results[i_comp];
-            auto& current_median_index = mResultantIndex[i_comp];
+            auto& current_median_index = IndicesTraits::GetComponent(mResultantIndex, i_comp);
             const auto& current_values = mValues[i_comp];
 
             // get the values in rank 0
@@ -452,8 +466,8 @@ public:
             const auto& global_values = rDataCommunicator.Gatherv(local_values, 0);
 
             // get the indices in rank 0
-            std::vector<IndexType> local_indices(current_values.size());
-            std::transform(current_values.begin(), current_values.end(), local_indices.begin(), [](const auto& rV) { return std::get<1>(rV); });
+            typename IndicesTraits::VectorType local_indices;
+            IndicesTraits::FillToVector(local_indices, mResultantIndex);
             const auto& global_indices = rDataCommunicator.Gatherv(local_indices, 0);
 
             if (rDataCommunicator.Rank() == 0) {
@@ -502,7 +516,7 @@ private:
 
     TDataType mResultantValue;
 
-    IndicesType mResultantIndex;
+    ItemPositionType mResultantIndex;
 
     ///@}
 };
@@ -554,7 +568,7 @@ double GenericSumReduction(
 }
 
 template<class TDataType, template <class T1> class OperationType>
-std::tuple<TDataType, IndicesType> GenericReductionWithIndices(
+std::tuple<TDataType, typename SpatialMethods::ItemPositionType<TDataType>> GenericReductionWithIndices(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
@@ -589,10 +603,9 @@ std::tuple<double, IndexType> GenericReductionWithIndices(
     return std::visit([&rModelPart](auto& rDataContainer, auto& rNorm) {
         using data_container_type = std::decay_t<decltype(rDataContainer)>;
         using norm_type = std::decay_t<decltype(rNorm)>;
-        const auto& value = GenericReductionUtilities::GenericReduction<data_container_type, norm_type, OperationType, true>(
+        return GenericReductionUtilities::GenericReduction<data_container_type, norm_type, OperationType, true>(
                 rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm)
             .GetValue();
-        return std::tuple<double, IndexType>(std::get<0>(value), std::get<1>(value)[0]);
     }, data_container, r_norm_type);
 
     KRATOS_CATCH("");
@@ -720,7 +733,7 @@ std::tuple<double, double> SpatialMethods::Variance(
 }
 
 template<class TDataType>
-std::tuple<TDataType, SpatialMethods::IndicesType> SpatialMethods::Min(
+std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Min(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
@@ -739,7 +752,7 @@ std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(
 }
 
 template<class TDataType>
-std::tuple<TDataType, SpatialMethods::IndicesType> SpatialMethods::Max(
+std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Max(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
@@ -758,7 +771,7 @@ std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(
 }
 
 template<class TDataType>
-std::tuple<TDataType, SpatialMethods::IndicesType> SpatialMethods::Median(
+std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Median(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
@@ -1079,11 +1092,11 @@ SpatialMethods::DistributionInfoType SpatialMethods::Distribution(
     template double SpatialMethods::RootMeanSquare(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);                 \
     template std::tuple<__VA_ARGS__, __VA_ARGS__> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);            \
     template std::tuple<double, double> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);            \
-    template std::tuple<__VA_ARGS__, SpatialMethods::IndicesType> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
+    template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
     template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&); \
-    template std::tuple<__VA_ARGS__, SpatialMethods::IndicesType> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
+    template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
     template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&); \
-    template std::tuple<__VA_ARGS__, SpatialMethods::IndicesType> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
+    template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
     template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&); \
     template SpatialMethods::DistributionInfoType SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const std::string&, const DataLocation&, Parameters);
 
