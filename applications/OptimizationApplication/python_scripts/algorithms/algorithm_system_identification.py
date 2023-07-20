@@ -120,10 +120,6 @@ class AlgorithmSystemIdentification(Algorithm):
 
                 search_direction *= -1.0
 
-                # search_direction = gradient_vector.reshape(gradient_vector.shape[0]) / np.max(np.abs(gradient_vector))
-
-                # search_direction = container_expression.Evaluate() * -10e16
-
                 Kratos.Expression.CArrayExpressionIO.Read(container_expression, search_direction)
 
         self.algorithm_data.GetBufferedData()["search_direction"] = obj_gradient_expressions_output
@@ -184,9 +180,9 @@ class AlgorithmSystemIdentification(Algorithm):
 
                 obj_info = self.__objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
-                self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
+                self.algorithm_data.GetBufferedData()["rel_obj_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
-                    self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
+                    self.algorithm_data.GetBufferedData()["abs_obj_change[%]"] = obj_info["abs_change [%]"]
                 print("AlgorithmSystemIdentification:: Finished writing obj value to buffer")
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
@@ -195,8 +191,8 @@ class AlgorithmSystemIdentification(Algorithm):
                 self.ComputeSearchDirection(obj_grad)
                 print("AlgorithmSystemIdentification:: Finished search direction computation")
 
-                alpha = self.__line_search_method.ComputeStep()
-                # alpha = 0.01
+                alpha = self.__line_search_method.ComputeStep() # This is not really a "line search method" instead it it more a "specify a step length and it will be applied method"
+                self.algorithm_data.GetBufferedData()["step_size_alpha"] = alpha
                 print("AlgorithmSystemIdentification:: Finished line search")
 
                 self.ComputeControlUpdate(alpha)

@@ -35,10 +35,12 @@ class MaterialPropertiesControlSystemIdentification(Control):
             "model_part_names"     : [""],
             "control_variable_name": "YOUNG_MODULUS",
             "mapping_options":{
-                "use_smoothing": false,
+                "technique_sequence":[""],
                 "smoothing_technique":"element_node_element",
                 "num_smoothing_iterations" : 3,
-                "set_sensitivity_to_zero_for_nodes": []
+                "set_sensitivity_to_zero_for_nodes": [],
+                "exponential_mapping_exponent": 2
+
             }
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -58,7 +60,7 @@ class MaterialPropertiesControlSystemIdentification(Control):
 
         self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
 
-        self.excluded_nodes = Kratos.Vector()# self.mapping_options["set_sensitivity_to_zero_for_nodes"].GetVector()
+        self.excluded_nodes = Kratos.Vector()  # self.mapping_options["set_sensitivity_to_zero_for_nodes"].GetVector()
 
     def Initialize(self) -> None:
         ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
@@ -103,12 +105,35 @@ class MaterialPropertiesControlSystemIdentification(Control):
 
         cloned_container_expression = physical_gradient_variable_container_expression_map[self.controlled_physical_variable].Clone()
 
-        if self.mapping_options["use_smoothing"].GetBool():
-            if self.mapping_options["smoothing_technique"].GetString() == "element_node_element":
-                self._ElementNodeElementSmoothingForExpressionValues(
-                    container_expression=cloned_container_expression)
+        mapping_techniques_list = self.mapping_options["technique_sequence"].GetStringArray()
+
+        for technique in mapping_techniques_list:
+
+            if technique == "smoothing":
+
+                if self.mapping_options["smoothing_technique"].GetString() == "element_node_element":
+                    self._ElementNodeElementSmoothingForExpressionValues(
+                        container_expression=cloned_container_expression)
+                else:
+                    raise ValueError(self.mapping_options["smoothing_technique"], "Only 'element_node_element' is allowed as a smoothing_technique.")
+
+            elif technique == "exponential_mapping":
+
+                gradient = cloned_container_expression.Evaluate()
+                gradient_abs = np.abs(gradient)
+                gradient_mapped = (gradient_abs-np.min(gradient_abs))/(np.max(gradient_abs)-np.min(gradient_abs))
+                n = self.mapping_options["exponential_mapping_exponent"].GetDouble()
+                scaling = ((np.power(np.e, n))-1)
+                gradient_mapped = np.exp(gradient_mapped)
+                gradient_mapped = np.power(gradient_mapped, n)
+                gradient_mapped = gradient_mapped-1
+                gradient_mapped /= scaling
+                gradient_abs = (gradient_mapped * (np.max(gradient_abs)-np.min(gradient_abs))) + np.min(gradient_abs)
+                gradient = gradient_abs * np.sign(gradient)
+                Kratos.Expression.CArrayExpressionIO.Read(cloned_container_expression, gradient)
+
             else:
-                raise ValueError(self.mapping_options["smoothing_technique"], "Only 'element_node_element' is allowed as a smoothing_technique.")
+                raise RuntimeError(f"Mapping technique '{technique}' is not defined. \n Currently only 'smoothing' and 'exponential_mapping' are available.")
 
         return cloned_container_expression
 
@@ -116,14 +141,10 @@ class MaterialPropertiesControlSystemIdentification(Control):
         if list_of_ids.Size() > 0:
             sensitivities = container_expression.Evaluate()
 
-            # print("Sensis: ",sensitivities)
-
             for ID in list_of_ids:
                 sensitivities[int(ID)] = 0
 
             Kratos.Expression.CArrayExpressionIO.Read(container_expression, sensitivities)
-
-            # print("Sensis2: ",container_expression.Evaluate())
 
     def _ElementNodeElementSmoothingForExpressionValues(self, container_expression: "ContainerExpressionTypes") -> None:
 
