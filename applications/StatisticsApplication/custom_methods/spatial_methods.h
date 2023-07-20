@@ -150,32 +150,56 @@ public:
     ///@{
 
     template<class TDataType>
-    static MethodReturnType<TDataType> Sum(
+    static TDataType Sum(
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
-        const std::string& rNormType,
         const DataLocation& rLocation);
 
     template<class TDataType>
-    static MethodReturnType<TDataType> Mean(
+    static double Sum(
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
-        const std::string& rNormType,
+        const DataLocation& rLocation,
+        const std::string& rNormType);
+
+    template<class TDataType>
+    static TDataType Mean(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
         const DataLocation& rLocation);
 
     template<class TDataType>
-    static MethodReturnType<TDataType> RootMeanSquare(
+    static double Mean(
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
-        const std::string& rNormType,
+        const DataLocation& rLocation,
+        const std::string& rNormType);
+
+    template<class TDataType>
+    static TDataType RootMeanSquare(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
         const DataLocation& rLocation);
 
     template<class TDataType>
-    static std::tuple<MethodReturnType<TDataType>, MethodReturnType<TDataType>> Variance(
+    static double RootMeanSquare(
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
-        const std::string& rNormType,
+        const DataLocation& rLocation,
+        const std::string& rNormType);
+
+    template<class TDataType>
+    static std::tuple<TDataType, TDataType> Variance(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
         const DataLocation& rLocation);
+
+    template<class TDataType>
+    static std::tuple<double, double> Variance(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const DataLocation& rLocation,
+        const std::string& rNormType);
 
     // template<class TDataType>
     // static SupportedDataType Median(
@@ -640,12 +664,7 @@ public:
         template <class TDataType>
         TDataType static CalculateSum(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
         {
-            KRATOS_TRY
-
-            const auto value = Sum(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            return std::get<TDataType>(value);
-
-            KRATOS_CATCH("");
+            return Sum(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
         }
 
         template <class TDataType>
@@ -655,23 +674,13 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            KRATOS_TRY
-
-            const auto value = Sum(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            return std::get<double>(value);
-
-            KRATOS_CATCH("");
+            return Sum(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
         }
 
         template <class TDataType>
         TDataType static CalculateRootMeanSquare(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
         {
-            KRATOS_TRY
-
-            const auto value = RootMeanSquare(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            return std::get<TDataType>(value);
-
-            KRATOS_CATCH("");
+            return RootMeanSquare(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
         }
 
         template <class TDataType>
@@ -681,19 +690,13 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            KRATOS_TRY
-
-            const auto value = RootMeanSquare(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            return std::get<double>(value);
-
-            KRATOS_CATCH("");
+            return RootMeanSquare(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
         }
 
         template <class TDataType>
         TDataType static CalculateMean(const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
         {
-            const auto value = Mean(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            return std::get<TDataType>(value);
+            return Mean(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
         }
 
         template <class TDataType>
@@ -703,18 +706,14 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            const auto value = Mean(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            return std::get<double>(value);
+            return Mean(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
         }
 
         template <class TDataType>
         std::tuple<TDataType, TDataType> static CalculateVariance(
             const ModelPart& rModelPart, const Variable<TDataType>& rVariable)
         {
-            const auto& value = Variance(rModelPart, rVariable, "value", GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            const TDataType& mean = std::get<TDataType>(std::get<0>(value));
-            const TDataType& variance = std::get<TDataType>(std::get<1>(value));
-            return std::make_tuple(mean, variance);
+            return Variance(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
         }
 
         template <class TDataType>
@@ -724,10 +723,7 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            const auto& value = Variance(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>());
-            const double mean = std::get<double>(std::get<0>(value));
-            const double variance = std::get<double>(std::get<1>(value));
-            return std::make_tuple(mean, variance);
+            return Variance(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
         }
 
         template <class TDataType>

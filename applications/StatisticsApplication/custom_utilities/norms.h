@@ -385,11 +385,9 @@ template<class TDataType,
         std::enable_if_t<std::disjunction_v<
                                 std::is_same<TDataType, int>,
                                 std::is_same<TDataType, double>>, bool> = true>
-static std::variant<Norms::Value, Norms::L2, Norms::Infinity> GetNorm(const std::string& rNormType)
+static std::variant<Norms::L2, Norms::Infinity> GetNorm(const std::string& rNormType)
 {
-    if (rNormType == "value") {
-        return Value();
-    } else if (rNormType == "l2") {
+    if (rNormType == "l2") {
         return L2();
     } else if (rNormType == "magnitude") {
         return L2();
@@ -412,11 +410,9 @@ template<class TDataType,
                                 std::is_same<TDataType, array_1d<double, 6>>,
                                 std::is_same<TDataType, array_1d<double, 9>>,
                                 std::is_same<TDataType, Vector>>, bool> = true>
-static std::variant<Norms::Value, Norms::L2, Norms::Infinity, Norms::P, Norms::VectorComponent> GetNorm(const std::string& rNormType)
+static std::variant<Norms::L2, Norms::Infinity, Norms::P, Norms::VectorComponent> GetNorm(const std::string& rNormType)
 {
-    if (rNormType == "value") {
-        return Value();
-    } else if (rNormType == "l2") {
+    if (rNormType == "l2") {
         return L2();
     } else if (rNormType == "magnitude") {
         return L2();
@@ -455,11 +451,9 @@ static std::variant<Norms::Value, Norms::L2, Norms::Infinity, Norms::P, Norms::V
 
 template<class TDataType,
         std::enable_if_t<std::is_same_v<TDataType, Matrix>, bool> = true>
-static std::variant<Norms::Value, Norms::L2, Norms::Infinity, Norms::P, Norms::MatrixComponent, Norms::Trace, Norms::LPQ> GetNorm(const std::string& rNormType)
+static std::variant<Norms::L2, Norms::Infinity, Norms::P, Norms::MatrixComponent, Norms::Trace, Norms::LPQ> GetNorm(const std::string& rNormType)
 {
-    if (rNormType == "value") {
-        return Value();
-    } else if (rNormType == "magnitude") {
+    if (rNormType == "magnitude") {
         return L2();
     } else if (rNormType == "frobenius") {
         return L2();

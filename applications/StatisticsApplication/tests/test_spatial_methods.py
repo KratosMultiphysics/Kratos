@@ -221,13 +221,13 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                     item_method_norm_container = GetNormTypeContainer(
                         item_method_container, norm_type)
 
-                    if (norm_type == "none"
+                    if ((norm_type == "none" or norm_type == "value")
                             and test_method_name in self.norm_only_methods):
                         continue
 
                     test_method = GetMethod(item_method_norm_container,
                                             test_method_name)
-                    if (norm_type == "none"):
+                    if (norm_type == "none" or norm_type == "value"):
                         method_value = test_method(self.model_part, variable)
                     else:
                         method_value = test_method(self.model_part, variable,

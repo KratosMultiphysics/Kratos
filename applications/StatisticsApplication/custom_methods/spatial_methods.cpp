@@ -252,11 +252,31 @@ private:
 
 
 template<class TDataType, int TPower = 1>
-SpatialMethods::MethodReturnType<TDataType> GenericSumReduction(
+TDataType GenericSumReduction(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
-    const std::string& rNormType,
     const DataLocation& rLocation)
+{
+    KRATOS_TRY
+
+    const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
+
+    return std::visit([&rModelPart](auto& rDataContainer) {
+        using data_container_type = std::decay_t<decltype(rDataContainer)>;
+        return GenericReductionUtilities::GenericReduction<data_container_type, Norms::Value, SumOperation, false, TPower>(
+                rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, Norms::Value())
+            .GetValue();
+    }, data_container);
+
+    KRATOS_CATCH("");
+}
+
+template<class TDataType, int TPower = 1>
+double GenericSumReduction(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    const std::string& rNormType)
 {
     KRATOS_TRY
 
@@ -264,7 +284,7 @@ SpatialMethods::MethodReturnType<TDataType> GenericSumReduction(
 
     const auto r_norm_type = Norms::GetNorm<TDataType>(rNormType);
 
-    return std::visit([&rModelPart](auto& rDataContainer, auto& rNorm) -> SpatialMethods::MethodReturnType<TDataType> {
+    return std::visit([&rModelPart](auto& rDataContainer, auto& rNorm) -> double {
         using data_container_type = std::decay_t<decltype(rDataContainer)>;
         using norm_type = std::decay_t<decltype(rNorm)>;
         return GenericReductionUtilities::GenericReduction<data_container_type, norm_type, SumOperation, false, TPower>(
@@ -307,74 +327,102 @@ std::tuple<SpatialMethods::MethodReturnType<TDataType>, IndicesType> GenericRedu
 } // namespace SpatialMethodHelperUtilities
 
 template<class TDataType>
-SpatialMethods::MethodReturnType<TDataType> SpatialMethods::Sum(
+TDataType SpatialMethods::Sum(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
-    const std::string& rNormType,
     const DataLocation& rLocation)
 {
     return SpatialMethodHelperUtilities::GenericSumReduction<TDataType, 1>(
-        rModelPart, rVariable, rNormType, rLocation);
+        rModelPart, rVariable, rLocation);
 }
 
 template<class TDataType>
-SpatialMethods::MethodReturnType<TDataType> SpatialMethods::Mean(
+double SpatialMethods::Sum(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
-    const std::string& rNormType,
+    const DataLocation& rLocation,
+    const std::string& rNormType)
+{
+    return SpatialMethodHelperUtilities::GenericSumReduction<TDataType, 1>(
+        rModelPart, rVariable, rLocation, rNormType);
+}
+
+template<class TDataType>
+TDataType SpatialMethods::Mean(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
     const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
-    const auto& sum = Sum(rModelPart, rVariable, rNormType, rLocation);
-    return std::visit([number_of_items](const auto& rSum) -> MethodReturnType<TDataType> {
-            using return_type = std::decay_t<decltype(rSum)>;
-            return static_cast<return_type>(rSum / std::max(number_of_items, 1.0));
-        },
-        sum);
+    return Sum(rModelPart, rVariable, rLocation) / std::max(number_of_items, 1.0);
 }
 
 template<class TDataType>
-SpatialMethods::MethodReturnType<TDataType> SpatialMethods::RootMeanSquare(
+double SpatialMethods::Mean(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
-    const std::string& rNormType,
+    const DataLocation& rLocation,
+    const std::string& rNormType)
+{
+    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
+    return Sum(rModelPart, rVariable, rLocation, rNormType) / std::max(number_of_items, 1.0);
+}
+
+template<class TDataType>
+TDataType SpatialMethods::RootMeanSquare(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
     const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
-    auto sum_square = SpatialMethodHelperUtilities::GenericSumReduction<TDataType, 2>(rModelPart, rVariable, rNormType, rLocation);
-    return std::visit([number_of_items](auto& rSquareSum) -> MethodReturnType<TDataType> {
-            using return_type = std::decay_t<decltype(rSquareSum)>;
-            const auto number_of_components = DataTypeTraits<return_type>::Size(rSquareSum);
-            for (IndexType i = 0; i < number_of_components; ++i) {
-                auto& v = DataTypeTraits<return_type>::GetComponent(rSquareSum, i);
-                v = std::pow(v / std::max(number_of_items, 1.0), 0.5);
-            }
-            return rSquareSum;
-        },
-        sum_square);
+    auto sum_square = SpatialMethodHelperUtilities::GenericSumReduction<TDataType, 2>(rModelPart, rVariable, rLocation);
+
+    const auto number_of_components = DataTypeTraits<TDataType>::Size(sum_square);
+    for (IndexType i = 0; i < number_of_components; ++i) {
+        auto& v = DataTypeTraits<TDataType>::GetComponent(sum_square, i);
+        v = std::pow(v / std::max(number_of_items, 1.0), 0.5);
+    }
+    return sum_square;
 }
 
 template<class TDataType>
-std::tuple<SpatialMethods::MethodReturnType<TDataType>, SpatialMethods::MethodReturnType<TDataType>> SpatialMethods::Variance(
+double SpatialMethods::RootMeanSquare(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
-    const std::string& rNormType,
+    const DataLocation& rLocation,
+    const std::string& rNormType)
+{
+    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
+    return std::pow(SpatialMethodHelperUtilities::GenericSumReduction<TDataType, 2>(rModelPart, rVariable, rLocation, rNormType) / std::max(number_of_items, 1.0), 0.5);
+}
+
+template<class TDataType>
+std::tuple<TDataType, TDataType> SpatialMethods::Variance(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
-    const auto& mean = Mean(rModelPart, rVariable, rNormType, rLocation);
-    auto rms = RootMeanSquare(rModelPart, rVariable, rNormType, rLocation);
+    const auto& mean = Mean(rModelPart, rVariable, rLocation);
+    auto rms = RootMeanSquare(rModelPart, rVariable, rLocation);
 
-    return std::visit([&mean](auto& rRMS) {
-            using return_type = std::decay_t<decltype(rRMS)>;
-            const auto& r_mean = std::get<return_type>(mean);
-            const auto number_of_components = DataTypeTraits<return_type>::Size(rRMS);
-            for (IndexType i = 0; i < number_of_components; ++i) {
-                auto& v = DataTypeTraits<return_type>::GetComponent(rRMS, i);
-                v = std::pow(v, 2) - std::pow(DataTypeTraits<return_type>::GetComponent(r_mean, i), 2);
-            }
-            return std::make_tuple<SpatialMethods::MethodReturnType<TDataType>, SpatialMethods::MethodReturnType<TDataType>>(r_mean, rRMS);
-        },
-        rms);
+    const auto number_of_components = DataTypeTraits<TDataType>::Size(rms);
+    for (IndexType i = 0; i < number_of_components; ++i) {
+        auto& v = DataTypeTraits<TDataType>::GetComponent(rms, i);
+        v = std::pow(v, 2) - std::pow(DataTypeTraits<TDataType>::GetComponent(mean, i), 2);
+    }
+    return std::tuple<TDataType, TDataType>(mean, rms);
+}
+
+template<class TDataType>
+std::tuple<double, double> SpatialMethods::Variance(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    const std::string& rNormType)
+{
+    const double mean = Mean(rModelPart, rVariable, rLocation, rNormType);
+    const double rms = RootMeanSquare(rModelPart, rVariable, rLocation, rNormType);
+    return std::make_tuple(mean, std::pow(rms, 2) - std::pow(mean, 2));
 }
 
     // template<class TDataType>
@@ -699,11 +747,14 @@ SpatialMethods::DistributionInfoType SpatialMethods::Distribution(
 
 // template instantiations
 #define KRATOS_TEMPLATE_VARIABLE_METHOD_INSTANTIATION(...)                                                                                                  \
-    template SpatialMethods::MethodReturnType<__VA_ARGS__> SpatialMethods::Sum(const ModelPart&, const Variable<__VA_ARGS__>&,const std::string&, const DataLocation&);                 \
-    template SpatialMethods::MethodReturnType<__VA_ARGS__> SpatialMethods::Mean(const ModelPart&, const Variable<__VA_ARGS__>&,const std::string&, const DataLocation&);                \
-    template SpatialMethods::MethodReturnType<__VA_ARGS__> SpatialMethods::RootMeanSquare(const ModelPart&, const Variable<__VA_ARGS__>&,const std::string&, const DataLocation&);      \
-    template std::tuple<SpatialMethods::MethodReturnType<__VA_ARGS__>, SpatialMethods::MethodReturnType<__VA_ARGS__>> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&,const std::string&, const DataLocation&);            \
-    template std::tuple<SpatialMethods::MethodReturnType<__VA_ARGS__>, SpatialMethods::IndicesType> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const std::string&, const DataLocation&); \
+    template __VA_ARGS__ SpatialMethods::Sum(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
+    template double SpatialMethods::Sum(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&);                 \
+    template __VA_ARGS__ SpatialMethods::Mean(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
+    template double SpatialMethods::Mean(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&);                 \
+    template __VA_ARGS__ SpatialMethods::RootMeanSquare(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
+    template double SpatialMethods::RootMeanSquare(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&);                 \
+    template std::tuple<__VA_ARGS__, __VA_ARGS__> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);            \
+    template std::tuple<double, double> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&);            \
     template SpatialMethods::DistributionInfoType SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const std::string&, const DataLocation&, Parameters);
 
 KRATOS_TEMPLATE_VARIABLE_METHOD_INSTANTIATION(double)
