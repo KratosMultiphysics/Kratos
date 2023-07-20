@@ -608,8 +608,8 @@ namespace Kratos::Testing
 
         std::vector<ModelPart::IndexType> element_nodes{1, local_index, ghost_index};
 
-        GeometryType::Pointer p_geometry = Kratos::make_shared<Triangle2D3<NodeType>>(
-            PointerVector<NodeType>{std::vector<NodeType::Pointer>({p_center, p_node_1, p_node_2})});
+        GeometryType::Pointer p_geometry = Kratos::make_shared<Triangle2D3<Node>>(
+            PointerVector<Node>{std::vector<Node::Pointer>({p_center, p_node_1, p_node_2})});
 
         rRootModelPart.AddElement(Kratos::make_intrusive<TestElement>(rank+1, p_geometry, p_properties));
 
