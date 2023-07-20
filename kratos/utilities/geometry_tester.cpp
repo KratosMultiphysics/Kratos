@@ -1049,7 +1049,7 @@ bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesInterpolation(
 
     Matrix exact_hess = ZeroMatrix(Dim, Dim);
 
-    rGeometry.ShapeFunctionsIntegrationPointsSecondDerivatives( DDN_DDX, integration_method );
+    GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints( DDN_DDX, rGeometry, integration_method );
 
     Matrix NContainer = rGeometry.ShapeFunctionsValues(integration_method);
 
