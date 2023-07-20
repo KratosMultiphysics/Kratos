@@ -24,7 +24,8 @@
 
 /* Geometries */
 #include "geometries/line_2d_2.h"
-#include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/quadrilateral_2d_4.h"
 
 /* Linear solvers */
 #include "spaces/ublas_space.h"
@@ -184,10 +185,14 @@ void CheckSolution(ModelPart& rModelPart)
 
 //     // Creating nodes 
 //     auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-//     auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+//     auto pnode2 = rModelPart.CreateNewNode(2, 0.5, 0.0, 0.0);
 //     auto pnode3 = rModelPart.CreateNewNode(3, 0.5, 0.5, 0.0);
-//     auto pnode4 = rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
-//     auto pnode5 = rModelPart.CreateNewNode(5, 1.0, 1.0, 0.0);
+//     auto pnode4 = rModelPart.CreateNewNode(4, 0.0, 0.5, 0.0);
+//     auto pnode5 = rModelPart.CreateNewNode(5, 0.5, 1.0, 0.0);
+//     auto pnode6 = rModelPart.CreateNewNode(6, 0.0, 1.0, 0.0);
+//     auto pnode7 = rModelPart.CreateNewNode(7, 1.0, 0.0, 0.0);
+//     auto pnode8 = rModelPart.CreateNewNode(8, 1.0, 0.5, 0.0);
+//     auto pnode9 = rModelPart.CreateNewNode(9, 1.0, 1.0, 0.0);
 
 //     /// Add dof
 //     for (auto& r_node : rModelPart.Nodes()) {
@@ -195,13 +200,13 @@ void CheckSolution(ModelPart& rModelPart)
 //     }
 
 //     // Creating elements
-//     GeometryType::Pointer p_elem_geom1 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2, pnode3})});
+//     GeometryType::Pointer p_elem_geom1 = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2, pnode3, pnode4})});
 //     rModelPart.AddElement(Kratos::make_intrusive<TestLaplacianElement>( 1, p_elem_geom1, p_prop));
-//     GeometryType::Pointer p_elem_geom2 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode3, pnode4, pnode1})});
+//     GeometryType::Pointer p_elem_geom2 = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode4, pnode3, pnode5, pnode6})});
 //     rModelPart.AddElement(Kratos::make_intrusive<TestLaplacianElement>( 2, p_elem_geom2, p_prop));
-//     GeometryType::Pointer p_elem_geom3 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode5, pnode3, pnode2})});
+//     GeometryType::Pointer p_elem_geom3 = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode7, pnode8, pnode3})});
 //     rModelPart.AddElement(Kratos::make_intrusive<TestLaplacianElement>( 3, p_elem_geom3, p_prop));
-//     GeometryType::Pointer p_elem_geom4 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode3, pnode5, pnode4})});
+//     GeometryType::Pointer p_elem_geom4 = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode8, pnode9, pnode5, pnode3})});
 //     rModelPart.AddElement(Kratos::make_intrusive<TestLaplacianElement>( 4, p_elem_geom4, p_prop));
 
 //     // Set BC
@@ -261,11 +266,6 @@ void GenerateMeshTyingSimplestModelPart(ModelPart& rModelPart)
     p_cond_1->SetValue(NORMAL, slave_normal);
     rModelPart.AddCondition(p_cond_1);
 
-    /// Initialize conditions
-    for (auto& r_cond : rModelPart.Conditions()) {
-        r_cond.Set(ACTIVE, true);
-    }
-
     // Set BC
     SetBC(rModelPart);
 }
@@ -290,15 +290,19 @@ void GenerateMeshTyingModelPart(ModelPart& rModelPart)
     // Creating nodes 
     // First we create first side nodes
     auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+    auto pnode2 = rModelPart.CreateNewNode(2, 0.5, 0.0, 0.0);
     auto pnode3 = rModelPart.CreateNewNode(3, 0.5, 0.5, 0.0);
-    auto pnode4 = rModelPart.CreateNewNode(4, 0.0, 1.0, 0.0);
+    auto pnode4 = rModelPart.CreateNewNode(4, 0.0, 0.5, 0.0);
+    auto pnode5 = rModelPart.CreateNewNode(5, 0.5, 1.0, 0.0);
+    auto pnode6 = rModelPart.CreateNewNode(6, 0.0, 1.0, 0.0);
 
     // Now we create second side nodes
-    auto pnode5 = rModelPart.CreateNewNode(5, 1.0, 0.0, 0.0);
-    auto pnode6 = rModelPart.CreateNewNode(6, 1.0, 1.0, 0.0);
-    auto pnode7 = rModelPart.CreateNewNode(7, 0.5, 0.5, 0.0);
-    auto pnode8 = rModelPart.CreateNewNode(8, 0.0, 1.0, 0.0);
+    auto pnode7 = rModelPart.CreateNewNode(7, 0.5, 0.0, 0.0);
+    auto pnode8 = rModelPart.CreateNewNode(8, 1.0, 0.0, 0.0);
+    auto pnode9 = rModelPart.CreateNewNode(9, 1.0, 0.5, 0.0);
+    auto pnode10 = rModelPart.CreateNewNode(10, 0.5, 0.5, 0.0);
+    auto pnode11 = rModelPart.CreateNewNode(11, 1.0, 1.0, 0.0);
+    auto pnode12 = rModelPart.CreateNewNode(12, 0.5, 1.0, 0.0);
 
     /// Add dof
     for (auto& r_node : rModelPart.Nodes()) {
@@ -307,20 +311,21 @@ void GenerateMeshTyingModelPart(ModelPart& rModelPart)
     }
 
     // Creating elements
-    GeometryType::Pointer p_elem_geom1 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2, pnode3})});
+    GeometryType::Pointer p_elem_geom1 = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode1, pnode2, pnode3, pnode4})});
     rModelPart.AddElement(Kratos::make_intrusive<TestLaplacianElement>( 1, p_elem_geom1, p_prop));
-    GeometryType::Pointer p_elem_geom2 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode3, pnode4, pnode1})});
+    GeometryType::Pointer p_elem_geom2 = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode4, pnode3, pnode5, pnode6})});
     rModelPart.AddElement(Kratos::make_intrusive<TestLaplacianElement>( 2, p_elem_geom2, p_prop));
-    GeometryType::Pointer p_elem_geom3 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode5, pnode6, pnode7})});
+
+    GeometryType::Pointer p_elem_geom3 = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode7, pnode8, pnode9, pnode10})});
     rModelPart.AddElement(Kratos::make_intrusive<TestLaplacianElement>( 3, p_elem_geom3, p_prop));
-    GeometryType::Pointer p_elem_geom4 = Kratos::make_shared<Triangle2D3<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode6, pnode7, pnode5})});
+    GeometryType::Pointer p_elem_geom4 = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode10, pnode9, pnode11, pnode12})});
     rModelPart.AddElement(Kratos::make_intrusive<TestLaplacianElement>( 4, p_elem_geom4, p_prop));
 
     // Conditions geometries
     GeometryType::Pointer p_cond_geom1 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode2, pnode3})});
-    GeometryType::Pointer p_cond_geom2 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode3, pnode4})});
-    GeometryType::Pointer p_cond_geom3 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode7, pnode5})});
-    GeometryType::Pointer p_cond_geom4 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode8, pnode7})});
+    GeometryType::Pointer p_cond_geom2 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode3, pnode5})});
+    GeometryType::Pointer p_cond_geom3 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode10, pnode7})});
+    GeometryType::Pointer p_cond_geom4 = Kratos::make_shared<Line2D2<Node>>(PointerVector<Node>{std::vector<Node::Pointer>({pnode12, pnode10})});
 
     // Calculate normal
     const array_1d<double, 3> slave_normal = p_cond_geom1->UnitNormal(p_cond_geom1->Center());
@@ -333,11 +338,6 @@ void GenerateMeshTyingModelPart(ModelPart& rModelPart)
     Condition::Pointer p_cond_2 = r_prototype.Create(2, p_cond_geom2, p_prop, p_cond_geom4);
     p_cond_2->SetValue(NORMAL, slave_normal);
     rModelPart.AddCondition(p_cond_2);
-
-    /// Initialize conditions
-    for (auto& r_cond : rModelPart.Conditions()) {
-        r_cond.Set(ACTIVE, true);
-    }
 
     // Set BC
     SetBC(rModelPart);
@@ -390,28 +390,27 @@ KRATOS_TEST_CASE_IN_SUITE(MeshTyingCondition1, KratosContactStructuralMechanicsF
     CheckSolution(r_model_part);
 }
 
-// TODO: Fix!
-// /** 
-// * Checks the correct work of the mesh tying condition
-// */
-// KRATOS_TEST_CASE_IN_SUITE(MeshTyingCondition2, KratosContactStructuralMechanicsFastSuite)
-// {
-//     // Create model part
-//     Model this_model;
-//     ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
+/** 
+* Checks the correct work of the mesh tying condition
+*/
+KRATOS_TEST_CASE_IN_SUITE(MeshTyingCondition2, KratosContactStructuralMechanicsFastSuite)
+{
+    // Create model part
+    Model this_model;
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
 
-//     // Fill test model part
-//     //GenerateReferenceModelPart(r_model_part);
-//     GenerateMeshTyingModelPart(r_model_part);
+    // Fill test model part
+    // GenerateReferenceModelPart(r_model_part);
+    GenerateMeshTyingModelPart(r_model_part);
 
-//     // Solve system
-//     SolveSystem(r_model_part);
+    // Solve system
+    SolveSystem(r_model_part);
 
-//     // Check results
-//     IOMeshTyingDebug(r_model_part);
+    // // Check results
+    // IOMeshTyingDebug(r_model_part);
 
-//     // Check solutions
-//     CheckSolution(r_model_part);
-// }
+    // Check solutions
+    CheckSolution(r_model_part);
+}
 
 }  // namespace Kratos::Testing.
