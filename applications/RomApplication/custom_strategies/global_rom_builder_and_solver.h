@@ -293,9 +293,12 @@ public:
                     if (value > 0.0) {
                         const auto j = index2_vector[k];
                         if (j > i) {
-                            rA(i,j) -= value;
-                            rA(j,i) -= value;
+                            // TODO: Partition in blocks to gain efficiency by avoiding thread locks.
                             // Values conflicting with other threads
+                            auto& r_aij = rA(i,j).ref();
+                            AtomicAdd(r_aij, -value);
+                            auto& r_aji = rA(j,i).ref();
+                            AtomicAdd(r_aji, -value);
                             auto& r_aii = rA(i,i).ref();
                             AtomicAdd(r_aii, value);
                             auto& r_ajj = rA(j,j).ref();
