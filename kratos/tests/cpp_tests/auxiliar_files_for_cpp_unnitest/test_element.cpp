@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -20,358 +20,351 @@
 #include "includes/variables.h"
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
-    namespace Testing
-    {
-    //***********************DEFAULT CONSTRUCTOR******************************************//
-    //************************************************************************************//
+//***********************DEFAULT CONSTRUCTOR******************************************//
+//************************************************************************************//
 
-    TestElement::TestElement(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        const ResidualType TheResidualType
-        )
-        : Element( NewId, pGeometry )
-        , mResidualType( TheResidualType )
-    {
-        //DO NOT ADD DOFS HERE!!!
+TestElement::TestElement(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
+    const ResidualType TheResidualType
+    )
+    : Element( NewId, pGeometry )
+    , mResidualType( TheResidualType )
+{
+    //DO NOT ADD DOFS HERE!!!
+}
+
+//******************************CONSTRUCTOR*******************************************//
+//************************************************************************************//
+
+TestElement::TestElement(
+    IndexType NewId, GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties,
+    const ResidualType TheResidualType
+    )
+    : Element( NewId, pGeometry, pProperties )
+    , mResidualType( TheResidualType )
+{
+}
+
+//******************************COPY CONSTRUCTOR**************************************//
+//************************************************************************************//
+
+TestElement::TestElement( TestElement const& rOther)
+    :Element(rOther)
+    ,mResidualType(rOther.mResidualType)
+{
+
+}
+
+//*******************************ASSIGMENT OPERATOR***********************************//
+//************************************************************************************//
+
+TestElement&  TestElement::operator=(TestElement const& rOther)
+{
+    //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
+
+    Element::operator=(rOther);
+
+    return *this;
+}
+
+//*********************************OPERATIONS*****************************************//
+//************************************************************************************//
+
+Element::Pointer TestElement::Create(
+    IndexType NewId,
+    NodesArrayType const& rThisNodes,
+    PropertiesType::Pointer pProperties
+    ) const
+{
+    //NEEDED TO CREATE AN ELEMENT
+    return Kratos::make_intrusive<TestElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mResidualType );
+}
+
+//************************************CLONE*******************************************//
+//************************************************************************************//
+
+Element::Pointer TestElement::Clone(
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
+    //ALL MEMBER VARIABLES THAT MUST BE CLONED HAVE TO BE DEFINED HERE
+
+    TestElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mResidualType );
+
+    return Kratos::make_intrusive<TestElement>(new_element);
+}
+
+//*******************************DESTRUCTOR*******************************************//
+//************************************************************************************//
+
+TestElement::~TestElement()
+{
+}
+
+//******************************GETTING METHODS***************************************//
+//************************************************************************************//
+
+void TestElement::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    const auto& r_geom = GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int local_size = num_nodes * dimension;
+    if (rElementalDofList.size() != local_size) {
+        rElementalDofList.resize(local_size);
     }
 
+    unsigned int local_index = 0;
 
-    //******************************CONSTRUCTOR*******************************************//
-    //************************************************************************************//
-
-    TestElement::TestElement(
-        IndexType NewId, GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties,
-        const ResidualType TheResidualType
-        )
-        : Element( NewId, pGeometry, pProperties )
-        , mResidualType( TheResidualType )
-    {
-    }
-
-    //******************************COPY CONSTRUCTOR**************************************//
-    //************************************************************************************//
-
-    TestElement::TestElement( TestElement const& rOther)
-        :Element(rOther)
-        ,mResidualType(rOther.mResidualType)
-    {
-
-    }
-
-    //*******************************ASSIGMENT OPERATOR***********************************//
-    //************************************************************************************//
-
-    TestElement&  TestElement::operator=(TestElement const& rOther)
-    {
-        //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
-
-        Element::operator=(rOther);
-
-        return *this;
-    }
-
-    //*********************************OPERATIONS*****************************************//
-    //************************************************************************************//
-
-    Element::Pointer TestElement::Create(
-        IndexType NewId,
-        NodesArrayType const& rThisNodes,
-        PropertiesType::Pointer pProperties
-        ) const
-    {
-        //NEEDED TO CREATE AN ELEMENT
-        return Kratos::make_intrusive<TestElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mResidualType );
-    }
-
-
-    //************************************CLONE*******************************************//
-    //************************************************************************************//
-
-    Element::Pointer TestElement::Clone(
-        IndexType NewId,
-        NodesArrayType const& rThisNodes
-        ) const
-    {
-        //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
-        //ALL MEMBER VARIABLES THAT MUST BE CLONED HAVE TO BE DEFINED HERE
-
-        TestElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mResidualType );
-
-        return Kratos::make_intrusive<TestElement>(new_element);
-    }
-
-
-    //*******************************DESTRUCTOR*******************************************//
-    //************************************************************************************//
-
-    TestElement::~TestElement()
-    {
-    }
-
-    //************* GETTING METHODS
-    //************************************************************************************//
-    //************************************************************************************//
-
-    void TestElement::GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const
-    {
-        const auto& r_geom = GetGeometry();
-        const unsigned int num_nodes = r_geom.PointsNumber();
-        const unsigned int dimension = r_geom.WorkingSpaceDimension();
-        const unsigned int local_size = num_nodes * dimension;
-        if (rElementalDofList.size() != local_size)
-            rElementalDofList.resize(local_size);
-
-        unsigned int local_index = 0;
-
-        for (unsigned int i = 0; i < num_nodes; ++i)
-        {
-            rElementalDofList[local_index++] = r_geom[i].pGetDof(DISPLACEMENT_X);
-            rElementalDofList[local_index++] = r_geom[i].pGetDof(DISPLACEMENT_Y);
-            if (dimension == 3)
-                rElementalDofList[local_index++] = r_geom[i].pGetDof(DISPLACEMENT_Z);
+    for (unsigned int i = 0; i < num_nodes; ++i) {
+        rElementalDofList[local_index++] = r_geom[i].pGetDof(DISPLACEMENT_X);
+        rElementalDofList[local_index++] = r_geom[i].pGetDof(DISPLACEMENT_Y);
+        if (dimension == 3) {
+            rElementalDofList[local_index++] = r_geom[i].pGetDof(DISPLACEMENT_Z);
         }
     }
+}
 
-    //************************************************************************************//
-    //************************************************************************************//
+//************************************************************************************//
+//************************************************************************************//
 
-    void TestElement::EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const
-    {
-        const auto& r_geom = GetGeometry();
-        const unsigned int num_nodes = r_geom.PointsNumber();
-        const unsigned int dimension = r_geom.WorkingSpaceDimension();
-        const unsigned int local_size = num_nodes * dimension;
-        if (rResult.size() != local_size)
-            rResult.resize(local_size);
+void TestElement::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    const auto& r_geom = GetGeometry();
+    const unsigned int num_nodes = r_geom.PointsNumber();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const unsigned int local_size = num_nodes * dimension;
+    if (rResult.size() != local_size) {
+        rResult.resize(local_size);
+    }
 
-        unsigned int local_index = 0;
+    unsigned int local_index = 0;
 
-        for (unsigned int i = 0; i < num_nodes; ++i)
-        {
-            rResult[local_index++] = r_geom[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[local_index++] = r_geom[i].GetDof(DISPLACEMENT_Y).EquationId();
-            if (dimension == 3)
-                rResult[local_index++] = r_geom[i].GetDof(DISPLACEMENT_Z).EquationId();
+    for (unsigned int i = 0; i < num_nodes; ++i) {
+        rResult[local_index++] = r_geom[i].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[local_index++] = r_geom[i].GetDof(DISPLACEMENT_Y).EquationId();
+        if (dimension == 3) {
+            rResult[local_index++] = r_geom[i].GetDof(DISPLACEMENT_Z).EquationId();
         }
     }
+}
 
-    //*********************************DISPLACEMENT***************************************//
-    //************************************************************************************//
+//*********************************DISPLACEMENT***************************************//
+//************************************************************************************//
 
-    void TestElement::GetValuesVector( Vector& rValues, int Step ) const
+void TestElement::GetValuesVector( Vector& rValues, int Step ) const
+{
+    //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    if ( rValues.size() != dimension )
+        rValues.resize( dimension, false );
+
+    rValues[0] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_X, Step );
+    rValues[1] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+
+    if ( dimension == 3 )
+        rValues[2] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+}
+
+//************************************VELOCITY****************************************//
+//************************************************************************************//
+
+void TestElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
+{
+    //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    if ( rValues.size() != dimension )
+        rValues.resize( dimension, false );
+
+    rValues[0] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_X, Step );
+    rValues[1] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_Y, Step );
+
+    if ( dimension == 3 )
+        rValues[2] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_Z, Step );
+}
+
+//*********************************ACCELERATION***************************************//
+//************************************************************************************//
+
+void TestElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
+{
+    //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    if ( rValues.size() != dimension )
+        rValues.resize( dimension, false );
+
+    rValues[0] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_X, Step );
+    rValues[1] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Y, Step );
+
+    if ( dimension == 3 )
+        rValues[2] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Z, Step );
+}
+
+//*******************************COMPUTING  METHODS***********************************//
+//************************************************************************************//
+
+void TestElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+
+    KRATOS_TRY;
+
+    /* Calculate elemental system */
+
+    // Compute RHS (RHS = rRightHandSideVector = Fext - Fint)
+    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+
+    // Compute LHS
+    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+    KRATOS_CATCH( "" );
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void TestElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the RHS
+    const unsigned int system_size = dimension;
+
+    if ( rRightHandSideVector.size() != system_size )
+        rRightHandSideVector.resize( system_size, false );
+
+    rRightHandSideVector = ZeroVector( system_size ); //resetting RHS
+
+    const array_1d<double, 3 >& delta_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+    switch ( mResidualType )
     {
-        //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        case ResidualType::LINEAR:
+            for ( unsigned int j = 0; j < dimension; ++j )
+                rRightHandSideVector[j] -= delta_displacement[j] - 1.0;
+            break;
+        case ResidualType::NON_LINEAR:
+            for ( unsigned int j = 0; j < dimension; ++j )
+                rRightHandSideVector[j] -= std::pow(delta_displacement[j], 2) - 1.0;
+            break;
+        default:
+            KRATOS_ERROR << "NOT IMPLEMENTED" << std::endl;
+    }
+}
 
-        if ( rValues.size() != dimension )
-            rValues.resize( dimension, false );
+//***********************************************************************************
+//***********************************************************************************
 
-        rValues[0] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_X, Step );
-        rValues[1] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+void TestElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-        if ( dimension == 3 )
-            rValues[2] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+    // Resizing as needed the LHS
+    const unsigned int system_size = dimension;
+
+    if ( rLeftHandSideMatrix.size1() != system_size )
+        rLeftHandSideMatrix.resize( system_size, system_size, false );
+
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
+
+    const array_1d<double, 3 >& delta_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+    switch ( mResidualType )
+    {
+        case ResidualType::LINEAR:
+            for ( unsigned int j = 0; j < dimension; ++j )
+                rLeftHandSideMatrix(j, j) += 1.0;
+            break;
+        case ResidualType::NON_LINEAR:
+            for ( unsigned int j = 0; j < dimension; ++j )
+                rLeftHandSideMatrix(j, j) += delta_displacement[j] * 2;
+            break;
+        default:
+            KRATOS_ERROR << "NOT IMPLEMENTED" << std::endl;
+    }
+}
+
+//************************************************************************************//
+//************************************************************************************//
+
+void TestElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    //lumped
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int system_size = dimension;
+
+    if ( rMassMatrix.size1() != system_size )
+        rMassMatrix.resize( system_size, system_size, false );
+
+    rMassMatrix = ZeroMatrix( system_size, system_size );
+
+    KRATOS_CATCH( "" );
+}
+
+//************************************************************************************//
+//************************************************************************************//
+
+void TestElement::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    //0.-Initialize the DampingMatrix:
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the LHS
+    const unsigned int system_size = dimension;
+
+    rDampingMatrix = ZeroMatrix( system_size, system_size );
+
+    KRATOS_CATCH( "" );
+}
+
+//************************************************************************************//
+//************************************************************************************//
+
+int TestElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
+{
+    KRATOS_TRY
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
+        const Node& rnode = this->GetGeometry()[i];
+
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rnode)
     }
 
+    return 0;
 
-    //************************************VELOCITY****************************************//
-    //************************************************************************************//
+    KRATOS_CATCH( "Problem in the Check in the TestElement" )
+}
 
-    void TestElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
-    {
-        //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-        if ( rValues.size() != dimension )
-            rValues.resize( dimension, false );
-
-        rValues[0] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_X, Step );
-        rValues[1] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_Y, Step );
-
-        if ( dimension == 3 )
-            rValues[2] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_Z, Step );
-    }
-
-    //*********************************ACCELERATION***************************************//
-    //************************************************************************************//
-
-    void TestElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
-    {
-        //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-        if ( rValues.size() != dimension )
-            rValues.resize( dimension, false );
-
-        rValues[0] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_X, Step );
-        rValues[1] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Y, Step );
-
-        if ( dimension == 3 )
-            rValues[2] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Z, Step );
-    }
-
-    //************* COMPUTING  METHODS
-    //************************************************************************************//
-    //************************************************************************************//
-
-    void TestElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
-    {
-
-        KRATOS_TRY;
-
-        /* Calculate elemental system */
-
-        // Compute RHS (RHS = rRightHandSideVector = Fext - Fint)
-        this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-
-        // Compute LHS
-        this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
-
-        KRATOS_CATCH( "" );
-    }
-
-    //***********************************************************************************
-    //***********************************************************************************
-
-    void TestElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
-    {
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-        // Resizing as needed the RHS
-        const unsigned int system_size = dimension;
-
-        if ( rRightHandSideVector.size() != system_size )
-            rRightHandSideVector.resize( system_size, false );
-
-        rRightHandSideVector = ZeroVector( system_size ); //resetting RHS
-
-        const array_1d<double, 3 >& delta_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-        switch ( mResidualType )
-        {
-            case ResidualType::LINEAR:
-                for ( unsigned int j = 0; j < dimension; ++j )
-                    rRightHandSideVector[j] -= delta_displacement[j] - 1.0;
-                break;
-            case ResidualType::NON_LINEAR:
-                for ( unsigned int j = 0; j < dimension; ++j )
-                    rRightHandSideVector[j] -= std::pow(delta_displacement[j], 2) - 1.0;
-                break;
-            default:
-                KRATOS_ERROR << "NOT IMPLEMENTED" << std::endl;
-        }
-    }
-
-    //***********************************************************************************
-    //***********************************************************************************
-
-    void TestElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
-    {
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-        // Resizing as needed the LHS
-        const unsigned int system_size = dimension;
-
-        if ( rLeftHandSideMatrix.size1() != system_size )
-            rLeftHandSideMatrix.resize( system_size, system_size, false );
-
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( system_size, system_size ); //resetting LHS
-
-        const array_1d<double, 3 >& delta_displacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-        switch ( mResidualType )
-        {
-            case ResidualType::LINEAR:
-                for ( unsigned int j = 0; j < dimension; ++j )
-                    rLeftHandSideMatrix(j, j) += 1.0;
-                break;
-            case ResidualType::NON_LINEAR:
-                for ( unsigned int j = 0; j < dimension; ++j )
-                    rLeftHandSideMatrix(j, j) += delta_displacement[j] * 2;
-                break;
-            default:
-                KRATOS_ERROR << "NOT IMPLEMENTED" << std::endl;
-        }
-    }
-
-    //************************************************************************************//
-    //************************************************************************************//
-
-    void TestElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
-    {
-        KRATOS_TRY
-
-        //lumped
-        unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        unsigned int system_size = dimension;
-
-        if ( rMassMatrix.size1() != system_size )
-            rMassMatrix.resize( system_size, system_size, false );
-
-        rMassMatrix = ZeroMatrix( system_size, system_size );
-
-        KRATOS_CATCH( "" );
-    }
-
-    //************************************************************************************//
-    //************************************************************************************//
-
-    void TestElement::CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_TRY;
-
-        //0.-Initialize the DampingMatrix:
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-        // Resizing as needed the LHS
-        const unsigned int system_size = dimension;
-
-        rDampingMatrix = ZeroMatrix( system_size, system_size );
-
-        KRATOS_CATCH( "" );
-    }
-
-    //************************************************************************************//
-    //************************************************************************************//
-
-    int TestElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
-    {
-        KRATOS_TRY
-
-        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-        for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
-            const Node& rnode = this->GetGeometry()[i];
-
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
-
-            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rnode)
-            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
-            KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rnode)
-        }
-
-        return 0;
-
-        KRATOS_CATCH( "Problem in the Check in the TestElement" )
-    }
-
-
-    //************************************************************************************//
-    //************************************************************************************//
+//************************************************************************************//
+//************************************************************************************//
 
     void TestElement::CalculateOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
@@ -390,41 +383,43 @@ namespace Kratos
     }
 }
 
-    //************************************************************************************//
-    //************************************************************************************//
+//************************************************************************************//
+//************************************************************************************//
 
-    void TestElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
-    {
-        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+void TestElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
+{
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-        //Constitutive Law initialisation
-        if ( mConstitutiveLawVector.size() != integration_points.size() )
-            mConstitutiveLawVector.resize( integration_points.size() );
+    //Constitutive Law initialisation
+    if ( mConstitutiveLawVector.size() != integration_points.size() )
+        mConstitutiveLawVector.resize( integration_points.size() );
 
-        const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
-        const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
-        for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
-            mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
-        }
+    const GeometryType& r_geometry = GetGeometry();
+    const Properties& r_properties = GetProperties();
+    const auto& N_values = r_geometry.ShapeFunctionsValues(mThisIntegrationMethod);
+    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        mConstitutiveLawVector[point_number] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLawVector[point_number]->InitializeMaterial( r_properties, r_geometry, row(N_values , point_number ));
     }
+}
 
-    //************************************************************************************//
-    //************************************************************************************//
+//************************************************************************************//
+//************************************************************************************//
 
-    void TestElement::save( Serializer& rSerializer ) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
-    }
+void TestElement::save( Serializer& rSerializer ) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+}
 
-    void TestElement::load( Serializer& rSerializer )
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
-    }
+//************************************************************************************//
+//************************************************************************************//
 
-    } // Namespace Testing
-} // Namespace Kratos
+void TestElement::load( Serializer& rSerializer )
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+}
+
+} // Namespace Kratos::Testing
 
 

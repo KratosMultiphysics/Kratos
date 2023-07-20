@@ -112,6 +112,16 @@ public:
     static void RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
         const std::vector<ModelPart*> rModelParts);
 
+    static void LogModelPartStatus(
+        ModelPart& rModelPart,
+        const std::string& rStatus);
+
+    static std::vector<std::string> GetModelPartStatusLog(ModelPart& rModelPart);
+
+    static bool CheckModelPartStatus(
+        const ModelPart& rModelPart,
+        const std::string& rStatus);
+
     ///@}
 private:
     ///@name Private static classes

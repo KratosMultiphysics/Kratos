@@ -75,7 +75,7 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]') -> None:
+    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         """Calculate gradient w.r.t. given physical variables.
 
         This method should always calculate the sensitivities w.r.t. requested physical variables on the given container expressions
@@ -89,7 +89,7 @@ class ResponseFunction(ABC):
         container for which the sensitivities w.r.t. physical variable requested.
 
         Args:
-            physical_variable_collective_expressions (dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]): Output containing calculated sensitivities w.r.t. requested physical variables.
+            physical_variable_collective_expressions (dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]): Output containing calculated sensitivities w.r.t. requested physical variables.
         """
         pass
 

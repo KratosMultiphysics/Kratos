@@ -38,9 +38,9 @@
             "element_name" : "EmbeddedLaplacianElement",
             "condition_name" : ""
         },
-	"linear_solver_settings" : {
-	    "solver_type" : "LinearSolversApplication.sparse_lu"
-	}
+        "mls_extension_operator_order" : 1,
+        "use_mls_constraints" : false,
+        "use_distance_modification" : false
     },
     "processes"        : {
         "initial_conditions_process_list" : [],

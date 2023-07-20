@@ -34,6 +34,8 @@ from test_line_loads import KratosGeoMechanicsLineLoadTests
 from test_element_lab import KratosGeoMechanicsLabElementTests
 from test_parameter_field import KratosGeoMechanicsParameterFieldTests
 from test_normal_load_on_1d_element import KratosGeoMechanicsNormalLoad1DTests
+from test_k0_procedure_process import KratosGeoMechanicsK0ProcedureProcessTests
+from test_geomechanics_solver import KratosGeoMechanicsSolverTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -66,7 +68,9 @@ def AssembleTestSuites():
                         KratosGeoMechanicsCurvedBeamElementTests,
                         KratosGeoMechanicsLabElementTests,
                         KratosGeoMechanicsParameterFieldTests,
-                        KratosGeoMechanicsNormalLoad1DTests
+                        KratosGeoMechanicsNormalLoad1DTests,
+                        KratosGeoMechanicsK0ProcedureProcessTests,
+                        KratosGeoMechanicsSolverTests
                         ]
 
     # Create an array with the selected tests
