@@ -87,6 +87,174 @@ void CollectiveExpressions::Clear()
     mExpressionPointersList.clear();
 }
 
+void CollectiveExpressions::Read(
+    double const* pBegin,
+    int const* NumberOfEntities,
+    int const** pListShapeBegin,
+    int const* ShapeSizes,
+    const int NumberOfContainers)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(NumberOfContainers > 0 && static_cast<IndexType>(NumberOfContainers) == this->mExpressionPointersList.size())
+        << "Number of containers mismatch. [ Input number of containers = " << NumberOfContainers
+        << ", CollectiveExpressions number of containers = "
+        << this->mExpressionPointersList.size() << " ].\n";
+
+    for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
+        std::visit([&pBegin, &pListShapeBegin, &ShapeSizes, &NumberOfEntities](const auto& v) {
+            v->Read(pBegin, *NumberOfEntities, *pListShapeBegin, *ShapeSizes);
+
+            // now offset everything
+            pBegin += v->GetContainer().size() * v->GetItemComponentCount();
+            ++pListShapeBegin;
+            ++ShapeSizes;
+            ++NumberOfEntities;
+        }, p_container_variable_data_holder);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void CollectiveExpressions::Read(const VariableTypes& rVariable)
+{
+    KRATOS_TRY
+
+    for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
+        std::visit([](const auto& v, const auto pVariable) {
+            v->Read(*pVariable);
+        }, p_container_variable_data_holder, rVariable);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void CollectiveExpressions::Read(const std::vector<VariableTypes>& rVariables)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rVariables.size() == mExpressionPointersList.size())
+        << "Variables and container expressions size mismatch. [ Provided number of variables: "
+        << rVariables.size() << ", number of ContainerExpressions = "
+        << mExpressionPointersList.size() << " ].\n";
+
+    for (IndexType i = 0; i < rVariables.size(); ++i) {
+        std::visit([](const auto& v, const auto pVariable) {
+            v->Read(*pVariable);
+        }, mExpressionPointersList[i], rVariables[i]);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void CollectiveExpressions::MoveFrom(
+    double* pBegin,
+    int const* NumberOfEntities,
+    int const** pListShapeBegin,
+    int const* ShapeSizes,
+    const int NumberOfContainers)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(NumberOfContainers > 0 && static_cast<IndexType>(NumberOfContainers) == this->mExpressionPointersList.size())
+        << "Number of containers mismatch. [ Input number of containers = " << NumberOfContainers
+        << ", CollectiveExpressions number of containers = "
+        << this->mExpressionPointersList.size() << " ].\n";
+
+    for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
+        std::visit([&pBegin, &pListShapeBegin, &ShapeSizes, &NumberOfEntities](const auto& v) {
+            v->MoveFrom(pBegin, *NumberOfEntities, *pListShapeBegin, *ShapeSizes);
+
+            // now offset everything
+            pBegin += v->GetContainer().size() * v->GetItemComponentCount();
+            ++pListShapeBegin;
+            ++ShapeSizes;
+            ++NumberOfEntities;
+        }, p_container_variable_data_holder);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void CollectiveExpressions::Evaluate(
+    double* pBegin,
+    const int Size) const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(Size > 0 && static_cast<IndexType>(Size) == this->GetCollectiveFlattenedDataSize())
+        << "The size of the double vector does not match with the required "
+           "collective expression size. [ "
+           "Size = "
+        << Size << ", collective expression data size = "
+        << this->GetCollectiveFlattenedDataSize() << " ].\n";
+
+    for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
+        std::visit([&pBegin](const auto& v) {
+            // get the shape of the container expression.
+            const auto& r_shape = v->GetItemShape();
+
+            // transform unsigned Index type shape to signed int shape.
+            std::vector<int> shape(r_shape.size());
+            std::transform(r_shape.begin(), r_shape.end(), shape.begin(), [](const IndexType Value) -> int { return Value; });
+
+            // get the number of entities in the container.
+            const auto number_of_entities = v->GetContainer().size();
+
+            // evaluate the expression and put the result in a continuous array starting with pBegin.
+            v->Evaluate(pBegin, number_of_entities, shape.data(), shape.size());
+
+            // increase the offset to place the evaluated values of the next container expression correctly.
+            pBegin += number_of_entities * v->GetItemComponentCount();
+        }, p_container_variable_data_holder);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void CollectiveExpressions::Evaluate(const VariableTypes& rVariable)
+{
+    KRATOS_TRY
+
+    for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
+        std::visit([](const auto& v, const auto pVariable) {
+            v->Evaluate(*pVariable);
+        }, p_container_variable_data_holder, rVariable);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void CollectiveExpressions::Evaluate(const std::vector<VariableTypes>& rVariables)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rVariables.size() == mExpressionPointersList.size())
+        << "Variables and container expressions size mismatch. [ Provided number of variables: "
+        << rVariables.size() << ", number of ContainerExpressions = "
+        << mExpressionPointersList.size() << " ].\n";
+
+    for (IndexType i = 0; i < rVariables.size(); ++i) {
+        std::visit([](const auto& v, const auto pVariable) {
+            v->Evaluate(*pVariable);
+        }, mExpressionPointersList[i], rVariables[i]);
+    }
+
+    KRATOS_CATCH("");
+}
+
+IndexType CollectiveExpressions::GetCollectiveFlattenedDataSize() const
+{
+    IndexType size = 0;
+    for (const auto& p_container_variable_data_holder : mExpressionPointersList) {
+        std::visit([&size](const auto& v) {
+            size += v->GetContainer().size() * v->GetItemComponentCount();
+        }, p_container_variable_data_holder);
+    }
+
+    return size;
+}
+
 std::vector<CollectiveExpressions::CollectiveExpressionType> CollectiveExpressions::GetContainerExpressions()
 {
     return mExpressionPointersList;
@@ -391,7 +559,7 @@ CollectiveExpressions CollectiveExpressions::Pow(const double Value) const
             v->SetExpression(
                 BinaryExpression<BinaryOperations::Power>::Create(
                     v->pGetExpression(),
-                    LiteralExpression<double>::Create(Value)));
+                    LiteralExpression<double>::Create(Value, v->GetExpression().NumberOfEntities())));
         }, result.mExpressionPointersList[i]);
     }
     return result;

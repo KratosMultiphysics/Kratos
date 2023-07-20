@@ -609,7 +609,7 @@ public:
         ModelPart& rModelPart,
         TClassContainer& rEntities,
         TReferenceClassContainer& rReferenceEntities,
-        std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer>& rGeometryPointerDatabase
+        std::unordered_map<Geometry<Node>::Pointer,Geometry<Node>::Pointer>& rGeometryPointerDatabase
         )
     {
         KRATOS_TRY

@@ -299,10 +299,10 @@ namespace {
     KRATOS_TEST_CASE_IN_SUITE(Line3D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsParabolaLine3D3();
         auto& r_geom = *p_geometry;
-        auto p_p_geom_nodes = Kratos::make_shared<Line3D3<Node<3>>>(
-        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
-        Kratos::make_intrusive<Node<3>>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z())
+        auto p_p_geom_nodes = Kratos::make_shared<Line3D3<Node>>(
+        Kratos::make_intrusive<Node>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
+        Kratos::make_intrusive<Node>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z())
         );
         CrossCheckShapeFunctionsValues(*p_p_geom_nodes);
     }
@@ -324,10 +324,10 @@ namespace {
     KRATOS_TEST_CASE_IN_SUITE(Line3D3ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
         auto p_geometry = GeneratePointsParabolaLine3D3();
         auto& r_geom = *p_geometry;
-        auto p_p_geom_nodes = Kratos::make_shared<Line3D3<Node<3>>>(
-        Kratos::make_intrusive<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
-        Kratos::make_intrusive<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
-        Kratos::make_intrusive<Node<3>>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z())
+        auto p_p_geom_nodes = Kratos::make_shared<Line3D3<Node>>(
+        Kratos::make_intrusive<Node>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
+        Kratos::make_intrusive<Node>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z()),
+        Kratos::make_intrusive<Node>(3, r_geom[2].X(), r_geom[2].Y(), r_geom[2].Z())
         );
         TestAllShapeFunctionsLocalGradients(*p_p_geom_nodes);
     }

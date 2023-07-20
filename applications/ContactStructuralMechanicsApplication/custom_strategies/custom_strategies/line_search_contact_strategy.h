@@ -391,7 +391,7 @@ protected:
     {
         // Now we iterate over all the nodes
         NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        block_for_each(r_nodes_array, [&](Node<3>& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             for(auto itDoF = rNode.GetDofs().begin() ; itDoF != rNode.GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();
@@ -421,7 +421,7 @@ protected:
     {
         // Now we iterate over all the nodes
         NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        block_for_each(r_nodes_array, [&](Node<3>& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             for(auto itDoF = rNode.GetDofs().begin() ; itDoF != rNode.GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();

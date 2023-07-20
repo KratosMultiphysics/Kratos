@@ -190,7 +190,7 @@ void StlIO::PrintData(std::ostream& rOStream) const{
 
 
 bool StlIO::IsValidGeometry(
-    const Geometry<Node<3>>& rGeometry,
+    const Geometry<Node>& rGeometry,
     std::size_t& rNumDegenerateGeos) const 
 {
     // restrict to triangles only for now

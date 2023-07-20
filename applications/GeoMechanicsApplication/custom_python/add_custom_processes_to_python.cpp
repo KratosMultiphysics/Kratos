@@ -20,7 +20,6 @@
 #include "includes/kratos_parameters.h"
 
 #include "custom_processes/apply_component_table_process.hpp"
-#include "custom_processes/apply_double_table_process.hpp"
 #include "custom_processes/apply_constant_hydrostatic_pressure_process.hpp"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.hpp"
 #include "custom_processes/apply_constant_boundary_hydrostatic_pressure_process.hpp"
@@ -51,10 +50,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
         (m, "ApplyComponentTableProcess", py::module_local())
-        .def(py::init < ModelPart&, Parameters>());
-
-    py::class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
-        (m, "ApplyDoubleTableProcess", py::module_local())
         .def(py::init < ModelPart&, Parameters>());
 
     py::class_<ApplyConstantHydrostaticPressureProcess, ApplyConstantHydrostaticPressureProcess::Pointer, Process>

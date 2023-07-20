@@ -228,7 +228,7 @@ public:
         // Unfix the distances
         const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
-        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
+        block_for_each(r_distance_model_part.Nodes(), [](Node& rNode){
             double& d = rNode.FastGetSolutionStepValue(DISTANCE);
 
             // Free the DISTANCE values
@@ -324,7 +324,7 @@ public:
 
         // Assign the max dist to all of the non-fixed positive nodes
         // and the minimum one to the non-fixed negatives
-        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node<3>& rNode){
+        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node& rNode){
             if(!rNode.IsFixed(DISTANCE)){
                 double& d = rNode.FastGetSolutionStepValue(DISTANCE);
                 if(d>0){
@@ -495,7 +495,7 @@ protected:
         // Note that above we have assigned the same geometry. Thus the flag is
         // set in the distance model part despite we are iterating the base one
         for (auto it_cond = rBaseModelPart.ConditionsBegin(); it_cond != rBaseModelPart.ConditionsEnd(); ++it_cond){
-            Geometry< Node<3> >& geom = it_cond->GetGeometry();
+            Geometry< Node >& geom = it_cond->GetGeometry();
             for(unsigned int i=0; i<geom.size(); i++){
                 geom[i].Set(BOUNDARY,true);
             }

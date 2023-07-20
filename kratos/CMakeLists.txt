@@ -72,6 +72,7 @@ target_compile_definitions(KratosVersion PRIVATE
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
     KRATOS_PATCH_VERSION="${KratosMultiphysics_PATCH_VERSION}"
     KRATOS_SHA1_NUMBER="${KratosMultiphysics_SHA1_NUMBER}"
+    KRATOS_BRANCH_NAME="${KratosMultiphysics_BRANCH_NAME}"
     KRATOS_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
 )
 

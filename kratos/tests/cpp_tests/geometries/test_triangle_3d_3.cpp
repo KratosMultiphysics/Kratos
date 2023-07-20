@@ -32,7 +32,7 @@ namespace Testing
 {
     /// Factory functions
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /** Generates a sample Triangle3D3.
     * Generates a triangle defined by three random points in the space.

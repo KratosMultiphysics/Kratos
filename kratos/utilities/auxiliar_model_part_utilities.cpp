@@ -489,8 +489,8 @@ ModelPart& AuxiliarModelPartUtilities::DeepCopyModelPart(
     });
 
     // First, before copy, we create a database of pointers of the geometries
-    PointerVector<Node<3>> points_geometry;
-    std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer> geometry_pointers_database;
+    PointerVector<Node> points_geometry;
+    std::unordered_map<Geometry<Node>::Pointer,Geometry<Node>::Pointer> geometry_pointers_database;
 
     // The database of elements
     const auto& r_reference_elements = mrModelPart.Elements();

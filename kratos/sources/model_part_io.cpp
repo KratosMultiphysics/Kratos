@@ -183,7 +183,7 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties
     for (auto i_properties = rThisProperties.begin() ; i_properties != rThisProperties.end() ; ++i_properties) {
         std::ostringstream aux_ostream;
         (*mpStream) << "Begin Properties " << i_properties->Id() << std::endl;
-        i_properties->PrintData(aux_ostream);
+        i_properties->Data().PrintData(aux_ostream);
 
         aux_string = aux_ostream.str();
 
@@ -1841,59 +1841,9 @@ void ModelPartIO::ReadElementsBlock(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    SizeType id;
-    SizeType properties_id;
-    SizeType node_id;
-    SizeType number_of_read_elements = 0;
-
-
-    std::string word;
-    std::string element_name;
-
-    ReadWord(element_name);
-    KRATOS_INFO("ModelPartIO") << "  [Reading Elements : ";
-
-    if(!KratosComponents<Element>::Has(element_name))
-    {
-        std::stringstream buffer;
-        buffer << "Element " << element_name << " is not registered in Kratos.";
-        buffer << " Please check the spelling of the element name and see if the application which containing it, is registered correctly.";
-        buffer << " [Line " << mNumberOfLines << " ]";
-        KRATOS_ERROR << buffer.str() << std::endl;
-        return;
-    }
-
-    Element const& r_clone_element = KratosComponents<Element>::Get(element_name);
-    SizeType number_of_nodes = r_clone_element.GetGeometry().size();
-    Element::NodesArrayType temp_element_nodes;
-    ModelPart::ElementsContainerType aux_elements;
-
-    while(!mpStream->eof())
-    {
-        ReadWord(word); // Reading the element id or End
-        if(CheckEndBlock("Elements", word))
-            break;
-
-        ExtractValue(word,id);
-        ReadWord(word); // Reading the properties id;
-        ExtractValue(word, properties_id);
-        Properties::Pointer p_temp_properties = *(FindKey(rModelPart.rProperties(), properties_id, "Properties").base());
-        temp_element_nodes.clear();
-        for(SizeType i = 0 ; i < number_of_nodes ; i++)
-        {
-            ReadWord(word); // Reading the node id;
-            ExtractValue(word, node_id);
-            temp_element_nodes.push_back( *(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
-        }
-
-        aux_elements.push_back(r_clone_element.Create(ReorderedElementId(id), temp_element_nodes, p_temp_properties));
-        number_of_read_elements++;
-
-    }
-    KRATOS_INFO("") << number_of_read_elements << " elements read] [Type: " <<element_name << "]" << std::endl;
-    aux_elements.Unique();
-
-    rModelPart.AddElements(aux_elements.begin(), aux_elements.end());
+    ModelPart::ElementsContainerType aux_elems;
+    ReadElementsBlock(rModelPart.Nodes(), rModelPart.rProperties(), aux_elems);
+    rModelPart.AddElements(aux_elems.begin(), aux_elems.end());
 
     KRATOS_CATCH("")
 }
@@ -1959,7 +1909,13 @@ void ModelPartIO::ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesCo
 
 void ModelPartIO::ReadConditionsBlock(ModelPart& rModelPart)
 {
-    ReadConditionsBlock(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
+    KRATOS_TRY
+
+    ModelPart::ConditionsContainerType aux_conds;
+    ReadConditionsBlock(rModelPart.Nodes(), rModelPart.rProperties(), aux_conds);
+    rModelPart.AddConditions(aux_conds.begin(), aux_conds.end());
+
+    KRATOS_CATCH("")
 }
 
 void ModelPartIO::ReadConditionsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)

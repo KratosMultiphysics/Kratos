@@ -43,7 +43,7 @@ public:
     using IndexType = std::size_t;
 
     /// Definition of the node
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Definition of the geometry
     using GeometryType = Geometry<NodeType>;
@@ -464,12 +464,8 @@ public:
         TMatrix3& rDN_DX
         )
     {
-    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("ShapeFunctionsGradients", rDN_DX.size1() != rDN_De.size1() || rDN_DX.size2() != rInvJ.size2()) << "ShapeFunctionsGradients has detected an incorrect size of your DN_DX matrix. Please resize before compute" << std::endl;
-    #else
         if (rDN_DX.size1() != rDN_De.size1() || rDN_DX.size2() != rInvJ.size2())
             rDN_DX.resize(rDN_De.size1(), rInvJ.size2(), false);
-    #endif // KRATOS_USE_AMATRIX
 
         noalias(rDN_DX) = prod(rDN_De, rInvJ);
     }
@@ -488,12 +484,8 @@ public:
         TMatrix3& rF
         )
     {
-    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("DeformationGradient", rF.size1() != rJ.size1() || rF.size2() != rInvJ0.size2()) << "DeformationGradient has detected an incorrect size of your F matrix. Please resize before compute" << std::endl;
-    #else
         if (rF.size1() != rJ.size1() || rF.size2() != rInvJ0.size2())
             rF.resize(rJ.size1(), rInvJ0.size2(), false);
-    #endif // KRATOS_USE_AMATRIX
 
         noalias(rF) = prod(rJ, rInvJ0);
     }

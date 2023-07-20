@@ -26,8 +26,7 @@
 #include "add_distributed_sparse_matrices_to_python.h"
 #include "includes/parallel_environment.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void InitializeMPIParallelRun()
 {
@@ -74,5 +73,4 @@ PYBIND11_MODULE(KratosMPI, m)
     AddDistributedSparseMatricesToPython(m);
 }
 
-}
 }

@@ -59,6 +59,11 @@ class TreeNode
 {
 public:
 
+    ///@name Type Definitions
+
+    /// Pointer definition of TreeNode
+    KRATOS_CLASS_POINTER_DEFINITION(TreeNode);
+
     // Global definitions
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;

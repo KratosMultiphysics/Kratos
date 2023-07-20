@@ -1,3 +1,4 @@
+import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as kratos_unittest
@@ -234,6 +235,265 @@ class TestCollectiveExpressions(kratos_unittest.TestCase):
         self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([b, a])))
         self.assertTrue(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([c, b])))
         self.assertFalse(collective_1.IsCompatibleWith(KratosOA.ContainerExpression.CollectiveExpressions([c, d])))
+
+    def test_ReadEvaluate1(self):
+        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+
+        collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
+
+        # reads VELOCITY from different container expressions
+        collective.Read(Kratos.VELOCITY)
+
+        # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
+        collective += 2
+        collective *= 3
+
+        # finally evaluate the lazy expressions and put it to a numpy continuous array
+        result = collective.Evaluate()
+        self.assertEqual(result.shape, (self.model_part.NumberOfNodes() * 2 * 3 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() * 3, ))
+
+        # now check
+        index = 0
+        for node in self.model_part.Nodes:
+            velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
+            self.assertEqual((velocity[0] + 2) * 3, result[index])
+            self.assertEqual((velocity[1] + 2) * 3, result[index + 1])
+            self.assertEqual((velocity[2] + 2) * 3, result[index + 2])
+            index += 3
+
+        for node in self.model_part.Nodes:
+            velocity = node.GetValue(Kratos.VELOCITY)
+            self.assertEqual((velocity[0] + 2) * 3, result[index])
+            self.assertEqual((velocity[1] + 2) * 3, result[index + 1])
+            self.assertEqual((velocity[2] + 2) * 3, result[index + 2])
+            index += 3
+
+        for condition in self.model_part.Conditions:
+            velocity = condition.GetValue(Kratos.VELOCITY)
+            self.assertEqual((velocity[0] + 2) * 3, result[index])
+            self.assertEqual((velocity[1] + 2) * 3, result[index + 1])
+            self.assertEqual((velocity[2] + 2) * 3, result[index + 2])
+            index += 3
+
+        for element in self.model_part.Elements:
+            velocity = element.GetValue(Kratos.VELOCITY)
+            self.assertEqual((velocity[0] + 2) * 3, result[index])
+            self.assertEqual((velocity[1] + 2) * 3, result[index + 1])
+            self.assertEqual((velocity[2] + 2) * 3, result[index + 2])
+            index += 3
+
+    def test_ReadEvaluate2(self):
+        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+
+        collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
+
+        # reads VELOCITY from different container expressions
+        collective.Read([Kratos.VELOCITY, Kratos.PRESSURE, Kratos.VELOCITY, Kratos.PRESSURE])
+
+        # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
+        collective += 2
+        collective *= 3
+
+        # finally evaluate the lazy expressions and put it to a numpy continuous array
+        result = collective.Evaluate()
+        self.assertEqual(result.shape, (self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements(), ))
+
+        # now check
+        index = 0
+        for node in self.model_part.Nodes:
+            velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
+            self.assertEqual((velocity[0] + 2) * 3, result[index])
+            self.assertEqual((velocity[1] + 2) * 3, result[index + 1])
+            self.assertEqual((velocity[2] + 2) * 3, result[index + 2])
+            index += 3
+
+        for node in self.model_part.Nodes:
+            pressure = node.GetValue(Kratos.PRESSURE)
+            self.assertEqual((pressure + 2) * 3, result[index])
+            index += 1
+
+        for condition in self.model_part.Conditions:
+            velocity = condition.GetValue(Kratos.VELOCITY)
+            self.assertEqual((velocity[0] + 2) * 3, result[index])
+            self.assertEqual((velocity[1] + 2) * 3, result[index + 1])
+            self.assertEqual((velocity[2] + 2) * 3, result[index + 2])
+            index += 3
+
+        for element in self.model_part.Elements:
+            pressure = element.GetValue(Kratos.PRESSURE)
+            self.assertEqual((pressure + 2) * 3, result[index])
+            index += 1
+
+    def test_ReadEvaluate3(self):
+        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+
+        collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
+
+        number_of_entities = numpy.array([self.model_part.NumberOfNodes(), self.model_part.NumberOfNodes(), self.model_part.NumberOfConditions(), self.model_part.NumberOfElements()])
+        data = numpy.arange(1, self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1, 1.0)
+
+        # here we copy data
+        collective.Read(data, number_of_entities, [[3], [], [3], []])
+
+        # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
+        collective += 2
+        collective *= 3
+
+        collective.Evaluate([Kratos.ACCELERATION, Kratos.DENSITY, Kratos.ACCELERATION, Kratos.DENSITY])
+
+        # now check
+        index = 0
+        for node in self.model_part.Nodes:
+            acceleration = node.GetSolutionStepValue(Kratos.ACCELERATION)
+            self.assertEqual(acceleration[0], (data[index] + 2) * 3)
+            self.assertEqual(acceleration[1], (data[index + 1] + 2) * 3)
+            self.assertEqual(acceleration[2], (data[index + 2] + 2) * 3)
+            index += 3
+
+        for node in self.model_part.Nodes:
+            pressure = node.GetValue(Kratos.DENSITY)
+            self.assertEqual(pressure, (data[index] + 2) * 3)
+            index += 1
+
+        for condition in self.model_part.Conditions:
+            acceleration = condition.GetValue(Kratos.ACCELERATION)
+            self.assertEqual(acceleration[0], (data[index] + 2) * 3)
+            self.assertEqual(acceleration[1], (data[index + 1] + 2) * 3)
+            self.assertEqual(acceleration[2], (data[index + 2] + 2) * 3)
+            index += 3
+
+        for element in self.model_part.Elements:
+            pressure = element.GetValue(Kratos.DENSITY)
+            self.assertEqual(pressure, (data[index] + 2) * 3)
+            index += 1
+
+    def test_Move(self):
+        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+
+        collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
+
+        number_of_entities = [self.model_part.NumberOfNodes(), self.model_part.NumberOfNodes(), self.model_part.NumberOfConditions(), self.model_part.NumberOfElements()]
+        data = numpy.arange(1, self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1, 1.0)
+
+        # here we move data. The life time is not managed by the collective. If moved data is destroyed, then use of collective can seg fault.
+        collective.MoveFrom(data, number_of_entities, [[3], [], [3], []])
+
+        # do some calculations on all container expressions. these are lazy expressions, hence light wieght operations.
+        collective += 2
+        collective *= 3
+
+        collective.Evaluate([Kratos.ACCELERATION, Kratos.DENSITY, Kratos.ACCELERATION, Kratos.DENSITY])
+
+        # now check for initial values
+        index = 0
+        for node in self.model_part.Nodes:
+            acceleration = node.GetSolutionStepValue(Kratos.ACCELERATION)
+            self.assertEqual(acceleration[0], (data[index] + 2) * 3)
+            self.assertEqual(acceleration[1], (data[index + 1] + 2) * 3)
+            self.assertEqual(acceleration[2], (data[index + 2] + 2) * 3)
+            index += 3
+
+        for node in self.model_part.Nodes:
+            pressure = node.GetValue(Kratos.DENSITY)
+            self.assertEqual(pressure, (data[index] + 2) * 3)
+            index += 1
+
+        for condition in self.model_part.Conditions:
+            acceleration = condition.GetValue(Kratos.ACCELERATION)
+            self.assertEqual(acceleration[0], (data[index] + 2) * 3)
+            self.assertEqual(acceleration[1], (data[index + 1] + 2) * 3)
+            self.assertEqual(acceleration[2], (data[index + 2] + 2) * 3)
+            index += 3
+
+        for element in self.model_part.Elements:
+            pressure = element.GetValue(Kratos.DENSITY)
+            self.assertEqual(pressure, (data[index] + 2) * 3)
+            index += 1
+
+        # now change the numpy array to check whether we are still referening to data from numpy arraydata
+        data += 1.0
+        collective.Evaluate([Kratos.ACCELERATION, Kratos.DENSITY, Kratos.ACCELERATION, Kratos.DENSITY])
+
+        # now check for changed values
+        index = 0
+        for node in self.model_part.Nodes:
+            acceleration = node.GetSolutionStepValue(Kratos.ACCELERATION)
+            self.assertEqual(acceleration[0], (data[index] + 2) * 3)
+            self.assertEqual(acceleration[1], (data[index + 1] + 2) * 3)
+            self.assertEqual(acceleration[2], (data[index + 2] + 2) * 3)
+            index += 3
+
+        for node in self.model_part.Nodes:
+            pressure = node.GetValue(Kratos.DENSITY)
+            self.assertEqual(pressure, (data[index] + 2) * 3)
+            index += 1
+
+        for condition in self.model_part.Conditions:
+            acceleration = condition.GetValue(Kratos.ACCELERATION)
+            self.assertEqual(acceleration[0], (data[index] + 2) * 3)
+            self.assertEqual(acceleration[1], (data[index + 1] + 2) * 3)
+            self.assertEqual(acceleration[2], (data[index + 2] + 2) * 3)
+            index += 3
+
+        for element in self.model_part.Elements:
+            pressure = element.GetValue(Kratos.DENSITY)
+            self.assertEqual(pressure, (data[index] + 2) * 3)
+            index += 1
+
+    def test_ReadMoveErrors(self):
+        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
+        b = Kratos.ContainerExpression.NodalNonHistoricalExpression(self.model_part)
+        c = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
+        d = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+
+        collective = KratosOA.ContainerExpression.CollectiveExpressions([a, b, c, d])
+
+        number_of_entities = numpy.array([self.model_part.NumberOfNodes(), self.model_part.NumberOfNodes(), self.model_part.NumberOfConditions(), self.model_part.NumberOfElements()])
+        total_entities = self.model_part.NumberOfNodes() * 4 + self.model_part.NumberOfConditions() * 3 + self.model_part.NumberOfElements() + 1
+
+        with self.assertRaises(TypeError):
+            numpy_array = numpy.arange(0, total_entities)
+            collective.Read(numpy_array, number_of_entities, [[3], [], [3], []])
+
+        with self.assertRaises(TypeError):
+            numpy_array = numpy.arange(0, total_entities, dtype=numpy.float32)
+            collective.Read(numpy_array, number_of_entities, [[3], [], [3], []])
+
+        with self.assertRaises(TypeError):
+            numpy_array = numpy.arange(0, total_entities, dtype=numpy.int32)
+            collective.Read(numpy_array, number_of_entities, [[3], [], [3], []])
+
+        with self.assertRaises(TypeError):
+            numpy_array = numpy.arange(0, total_entities, dtype=numpy.int64)
+            collective.Read(numpy_array, number_of_entities, [[3], [], [3], []])
+
+        with self.assertRaises(TypeError):
+            numpy_array = numpy.arange(0, total_entities)
+            collective.MoveFrom(numpy_array, number_of_entities, [[3], [], [3], []])
+
+        with self.assertRaises(TypeError):
+            numpy_array = numpy.arange(0, total_entities, dtype=numpy.float32)
+            collective.MoveFrom(numpy_array, number_of_entities, [[3], [], [3], []])
+
+        with self.assertRaises(TypeError):
+            numpy_array = numpy.arange(0, total_entities, dtype=numpy.int32)
+            collective.MoveFrom(numpy_array, number_of_entities, [[3], [], [3], []])
+
+        with self.assertRaises(TypeError):
+            numpy_array = numpy.arange(0, total_entities, dtype=numpy.int64)
+            collective.MoveFrom(numpy_array, number_of_entities, [[3], [], [3], []])
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

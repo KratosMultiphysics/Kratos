@@ -40,7 +40,7 @@ namespace Kratos
   typedef ModelPart::ElementsContainerType ElementsContainerType;
   typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
-  typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+  typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
   typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name  Enum's
@@ -251,7 +251,7 @@ namespace Kratos
       for (ModelPart::ElementsContainerType::iterator ie = elements_begin; ie != elements_end; ie++)
       {
 
-        Geometry<Node<3>> &rElementGeometry = ie->GetGeometry();
+        Geometry<Node> &rElementGeometry = ie->GetGeometry();
 
         if (rElementGeometry.FacesNumber() >= 3)
         { // 3 or 4
@@ -333,7 +333,7 @@ namespace Kratos
       bool node_not_preserved = false;
       bool condition_not_preserved = false;
 
-      Geometry<Node<3>> &rConditionGeometry = rCondition.GetGeometry();
+      Geometry<Node> &rConditionGeometry = rCondition.GetGeometry();
 
       for (unsigned int j = 0; j < rConditionGeometry.size(); j++)
       {
@@ -409,7 +409,7 @@ namespace Kratos
     //**************************************************************************
     //**************************************************************************
 
-    bool FindNodeInCondition(Geometry<Node<3>> &rConditionGeometry, Geometry<Node<3>> &rElementGeometry, boost::numeric::ublas::matrix<unsigned int> &lpofa, boost::numeric::ublas::vector<unsigned int> &lnofa, unsigned int &iface)
+    bool FindNodeInCondition(Geometry<Node> &rConditionGeometry, Geometry<Node> &rElementGeometry, boost::numeric::ublas::matrix<unsigned int> &lpofa, boost::numeric::ublas::vector<unsigned int> &lnofa, unsigned int &iface)
     {
       KRATOS_TRY
 

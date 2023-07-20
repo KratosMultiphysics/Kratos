@@ -34,20 +34,24 @@ public:
     ///@name Life cycle
     ///@{
 
-    LiteralExpression(const TDataType& Value);
+    LiteralExpression(
+        const TDataType& Value,
+        const IndexType NumberOfEntities);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    static Expression::Pointer Create(const TDataType& Value);
+    static Expression::Pointer Create(
+        const TDataType& Value,
+        const IndexType NumberOfEntities);
 
     double Evaluate(
         const IndexType EntityIndex,
         const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex) const override;
 
-    const std::vector<IndexType> GetShape() const override;
+    const std::vector<IndexType> GetItemShape() const override;
 
     std::string Info() const override;
 

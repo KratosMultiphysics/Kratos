@@ -203,10 +203,10 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Node-ids do not matter here
-    auto node_local_sys_1(Kratos::make_shared<Node<3>>(87, -2.0, 3.5, 3.0)); // in bbox 1&2
-    auto node_local_sys_2(Kratos::make_shared<Node<3>>(26, 10.0, -25.0, 3.0)); // in bbox 1
-    auto node_local_sys_3(Kratos::make_shared<Node<3>>(36, -10.0, 15.5, -5.0)); // in bbox 2
-    auto node_local_sys_4(Kratos::make_shared<Node<3>>(46, 12.6, 50.1, 5.0)); // in bbox 3
+    auto node_local_sys_1(Kratos::make_shared<Node>(87, -2.0, 3.5, 3.0)); // in bbox 1&2
+    auto node_local_sys_2(Kratos::make_shared<Node>(26, 10.0, -25.0, 3.0)); // in bbox 1
+    auto node_local_sys_3(Kratos::make_shared<Node>(36, -10.0, 15.5, -5.0)); // in bbox 2
+    auto node_local_sys_4(Kratos::make_shared<Node>(46, 12.6, 50.1, 5.0)); // in bbox 3
 
     local_systems.reserve(7);
 
@@ -258,9 +258,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     noalias(node_local_sys_1->Coordinates()) = new_coords_node_1;
     // => now "node_local_sys_1" will not fall into any bbox any more
 
-    auto node_local_sys_5(Kratos::make_shared<Node<3>>(50, -8.301, 17.75, -15.18)); // in bbox 2
-    auto node_local_sys_6(Kratos::make_shared<Node<3>>(416, 13.5, 44.58, 7.5)); // in bbox 3
-    auto node_local_sys_7(Kratos::make_shared<Node<3>>(417, 13.5125, 44.68, 8.5)); // in bbox 3
+    auto node_local_sys_5(Kratos::make_shared<Node>(50, -8.301, 17.75, -15.18)); // in bbox 2
+    auto node_local_sys_6(Kratos::make_shared<Node>(416, 13.5, 44.58, 7.5)); // in bbox 3
+    auto node_local_sys_7(Kratos::make_shared<Node>(417, 13.5125, 44.68, 8.5)); // in bbox 3
 
     local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_5.get()));
     local_systems.push_back(Kratos::make_unique<NearestNeighborLocalSystem>(node_local_sys_6.get()));
@@ -459,9 +459,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
         Kratos::make_shared<NearestNeighborInterfaceInfo>(coords_3, source_local_sys_idx_3, 0));
 
     // Auxiliary objects to fill the NearestNeighborInterfaceInfos with values that can be checked afterwards
-    auto node_1(Kratos::make_shared<Node<3>>(1, 1.0, 2.5, 30.0));
-    auto node_2(Kratos::make_shared<Node<3>>(3, 10.5, 20.0, 96.8));
-    auto node_3(Kratos::make_shared<Node<3>>(15, 2.3, 1.9, -2.5));
+    auto node_1(Kratos::make_shared<Node>(1, 1.0, 2.5, 30.0));
+    auto node_2(Kratos::make_shared<Node>(3, 10.5, 20.0, 96.8));
+    auto node_3(Kratos::make_shared<Node>(15, 2.3, 1.9, -2.5));
 
     InterfaceObject::Pointer interface_node_1(Kratos::make_shared<InterfaceNode>(node_1.get()));
     InterfaceObject::Pointer interface_node_2(Kratos::make_shared<InterfaceNode>(node_2.get()));

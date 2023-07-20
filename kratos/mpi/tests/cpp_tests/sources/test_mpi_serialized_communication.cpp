@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
-//
 //
 
 // System includes
@@ -22,9 +21,7 @@
 #include "includes/model_part.h"
 #include "testing/testing.h"
 
-namespace Kratos {
-
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedSendRecv, KratosMPICoreFastSuite)
 {
@@ -119,9 +116,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSerializedBroadcast, Kr
         KRATOS_CHECK_EQUAL(node.Z(), 0.1*source_rank);
         KRATOS_CHECK_EQUAL(node.FastGetSolutionStepValue(TEMPERATURE), 10.0*source_rank);
     }
-}
-
-
 }
 
 }

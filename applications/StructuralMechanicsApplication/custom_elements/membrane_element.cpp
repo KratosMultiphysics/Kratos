@@ -1469,7 +1469,7 @@ int MembraneElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( SizeType i = 0; i < number_of_nodes; i++ ) {
-        const Node<3> &r_node = this->GetGeometry()[i];
+        const Node &r_node = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)

@@ -105,21 +105,21 @@ public:
         const Vector& rStressVector, 
         const double Damage, 
         const Properties& rMatProps,
-        Geometry<Node<3>>& rGeometry);
+        Geometry<Node>& rGeometry);
 
     /**
      * @brief This method computes characteristic 
      * length of the element in 2D
      * @param rGeometry The geometry of the element
      */
-    double CalculateCharacteristicLength2D(const Geometry<Node<3>>& rGeometry);
+    double CalculateCharacteristicLength2D(const Geometry<Node>& rGeometry);
 
     /**
      * @brief This method computes characteristic 
      * length of the element in 3D
      * @param rGeometry The geometry of the element
      */
-    double CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry);
+    double CalculateCharacteristicLength3D(Geometry<Node>& rGeometry);
 
     /**
      * @brief This method computes the tensile

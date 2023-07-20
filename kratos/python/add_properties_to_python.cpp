@@ -32,7 +32,7 @@ namespace Python
 {
 namespace py = pybind11;
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 typedef std::size_t IndexType;

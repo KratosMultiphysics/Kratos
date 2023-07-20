@@ -25,7 +25,7 @@
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
 #include "utilities/intersection_utilities.h"
-
+#include "utilities/geometry_utilities.h"
 namespace Kratos
 {
 
@@ -423,11 +423,34 @@ public:
         return IntersectionUtilities::ComputeLineLineIntersection(r_geom, rThisGeometry[0], rThisGeometry[1], intersection_point);
     }
 
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToLineSegment3D(this->GetPoint(0), this->GetPoint(1), point);
+    }
 
     ///@}
     ///@name Jacobian
     ///@{
-
 
     /** Jacobians for given  method. This method
     calculate jacobians matrices in all integrations points of

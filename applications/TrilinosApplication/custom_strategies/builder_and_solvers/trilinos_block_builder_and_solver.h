@@ -112,13 +112,30 @@ public:
     typedef Epetra_MpiComm EpetraCommunicatorType;
 
     /// DoF types definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef DofType::Pointer DofPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor with Parameters
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    explicit TrilinosBlockBuilderAndSolver(
+        EpetraCommunicatorType& rComm,
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters)
+        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
+        , mrComm(rComm)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+    }
 
     /**
      * @brief Default constructor.
@@ -154,6 +171,33 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        this->mEchoLevel = ThisParameters["echo_level"].GetInt();
+        this->mGuessRowSize = ThisParameters["guess_row_size"].GetInt();
+        this->mSynchronizeDofSet = ThisParameters["synchronize_dof_set"].GetBool();
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name"                  : "trilinos_block_builder_and_solver",
+            "echo_level"            : 1,
+            "guess_row_size"        : 80,
+            "synchronize_dof_set"   : false
+        })" );
+        return default_parameters;
+    }
 
     /**
      * @brief Function to perform the build the system matrix and the residual
@@ -481,14 +525,14 @@ public:
      * @param rModelPart The model part of the problem to solve
      */
     void SetUpDofSet(
-        typename TSchemeType::Pointer pScheme, 
+        typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart
         ) override
     {
         KRATOS_TRY
 
         using DofsVectorType = Element::DofsVectorType;
-        
+
         // Gets the array of elements from the modeler
         DofsVectorType dof_list;
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -515,6 +559,11 @@ public:
         }
 
         temp_dofs_array.Unique();
+
+        if (mSynchronizeDofSet) {
+            rModelPart.GetCommunicator().SynchronizeDofSet(temp_dofs_array);
+        }
+
         BaseType::mDofSet = temp_dofs_array;
 
         // Throws an exception if there are no Degrees of freedom involved in
@@ -885,6 +934,7 @@ protected:
 
     EpetraCommunicatorType& mrComm;
     int mGuessRowSize;
+    bool mSynchronizeDofSet = false;
     IndexType mLocalSystemSize;
     int mFirstMyId;
     int mLastMyId;

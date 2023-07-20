@@ -71,7 +71,7 @@ public:
     typedef typename BaseType::MortarConditionMatrices MortarConditionMatrices;
 
     /// Node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Index type definition
     typedef std::size_t IndexType;

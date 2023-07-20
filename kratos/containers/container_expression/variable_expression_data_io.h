@@ -14,6 +14,7 @@
 
 // System includes
 #include <vector>
+#include <type_traits>
 
 // Project includes
 #include "containers/container_expression/expressions/expression.h"
@@ -37,6 +38,10 @@ public:
 
     using IndexType = std::size_t;
 
+    using RawType = std::conditional_t<std::is_same_v<TDataType, int>, int, double>;
+
+    using RawLiteralFlatExpression = LiteralFlatExpression<RawType>;
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -59,11 +64,11 @@ public:
         const IndexType EntityIndex) const;
 
     void Read(
-        LiteralFlatExpression& rExpression,
+        RawLiteralFlatExpression& rExpression,
         const IndexType EntityIndex,
         const TDataType& Value) const;
 
-    const std::vector<IndexType> GetShape() const { return mShape; }
+    const std::vector<IndexType> GetItemShape() const { return mShape; }
 
     ///@}
 private:

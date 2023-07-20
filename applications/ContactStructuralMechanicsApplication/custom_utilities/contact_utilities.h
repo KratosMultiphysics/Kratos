@@ -54,7 +54,7 @@ public:
     ///@{
 
     // Some geometrical definitions
-    typedef Node<3>                                              NodeType;
+    typedef Node                                              NodeType;
     typedef Point::CoordinatesArrayType              CoordinatesArrayType;
 
     /// Definition of geometries

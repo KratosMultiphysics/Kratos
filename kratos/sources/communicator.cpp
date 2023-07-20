@@ -349,6 +349,11 @@ bool Communicator::SynchronizeDofs()
     return true;
 }
 
+bool Communicator::SynchronizeDofSet(DofSetType& rDofSet)
+{
+    return true;
+}
+
 bool Communicator::SynchronizeVariable(Variable<int> const& rThisVariable)
 {
     return true;

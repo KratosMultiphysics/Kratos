@@ -38,7 +38,7 @@ namespace Testing
         Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
         // Elements
-        auto p_quad = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+        auto p_quad = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
             rBackgroundModelPart.GetElement(1).pGetGeometry(), rMPCoords, IntWeight);
 
         const Element& new_element = KratosComponents<Element>::Get("MPMUpdatedLagrangian2D4N");
@@ -116,7 +116,7 @@ namespace Testing
 
 
         // Nodes
-        std::vector<Kratos::Properties::NodeType::Pointer> point_vector(number_of_nodes);
+        std::vector<Node::Pointer> point_vector(number_of_nodes);
         const double dx = 1.0;
         const double dy = 1.0;
         IndexType point_index = 1;
@@ -397,7 +397,7 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results - MP should lie entirely within one cell
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
         KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(),1.0, std::numeric_limits<double>::epsilon());
     }
@@ -439,7 +439,7 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results - MP should lie entirely within one cell
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
         KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(),1.0, std::numeric_limits<double>::epsilon());
     }
@@ -480,7 +480,7 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 9);
         std::vector<double> result_weight = { 0.5, 0.0307296, 0.103553, 0.0121636, 0.0785534,
@@ -528,7 +528,7 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 5);
         std::vector<double> result_weight = { 0.42, 0.018, 0.162, 0.32, 0.08};
@@ -575,7 +575,7 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 4);
         std::vector<double> result_weight = { 0.511859 , 0.203584 , 0.203584 , 0.0809724 };
@@ -694,7 +694,7 @@ namespace Testing
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_VOLUME, mp_volume, r_current_process_info);
 
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
         KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
     }
@@ -738,7 +738,7 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results - MP should lie entirely within one cell
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
         KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
     }
@@ -780,7 +780,7 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results - MP should lie entirely within one cell
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
         KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
     }

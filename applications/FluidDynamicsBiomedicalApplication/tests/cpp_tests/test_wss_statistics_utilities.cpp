@@ -39,16 +39,16 @@ void TetrahedraModelPartForWSSTests(ModelPart& rModelPart)
     rModelPart.GetProcessInfo().SetValue(STEP, 2); // Required as WSS checks step > buffer
 
     // Geometry creation
-    auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, 1.0, 0.0, 0.0);
-    auto p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.0, 1.0, 0.0);
-    auto p_point_4 = Kratos::make_intrusive<Node<3>>(4, 0.0, 1.0, 0.0);
-    auto p_point_5 = Kratos::make_intrusive<Node<3>>(5, 0.0, 0.0, 1.0);
-    auto p_point_6 = Kratos::make_intrusive<Node<3>>(6, 1.0, 0.0, 1.0);
-    auto p_point_7 = Kratos::make_intrusive<Node<3>>(7, 1.0, 1.0, 1.0);
-    auto p_point_8 = Kratos::make_intrusive<Node<3>>(8, 0.0, 1.0, 1.0);
+    auto p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    auto p_point_2 = Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0);
+    auto p_point_3 = Kratos::make_intrusive<Node>(3, 1.0, 1.0, 0.0);
+    auto p_point_4 = Kratos::make_intrusive<Node>(4, 0.0, 1.0, 0.0);
+    auto p_point_5 = Kratos::make_intrusive<Node>(5, 0.0, 0.0, 1.0);
+    auto p_point_6 = Kratos::make_intrusive<Node>(6, 1.0, 0.0, 1.0);
+    auto p_point_7 = Kratos::make_intrusive<Node>(7, 1.0, 1.0, 1.0);
+    auto p_point_8 = Kratos::make_intrusive<Node>(8, 0.0, 1.0, 1.0);
 
-    Hexahedra3D8<Node<3>> geometry(
+    Hexahedra3D8<Node> geometry(
         p_point_1, p_point_2, p_point_3, p_point_4, p_point_5, p_point_6, p_point_7, p_point_8);
 
     Parameters mesher_parameters(R"({

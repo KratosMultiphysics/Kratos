@@ -34,16 +34,102 @@ namespace Kratos {
  */
 class KRATOS_API(KRATOS_CORE) Expression {
 public:
+
     ///@name Type definitions
     ///@{
 
-    using Pointer = Kratos::intrusive_ptr<Expression>;
+    using Pointer = Kratos::intrusive_ptr<const Expression>;
 
     using IndexType = std::size_t;
 
     ///@}
+    ///@name Public classes
+    ///@{
+
+    class ExpressionIterator {
+    public:
+        ///@name Type definitions
+        ///@{
+
+        KRATOS_CLASS_POINTER_DEFINITION(ExpressionIterator);
+
+        ///@}
+        ///@name Life cycle
+        ///@{
+
+        ExpressionIterator();
+
+        ExpressionIterator(Expression::Pointer pExpression);
+
+        /**
+         * @brief Copy constructor
+         *
+         * @param rOther
+         */
+        ExpressionIterator(const ExpressionIterator& rOther);
+
+        ///@}
+        ///@name Public operations
+        ///@{
+
+        Expression::Pointer GetExpression() const;
+
+        ///@}
+        ///@name Public operators
+        ///@{
+
+        double operator*() const;
+
+        bool operator==(const ExpressionIterator& rOther) const;
+
+        bool operator!=(const ExpressionIterator& rOther) const;
+
+        ExpressionIterator& operator=(const ExpressionIterator& rOther);
+
+        ExpressionIterator& operator++();
+
+        ExpressionIterator operator++(int);
+
+        ///@}
+
+    private:
+        ///@name Private member variables
+        ///@{
+
+        Expression::Pointer mpExpression;
+
+        IndexType mEntityIndex;
+
+        IndexType mEntityDataBeginIndex;
+
+        IndexType mItemComponentIndex;
+
+        IndexType mItemComponentCount;
+
+        ///@}
+        ///@name Friend classes
+        ///@{
+
+        friend class Expression;
+
+        ///@}
+    };
+
+    ///@}
+    ///@name Iterator type definitions
+    ///@{
+
+    using value_type = double;
+
+    using size_type = IndexType;
+
+    using const_iterator = ExpressionIterator;
+
+    ///@}
     ///@name Life cycle
     ///@{
+
+    Expression(const IndexType NumberOfEntities) : mNumberOfEntities(NumberOfEntities) {}
 
     virtual ~Expression() = default;
 
@@ -69,24 +155,47 @@ public:
      *
      * @return const std::vector<IndexType>     Size of each dimension is in the vector elements.
      */
-    virtual const std::vector<IndexType> GetShape() const = 0;
+    virtual const std::vector<IndexType> GetItemShape() const = 0;
+
+    /**
+     * @brief Get the maximum number of entities allowed for this expression.
+     *
+     * @return IndexType
+     */
+    inline IndexType NumberOfEntities() const { return mNumberOfEntities; };
 
     /**
      * @brief Get the Local Size of the expression
      *
      * @return IndexType
      */
-    IndexType GetFlattenedSize() const;
+    IndexType GetItemComponentCount() const;
 
     ///@}
     ///@name Input and output
     ///@{
+
+    IndexType size() const;
+
+    const_iterator begin() const;
+
+    const_iterator end() const;
+
+    const_iterator cbegin() const;
+
+    const_iterator cend() const;
 
     virtual std::string Info() const = 0;
 
     ///@}
 
 private:
+    ///@name Private member variables
+    ///@{
+
+    const IndexType mNumberOfEntities;
+
+    ///@}
     ///@name Private operations
     ///@{
 

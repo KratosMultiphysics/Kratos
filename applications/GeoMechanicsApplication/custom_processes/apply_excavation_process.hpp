@@ -88,7 +88,7 @@ class ApplyExcavationProcess : public Process
 
                 // Same nodes for both computing model part
                 if (mrModelPart.NumberOfNodes() > 0) {
-                    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode) {
+                    block_for_each(mrModelPart.Nodes(), [&](Node& rNode) {
                         rNode.Set(ACTIVE, true);
                     });
                 }

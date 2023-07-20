@@ -120,10 +120,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedSkinVisualizationProcess);
 
     typedef std::unordered_map<
-        Node<3>::Pointer,
-        std::tuple< const Node<3>::Pointer, const Node<3>::Pointer, const double, const double >,
-        SharedPointerHasher<Node<3>::Pointer>,
-        SharedPointerComparator<Node<3>::Pointer> > CutNodesMapType;
+        Node::Pointer,
+        std::tuple< const Node::Pointer, const Node::Pointer, const double, const double >,
+        SharedPointerHasher<Node::Pointer>,
+        SharedPointerComparator<Node::Pointer> > CutNodesMapType;
 
     ///@}
     ///@name Life Cycle
@@ -362,7 +362,7 @@ private:
      */
     template<bool IsHistorical>
     double& AuxiliaryGetValue(
-        Node<3>& rNode,
+        Node& rNode,
         const Variable<double>& rVariable);
 
     /**
@@ -376,7 +376,7 @@ private:
      */
     template<bool IsHistorical>
     array_1d<double,3>& AuxiliaryGetValue(
-        Node<3>& rNode,
+        Node& rNode,
         const Variable<array_1d<double,3>>& rVariable);
 
     /**
@@ -404,9 +404,9 @@ private:
      */
     template<class TDataType, bool IsHistorical>
     void InterpolateVariablesListValues(
-        const Node<3>::Pointer& rpNode,
-        const Node<3>::Pointer& rpNodeI,
-        const Node<3>::Pointer& rpNodeJ,
+        const Node::Pointer& rpNode,
+        const Node::Pointer& rpNodeI,
+        const Node::Pointer& rpNodeJ,
         const double WeightI,
         const double WeightJ,
         const std::vector<const Variable<TDataType>*>& rVariablesList);
@@ -462,7 +462,7 @@ private:
      * @return True if it is split and false if not
      */
     bool ElementIsSplit(
-        const Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     /**
@@ -480,7 +480,7 @@ private:
      * @return True if it is split and false if not
      */
     bool ElementIsPositive(
-        Geometry<Node<3>>::Pointer pGeometry,
+        Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     /**
@@ -506,7 +506,7 @@ private:
      * @return A pointer to the modified shape functions utility
      */
     ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
-        const Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     /**
@@ -517,7 +517,7 @@ private:
      * @return A pointer to the modified shape functions utility
      */
     ModifiedShapeFunctions::Pointer SetAusasIncisedModifiedShapeFunctionsUtility(
-        const Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node>::Pointer pGeometry,
         const Vector &rNodalDistancesWithExtra,
         const Vector &rEdgeDistancesExtrapolated);
 
@@ -527,7 +527,7 @@ private:
      * @param rNewNodesArray Nodes that conform the new interface geometry
      * @return A pointer to the new geometry
      */
-    Geometry< Node<3> >::Pointer SetNewConditionGeometry(
+    Geometry< Node >::Pointer SetNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray);
 
@@ -547,13 +547,13 @@ private:
 
     template<const bool IsDistributed>
     static void SetPartitionIndexFromOriginNode(
-        const Node<3>& rOriginNode,
-        Node<3>& rVisualizationNode);
+        const Node& rOriginNode,
+        Node& rVisualizationNode);
 
     template<const bool IsDistributed>
     static void SetPartitionIndex(
         const int PartitionIndex,
-        Node<3>& rVisualizationNode);
+        Node& rVisualizationNode);
 
     ///@}
     ///@name Private  Access

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 
@@ -31,9 +31,7 @@
 #include "mpi/utilities/amgcl_distributed_csr_conversion_utilities.h"
 #include "mpi/utilities/amgcl_distributed_csr_spmm_utilities.h"
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
 
 namespace DistTestingInternals
@@ -837,8 +835,4 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(SmallRectangularDistributedMatrixMatrixMul
     }
 }
 
-
-
-
-} // namespace Testing
-} // namespace Kratos
+} // namespace Kratos::Testing

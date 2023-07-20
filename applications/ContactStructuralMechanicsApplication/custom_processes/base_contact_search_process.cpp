@@ -1524,7 +1524,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(Node<3>& rNode)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(Node& rNode)
 {
     KRATOS_TRY
 

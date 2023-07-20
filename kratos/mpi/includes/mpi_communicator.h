@@ -168,16 +168,24 @@ template<> struct SendTraits< Kratos::VariablesListDataValueContainer >
     }
 };
 
-template<> struct SendTraits< Node<3>::DofsContainerType >
+template<> struct SendTraits< Node::DofsContainerType >
 {
     using SendType = int;
     using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = false;
 
-    static inline std::size_t GetMessageSize(const Node<3>::DofsContainerType& rValue)
+    static inline std::size_t GetMessageSize(const Node::DofsContainerType& rValue)
     {
         return rValue.size();
     }
+};
+
+class DofSetSyncValueType;
+template<> struct SendTraits< DofSetSyncValueType >
+{
+    using SendType = std::size_t;
+    using BufferType = std::vector<SendType>;
+    constexpr static bool IsFixedSize = false;
 };
 
 template<typename ValueType> struct DirectCopyTransfer
@@ -294,11 +302,11 @@ template<> struct SendTools< Kratos::VariablesListDataValueContainer >
     }
 };
 
-template<> struct SendTools< Node<3>::DofsContainerType >
+template<> struct SendTools< Node::DofsContainerType >
 {
-    using SendType = SendTraits< Node<3>::DofsContainerType >::SendType;
+    using SendType = SendTraits< Node::DofsContainerType >::SendType;
 
-    static inline void WriteBuffer(const Node<3>::DofsContainerType& rValue, SendType* pBuffer)
+    static inline void WriteBuffer(const Node::DofsContainerType& rValue, SendType* pBuffer)
     {
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
@@ -308,7 +316,7 @@ template<> struct SendTools< Node<3>::DofsContainerType >
         }
     }
 
-    static inline void ReadBuffer(const SendType* pBuffer, Node<3>::DofsContainerType& rValue)
+    static inline void ReadBuffer(const SendType* pBuffer, Node::DofsContainerType& rValue)
     {
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
@@ -498,7 +506,7 @@ class DofIdAccess: public NodalContainerAccess
 {
 public:
 
-    using ValueType = Node<3>::DofsContainerType;
+    using ValueType = Node::DofsContainerType;
     using SendType = typename SendTraits<ValueType>::SendType;
 
     ValueType& GetValue(IteratorType& iter)
@@ -510,6 +518,49 @@ public:
     {
         return iter->GetDofs();
     }
+};
+
+class DofSetAccess: public MPIInternals::NodalContainerAccess
+{
+public:
+
+    using ValueType = DofSetSyncValueType;
+    using SendType = typename SendTraits<ValueType>::SendType;
+    typedef std::map<std::size_t, std::pair<std::size_t, std::size_t>> MapType;
+
+    DofSetAccess(Communicator::DofSetType& rDofSet):
+        mrDofSet(rDofSet)
+    {
+        mNodeMap = std::map<std::size_t, std::pair<std::size_t, std::size_t>>();
+        std::size_t node_id, last_id = 0;
+        std::size_t i = 0;
+
+        for (auto& r_dof: rDofSet) {
+            node_id = r_dof.Id();
+
+            if (last_id != node_id) {
+                mNodeMap[node_id] = {i, 1};
+            }
+            else {
+                mNodeMap[node_id].second += 1;
+            }
+            last_id = node_id;
+            ++i;
+        }
+    }
+
+    Communicator::DofSetType& GetDofSet() {
+        return mrDofSet;
+    }
+
+    MapType& GetNodeMap() {
+        return mNodeMap;
+    }
+
+private:
+
+    Communicator::DofSetType& mrDofSet;
+    MapType mNodeMap;
 };
 
 template<class TValue> class ElementalDataAccess: public ElementalContainerAccess
@@ -570,7 +621,8 @@ class MPICommunicator : public Communicator
 
 enum class DistributedType {
     Local,
-    Ghost
+    Ghost,
+    Interface
 };
 
 // Auxiliary type for compile-time dispatch of local/ghost mesh access
@@ -588,7 +640,8 @@ enum class OperationType {
     AbsMaxValues,
     OrAccessedFlags,
     AndAccessedFlags,
-    ReplaceAccessedFlags
+    ReplaceAccessedFlags,
+    Combine
 };
 
 // Auxiliary type for compile-time dispatch of the reduction operation in data transfer methods
@@ -782,6 +835,8 @@ public:
 
         return true;
     }
+
+    bool SynchronizeDofSet(DofSetType& rDofSet) override;
 
     bool SynchronizeVariable(Variable<int> const& rThisVariable) override
     {
@@ -1675,6 +1730,11 @@ private:
         return GhostMesh(Color);
     }
 
+    MeshType& GetMesh(IndexType Color, const MeshAccess<DistributedType::Interface>)
+    {
+        return InterfaceMesh(Color);
+    }
+
     template<class TDatabaseAccess>
     std::size_t ReduceValues(
         const typename TDatabaseAccess::SendType* pBuffer,
@@ -1739,7 +1799,7 @@ private:
 
         return MPIInternals::BufferAllocation<TDatabaseAccess>::GetSendSize(recv_value);
     }
-    
+
     template<class TDatabaseAccess>
     std::size_t ReduceValues(
         const typename TDatabaseAccess::SendType* pBuffer,
@@ -2240,6 +2300,19 @@ inline std::ostream & operator <<(std::ostream& rOStream,
     return rOStream;
 }
 ///@}
+
+template<>
+void MPICommunicator::FillBuffer(
+    std::vector<std::size_t>& rBuffer,
+    MPICommunicator::MeshType& rSourceMesh,
+    MPIInternals::DofSetAccess& rAccess);
+
+template<>
+void MPICommunicator::UpdateValues(
+    const std::vector<size_t>& rBuffer,
+    MPICommunicator::MeshType& rSourceMesh,
+    MPIInternals::DofSetAccess& rAccess,
+    MPICommunicator::Operation<OperationType::Combine>);
 
 } // namespace Kratos.
 

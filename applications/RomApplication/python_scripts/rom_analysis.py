@@ -61,6 +61,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             else:
                 self.project_parameters["solver_settings"]["rom_settings"].RemoveValue("petrov_galerkin_number_of_rom_dofs")
 
+            # ROM assembling strategy
+            self.assembling_strategy = self.rom_parameters["assembling_strategy"].GetString() if self.rom_parameters.Has("assembling_strategy") else "global"
+            self.project_parameters["solver_settings"].AddString("assembling_strategy",self.assembling_strategy)
+
             # Create the ROM solver
             return new_python_solvers_wrapper_rom.CreateSolver(
                 self.model,

@@ -29,7 +29,7 @@ using IndexType = std::size_t;
 
 template<class TDataType, std::size_t... TIndex>
 void Read(
-    LiteralFlatExpression& rExpression,
+    LiteralFlatExpression<std::conditional_t<std::is_same_v<TDataType, int>, int, double>>& rExpression,
     const IndexType EntityDataBeginIndex,
     const TDataType& rValue,
     std::index_sequence<TIndex...>)
@@ -53,7 +53,9 @@ void Assign(
 template<class TDataType>
 VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const TDataType& SampleValue)
 {
-    if constexpr(std::is_same_v<TDataType, double>) {
+    if constexpr(std::is_same_v<TDataType, int>) {
+        mShape.clear();
+    } else if constexpr(std::is_same_v<TDataType, double>) {
         mShape.clear();
     } else if constexpr(std::is_same_v<TDataType, Vector>) {
         mShape.push_back(SampleValue.size());
@@ -68,7 +70,12 @@ VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const TDataType& S
 template<class TDataType>
 VariableExpressionDataIO<TDataType>::VariableExpressionDataIO(const std::vector<IndexType>& rShape)
 {
-    if constexpr(std::is_same_v<TDataType, double>) {
+    if constexpr(std::is_same_v<TDataType, int>) {
+        KRATOS_ERROR_IF_NOT(rShape.size() == 0)
+            << "Constructing a int VariableExpressionDataIO with invalid "
+               "shape. [ shape = "
+            << rShape << " ].\n";
+    } else if constexpr(std::is_same_v<TDataType, double>) {
         KRATOS_ERROR_IF_NOT(rShape.size() == 0)
             << "Constructing a double VariableExpressionDataIO with invalid "
                "shape. [ shape = "
@@ -115,12 +122,30 @@ void VariableExpressionDataIO<TDataType>::Assign(
 
 template<class TDataType>
 void VariableExpressionDataIO<TDataType>::Read(
-    LiteralFlatExpression& rExpression,
+    RawLiteralFlatExpression& rExpression,
     const IndexType EntityIndex,
     const TDataType& Value) const
 {
     constexpr IndexType N = std::tuple_size_v<typename TDataType::array_type>;
     VariableExpressionDataIOHelperUtilities::Read(rExpression, EntityIndex * N, Value, std::make_index_sequence<N>{});
+}
+
+template<>
+void VariableExpressionDataIO<int>::Assign(
+    int& rOutput,
+    const Expression& rExpression,
+    const IndexType EntityIndex) const
+{
+    rOutput = static_cast<int>(rExpression.Evaluate(EntityIndex, EntityIndex, 0));
+}
+
+template<>
+void VariableExpressionDataIO<int>::Read(
+    RawLiteralFlatExpression& rExpression,
+    const IndexType EntityIndex,
+    const int& Value) const
+{
+    rExpression.SetData(EntityIndex, 0, Value);
 }
 
 template<>
@@ -134,7 +159,7 @@ void VariableExpressionDataIO<double>::Assign(
 
 template<>
 void VariableExpressionDataIO<double>::Read(
-    LiteralFlatExpression& rExpression,
+    RawLiteralFlatExpression& rExpression,
     const IndexType EntityIndex,
     const double& Value) const
 {
@@ -147,7 +172,7 @@ void VariableExpressionDataIO<Vector>::Assign(
     const Expression& rExpression,
     const IndexType EntityIndex) const
 {
-    const IndexType flattened_size = rExpression.GetFlattenedSize();
+    const IndexType flattened_size = rExpression.GetItemComponentCount();
 
     if (rOutput.size() != flattened_size) {
         rOutput.resize(flattened_size, false);
@@ -161,7 +186,7 @@ void VariableExpressionDataIO<Vector>::Assign(
 
 template<>
 void VariableExpressionDataIO<Vector>::Read(
-    LiteralFlatExpression& rExpression,
+    RawLiteralFlatExpression& rExpression,
     const IndexType EntityIndex,
     const Vector& Value) const
 {
@@ -177,13 +202,13 @@ void VariableExpressionDataIO<Matrix>::Assign(
     const Expression& rExpression,
     const IndexType EntityIndex) const
 {
-    const auto& r_shape = rExpression.GetShape();
+    const auto& r_shape = rExpression.GetItemShape();
 
     if (rOutput.size1() != r_shape[0] || rOutput.size2() != r_shape[1]) {
         rOutput.resize(r_shape[0], r_shape[1], false);
     }
 
-    const IndexType flattened_size = rExpression.GetFlattenedSize();
+    const IndexType flattened_size = rExpression.GetItemComponentCount();
     const IndexType entity_data_begin_index = EntityIndex * flattened_size;
 
     for (IndexType i = 0; i < flattened_size; ++i) {
@@ -193,11 +218,11 @@ void VariableExpressionDataIO<Matrix>::Assign(
 
 template<>
 void VariableExpressionDataIO<Matrix>::Read(
-    LiteralFlatExpression& rExpression,
+    RawLiteralFlatExpression& rExpression,
     const IndexType EntityIndex,
     const Matrix& Value) const
 {
-    const IndexType flattened_size = rExpression.GetFlattenedSize();
+    const IndexType flattened_size = rExpression.GetItemComponentCount();
     const IndexType entity_data_begin_index = EntityIndex * flattened_size;
 
     for (IndexType i = 0; i < flattened_size; ++i) {
@@ -206,6 +231,7 @@ void VariableExpressionDataIO<Matrix>::Read(
 }
 
 // template instantiations
+template class VariableExpressionDataIO<int>;
 template class VariableExpressionDataIO<double>;
 template class VariableExpressionDataIO<array_1d<double, 3>>;
 template class VariableExpressionDataIO<array_1d<double, 4>>;

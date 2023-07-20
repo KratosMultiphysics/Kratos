@@ -64,7 +64,7 @@ public:
         const IndexType EntityDataBeginIndex,
         const IndexType ComponentIndex) const override;
 
-    const std::vector<IndexType> GetShape() const override;
+    const std::vector<IndexType> GetItemShape() const override;
 
     std::string Info() const override;
 

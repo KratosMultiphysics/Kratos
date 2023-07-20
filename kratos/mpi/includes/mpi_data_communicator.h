@@ -118,7 +118,9 @@ void Gatherv(const std::vector<type>& rSendValues,                              
         const int DestinationRank) const override;                                                          \
 std::vector<type> AllGather(const std::vector<type>& rSendValues) const override;                           \
 void AllGather(const std::vector<type>& rSendValues, std::vector<type>& rRecvValues) const override;        \
-
+std::vector<std::vector<type>> AllGatherv(const std::vector<type>& rSendValues) const  override;            \
+void AllGatherv(const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,                       \
+    const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const override;
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE
@@ -423,6 +425,15 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     template<class TDataType> std::vector<TDataType> AllGatherDetail(
         const std::vector<TDataType>& rSendValues) const;
 
+    template<class TDataType>
+    void AllGathervDetail(
+        const TDataType& rSendValues, TDataType& rRecvValues,
+        const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const;
+
+    template<class TDataType>
+    std::vector<std::vector<TDataType>> AllGathervDetail(
+        const std::vector<TDataType>& rSendValues) const;
+
     bool IsEqualOnAllRanks(const int LocalValue) const;
 
     bool IsValidRank(const int Rank) const;
@@ -436,6 +447,11 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         const TDataType& rSendValues, TDataType& rRecvValues,
         const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
         const int RecvRank) const;
+
+    template<class TDataType>
+    void ValidateAllGathervInput(
+        const TDataType& rSendValues, TDataType& rRecvValues,
+        const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const;
 
     template<class TDataType> void PrepareScattervBuffers(
         const std::vector<std::vector<TDataType>>& rInputMessage,
@@ -452,12 +468,26 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         std::vector<int>& rMessageDistances,
         const int DestinationRank) const;
 
+    template<class TDataType>
+    void PrepareAllGathervBuffers(
+        const std::vector<TDataType>& rGathervInput,
+        std::vector<TDataType>& rGathervMessage,
+        std::vector<int>& rMessageLengths,
+        std::vector<int>& rMessageDistances) const;
+
     template<class TDataType> void PrepareGathervReturn(
         const std::vector<TDataType>& rGathervMessage,
         const std::vector<int>& rMessageLengths,
         const std::vector<int>& rMessageDistances,
         std::vector<std::vector<TDataType>>& rOutputMessage,
         const int DestinationRank) const;
+
+    template<class TDataType>
+    void PrepareAllGathervReturn(
+        const std::vector<TDataType>& rGathervMessage,
+        const std::vector<int>& rMessageLengths,
+        const std::vector<int>& rMessageDistances,
+        std::vector<std::vector<TDataType>>& rOutputMessage) const;
 
     template<class TValue> inline MPI_Datatype MPIDatatype(const TValue&) const;
 

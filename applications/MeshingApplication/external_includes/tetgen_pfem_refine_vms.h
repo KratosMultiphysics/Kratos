@@ -104,7 +104,7 @@ namespace Kratos
 			ModelPart& ThisModelPart ,
 			Element const& rReferenceElement,
 			Condition const& rReferenceBoundaryCondition,
-			EntitiesEraseProcess<Node<3>>& node_erase, bool rem_nodes = true, bool add_nodes=true,
+			EntitiesEraseProcess<Node>& node_erase, bool rem_nodes = true, bool add_nodes=true,
 			double alpha_param = 1.4, double h_factor=0.5)
 		{
 
@@ -127,8 +127,8 @@ namespace Kratos
 
 			boost::timer auxiliary;
 			////////////////////////////////////////////////////////////
-			typedef Node<3> PointType;
-			typedef Node<3>::Pointer PointPointerType;
+			typedef Node PointType;
+			typedef Node::Pointer PointPointerType;
 			//typedef PointerVector<PointType>           PointVector;
 			typedef std::vector<PointType::Pointer>           PointVector;
 			typedef PointVector::iterator PointIterator;
@@ -156,7 +156,7 @@ namespace Kratos
 			//NodeIterator res(max_results);
 			PointVector res(max_results);
 			DistanceVector res_distances(max_results);
-			Node<3> work_point(0,0.0,0.0,0.0);
+			Node work_point(0,0.0,0.0,0.0);
 			KRATOS_WATCH(h_factor)
  			//if the remove_node switch is activated, we check if the nodes got too close
 			if (rem_nodes==true)
@@ -553,8 +553,8 @@ namespace Kratos
 			//PointerVector< Element >& neighb
 
 			/*
-			typedef Node<3> PointType;
-			typedef Node<3>::Pointer PointPointerType;
+			typedef Node PointType;
+			typedef Node::Pointer PointPointerType;
 			typedef std::vector<PointType::Pointer>           PointVector;
 			typedef PointVector::iterator PointIterator;
 			typedef std::vector<double>               DistanceVector;
@@ -572,7 +572,7 @@ namespace Kratos
 			*/
  			PointVector list_of_new_nodes;
 
-			Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+			Node::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 
 			int n_points_before_refinement = in2.numberofpoints;
 			//if the refinement was performed, we need to add it to the model part.
@@ -586,7 +586,7 @@ namespace Kratos
 					double& y= outnew.pointlist[base+1];
 					double& z= outnew.pointlist[base+2];
 
-					Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
+					Node::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
 
 					//putting the new node also in an auxiliary list
 					//KRATOS_WATCH("adding nodes to list")
@@ -594,10 +594,10 @@ namespace Kratos
 
 					//std::cout << "new node id = " << pnode->Id() << std::endl;
 					//generating the dofs
-					for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
+					for(Node::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
 					{
-						Node<3>::DofType &rDof = **iii;
-						Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+						Node::DofType &rDof = **iii;
+						Node::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
 						(p_new_dof)->FreeDof();
 					}
@@ -619,7 +619,7 @@ namespace Kratos
 
 
 			//double* work_array;
-			//Node<3> work_point(0,0.0,0.0,0.0);
+			//Node work_point(0,0.0,0.0,0.0);
 
 
 
@@ -705,7 +705,7 @@ namespace Kratos
 					//if inside interpolate
 
 
-					Tetrahedra3D4<Node<3> > geom(
+					Tetrahedra3D4<Node > geom(
 						*( (nodes_begin +  in2.tetrahedronlist[base]-1).base() 	),
 						*( (nodes_begin +  in2.tetrahedronlist[base+1]-1).base() 	),
 						*( (nodes_begin +  in2.tetrahedronlist[base+2]-1).base() 	),
@@ -762,7 +762,7 @@ namespace Kratos
 			{
 				int id = iii + 1;
 				int base = iii * 4;
-				Tetrahedra3D4<Node<3> > geom(
+				Tetrahedra3D4<Node > geom(
 					*( (nodes_begin +  outnew.tetrahedronlist[base]-1).base() 		),
 					*( (nodes_begin +  outnew.tetrahedronlist[base+1]-1).base() 	),
 					*( (nodes_begin +  outnew.tetrahedronlist[base+2]-1).base() 	),
@@ -795,7 +795,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			for(ModelPart::ElementsContainerType::const_iterator iii = ThisModelPart.ElementsBegin();
 				iii != ThisModelPart.ElementsEnd(); iii++)
 			{
-				//Geometry< Node<3> >& geom = iii->GetGeometry();
+				//Geometry< Node >& geom = iii->GetGeometry();
 				int base = ( iii->Id() - 1 )*4;
 
 				(iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
@@ -990,7 +990,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		{
 			KRATOS_TRY
 
-			Geometry<Node<3> >& geom = origin_element->GetGeometry();
+			Geometry<Node >& geom = origin_element->GetGeometry();
 			//mark the nodes as free surface
 			geom[i1].FastGetSolutionStepValue(IS_BOUNDARY) = 1;
 			geom[i2].FastGetSolutionStepValue(IS_BOUNDARY) = 1;
@@ -1002,14 +1002,14 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 			temp.push_back(geom(i1));
 			temp.push_back(geom(i2));
 			temp.push_back(geom(i3));
-			Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
-			//Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D< Node<3> >(temp) );
+			Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Triangle3D3< Node >(temp) );
+			//Geometry< Node >::Pointer cond = Geometry< Node >::Pointer(new Triangle3D< Node >(temp) );
 			int id = (origin_element->Id()-1)*4;
 			Condition::Pointer p_cond = rReferenceBoundaryCondition.Create(id, temp, properties);
 
 			//assigning the neighbour node
 			(p_cond->GetValue(NEIGHBOUR_NODES)).clear();
-			(p_cond->GetValue(NEIGHBOUR_NODES)).push_back( Node<3>::WeakPointer( geom(outer_node_id) ) );
+			(p_cond->GetValue(NEIGHBOUR_NODES)).push_back( Node::WeakPointer( geom(outer_node_id) ) );
 			(p_cond->GetValue(NEIGHBOUR_ELEMENTS)).clear();
 			(p_cond->GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( origin_element ) );
 			ThisModelPart.Conditions().push_back(p_cond);
@@ -1019,9 +1019,9 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 
 		//////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////
-		void Interpolate( Tetrahedra3D4<Node<3> >& geom, const array_1d<double,4>& N,
+		void Interpolate( Tetrahedra3D4<Node >& geom, const array_1d<double,4>& N,
 				  unsigned int step_data_size,
-      				Node<3>::Pointer pnode)
+      				Node::Pointer pnode)
 		{
 			unsigned int buffer_size = pnode->GetBufferSize();
 

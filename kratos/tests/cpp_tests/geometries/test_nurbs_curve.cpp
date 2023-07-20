@@ -25,7 +25,7 @@
 namespace Kratos {
 namespace Testing {
 
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 // /// Factory functions
 //namespace {
@@ -393,7 +393,7 @@ typedef Node<3> NodeType;
         auto curve = GenerateReferenceCurve2d();
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = curve.GetDefaultIntegrationInfo();
         curve.CreateIntegrationPoints(integration_points, integration_info);
 
@@ -415,7 +415,7 @@ typedef Node<3> NodeType;
         auto curve = GenerateReferenceCurve2d();
 
         // Check general information, input to ouput
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = curve.GetDefaultIntegrationInfo();
         integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
         integration_info.SetNumberOfIntegrationPointsPerSpan(0, 5);
@@ -440,11 +440,11 @@ typedef Node<3> NodeType;
         // Nurbs curve on a Nurbs surface
         auto curve = GenerateReferenceCurve3d();
 
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = curve.GetDefaultIntegrationInfo();
         curve.CreateIntegrationPoints(integration_points, integration_info);
 
-        typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
+        typename Geometry<Node>::GeometriesArrayType quadrature_points;
         curve.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);

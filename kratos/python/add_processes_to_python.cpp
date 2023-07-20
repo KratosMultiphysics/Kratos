@@ -55,6 +55,7 @@
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/apply_ray_casting_process.h"
+#include "processes/apply_ray_casting_interface_recognition_process.h"
 #include "processes/simple_mortar_mapper_process.h"
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
@@ -74,7 +75,7 @@
 
 namespace Kratos::Python
 {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 // Discontinuous distance computation auxiliar functions
 template<std::size_t TDim>
@@ -229,7 +230,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, std::size_t>())
     ;
 
-    py::class_<EntitiesEraseProcess<Node<3>>, EntitiesEraseProcess<Node<3>>::Pointer, Process>(m,"NodeEraseProcess")
+    py::class_<EntitiesEraseProcess<Node>, EntitiesEraseProcess<Node>::Pointer, Process>(m,"NodeEraseProcess")
     .def(py::init<ModelPart&>())
     ;
 
@@ -273,7 +274,7 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<StructuredMeshGeneratorProcess, StructuredMeshGeneratorProcess::Pointer, Process>(m,"StructuredMeshGeneratorProcess")
-            .def(py::init<const Geometry< Node<3> >&, ModelPart&, Parameters>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
+            .def(py::init<const Geometry< Node >&, ModelPart&, Parameters>()) //TODO: VERIFY IF THE NEXT IS NEEDED: [with_custodian_and_ward<1, 2>()])
     ;
 
     auto orientation_check_interface = py::class_<TetrahedralMeshOrientationCheck, TetrahedralMeshOrientationCheck::Pointer, Process>(m,"TetrahedralMeshOrientationCheck")
@@ -470,6 +471,18 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
+    ;
+
+    py::class_<ApplyRayCastingInterfaceRecognitionProcess<2>, 
+      ApplyRayCastingInterfaceRecognitionProcess<2>::Pointer, Process>
+      (m,"ApplyRayCastingInterfaceRecognitionProcess2D")
+        .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<ApplyRayCastingInterfaceRecognitionProcess<3>,
+       ApplyRayCastingInterfaceRecognitionProcess<3>::Pointer, Process>
+       (m,"ApplyRayCastingInterfaceRecognitionProcess3D")
+        .def(py::init<Model&, Parameters>())
     ;
 
 //     // Calculate embedded variable from skin processes

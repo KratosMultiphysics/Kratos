@@ -42,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
 
     // Set the elemental distances vector
-    Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
+    Geometry < Node >& r_geometry = base_model_part.Elements()[1].GetGeometry();
 
     array_1d<double, 3> distances_vector;
     for (unsigned int i = 0; i < r_geometry.size(); ++i) {
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
     // Build the triangle splitting utility
-    DivideTriangle3D3<Node<3>> triangle_splitter(r_geometry, r_elemental_distances);
+    DivideTriangle3D3<Node> triangle_splitter(r_geometry, r_elemental_distances);
 
     // Call the divide geometry method
     triangle_splitter.GenerateDivision();
@@ -65,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
 
     // Call the positive exterior faces generation method
     std::vector < unsigned int > pos_ext_faces_parent_ids;
-    std::vector < DivideTriangle2D3<Node<3>>::IndexedPointGeometryPointerType > pos_ext_faces;
+    std::vector < DivideTriangle2D3<Node>::IndexedPointGeometryPointerType > pos_ext_faces;
     triangle_splitter.GenerateExteriorFaces(
         pos_ext_faces,
         pos_ext_faces_parent_ids,
@@ -73,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
 
     // Call the negative exterior faces generation method
     std::vector < unsigned int > neg_ext_faces_parent_ids;
-    std::vector < DivideTriangle2D3<Node<3>>::IndexedPointGeometryPointerType > neg_ext_faces;
+    std::vector < DivideTriangle2D3<Node>::IndexedPointGeometryPointerType > neg_ext_faces;
     triangle_splitter.GenerateExteriorFaces(
         neg_ext_faces,
         neg_ext_faces_parent_ids,

@@ -36,7 +36,7 @@ namespace Kratos
 ///@{
 
     // General geometry type definitions
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
 
     /// The definition of the index type

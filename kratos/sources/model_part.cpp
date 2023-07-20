@@ -82,6 +82,7 @@ void ModelPart::Clear()
 
     // Clear meshes list
     mMeshes.clear();
+    mMeshes.emplace_back(Kratos::make_shared<MeshType>());
 
     // Clear geometries
     mGeometries.Clear();
@@ -983,7 +984,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
         return p_new_element;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pElementNodes;
+    Geometry< Node >::PointsArrayType pElementNodes;
 
     for (unsigned int i = 0; i < ElementNodeIds.size(); i++)
     {
@@ -997,7 +998,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
 /** Inserts an element in the mesh with ThisIndex.
 */
 ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementName,
-        ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
+        ModelPart::IndexType Id, Geometry< Node >::PointsArrayType pElementNodes,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
@@ -1495,7 +1496,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
-    Geometry< Node < 3 > >::PointsArrayType pConditionNodes;
+    Geometry< Node >::PointsArrayType pConditionNodes;
 
     for (unsigned int i = 0; i < ConditionNodeIds.size(); i++)
     {
@@ -1509,7 +1510,7 @@ ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string Cond
 /** Inserts a condition in the mesh with ThisIndex.
 */
 ModelPart::ConditionType::Pointer ModelPart::CreateNewCondition(std::string ConditionName,
-        ModelPart::IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
+        ModelPart::IndexType Id, Geometry< Node >::PointsArrayType pConditionNodes,
         ModelPart::PropertiesType::Pointer pProperties, ModelPart::IndexType ThisIndex)
 {
     KRATOS_TRY
