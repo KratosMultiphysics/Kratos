@@ -25,31 +25,26 @@ namespace Kratos::Testing
 ///@{
 
 /**
-* @class TestElement
+* @class TestLaplacianElement
 * @ingroup KratosCore
-* @brief This is simple test element
+* @brief This is simple laplacian test element
 * @details It is designed to create a simple LHS and RHS in order to test strategies, processes. etc.... This way the common interface of the elements/conditions can be used to minimize the difference between the actual implementation and the test
 * @author Vicente Mataix Ferrandiz
 */
-class TestElement
+class TestLaplacianElement
     : public Element
 {
 public:
+
     ///@name Type Definitions
     ///@{
-
-    /// Counted pointer of TestElement
-    KRATOS_CLASS_POINTER_DEFINITION( TestElement);
-
+    
+    /// Counted pointer of TestLaplacianElement
+    KRATOS_CLASS_POINTER_DEFINITION( TestLaplacianElement);
+    
     ///@}
     ///@name  Enum's
     ///@{
-
-    /**
-    * @brief This enum is used in order of differentiante
-    * @details If more implementations are added, add the corresponding enum
-    */
-    enum class ResidualType {LINEAR = 0, NON_LINEAR = 1, ARC_LENGTH = 2};
 
     ///@}
     ///@name Life Cycle
@@ -59,31 +54,29 @@ public:
      * @brief Default constructor
      * @param NewId the ID of the new element
      * @param pGeometry the nodes of the new element
-     * @param TheResidualType The problem to be solved (linear, non-linear, arc-length ...)
      */
-    TestElement(IndexType NewId, GeometryType::Pointer pGeometry, const ResidualType TheResidualType = ResidualType::LINEAR);
+    TestLaplacianElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /**
      * @brief Default constructor
      * @param NewId The ID of the new element
      * @param pGeometry The nodes of the new element
      * @param pProperties The properties assigned to the new element
-     * @param TheResidualType The problem to be solved (linear, non-linear, arc-length ...)
      */
-    TestElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const ResidualType TheResidualType = ResidualType::LINEAR);
+    TestLaplacianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    TestElement(TestElement const& rOther);
+    TestLaplacianElement(TestLaplacianElement const& rOther);
 
     /// Destructor.
-    ~TestElement() override;
+    ~TestLaplacianElement() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    TestElement& operator=(TestElement const& rOther);
+    TestLaplacianElement& operator=(TestLaplacianElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -129,25 +122,11 @@ public:
         ) const override;
 
     /**
-     * @brief Sets on rValues the nodal displacements
+     * @brief Sets on rValues the nodal temperatures
      * @param rValues The vector containing the dofs values
      * @param Step The time step computed (must be in the buffer)
      */
     void GetValuesVector(Vector& rValues, int Step = 0) const override;
-
-    /**
-     * @brief Sets on rValues the nodal velocities
-     * @param rValues The vector containing the first derivatives
-     * @param Step The time step computed (must be in the buffer)
-     */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
-
-    /**
-     * @brief Sets on rValues the nodal accelerations
-     * @param rValues The vector containing the second derivatives
-     * @param Step The time step computed (must be in the buffer)
-     */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     //************* COMPUTING  METHODS
 
@@ -213,18 +192,6 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
-     * @brief Get on rVariable Constitutive Law from the element
-     * @param rVariable The variable we want to get
-     * @param rValues The results in the integration points
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateOnIntegrationPoints(
-        const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief It is called to initialize the element
      * @details If the element needs to perform any operation before any calculation is done the elemental variables will be initialized and set using this method
      * @param rCurrentProcessInfo The current process info instance
@@ -255,17 +222,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mThisIntegrationMethod; /// Currently selected integration methods
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
-
     ///@}
-
-    ResidualType mResidualType;
-
     ///@name Protected Operators
     ///@{
 
-    TestElement() : Element()
+    TestLaplacianElement() : Element()
     {
     }
 
@@ -325,7 +286,7 @@ private:
     ///@{
     ///@}
 
-}; // Class TestElement
+}; // Class TestLaplacianElement
 
 ///@}
 ///@name Type Definitions
