@@ -90,17 +90,16 @@ BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearchPro
     }
 
     // Updating the base condition
-    mConditionName = mThisParameters["condition_name"].GetString();
-    if (mConditionName == "") {
+    std::string condition_name = mThisParameters["condition_name"].GetString();
+    if (condition_name == "") {
         this->Set(BaseContactSearchProcess::CREATE_AUXILIAR_CONDITIONS, false);
     } else {
         this->Set(BaseContactSearchProcess::CREATE_AUXILIAR_CONDITIONS, true);
-        std::ostringstream condition_name;
-        condition_name << mConditionName << "Condition" << TDim << "D" << TNumNodes << "N" << mThisParameters["final_string"].GetString();
-        mConditionName = condition_name.str();
+        std::ostringstream condition_name_buffer;
+        condition_name_buffer << condition_name << "Condition" << TDim << "D" << TNumNodes << "N" << mThisParameters["final_string"].GetString();
+        condition_name = condition_name_buffer.str();
+        mpReferenceCondition = &(dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get(condition_name)));
     }
-
-//     KRATOS_DEBUG_ERROR_IF_NOT(KratosComponents<Condition>::Has(mConditionName)) << "Condition " << mConditionName << " not registered" << std::endl;
 
     // We get the contact model part
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -809,8 +808,7 @@ Condition::Pointer BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::A
     // We add the ID and we create a new auxiliary condition
     if (this->Is(BaseContactSearchProcess::CREATE_AUXILIAR_CONDITIONS)) { // TODO: Check this!!
         ++rConditionId;
-        const PairedCondition& r_reference_condition = dynamic_cast<const PairedCondition&>(KratosComponents<Condition>::Get(mConditionName));
-        Condition::Pointer p_auxiliary_condition = r_reference_condition.Create(rConditionId, pObjectSlave->pGetGeometry(), pProperties, pObjectMaster->pGetGeometry());
+        Condition::Pointer p_auxiliary_condition = mpReferenceCondition->Create(rConditionId, pObjectSlave->pGetGeometry(), pProperties, pObjectMaster->pGetGeometry());
         // We set the geometrical values
         rComputingModelPart.AddCondition(p_auxiliary_condition);
         pIndexesPairs->SetNewEntityId(pObjectMaster->Id(), rConditionId);
