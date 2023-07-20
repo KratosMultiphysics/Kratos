@@ -49,7 +49,7 @@ namespace Kratos::Testing
 /**
 * This method can be used to create a 3D plane condition set
 */
-void SimpleCreateNewProblem3D(ModelPart& rModelPart)
+void SimpleCreateNewProblem3DSelfContact(ModelPart& rModelPart)
 {
     // Creating nodes
     rModelPart.CreateNewNode(1, 4.0, 4.0, 0.0);
@@ -213,7 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(SelfContactUtilities1, KratosContactStructuralMechanic
     r_process_info[NL_ITERATION_NUMBER] = 1;
 
     // We create our problem
-    SimpleCreateNewProblem3D(r_model_part);
+    SimpleCreateNewProblem3DSelfContact(r_model_part);
 
     // All potential pairs
     SelfContactUtilities::FullAssignmentOfPairs(r_model_part);
