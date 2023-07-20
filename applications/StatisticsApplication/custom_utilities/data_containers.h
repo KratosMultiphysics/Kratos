@@ -131,7 +131,7 @@ public:
 
     using IndexType = std::size_t;
 
-    using DataType = int;
+    using DataType = unsigned int;
 
     ///@}
     ///@name Life cycle
@@ -167,7 +167,7 @@ public:
     }
 
     void GetValue(
-        int& rOutputValue,
+        DataType& rOutputValue,
         const IndexType EntityIndex) const
     {
         if constexpr(TDataLocation == DataLocation::NodeHistorical) {
