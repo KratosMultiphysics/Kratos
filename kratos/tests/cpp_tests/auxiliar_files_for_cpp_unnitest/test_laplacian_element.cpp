@@ -175,7 +175,7 @@ void TestLaplacianElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix
 
     // Some definitions
     MatrixType DN_DX = ZeroMatrix(number_of_nodes, dimension);  // Gradients matrix
-    MatrixType D = ZeroMatrix(dimension, dimension);            // Conductivity matrix
+    MatrixType D = ZeroMatrix(number_of_nodes, number_of_nodes);            // Conductivity matrix
     VectorType N = ZeroVector(number_of_nodes);                 // Size = number of nodes . Position of the gauss point
     VectorType temp = ZeroVector(number_of_nodes);              // Dimension = number of nodes . . since we are using a residualbased approach
 
