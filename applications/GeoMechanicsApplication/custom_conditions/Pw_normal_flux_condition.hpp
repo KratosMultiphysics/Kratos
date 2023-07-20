@@ -56,9 +56,6 @@ public:
     // Constructor 2
     PwNormalFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : PwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
-    // Destructor
-    ~PwNormalFluxCondition() override {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;

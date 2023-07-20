@@ -52,9 +52,6 @@ public:
     // Constructor 2
     SurfaceLoad3DDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
-    // Destructor
-    ~SurfaceLoad3DDiffOrderCondition() override;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
