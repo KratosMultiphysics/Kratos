@@ -641,7 +641,8 @@ protected:
 
         Build(pScheme, rModelPart, rA, rb);
 
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        if (!mHromSimulation)
+            BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
         if (mMonotonicityPreservingFlag)
             MonotonicityPreserving(rA, rb);
