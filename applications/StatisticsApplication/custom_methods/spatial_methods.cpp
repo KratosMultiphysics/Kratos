@@ -543,46 +543,24 @@ typename TNormType::ResultantValueType<TDataType> GenericSumReduction(
     KRATOS_CATCH("");
 }
 
-template<class TDataType, template <class T1> class OperationType>
-std::tuple<TDataType, typename SpatialMethods::ItemPositionType<TDataType>> GenericReductionWithIndices(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation)
-{
-    KRATOS_TRY
-
-    const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
-
-    return std::visit([&rModelPart](auto& rDataContainer) {
-        using data_container_type = std::decay_t<decltype(rDataContainer)>;
-        return GenericReductionUtilities::GenericReduction<data_container_type, Norms::Value, OperationType, true>(
-                rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, Norms::Value())
-            .GetValue();
-    }, data_container);
-
-    KRATOS_CATCH("");
-}
-
-template<class TDataType, template <class T1> class OperationType>
-std::tuple<double, IndexType> GenericReductionWithIndices(
+template<class TDataType, class TNormType, template <class T1> class OperationType>
+std::tuple<typename TNormType::ResultantValueType<TDataType>, typename SpatialMethods::ItemPositionType<typename TNormType::ResultantValueType<TDataType>>> GenericReductionWithIndices(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation,
-    const std::string& rNormType)
+    const TNormType& rNorm)
 {
     KRATOS_TRY
 
     const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
 
-    const auto r_norm_type = Norms::GetNorm<TDataType>(rNormType);
-
-    return std::visit([&rModelPart](auto& rDataContainer, auto& rNorm) {
+    return std::visit([&rModelPart, &rNorm](auto& rDataContainer) {
         using data_container_type = std::decay_t<decltype(rDataContainer)>;
         using norm_type = std::decay_t<decltype(rNorm)>;
         return GenericReductionUtilities::GenericReduction<data_container_type, norm_type, OperationType, true>(
                 rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm)
             .GetValue();
-    }, data_container, r_norm_type);
+    }, data_container);
 
     KRATOS_CATCH("");
 }
@@ -714,7 +692,7 @@ std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethod
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation);
+    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, Norms::Value());
 }
 
 template<class TDataType>
@@ -722,9 +700,11 @@ std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation,
-    const std::string& rNormType)
+    const typename Norms::NormType<TDataType>::type& rNorm)
 {
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, rNormType);
+    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
+        return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, rNorm);
+    }, rNorm);
 }
 
 template<class TDataType>
@@ -733,7 +713,7 @@ std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethod
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation);
+    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation, Norms::Value());
 }
 
 template<class TDataType>
@@ -741,9 +721,11 @@ std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation,
-    const std::string& rNormType)
+    const typename Norms::NormType<TDataType>::type& rNorm)
 {
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation, rNormType);
+    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
+        return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation, rNorm);
+    }, rNorm);
 }
 
 template<class TDataType>
@@ -752,7 +734,7 @@ std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethod
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation);
+    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, Norms::Value());
 }
 
 template<class TDataType>
@@ -760,9 +742,11 @@ std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation,
-    const std::string& rNormType)
+    const typename Norms::NormType<TDataType>::type& rNorm)
 {
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, rNormType);
+    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
+        return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, rNorm);
+    }, rNorm);
 }
 
 template <class TDataType>
@@ -1069,11 +1053,11 @@ SpatialMethods::DistributionInfoType SpatialMethods::Distribution(
     template std::tuple<__VA_ARGS__, __VA_ARGS__> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);            \
     template std::tuple<double, double> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);            \
     template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
-    template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&); \
+    template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
     template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
-    template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&); \
+    template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
     template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
-    template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const std::string&); \
+    template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
     template SpatialMethods::DistributionInfoType SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const std::string&, const DataLocation&, Parameters);
 
 KRATOS_TEMPLATE_VARIABLE_METHOD_INSTANTIATION(double)

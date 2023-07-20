@@ -217,7 +217,7 @@ public:
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
-        const std::string& rNormType);
+        const typename Norms::NormType<TDataType>::type& rNorm);
 
     template<class TDataType>
     static std::tuple<TDataType, ItemPositionType<TDataType>> Max(
@@ -230,7 +230,7 @@ public:
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
-        const std::string& rNormType);
+        const typename Norms::NormType<TDataType>::type& rNorm);
 
     template<class TDataType>
     static std::tuple<TDataType, ItemPositionType<TDataType>> Median(
@@ -243,7 +243,7 @@ public:
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
-        const std::string& rNormType);
+        const typename Norms::NormType<TDataType>::type& rNorm);
 
     template<class TDataType>
     static DistributionInfoType Distribution(
@@ -356,7 +356,7 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            return Max(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
+            return Max(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Norms::GetNorm<TDataType>(rNormType));
         }
 
         template <class TDataType>
@@ -366,7 +366,7 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            return Min(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
+            return Min(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Norms::GetNorm<TDataType>(rNormType));
         }
 
         template <class TDataType>
@@ -376,7 +376,7 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            return std::get<0>(Median(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType));
+            return std::get<0>(Median(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Norms::GetNorm<TDataType>(rNormType)));
         }
 
         template <class TDataType>
