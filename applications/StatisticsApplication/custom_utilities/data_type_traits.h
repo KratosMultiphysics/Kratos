@@ -35,6 +35,8 @@ using SupportedDataType = std::variant<
                         Vector,
                         Matrix>;
 
+using IndicesType = std::vector<IndexType>;
+
 template<class TDataType>
 struct DataTypeTraits
 {
@@ -54,7 +56,7 @@ struct DataTypeTraits
 
     static bool Resize(
         TDataType& rValue,
-        const TDataType rTarget)
+        const IndicesType& rShape)
     {
         return false;
     }
@@ -71,6 +73,11 @@ struct DataTypeTraits
         const IndexType Index)
     {
         return rValue;
+    }
+
+    static IndicesType Shape(const TDataType& rValue)
+    {
+        return {};
     }
 
     static IndexType Size(const TDataType& rValue)
@@ -138,7 +145,7 @@ struct DataTypeTraits<array_1d<TDataType, TSize>>
 
     static bool Resize(
         DataType& rValue,
-        const DataType& rTarget)
+        const IndicesType& rShape)
     {
         return false;
     }
@@ -155,6 +162,11 @@ struct DataTypeTraits<array_1d<TDataType, TSize>>
         const IndexType Index)
     {
         return rValue[Index];
+    }
+
+    static IndicesType Shape(const array_1d<TDataType, TSize>& rValue)
+    {
+        return {static_cast<IndexType>(TSize)};
     }
 
     static IndexType Size(const DataType& rValue)
@@ -222,10 +234,12 @@ struct DataTypeTraits<Vector>
 
     static bool Resize(
         DataType& rValue,
-        const DataType& rTarget)
+        const IndicesType& rShape)
     {
-        if (rValue.size() != rTarget.size()) {
-            rValue.resize(rTarget.size(), false);
+        KRATOS_ERROR_IF(rShape.size() != 1) << "Vectors should be reszed with shape having one dimension.";
+
+        if (rValue.size() != rShape[0]) {
+            rValue.resize(rShape[0], false);
             return true;
         } else {
             return false;
@@ -244,6 +258,11 @@ struct DataTypeTraits<Vector>
         const IndexType Index)
     {
         return rValue[Index];
+    }
+
+    static IndicesType Shape(const DataType& rValue)
+    {
+        return {static_cast<IndexType>(rValue.size())};
     }
 
     static IndexType Size(const DataType& rValue)
@@ -338,10 +357,12 @@ struct DataTypeTraits<Matrix>
 
     static bool Resize(
         DataType& rValue,
-        const DataType& rTarget)
+        const IndicesType& rShape)
     {
-        if (rValue.size1() != rTarget.size1() || rValue.size2() != rTarget.size2()) {
-            rValue.resize(rTarget.size1(), rTarget.size2(), false);
+        KRATOS_ERROR_IF(rShape.size() != 2) << "Matrix should be reszed with shape having two dimensions.";
+
+        if (rValue.size1() != rShape[0] || rValue.size2() != rShape[1]) {
+            rValue.resize(rShape[0], rShape[1], false);
             return true;
         } else {
             return false;
@@ -360,6 +381,11 @@ struct DataTypeTraits<Matrix>
         const IndexType Index)
     {
         return rValue.data()[Index];
+    }
+
+    static IndicesType Shape(const DataType& rValue)
+    {
+        return {static_cast<IndexType>(rValue.size1()), static_cast<IndexType>(rValue.size2())};
     }
 
     static IndexType Size(const DataType& rValue)
@@ -453,10 +479,12 @@ struct DataTypeTraits<std::vector<TDataType>>
 
     static bool Resize(
         DataType& rValue,
-        const DataType& rTarget)
+        const IndicesType& rShape)
     {
-        if (rValue.size() != rTarget.size()) {
-            rValue.resize(rTarget.size(), false);
+        KRATOS_ERROR_IF(rShape.size() != 1) << "Vectors should be reszed with shape having one dimension.";
+
+        if (rValue.size() != rShape[0]) {
+            rValue.resize(rShape[0], false);
             return true;
         } else {
             return false;
@@ -475,6 +503,11 @@ struct DataTypeTraits<std::vector<TDataType>>
         const IndexType Index)
     {
         return rValue[Index];
+    }
+
+    static IndicesType Shape(const DataType& rValue)
+    {
+        return {static_cast<IndexType>(rValue.size())};
     }
 
     static IndexType Size(const DataType& rValue)

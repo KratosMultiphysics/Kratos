@@ -57,7 +57,7 @@ void ResizeAndInitialize(
     const TDataType& rValueForSize,
     const typename DataTypeTraits<TDataType>::RawDataType& rInitializationValue)
 {
-    DataTypeTraits<TDataType>::Resize(rOutput, rValueForSize);
+    DataTypeTraits<TDataType>::Resize(rOutput, DataTypeTraits<TDataType>::Shape(rValueForSize));
     DataTypeTraits<TDataType>::Initialize(rOutput, rInitializationValue);
 }
 
@@ -68,7 +68,7 @@ void ResizeAndFill(
     TIteratorType Begin)
 {
     const auto number_of_components = DataTypeTraits<TDataType>::Size(rValueForSize);
-    DataTypeTraits<TDataType>::Resize(rOutput, rValueForSize);
+    DataTypeTraits<TDataType>::Resize(rOutput, DataTypeTraits<TDataType>::Shape(rValueForSize));
     DataTypeTraits<TDataType>::FillFromVector(rOutput, Begin, Begin + number_of_components);
 }
 
@@ -116,7 +116,7 @@ public:
 
     void Execute(const SumOperation<TDataType>& rOther)
     {
-        if (OperationTraits::Resize(mValue, rOther.mValue)) {
+        if (OperationTraits::Resize(mValue, DataTypeTraits<TDataType>::Shape(rOther.mValue))) {
             Initialize();
         }
         mValue += rOther.mValue;
@@ -173,7 +173,7 @@ public:
         const IndexType rId)
     {
         mValue = rValue;
-        IndicesTraits::Resize(mIndices, IndicesType(OperationTraits::Size(mValue)));
+        IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
         std::fill(mIndices.begin(), mIndices.end(), rId);
     }
 
@@ -188,7 +188,7 @@ public:
 
     void Execute(const MinOperation<TDataType>& rOther)
     {
-        if (OperationTraits::Resize(mValue, rOther.mValue)) {
+        if (OperationTraits::Resize(mValue, OperationTraits::Shape(rOther.mValue))) {
             Initialize();
         }
 
@@ -243,7 +243,7 @@ private:
     void Initialize()
     {
         OperationTraits::Initialize(mValue, std::numeric_limits<double>::max());
-        IndicesTraits::Resize(mIndices, IndicesType(OperationTraits::Size(mValue)));
+        IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
         IndicesTraits::Initialize(mIndices, std::numeric_limits<IndexType>::max());
     }
 
@@ -272,7 +272,7 @@ public:
         const IndexType rId)
     {
         mValue = rValue;
-        IndicesTraits::Resize(mIndices, IndicesType(OperationTraits::Size(mValue)));
+        IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
         std::fill(mIndices.begin(), mIndices.end(), rId);
     }
 
@@ -287,7 +287,7 @@ public:
 
     void Execute(const MaxOperation<TDataType>& rOther)
     {
-        if (OperationTraits::Resize(mValue, rOther.mValue)) {
+        if (OperationTraits::Resize(mValue, OperationTraits::Shape(rOther.mValue))) {
             Initialize();
         }
 
@@ -342,7 +342,7 @@ private:
     void Initialize()
     {
         OperationTraits::Initialize(mValue, std::numeric_limits<double>::lowest());
-        IndicesTraits::Resize(mIndices, IndicesType(OperationTraits::Size(mValue)));
+        IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
         IndicesTraits::Initialize(mIndices, std::numeric_limits<IndexType>::max());
     }
 
