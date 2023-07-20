@@ -552,7 +552,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         const double F = uniaxial_stress - threshold;
 
-        if (F > threshold_tolerance & sign_factor > 0.0) {
+        if (F > threshold_tolerance && sign_factor > 0.0) {
                 const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
                 // This routine updates the PredictiveStress to verify the yield surface
                 TConstLawIntegratorType::IntegrateStressVector(
