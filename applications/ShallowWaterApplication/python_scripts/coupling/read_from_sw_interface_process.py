@@ -136,6 +136,7 @@ class ReadFromSwInterfaceProcess(KM.Process):
             
     def DistributeVelocityToPfem(self):
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
+            self.CorrectVelocity()
             self.Moving_v()
 
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 3:
@@ -189,11 +190,18 @@ class ReadFromSwInterfaceProcess(KM.Process):
     def Moving_v(self):
         for node in self.interface_model_part.Nodes:
             node.Y = (node.Y0 - self.y_bottom)*self.avg_h/self.h_pfem + self.y_bottom
-            displacement = node.Y - node.Y0
+            displacement = (node.Y - node.Y0)*1.5
             node.SetSolutionStepValue(KM.DISPLACEMENT_Y, displacement)
             vel_z_var = self.avg_vel_z*(node.Y - self.y_bottom)/self.avg_h
             node.SetSolutionStepValue(KM.VELOCITY_X, self.avg_vel_x)
             node.SetSolutionStepValue(KM.VELOCITY_Y, vel_z_var) 
+
+    def CorrectVelocity(self):
+        nNodes = 0
+        for node in self.interface_model_part.Nodes:
+            nNodes = nNodes + 1
+        nElements = nNodes - 1
+        self.avg_vel_x = 2*self.avg_vel_x*nElements/(2*nElements - 1)*1.5
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
