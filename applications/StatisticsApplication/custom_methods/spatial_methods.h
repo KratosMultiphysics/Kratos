@@ -162,7 +162,7 @@ public:
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
-        const std::string& rNormType);
+        const typename Norms::NormType<TDataType>::type& rNorm);
 
     template<class TDataType>
     static TDataType Mean(
@@ -175,7 +175,7 @@ public:
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
-        const std::string& rNormType);
+        const typename Norms::NormType<TDataType>::type& rNorm);
 
     template<class TDataType>
     static TDataType RootMeanSquare(
@@ -188,7 +188,7 @@ public:
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
-        const std::string& rNormType);
+        const typename Norms::NormType<TDataType>::type& rNorm);
 
     template<class TDataType>
     static std::tuple<TDataType, TDataType> Variance(
@@ -201,7 +201,7 @@ public:
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
-        const std::string& rNormType);
+        const typename Norms::NormType<TDataType>::type& rNorm);
 
     template<class TDataType>
     static std::tuple<TDataType, SpatialMethods::IndicesType> Min(
@@ -294,7 +294,7 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            return Sum(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
+            return Sum(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Norms::GetNorm<TDataType>(rNormType));
         }
 
         template <class TDataType>
@@ -310,7 +310,7 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            return RootMeanSquare(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
+            return RootMeanSquare(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Norms::GetNorm<TDataType>(rNormType));
         }
 
         template <class TDataType>
@@ -326,7 +326,7 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            return Mean(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
+            return Mean(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Norms::GetNorm<TDataType>(rNormType));
         }
 
         template <class TDataType>
@@ -343,7 +343,7 @@ public:
             const std::string& rNormType,
             Parameters Params)
         {
-            return Variance(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), rNormType);
+            return Variance(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Norms::GetNorm<TDataType>(rNormType));
         }
 
         template <class TDataType>

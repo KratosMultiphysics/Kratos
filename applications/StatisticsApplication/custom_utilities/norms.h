@@ -473,7 +473,7 @@ static std::variant<Norms::L2, Norms::Infinity, Norms::P, Norms::MatrixComponent
         const std::string& r_values_str = rNormType.substr(
             9, rNormType.size() - std::min(10, static_cast<int>(rNormType.size() - 1)));
         const auto& str_indices = StringUtilities::SplitStringByDelimiter(r_values_str, ',');
-        return MatrixComponent(std::stod(str_indices[0]), std::stod(str_indices[1]));
+        return LPQ(std::stod(str_indices[0]), std::stod(str_indices[1]));
     } else {
         KRATOS_ERROR << "Unsupported norm requested for matrix data type [ norm_type = \""
                      << rNormType << "\"]. Followings are the supported norm types:"
@@ -488,6 +488,39 @@ static std::variant<Norms::L2, Norms::Infinity, Norms::P, Norms::MatrixComponent
         return Infinity();
     }
 }
+
+template<class TDataType>
+struct NormType {};
+
+template<>
+struct NormType<int>
+{
+    using type = std::variant<Norms::L2, Norms::Infinity>;
+};
+
+template<>
+struct NormType<double>
+{
+    using type = std::variant<Norms::L2, Norms::Infinity>;
+};
+
+template<class TDataType, std::size_t TSize>
+struct NormType<array_1d<TDataType, TSize>>
+{
+    using type = std::variant<Norms::L2, Norms::Infinity, Norms::P, Norms::VectorComponent>;
+};
+
+template<>
+struct NormType<Vector>
+{
+    using type = std::variant<Norms::L2, Norms::Infinity, Norms::P, Norms::VectorComponent>;
+};
+
+template<>
+struct NormType<Matrix>
+{
+    using type = std::variant<Norms::L2, Norms::Infinity, Norms::P, Norms::MatrixComponent, Norms::Trace, Norms::LPQ>;
+};
 
 } // namespace Norms
 } // namespace Kratos
