@@ -246,12 +246,19 @@ public:
         const typename Norms::NormType<TDataType>::type& rNorm);
 
     template<class TDataType>
-    static DistributionInfoType Distribution(
+    static DistributionInfo<TDataType> Distribution(
         const ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
-        const std::string& rNormType,
         const DataLocation& rLocation,
         Parameters Params);
+
+    template<class TDataType>
+    static DistributionInfo<double> Distribution(
+        const ModelPart& rModelPart,
+        const Variable<TDataType>& rVariable,
+        const DataLocation& rLocation,
+        Parameters Params,
+        const typename Norms::NormType<TDataType>::type& rNorm);
 
     ///@}
     ///@name Static operations
@@ -388,8 +395,7 @@ public:
         {
             KRATOS_TRY
 
-            const auto& distribution_info = Distribution(rModelPart, rVariable, rNormType, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Params);
-            const auto& values = std::get<DistributionInfo<double>>(distribution_info);
+            const auto& values = Distribution(rModelPart, rVariable, GetDataLocation<TDataRetrievalFunctor<TContainerItemType>>(), Params, Norms::GetNorm<TDataType>(rNormType));
 
             const auto& r_group_number_of_values = values.GetGroupNumberOfValues();
             std::vector<IndexType> number_of_values(r_group_number_of_values.size());

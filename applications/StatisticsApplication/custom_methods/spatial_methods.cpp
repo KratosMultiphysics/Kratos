@@ -565,210 +565,27 @@ std::tuple<typename TNormType::ResultantValueType<TDataType>, typename SpatialMe
     KRATOS_CATCH("");
 }
 
-} // namespace SpatialMethodHelperUtilities
-
-SpatialMethods::IndexType SpatialMethods::Sum(
-    const ModelPart& rModelPart,
-    const Flags& rFlag,
-    const DataLocation& rLocation)
-{
-    const auto data_container = DataContainers::GetDataContainer(rModelPart, rFlag, rLocation);
-
-    return std::visit([&rModelPart](auto& rDataContainer) {
-        using data_container_type = std::decay_t<decltype(rDataContainer)>;
-        return GenericReductionUtilities::GenericReduction<data_container_type, Norms::Value, SpatialMethodHelperUtilities::SumOperation, false, 1>(
-                rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, Norms::Value())
-            .GetValue();
-    }, data_container);
-}
-
-template<class TDataType>
-TDataType SpatialMethods::Sum(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation)
-{
-    return SpatialMethodHelperUtilities::GenericSumReduction<TDataType, Norms::Value, 1>(
-        rModelPart, rVariable, rLocation, Norms::Value());
-}
-
-template<class TDataType>
-double SpatialMethods::Sum(
+template <class TDataType, class TNormType>
+SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataType>> GenericDistribution(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation,
-    const typename Norms::NormType<TDataType>::type& rNorm)
-{
-    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
-        return SpatialMethodHelperUtilities::GenericSumReduction<TDataType, std::decay_t<decltype(rNorm)>, 1>(
-            rModelPart, rVariable, rLocation, rNorm);
-    }, rNorm);
-}
-
-template<class TDataType>
-TDataType SpatialMethods::Mean(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation)
-{
-    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
-    return Sum(rModelPart, rVariable, rLocation) / std::max(number_of_items, 1.0);
-}
-
-template<class TDataType>
-double SpatialMethods::Mean(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation,
-    const typename Norms::NormType<TDataType>::type& rNorm)
-{
-    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
-    return Sum(rModelPart, rVariable, rLocation, rNorm) / std::max(number_of_items, 1.0);
-}
-
-template<class TDataType>
-TDataType SpatialMethods::RootMeanSquare(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation)
-{
-    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
-    auto sum_square = SpatialMethodHelperUtilities::GenericSumReduction<TDataType, Norms::Value, 2>(rModelPart, rVariable, rLocation, Norms::Value());
-
-    const auto number_of_components = DataTypeTraits<TDataType>::Size(sum_square);
-    for (IndexType i = 0; i < number_of_components; ++i) {
-        auto& v = DataTypeTraits<TDataType>::GetComponent(sum_square, i);
-        v = std::pow(v / std::max(number_of_items, 1.0), 0.5);
-    }
-    return sum_square;
-}
-
-template<class TDataType>
-double SpatialMethods::RootMeanSquare(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation,
-    const typename Norms::NormType<TDataType>::type& rNorm)
-{
-    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
-    return std::visit([&rModelPart, &rVariable, &rLocation, number_of_items](const auto& rNorm){
-        return std::pow(SpatialMethodHelperUtilities::GenericSumReduction<TDataType, std::decay_t<decltype(rNorm)>, 2>(rModelPart, rVariable, rLocation, rNorm) / std::max(number_of_items, 1.0), 0.5);
-    }, rNorm);
-
-}
-
-template<class TDataType>
-std::tuple<TDataType, TDataType> SpatialMethods::Variance(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation)
-{
-    const auto& mean = Mean(rModelPart, rVariable, rLocation);
-    auto rms = RootMeanSquare(rModelPart, rVariable, rLocation);
-
-    const auto number_of_components = DataTypeTraits<TDataType>::Size(rms);
-    for (IndexType i = 0; i < number_of_components; ++i) {
-        auto& v = DataTypeTraits<TDataType>::GetComponent(rms, i);
-        v = std::pow(v, 2) - std::pow(DataTypeTraits<TDataType>::GetComponent(mean, i), 2);
-    }
-    return std::tuple<TDataType, TDataType>(mean, rms);
-}
-
-template<class TDataType>
-std::tuple<double, double> SpatialMethods::Variance(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation,
-    const typename Norms::NormType<TDataType>::type& rNorm)
-{
-    const double mean = Mean(rModelPart, rVariable, rLocation, rNorm);
-    const double rms = RootMeanSquare(rModelPart, rVariable, rLocation, rNorm);
-    return std::make_tuple(mean, std::pow(rms, 2) - std::pow(mean, 2));
-}
-
-template<class TDataType>
-std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Min(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation)
-{
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, Norms::Value());
-}
-
-template<class TDataType>
-std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation,
-    const typename Norms::NormType<TDataType>::type& rNorm)
-{
-    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
-        return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, rNorm);
-    }, rNorm);
-}
-
-template<class TDataType>
-std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Max(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation)
-{
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation, Norms::Value());
-}
-
-template<class TDataType>
-std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation,
-    const typename Norms::NormType<TDataType>::type& rNorm)
-{
-    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
-        return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation, rNorm);
-    }, rNorm);
-}
-
-template<class TDataType>
-std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Median(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation)
-{
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, Norms::Value());
-}
-
-template<class TDataType>
-std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation,
-    const typename Norms::NormType<TDataType>::type& rNorm)
-{
-    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
-        return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, rNorm);
-    }, rNorm);
-}
-
-template <class TDataType>
-SpatialMethods::DistributionInfoType SpatialMethods::Distribution(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const std::string& rNormType,
-    const DataLocation& rLocation,
-    Parameters Params)
+    Parameters Params,
+    const TNormType& rNorm)
 {
     KRATOS_TRY
 
+    using norm_return_type = typename TNormType::ResultantValueType<TDataType>;
+
+    using distribution_info_type = SpatialMethods::DistributionInfo<norm_return_type>;
+
+    using data_type_traits = DataTypeTraits<norm_return_type>;
+
     const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
 
-    const auto r_norm_type = Norms::GetNorm<TDataType>(rNormType);
-
     return std::visit(
-        [&](auto& rDataContainer, auto& rNorm) -> DistributionInfoType {
+        [&](auto& rDataContainer) {
             using data_container_type = std::decay_t<decltype(rDataContainer)>;
-            using norm_type = std::decay_t<decltype(rNorm)>;
-            using norm_return_type = typename norm_type::ResultantValueType<TDataType>;
-            using data_type_traits = DataTypeTraits<norm_return_type>;
 
             Parameters default_parameters = Parameters(R"(
             {
@@ -786,13 +603,13 @@ SpatialMethods::DistributionInfoType SpatialMethods::Distribution(
             }
             Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-            DistributionInfo<norm_return_type> distribution_info;
+            distribution_info_type distribution_info;
 
             auto& min_value = distribution_info.mMin;
             if (Params["min_value"].IsDouble()) {
                 data_type_traits::Initialize(min_value, Params["min_value"].GetDouble());
             } else if (Params["min_value"].IsString() && Params["min_value"].GetString() == "min") {
-                min_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, norm_type, SpatialMethodHelperUtilities::MinOperation, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
+                min_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, TNormType, MinOperation, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
             } else {
                 KRATOS_ERROR
                     << "Unknown min_value. Allowed only double or \"min\" "
@@ -806,7 +623,7 @@ SpatialMethods::DistributionInfoType SpatialMethods::Distribution(
                 data_type_traits::Initialize(max_value, Params["max_value"].GetDouble());
             }
             else if (Params["max_value"].IsString() && Params["max_value"].GetString() == "max") {
-                max_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, norm_type, SpatialMethodHelperUtilities::MaxOperation, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
+                max_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, TNormType, MaxOperation, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
             } else {
                 KRATOS_ERROR
                     << "Unknown max_value. Allowed only double or \"max\" "
@@ -1037,9 +854,217 @@ SpatialMethods::DistributionInfoType SpatialMethods::Distribution(
             group_limits[group_limits.size() - 1] = max_value;
 
             return distribution_info;
-        }, data_container, r_norm_type);
+        }, data_container);
 
     KRATOS_CATCH("");
+}
+
+
+} // namespace SpatialMethodHelperUtilities
+
+SpatialMethods::IndexType SpatialMethods::Sum(
+    const ModelPart& rModelPart,
+    const Flags& rFlag,
+    const DataLocation& rLocation)
+{
+    const auto data_container = DataContainers::GetDataContainer(rModelPart, rFlag, rLocation);
+
+    return std::visit([&rModelPart](auto& rDataContainer) {
+        using data_container_type = std::decay_t<decltype(rDataContainer)>;
+        return GenericReductionUtilities::GenericReduction<data_container_type, Norms::Value, SpatialMethodHelperUtilities::SumOperation, false, 1>(
+                rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, Norms::Value())
+            .GetValue();
+    }, data_container);
+}
+
+template<class TDataType>
+TDataType SpatialMethods::Sum(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation)
+{
+    return SpatialMethodHelperUtilities::GenericSumReduction<TDataType, Norms::Value, 1>(
+        rModelPart, rVariable, rLocation, Norms::Value());
+}
+
+template<class TDataType>
+double SpatialMethods::Sum(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    const typename Norms::NormType<TDataType>::type& rNorm)
+{
+    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
+        return SpatialMethodHelperUtilities::GenericSumReduction<TDataType, std::decay_t<decltype(rNorm)>, 1>(
+            rModelPart, rVariable, rLocation, rNorm);
+    }, rNorm);
+}
+
+template<class TDataType>
+TDataType SpatialMethods::Mean(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation)
+{
+    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
+    return Sum(rModelPart, rVariable, rLocation) / std::max(number_of_items, 1.0);
+}
+
+template<class TDataType>
+double SpatialMethods::Mean(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    const typename Norms::NormType<TDataType>::type& rNorm)
+{
+    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
+    return Sum(rModelPart, rVariable, rLocation, rNorm) / std::max(number_of_items, 1.0);
+}
+
+template<class TDataType>
+TDataType SpatialMethods::RootMeanSquare(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation)
+{
+    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
+    auto sum_square = SpatialMethodHelperUtilities::GenericSumReduction<TDataType, Norms::Value, 2>(rModelPart, rVariable, rLocation, Norms::Value());
+
+    const auto number_of_components = DataTypeTraits<TDataType>::Size(sum_square);
+    for (IndexType i = 0; i < number_of_components; ++i) {
+        auto& v = DataTypeTraits<TDataType>::GetComponent(sum_square, i);
+        v = std::pow(v / std::max(number_of_items, 1.0), 0.5);
+    }
+    return sum_square;
+}
+
+template<class TDataType>
+double SpatialMethods::RootMeanSquare(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    const typename Norms::NormType<TDataType>::type& rNorm)
+{
+    const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
+    return std::visit([&rModelPart, &rVariable, &rLocation, number_of_items](const auto& rNorm){
+        return std::pow(SpatialMethodHelperUtilities::GenericSumReduction<TDataType, std::decay_t<decltype(rNorm)>, 2>(rModelPart, rVariable, rLocation, rNorm) / std::max(number_of_items, 1.0), 0.5);
+    }, rNorm);
+
+}
+
+template<class TDataType>
+std::tuple<TDataType, TDataType> SpatialMethods::Variance(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation)
+{
+    const auto& mean = Mean(rModelPart, rVariable, rLocation);
+    auto rms = RootMeanSquare(rModelPart, rVariable, rLocation);
+
+    const auto number_of_components = DataTypeTraits<TDataType>::Size(rms);
+    for (IndexType i = 0; i < number_of_components; ++i) {
+        auto& v = DataTypeTraits<TDataType>::GetComponent(rms, i);
+        v = std::pow(v, 2) - std::pow(DataTypeTraits<TDataType>::GetComponent(mean, i), 2);
+    }
+    return std::tuple<TDataType, TDataType>(mean, rms);
+}
+
+template<class TDataType>
+std::tuple<double, double> SpatialMethods::Variance(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    const typename Norms::NormType<TDataType>::type& rNorm)
+{
+    const double mean = Mean(rModelPart, rVariable, rLocation, rNorm);
+    const double rms = RootMeanSquare(rModelPart, rVariable, rLocation, rNorm);
+    return std::make_tuple(mean, std::pow(rms, 2) - std::pow(mean, 2));
+}
+
+template<class TDataType>
+std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Min(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation)
+{
+    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, Norms::Value());
+}
+
+template<class TDataType>
+std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    const typename Norms::NormType<TDataType>::type& rNorm)
+{
+    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
+        return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, rNorm);
+    }, rNorm);
+}
+
+template<class TDataType>
+std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Max(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation)
+{
+    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation, Norms::Value());
+}
+
+template<class TDataType>
+std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    const typename Norms::NormType<TDataType>::type& rNorm)
+{
+    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
+        return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation, rNorm);
+    }, rNorm);
+}
+
+template<class TDataType>
+std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Median(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation)
+{
+    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, Norms::Value());
+}
+
+template<class TDataType>
+std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    const typename Norms::NormType<TDataType>::type& rNorm)
+{
+    return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
+        return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, rNorm);
+    }, rNorm);
+}
+
+template<class TDataType>
+SpatialMethods::DistributionInfo<TDataType> SpatialMethods::Distribution(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    Parameters Params)
+{
+    return SpatialMethodHelperUtilities::GenericDistribution<TDataType, Norms::Value>(rModelPart, rVariable, rLocation, Params, Norms::Value());
+}
+
+template<class TDataType>
+SpatialMethods::DistributionInfo<double> SpatialMethods::Distribution(
+    const ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const DataLocation& rLocation,
+    Parameters Params,
+    const typename Norms::NormType<TDataType>::type& rNorm)
+{
+    return std::visit([&rModelPart, &rVariable, &rLocation, Params](const auto& rNorm) {
+        return SpatialMethodHelperUtilities::GenericDistribution<TDataType, std::decay_t<decltype(rNorm)>>(rModelPart, rVariable, rLocation, Params, rNorm);
+    }, rNorm);
 }
 
 // template instantiations
@@ -1058,7 +1083,8 @@ SpatialMethods::DistributionInfoType SpatialMethods::Distribution(
     template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
     template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
     template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
-    template SpatialMethods::DistributionInfoType SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const std::string&, const DataLocation&, Parameters);
+    template SpatialMethods::DistributionInfo<__VA_ARGS__> SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, Parameters);\
+    template SpatialMethods::DistributionInfo<double> SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, Parameters, const typename Norms::NormType<__VA_ARGS__>::type&);
 
 KRATOS_TEMPLATE_VARIABLE_METHOD_INSTANTIATION(double)
 KRATOS_TEMPLATE_VARIABLE_METHOD_INSTANTIATION(array_1d<double, 3>)
