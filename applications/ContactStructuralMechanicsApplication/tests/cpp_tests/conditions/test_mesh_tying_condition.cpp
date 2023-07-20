@@ -141,6 +141,7 @@ void CheckSolution(ModelPart& rModelPart)
 //     // Adding variable 
 //     rModelPart.AddNodalSolutionStepVariable(NORMAL);
 //     rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
+//     rModelPart.AddNodalSolutionStepVariable(REACTION_FLUX);
 
 //     // Creating properties
 //     auto p_prop = rModelPart.CreateNewProperties(1, 0);
@@ -156,7 +157,7 @@ void CheckSolution(ModelPart& rModelPart)
 
 //     /// Add dof
 //     for (auto& r_node : rModelPart.Nodes()) {
-//         r_node.AddDof(TEMPERATURE);
+//         r_node.AddDof(TEMPERATURE, REACTION_FLUX);
 //     }
 
 //     // Creating elements
@@ -178,6 +179,7 @@ void CheckSolution(ModelPart& rModelPart)
 //     // Adding variable
 //     rModelPart.AddNodalSolutionStepVariable(NORMAL);
 //     rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
+//     rModelPart.AddNodalSolutionStepVariable(REACTION_FLUX);
 
 //     // Creating properties
 //     auto p_prop = rModelPart.CreateNewProperties(1, 0);
@@ -198,7 +200,7 @@ void CheckSolution(ModelPart& rModelPart)
 
 //     /// Add dof
 //     for (auto& r_node : rModelPart.Nodes()) {
-//         r_node.AddDof(TEMPERATURE);
+//         r_node.AddDof(TEMPERATURE, REACTION_FLUX);
 //     }
 
 //     // Creating elements
@@ -224,6 +226,7 @@ void GenerateMeshTyingSimplestModelPart(ModelPart& rModelPart)
     // Adding variable
     rModelPart.AddNodalSolutionStepVariable(NORMAL);
     rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
+    rModelPart.AddNodalSolutionStepVariable(REACTION_FLUX);
     rModelPart.AddNodalSolutionStepVariable(SCALAR_LAGRANGE_MULTIPLIER);
 
     // Creating properties
@@ -246,7 +249,7 @@ void GenerateMeshTyingSimplestModelPart(ModelPart& rModelPart)
 
     /// Add dof
     for (auto& r_node : rModelPart.Nodes()) {
-        r_node.AddDof(TEMPERATURE);
+        r_node.AddDof(TEMPERATURE, REACTION_FLUX);
         r_node.AddDof(SCALAR_LAGRANGE_MULTIPLIER);
     }
 
@@ -289,6 +292,7 @@ void GenerateMeshTyingModelPart(ModelPart& rModelPart)
     // Adding variable
     rModelPart.AddNodalSolutionStepVariable(NORMAL);
     rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
+    rModelPart.AddNodalSolutionStepVariable(REACTION_FLUX);
     rModelPart.AddNodalSolutionStepVariable(SCALAR_LAGRANGE_MULTIPLIER);
 
     // Creating properties
@@ -317,7 +321,7 @@ void GenerateMeshTyingModelPart(ModelPart& rModelPart)
 
     /// Add dof
     for (auto& r_node : rModelPart.Nodes()) {
-        r_node.AddDof(TEMPERATURE);
+        r_node.AddDof(TEMPERATURE, REACTION_FLUX);
         r_node.AddDof(SCALAR_LAGRANGE_MULTIPLIER);
     }
 
