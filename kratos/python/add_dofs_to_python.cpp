@@ -59,6 +59,9 @@ void  AddDofsToPython(pybind11::module& m)
         .def("append", [](ModelPart::DofsArrayType &self, Dof<double> &value) {
             self.push_back(&value);
         })
+        .def("unique", [](ModelPart::DofsArrayType &self) {
+            self.Unique();
+        })
         .def("GetValues", [](ModelPart::DofsArrayType &self) {
             Vector values(self.size());
             int counter = 0;

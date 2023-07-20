@@ -59,6 +59,32 @@ Parameters VtkOutput::GetDefaultParameters()
     return default_parameters;
 }
 
+// IMPORTANT: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
+// NOTE: See https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf and https://vtk.org/wp-content/uploads/2021/08/VTKUsersGuide.pdf
+static const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
+    { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
+    { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
+    { GeometryData::KratosGeometryType::Kratos_Line2D2,          3 },
+    { GeometryData::KratosGeometryType::Kratos_Line3D2,          3 },
+    { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      5 },
+    { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      5 },
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
+    { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
+    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 },
+    { GeometryData::KratosGeometryType::Kratos_Prism3D6,         13 },
+    { GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       14 },
+    { GeometryData::KratosGeometryType::Kratos_Line2D3,          21 },
+    { GeometryData::KratosGeometryType::Kratos_Line3D3,          21 },
+    { GeometryData::KratosGeometryType::Kratos_Triangle2D6,      22 },
+    { GeometryData::KratosGeometryType::Kratos_Triangle3D6,      22 },
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, 23 },
+    { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, 23 },
+    { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,   24 },
+    { GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    25 },
+    { GeometryData::KratosGeometryType::Kratos_Prism3D15,        26 },
+    { GeometryData::KratosGeometryType::Kratos_Pyramid3D13,      27 }
+};
 
 VtkOutput::VtkOutput(
     ModelPart& rModelPart,
@@ -365,11 +391,12 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
 
     const auto& r_id_map = mKratosIdToVtkId; // const reference to not accidentially modify the map
     for (const auto& r_entity : rContainer) {
-        const auto& r_geom = r_entity.GetGeometry();
-        const unsigned int number_of_nodes = r_geom.size();
+        auto p_geom = r_entity.pGetGeometry();
+        const unsigned int number_of_nodes = p_geom->PointsNumber();
+        p_geom = ReorderConnectivity(p_geom);
 
         WriteScalarDataToFile((unsigned int)number_of_nodes, rFileStream);
-        for (const auto& r_node : r_geom) {
+        for (const auto& r_node : *p_geom) {
             if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
             auto id_iter = r_id_map.find(r_node.Id());
             KRATOS_DEBUG_ERROR_IF(id_iter == r_id_map.end()) << "The node with Id " << r_node.Id() << " is not part of the ModelPart but used for Elements/Conditions!" << std::endl;
@@ -387,30 +414,6 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
 template <typename TContainerType>
 void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream) const
 {
-    // IMPORTANT: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
-    // NOTE: See https://vtk.org/wp-content/uploads/2015/04/file-formats.pdf
-    const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
-        { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
-        { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
-        { GeometryData::KratosGeometryType::Kratos_Line2D2,          3 },
-        { GeometryData::KratosGeometryType::Kratos_Line3D2,          3 },
-        { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      5 },
-        { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      5 },
-        { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
-        { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
-        { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
-        { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 },
-        { GeometryData::KratosGeometryType::Kratos_Prism3D6,         13 },
-        { GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       14 },
-        { GeometryData::KratosGeometryType::Kratos_Line2D3,          21 },
-        { GeometryData::KratosGeometryType::Kratos_Line3D3,          21 },
-        { GeometryData::KratosGeometryType::Kratos_Triangle2D6,      22 },
-        { GeometryData::KratosGeometryType::Kratos_Triangle3D6,      22 },
-        { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D8, 23 },
-        { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, 23 },
-        { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D10,   24 }
-//         { GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    25 } // NOTE: Quadratic hexahedra (20) requires a conversor, order does not coincide with VTK
-    };
     // Write entity types
     for (const auto& r_entity : rContainer) {
         int cell_type = -1;
@@ -996,6 +999,45 @@ void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
         tmp = pBytes[1];
         pBytes[1] = pBytes[2];
         pBytes[2] = tmp;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+VtkOutput::GeometryType::Pointer VtkOutput::ReorderConnectivity(GeometryType::Pointer& pGeometry) const
+{
+    const auto& r_geometry_type = pGeometry->GetGeometryType();
+    if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D20) {
+        auto p_reorder_geom = Kratos::make_shared<GeometryType>();
+        GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
+        r_reordered_points.reserve(pGeometry->PointsNumber());
+        for (IndexType i = 0; i < 12; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i));
+        }
+        for (IndexType i = 12; i < 16; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i + 4));
+        }
+        for (IndexType i = 16; i < 20; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i - 4));
+        }
+        return p_reorder_geom;
+    } else if (r_geometry_type == GeometryData::KratosGeometryType::Kratos_Prism3D15) {
+        auto p_reorder_geom = Kratos::make_shared<GeometryType>();
+        GeometryType::PointsArrayType& r_reordered_points = p_reorder_geom->Points();
+        r_reordered_points.reserve(pGeometry->PointsNumber());
+        for (IndexType i = 0; i < 9; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i));
+        }
+        for (IndexType i = 9; i < 12; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i + 3));
+        }
+        for (IndexType i = 12; i < 15; ++i) {
+            r_reordered_points.push_back(pGeometry->pGetPoint(i - 3));
+        }
+        return p_reorder_geom;
+    } else {
+        return pGeometry;
     }
 }
 

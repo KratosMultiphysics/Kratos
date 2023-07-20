@@ -41,14 +41,14 @@ void DamJoint2DLaw::GetLawFeatures(Features& rFeatures)
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void DamJoint2DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
-                                                         Parameters& rValues)
+                                            Parameters& rValues)
 {}
 
 //----------------------------------------------------------------------------------------
 
 void DamJoint2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                                           ConstitutiveLawVariables& rVariables,
-                                                           Parameters& rValues)
+                                              ConstitutiveLawVariables& rVariables,
+                                              Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -76,8 +76,8 @@ void DamJoint2DLaw::ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
 //----------------------------------------------------------------------------------------
 
 void DamJoint2DLaw::ComputeStressVector(Vector& rStressVector,
-                                                     ConstitutiveLawVariables& rVariables,
-                                                     Parameters& rValues)
+                                        ConstitutiveLawVariables& rVariables,
+                                        Parameters& rValues)
 {
     KRATOS_TRY
 

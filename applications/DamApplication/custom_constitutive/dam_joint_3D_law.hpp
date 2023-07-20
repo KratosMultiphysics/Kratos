@@ -10,8 +10,7 @@
 //  Main authors:    Ignasi de Pouplana
 //
 
-#if !defined (KRATOS_DAM_JOINT_3D_LAW_H_INCLUDED)
-#define  KRATOS_DAM_JOINT_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -28,109 +27,109 @@
 namespace Kratos
 {
 
-class KRATOS_API(DAM_APPLICATION) DamJoint3DLaw : public ConstitutiveLaw
-{
-
-public:
-
-    KRATOS_CLASS_POINTER_DEFINITION(DamJoint3DLaw);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    // Default Constructor
-    DamJoint3DLaw()
+    class KRATOS_API(DAM_APPLICATION) DamJoint3DLaw : public ConstitutiveLaw
     {
-    }
 
-    ConstitutiveLaw::Pointer Clone() const override
-    {
-        return Kratos::make_shared<DamJoint3DLaw>(DamJoint3DLaw(*this));
-    }
+    public:
 
-    // Copy Constructor
-    DamJoint3DLaw (const DamJoint3DLaw& rOther) : ConstitutiveLaw(rOther)
-    {
-    }
+        KRATOS_CLASS_POINTER_DEFINITION(DamJoint3DLaw);
 
-    // Destructor
-    ~DamJoint3DLaw() override
-    {
-    }
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        // Default Constructor
+        DamJoint3DLaw()
+        {
+        }
 
-    void GetLawFeatures(Features& rFeatures) override;
+        ConstitutiveLaw::Pointer Clone() const override
+        {
+            return Kratos::make_shared<DamJoint3DLaw>(DamJoint3DLaw(*this));
+        }
 
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
+        // Copy Constructor
+        DamJoint3DLaw (const DamJoint3DLaw& rOther) : ConstitutiveLaw(rOther)
+        {
+        }
 
-    void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
+        // Destructor
+        ~DamJoint3DLaw() override {}
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+        void GetLawFeatures(Features& rFeatures) override;
 
-    void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
+        int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
 
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
+        void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
-protected:
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    struct ConstitutiveLawVariables
-    {
-        double YoungModulus;
-        double YieldStress;
+        double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
-        Matrix CompressionMatrix;
+        void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
 
-        double EquivalentStrain;
-        bool LoadingFlag;
-        double LoadingFunction;
-    };
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Member Variables
+    protected:
 
-    double mStateVariable;
+        struct ConstitutiveLawVariables
+        {
+            double YoungModulus;
+            double YieldStress;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            Matrix CompressionMatrix;
 
-    virtual void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+            double EquivalentStrain;
+            bool LoadingFlag;
+            double LoadingFunction;
+        };
 
-    virtual void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+        // Member Variables
 
-    virtual void CheckLoadingFunction(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+        double mStateVariable;
 
-    virtual void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                            ConstitutiveLawVariables& rVariables,
-                                            Parameters& rValues);
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    virtual void ComputeStressVector(Vector& rStressVector,
-                                        ConstitutiveLawVariables& rVariables,
-                                        Parameters& rValues);
+        virtual void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables,
+                                                        Parameters& rValues);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        virtual void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
+                                             Parameters& rValues);
 
-private:
+        virtual void CheckLoadingFunction(ConstitutiveLawVariables& rVariables,
+                                          Parameters& rValues);
 
-    // Serialization
+        virtual void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+                                               ConstitutiveLawVariables& rVariables,
+                                               Parameters& rValues);
 
-    friend class Serializer;
+        virtual void ComputeStressVector(Vector& rStressVector,
+                                         ConstitutiveLawVariables& rVariables,
+                                         Parameters& rValues);
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    private:
 
-}; // Class DamJoint3DLaw
+        // Serialization
+
+        friend class Serializer;
+
+        void save(Serializer& rSerializer) const override
+        {
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        }
+
+        void load(Serializer& rSerializer) override
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        }
+
+    }; // Class DamJoint3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_DAM_JOINT_3D_LAW_H_INCLUDED  defined

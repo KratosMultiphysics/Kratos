@@ -118,7 +118,7 @@ namespace Kratos
 
       rElementalVariables.MeanPressure = OldPressure * (1 - theta) + Pressure * theta;
 
-      computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX, g);
+      computeElement = this->CalcMechanicsUpdated(rElementalVariables, rCurrentProcessInfo, rDN_DX);
 
       this->CalcElasticPlasticCauchySplitted(rElementalVariables, TimeStep, g, rCurrentProcessInfo, Density, DeviatoricCoeff, VolumetricCoeff);
 
