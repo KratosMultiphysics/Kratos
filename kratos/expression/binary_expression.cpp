@@ -15,6 +15,7 @@
 #include <vector>
 
 // Project includes
+#include "input_output/logger.h"
 
 // Include base h
 #include "binary_expression.h"
@@ -74,6 +75,26 @@ BinaryExpression<TOperationType>::BinaryExpression(
     KRATOS_ERROR_IF_NOT(mpRight.get())
         << "Binary operation is provided with uninitialized right hand side "
            "expression.\n";
+
+    if (mpLeft->GetMaxDepth() >= MAX_SHRINKING_DEPTH) {
+        // Left expression reached the max shrinking depth. Hence
+        // it will shirnked.
+        KRATOS_WARNING("BinaryExpression")
+            << "The left expression: \"" << *this
+            << "\" is shrunk because it reached the lazy expression tree max shrinking depth of "
+            << MAX_SHRINKING_DEPTH << ".\n";
+        mpLeft = mpLeft->GetShrinkedExpression();
+    }
+
+    if (mpRight->GetMaxDepth() >= MAX_SHRINKING_DEPTH) {
+        // Right expression reached the max shrinking depth. Hence
+        // it will shirnked.
+        KRATOS_WARNING("BinaryExpression")
+            << "The right expression: \"" << *this
+            << "\" is shrunk because it reached the lazy expression tree max shrinking depth of "
+            << MAX_SHRINKING_DEPTH << ".\n";
+        mpRight = mpRight->GetShrinkedExpression();
+    }
 }
 
 template <class TOperationType>

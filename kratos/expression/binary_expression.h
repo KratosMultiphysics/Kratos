@@ -77,9 +77,9 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const Expression::ConstPointer mpLeft;
+    Expression::ConstPointer mpLeft;
 
-    const Expression::ConstPointer mpRight;
+    Expression::ConstPointer mpRight;
 
     ///@}
 };
