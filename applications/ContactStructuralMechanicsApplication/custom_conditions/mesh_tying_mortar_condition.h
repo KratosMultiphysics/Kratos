@@ -24,6 +24,7 @@
 /* Utilities */
 #include "utilities/math_utils.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
+#include "custom_utilities/logging_settings.hpp"
 
 namespace Kratos
 {
@@ -131,12 +132,6 @@ public:
 
     // The threshold coefficient considered for checking
     static constexpr double CheckThresholdCoefficient = 1.0e-12;
-
-    ///@}
-    ///@name  Enum's
-    ///@{
-
-    enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector3DValue = 3};
 
     ///@}
     ///@name Life Cycle
@@ -391,32 +386,47 @@ protected:
     /**
      * This data will be used to compute teh derivatives
      */
-    template< const TensorValue TTensor >
     struct DofData
     {
     public:
 
         // Auxiliary types
-        using MatrixUnknownSlave = BoundedMatrix<double, TNumNodes, TTensor>;
-        using MatrixUnknownMaster = BoundedMatrix<double, TNumNodesMaster, TTensor>;
+        using MatrixUnknownSlave = BoundedMatrix<double, TNumNodes, TDim>;
+        using MatrixUnknownMaster = BoundedMatrix<double, TNumNodesMaster, TDim>;
 
         // The DoF
         MatrixUnknownSlave LagrangeMultipliers, u1;
         MatrixUnknownMaster u2;
 
+        /**
+         * @brief Default constructor
+         * @param Dimension The dimension of the problem. Default = TDim
+         */
+        DofData(const std::size_t Dimension = TDim)
+        {
+            // Resizing as needed (for scalar cases)
+            if (Dimension != TDim) {
+                LagrangeMultipliers.resize(TNumNodes, Dimension, false);
+                u1.resize(TNumNodes, Dimension, false);
+                u2.resize(TNumNodesMaster, Dimension, false);
+            }
+
+            // Clearing the values
+            this->Clear();
+        }
+
         // Default destructor
         ~DofData()= default;
 
         /**
-         * @brief Updating the Slave pair
-         * @param rGeometryInput The pointer of the current master
+         * @brief Clearing the values
          */
-        void Initialize(const GeometryType& rGeometryInput)
+        void Clear()
         {
-            // The current Lagrange Multipliers
-            u1 = ZeroMatrix(TNumNodes, TTensor);
-            u2 = ZeroMatrix(TNumNodesMaster, TTensor);
-            LagrangeMultipliers = ZeroMatrix(TNumNodes, TTensor);
+            // Clearing the values
+            u1.clear();
+            u2.clear();
+            LagrangeMultipliers.clear();
         }
 
         /**
@@ -432,7 +442,7 @@ protected:
             // Fill master information
             for (IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
                 const auto& r_node = rGeometryInput[i_node];
-                for (IndexType i_dof = 0; i_dof < TTensor; ++i_dof) {
+                for (IndexType i_dof = 0; i_dof < rpDoFVariables.size(); ++i_dof) {
                     u2(i_node, i_dof) = r_node.FastGetSolutionStepValue(*rpDoFVariables[i_dof]);
                 }
             }
@@ -444,11 +454,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    MortarConditionMatrices mMortarConditionMatrices;      /// The mortar operators
+    MortarConditionMatrices mMortarConditionMatrices;    /// The mortar operators
 
-    std::vector<const Variable<double>*> mpDoFVariables;   /// The list of DoF variables
+    std::vector<const Variable<double>*> mpDoFVariables; /// The list of DoF variables
 
-    std::vector<const Variable<double>*> mpLMVariables;    /// The list of LM variables
+    std::vector<const Variable<double>*> mpLMVariables;  /// The list of LM variables
 
     ///@}
     ///@name Protected Operators
@@ -515,19 +525,15 @@ protected:
      * @param rDofData the DofData object to be initialized
      * @tparam TTensor The type of the DoF variables
      */
-    template<const TensorValue TTensor>
-    void InitializeDofData(DofData<TTensor>& rDofData)
+    void InitializeDofData(DofData& rDofData)
     {
         // The slave geometry
         auto& r_slave_geometry = this->GetParentGeometry();
 
-        // Slave element info
-        rDofData.Initialize(r_slave_geometry);
-
         // Retrieve values
         for (IndexType i_node = 0; i_node < TNumNodes; i_node++) {
             const auto& r_node = r_slave_geometry[i_node];
-            for (IndexType i_dof = 0; i_dof < TTensor; ++i_dof) {
+            for (IndexType i_dof = 0; i_dof < mpDoFVariables.size(); ++i_dof) {
                 rDofData.u1(i_node, i_dof) = r_node.FastGetSolutionStepValue(*mpDoFVariables[i_dof]);
                 rDofData.LagrangeMultipliers(i_node, i_dof) = r_node.FastGetSolutionStepValue(*mpLMVariables[i_dof]);
             }
@@ -579,12 +585,13 @@ protected:
      * @param rLocalLHS The local LHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDofData The class containing all the information needed in order to compute the jacobian
+     * @param rCurrentProcessInfo the current process info instance
      */
-    template< const TensorValue TTensor >
     void CalculateLocalLHS(
         Matrix& rLocalLHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const DofData<TTensor>& rDofData
+        const DofData& rDofData,
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     /**
@@ -592,12 +599,13 @@ protected:
      * @param rLocalRHS The local RHS to compute
      * @param rMortarConditionMatrices The mortar operators to be considered
      * @param rDofData The class containing all the information needed in order to compute the jacobian
+     * @param rCurrentProcessInfo the current process info instance
      */
-    template< const TensorValue TTensor >
     void CalculateLocalRHS(
         Vector& rLocalRHS,
         const MortarConditionMatrices& rMortarConditionMatrices,
-        const DofData<TTensor>& rDofData
+        const DofData& rDofData,
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     /***********************************************************************************/
