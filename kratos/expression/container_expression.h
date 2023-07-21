@@ -180,6 +180,16 @@ public:
     IndexType GetItemComponentCount() const;
 
     /**
+     * @brief Get the Expression Max Depth
+     *
+     * This returns the max depth of the underlying expression.
+     * If the expression is not set, this return 0.
+     *
+     * @return IndexType
+     */
+    IndexType GetExpressionMaxDepth() const;
+
+    /**
      * @brief Get the pointer to underlying model part
      *
      * @return ModelPart* const
@@ -239,6 +249,17 @@ public:
     ///@}
     ///@name Public operators
     ///@{
+
+    /**
+     * @brief Returns a shrinked container expression.
+     *
+     * This method returns a new container expression having
+     * a shrinked underlying expression such that the
+     * max depth of the lazy expression tree will be 1.
+     *
+     * @return ContainerExpression
+     */
+    ContainerExpression Shrink() const;
 
     /** @brief Returns a slice of the provided expression. Slicing is based on item components.
      *  @details @see Kratos::Slice.
