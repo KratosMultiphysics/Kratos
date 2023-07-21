@@ -39,11 +39,6 @@ LineLoad2DDiffOrderCondition::
                                  PropertiesType::Pointer pProperties) :
                                  GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
-//----------------------------------------------------------------------------------------
-
-//Destructor
-LineLoad2DDiffOrderCondition::~LineLoad2DDiffOrderCondition() {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Condition::Pointer LineLoad2DDiffOrderCondition::
