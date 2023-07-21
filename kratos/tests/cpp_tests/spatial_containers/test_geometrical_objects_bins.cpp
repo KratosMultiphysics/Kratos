@@ -215,8 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadiusContainer, KratosC
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    Point point(0.0, 0.0, 0.0);
-    r_point_model_part.CreateNewNode(1, point.X(), point.Y(), point.Z());
+    auto p_node = r_point_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     GeometricalObjectsBins::ResultTypeContainerMap results;
@@ -224,38 +223,38 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadiusContainer, KratosC
     // 0.29 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK_IS_FALSE(results[point].IsObjectFound());
-    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 0);
+    KRATOS_CHECK_IS_FALSE(results[*p_node].IsObjectFound());
+    KRATOS_CHECK_EQUAL(results[*p_node].NumberOfGlobalResults(), 0);
 
     // 0.3 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK(results[point].IsObjectFound());
-    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 4);
+    KRATOS_CHECK(results[*p_node].IsObjectFound());
+    KRATOS_CHECK_EQUAL(results[*p_node].NumberOfGlobalResults(), 4);
 
     // 0.4 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK(results[point].IsObjectFound());
-    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 4);
+    KRATOS_CHECK(results[*p_node].IsObjectFound());
+    KRATOS_CHECK_EQUAL(results[*p_node].NumberOfGlobalResults(), 4);
 
     // 0.6 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK(results[point].IsObjectFound());
-    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 8);
+    KRATOS_CHECK(results[*p_node].IsObjectFound());
+    KRATOS_CHECK_EQUAL(results[*p_node].NumberOfGlobalResults(), 8);
 
     // 0.7 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK(results[point].IsObjectFound());
-    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 8);
+    KRATOS_CHECK(results[*p_node].IsObjectFound());
+    KRATOS_CHECK_EQUAL(results[*p_node].NumberOfGlobalResults(), 8);
 
     // 0.9 radius
     bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK(results[point].IsObjectFound());
-    KRATOS_CHECK_EQUAL(results[point].NumberOfGlobalResults(), 12);
+    KRATOS_CHECK(results[*p_node].IsObjectFound());
+    KRATOS_CHECK_EQUAL(results[*p_node].NumberOfGlobalResults(), 12);
 }
 
 /** Checks bins search nearest
@@ -303,32 +302,30 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadiusContainer, 
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
-    double epsilon = 1.0e-6;
-    Point near_point{epsilon,epsilon,epsilon};
-
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
+    const double epsilon = 1.0e-6;
+    auto p_node = r_point_model_part.CreateNewNode(1, epsilon, epsilon, epsilon);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     GeometricalObjectsBins::ResultTypeContainerMap results;
     bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK_IS_FALSE(results[near_point].IsObjectFound());
+    KRATOS_CHECK_IS_FALSE(results[*p_node].IsObjectFound());
 
     bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK(results[near_point].IsObjectFound());
-    KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
+    KRATOS_CHECK(results[*p_node].IsObjectFound());
+    KRATOS_CHECK_EQUAL(results[*p_node].NumberOfGlobalResults(), 1);
 
     // Distances
-    auto distances = results[near_point].GetDistances();
+    auto distances = results[*p_node].GetDistances();
     KRATOS_CHECK_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
     // Compute indices
-    auto indices = results[near_point].GetResultIndices();
+    auto indices = results[*p_node].GetResultIndices();
     const std::size_t id = indices[0];
     KRATOS_CHECK_EQUAL(id, 3);
 }
@@ -375,26 +372,24 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestContainer, KratosCo
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
-    double epsilon = 1.0e-6;
-    Point near_point{epsilon,epsilon,epsilon};
-
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    r_point_model_part.CreateNewNode(1, epsilon,epsilon,epsilon);
+    const double epsilon = 1.0e-6;
+    auto p_node = r_point_model_part.CreateNewNode(1, epsilon, epsilon, epsilon);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     GeometricalObjectsBins::ResultTypeContainerMap results;
     bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK(results[near_point].IsObjectFound());
-    KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
+    KRATOS_CHECK(results[*p_node].IsObjectFound());
+    KRATOS_CHECK_EQUAL(results[*p_node].NumberOfGlobalResults(), 1);
 
     // Distances
-    KRATOS_CHECK_NEAR(results[near_point][0].GetDistance(), (cube_z - epsilon), tolerance);
+    KRATOS_CHECK_NEAR(results[*p_node][0].GetDistance(), (cube_z - epsilon), tolerance);
 
     // Compute indices
-    auto indices = results[near_point].GetResultIndices();
+    auto indices = results[*p_node].GetResultIndices();
     const std::size_t id = indices[0];
     KRATOS_CHECK_EQUAL(id, 3);
 }
@@ -427,18 +422,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearestContainer, Kra
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
-    Point point{0.0,0.0,0.0};
-
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    r_point_model_part.CreateNewNode(1, 0.0,0.0,0.0);
+    auto p_point = r_point_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     GeometricalObjectsBins::ResultTypeContainerMap results;
     bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK_IS_FALSE(results[point].IsObjectFound());
+    KRATOS_CHECK_IS_FALSE(results[*p_point].IsObjectFound());
 }
 
 /** Checks bins search is inside 
@@ -478,19 +471,17 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInsideContainer, KratosC
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
-    Point inside_point{0.5,0.5,0.5};
-
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    r_point_model_part.CreateNewNode(1, 0.5,0.5,0.5);
+    auto p_inside_point = r_point_model_part.CreateNewNode(1, 0.5,0.5,0.5);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     GeometricalObjectsBins::ResultTypeContainerMap results;
     bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK(results[inside_point].IsObjectFound());
-    KRATOS_CHECK_EQUAL(results[inside_point].NumberOfGlobalResults(), 1);
+    KRATOS_CHECK(results[*p_inside_point].IsObjectFound());
+    KRATOS_CHECK_EQUAL(results[*p_inside_point].NumberOfGlobalResults(), 1);
 }
 
 /** Checks bins search is inside = not found
@@ -527,18 +518,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInsideContainer, Krat
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
-    Point outside_point{100.0,100.0,100.0};
-
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    r_point_model_part.CreateNewNode(1, 100.0,100.0,100.0);
+    auto p_outside_point = r_point_model_part.CreateNewNode(1, 100.0,100.0,100.0);
     auto& r_array_nodes = r_point_model_part.Nodes();
 
     GeometricalObjectsBins::ResultTypeContainerMap results;
     bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
 
     KRATOS_CHECK_EQUAL(results.NumberOfSearchResults(), 1);
-    KRATOS_CHECK_IS_FALSE(results[outside_point].IsObjectFound());
+    KRATOS_CHECK_IS_FALSE(results[*p_outside_point].IsObjectFound());
 }
 
 } // namespace Kratos::Testing.

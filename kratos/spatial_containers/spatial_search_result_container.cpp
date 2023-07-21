@@ -474,8 +474,7 @@ void SpatialSearchResultContainerMap<TObjectType>::SynchronizeAll(const DataComm
 template <class TObjectType>
 typename SpatialSearchResultContainerMap<TObjectType>::HashType SpatialSearchResultContainerMap<TObjectType>::Hash(const array_1d<double, 3>& rCoordinates) const
 {
-    std::hash<array_1d<double, 3>> hasher;
-    return hasher(rCoordinates);
+    return reinterpret_cast<std::size_t>(&rCoordinates);
 }
 
 /***********************************************************************************/
