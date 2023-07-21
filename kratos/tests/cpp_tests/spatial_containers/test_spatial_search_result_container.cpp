@@ -43,9 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerAddResult, KratosCoreFastS
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
 
     // Check distances
-    auto distances = container.GetDistances();
-    KRATOS_CHECK_EQUAL(distances.size(), 1);
-    KRATOS_CHECK_EQUAL(distances[0], 0.5);
+    KRATOS_CHECK_EQUAL(container[0].GetDistance(), 0.5);
 
     // Check global pointers
     KRATOS_CHECK_IS_FALSE(container.IsObjectFound());

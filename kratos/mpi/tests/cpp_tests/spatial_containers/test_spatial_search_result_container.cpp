@@ -46,9 +46,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerAddResult, 
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
 
     // Check distances
-    auto distances = container.GetDistances();
-    KRATOS_CHECK_EQUAL(static_cast<int>(distances.size()), r_data_comm.Size());
-    KRATOS_CHECK_EQUAL(distances[r_data_comm.Rank()], 0.5);
+    KRATOS_CHECK_EQUAL(container[0].GetDistance(), 0.5);
 
     // Check global pointers
     auto& r_global_pointers = container.GetGlobalResults();
