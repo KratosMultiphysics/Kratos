@@ -82,6 +82,17 @@ public:
         return mShape;
     }
 
+    IndexType GetMaxDepth() const override
+    {
+        return mpSourceExpression->GetMaxDepth() + 1;
+    }
+
+    void FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const override
+    {
+        rExpressions.insert(this);
+        mpSourceExpression->FillUtilizedExpressions(rExpressions);
+    }
+
     std::string Info() const override
     {
         std::stringstream msg;

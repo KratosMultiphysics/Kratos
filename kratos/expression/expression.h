@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <iterator>
+#include <set>
 
 // Project includes
 #include "includes/define.h"
@@ -187,6 +188,41 @@ public:
      */
     IndexType GetItemComponentCount() const;
 
+    /**
+     * @brief Returns a shrinked expression with a tree structure having max depth = 1.
+     *
+     * A new LiteralFlatExpression is created while shrinking the current expression having max depth = 1.
+     * This is important in cases where Expressions are linked using BinaryExpressions and other linking expression
+     * when creating lazy expression, and not to keep on increasing the max depth indefinitely which will
+     * cause memory problems.
+     *
+     * This always create a LiteralFlatExpression which may be memory expensive.
+     *
+     * @return Expression::ConstPointer     A new LiteralFlatExpression.
+     */
+    Expression::ConstPointer GetShrinkedExpression() const;
+
+    /**
+     * @brief Get the Max Depth of the lazy expression tree.
+     *
+     * Returns the maximum depth of the lazy expression tree. Could be used
+     * to trigger @ref GetShrinkedExpression to avoid memory problems of
+     * large expression trees with lots of flat vectors.
+     *
+     * @return IndexType Max depth of the lazy expression tree.
+     */
+    virtual IndexType GetMaxDepth() const = 0;
+
+    /**
+     * @brief Fills the @ref rExpressions with the utilized lazy expressions.
+     *
+     * This method fills all the expressions used in the given instance of lazy expression into
+     * the set @ref rExpressions.
+     *
+     * @param rExpressions      The set to be filled with utilized lazy expressions.
+     */
+    virtual void FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const = 0;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -202,6 +238,14 @@ public:
     const_iterator cend() const;
 
     virtual std::string Info() const = 0;
+
+    ///@}
+
+protected:
+    ///@name Protected operations
+    ///@{
+
+
 
     ///@}
 

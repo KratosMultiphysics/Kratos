@@ -14,6 +14,8 @@
 #include <numeric>
 
 // Project includes
+#include "utilities/parallel_utilities.h"
+#include "expression/literal_flat_expression.h"
 
 // Include base h
 #include "expression.h"
@@ -99,6 +101,23 @@ Expression::ExpressionIterator Expression::ExpressionIterator::operator++(int)
     ExpressionIterator temp = *this;
     ++*this;
     return temp;
+}
+
+Expression::ConstPointer Expression::GetShrinkedExpression() const
+{
+    const IndexType number_of_entities = this->NumberOfEntities();
+    const IndexType number_of_components = this->GetItemComponentCount();
+
+    auto p_expression = LiteralFlatExpression<double>::Create(number_of_entities, this->GetItemShape());
+
+    IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
+        const IndexType entity_data_begin_index = Index * number_of_components;
+        for (IndexType i = 0; i < number_of_components; ++i) {
+            p_expression->SetData(entity_data_begin_index, i, this->Evaluate(Index, entity_data_begin_index, i));
+        }
+    });
+
+    return p_expression;
 }
 
 std::size_t Expression::GetItemComponentCount() const

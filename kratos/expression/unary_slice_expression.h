@@ -61,6 +61,10 @@ public:
 
     const std::vector<IndexType> GetItemShape() const override;
 
+    IndexType GetMaxDepth() const override;
+
+    void FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const override;
+
     std::string Info() const override;
 
     ///@}

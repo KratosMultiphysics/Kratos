@@ -66,6 +66,17 @@ const std::vector<std::size_t> UnarySliceExpression::GetItemShape() const
     }
 }
 
+std::size_t UnarySliceExpression::GetMaxDepth() const
+{
+    return mpSourceExpression->GetMaxDepth() + 1;
+}
+
+void UnarySliceExpression::FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const
+{
+    rExpressions.insert(this);
+    mpSourceExpression->FillUtilizedExpressions(rExpressions);
+}
+
 std::string UnarySliceExpression::Info() const
 {
     std::stringstream msg;

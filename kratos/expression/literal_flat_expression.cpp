@@ -81,6 +81,17 @@ const std::vector<std::size_t> LiteralFlatExpression<TRawDataType>::GetItemShape
     return mShape;
 }
 
+template <class TRawDataType>
+std::size_t LiteralFlatExpression<TRawDataType>::GetMaxDepth() const
+{
+    return 1;
+}
+
+template <class TRawDataType>
+void LiteralFlatExpression<TRawDataType>::FillUtilizedExpressions(std::set<Expression::ConstPointer>& rExpressions) const
+{
+    rExpressions.insert(this);
+}
 template<>
 std::string LiteralFlatExpression<char>::Info() const
 {
