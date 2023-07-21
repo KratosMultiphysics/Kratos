@@ -1,0 +1,903 @@
+
+C:\KRATOS\Kratos\scripts>cmake -G"Visual Studio 16 2019" -H"C:\KRATOS\Kratos\scripts\.." -B"C:\KRATOS\Kratos\scripts\../build\FullDebug"          -DUSE_EIGEN_MKL=OFF                                                                                 -DINSTALL_RUNKRATOS=OFF       																		-DCMAKE_CXX_FLAGS="  "                                                  -DUSE_TRIANGLE_NONFREE_TPL=ON                                                                       -DKRATOS_GENERATE_PYTHON_STUBS=OFF 
+-- Selecting Windows SDK version 10.0.19041.0 to target Windows 10.0.19045.
+-- The C compiler identification is MSVC 19.29.30151.0
+-- The CXX compiler identification is MSVC 19.29.30151.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Git: C:/Git/cmd/git.exe (found version "2.41.0.windows.1") 
+-- CMAKE_SYSTEM_NAME = Windows
+-- CMAKE_CXX_COMPILER_ID = MSVC
+-- CMAKE_CXX_FLAGS =   
+-- CMAKE_C_FLAGS = /DWIN32 /D_WINDOWS /W3
+-- Found PythonInterp: C:\Windows\py.exe (found version "3.11.4") 
+-- Found PythonLibs: C:/Python installation/libs/Python311.lib
+-- LTO is Disabled
+-- AR VERSION: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/lib.exe
+-- Python version used for the interface will be 3.11
+-- Standard install dir C:/KRATOS/Kratos/bin/FullDebug
+-- "KRATOS_SHARED_MEMORY_PARALLELIZATION" not defined, defaulting to "OpenMP"
+-- Found OpenMP_C: -openmp (found version "2.0") 
+-- Found OpenMP_CXX: -openmp (found version "2.0") 
+-- Found OpenMP: TRUE (found version "2.0")  
+-- Using OpenMP for shared memory parallelization
+-- Found Boost: C:/Boost extracted/boost_1_82_0 (found version "1.82.0")  
+-- Boost Include: C:/Boost extracted/boost_1_82_0
+-- Boost Linkdir: 
+-- Could NOT find ZLIB (missing: ZLIB_INCLUDE_DIR) 
+-- Preparing local ZLIB compilation.
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of off64_t
+-- Check size of off64_t - failed
+-- Looking for fseeko
+-- Looking for fseeko - not found
+-- Looking for unistd.h
+-- Looking for unistd.h - not found
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - not found
+-- Found Threads: TRUE  
+-- Configuring applications (ENV):
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Failed
+-- Performing Test COMPILER_HAS_DEPRECATED
+-- Performing Test COMPILER_HAS_DEPRECATED - Success
+-- clipper : C:/KRATOS/Kratos/external_libraries/clipper
+-- triangle : C:/KRATOS/Kratos/external_libraries/triangle
+-- tinyexpr : C:/KRATOS/Kratos/external_libraries/tinyexpr/tinyexpr/
+-- Configuring done (15.6s)
+-- Generating done (0.4s)
+-- Build files have been written to: C:/KRATOS/Kratos/build/FullDebug
+
+C:\KRATOS\Kratos\scripts>rem Build 
+
+C:\KRATOS\Kratos\scripts>cmake --build "C:\KRATOS\Kratos\scripts\../build/FullDebug" --target install -- /property:configuration=FullDebug /p:Platform=x64 
+Microsoft (R) Build Engine version 16.11.2+f32259642 for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  1>Checking Build System
+  KratosVersion.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\KratosVersion.dir\FullDebug\KratosVersion.lib
+  clipper.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\clipper\FullDebug\clipper.lib
+  zlib.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\zlib\FullDebug\zlib.dll
+  gidpost.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\gidpost\FullDebug\gidpost.lib
+  tinyexpr.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\tinyexpr\FullDebug\tinyexpr.lib
+  triangle.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\triangle\FullDebug\triangle.lib
+  accessor.cpp
+  bounding_volume_tree.cpp
+  cfd_variables.cpp
+  code_location.cpp
+  communicator.cpp
+  constitutive_law.cpp
+  convection_diffusion_settings.cpp
+  data_communicator.cpp
+  dem_variables.cpp
+  deprecated_variables.cpp
+  exception.cpp
+  fsi_variables.cpp
+  geometrical_object.cpp
+  gid_io.cpp
+  global_pointer_variables.cpp
+  global_variables.cpp
+  initial_state.cpp
+  io.cpp
+  kernel.cpp
+  kratos_application.cpp
+  Generating Code...
+  Compiling...
+  kratos_components.cpp
+  kratos_filesystem.cpp
+  kratos_parameters.cpp
+  mapping_variables.cpp
+  master_slave_constraint.cpp
+  mat_variables.cpp
+  memory_info.cpp
+  mesh_moving_variables.cpp
+  model_part.cpp
+  model_part_io.cpp
+  parallel_environment.cpp
+  periodic_condition.cpp
+  prime_numbers.cpp
+  process_info.cpp
+  profiler.cpp
+  registry.cpp
+  registry_item.cpp
+  reorder_consecutive_model_part_io.cpp
+  serializer.cpp
+  variables.cpp
+  Generating Code...
+  Compiling...
+  mesh_condition.cpp
+  linear_master_slave_constraint.cpp
+  slip_constraint.cpp
+  container_expression.cpp
+  binary_expression.cpp
+  expression.cpp
+  literal_expression.cpp
+  literal_flat_expression.cpp
+  variable_expression_data_io.cpp
+  data_value_container.cpp
+  flags.cpp
+  model.cpp
+  nodal_data.cpp
+  variable_data.cpp
+  variables_list.cpp
+  edge_based_gradient_recovery_element.cpp
+  embedded_nodal_variable_calculation_element_simplex.cpp
+  levelset_convection_element_simplex_algebraic_stabilization.cpp
+  mesh_element.cpp
+  mapper_factory.cpp
+  Generating Code...
+  Compiling...
+  register_factories.cpp
+  standard_linear_solver_factory.cpp
+  standard_preconditioner_factory.cpp
+  nurbs_surface_refinement_utilities.cpp
+  oriented_bounding_box.cpp
+  integration_info.cpp
+  integration_point_utilities.cpp
+  amgcl_solver_impl.cpp
+  mapper_flags.cpp
+  cad_io_modeler.cpp
+  combine_model_part_modeler.cpp
+  connectivity_preserve_modeler.cpp
+  copy_properties_modeler.cpp
+  duplicate_mesh_modeler.cpp
+  modeler_factory.cpp
+  serial_model_part_combinator_modeler.cpp
+  tetrahedra_ball.cpp
+  tetrahedra_edge_shell.cpp
+  ausas_modified_shape_functions.cpp
+  modified_shape_functions.cpp
+  Generating Code...
+  Compiling...
+  tetrahedra_3d_4_ausas_incised_shape_functions.cpp
+  tetrahedra_3d_4_ausas_modified_shape_functions.cpp
+  tetrahedra_3d_4_modified_shape_functions.cpp
+  triangle_2d_3_ausas_incised_shape_functions.cpp
+  triangle_2d_3_ausas_modified_shape_functions.cpp
+  triangle_2d_3_modified_shape_functions.cpp
+  apply_periodic_boundary_condition_process.cpp
+  apply_ray_casting_interface_recognition_process.cpp
+  apply_ray_casting_process.cpp
+  assign_scalar_field_to_entities_process.cpp
+  assign_scalar_input_to_entities_process.cpp
+  assign_scalar_variable_to_entities_process.cpp
+  calculate_discontinuous_distance_to_skin_process.cpp
+  calculate_distance_to_path_process.cpp
+  calculate_distance_to_skin_process.cpp
+  calculate_nodal_area_process.cpp
+  check_same_modelpart_using_skin_distance_process.cpp
+  compute_nodal_gradient_process.cpp
+  compute_nodal_normal_divergence_process.cpp
+  entity_erase_process.cpp
+  Generating Code...
+  Compiling...
+  fast_transfer_between_model_parts_process.cpp
+  find_global_nodal_entity_neighbours_process.cpp
+  find_global_nodal_neighbours_for_entities_process.cpp
+  find_intersected_geometrical_objects_process.cpp
+  find_intersected_geometrical_objects_with_obb_process.cpp
+  find_nodal_h_process.cpp
+  find_nodal_neighbours_process.cpp
+  from_json_check_result_process.cpp
+  generic_find_elements_neighbours_process.cpp
+  integration_values_extrapolation_to_nodes_process.cpp
+  measure_mesh_quality_process.cpp
+  mesh_coarsening_process.cpp
+  mesh_local_smoothing_process.cpp
+  mesh_node_collapsing_process.cpp
+  parallel_distance_calculation_process.cpp
+  reorder_and_optimize_modelpart_process.cpp
+  replace_elements_and_condition_process.cpp
+  set_initial_state_process.cpp
+  simple_mortar_mapper_process.cpp
+  skin_detection_process.cpp
+  Generating Code...
+  Compiling...
+  split_internal_interfaces_process.cpp
+  structured_mesh_generator_process.cpp
+  sub_model_part_skin_detection_process.cpp
+  tetrahedra_mesh_edge_swapping_process.cpp
+  tetrahedra_mesh_quality_weighted_smoothing_process.cpp
+  tetrahedra_mesh_worst_element_smoothing_process.cpp
+  tetrahedral_mesh_orientation_check.cpp
+  time_averaging_process.cpp
+  explicit_builder.cpp
+  geometrical_objects_bins.cpp
+  spatial_search.cpp
+  specialized_spatial_search.cpp
+  apply_function_to_nodes_utility.cpp
+  assign_mpcs_to_neighbours_utility.cpp
+  assign_unique_model_part_collection_tag_utility.cpp
+  auxiliar_model_part_utilities.cpp
+  brute_force_point_locator.cpp
+  communication_coloring_utilities.cpp
+  compare_elements_and_conditions_utility.cpp
+  constraint_utilities.cpp
+  Generating Code...
+  Compiling...
+  cpp_tests_utilities.cpp
+  divide_geometry.cpp
+  divide_tetrahedra_3d_4.cpp
+  divide_triangle_2d_3.cpp
+  divide_triangle_3d_3.cpp
+  element_size_calculator.cpp
+  embedded_skin_utility.cpp
+  entities_utilities.cpp
+  exact_mortar_segmentation_utility.cpp
+  file_name_data_collector.cpp
+  fill_communicator.cpp
+  force_and_torque_utils.cpp
+  function_parser_utility.cpp
+  geometrical_projection_utilities.cpp
+  geometrical_sensitivity_utility.cpp
+  geometrical_transformation_utilities.cpp
+  geometry_metric_calculator.cpp
+  geometry_tester.cpp
+  geometry_utilities.cpp
+  brep_trimming_utilities.cpp
+  Generating Code...
+  Compiling...
+  interval_utility.cpp
+  line_sensitivity_utility.cpp
+  mls_shape_functions_utility.cpp
+  model_part_combination_utilities.cpp
+  model_part_graph_utilities.cpp
+  model_part_operation_utilities.cpp
+  mortar_utilities.cpp
+  normal_calculation_utils.cpp
+  parallel_utilities.cpp
+  properties_utilities.cpp
+  qef_utility.cpp
+  rbf_shape_functions_utility.cpp
+  read_materials_utility.cpp
+  result_dabatase.cpp
+  rve_periodicity_utility.cpp
+  sensitivity_builder.cpp
+  sensitivity_utilities.cpp
+  shifted_boundary_meshless_interface_utility.cpp
+  single_import_model_part.cpp
+  specifications_utilities.cpp
+  Generating Code...
+  Compiling...
+  string_utilities.cpp
+  sub_model_part_entities_boolean_operation_utility.cpp
+  delaunator_utilities.cpp
+  time_discretization.cpp
+  timer.cpp
+  variable_redistribution_utility.cpp
+  variable_utils.cpp
+  distributed_test_case.cpp
+  scoped_file.cpp
+  test_case.cpp
+  test_case_result.cpp
+  test_skipped_exception.cpp
+  test_suite.cpp
+  tester.cpp
+  testing.cpp
+  cad_json_output.cpp
+  file_logger_output.cpp
+  logger.cpp
+  logger_message.cpp
+  logger_output.cpp
+  Generating Code...
+  Compiling...
+  logger_table_output.cpp
+  stl_io.cpp
+  unv_output.cpp
+  vtk_output.cpp
+  test_bar_element.cpp
+  test_array_1d.cpp
+  test_data_value_container.cpp
+  test_flags.cpp
+  test_geometry_container.cpp
+  test_model.cpp
+  test_model_part_geometry_container.cpp
+  test_nodal_data.cpp
+  test_pointer_vector.cpp
+  test_pointer_vector_set.cpp
+  test_variables.cpp
+  test_variables_list.cpp
+  test_variables_list_data_value_container.cpp
+  test_edge_based_gradient_recovery_element.cpp
+  test_levelset_convection_element_simplex.cpp
+  test_concurrent_queue.cpp
+  Generating Code...
+  Compiling...
+  test_delaunator.cpp
+  test_factories.cpp
+  test_bounding_box.cpp
+  test_brep_curve_on_surface.cpp
+  test_brep_surface.cpp
+  test_brep_surface_trimmed.cpp
+  test_coupling_geometry.cpp
+  test_coupling_geometry_quadrature.cpp
+  test_geometry.cpp
+  test_hexahedra_3d_20.cpp
+  test_hexahedra_3d_8.cpp
+  test_line_2d_2.cpp
+  test_line_2d_3.cpp
+  test_line_2d_4.cpp
+  test_line_2d_5.cpp
+  test_line_3d_2.cpp
+  test_line_3d_3.cpp
+  test_non_rectangular_jacobian.cpp
+  test_nurbs_curve.cpp
+  test_nurbs_curve_on_surface_geometry.cpp
+  Generating Code...
+  Compiling...
+  test_nurbs_curve_shape_functions.cpp
+  test_nurbs_surface.cpp
+  test_nurbs_surface_shape_functions.cpp
+  test_nurbs_utilities.cpp
+  test_nurbs_volume.cpp
+  test_nurbs_volume_knot_refinement.cpp
+  test_nurbs_volume_shape_functions.cpp
+  test_point.cpp
+  test_point_on_geometry.cpp
+  test_prism_3d_15.cpp
+  test_prism_3d_6.cpp
+  test_projection_nurbs_geometry.cpp
+  test_pyramid_3d_13.cpp
+  test_pyramid_3d_5.cpp
+  test_quadrature_point_geometry.cpp
+  test_quadrilateral_2d_4.cpp
+  test_quadrilateral_2d_8.cpp
+  test_quadrilateral_3d_4.cpp
+  test_surface_in_nurbs_volume.cpp
+  test_tetrahedra_3d_10.cpp
+  Generating Code...
+  Compiling...
+  test_tetrahedra_3d_4.cpp
+  test_triangle_2d_10.cpp
+  test_triangle_2d_15.cpp
+  test_triangle_2d_3.cpp
+  test_triangle_2d_6.cpp
+  test_triangle_3d_3.cpp
+  test_triangle_3d_6.cpp
+  test_global_pointer.cpp
+  test_global_pointers_container.cpp
+  test_global_pointers_vector.cpp
+  test_property_accessor.cpp
+  test_logger.cpp
+  test_integration_info.cpp
+  test_monotonicity_solver.cpp
+  test_copy_properties_modeler.cpp
+  test_tetrahedra_3d_4_ausas_incised_shape_functions.cpp
+  test_tetrahedra_3d_4_ausas_modified_shape_functions.cpp
+  test_tetrahedra_3d_4_modified_shape_functions.cpp
+  test_triangle_2d_3_ausas_incised_shape_functions.cpp
+  test_triangle_2d_3_ausas_modified_shape_functions.cpp
+  Generating Code...
+  Compiling...
+  test_triangle_2d_3_modified_shape_functions.cpp
+  test_apply_ray_casting_interface_recognition_process.cpp
+  test_apply_ray_casting_process.cpp
+  test_calculate_discontinuous_distance_to_skin_process.cpp
+  test_calculate_distance_to_skin_process.cpp
+  test_calculate_embedded_nodal_variable_from_skin_process.cpp
+  test_calculate_nodal_area_process.cpp
+  test_coarsening_process.cpp
+  test_compute_nodal_gradient_process.cpp
+  test_fast_transfer_between_model_parts_process.cpp
+  test_find_intersected_geometrical_objects_process.cpp
+  test_find_nodal_h_process.cpp
+  test_find_nodal_neighbours_process.cpp
+  test_generic_neighbour_elements.cpp
+  test_integration_values_extrapolation_to_nodes_process.cpp
+  test_mortar_mapper_process.cpp
+  test_parallel_distance_calculation_process.cpp
+  test_replace_elements_and_condition_process.cpp
+  test_set_initial_state_process.cpp
+  test_skin_detection_process.cpp
+  Generating Code...
+  Compiling...
+  test_structured_mesh_generator_process.cpp
+  test_tetrahedra_edge_swapping_process.cpp
+  cross_check_shape_functions_values.cpp
+  test_checks.cpp
+  test_chunk.cpp
+  test_code_location.cpp
+  test_communicator.cpp
+  test_compare_elements_and_conditions_utility.cpp
+  test_condition.cpp
+  test_constraint.cpp
+  test_dof.cpp
+  test_exceptions.cpp
+  test_filesystem.cpp
+  test_key_hash.cpp
+  test_kratos_components.cpp
+  test_kratos_parameters.cpp
+  test_linear_master_slave_constraint.cpp
+  test_memory_pool.cpp
+  test_model_part.cpp
+  test_model_part_io.cpp
+  Generating Code...
+  Compiling...
+  test_node.cpp
+  test_oriented_bounding_box.cpp
+  test_parameters.cpp
+  test_registry.cpp
+  test_serializer.cpp
+  test_serializer_geometry_data.cpp
+  test_shape_function_derivatives.cpp
+  test_table.cpp
+  test_kratos_space.cpp
+  test_ublas_space.cpp
+  test_sparse_graph_serial.cpp
+  test_bins_dynamic.cpp
+  test_bins_static.cpp
+  test_geometrical_objects_bins.cpp
+  test_kd_tree.cpp
+  test_octree.cpp
+  test_builder_and_solver.cpp
+  test_explicit_builder_and_solver.cpp
+  test_mixed_generic_criteria.cpp
+  test_residual_based_adjoint_bossak_scheme.cpp
+  Generating Code...
+  Compiling...
+  test_schemes.cpp
+  test_bfecc_explicit_strategy.cpp
+  test_runge_kutta_explicit_strategies.cpp
+  test_strategies.cpp
+  test_testing.cpp
+  test_apply_function_to_nodes_utilities.cpp
+  test_assign_unique_model_part_collection_tag_utility.cpp
+  test_atomic_utilities.cpp
+  test_auxiliar_model_part_utilities.cpp
+  test_binbased_fast_point_locator.cpp
+  test_brent_iteration.cpp
+  test_brute_force_point_locator.cpp
+  test_curve_axis_intersection.cpp
+  test_curve_tessellation.cpp
+  test_debug_helpers.cpp
+  test_delaunator_utilities.cpp
+  test_dense_householder_qr_decomposition.cpp
+  test_discont_utils.cpp
+  test_divide_tetrahedra_3d_4.cpp
+  test_divide_triangle_2d_3.cpp
+  Generating Code...
+  Compiling...
+  test_divide_triangle_3d_3.cpp
+  test_element_size_calculator.cpp
+  test_embedded_skin_utility.cpp
+  test_function_parser_utility.cpp
+  test_geometrical_object.cpp
+  test_geometrical_projection_utilities.cpp
+  test_geometrical_sensitivity_utility.cpp
+  test_geometry_metric_calculator.cpp
+  test_geometry_tester.cpp
+  test_geometry_utils.cpp
+  test_intersection_utilities.cpp
+  test_line_geometrical_sensitivity.cpp
+  test_math_utils.cpp
+  test_mls_shape_functions_utility.cpp
+  test_parallel_utilities.cpp
+  test_plane_approximation_utility.cpp
+  test_qef_utility.cpp
+  test_quaternion.cpp
+  test_result_database.cpp
+  test_sensitivity_builder.cpp
+  Generating Code...
+  Compiling...
+  test_shifted_boundary_meshless_interface_utility.cpp
+  test_sparse_matrix_mutiplication_utilities.cpp
+  test_split_tetrahedra.cpp
+  test_string_utilities.cpp
+  test_svd_utils.cpp
+  test_variable_utils.cpp
+  cad_tessellation_modeler.cpp
+  Generating Code...
+  mmio.c
+  test_constitutive_law.cpp
+  test_element.cpp
+  test_constitutive_law.cpp
+  test_properties.cpp
+  test_stl_io.cpp
+  test_element.cpp
+  test_properties.cpp
+  test_stl_io.cpp
+     Creating library C:/KRATOS/Kratos/build/FullDebug/kratos/FullDebug/KratosCore.lib and object C:/KRATOS/Kratos/build/FullDebug/kratos/FullDebug/KratosCore.exp
+  KratosCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\FullDebug\KratosCore.dll
+  add_amgcl_solver_to_python.cpp
+  add_bounding_box_to_python.cpp
+  add_cfd_variables_to_python.cpp
+  add_communicator_to_python.cpp
+  add_constitutive_law_to_python.cpp
+  add_constraint_to_python.cpp
+  add_container_expression_to_python.cpp
+  add_containers_to_python.cpp
+  add_controllers_to_python.cpp
+  add_convergence_accelerators_to_python.cpp
+  add_data_communicator_to_python.cpp
+  add_dem_variables_to_python.cpp
+  add_deprecated_variables_to_python.cpp
+  add_dofs_to_python.cpp
+  add_factories_to_python.cpp
+  add_fsi_variables_to_python.cpp
+  add_geometrical_utilities_to_python.cpp
+  add_geometries_to_python.cpp
+  add_global_pointers_to_python.cpp
+  add_io_to_python.cpp
+  add_kernel_to_python.cpp
+  add_kratos_application_to_python.cpp
+  add_kratos_parameters_to_python.cpp
+  add_linear_solvers_to_python.cpp
+  add_logger_to_python.cpp
+  add_mapper_to_python.cpp
+  add_mapping_variables_to_python.cpp
+  add_mat_variables_to_python.cpp
+  add_matrix_market_interface_to_python.cpp
+  add_matrix_to_python.cpp
+  add_memory_info_to_python.cpp
+  add_mesh_moving_variables_to_python.cpp
+  add_mesh_to_python.cpp
+  add_model_part_to_python.cpp
+  add_model_to_python.cpp
+  add_modeler_to_python.cpp
+  add_node_to_python.cpp
+  add_operations_to_python.cpp
+  add_other_utilities_to_python.cpp
+  add_parallel_environment_to_python.cpp
+  add_points_to_python.cpp
+  add_process_info_to_python.cpp
+  add_processes_to_python.cpp
+  add_properties_to_python.cpp
+  add_quaternion_to_python.cpp
+  add_registry_to_python.cpp
+  add_response_functions_to_python.cpp
+  add_search_strategies_to_python.cpp
+  add_serializer_to_python.cpp
+  add_sparse_matrices_to_python.cpp
+  add_strategies_to_python.cpp
+  add_table_to_python.cpp
+  add_testing_to_python.cpp
+  add_variable_utils_to_python.cpp
+  add_vector_to_python.cpp
+  kratos_python.cpp
+     Creating library C:/KRATOS/Kratos/build/FullDebug/kratos/FullDebug/Kratos.lib and object C:/KRATOS/Kratos/build/FullDebug/kratos/FullDebug/Kratos.exp
+  Kratos.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\FullDebug\Kratos.cp311-win_amd64.pyd
+  co_sim_io.cpp
+  code_location.cpp
+  base_socket_communication.cpp
+  communication.cpp
+  factory.cpp
+  file_communication.cpp
+  local_socket_communication.cpp
+  pipe_communication.cpp
+  socket_communication.cpp
+  connect_impl.cpp
+  connection.cpp
+  exception.cpp
+  file_serializer.cpp
+  info.cpp
+  model_part.cpp
+  serializer.cpp
+  stream_serializer.cpp
+  utilities.cpp
+  version.cpp
+  vtk_utilities.cpp
+  Generating Code...
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/CoSimulationApplication/custom_external_libraries/CoSimIO/FullDebug/co_sim_io.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/CoSimulationApplication/custom_external_libraries/CoSimIO/FullDebug/co_sim_io.exp
+  co_sim_io.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\custom_external_libraries\CoSimIO\FullDebug\co_sim_io.dll
+  co_simulation_application.cpp
+  co_simulation_application_variables.cpp
+  co_sim_io_conversion_utilities.cpp
+  conversion_utilities.cpp
+  feti_dynamic_coupling_utilities.cpp
+  co_simulation_testing_utilities.cpp
+  test_co_sim_io_integration.cpp
+  test_conversion_utilities.cpp
+  test_multiple_includes_api_headers.cpp
+  Generating Code...
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/CoSimulationApplication/FullDebug/KratosCoSimulationCore.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/CoSimulationApplication/FullDebug/KratosCoSimulationCore.exp
+  KratosCoSimulationCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\KratosCoSimulationCore.dll
+  add_co_sim_io_to_python.cpp
+  add_custom_io_to_python.cpp
+  add_custom_utilities_to_python.cpp
+  co_simulation_python_application.cpp
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/CoSimulationApplication/FullDebug/KratosCoSimulationApplication.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/CoSimulationApplication/FullDebug/KratosCoSimulationApplication.exp
+  KratosCoSimulationApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\KratosCoSimulationApplication.pyd
+  DEM_application.cpp
+  explicit_solver_strategy.cpp
+  explicit_solver_continuum.cpp
+  spheric_particle.cpp
+C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(934,64): error C2065: 'NODAL_COUPLING_WEIGHT': undeclared identifier [C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\KratosDEMCore.vcxproj]
+  nanoparticle.cpp
+  analytic_spheric_particle.cpp
+  spheric_continuum_particle.cpp
+  ice_continuum_particle.cpp
+  beam_particle.cpp
+  bonding_spheric_continuum_particle.cpp
+  Particle_Contact_Element.cpp
+  cylinder_particle.cpp
+  cylinder_continuum_particle.cpp
+  cluster3D.cpp
+  rigid_body_element.cpp
+  ship_element.cpp
+  contact_info_spheric_particle.cpp
+  polyhedron_skin_spheric_particle.cpp
+  RigidFace.cpp
+  analytic_RigidFace.cpp
+  Generating Code...
+  Compiling...
+  RigidEdge.cpp
+  SolidFace.cpp
+  dem_wall.cpp
+  mapping_condition.cpp
+  DEM_discontinuum_constitutive_law.cpp
+  DEM_continuum_constitutive_law.cpp
+  DEM_rolling_friction_model.cpp
+  singlespherecluster3D.cpp
+  dem_integration_scheme.cpp
+  forward_euler_scheme.cpp
+  symplectic_euler_scheme.cpp
+  taylor_scheme.cpp
+  velocity_verlet_scheme.cpp
+  runge_kutta_scheme.cpp
+  quaternion_integration_scheme.cpp
+  glued_to_wall_scheme.cpp
+  DEM_Dempack_CL.cpp
+  DEM_Dempack_2D_CL.cpp
+  DEM_Dempack_torque_CL.cpp
+  DEM_Dempack_dev_CL.cpp
+  Generating Code...
+  Compiling...
+  DEM_Dempack_2D_dev_CL.cpp
+  DEM_KDEM_fabric_CL.cpp
+  DEM_KDEM_CL.cpp
+  DEM_beam_constitutive_law.cpp
+  DEM_KDEM_soft_torque_CL.cpp
+  DEM_KDEM_soft_torque_with_noise_CL.cpp
+  DEM_KDEM_with_damage_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_capped_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_2D_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_Hertz_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_Hertz_2D_CL.cpp
+  DEM_KDEM_Rankine_CL.cpp
+  DEM_KDEM_Mohr_Coulomb_CL.cpp
+  DEM_KDEM_CamClay_CL.cpp
+  dem_kdem_fissured_rock_cl.cpp
+  DEM_ExponentialHC_CL.cpp
+  DEM_D_Linear_viscous_Coulomb_CL.cpp
+  DEM_D_Linear_HighStiffness_CL.cpp
+  DEM_D_Linear_HighStiffness_2D_CL.cpp
+  Generating Code...
+  Compiling...
+  DEM_D_Linear_confined_CL.cpp
+  DEM_D_Linear_classic_CL.cpp
+  DEM_D_Hertz_viscous_Coulomb_CL.cpp
+  DEM_D_Hertz_confined_CL.cpp
+  DEM_D_Bentonite_Colloid_CL.cpp
+  DEM_D_JKR_cohesive_law.cpp
+  DEM_D_DMT_cohesive_law.cpp
+  DEM_D_Stress_dependent_cohesive_CL.cpp
+  DEM_D_Linear_viscous_Coulomb_2D_CL.cpp
+  DEM_D_Hertz_viscous_Coulomb_2D_CL.cpp
+  dem_d_linear_custom_constants_cl.cpp
+  DEM_D_Conical_damage_CL.cpp
+  DEM_D_Quadratic_CL.cpp
+  dem_kdem_2d_cl.cpp
+  dem_kdem_fabric_2d_cl.cpp
+  DEM_D_Hertz_viscous_Coulomb_Nestle_CL.cpp
+  DEM_parallel_bond_CL.cpp
+  DEM_parallel_bond_for_membrane_CL.cpp
+  inlet.cpp
+  force_based_inlet.cpp
+  Generating Code...
+  Compiling...
+  create_and_destroy.cpp
+  properties_proxies.cpp
+  dem_fem_utilities.cpp
+  excavator_utility.cpp
+  analytic_model_part_filler.cpp
+  particles_history_watcher.cpp
+  bins_dynamic_objects_periodic.cpp
+  move_mesh_utility.cpp
+  stationarity_checker.cpp
+  automatic_dt_process.cpp
+  multiaxial_control_module_generalized_2d_utilities.cpp
+  apply_kinematic_constraints_process.cpp
+  apply_forces_and_moments_process.cpp
+  random_variable.cpp
+  piecewise_linear_random_variable.cpp
+  discrete_random_variable.cpp
+  DEM_rolling_friction_model_constant_torque.cpp
+  DEM_rolling_friction_model_viscous_torque.cpp
+  DEM_rolling_friction_model_bounded.cpp
+  Generating Code...
+  constitutive_law_utilities.cpp
+  axisym_line_load_condition_2d.cpp
+  axisym_point_load_condition.cpp
+  base_load_condition.cpp
+  displacement_control_condition.cpp
+  line_load_condition.cpp
+  moving_load_condition.cpp
+  point_contact_condition.cpp
+  point_load_condition.cpp
+  point_moment_condition_3d.cpp
+  small_displacement_line_load_condition.cpp
+  small_displacement_surface_load_condition_3d.cpp
+  surface_load_condition_3d.cpp
+  axisym_elastic_isotropic.cpp
+  beam_constitutive_law.cpp
+  elastic_isotropic_3d.cpp
+  linear_plane_strain.cpp
+  linear_plane_stress.cpp
+  truss_constitutive_law.cpp
+  user_provided_linear_elastic_law.cpp
+  Generating Code...
+  Compiling...
+  axisym_small_displacement.cpp
+  axisym_total_lagrangian.cpp
+  axisym_updated_lagrangian.cpp
+  base_shell_element.cpp
+  base_solid_element.cpp
+  cable_element_3D2N.cpp
+  cr_beam_element_2D2N.cpp
+  cr_beam_element_3D2N.cpp
+  cr_beam_element_linear_2D2N.cpp
+  cr_beam_element_linear_3D2N.cpp
+  isotropic_shell_element.cpp
+  mass_element.cpp
+  membrane_element.cpp
+  nodal_concentrated_element.cpp
+  shell_thick_element_3D3N.cpp
+  shell_thick_element_3D4N.cpp
+  shell_thin_element_3D3N.cpp
+  shell_thin_element_3D4N.cpp
+  small_displacement.cpp
+  small_displacement_bbar.cpp
+  Generating Code...
+  Compiling...
+  small_displacement_mixed_volumetric_strain_element.cpp
+  solid_shell_element_sprism_3D6N.cpp
+  spring_damper_element.cpp
+  total_lagrangian.cpp
+  total_lagrangian_mixed_volumetric_strain_element.cpp
+  total_lagrangian_q1p0_mixed_element.cpp
+  truss_element_3D2N.cpp
+  truss_element_linear_3D2N.cpp
+  updated_lagrangian.cpp
+  z_strain_driven_2p5_small_displacement.cpp
+  vtk_eigen_output.cpp
+  compute_center_of_gravity_process.cpp
+  compute_mass_moment_of_inertia_process.cpp
+  distribute_load_on_surface_process.cpp
+  impose_rigid_movement_process.cpp
+  impose_z_strain_process.cpp
+  postprocess_eigenvalues_process.cpp
+  prism_neighbours_process.cpp
+  set_automated_initial_variable_process.cpp
+  set_cartesian_local_axes_process.cpp
+  Generating Code...
+  Compiling...
+  set_cylindrical_local_axes_process.cpp
+  set_moving_load_process.cpp
+  set_spherical_local_axes_process.cpp
+  shell_to_solid_shell_process.cpp
+  solid_shell_thickness_compute_process.cpp
+  spr_error_process.cpp
+  total_structural_mass_process.cpp
+  adjoint_semi_analytic_base_condition.cpp
+  adjoint_semi_analytic_point_load_condition.cpp
+  adjoint_finite_difference_base_element.cpp
+  adjoint_finite_difference_cr_beam_element_3D2N.cpp
+  adjoint_finite_difference_shell_element.cpp
+  adjoint_finite_difference_small_displacement_element.cpp
+  adjoint_finite_difference_spring_damper_element_3D2N.cpp
+  adjoint_finite_difference_truss_element_3D2N.cpp
+  adjoint_finite_difference_truss_element_linear_3D2N.cpp
+  adjoint_solid_element.cpp
+  replace_multiple_elements_and_conditions_process.cpp
+  adjoint_linear_strain_energy_response_function.cpp
+  adjoint_local_stress_response_function.cpp
+  Generating Code...
+  Compiling...
+  adjoint_max_stress_response_function.cpp
+  adjoint_nodal_displacement_response_function.cpp
+  adjoint_nodal_reaction_response_function.cpp
+  adjoint_structural_response_function.cpp
+  finite_difference_utility.cpp
+  stress_response_definitions.cpp
+  explicit_integration_utilities.cpp
+  node_search_utility.cpp
+  perturb_geometry_base_utility.cpp
+  perturb_geometry_sparse_utility.cpp
+  perturb_geometry_subgrid_utility.cpp
+  project_vector_on_surface_utility.cpp
+  rayleigh_damping_coefficients_utilities.cpp
+  shell_cross_section.cpp
+  shell_utilities.cpp
+  static_condensation_utility.cpp
+  structural_mechanics_element_utilities.cpp
+  structural_mechanics_application.cpp
+  structural_mechanics_application_variables.cpp
+  adjoint_test_model_part_factory.cpp
+  Generating Code...
+  Compiling...
+  test_model_part_factory.cpp
+  test_complex_orientation_mpc.cpp
+  test_mass_element.cpp
+  test_membrane.cpp
+  test_mpc_plate_tension.cpp
+  test_prism_neighbours_process.cpp
+  test_replace_multiple_elements_and_conditions_process.cpp
+  test_rotated_element.cpp
+  test_shell_to_solid_shell_process.cpp
+  test_shells_matrices.cpp
+  test_small_displacement_axisymmetric_element.cpp
+  test_small_displacement_mixed_volumetric_strain_element.cpp
+  test_solid_shell_thickness_compute_process.cpp
+  test_solid_static_sensitivity.cpp
+  test_solid_transient_sensitivity.cpp
+  test_spr_error_process.cpp
+  test_spring_damper_element.cpp
+  test_structural_mechanics_element_utilities.cpp
+  test_total_lagrangian.cpp
+  test_total_lagrangian_element_matrices.cpp
+  Generating Code...
+  Compiling...
+  test_total_lagrangian_mixed_volumetric_strain_element.cpp
+  test_truss.cpp
+  test_user_provided_linear_elastic_law.cpp
+  Generating Code...
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/StructuralMechanicsApplication/FullDebug/KratosStructuralMechanicsCore.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/StructuralMechanicsApplication/FullDebug/KratosStructuralMechanicsCore.exp
+  KratosStructuralMechanicsCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\StructuralMechanicsApplication\FullDebug\KratosStructuralMechanicsCore.dll
+  barycentric_mapper.cpp
+  coupling_geometry_mapper.cpp
+  nearest_element_mapper.cpp
+  nearest_neighbor_mapper.cpp
+  mapping_geometries_modeler.cpp
+  interface_communicator.cpp
+  closest_points.cpp
+  interface_vector_container.cpp
+  mapper_utilities.cpp
+  mapping_intersection_utilities.cpp
+  mapping_matrix_utilities.cpp
+  projection_utilities.cpp
+  mapping_application.cpp
+  mapping_application_variables.cpp
+  test_barycentric_mapper_aux_classes.cpp
+  test_closest_points.cpp
+  test_interface_object.cpp
+  test_mapper_utilities.cpp
+  test_nearest_element_aux_classes.cpp
+  test_nearest_neighbor_aux_classes.cpp
+  Generating Code...
+  Compiling...
+  test_projection_utilities.cpp
+  Generating Code...
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/MappingApplication/FullDebug/KratosMappingCore.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/MappingApplication/FullDebug/KratosMappingCore.exp
+  KratosMappingCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\MappingApplication\FullDebug\KratosMappingCore.dll
+  add_custom_utilities_to_python.cpp
+  mapping_python_application.cpp
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/MappingApplication/FullDebug/KratosMappingApplication.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/MappingApplication/FullDebug/KratosMappingApplication.exp
+  KratosMappingApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\MappingApplication\FullDebug\KratosMappingApplication.pyd
+  add_custom_constitutive_laws_to_python.cpp
+  add_custom_processes_to_python.cpp
+  add_custom_response_functions_to_python.cpp
+  add_custom_strategies_to_python.cpp
+  add_custom_utilities_to_python.cpp
+  structural_mechanics_python_application.cpp
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/StructuralMechanicsApplication/FullDebug/KratosStructuralMechanicsApplication.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/StructuralMechanicsApplication/FullDebug/KratosStructuralMechanicsApplication.exp
+  KratosStructuralMechanicsApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\StructuralMechanicsApplication\FullDebug\KratosStructuralMechanicsApplication.pyd
+
+C:\KRATOS\Kratos\scripts>goto:eof

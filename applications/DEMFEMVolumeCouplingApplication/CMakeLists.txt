@@ -4,6 +4,9 @@ message("**** configuring KratosDEMFEMVolumeCouplingApplication ****")
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MappingApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/CoSimulationApplication)
+
 
 
 ################### PYBIND11
@@ -19,9 +22,13 @@ set(KRATOS_DEMFEM_VOLUME_COUPLING_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/DEMFEM_Volume_Coupling_Application.h
     ${CMAKE_CURRENT_SOURCE_DIR}/DEMFEM_Volume_Coupling_Application.cpp
     
-    ## ELEMENTS
+    ## ELEMENTS FEM
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/volume_coupling_element.h
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/volume_coupling_element.cpp
+
+    ## ELEMENTS DEM
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/volume_coupling_particle.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/volume_coupling_particle.cpp
        
 )
 
