@@ -28,6 +28,7 @@
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -1104,6 +1105,32 @@ public:
         rResult[3] =  0.25*( 1.0 - rCoordinates[0] )*( 1.0 + rCoordinates[1] );
 
         return rResult;
+    }
+
+    ///@}
+    ///@name Spatial Operations
+    ///@{
+
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        // Calculate distances
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToQuadrilateral3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), this->GetPoint(3), point);
     }
 
     ///@}

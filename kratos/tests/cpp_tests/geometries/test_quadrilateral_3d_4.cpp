@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -25,9 +25,7 @@
 // Utility includes
 #include "utilities/geometry_utilities.h"
 
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
     /// Factory functions
 
@@ -295,6 +293,20 @@ namespace Testing
         KRATOS_CHECK_NEAR(local_coords[2], 0.0, 1.0e-4);
     }
 
+    /**
+     * Checks the distance from a point to a quadrilateral
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Quadrilateral3D4CalculateDistance, KratosCoreGeometriesFastSuite)
+    {
+        auto geom = GenerateFlatQuadrilateral3D4<Node>();
+
+        Point point1(0.0, 0.0, 0.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+
+        Point point2(0.0, 0.0, 0.5);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
+    }
+
 //     /** Checks if the volume of the quadrilateral is calculated correctly.
 //     * Checks if the volume of the quadrilateral is calculated correctly.
 //     * For quadrilateral 2D3 'volume()' call defaults to 'area()'
@@ -511,5 +523,4 @@ namespace Testing
 //         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
 //     }
 
-} // namespace Testing.
-} // namespace Kratos.
+} // namespace Kratos::Testing.

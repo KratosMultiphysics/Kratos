@@ -98,6 +98,7 @@ void AddStrategies(pybind11::module& m)
     typedef TrilinosBlockBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolverType;
     py::class_<TrilinosBlockBuilderAndSolverType, typename TrilinosBlockBuilderAndSolverType::Pointer, TrilinosBuilderAndSolverType>(m, "TrilinosBlockBuilderAndSolver")
         .def(py::init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
+        .def(py::init<Epetra_MpiComm&, TrilinosLinearSolverType::Pointer, Parameters > () )
     ;
 
     typedef TrilinosBlockBuilderAndSolverPeriodic< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBlockBuilderAndSolverPeriodicType;

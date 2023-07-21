@@ -892,5 +892,16 @@ namespace Kratos
             KRATOS_CHECK_MATRIX_NEAR(exp_A, A, 1.0e-8);
         }
 
+        /** Checks whether the angle conversion from degrees to radians is performed correctly
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDegreesToRadians, KratosCoreFastSuite)
+        {
+            const double abs_tolerance = 1e-9;
+            KRATOS_CHECK_NEAR(          0.0, MathUtils<>::DegreesToRadians(   0.0), abs_tolerance);
+            KRATOS_CHECK_NEAR(Globals::Pi/2, MathUtils<>::DegreesToRadians(  90.0), abs_tolerance);
+            KRATOS_CHECK_NEAR( -Globals::Pi, MathUtils<>::DegreesToRadians(-180.0), abs_tolerance);
+            KRATOS_CHECK_NEAR(4*Globals::Pi, MathUtils<>::DegreesToRadians( 720.0), abs_tolerance);
+        }
+
     } // namespace Testing
 }  // namespace Kratos.
