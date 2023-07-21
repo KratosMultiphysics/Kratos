@@ -55,20 +55,29 @@ public:
     /// The index type
     using IndexType = std::size_t;
 
-    /// The local pointer vector type
-    using LocalPointerVector = PointerVectorSet<TObjectType,
-                        IndexedObject,
-                        std::less<typename IndexedObject::result_type>,
-                        std::equal_to<typename IndexedObject::result_type>,
-                        TObjectType*,
-                        std::vector<TObjectType* >
-                        >;
+    /// Spatial search result type
+    using SpatialSearchResultType = SpatialSearchResult<TObjectType>;
+
+    /// Local vector of SpatialSearchResult
+    using LocalResultsVector = PointerVectorSet<SpatialSearchResultType,
+                               IndexedObject,
+                               std::less<typename IndexedObject::result_type>,
+                               std::equal_to<typename IndexedObject::result_type>,
+                               typename SpatialSearchResultType::Pointer,
+                               std::vector<typename SpatialSearchResultType::Pointer>
+                               >;
 
     /// The global pointer communicator
-    using PointerCommunicatorPointer = typename GlobalPointerCommunicator<TObjectType>::Pointer;
+    using GlobalPointerCommunicatorType = GlobalPointerCommunicator<SpatialSearchResultType>;
 
-    /// The global pointer vector type
-    using GPVector = GlobalPointersVector<TObjectType>;
+    /// The global pointer communicator pointer
+    using GlobalPointerCommunicatorPointerType = typename GlobalPointerCommunicatorType::Pointer;
+
+    /// The global pointer result type
+    using GlobalPointerResultType = GlobalPointer<SpatialSearchResult<TObjectType>>;
+
+    /// The global vector of SpatialSearchResult
+    using GlobalResultsVector = GlobalPointersVector<SpatialSearchResultType>;
 
     ///@}
     ///@name Life Cycle
@@ -102,9 +111,9 @@ public:
      * @param Index The index
      * @return The result container
      */
-    TObjectType& operator[](const std::size_t Index)
+    SpatialSearchResultType& operator[](const std::size_t Index)
     {
-        return *(mLocalPointers.begin() + Index);
+        return *(mLocalResults.begin() + Index);
     }
 
     /**
@@ -112,9 +121,9 @@ public:
      * @param Index The index
      * @return The result container
      */
-    const TObjectType& operator[](const std::size_t Index) const 
+    const SpatialSearchResultType& operator[](const std::size_t Index) const 
     {
-        return *(mLocalPointers.begin() + Index);
+        return *(mLocalResults.begin() + Index);
     }
 
     /**
@@ -122,11 +131,11 @@ public:
      * @param Index The index
      * @return The result container
      */
-    TObjectType& operator()(const std::size_t Index)
+    SpatialSearchResultType& operator()(const std::size_t Index)
     {
         // Check if the communicator has been created
         KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
-        return mGlobalPointers[Index];
+        return mGlobalResults[Index];
     }
 
     /**
@@ -134,11 +143,11 @@ public:
      * @param Index The index
      * @return The result container
      */
-    const TObjectType& operator()(const std::size_t Index) const 
+    const SpatialSearchResultType& operator()(const std::size_t Index) const 
     {
         // Check if the communicator has been created
         KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
-        return mGlobalPointers[Index];
+        return mGlobalResults[Index];
     }
 
     ///@}
@@ -149,180 +158,180 @@ public:
      * @brief Returns an iterator pointing to the beginning of the container.
      * @return Iterator pointing to the beginning of the container.
      */
-    typename GPVector::iterator begin()
+    typename GlobalResultsVector::iterator begin()
     {
-        return mGlobalPointers.begin();
+        return mGlobalResults.begin();
     }
 
     /**
      * @brief Returns a constant iterator pointing to the beginning of the container.
      * @return Constant iterator pointing to the beginning of the container.
      */
-    typename GPVector::const_iterator begin() const
+    typename GlobalResultsVector::const_iterator begin() const
     {
-        return mGlobalPointers.begin();
+        return mGlobalResults.begin();
     }
 
     /**
      * @brief Returns an iterator pointing to the end of the container.
      * @return Iterator pointing to the end of the container.
      */
-    typename GPVector::iterator end()
+    typename GlobalResultsVector::iterator end()
     {
-        return mGlobalPointers.end();
+        return mGlobalResults.end();
     }
 
     /**
      * @brief Returns a constant iterator pointing to the end of the container.
      * @return Constant iterator pointing to the end of the container.
      */
-    typename GPVector::const_iterator end() const
+    typename GlobalResultsVector::const_iterator end() const
     {
-        return mGlobalPointers.end();
+        return mGlobalResults.end();
     }
 
     /**
      * @brief Returns a reverse iterator pointing to the last element of the container.
      * @return Reverse iterator pointing to the last element of the container.
      */
-    typename GPVector::reverse_iterator rbegin()
+    typename GlobalResultsVector::reverse_iterator rbegin()
     {
-        return mGlobalPointers.rbegin();
+        return mGlobalResults.rbegin();
     }
 
     /**
      * @brief Returns a constant reverse iterator pointing to the last element of the container.
      * @return Constant reverse iterator pointing to the last element of the container.
      */
-    typename GPVector::const_reverse_iterator rbegin() const
+    typename GlobalResultsVector::const_reverse_iterator rbegin() const
     {
-        return mGlobalPointers.rbegin();
+        return mGlobalResults.rbegin();
     }
 
     /**
      * @brief Returns a reverse iterator pointing to the theoretical element preceding the first element of the container.
      * @return Reverse iterator pointing to the theoretical element preceding the first element.
      */
-    typename GPVector::reverse_iterator rend()
+    typename GlobalResultsVector::reverse_iterator rend()
     {
-        return mGlobalPointers.rend();
+        return mGlobalResults.rend();
     }
 
     /**
      * @brief Returns a constant reverse iterator pointing to the theoretical element preceding the first element of the container.
      * @return Constant reverse iterator pointing to the theoretical element preceding the first element.
      */
-    typename GPVector::const_reverse_iterator rend() const
+    typename GlobalResultsVector::const_reverse_iterator rend() const
     {
-        return mGlobalPointers.rend();
+        return mGlobalResults.rend();
     }
 
     /**
      * @brief Returns a pointer iterator pointing to the beginning of the container.
      * @return Pointer iterator pointing to the beginning of the container.
      */
-    typename GPVector::ptr_iterator ptr_begin()
+    typename GlobalResultsVector::ptr_iterator ptr_begin()
     {
-        return mGlobalPointers.ptr_begin();
+        return mGlobalResults.ptr_begin();
     }
 
     /**
      * @brief Returns a constant pointer iterator pointing to the beginning of the container.
      * @return Constant pointer iterator pointing to the beginning of the container.
      */
-    typename GPVector::ptr_const_iterator ptr_begin() const
+    typename GlobalResultsVector::ptr_const_iterator ptr_begin() const
     {
-        return mGlobalPointers.ptr_begin();
+        return mGlobalResults.ptr_begin();
     }
 
     /**
      * @brief Returns a pointer iterator pointing to the end of the container.
      * @return Pointer iterator pointing to the end of the container.
      */
-    typename GPVector::ptr_iterator ptr_end()
+    typename GlobalResultsVector::ptr_iterator ptr_end()
     {
-        return mGlobalPointers.ptr_end();
+        return mGlobalResults.ptr_end();
     }
 
     /**
      * @brief Returns a constant pointer iterator pointing to the end of the container.
      * @return Constant pointer iterator pointing to the end of the container.
      */
-    typename GPVector::ptr_const_iterator ptr_end() const
+    typename GlobalResultsVector::ptr_const_iterator ptr_end() const
     {
-        return mGlobalPointers.ptr_end();
+        return mGlobalResults.ptr_end();
     }
 
     /**
      * @brief Returns a reverse pointer iterator pointing to the last element of the container.
      * @return Reverse pointer iterator pointing to the last element of the container.
      */
-    typename GPVector::ptr_reverse_iterator ptr_rbegin()
+    typename GlobalResultsVector::ptr_reverse_iterator ptr_rbegin()
     {
-        return mGlobalPointers.ptr_rbegin();
+        return mGlobalResults.ptr_rbegin();
     }
 
     /**
      * @brief Returns a constant reverse pointer iterator pointing to the last element of the container.
      * @return Constant reverse pointer iterator pointing to the last element of the container.
      */
-    typename GPVector::ptr_const_reverse_iterator ptr_rbegin() const
+    typename GlobalResultsVector::ptr_const_reverse_iterator ptr_rbegin() const
     {
-        return mGlobalPointers.ptr_rbegin();
+        return mGlobalResults.ptr_rbegin();
     }
 
     /**
      * @brief Returns a reverse pointer iterator pointing to the theoretical element preceding the first element of the container.
      * @return Reverse pointer iterator pointing to the theoretical element preceding the first element.
      */
-    typename GPVector::ptr_reverse_iterator ptr_rend()
+    typename GlobalResultsVector::ptr_reverse_iterator ptr_rend()
     {
-        return mGlobalPointers.ptr_rend();
+        return mGlobalResults.ptr_rend();
     }
 
     /**
      * @brief Returns a constant reverse pointer iterator pointing to the theoretical element preceding the first element of the container.
      * @return Constant reverse pointer iterator pointing to the theoretical element preceding the first element.
      */
-    typename GPVector::ptr_const_reverse_iterator ptr_rend() const
+    typename GlobalResultsVector::ptr_const_reverse_iterator ptr_rend() const
     {
-        return mGlobalPointers.ptr_rend();
+        return mGlobalResults.ptr_rend();
     }
 
     /**
      * @brief Returns a reference to the first element of the container.
      * @return Reference to the first element of the container.
      */
-    typename GPVector::reference front() /* nothrow */
+    typename GlobalResultsVector::reference front() /* nothrow */
     {
-        return mGlobalPointers.front();
+        return mGlobalResults.front();
     }
 
     /**
      * @brief Returns a constant reference to the first element of the container.
      * @return Constant reference to the first element of the container.
      */
-    typename GPVector::const_reference front() const /* nothrow */
+    typename GlobalResultsVector::const_reference front() const /* nothrow */
     {
-        return mGlobalPointers.front();
+        return mGlobalResults.front();
     }
 
     /**
      * @brief Returns a reference to the last element of the container.
      * @return Reference to the last element of the container.
      */
-    typename GPVector::reference back() /* nothrow */
+    typename GlobalResultsVector::reference back() /* nothrow */
     {
-        return mGlobalPointers.back();
+        return mGlobalResults.back();
     }
 
     /**
      * @brief Returns a constant reference to the last element of the container.
      * @return Constant reference to the last element of the container.
      */
-    typename GPVector::const_reference back() const /* nothrow */
+    typename GlobalResultsVector::const_reference back() const /* nothrow */
     {
-        return mGlobalPointers.back();
+        return mGlobalResults.back();
     }
 
     /**
@@ -331,7 +340,7 @@ public:
      */
     bool IsObjectFound() const
     {
-        return static_cast<bool>(mGlobalPointers.size());
+        return static_cast<bool>(mGlobalResults.size());
     }
 
     /**
@@ -340,7 +349,7 @@ public:
      */
     std::size_t NumberOfLocalResults() const
     {
-        return mLocalPointers.size();
+        return mLocalResults.size();
     }
 
     /**
@@ -349,7 +358,7 @@ public:
      */
     std::size_t NumberOfGlobalResults() const
     {
-        return mGlobalPointers.size();
+        return mGlobalResults.size();
     }
 
     /**
@@ -360,20 +369,20 @@ public:
     void Reserve(const std::size_t Size)
     {
         // Only local
-        mLocalPointers.reserve(Size);
+        mLocalResults.reserve(Size);
     }
 
     /**
      * @brief Add a result to the container
      * @param rResult The result to be added
      */
-    void AddResult(SpatialSearchResult<TObjectType>& rResult);
+    void AddResult(SpatialSearchResultType& rResult);
 
     /**
      * @brief Pushes back a result to the container
      * @param rResult The result to be added
      */
-    void push_back(SpatialSearchResult<TObjectType>& rResult)
+    void push_back(SpatialSearchResultType& rResult)
     {
         AddResult(rResult);
     }
@@ -382,7 +391,10 @@ public:
      * @brief Add a result to the container
      * @param pResult The result to be added
      */
-    void AddResult(TObjectType* pResult);
+    void AddResult(
+        TObjectType* pResult,
+        const int Rank = 0
+        );
 
     /**
      * @brief Add a result to the container
@@ -391,7 +403,8 @@ public:
      */
     void AddResult(
         TObjectType* pResult,
-        const double Distance
+        const double Distance,
+        const int Rank = 0
         );
 
     /**
@@ -424,7 +437,7 @@ public:
      */
     template<class TFunctorType>
     ResultsProxy<
-    TObjectType,
+    SpatialSearchResultType,
     TFunctorType // TODO: Unfortunately this is deprecated in c++17, so we will have to change this call in the future
     > Apply(TFunctorType&& UserFunctor)
     {
@@ -439,7 +452,7 @@ public:
      * @brief Retrieves the global distances
      * @return A vector containing all the distances
      */
-    std::vector<double>& GetDistances();
+    std::vector<double> GetDistances();
 
     /**
      * @brief Considers the global pointer communicator to get the shape functions of the resulting object
@@ -477,51 +490,31 @@ public:
     ///@{
 
     /**
-     * @brief Accessor for mLocalPointers.
-     * This method returns a reference to the LocalPointerVector mLocalPointers.
-     * @return A reference to the LocalPointerVector mLocalPointers.
+     * @brief Accessor for mLocalResults.
+     * This method returns a reference to the LocalResultsVector mLocalResults.
+     * @return A reference to the LocalResultsVector mLocalResults.
      */
-    LocalPointerVector& GetLocalPointers() 
+    LocalResultsVector& GetLocalResults() 
     {
-        return mLocalPointers;
+        return mLocalResults;
     }
 
     /**
-     * @brief Accessor for mGlobalPointers.
-     * This method returns a reference to the GlobalPointersVector mGlobalPointers.
-     * @return A reference to the GlobalPointersVector mGlobalPointers.
+     * @brief Accessor for mGlobalResults.
+     * This method returns a reference to the GlobalResultsVector mGlobalResults.
+     * @return A reference to the GlobalResultsVector mGlobalResults.
      */
-    GlobalPointersVector<TObjectType>& GetGlobalPointers() 
+    GlobalResultsVector& GetGlobalResults()
     {
-        return mGlobalPointers;
+        return mGlobalResults;
     }
 
-    /**
-     * @brief Accessor for mLocalDistances.
-     * This method returns a reference to the std::unordered_map mLocalDistances.
-     * @return A reference to the std::unordered_map mLocalDistances.
-     */
-    std::unordered_map<IndexType, double>& GetLocalDistances() 
-    {
-        return mLocalDistances;
-    }
-
-    /**
-     * @brief Accessor for mGlobalDistances.
-     * This method returns a reference to the std::vector mGlobalDistances.
-     * @return A reference to the std::vector mGlobalDistances.
-     */
-    std::vector<double>& GetGlobalDistances() 
-    {
-        return mGlobalDistances;
-    }
- 
     /**
      * @brief Accessor for mpGlobalPointerCommunicator.
-     * This method returns the PointerCommunicatorPointer mpGlobalPointerCommunicator.
-     * @return The PointerCommunicatorPointer mpGlobalPointerCommunicator.
+     * This method returns the GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
+     * @return The GlobalPointerCommunicatorPointer mpGlobalPointerCommunicator.
      */
-    PointerCommunicatorPointer GetGlobalPointerCommunicator() 
+    GlobalPointerCommunicatorPointerType GetGlobalPointerCommunicator() 
     {
         return mpGlobalPointerCommunicator;
     }
@@ -544,11 +537,10 @@ private:
     ///@name Member Variables
     ///@{
     
-    LocalPointerVector mLocalPointers;                                /// Local pointers of the container
-    GPVector mGlobalPointers;                                         /// Global pointers of the container
-    std::unordered_map<IndexType, double> mLocalDistances;            /// The local distances 
-    std::vector<double> mGlobalDistances;                             /// The global distances
-    PointerCommunicatorPointer mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator 
+    LocalResultsVector mLocalResults;                                           /// Local results
+    GlobalResultsVector mGlobalResults;                                         /// Global results
+   
+    GlobalPointerCommunicatorPointerType mpGlobalPointerCommunicator = nullptr; /// Global pointer to the communicator 
 
     ///@}
     ///@name Private Operations

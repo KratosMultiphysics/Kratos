@@ -324,8 +324,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadiusContainer, 
     KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
 
     // Distances
-    auto& r_distances = results[near_point].GetLocalDistances();
-    KRATOS_CHECK_NEAR(r_distances.begin()->second, (cube_z - epsilon), tolerance);
+    auto distances = results[near_point].GetDistances();
+    KRATOS_CHECK_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
     // Compute indices
     auto indices = results[near_point].GetResultIndices();
@@ -391,8 +391,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestContainer, KratosFa
     KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
 
     // Distances
-    auto& r_distances = results[near_point].GetLocalDistances();
-    KRATOS_CHECK_NEAR(r_distances.begin()->second, (cube_z - epsilon), tolerance);
+    auto distances = results[near_point].GetDistances();
+    KRATOS_CHECK_NEAR(distances[0], (cube_z - epsilon), tolerance);
 
     // Compute indices
     auto indices = results[near_point].GetResultIndices();

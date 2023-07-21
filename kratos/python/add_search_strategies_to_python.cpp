@@ -103,12 +103,12 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
     .def("GetResultIndices", &ContainerType::GetResultIndices)
     .def("GetResultCoordinates", &ContainerType::GetResultCoordinates)
     .def("__getitem__", [](ContainerType& self, const std::size_t Index) {
-        return *(self.GetLocalPointers().GetContainer().begin() + Index);
+        return *(self.GetLocalResults().GetContainer().begin() + Index);
     })
     .def("__call__", [](ContainerType& self, const std::size_t Index) {
         // Check if the communicator has been created
         KRATOS_ERROR_IF(self.GetGlobalPointerCommunicator() == nullptr) << "The communicator has not been created. Therefore is not synchronized" << std::endl;
-        return *(self.GetGlobalPointers().GetContainer().begin() + Index);
+        return *(self.GetGlobalResults().GetContainer().begin() + Index);
     })
     .def("__str__", PrintObject<ContainerType>)
     .def("__iter__", [](ContainerType& self) {
@@ -583,7 +583,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
     using ResultTypeGeometricalObject = SpatialSearchResult<GeometricalObject>;
 
-    py::class_<ResultTypeGeometricalObject, ResultTypeGeometricalObject::Pointer>(m, "ResultTypeGeometricalObject")
+    py::class_<ResultTypeGeometricalObject, ResultTypeGeometricalObject::Pointer, IndexedObject>(m, "ResultTypeGeometricalObject")
     .def(py::init< >())
     .def(py::init<GeometricalObject*>())
     .def("Reset", &ResultTypeGeometricalObject::Reset)

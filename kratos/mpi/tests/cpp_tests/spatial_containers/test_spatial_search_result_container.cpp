@@ -41,17 +41,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerAddResult, 
     container.AddResult(result);
 
     // Check that the result was added correctly
-    auto& r_local_pointers = container.GetLocalPointers();
+    auto& r_local_pointers = container.GetLocalResults();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 1);
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
 
     // Check distances
-    auto& r_distances = container.GetLocalDistances();
-    KRATOS_CHECK_EQUAL(r_distances.size(), 1);
-    KRATOS_CHECK_EQUAL(r_distances[r_data_comm.Rank() + 1], 0.5);
+    auto distances = container.GetDistances();
+    KRATOS_CHECK_EQUAL(static_cast<int>(distances.size()), r_data_comm.Size());
+    KRATOS_CHECK_EQUAL(distances[r_data_comm.Rank()], 0.5);
 
     // Check global pointers
-    auto& r_global_pointers = container.GetGlobalPointers();
+    auto& r_global_pointers = container.GetGlobalResults();
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), 0); // It should be empty as we have not synchronized
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), container.NumberOfGlobalResults()); // It should be empty as we have not synchronized
 }
@@ -76,7 +76,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerClear, Krat
     container.Clear();
 
     // Check that the result was added correctly
-    auto& r_local_pointers = container.GetLocalPointers();
+    auto& r_local_pointers = container.GetLocalResults();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 0);
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
 }
@@ -100,12 +100,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronize
     container.SynchronizeAll(r_data_comm);
 
     // Check that the result was added correctly
-    auto& r_local_pointers = container.GetLocalPointers();
+    auto& r_local_pointers = container.GetLocalResults();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 1);
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
 
     // Check global pointers
-    auto& r_global_pointers = container.GetGlobalPointers();
+    auto& r_global_pointers = container.GetGlobalResults();
     KRATOS_CHECK_EQUAL(static_cast<int>(r_global_pointers.size()), r_data_comm.Size());
     KRATOS_CHECK_EQUAL(r_global_pointers.size(), container.NumberOfGlobalResults()); 
 }
@@ -249,7 +249,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapOperator
 
     // Check that the result was added correctly
     auto& r_result = container_map[point];
-    auto& r_local_pointers = r_result.GetLocalPointers();
+    auto& r_local_pointers = r_result.GetLocalResults();
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), 0);
     KRATOS_CHECK_EQUAL(r_local_pointers.size(), r_result.NumberOfLocalResults());
 }
