@@ -712,6 +712,124 @@ class TestHistoricalContainerExpression(kratos_unittest.TestCase, TestContainerE
     def _Evaluate(self, container_expression, variable):
         Kratos.Expression.VariableExpressionIO.Write(container_expression, variable, True)
 
+    def test_GetMaxDepth(self):
+        a = Kratos.Expression.LiteralExpression.Create(1, 10)
+        b = a + 10
+        c = b * 2
+        d = c ** 2
+        self.assertEqual(d.GetMaxDepth(), 4)
+
+    def test_GetShrinkedExpression(self):
+        a = Kratos.Expression.LiteralExpression.Create(1, 10)
+        b = a + 10
+        c = b * 2
+        d = c ** 2
+        self.assertEqual(d.GetMaxDepth(), 4)
+        e = d.GetShrinkedExpression()
+        self.assertEqual(e.GetMaxDepth(), 1)
+
+    def test_GetUtilizedExpressions(self):
+        a = Kratos.Expression.LiteralExpression.Create(1, 10)
+        b = a + 10
+        c = b * 2
+        d = c ** 2 + a
+
+        exp_list = d.GetUtilizedExpressions()
+
+        self.assertEqual(len(exp_list), 8)
+        self.assertTrue(a in exp_list)
+        self.assertTrue(b in exp_list)
+        self.assertTrue(c in exp_list)
+        self.assertTrue(d in exp_list)
+
+    def test_GetExpressionMaxDepth(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(a, Kratos.PRESSURE, True)
+
+        b = a + 10
+        c = b * 2
+        d = c ** 2
+        self.assertEqual(d.GetExpressionMaxDepth(), 4)
+
+    def test_Shrink(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(a, Kratos.PRESSURE, True)
+
+        b = a + 10
+        c = b * 2
+        d = c ** 2
+        self.assertEqual(d.GetExpressionMaxDepth(), 4)
+
+        e = d.Shrink()
+        self.assertEqual(e.GetExpressionMaxDepth(), 1)
+        self.assertVectorAlmostEqual(d.Evaluate(), e.Evaluate(), 12)
+
+    def test_AutoShrinkVec(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(a, Kratos.PRESSURE, True)
+
+        for i in range(25):
+            a += 10
+            self.assertEqual(a.GetExpressionMaxDepth(), (i % 19) + 2)
+
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(b, Kratos.PRESSURE, True)
+        self.assertVectorAlmostEqual(a.Evaluate(), b.Evaluate() + 10.0 * 25)
+
+    def test_AutoShrinkScalar(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(a, 11)
+
+        for i in range(25):
+            a += 10
+            self.assertEqual(a.GetExpressionMaxDepth(), (i % 19) + 2)
+
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(b, 11 + 10 * 25)
+        self.assertVectorAlmostEqual(a.Evaluate(), b.Evaluate())
+
+    def test_AutoShrinkVector(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(a, Kratos.Vector(5, 2))
+
+        for i in range(25):
+            a += 10
+            self.assertEqual(a.GetExpressionMaxDepth(), (i % 19) + 2)
+
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(b, Kratos.Vector(5, 2 + 10 * 25))
+        self.assertAlmostEqual(numpy.linalg.norm(a.Evaluate()- b.Evaluate()), 0.0)
+
+    def test_AutoShrinkMatrix(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(a, Kratos.Matrix(2, 2, 3))
+
+        for i in range(25):
+            a += 10
+            self.assertEqual(a.GetExpressionMaxDepth(), (i % 19) + 2)
+
+        b = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(b, Kratos.Matrix(2, 2, 3 + 10 * 25))
+        self.assertAlmostEqual(numpy.linalg.norm(a.Evaluate()- b.Evaluate()), 0.0)
+
+    def test_AutoShrinkScalar(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(a, 11)
+        for _ in range(21):
+            a += 10
+
+    def test_AutoShrinkVector(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(a, Kratos.Vector(10, 2.0))
+        for _ in range(21):
+            a += 10
+
+    def test_AutoShrinkVector(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.LiteralExpressionIO.SetData(a, Kratos.Matrix(2, 2, 3.0))
+        for _ in range(21):
+            a += 10
+
 class TestNodalContainerExpression(kratos_unittest.TestCase, TestContainerExpression):
     @classmethod
     def setUpClass(cls):
@@ -840,38 +958,6 @@ class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
         for node in self.model_part.Nodes:
             self.assertVectorAlmostEqual(Kratos.Array3([node.X0, node.Y0, node.Z0]) * 6, node.GetValue(Kratos.VELOCITY))
 
-
-class TestExpression(kratos_unittest.TestCase):
-    def test_GetMaxDepth(self):
-        a = Kratos.Expression.LiteralExpression.Create(1, 10)
-        b = a + 10
-        c = b * 2
-        d = c ** 2
-        self.assertEqual(d.GetMaxDepth(), 4)
-
-    def test_GetShrinkedExpression(self):
-        a = Kratos.Expression.LiteralExpression.Create(1, 10)
-        b = a + 10
-        c = b * 2
-        d = c ** 2
-        self.assertEqual(d.GetMaxDepth(), 4)
-        e = d.GetShrinkedExpression()
-        self.assertEqual(e.GetMaxDepth(), 1)
-
-    def test_GetUtilizedExpressions(self):
-        a = Kratos.Expression.LiteralExpression.Create(1, 10)
-        b = a + 10
-        c = b * 2
-        d = c ** 2
-
-        exp_list = d.GetUtilizedExpressions()
-
-        self.assertEqual(len(exp_list), 7)
-        self.assertTrue(a in exp_list)
-        self.assertTrue(b in exp_list)
-        self.assertTrue(c in exp_list)
-        self.assertTrue(d in exp_list)
-
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
+    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
