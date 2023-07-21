@@ -49,7 +49,7 @@ namespace Kratos {
         ///@{
 
         SetMultipleMovingLoadsProcess(ModelPart & rModelPart,
-            const Parameters & rParameters);
+                                      const Parameters & rParameters);
 
         SetMultipleMovingLoadsProcess(const SetMultipleMovingLoadsProcess&) = delete;
         SetMultipleMovingLoadsProcess& operator=(const SetMultipleMovingLoadsProcess&) = delete;
@@ -111,4 +111,4 @@ namespace Kratos {
 
         ///@}
     };
-    }
+ }
