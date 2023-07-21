@@ -92,6 +92,11 @@ class Optimizer:
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_COORDINATE)
                 model_part.AddNodalSolutionStepVariable(KSO.BACKGROUND_NORMAL)
                 model_part.AddNodalSolutionStepVariable(KSO.OUT_OF_PLANE_DELTA)
+        if self.optimization_settings["design_variables"]["filter"].Has("centerline_morphing") and \
+            self.optimization_settings["design_variables"]["filter"]["centerline_morphing"].GetBool():
+                model_part = self.model_part_controller.GetOptimizationModelPart()
+                model_part.AddNodalSolutionStepVariable(KSO.HEAT_GRADIENT)
+                model_part.AddNodalSolutionStepVariable(KSO.HEAT_DISTANCE)
 
         if self.optimization_settings["design_variables"]["filter"]["filter_radius"].IsString() and \
             self.optimization_settings["design_variables"]["filter"]["filter_radius"].GetString() == "adaptive":

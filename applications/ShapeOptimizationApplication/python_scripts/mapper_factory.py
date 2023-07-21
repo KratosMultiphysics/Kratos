@@ -47,6 +47,10 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
             "minimum_filter_radius": 1e-3,
             "curvature_limit": 1e-3,
             "filter_radius_smoothing_iterations": 10
+        },
+        "centerline_morphing": false,
+        "centerline_morphing_settings": {
+            "cross_section_rotations": false
         }
     }""")
 
@@ -54,6 +58,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
     mapper_vertex_morphing_improved_integration = KSO.MapperVertexMorphingImprovedIntegration
     mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetric
     mapper_vertex_morphing = KSO.MapperVertexMorphing
+    mapper_centerline = KSO.MapperCenterline
     if mapper_settings.Has("filter_radius") and mapper_settings["filter_radius"].IsString():
         if mapper_settings["filter_radius"].GetString() == "adaptive":
             if mapper_settings.Has("adaptive_filter_method") and mapper_settings["adaptive_filter_method"].GetString() != "curvature_based":
@@ -77,6 +82,8 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         return in_plane_vertex_morphing_mapper.InPlaneVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings)
     elif mapper_settings["sliding_morphing"].GetBool():
         return sliding_vertex_morphing_mapper.SlidingVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings)
+    elif mapper_settings["centerline_morphing"].GetBool():
+        return mapper_centerline(origin_model_part, destination_model_part, mapper_settings)
     elif mapper_settings["matrix_free_filtering"].GetBool():
         if mapper_settings["consistent_mapping"].GetBool():
              raise ValueError ("Matrix free mapper has no option to map consistently yet!")

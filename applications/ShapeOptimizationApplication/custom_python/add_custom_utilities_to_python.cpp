@@ -28,6 +28,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
+#include "custom_utilities/mapping/mapper_centerline.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_adaptive_radius.h"
@@ -115,6 +116,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Map", MapVector<MapperVertexMorphingMatrixFree>)
         .def("InverseMap", InverseMapScalar<MapperVertexMorphingMatrixFree>)
         .def("InverseMap", InverseMapVector<MapperVertexMorphingMatrixFree>)
+        ;
+    py::class_<MapperCenterline >(m, "MapperCenterline")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperCenterline::Initialize)
+        .def("Update", &MapperCenterline::Update)
+        .def("Map", MapScalar<MapperCenterline>)
+        .def("Map", MapVector<MapperCenterline>)
+        .def("InverseMap", InverseMapScalar<MapperCenterline>)
+        .def("InverseMap", InverseMapVector<MapperCenterline>)
         ;
     py::class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
