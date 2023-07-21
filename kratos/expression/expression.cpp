@@ -12,10 +12,14 @@
 
 // System includes
 #include <numeric>
+#include <algorithm>
+#include <vector>
 
 // Project includes
-#include "utilities/parallel_utilities.h"
+#include "expression/literal_expression.h"
 #include "expression/literal_flat_expression.h"
+#include "includes/ublas_interface.h"
+#include "utilities/parallel_utilities.h"
 
 // Include base h
 #include "expression.h"
@@ -103,21 +107,58 @@ Expression::ExpressionIterator Expression::ExpressionIterator::operator++(int)
     return temp;
 }
 
+Expression::Expression(const IndexType NumberOfEntities)
+    : mNumberOfEntities(NumberOfEntities)
+{
+}
+
 Expression::ConstPointer Expression::GetShrinkedExpression() const
 {
     const IndexType number_of_entities = this->NumberOfEntities();
     const IndexType number_of_components = this->GetItemComponentCount();
+    const auto& r_shape = this->GetItemShape();
 
-    auto p_expression = LiteralFlatExpression<double>::Create(number_of_entities, this->GetItemShape());
+    // generate the unique utilized expressions list
+    std::set<Expression::ConstPointer> expressions;
+    this->FillUtilizedExpressions(expressions);
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
-        const IndexType entity_data_begin_index = Index * number_of_components;
-        for (IndexType i = 0; i < number_of_components; ++i) {
-            p_expression->SetData(entity_data_begin_index, i, this->Evaluate(Index, entity_data_begin_index, i));
+    if (std::any_of(expressions.begin(), expressions.end(), [](const auto& pExpression) {
+        return dynamic_cast<LiteralFlatExpression<char> const*>(pExpression.get()) ||
+               dynamic_cast<LiteralFlatExpression<int> const*>(pExpression.get()) ||
+               dynamic_cast<LiteralFlatExpression<double> const*>(pExpression.get()); })) {
+
+        auto p_expression = LiteralFlatExpression<double>::Create(number_of_entities, r_shape);
+
+        IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
+            const IndexType entity_data_begin_index = Index * number_of_components;
+            for (IndexType i = 0; i < number_of_components; ++i) {
+                p_expression->SetData(entity_data_begin_index, i, this->Evaluate(Index, entity_data_begin_index, i));
+            }
+        });
+
+        return p_expression;
+    } else {
+        if (r_shape.size() == 0) {
+            return LiteralExpression<double>::Create(this->Evaluate(0, 0, 0), number_of_entities);
+        } else if (r_shape.size() == 1) {
+            std::vector<IndexType> indices;
+            indices.resize(r_shape[0]);
+            std::iota(indices.begin(), indices.end(), 0);
+            Vector value(r_shape[0]);
+            std::transform(indices.begin(), indices.end(), value.begin(), [&](const auto Index) { return this->Evaluate(0, 0, Index);});
+            return LiteralExpression<Vector>::Create(value, number_of_entities);
+        } else if (r_shape.size() == 2) {
+            std::vector<IndexType> indices;
+            indices.resize(r_shape[0] * r_shape[1]);
+            std::iota(indices.begin(), indices.end(), 0);
+            Matrix value(r_shape[0], r_shape[1]);
+            std::transform(indices.begin(), indices.end(), value.data().begin(), [&](const auto Index) { return this->Evaluate(0, 0, Index);});
+            return LiteralExpression<Matrix>::Create(value, number_of_entities);
+        } else {
+            KRATOS_ERROR << "Unsupported shape found in expression: \"" << *this << "\". The maximum dimension supported is 2. [ shape = " << this->GetItemShape() << " ].\n";
+            return LiteralExpression<double>::Create(this->Evaluate(0, 0, 0), number_of_entities);
         }
-    });
-
-    return p_expression;
+    }
 }
 
 std::size_t Expression::GetItemComponentCount() const

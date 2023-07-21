@@ -145,7 +145,7 @@ public:
     ///@name Life cycle
     ///@{
 
-    Expression(const IndexType NumberOfEntities) : mNumberOfEntities(NumberOfEntities) {}
+    Expression(const IndexType NumberOfEntities);
 
     virtual ~Expression() = default;
 
@@ -242,26 +242,26 @@ public:
     ///@}
 
 protected:
-    ///@name Protected operations
+    ///@name Protected static variables
     ///@{
 
-
+    static constexpr IndexType MAX_SHRINKING_DEPTH = 20;
 
     ///@}
 
 private:
-    friend class ExpressionInput;
-
-    friend class ExpressionOutput;
-
     ///@name Private member variables
     ///@{
 
     const IndexType mNumberOfEntities;
 
     ///@}
-    ///@name Private operations
+    ///@name Friends
     ///@{
+
+    friend class ExpressionInput;
+
+    friend class ExpressionOutput;
 
     //*********************************************
     // this block is needed for refcounting in the @ref intrusive ptr
