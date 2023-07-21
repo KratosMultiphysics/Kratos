@@ -391,8 +391,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestContainer, KratosCo
     KRATOS_CHECK_EQUAL(results[near_point].NumberOfGlobalResults(), 1);
 
     // Distances
-    auto distances = results[near_point].GetDistances();
-    KRATOS_CHECK_NEAR(distances[0], (cube_z - epsilon), tolerance);
+    KRATOS_CHECK_NEAR(results[near_point][0].GetDistance(), (cube_z - epsilon), tolerance);
 
     // Compute indices
     auto indices = results[near_point].GetResultIndices();
