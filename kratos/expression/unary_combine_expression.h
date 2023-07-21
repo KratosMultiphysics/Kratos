@@ -17,6 +17,7 @@
 #include <vector>
 
 // Project includes
+#include "input_output/logger.h"
 #include "expression/expression.h"
 
 namespace Kratos {
@@ -74,6 +75,18 @@ public:
         // Corner case: empty expression range provided
         KRATOS_ERROR_IF(this->GetItemComponentCount() == 0)
             << "No expressions were given.\n";
+
+        for (auto& p_expression : mSourceExpressions) {
+            if (p_expression->GetMaxDepth() >= MAX_SHRINKING_DEPTH) {
+                // expression reached the max shrinking depth. Hence
+                // it will shirnked.
+                KRATOS_WARNING("UnaryCombineExpression")
+                    << "The expression: \"" << *this
+                    << "\" is shrunk because it reached the lazy expression tree max shrinking depth of "
+                    << MAX_SHRINKING_DEPTH << ".\n";
+                p_expression = p_expression->GetShrinkedExpression();
+            }
+        }
     }
 
     ///@}
@@ -148,7 +161,7 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const std::vector<Expression::ConstPointer> mSourceExpressions;
+    std::vector<Expression::ConstPointer> mSourceExpressions;
 
     std::vector<IndexType> mStrides;
 

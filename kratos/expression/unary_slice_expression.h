@@ -72,7 +72,7 @@ protected:
     ///@name Private member variables
     ///@{
 
-    const Expression::ConstPointer mpSourceExpression;
+    Expression::ConstPointer mpSourceExpression;
 
     const IndexType mOffset;
 

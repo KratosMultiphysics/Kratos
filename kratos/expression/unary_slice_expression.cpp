@@ -14,6 +14,7 @@
 #include <sstream>
 
 // Project includes
+#include "input_output/logger.h"
 
 // Include base h
 #include "unary_slice_expression.h"
@@ -35,6 +36,16 @@ UnarySliceExpression::UnarySliceExpression(
         << Offset << ", stride = " << Stride << ", expression stride = "
         << mSourceStride << " ].\n" << "Source expression:\n"
         << *mpSourceExpression << "\n";
+
+    if (mpSourceExpression->GetMaxDepth() >= MAX_SHRINKING_DEPTH) {
+        // expression reached the max shrinking depth. Hence
+        // it will shirnked.
+        KRATOS_WARNING("UnarySliceExpression")
+            << "The expression: \"" << *this
+            << "\" is shrunk because it reached the lazy expression tree max shrinking depth of "
+            << MAX_SHRINKING_DEPTH << ".\n";
+        mpSourceExpression = mpSourceExpression->GetShrinkedExpression();
+    }
 }
 
 Expression::Pointer UnarySliceExpression::Create(
