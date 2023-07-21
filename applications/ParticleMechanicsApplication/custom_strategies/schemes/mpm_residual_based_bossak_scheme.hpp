@@ -264,7 +264,7 @@ public:
             }
 
             if (i->Is(SLIP)) {
-                mRotationTool.ConstraintDerivatives(r_current_velocity, r_current_acceleration, *i);
+                mRotationTool.ConstraintDerivatives(current_velocity, current_acceleration, *i);
             }
 		}
 
