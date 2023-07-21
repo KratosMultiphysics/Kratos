@@ -139,39 +139,34 @@ class MeasurementResidualResponseFunction(ResponseFunction):
 
             self.adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
 
-            self.adjoint_model = Kratos.Model()
-            self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.adjoint_model, self.adjoint_parameters)
-            self.adjoint_model_part: Kratos.ModelPart = self.adjoint_analysis._GetSolver().GetComputingModelPart()
+            adjoint_analysis = Kratos.Model()
+            adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_analysis, self.adjoint_parameters)
+            adjoint_model_part: Kratos.ModelPart = adjoint_analysis._GetSolver().GetComputingModelPart()
 
-            self.adjoint_analysis.Initialize()
-            print("MeasurementResidualResponseFunction:: Finished initialization")
+            adjoint_analysis.Initialize()
 
             # create element specific properties in adjoint model part
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.adjoint_model_part, self.adjoint_model_part.Elements)
-            print("MeasurementResidualResponseFunction:: Finished creating entity specific properties")
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(adjoint_model_part, adjoint_model_part.Elements)
 
             # read primal E
             primal_youngs_modulus = Kratos.Expression.ElementExpression(self.primal_model_part)
             KratosOA.PropertiesVariableExpressionIO.Read(primal_youngs_modulus, Kratos.YOUNG_MODULUS)
-            print("MeasurementResidualResponseFunction:: Finished reading updated properties")
 
             # assign primal E to adjoint
-            adjoint_young_modulus = Kratos.Expression.ElementExpression(self.adjoint_model_part)
+            adjoint_young_modulus = Kratos.Expression.ElementExpression(adjoint_model_part)
             adjoint_young_modulus.SetExpression(primal_youngs_modulus.GetExpression())
             KratosOA.PropertiesVariableExpressionIO.Write(adjoint_young_modulus, Kratos.YOUNG_MODULUS)
-            print("MeasurementResidualResponseFunction:: Finished assigning updated properties to adjoint model")
 
-            self.adjoint_analysis.RunSolutionLoop()
-            print("MeasurementResidualResponseFunction:: Finished calculation of sensitivities")
-            self.adjoint_analysis.Finalize()
-            print("MeasurementResidualResponseFunction:: Finished finalize")
+            adjoint_analysis.RunSolutionLoop()
+            adjoint_analysis.Finalize()
 
             # now fill the collective expressions
+            adjoint_young_modulus_sensitivity = Kratos.Expression.ElementExpression(adjoint_model_part)
             for expression in collective_expression.GetContainerExpressions():
                 if isinstance(expression, Kratos.Expression.ElementExpression):
-                    adjoint_young_modulus_sensitivity = Kratos.Expression.ElementExpression(self.adjoint_model_part)
                     Kratos.Expression.VariableExpressionIO.Read(adjoint_young_modulus_sensitivity, KratosOA.YOUNG_MODULUS_SENSITIVITY)
-                    expression.SetExpression(adjoint_young_modulus_sensitivity.GetExpression())
+
+                    Kratos.Expression.CArrayExpressionIO.Read(expression, adjoint_young_modulus_sensitivity.Evaluate())
                 else:
                     KratosOA.PropertiesVariableExpressionIO.Read(expression, Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
             print("MeasurementResidualResponseFunction:: Finished writing sensitivities to expression")
