@@ -24,24 +24,26 @@ mKernelFunctionType(rKernelFunctionType)
 {
     // Set type of weighting function
 
+    std::function<double (const double, const double)> filter_function;
+
     if (mKernelFunctionType == "gaussian") {
         // Type 1: Gaussian function
-        mFilterFunctional =  [](double radius, double distance) {return std::max(0.0, exp(-(distance*distance)));};
+        filter_function = [](double radius, double distance) {return std::max(0.0, exp(-(distance*distance)));};
     } else if (mKernelFunctionType == "linear") {
         // Type 2: Linear function
-        mFilterFunctional =  [](double radius, double distance) {return std::max(0.0, (radius - distance) / radius);};
+        filter_function =  [](double radius, double distance) {return std::max(0.0, (radius - distance) / radius);};
     } else if (mKernelFunctionType == "constant") {
         // Type 3: Constant function
-        mFilterFunctional = [](double radius, double distance) {return 1.0;};
+        filter_function = [](double radius, double distance) {return 1.0;};
     } else if (mKernelFunctionType == "cosine") {
         // Type 4: Cosine function
-        mFilterFunctional = [](double radius, double distance) {return std::max(0.0, 1-0.5*(1-std::cos(Globals::Pi/radius*distance)));};
+        filter_function = [](double radius, double distance) {return std::max(0.0, 1-0.5*(1-std::cos(Globals::Pi/radius*distance)));};
     } else if (mKernelFunctionType == "quartic") {
         // Type 5: Quartic function
-        mFilterFunctional = [](double radius, double distance) {return std::max(0.0, (pow(distance-radius,4.0)/pow(radius,4.0)));};
+        filter_function = [](double radius, double distance) {return std::max(0.0, (pow(distance-radius,4.0)/pow(radius,4.0)));};
     } else if (mKernelFunctionType == "sigmoidal") {
         // Type 6: Sigmoidal function
-        mFilterFunctional = [](double radius, double distance) {
+        filter_function = [](double radius, double distance) {
             const double limit = std::log1p(std::numeric_limits<double>::max());
             double pow_val = -2.0 * std::numeric_limits<double>::max() * (distance - radius);
             pow_val = std::clamp(pow_val, -limit, limit);
@@ -56,6 +58,20 @@ mKernelFunctionType(rKernelFunctionType)
                      << "\n\tcosine"
                      << "\n\tsigmoidal"
                      << "\n\tquartic.\n";
+    }
+
+    if (mKernelFunctionType == "sigmoidal") {
+        mFilterFunctional = filter_function;
+    } else {
+        mFilterFunctional = [filter_function](const double radius, const double distance) {
+            if (distance <= radius) {
+                return 0.0;
+            } else if (distance >= 2 * radius) {
+                return 1.0;
+            } else {
+                return filter_function(radius, distance / 2.0);
+            }
+        };
     }
 }
 
@@ -77,16 +93,7 @@ double DampingFunction::ComputeWeight(
     // Compute distance vector
     const double distance = GetDistance(ICoord, JCoord);
 
-    if (mKernelFunctionType != "sigmoidal"){
-        if (distance<=Radius)
-            return 0;
-        else if (distance>=2*Radius)
-            return 1;
-        else
-            return mFilterFunctional(Radius, distance/2.0);
-    }
-    else
-        return mFilterFunctional(Radius, distance);
+    return mFilterFunctional(Radius, distance);
 
     KRATOS_CATCH("");
 }
