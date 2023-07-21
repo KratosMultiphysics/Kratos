@@ -41,7 +41,8 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(SpatialSearchResultTyp
     // Check if the object has been found
     if (rResult.IsObjectFound()) {
         // Adding to the local results
-        mLocalResults.push_back(Kratos::shared_ptr<SpatialSearchResultType>(&rResult));
+        auto p_result = Kratos::make_shared<SpatialSearchResultType>(rResult);
+        mLocalResults.push_back(p_result);
     }
 }
 
