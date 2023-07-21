@@ -47,6 +47,8 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
         .def("GetContainer", py::overload_cast<>(&container_expression_holder_base::GetContainer), py::return_value_policy::reference)
         .def("GetItemShape", &container_expression_holder_base::GetItemShape)
         .def("GetItemComponentCount", &container_expression_holder_base::GetItemComponentCount)
+        .def("GetExpressionMaxDepth", &container_expression_holder_base::GetExpressionMaxDepth)
+        .def("Shrink", &container_expression_holder_base::Shrink)
         .def("Slice",
              &container_expression_holder_base::Slice,
              py::arg("offset"),
