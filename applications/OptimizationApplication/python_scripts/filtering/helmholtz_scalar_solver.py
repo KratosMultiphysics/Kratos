@@ -11,21 +11,21 @@ def CreateSolver(model: KM.Model, custom_settings: KM.Parameters):
     return HelmholtzScalarSolver(model, custom_settings)
 
 class HelmholtzScalarSolver(HelmholtzSolverBase):
-    def AddVariables(self):
+    def AddVariables(self) -> None:
         # Add variables required for the helmholtz filtering
-        self.original_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
-        self.helmholtz_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
+        self.GetOriginRootModelPart().AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
+        self.GetComputingModelPart().AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SCALAR)
         KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: Variables ADDED.")
 
-    def AddDofs(self):
-        KM.VariableUtils().AddDof(KOA.HELMHOLTZ_SCALAR, self.helmholtz_model_part)
+    def AddDofs(self) -> None:
+        KM.VariableUtils().AddDof(KOA.HELMHOLTZ_SCALAR, self.GetComputingModelPart())
         KM.Logger.PrintInfo("::[HelmholtzScalarSolver]:: DOFs ADDED.")
 
-    def PrepareModelPart(self):
+    def PrepareModelPart(self) -> None:
         #check elements types
         is_surface = False
         num_nodes = None
-        for elem in self.original_model_part.Elements:
+        for elem in self.GetOriginModelPart().Elements:
             geom = elem.GetGeometry()
             if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
                 is_surface = True
@@ -37,4 +37,4 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
         else:
             element_name = f"HelmholtzSolidElement3D{num_nodes}N"
 
-        KM.ConnectivityPreserveModeler().GenerateModelPart(self.original_model_part, self.helmholtz_model_part, element_name)
+        KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), element_name)
