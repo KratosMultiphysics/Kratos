@@ -4,6 +4,7 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 if KratosMultiphysics.IsDistributedRun():
     import KratosMultiphysics.mpi as KratosMPI
+    import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
 
 def SetParameters(name, use_memory="false"):
     parameters = """{
@@ -22,7 +23,7 @@ def ImportModelPart(model_part, import_settings):
     if KratosMultiphysics.IsDistributedRun():
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         # Construct the Trilinos import model part utility
-        distributed_model_part_importer = KratosMPI.distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, import_settings)
+        distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, import_settings)
         # Execute the Metis partitioning and reading
         distributed_model_part_importer.ImportModelPart()
         distributed_model_part_importer.CreateCommunicators()
