@@ -4,16 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//
+//                   Jordi Cotela Dalmau
 //
 
-#if !defined(KRATOS_MPI_COMMUNICATOR_H_INCLUDED )
-#define  KRATOS_MPI_COMMUNICATOR_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -2315,5 +2314,3 @@ void MPICommunicator::UpdateValues(
     MPICommunicator::Operation<OperationType::Combine>);
 
 } // namespace Kratos.
-
-#endif // KRATOS_MPI_COMMUNICATOR_H_INCLUDED  defined

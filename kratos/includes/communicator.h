@@ -4,27 +4,21 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 //
 
-
-
-#if !defined(KRATOS_COMMUNICATOR_H_INCLUDED )
-#define  KRATOS_COMMUNICATOR_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <cstddef>
-
 
 // External includes
 
@@ -615,5 +609,3 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 
 
 } // namespace Kratos.
-
-#endif // KRATOS_COMMUNICATOR_H_INCLUDED  defined

@@ -322,9 +322,9 @@ public:
 
     /**
      * @brief This is a call to the linear system solver
-     * @param A The LHS matrix
-     * @param Dx The Unknowns vector
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
      */
     void SystemSolveWithPhysics(TSystemMatrixType& rA,
                                 TSystemVectorType& rDx,
@@ -1519,6 +1519,7 @@ protected:
     {
         BaseType::AssignSettings(ThisParameters);
 
+        // Get guess row size and synchronize dof set flag
         mGuessRowSize = ThisParameters["guess_row_size"].GetInt();
         mSynchronizeDofSet = ThisParameters["synchronize_dof_set"].GetBool();
 
