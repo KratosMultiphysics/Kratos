@@ -41,6 +41,9 @@ class AlgorithmSystemIdentification(Algorithm):
             "echo_level"        : 0,
             "settings"          : {
                 "echo_level"      : 0,
+                "line_search_tests_step_size": 1,
+                "line_search_degree_of_polynomial": 3,
+                "line_search_damping": 0.25,
                 "line_search"     : {},
                 "conv_settings"   : {}
             }
@@ -69,8 +72,12 @@ class AlgorithmSystemIdentification(Algorithm):
         self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
         self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
 
+        self.line_search_tests_step_size = settings["line_search_tests_step_size"].GetDouble()
+        self.line_search_degree_of_polynomial = settings["line_search_degree_of_polynomial"].GetInt()
+        self.line_search_damping = settings["line_search_damping"].GetDouble()
+
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
-        self.__control_field = None
+        self.__control_field: KratosOA.CollectiveExpression = None
         self.__obj_val = None
         self.algorithm_data = None
 
@@ -86,7 +93,7 @@ class AlgorithmSystemIdentification(Algorithm):
         self.__objective.Initialize()
         self.__objective.Check()
         self.master_control.Initialize()
-        self.__control_field = self.master_control.GetControlField()  # GetInitialControlFields() later
+        self.__control_field = self.master_control.GetControlField()
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
     def Finalize(self):
@@ -129,22 +136,18 @@ class AlgorithmSystemIdentification(Algorithm):
     def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
         with TimeLogger("AlgorithmSystemIdentification::ComputeControlUpdate", None, "Finished"):
             update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
-            self.algorithm_data.GetBufferedData()["parameter_update_in iteration"] = update
-
-        # TODO: remove after testing
-        # for container_expression in update.GetContainerExpressions():
-        #     current_values = container_expression.Evaluate()
-        #     random_value = np.random.normal(0, np.max(np.abs(current_values))*0.1, current_values.size)
-        #     random_values_expression = Kratos.Expression.ElementExpression(container_expression.GetModelPart())
-        #     Kratos.Expression.CArrayExpressionIO.Read(random_values_expression, random_value)
-        #     container_expression += random_values_expression
+            self.algorithm_data.GetBufferedData()["parameter_update_in_iteration"] = update
 
         return self.UpdateControl
 
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
         with TimeLogger("AlgorithmSystemIdentification::UpdateControl", None, "Finished"):
-            update = self.algorithm_data.GetBufferedData()["parameter_update_in iteration"]
+            update = self.algorithm_data.GetBufferedData()["parameter_update_in_iteration"]
             self.__control_field += update
+
+            for expression in self.__control_field.GetContainerExpressions():
+                Kratos.Expression.CArrayExpressionIO.Read(expression, expression.Evaluate())
+
             self.algorithm_data.GetBufferedData()["Stiffness_in_iteration"] = self.__control_field
 
         return self.__control_field
@@ -172,46 +175,33 @@ class AlgorithmSystemIdentification(Algorithm):
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSystemIdentification", self._optimization_problem.GetStep()):
 
-                print("AlgorithmSystemIdentification:: Starting next Iteration")
-
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 CallOnAll(self._optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Execute)
-                print("AlgorithmSystemIdentification:: Finished execution of primals")
 
                 obj_info = self.__objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
                 self.algorithm_data.GetBufferedData()["rel_obj_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_obj_change[%]"] = obj_info["abs_change [%]"]
-                print("AlgorithmSystemIdentification:: Finished writing obj value to buffer")
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
-                print("AlgorithmSystemIdentification:: Finished sensitivity calculation")
 
                 self.ComputeSearchDirection(obj_grad)
-                print("AlgorithmSystemIdentification:: Finished search direction computation")
+                alpha = self.find_best_step_size_from_polynomial_approximation(tests_step_size=self.line_search_tests_step_size, degree_of_polynomial=self.line_search_degree_of_polynomial)
 
-                alpha = self.__line_search_method.ComputeStep() # This is not really a "line search method" instead it it more a "specify a step length and it will be applied method"
                 self.algorithm_data.GetBufferedData()["step_size_alpha"] = alpha
-                print("AlgorithmSystemIdentification:: Finished line search")
 
                 self.ComputeControlUpdate(alpha)
-                print("AlgorithmSystemIdentification:: Finished control update computation")
 
                 self.UpdateControl()
-                print("AlgorithmSystemIdentification:: Finished update of parameters")
 
                 self.Output()
-                print("AlgorithmSystemIdentification:: Finished writing the output")
 
                 self.converged = self.__convergence_criteria.IsConverged()
-                print("AlgorithmSystemIdentification:: Finished checking for convergence")
 
                 self._optimization_problem.AdvanceStep()
-                print("AlgorithmSystemIdentification:: Finished advancing step")
 
                 self.Finalize()
-                print("AlgorithmSystemIdentification:: Finished finalize")
 
         return self.converged
 
@@ -220,3 +210,31 @@ class AlgorithmSystemIdentification(Algorithm):
             return self.__obj_val
         else:
             raise RuntimeError("Optimization problem hasn't been solved.")
+
+    def find_best_step_size_from_polynomial_approximation(self, tests_step_size, degree_of_polynomial: int = 3):
+
+        n__steps = degree_of_polynomial
+        objective_values = np.zeros(n__steps)
+        step_values = np.zeros(n__steps)
+        update = self.algorithm_data.GetBufferedData()["search_direction"] * tests_step_size
+
+        for i in range(n__steps):
+            self.__control_field += update
+
+            objective_values[i] = self.__objective.CalculateStandardizedValue(self.__control_field)
+            step_values[i] = (i+1) * tests_step_size
+
+        polynomial_coefficients = np.polynomial.polynomial.polyfit(x=step_values, y=objective_values, deg=n__steps-1)
+        gradient_polynomial_coefficients = polynomial_coefficients[1:]
+        if gradient_polynomial_coefficients.size == 2:
+            best_step_length = float(-(gradient_polynomial_coefficients[0] / (2*gradient_polynomial_coefficients[1])))
+        else:
+            roots = np.polynomial.polynomial.polyroots(polynomial_coefficients[1:])
+            best_step_length = float(np.min(np.abs(roots)))
+
+        if best_step_length > 2 * n__steps * tests_step_size:
+            best_step_length = 2 * n__steps * tests_step_size
+
+        best_step_length *= self.line_search_damping
+
+        return best_step_length
