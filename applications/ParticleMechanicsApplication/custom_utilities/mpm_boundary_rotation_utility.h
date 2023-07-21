@@ -140,7 +140,7 @@ public:
         for(NodeType &curr_node : rModelPart.Nodes()){
             curr_node.SetLock();
             curr_node.Reset(INLET);
-            curr_node.FastGetSolutionStepValue(MPM_NORMAL_FORCE) = 0.0;
+            curr_node.FastGetSolutionStepValue(NORMAL_REACTION) = 0.0;
             curr_node.UnSetLock();
         }
         KRATOS_CATCH( "" )
@@ -186,13 +186,13 @@ public:
                         rLocalMatrix(j, j) = 1.0; // set diagonal term to 1.0
                     }
 
-                    /// Computation of nodal reaction forces due to conforming SLIP BC -- use MPM_NORMAL_FORCE
+                    /// Computation of nodal reaction forces due to conforming SLIP BC -- use NORMAL_REACTION
                     /// as frame of reference is aligned with node normals [& not global frame of ref per REACTION]
                     // Accumulate RHS values along normal direction to FORCE_RESIDUAL [nodal reaction forces due to conforming SLIP]
                     // -- when converged, RHS ~= 0 -> FORCE_RESIDUAL = -RHS value [computed without adding reaction force]
 
                     rGeometry[itNode].SetLock();
-                    rGeometry[itNode].FastGetSolutionStepValue(MPM_NORMAL_FORCE) -= rLocalVector[j];
+                    rGeometry[itNode].FastGetSolutionStepValue(NORMAL_REACTION) -= rLocalVector[j];
                     rGeometry[itNode].UnSetLock();
 
                     // Set value of normal displacement at node directly to the normal displacement of the boundary mesh

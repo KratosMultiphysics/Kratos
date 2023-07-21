@@ -130,8 +130,10 @@ namespace Python{
         // Stabilization variables
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, STABILIZATION_TYPE);
 
-        // For friction, nodal normal force [easier this way]
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MPM_NORMAL_FORCE)
+        // For friction
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NORMAL_REACTION);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAX_TANGENT_FORCE);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_SLIDING);
     }
 
 }  // namespace Python.

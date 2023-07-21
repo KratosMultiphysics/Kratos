@@ -280,7 +280,7 @@ class MPMSolver(PythonSolver):
         # Add displacements and reaction
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.MPM_NORMAL_FORCE)
+        model_part.AddNodalSolutionStepVariable(KratosParticle.NORMAL_REACTION)
 
         # Add specific variables for the problem conditions
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)

@@ -304,8 +304,10 @@ namespace Kratos
         // Stabilization variables
         KRATOS_REGISTER_VARIABLE(STABILIZATION_TYPE)
 
-        // For friction, nodal normal force [easier this way]
-        KRATOS_REGISTER_VARIABLE(MPM_NORMAL_FORCE)
+        // For friction
+        KRATOS_REGISTER_VARIABLE(NORMAL_REACTION)
+        KRATOS_REGISTER_VARIABLE(MAX_TANGENT_FORCE)
+        KRATOS_REGISTER_VARIABLE(IS_SLIDING)
     }
 
 }  // namespace Kratos.
