@@ -841,6 +841,37 @@ class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
             self.assertVectorAlmostEqual(Kratos.Array3([node.X0, node.Y0, node.Z0]) * 6, node.GetValue(Kratos.VELOCITY))
 
 
+class TestExpression(kratos_unittest.TestCase):
+    def test_GetMaxDepth(self):
+        a = Kratos.Expression.LiteralExpression.Create(1, 10)
+        b = a + 10
+        c = b * 2
+        d = c ** 2
+        self.assertEqual(d.GetMaxDepth(), 4)
+
+    def test_GetShrinkedExpression(self):
+        a = Kratos.Expression.LiteralExpression.Create(1, 10)
+        b = a + 10
+        c = b * 2
+        d = c ** 2
+        self.assertEqual(d.GetMaxDepth(), 4)
+        e = d.GetShrinkedExpression()
+        self.assertEqual(e.GetMaxDepth(), 1)
+
+    def test_GetUtilizedExpressions(self):
+        a = Kratos.Expression.LiteralExpression.Create(1, 10)
+        b = a + 10
+        c = b * 2
+        d = c ** 2
+
+        exp_list = d.GetUtilizedExpressions()
+
+        self.assertEqual(len(exp_list), 7)
+        self.assertTrue(a in exp_list)
+        self.assertTrue(b in exp_list)
+        self.assertTrue(c in exp_list)
+        self.assertTrue(d in exp_list)
+
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
+    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.TESTS_OUTPUTS)  # TESTS_OUTPUTS
     kratos_unittest.main()
